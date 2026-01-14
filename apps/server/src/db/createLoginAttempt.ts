@@ -1,4 +1,5 @@
-import { prisma } from "./prisma.js";
+import { db } from "./client.js";
+import { loginAttempts } from "./schema.js";
 
 type Params = {
   userId: string;
@@ -9,10 +10,17 @@ export const createLoginAttempt = async ({
   userId,
   serverLoginState,
 }: Params) => {
-  return prisma.loginAttempt.create({
-    data: {
-      userId,
-      serverLoginState,
-    },
-  });
+  const [attempt] = await db
+    .insert(loginAttempts)
+    .values({ userId, serverLoginState })
+    .onConflictDoUpdate({
+      target: loginAttempts.userId,
+      set: {
+        serverLoginState,
+        createdAt: new Date(),
+      },
+    })
+    .returning();
+
+  return attempt;
 };

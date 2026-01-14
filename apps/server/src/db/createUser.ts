@@ -1,15 +1,19 @@
-import { prisma } from "./prisma.js";
+import { db } from "./client.js";
+import { users } from "./schema.js";
 
 type Params = {
   username: string;
   registrationRecord: string;
 };
 
-export const createUser = async (user: Params) => {
-  return prisma.user.create({
-    data: {
-      username: user.username,
-      registrationRecord: user.registrationRecord,
-    },
-  });
+export const createUser = async ({ username, registrationRecord }: Params) => {
+  const [user] = await db
+    .insert(users)
+    .values({
+      username,
+      registrationRecord,
+    })
+    .returning();
+
+  return user;
 };

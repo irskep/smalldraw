@@ -46,7 +46,7 @@ export const appRouter = router({
     return {
       id: document.id,
       name: document.name,
-      isAdmin: document.users.length > 0 ? document.users[0].isAdmin : false,
+      isAdmin: document.isAdmin,
     };
   }),
   updateDocument: protectedProcedure

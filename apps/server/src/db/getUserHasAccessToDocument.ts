@@ -1,4 +1,6 @@
-import { prisma } from "./prisma.js";
+import { and, eq } from "drizzle-orm";
+import { db } from "./client.js";
+import { usersOnDocuments } from "./schema.js";
 
 type Params = {
   userId: string;
@@ -9,14 +11,18 @@ export const getUserHasAccessToDocument = async ({
   documentId,
   userId,
 }: Params) => {
-  if (!userId) return false;
-  if (!documentId) return false;
-  const document = await prisma.document.findUnique({
-    where: {
-      id: documentId,
-      users: { some: { userId } },
-    },
-  });
-  if (document) return true;
-  return false;
+  if (!userId || !documentId) return false;
+
+  const rows = await db
+    .select({ userId: usersOnDocuments.userId })
+    .from(usersOnDocuments)
+    .where(
+      and(
+        eq(usersOnDocuments.userId, userId),
+        eq(usersOnDocuments.documentId, documentId)
+      )
+    )
+    .limit(1);
+
+  return rows.length > 0;
 };

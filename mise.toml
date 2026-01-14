@@ -1,0 +1,23 @@
+[tools]
+bun = "latest"
+node = "24"
+
+[tasks."db:push"]
+env = { _.file = ".env" }
+run = "bunx drizzle-kit push"
+
+[tasks."db:generate"]
+env = { _.file = ".env" }
+run = "bunx drizzle-kit generate"
+
+[tasks."server:test"]
+env = { _.file = ".env" }
+run = "cd apps/server && bun test"
+
+[tasks."server:dev"]
+env = { _.file = ".env" }
+run = "cd apps/server && bun run dev"
+
+[tasks."db:studio"]
+env = { _.file = ".env" }
+run = "bunx drizzle-kit studio"

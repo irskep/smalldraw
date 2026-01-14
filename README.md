@@ -11,46 +11,39 @@ Website incl. explanation videos: [https://www.automerge-jumpstart.com/](https:/
 ### Setup
 
 ```sh
-pnpm install
-docker-compose up
-```
-
-```sh
-# in another tab
-cd apps/backend
+bun install
 cp .env.example .env
-npx @serenity-kit/opaque@latest create-server-setup
-# copy the string value as OPAQUE_SERVER_SETUP .env
-pnpm prisma migrate dev
-pnpm prisma generate
-pnpm dev
+# optional: generate a real OPAQUE setup string with
+# bunx @serenity-kit/opaque@latest create-server-setup
+mise run db:push
+mise run server:dev
 ```
 
 ```sh
 # in another tab
-cd apps/frontend
-pnpm dev
+cd apps/app
+bun run dev
 ```
 
 ### Updating the Database Schema
 
 1. Make changes
-2. Run `pnpm prisma migrate dev`
-3. Run `pnpm prisma generate`
-4. Restart the TS server in your editor
+2. Update `apps/server/src/db/schema.ts`
+3. Run `mise run db:generate -- --name my-migration`
+4. Run `mise run db:push`
+5. Restart the TS server in your editor
 
 ### DB UI
 
 ```bash
-cd apps/backend
-pnpm prisma studio
+mise run db:studio
 ```
 
 ### Wipe all local data
 
 ```bash
-cd apps/backend
-pnpm prisma migrate reset
+rm -f apps/server/sqlite/dev.db automerge.db
+mise run db:push
 ```
 
 ## Setup Production Environment and CI
@@ -79,11 +72,10 @@ SELECT * FROM "Document";
 Note: Automerge version is pinned in the root `package.json` file to avoid issues arising from different automerge versions.
 
 ```sh
-pnpm up --interactive
-cd apps/app
-pnpm up --interactive
-cd apps/server
-pnpm up --interactive
+bun update
+cd apps/app && bun update
+cd apps/server && bun update
+mise run db:push
 ```
 
 ## Architecture

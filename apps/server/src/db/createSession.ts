@@ -1,4 +1,5 @@
-import { prisma } from "./prisma.js";
+import { db } from "./client.js";
+import { sessions } from "./schema.js";
 
 type Params = {
   sessionKey: string;
@@ -6,10 +7,10 @@ type Params = {
 };
 
 export const createSession = async ({ sessionKey, userId }: Params) => {
-  return prisma.session.create({
-    data: {
-      sessionKey,
-      userId,
-    },
-  });
+  const [session] = await db
+    .insert(sessions)
+    .values({ sessionKey, userId })
+    .returning();
+
+  return session;
 };

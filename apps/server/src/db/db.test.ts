@@ -8,7 +8,6 @@ import { getSession } from "./getSession.js";
 import { deleteSession } from "./deleteSession.js";
 import { createDocument } from "./createDocument.js";
 import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
-import { prisma } from "./prisma.js";
 
 describe("User operations", () => {
   it("createUser creates a user and returns it", async () => {

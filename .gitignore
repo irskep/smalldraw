@@ -1,5 +1,10 @@
-# automerge storage files
+# automerge/sqlite storage files
 .amrg
+*.db
+*.db-journal
+automerge.db
+test-automerge.db
+apps/server/prisma/*.db
 
 
 dist

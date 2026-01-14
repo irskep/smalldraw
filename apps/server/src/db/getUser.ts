@@ -1,9 +1,8 @@
-import { prisma } from "./prisma.js";
+import { eq } from "drizzle-orm";
+import { db } from "./client.js";
+import { users } from "./schema.js";
 
 export const getUser = async (userId: string) => {
-  return prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  return user ?? null;
 };

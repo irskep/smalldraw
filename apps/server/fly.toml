@@ -10,7 +10,7 @@ swap_size_mb = 2048
 [build]
 
 [deploy]
-release_command = 'npx prisma migrate deploy'
+release_command = 'bunx drizzle-kit push'
 
 [env]
 PORT = '3000'

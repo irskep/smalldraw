@@ -1,9 +1,7 @@
-import { prisma } from "./prisma.js";
+import { eq } from "drizzle-orm";
+import { db } from "./client.js";
+import { loginAttempts } from "./schema.js";
 
 export const deleteLoginAttempt = async (userId: string) => {
-  return prisma.loginAttempt.delete({
-    where: {
-      userId,
-    },
-  });
+  await db.delete(loginAttempts).where(eq(loginAttempts.userId, userId));
 };

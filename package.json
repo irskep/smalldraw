@@ -6,15 +6,12 @@
     "packages/*"
   ],
   "devDependencies": {
-    "tsup": "^8.1.0",
-    "typescript": "^5.5.3"
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "ts:check": "bun --filter '*' ts:check",
     "test": "bun --filter '*' test",
     "lint": "bun --filter '*' lint"
-  },
-  "overrides": {
-    "@automerge/automerge": "^2.2.4"
   }
 }

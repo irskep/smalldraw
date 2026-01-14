@@ -1,16 +1,19 @@
-import { beforeEach, afterAll } from "bun:test";
-import { prisma } from "../db/prisma.js";
+import { beforeEach } from "bun:test";
+import { db } from "../db/client.js";
+import {
+  documentInvitations,
+  documents,
+  loginAttempts,
+  sessions,
+  users,
+  usersOnDocuments,
+} from "../db/schema.js";
 
 beforeEach(async () => {
-  // Clean database between tests (order matters due to foreign keys)
-  await prisma.documentInvitation.deleteMany();
-  await prisma.usersOnDocuments.deleteMany();
-  await prisma.document.deleteMany();
-  await prisma.loginAttempt.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.user.deleteMany();
-});
-
-afterAll(async () => {
-  await prisma.$disconnect();
+  await db.delete(documentInvitations);
+  await db.delete(usersOnDocuments);
+  await db.delete(documents);
+  await db.delete(loginAttempts);
+  await db.delete(sessions);
+  await db.delete(users);
 });

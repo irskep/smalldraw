@@ -1,7 +1,7 @@
-import { prisma } from "./prisma.js";
+import { eq } from "drizzle-orm";
+import { db } from "./client.js";
+import { sessions } from "./schema.js";
 
 export const deleteSession = async (sessionKey: string) => {
-  return prisma.session.delete({
-    where: { sessionKey },
-  });
+  await db.delete(sessions).where(eq(sessions.sessionKey, sessionKey));
 };
