@@ -31,7 +31,7 @@ function Index() {
             { name: event.target.name.value },
             {
               onSuccess: ({ document }) => {
-                navigate({ to: `/list/${document.id}` });
+                navigate({ to: "/list/$documentId", params: { documentId: document.id } });
                 documentsQuery.refetch();
               },
               onError: () => {
@@ -55,7 +55,7 @@ function Index() {
 
       <div className="flex flex-col gap-2 pt-4">
         {documentsQuery.data?.map((doc) => (
-          <Link to={`/list/${doc.id}`} key={doc.id}>
+          <Link to="/list/$documentId" params={{ documentId: doc.id }} key={doc.id}>
             <Card className="flex flex-col items-start gap-2 rounded-lg border p-5 text-left text-xl transition-all hover:bg-accent">
               {doc.name}
             </Card>

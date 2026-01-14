@@ -2,7 +2,7 @@ import { Repo, RepoConfig } from "@automerge/automerge-repo";
 import { PostgresStorageAdapter } from "automerge-repo-storage-postgres";
 import os from "os";
 import pg from "pg";
-import { WebSocketServer } from "ws";
+import { WebSocketServer } from "isomorphic-ws";
 import { AuthAdapter } from "./authAdapter.js";
 
 const pool = new pg.Pool({

@@ -6,18 +6,15 @@
     "packages/*"
   ],
   "devDependencies": {
-    "ts-node": "^10.9.2",
     "tsup": "^8.1.0",
     "typescript": "^5.5.3"
   },
   "scripts": {
-    "ts:check": "pnpm -r ts:check",
-    "test": "pnpm -r test",
-    "lint": "pnpm -r lint"
+    "ts:check": "bun --filter '*' ts:check",
+    "test": "bun --filter '*' test",
+    "lint": "bun --filter '*' lint"
   },
-  "pnpm": {
-    "overrides": {
-      "@automerge/automerge": "^2.2.4"
-    }
+  "overrides": {
+    "@automerge/automerge": "^2.2.4"
   }
 }

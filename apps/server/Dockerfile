@@ -1,12 +1,15 @@
-FROM node:22-alpine
+FROM oven/bun:1-alpine
 
-# Create app directory
 WORKDIR /usr/src/app
+
+COPY package.json bun.lock ./
+COPY prisma ./prisma/
+
+RUN bun install --frozen-lockfile
+RUN bunx prisma generate
 
 COPY . .
 
 EXPOSE $PORT
-# necessary for small machines on fly.io to avoid crashing during npm install
-ENV NODE_OPTIONS=--max_old_space_size=4096
-RUN npx prisma generate
-CMD ["npm", "run", "start:prod"]
+
+CMD ["bun", "run", "start"]

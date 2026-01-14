@@ -1,6 +1,5 @@
 import * as trpcExpress from "@trpc/server/adapters/express";
 import cors, { CorsOptions } from "cors";
-import "dotenv/config";
 import express from "express";
 import { webSocketServer } from "./automergeRepo/automergeRepo.js";
 import { getSession } from "./db/getSession.js";

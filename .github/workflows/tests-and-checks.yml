@@ -6,36 +6,58 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v3
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 9
-
+          bun-version: latest
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Generate Prisma Client
-        run: cd apps/server && pnpm prisma generate
+        run: cd apps/server && bunx prisma generate
       - name: Typecheck
-        run: pnpm ts:check
+        run: bun run ts:check
+
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v3
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 9
+          bun-version: latest
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Linting
-        run: pnpm lint
+        run: bun run lint
+
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: prisma
+          POSTGRES_PASSWORD: prisma
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v3
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 9
+          bun-version: latest
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
+      - name: Generate Prisma Client
+        run: cd apps/server && bunx prisma generate
+      - name: Run migrations
+        run: cd apps/server && bunx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://prisma:prisma@localhost:5432/postgres
       - name: Test
-        run: pnpm test
+        run: bun run test
+        env:
+          DATABASE_URL: postgresql://prisma:prisma@localhost:5432/postgres
