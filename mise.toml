@@ -21,3 +21,7 @@ run = "cd apps/server && bun run dev"
 [tasks."db:studio"]
 env = { _.file = ".env" }
 run = "bunx drizzle-kit studio"
+
+[tasks."app:dev"]
+dir = "apps/app"
+run = "bun run dev"

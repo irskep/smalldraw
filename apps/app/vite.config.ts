@@ -6,6 +6,9 @@ import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
   plugins: [wasm(), react(), TanStackRouterVite()],
+  server: {
+    port: 5100,
+  },
 
   resolve: {
     alias: {
