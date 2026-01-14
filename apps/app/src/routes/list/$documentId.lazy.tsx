@@ -1,21 +1,44 @@
 import { DocumentMembers } from "@/components/DocumentMembers/DocumentMembers";
 import { Input } from "@/components/ui/input";
 import { getRepo } from "@/utils/automergeRepo";
-import { isValidAutomergeUrl } from "@automerge/automerge-repo";
-import { RepoContext } from "@automerge/automerge-repo-react-hooks";
+import { AutomergeUrl, DocHandle } from "@automerge/automerge-repo";
+import { RepoContext, useRepo } from "@automerge/automerge-repo-react-hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { getQueryKey } from "@trpc/react-query";
+import { useEffect, useState } from "react";
 import { Checklist } from "../../components/Checklist/Checklist";
 import { trpc } from "../../utils/trpc";
 
-const Document = () => {
-  const repo = getRepo();
+// Custom hook that waits for handle to be ready (unlike useHandle which doesn't)
+function useHandleReady<T>(id: AutomergeUrl): DocHandle<T> | undefined {
+  const repo = useRepo();
+  const [, setReady] = useState(0);
+  const handle = repo.find<T>(id);
+
+  useEffect(() => {
+    // Wait for document to be ready and trigger re-render
+    handle.doc().then(() => setReady((v) => v + 1));
+
+    // Also listen for changes
+    const onUpdate = () => setReady((v) => v + 1);
+    handle.on("change", onUpdate);
+    handle.on("delete", onUpdate);
+
+    return () => {
+      handle.off("change", onUpdate);
+      handle.off("delete", onUpdate);
+    };
+  }, [handle]);
+
+  return handle.isReady() ? handle : undefined;
+}
+
+// Inner component that uses custom hook (requires RepoContext)
+const DocumentContent = ({ documentId }: { documentId: string }) => {
   const queryClient = useQueryClient();
-  const { documentId } = Route.useParams();
-  const rootDocUrl = `automerge:${documentId}`;
-  const handle =
-    isValidAutomergeUrl(rootDocUrl) && repo ? repo.find(rootDocUrl) : null;
+  const rootDocUrl = `automerge:${documentId}` as AutomergeUrl;
+  const handle = useHandleReady(rootDocUrl);
   const getDocumentQuery = trpc.getDocument.useQuery(documentId);
   const documentQueryKey = getQueryKey(trpc.getDocument, handle?.documentId);
   const updateDocumentMutation = trpc.updateDocument.useMutation({
@@ -23,24 +46,16 @@ const Document = () => {
       queryClient.invalidateQueries({ queryKey: documentQueryKey }),
   });
 
-  if (!repo) {
-    return null; // add fade-in error for the case repo is never initialized
-  }
-
   if (!handle) {
-    return <div>List not found</div>;
+    return <div className="p-4 text-center">Loading list...</div>;
   }
 
   if (handle.isDeleted()) {
-    return <div>List deleted</div>;
-  }
-
-  if (!handle.isReady()) {
-    return null;
+    return <div className="p-4 text-center">List deleted</div>;
   }
 
   return (
-    <RepoContext.Provider value={repo}>
+    <>
       <div className="flex justify-between gap-4 pb-8 pt-4 items-end flex-wrap">
         {getDocumentQuery.data?.isAdmin ? (
           <Input
@@ -69,6 +84,22 @@ const Document = () => {
         />
       </div>
       <Checklist docUrl={handle.url} />
+    </>
+  );
+};
+
+// Outer component that provides RepoContext
+const Document = () => {
+  const repo = getRepo();
+  const { documentId } = Route.useParams();
+
+  if (!repo) {
+    return <div className="p-4 text-center text-red-500">Sync not initialized - try logging in again</div>;
+  }
+
+  return (
+    <RepoContext.Provider value={repo}>
+      <DocumentContent documentId={documentId} />
     </RepoContext.Provider>
   );
 };

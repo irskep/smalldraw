@@ -1,16 +1,18 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { AuthForm } from "../components/AuthForm/AuthForm.js";
+import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated/useRedirectIfAuthenticated";
 import { useLogin } from "../hooks/useLogin/useLogin.js";
 import { authenticationSearchParams } from "../schema.js";
 
 const Login = () => {
-  const navigate = useNavigate();
   const { login, isPending } = useLogin();
   const { redirect } = Route.useSearch();
   const [error, setError] = useState<string | null>(null);
+
+  useRedirectIfAuthenticated(redirect);
 
   return (
     <div className="max-w-md mr-auto ml-auto">
@@ -24,11 +26,8 @@ const Login = () => {
             setError("Failed to login");
             return;
           }
-          if (redirect) {
-            navigate({ to: redirect });
-            return;
-          }
-          navigate({ to: "/" });
+          // Hard reload to ensure automerge repo initializes with the new sessionKey
+          window.location.href = redirect || "/";
         }}
         children="Login"
         isPending={isPending}

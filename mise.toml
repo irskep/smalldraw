@@ -1,6 +1,7 @@
 [tools]
 bun = "latest"
 node = "24"
+"pipx:persistproc" = "latest"
 
 [tasks."db:push"]
 env = { _.file = ".env" }

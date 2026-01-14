@@ -15,8 +15,16 @@ function Index() {
   const createDocumentMutation = trpc.createDocument.useMutation();
   const navigate = useNavigate();
 
-  if (documentsQuery.data === undefined) {
-    return null; // loading indicator that fades in would be better
+  if (documentsQuery.isLoading) {
+    return <div className="p-4 text-center">Loading...</div>;
+  }
+
+  if (documentsQuery.error) {
+    return (
+      <div className="p-4 text-center text-red-500">
+        Error loading documents: {documentsQuery.error.message}
+      </div>
+    );
   }
 
   return (
