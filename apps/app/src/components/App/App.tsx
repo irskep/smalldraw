@@ -58,23 +58,17 @@ export const App: React.FC = () => {
         defaultOptions: {
           queries: {
             retry: (failureCount: number, error: Error) => {
-              const handled = handleError(error, queryClient);
-              if (handled) {
+              // Don't retry if we got an HTTP response (4xx/5xx won't change on retry)
+              if (error instanceof TRPCClientError && error.data) {
                 return false;
               }
-
+              // Retry network errors up to 3 times
               return failureCount < 3;
             },
           },
           mutations: {
-            retry: (failureCount: number, error: Error) => {
-              const handled = handleError(error, queryClient);
-              if (handled) {
-                return false;
-              }
-
-              return failureCount < 3;
-            },
+            // Never retry mutations (not idempotent)
+            retry: false,
           },
         },
       })
