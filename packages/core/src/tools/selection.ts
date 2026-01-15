@@ -12,6 +12,7 @@ import type { Bounds, Point } from '../model/primitives';
 import type { CanonicalShapeTransform, Shape } from '../model/shape';
 import { normalizeShapeTransform } from '../model/shape';
 import { attachPointerHandlers } from './pointerHandlers';
+import { createPointerDragHandler } from './pointerDrag';
 import type {
   HandleBehavior,
   HandleDescriptor,
@@ -257,13 +258,20 @@ export function createSelectionTool(): ToolDefinition {
       state.disposers = [];
       state.drag = undefined;
       state.disposers.push(
-        attachPointerHandlers(runtime, {
-          onPointerDown: onPointerDown(runtime),
-          onPointerMove: onPointerMove(runtime),
-          onPointerUp: onPointerUp(runtime),
-          onPointerCancel: onPointerCancel(runtime),
+        createPointerDragHandler(runtime, {
+          onStart(point, event) {
+            onPointerDown(runtime)({ ...event, point, buttons: event.buttons ?? 1 });
+            return ensureState(runtime).drag ?? null;
+          },
+          onEnd(state, point, event) {
+            onPointerUp(runtime)({ ...event, point, buttons: event.buttons ?? 0 });
+          },
+          onCancel() {
+            onPointerCancel(runtime)({ point: { x: 0, y: 0 }, buttons: 0 });
+          },
         }),
       );
+      state.disposers.push(runtime.on('pointerMove', onPointerMove(runtime)));
       runtime.emit({ type: 'handles', payload: HANDLE_DESCRIPTORS });
     },
     deactivate(runtime) {

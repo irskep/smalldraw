@@ -13,4 +13,5 @@ export * from './tools/rectangle';
 export * from './tools/selection';
 export * from './tools/runtime';
 export * from './tools/pointerHandlers';
+export * from './tools/pointerDrag';
 export * from './store/drawingStore';
