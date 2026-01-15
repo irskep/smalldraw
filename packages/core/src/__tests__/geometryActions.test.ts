@@ -14,6 +14,11 @@ function createShape(id: string, geometry: Geometry): Shape {
     id,
     geometry,
     zIndex: id,
+    transform: {
+      translation: { x: 0, y: 0 },
+      scale: { x: 1, y: 1 },
+      rotation: 0,
+    },
   };
 }
 
@@ -47,26 +52,26 @@ describe('Geometry actions', () => {
     expect(doc.shapes[pen.id]?.geometry).toEqual(pen.geometry);
   });
 
-  test('circle geometry adds center/radius and can be updated', () => {
+  test('ellipse geometry stores radius values', () => {
     const doc = createDocument();
     const undo = new UndoManager();
-    const circle = createShape('circle', {
-      type: 'circle',
-      center: { x: 50, y: 50 },
-      radius: 25,
+    const ellipse = createShape('ellipse', {
+      type: 'ellipse',
+      radiusX: 30,
+      radiusY: 15,
     });
-    undo.apply(new AddShape(circle), doc);
-    expect(doc.shapes[circle.id]?.geometry).toEqual(circle.geometry);
+    undo.apply(new AddShape(ellipse), doc);
+    expect(doc.shapes[ellipse.id]?.geometry).toEqual(ellipse.geometry);
 
     const next: Geometry = {
-      type: 'circle',
-      center: { x: 20, y: 40 },
-      radius: 10,
+      type: 'ellipse',
+      radiusX: 10,
+      radiusY: 5,
     };
-    undo.apply(new UpdateShapeGeometry(circle.id, next), doc);
-    expect(doc.shapes[circle.id]?.geometry).toEqual(next);
+    undo.apply(new UpdateShapeGeometry(ellipse.id, next), doc);
+    expect(doc.shapes[ellipse.id]?.geometry).toEqual(next);
     undo.undo(doc);
-    expect(doc.shapes[circle.id]?.geometry).toEqual(circle.geometry);
+    expect(doc.shapes[ellipse.id]?.geometry).toEqual(ellipse.geometry);
   });
 
   test('rect geometry persists bounds', () => {
@@ -74,20 +79,14 @@ describe('Geometry actions', () => {
     const undo = new UndoManager();
     const rect = createShape('rect', {
       type: 'rect',
-      bounds: {
-        origin: { x: 0, y: 0 },
-        size: { width: 100, height: 40 },
-      },
+      size: { width: 100, height: 40 },
     });
     undo.apply(new AddShape(rect), doc);
     expect(doc.shapes[rect.id]?.geometry).toEqual(rect.geometry);
 
     const next: Geometry = {
       type: 'rect',
-      bounds: {
-        origin: { x: 10, y: 10 },
-        size: { width: 50, height: 50 },
-      },
+      size: { width: 50, height: 50 },
     };
     undo.apply(new UpdateShapeGeometry(rect.id, next), doc);
     expect(doc.shapes[rect.id]?.geometry).toEqual(next);
@@ -100,7 +99,6 @@ describe('Geometry actions', () => {
     const undo = new UndoManager();
     const polygon = createShape('regular-polygon', {
       type: 'regularPolygon',
-      center: { x: 0, y: 0 },
       radius: 30,
       sides: 6,
     });
@@ -109,10 +107,8 @@ describe('Geometry actions', () => {
 
     const next: Geometry = {
       type: 'regularPolygon',
-      center: { x: 10, y: 10 },
       radius: 40,
       sides: 5,
-      rotation: Math.PI / 4,
     };
     undo.apply(new UpdateShapeGeometry(polygon.id, next), doc);
     expect(doc.shapes[polygon.id]?.geometry).toEqual(next);

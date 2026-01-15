@@ -9,13 +9,15 @@ const rectangle: Shape = {
   id: 'rect-1',
   geometry: {
     type: 'rect',
-    bounds: {
-      origin: { x: 0, y: 0 },
-      size: { width: 100, height: 50 },
-    },
+    size: { width: 100, height: 50 },
   },
   fill: { type: 'solid', color: '#ff0000' },
   zIndex: 'a0',
+  transform: {
+    translation: { x: 0, y: 0 },
+    scale: { x: 1, y: 1 },
+    rotation: 0,
+  },
 };
 
 describe('Undo stack interactions for rectangle shapes', () => {

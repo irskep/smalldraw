@@ -6,3 +6,8 @@ export * from './model/document';
 export * from './zindex';
 export * from './actions';
 export * from './undo';
+export * from './tools/types';
+export * from './tools/pen';
+export * from './tools/rectangle';
+export * from './tools/runtime';
+export * from './store/drawingStore';

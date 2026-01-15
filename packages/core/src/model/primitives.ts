@@ -8,8 +8,3 @@ export interface Size {
   width: number;
   height: number;
 }
-
-export interface Bounds {
-  origin: Point;
-  size: Size;
-}

@@ -1,4 +1,4 @@
-import type { Bounds, Point } from './primitives';
+import type { Point, Size } from './primitives';
 
 export interface PenGeometry {
   type: 'pen';
@@ -13,26 +13,19 @@ export interface StrokeGeometry {
 
 export interface RectGeometry {
   type: 'rect';
-  bounds: Bounds;
-}
-
-export interface CircleGeometry {
-  type: 'circle';
-  center: Point;
-  radius: number;
+  size: Size;
 }
 
 export interface EllipseGeometry {
   type: 'ellipse';
-  bounds: Bounds;
+  radiusX: number;
+  radiusY: number;
 }
 
 export interface RegularPolygonGeometry {
   type: 'regularPolygon';
-  center: Point;
   radius: number;
   sides: number;
-  rotation?: number;
 }
 
 export interface PolygonGeometry {
@@ -67,7 +60,6 @@ export type Geometry =
   | PenGeometry
   | StrokeGeometry
   | RectGeometry
-  | CircleGeometry
   | EllipseGeometry
   | RegularPolygonGeometry
   | PolygonGeometry
