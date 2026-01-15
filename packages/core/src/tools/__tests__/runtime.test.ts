@@ -64,7 +64,7 @@ describe('ToolRuntimeImpl', () => {
     expect(runtime.getDraft()?.id).toBe('draft-1');
     runtime.clearDraft();
     expect(runtime.getDraft()).toBeNull();
-    expect(draftChanges[draftChanges.length - 1]).toBeNull();
+    expect(draftChanges[draftChanges.length - 1]).toEqual([]);
   });
 
   test('commit applies undoable action to the document', () => {

@@ -44,6 +44,8 @@ export interface ToolRuntime {
   on(event: ToolEventName, handler: ToolEventHandler): () => void;
   /** Replace or clear the draft shape for this tool. */
   setDraft(shape: DraftShape | null): void;
+  /** Replace or clear multiple draft shapes for this tool. */
+  setDrafts(shapes: DraftShape[]): void;
   /** Forcefully clear any draft state for this tool. */
   clearDraft(): void;
   /** Queue an undoable action to mutate the document. */

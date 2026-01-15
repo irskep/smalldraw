@@ -25,7 +25,7 @@ export class DrawingStore {
   private document: DrawingDocument;
   private undoManager: UndoManager;
   private tools = new Map<string, ToolDefinition>();
-  private runtimeDrafts = new Map<string, DraftShape | null>();
+  private runtimeDrafts = new Map<string, DraftShape[]>();
   private sharedSettings: SharedToolSettings;
   private selectionState: SelectionState = { ids: new Set<string>() };
   private toolStates = new Map<string, unknown>();
@@ -70,9 +70,7 @@ export class DrawingStore {
   }
 
   getDrafts(): DraftShape[] {
-    return Array.from(this.runtimeDrafts.values()).filter(
-      (draft): draft is DraftShape => !!draft,
-    );
+    return Array.from(this.runtimeDrafts.values()).flat();
   }
 
   getHandles(): HandleDescriptor[] {
@@ -99,8 +97,8 @@ export class DrawingStore {
       sharedSettings: this.sharedSettings,
       selectionState: this.selectionState,
       toolStates: this.toolStates,
-      onDraftChange: (draft) => {
-        this.runtimeDrafts.set(toolId, draft);
+      onDraftChange: (drafts) => {
+        this.runtimeDrafts.set(toolId, drafts);
       },
     });
     runtime.onEvent('handles', (payload: HandleDescriptor[]) => {
@@ -129,7 +127,7 @@ export class DrawingStore {
     const runtime = this.runtimes.get(currentId);
     tool?.deactivate?.(runtime as ToolRuntimeImpl);
     runtime?.dispose();
-    this.runtimeDrafts.set(currentId, null);
+    this.runtimeDrafts.set(currentId, []);
     this.handles = [];
     this.handleHover = { handleId: null, behavior: null };
     this.selectionFrame = null;
@@ -146,5 +144,70 @@ export class DrawingStore {
 
   getActiveToolId(): string | null {
     return this.activeToolId;
+  }
+
+  getSharedSettings(): SharedToolSettings {
+    return { ...this.sharedSettings };
+  }
+
+  updateSharedSettings<TSettings = SharedToolSettings>(
+    updater: Partial<TSettings> | ((prev: TSettings) => TSettings),
+  ): void {
+    const current = { ...this.sharedSettings } as TSettings;
+    const next =
+      typeof updater === 'function'
+        ? (updater(current) as Record<string, unknown>)
+        : { ...current, ...(updater as Record<string, unknown>) };
+    Object.assign(this.sharedSettings, next);
+  }
+
+  getSelection(): SelectionState {
+    return {
+      ids: new Set(this.selectionState.ids),
+      primaryId: this.selectionState.primaryId,
+    };
+  }
+
+  setSelection(ids: Iterable<string>, primaryId?: string): void {
+    this.selectionState.ids = new Set(ids);
+    const ordered = Array.from(this.selectionState.ids);
+    this.selectionState.primaryId =
+      primaryId ?? (ordered.length ? ordered[ordered.length - 1] : undefined);
+  }
+
+  toggleSelection(id: string): void {
+    if (this.selectionState.ids.has(id)) {
+      this.selectionState.ids.delete(id);
+      if (this.selectionState.primaryId === id) {
+        const ordered = Array.from(this.selectionState.ids);
+        this.selectionState.primaryId = ordered.length
+          ? ordered[ordered.length - 1]
+          : undefined;
+      }
+      return;
+    }
+    this.selectionState.ids.add(id);
+    this.selectionState.primaryId = id;
+  }
+
+  clearSelection(): void {
+    this.selectionState.ids.clear();
+    this.selectionState.primaryId = undefined;
+  }
+
+  undo(): boolean {
+    return this.undoManager.undo(this.document);
+  }
+
+  redo(): boolean {
+    return this.undoManager.redo(this.document);
+  }
+
+  canUndo(): boolean {
+    return this.undoManager.canUndo();
+  }
+
+  canRedo(): boolean {
+    return this.undoManager.canRedo();
   }
 }

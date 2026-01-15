@@ -18,7 +18,7 @@ interface ToolRuntimeConfig<TOptions = unknown> {
   document: DrawingDocument;
   undoManager: UndoManager;
   options?: TOptions;
-  onDraftChange?: (draft: DraftShape | null) => void;
+  onDraftChange?: (drafts: DraftShape[]) => void;
   sharedSettings?: SharedToolSettings;
   selectionState?: SelectionState;
   toolStates?: Map<string, unknown>;
@@ -37,13 +37,13 @@ export class ToolRuntimeImpl<TOptions = unknown>
   private readonly document: DrawingDocument;
   private readonly undoManager: UndoManager;
   private readonly options?: TOptions;
-  private readonly onDraftChange?: (draft: DraftShape | null) => void;
+  private readonly onDraftChange?: (drafts: DraftShape[]) => void;
   private readonly toolStates: Map<string, unknown>;
   private readonly sharedSettings: SharedToolSettings;
   private readonly selectionState: SelectionState;
   private handlers = new Map<ToolEventName, Set<ToolEventHandler>>();
   private eventListeners = new Map<string, Set<(payload: unknown) => void>>();
-  private draft: DraftShape | null = null;
+  private drafts: DraftShape[] = [];
   private idCounter = 0;
 
   constructor(config: ToolRuntimeConfig<TOptions>) {
@@ -102,21 +102,29 @@ export class ToolRuntimeImpl<TOptions = unknown>
         `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`,
       );
     }
-    this.draft = shape;
-    this.onDraftChange?.(this.draft);
+    this.drafts = shape ? [shape] : [];
+    this.onDraftChange?.(this.drafts);
+  }
+
+  setDrafts(shapes: DraftShape[]): void {
+    for (const shape of shapes) {
+      if (shape.toolId !== this.toolId) {
+        throw new Error(
+          `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`,
+        );
+      }
+    }
+    this.drafts = shapes;
+    this.onDraftChange?.(this.drafts);
   }
 
   getDraft(): DraftShape | null {
-    return this.draft;
+    return this.drafts[0] ?? null;
   }
 
   clearDraft(): void {
-    if (this.draft) {
-      this.draft = null;
-      this.onDraftChange?.(null);
-    } else {
-      this.onDraftChange?.(null);
-    }
+    this.drafts = [];
+    this.onDraftChange?.([]);
   }
 
   commit(action: UndoableAction): void {

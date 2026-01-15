@@ -14,6 +14,7 @@ import { normalizeShapeTransform } from '../model/shape';
 import { attachPointerHandlers } from './pointerHandlers';
 import { createPointerDragHandler } from './pointerDrag';
 import type {
+  DraftShape,
   HandleBehavior,
   HandleDescriptor,
   ToolDefinition,
@@ -226,6 +227,7 @@ export function createSelectionTool(): ToolDefinition {
     state.drag.lastPoint = event.point;
     const frame = computeDragFrame(runtime, state.drag);
     emitSelectionFrame(runtime, frame ?? state.drag.selectionBounds);
+    runtime.setDrafts(computePreviewShapes(runtime, state.drag));
   };
 
   const onPointerUp = (runtime: ToolRuntime): ToolEventHandler => (event) => {
@@ -234,6 +236,7 @@ export function createSelectionTool(): ToolDefinition {
     if (!state.drag) return;
     state.drag.lastPoint = event.point;
     const drag = state.drag;
+    runtime.clearDraft();
     applyDrag(runtime, drag);
     const finalBounds = computeBoundsForSelection(runtime, drag.selectionIds);
     emitSelectionFrame(runtime, finalBounds);
@@ -244,6 +247,7 @@ export function createSelectionTool(): ToolDefinition {
     emitHandleHover(runtime, undefined, event);
     const state = ensureState(runtime);
     if (state.drag) {
+      runtime.clearDraft();
       emitSelectionFrame(runtime, state.drag.selectionBounds);
       state.drag = undefined;
     }
@@ -621,6 +625,101 @@ function commitActions(runtime: ToolRuntime, actions: UndoableAction[]): void {
     return;
   }
   runtime.commit(new CompositeAction(actions));
+}
+
+function computePreviewShapes(runtime: ToolRuntime, drag: DragState): DraftShape[] {
+  const previews: DraftShape[] = [];
+
+  for (const shapeId of drag.selectionIds) {
+    const shape = runtime.getShape(shapeId);
+    const transform = drag.transforms.get(shapeId);
+    if (!shape || !transform) continue;
+
+    let previewGeometry = shape.geometry;
+    let previewTransform = transform;
+
+    switch (drag.mode) {
+      case 'move': {
+        const dx = drag.lastPoint.x - drag.startPoint.x;
+        const dy = drag.lastPoint.y - drag.startPoint.y;
+        previewTransform = {
+          ...transform,
+          translation: {
+            x: transform.translation.x + dx,
+            y: transform.translation.y + dy,
+          },
+        };
+        break;
+      }
+      case 'resize':
+      case 'resize-proportional': {
+        const bounds = drag.selectionBounds;
+        const opposite = drag.oppositeCorner;
+        if (bounds && opposite) {
+          const newBounds = createBoundsFromPoints(opposite, drag.lastPoint);
+          const selectionScale = {
+            x: bounds.width === 0 ? 1 : newBounds.width / bounds.width,
+            y: bounds.height === 0 ? 1 : newBounds.height / bounds.height,
+          };
+          const layout = drag.layouts.get(shapeId);
+          const entry = drag.resizeEntries.get(shapeId);
+
+          if (entry && entry.adapter.matches(shape)) {
+            const result = entry.adapter.resize({
+              shape: shape as Shape & { geometry: Geometry },
+              snapshotGeometry: entry.snapshot.geometry as Geometry,
+              snapshotData: entry.snapshot.data,
+              transform,
+              initialBounds: bounds,
+              nextBounds: newBounds,
+              selectionScale,
+              layout,
+            });
+            if (result) {
+              if (result.geometry) {
+                previewGeometry = result.geometry;
+              }
+              if (result.transform) {
+                previewTransform = result.transform;
+              } else if (result.translation) {
+                previewTransform = { ...transform, translation: result.translation };
+              }
+            }
+          } else {
+            const normalizedTranslation = layout ? getPointFromLayout(layout, newBounds) : undefined;
+            previewTransform = {
+              ...transform,
+              translation: normalizedTranslation ?? {
+                x: transform.translation.x + (newBounds.minX - bounds.minX),
+                y: transform.translation.y + (newBounds.minY - bounds.minY),
+              },
+            };
+          }
+        }
+        break;
+      }
+      case 'rotate': {
+        const delta = getRotationDelta(drag);
+        if (shape.interactions?.rotatable) {
+          previewTransform = {
+            ...transform,
+            rotation: transform.rotation + delta,
+          };
+        }
+        break;
+      }
+    }
+
+    previews.push({
+      ...shape,
+      geometry: previewGeometry,
+      transform: previewTransform,
+      toolId: 'selection',
+      temporary: true,
+    });
+  }
+
+  return previews;
 }
 
 function getShapeCenter(shape: Shape, transform: CanonicalShapeTransform): Point {

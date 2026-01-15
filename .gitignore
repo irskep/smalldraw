@@ -60,3 +60,5 @@ typings/
 # Next.js build output
 .next
 /apps/server/public
+
+*.diff.png

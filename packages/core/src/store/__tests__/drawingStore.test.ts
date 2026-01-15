@@ -240,4 +240,37 @@ describe('DrawingStore', () => {
     expect(store.getHandles()).toEqual([]);
     expect(store.getHandleHover()).toEqual({ handleId: null, behavior: null });
   });
+
+  test('shared settings helpers update global state', () => {
+    const store = new DrawingStore({ tools: [createPenTool()] });
+    expect(store.getSharedSettings().strokeWidth).toBe(2);
+    store.updateSharedSettings({ strokeWidth: 9 });
+    expect(store.getSharedSettings().strokeWidth).toBe(9);
+  });
+
+  test('selection helpers manage ids consistently', () => {
+    const store = new DrawingStore({ tools: [createPenTool()] });
+    store.setSelection(['a', 'b']);
+    expect(store.getSelection().ids.has('a')).toBe(true);
+    store.toggleSelection('b');
+    expect(store.getSelection().ids.has('b')).toBe(false);
+    store.clearSelection();
+    expect(store.getSelection().ids.size).toBe(0);
+  });
+
+  test('undo and redo proxies work through store helpers', () => {
+    const store = new DrawingStore({ tools: [createRectangleTool()] });
+    store.activateTool('rect');
+    store.dispatch('pointerDown', { point: { x: 0, y: 0 }, buttons: 1 });
+    store.dispatch('pointerMove', { point: { x: 20, y: 20 }, buttons: 1 });
+    store.dispatch('pointerUp', { point: { x: 20, y: 20 }, buttons: 0 });
+    expect(Object.values(store.getDocument().shapes)).toHaveLength(1);
+    expect(store.canUndo()).toBe(true);
+    expect(store.canRedo()).toBe(false);
+    store.undo();
+    expect(Object.values(store.getDocument().shapes)).toHaveLength(0);
+    expect(store.canRedo()).toBe(true);
+    store.redo();
+    expect(Object.values(store.getDocument().shapes)).toHaveLength(1);
+  });
 });
