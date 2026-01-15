@@ -59,11 +59,14 @@ export function canonicalizeShape(shape: Shape): Shape {
     case 'pen':
     case 'stroke':
     case 'polygon':
-      return canonicalizePointListShape(shape, transform);
+      return canonicalizePointListShape(
+        shape as Shape & { geometry: PenGeometry | StrokeGeometry | PolygonGeometry },
+        transform,
+      );
     case 'path':
-      return canonicalizePathShape(shape, transform);
+      return canonicalizePathShape(shape as Shape & { geometry: PathGeometry }, transform);
     case 'bezier':
-      return canonicalizeBezierShape(shape, transform);
+      return canonicalizeBezierShape(shape as Shape & { geometry: BezierGeometry }, transform);
     default:
       return { ...shape, transform };
   }

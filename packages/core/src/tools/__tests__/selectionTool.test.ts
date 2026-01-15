@@ -6,6 +6,7 @@ import type { Bounds } from '../../model/primitives';
 import { UndoManager } from '../../undo';
 import { ToolRuntimeImpl } from '../runtime';
 import { createSelectionTool } from '../selection';
+import type { HandleBehavior } from '../types';
 
 function setupDoc(shapes: Shape[]) {
   return createDocument(shapes);
@@ -39,7 +40,7 @@ describe('selection tool', () => {
     runtime.onEvent('handles', (payload) => payloads.push(payload));
     tool.activate(runtime);
     expect(Array.isArray(payloads.at(-1))).toBe(true);
-    tool.deactivate(runtime);
+    tool.deactivate?.(runtime);
     expect(payloads.at(-1)).toEqual([]);
   });
 
@@ -66,8 +67,8 @@ describe('selection tool', () => {
       undoManager,
     });
     const tool = createSelectionTool();
-    const hovers: Array<{ handleId: string | null }> = [];
-    runtime.onEvent('handle-hover', (payload) => hovers.push(payload));
+    const hovers: Array<{ handleId: string | null; behavior: HandleBehavior | null }> = [];
+    runtime.onEvent('handle-hover', (payload: { handleId: string | null; behavior: HandleBehavior | null }) => hovers.push(payload));
     tool.activate(runtime);
 
     runtime.dispatch('pointerMove', {
@@ -198,7 +199,7 @@ describe('selection tool', () => {
     });
     const tool = createSelectionTool();
     const frames: Array<Bounds | null> = [];
-    runtime.onEvent('selection-frame', (payload) => frames.push(payload));
+    runtime.onEvent('selection-frame', (payload: Bounds | null) => frames.push(payload));
     tool.activate(runtime);
 
     runtime.dispatch('pointerDown', { point: { x: 0, y: 0 }, buttons: 1 });

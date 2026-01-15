@@ -7,11 +7,16 @@ import * as schema from "./schema.js";
 const serverRoot = path.resolve(process.cwd());
 
 const rawDatabaseUrl = process.env.DATABASE_URL ?? "./sqlite/dev.db";
-const databasePath = path.isAbsolute(rawDatabaseUrl)
-  ? rawDatabaseUrl
-  : path.resolve(serverRoot, rawDatabaseUrl);
+const isInMemory = rawDatabaseUrl === ":memory:";
+const databasePath = isInMemory
+  ? ":memory:"
+  : path.isAbsolute(rawDatabaseUrl)
+    ? rawDatabaseUrl
+    : path.resolve(serverRoot, rawDatabaseUrl);
 
-mkdirSync(path.dirname(databasePath), { recursive: true });
+if (!isInMemory) {
+  mkdirSync(path.dirname(databasePath), { recursive: true });
+}
 
 const sqlite = new Database(databasePath, { create: true });
 

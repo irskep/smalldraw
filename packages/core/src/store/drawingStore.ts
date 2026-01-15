@@ -103,17 +103,17 @@ export class DrawingStore {
         this.runtimeDrafts.set(toolId, draft);
       },
     });
-    runtime.onEvent('handles', (payload) => {
+    runtime.onEvent('handles', (payload: HandleDescriptor[]) => {
       if (this.activeToolId === toolId) {
         this.handles = payload;
       }
     });
-    runtime.onEvent('handle-hover', (payload) => {
+    runtime.onEvent('handle-hover', (payload: { handleId: string | null; behavior: HandleBehavior | null }) => {
       if (this.activeToolId === toolId) {
         this.handleHover = payload;
       }
     });
-    runtime.onEvent('selection-frame', (payload) => {
+    runtime.onEvent('selection-frame', (payload: Bounds | null) => {
       if (this.activeToolId === toolId) {
         this.selectionFrame = payload;
       }

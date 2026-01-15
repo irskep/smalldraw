@@ -1,4 +1,6 @@
 import type { Point, Bounds } from '../model/primitives';
+
+export type { Bounds };
 import type { Shape } from '../model/shape';
 import type { UndoableAction } from '../actions';
 

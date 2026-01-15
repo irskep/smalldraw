@@ -1,4 +1,6 @@
-import { beforeEach } from "bun:test";
+import { beforeAll, beforeEach } from "bun:test";
+import path from "path";
+import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import { db } from "../db/client.js";
 import {
   documentInvitations,
@@ -8,6 +10,12 @@ import {
   users,
   usersOnDocuments,
 } from "../db/schema.js";
+
+const migrationsFolder = path.resolve(import.meta.dir, "../../drizzle");
+
+beforeAll(() => {
+  migrate(db, { migrationsFolder });
+});
 
 beforeEach(async () => {
   await db.delete(documentInvitations);

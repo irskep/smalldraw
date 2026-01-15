@@ -35,7 +35,8 @@ describe('rectangle tool', () => {
     runtime.dispatch('pointerUp', { point: { x: 30, y: 40 }, buttons: 0 });
     expect(Object.values(document.shapes)).toHaveLength(1);
     const shape = Object.values(document.shapes)[0];
-    expect(shape.geometry).toEqual(draft?.geometry);
+    expect(draft).toBeDefined();
+    expect(shape.geometry).toEqual(draft!.geometry);
     expect(shape.transform?.translation).toEqual({ x: 20, y: 25 });
     expect(shape.interactions?.resizable).toBe(true);
   });
@@ -53,7 +54,9 @@ describe('rectangle tool', () => {
 
     const shape = Object.values(document.shapes)[0];
     expect(shape.fill?.type).toBe('solid');
-    expect(shape.fill?.color).toBe('#abcdef');
+    if (shape.fill?.type === 'solid') {
+      expect(shape.fill.color).toBe('#abcdef');
+    }
     expect(shape.stroke?.color).toBe('#111111');
     expect(shape.stroke?.size).toBe(4);
   });

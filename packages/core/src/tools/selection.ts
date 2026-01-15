@@ -202,7 +202,7 @@ export function createSelectionTool(): ToolDefinition {
         : getShapeCenter(primaryShape, transforms.get(primaryShape.id)!);
     } else if (
       behavior &&
-      behavior.type.startsWith('resize') &&
+      behavior.type === 'resize' &&
       hasResizableShape(shapes) &&
       bounds
     ) {

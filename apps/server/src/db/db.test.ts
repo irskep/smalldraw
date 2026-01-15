@@ -1,5 +1,11 @@
 import { describe, it, expect } from "bun:test";
 import "../test/setup.js";
+
+describe("Test environment", () => {
+  it("uses in-memory database", () => {
+    expect(process.env.DATABASE_URL).toBe(":memory:");
+  });
+});
 import { createUser } from "./createUser.js";
 import { getUser } from "./getUser.js";
 import { getUserByUsername } from "./getUserByUsername.js";

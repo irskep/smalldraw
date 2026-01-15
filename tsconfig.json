@@ -2,8 +2,8 @@
   "compilerOptions": {
     "strict": true,
     "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
@@ -13,7 +13,11 @@
     "types": [],
     "jsx": "react",
     "baseUrl": ".",
-    "paths": {},
+    "paths": {
+      "@smalldraw/core": ["packages/core/src/index.ts"],
+      "@smalldraw/renderer-konva": ["packages/renderer-konva/src/index.ts"],
+      "@smalldraw/ui-react": ["packages/ui-react/src/index.ts"]
+    },
     "noEmit": true
   },
   "exclude": ["node_modules", "dist"]

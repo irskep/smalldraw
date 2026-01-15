@@ -19,10 +19,7 @@ function baseShape(id: string): Shape {
     zIndex: id,
     geometry: {
       type: 'rect',
-      bounds: {
-        origin: { x: 0, y: 0 },
-        size: { width: 10, height: 10 },
-      },
+      size: { width: 10, height: 10 },
     },
     fill: { type: 'solid', color: '#000000' },
     stroke: { type: 'brush', color: '#ffffff', size: 2 },
