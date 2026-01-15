@@ -10,7 +10,7 @@
     "noEmitOnError": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "types": [],
+    "types": ["bun-types"],
     "jsx": "react",
     "baseUrl": ".",
     "paths": {

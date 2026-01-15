@@ -17,7 +17,8 @@ export async function renderDocumentToImage(
 ): Promise<Buffer> {
   const stage = createStage({ width: viewport.width, height: viewport.height });
   const layer = renderDocument(stage, document, { ...(options ?? {}), viewport });
-  const canvas = layer.getCanvas()._canvas as HTMLCanvasElement;
+  type BufferCanvas = HTMLCanvasElement & { toBuffer: (mimeType?: string) => Buffer };
+  const canvas = layer.getCanvas()._canvas as BufferCanvas;
   return canvas.toBuffer('image/png');
 }
 
@@ -72,7 +73,7 @@ function compareImages(actual: Buffer, expected: Buffer, tolerance: number): Pro
         reject(err);
         return;
       }
-      resolve(result.equal);
+      resolve(Boolean(result && result.equal));
     });
   });
 }
