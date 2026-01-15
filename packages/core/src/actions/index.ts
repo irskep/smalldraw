@@ -6,3 +6,5 @@ export * from './updateFill';
 export * from './updateStroke';
 export * from './updateZIndex';
 export * from './updateOpacity';
+export * from './updateTransform';
+export * from './composite';

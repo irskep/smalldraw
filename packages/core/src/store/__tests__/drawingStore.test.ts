@@ -3,6 +3,8 @@ import { describe, expect, test } from 'bun:test';
 import { DrawingStore } from '../drawingStore';
 import { createPenTool } from '../../tools/pen';
 import { createRectangleTool } from '../../tools/rectangle';
+import { createSelectionTool as createSelectionDefinition } from '../../tools/selection';
+import { createDocument } from '../../model/document';
 import type { ToolDefinition } from '../../tools/types';
 
 function createDraftTool(): ToolDefinition {
@@ -59,7 +61,7 @@ function createSharedSettingsReader(record: { width: number }): ToolDefinition {
   };
 }
 
-function createSelectionTool(record: { selectionSize: number }): ToolDefinition {
+function createSelectionSetterTool(record: { selectionSize: number }): ToolDefinition {
   return {
     id: 'selection-tool',
     label: 'Selection Tool',
@@ -68,6 +70,21 @@ function createSelectionTool(record: { selectionSize: number }): ToolDefinition 
         runtime.setSelection(['a', 'b']);
         record.selectionSize = runtime.getSelection().ids.size;
       });
+    },
+  };
+}
+
+function createRuntimeSelectionTool(selectionIds: string[]): ToolDefinition {
+  const selectionDef = createSelectionDefinition();
+  return {
+    id: 'selection',
+    label: 'Selection',
+    activate(runtime) {
+      runtime.setSelection(selectionIds);
+      selectionDef.activate(runtime);
+    },
+    deactivate(runtime) {
+      selectionDef.deactivate?.(runtime);
     },
   };
 }
@@ -85,10 +102,11 @@ describe('DrawingStore', () => {
     expect(shapes[0].geometry).toEqual({
       type: 'pen',
       points: [
-        { x: 0, y: 0, pressure: undefined },
-        { x: 5, y: 5, pressure: undefined },
+        { x: -2.5, y: -2.5, pressure: undefined },
+        { x: 2.5, y: 2.5, pressure: undefined },
       ],
     });
+    expect(shapes[0].transform?.translation).toEqual({ x: 2.5, y: 2.5 });
   });
 
   test('store aggregates drafts from multiple tools', () => {
@@ -124,14 +142,14 @@ describe('DrawingStore', () => {
   test('selection state is shared across runtimes', () => {
     const record = { selectionSize: 0 };
     const store = new DrawingStore({
-      tools: [createSelectionTool(record)],
+      tools: [createSelectionSetterTool(record)],
     });
     store.activateTool('selection-tool');
     store.dispatch('pointerDown', { point: { x: 0, y: 0 }, buttons: 1 });
     expect(record.selectionSize).toBe(2);
   });
 
-  test('rectangle shapes record resizable interactions while pen strokes do not', () => {
+  test('rectangle and pen shapes record resizable interactions', () => {
     const store = new DrawingStore({ tools: [createPenTool(), createRectangleTool()] });
     store.activateTool('pen');
     store.dispatch('pointerDown', { point: { x: 0, y: 0 }, buttons: 1 });
@@ -146,7 +164,80 @@ describe('DrawingStore', () => {
     const shapes = Object.values(store.getDocument().shapes);
     const penShape = shapes.find((shape) => shape.geometry.type === 'pen');
     const rectShape = shapes.find((shape) => shape.geometry.type === 'rect');
-    expect(penShape?.interactions?.resizable).toBe(false);
+    expect(penShape?.interactions?.resizable).toBe(true);
     expect(rectShape?.interactions?.resizable).toBe(true);
+  });
+
+  test('selection frame updates can be read from store', () => {
+    const doc = createDocument([
+      {
+        id: 'rect-frame',
+        geometry: { type: 'rect', size: { width: 10, height: 10 } },
+        zIndex: 'frame',
+        interactions: { resizable: true, rotatable: true },
+        transform: {
+          translation: { x: 5, y: 5 },
+          rotation: 0,
+          scale: { x: 1, y: 1 },
+        },
+      },
+    ]);
+    const store = new DrawingStore({
+      document: doc,
+      tools: [createRuntimeSelectionTool(['rect-frame'])],
+    });
+    store.activateTool('selection');
+    expect(store.getSelectionFrame()).toBeNull();
+
+    store.dispatch('pointerDown', { point: { x: 0, y: 0 }, buttons: 1 });
+    store.dispatch('pointerMove', { point: { x: 5, y: 5 }, buttons: 1 });
+    expect(store.getSelectionFrame()).toEqual({
+      minX: 5,
+      minY: 5,
+      maxX: 15,
+      maxY: 15,
+      width: 10,
+      height: 10,
+    });
+  });
+
+  test('store exposes handles and hover events for selection tool', () => {
+    const doc = createDocument([
+      {
+        id: 'rect',
+        geometry: { type: 'rect', size: { width: 10, height: 10 } },
+        zIndex: 'a',
+        interactions: { resizable: true, rotatable: true },
+        transform: {
+          translation: { x: 0, y: 0 },
+          rotation: 0,
+          scale: { x: 1, y: 1 },
+        },
+      },
+    ]);
+    const store = new DrawingStore({
+      document: doc,
+      tools: [createRuntimeSelectionTool(['rect']), createPenTool()],
+    });
+    store.activateTool('selection');
+    expect(store.getHandles().length).toBeGreaterThan(0);
+
+    store.dispatch('pointerMove', {
+      point: { x: 0, y: 0 },
+      buttons: 0,
+      handleId: 'top-left',
+      shiftKey: true,
+    });
+    expect(store.getHandleHover()).toEqual({
+      handleId: 'top-left',
+      behavior: { type: 'resize', proportional: true },
+    });
+
+    store.dispatch('pointerMove', { point: { x: 5, y: 5 }, buttons: 0 });
+    expect(store.getHandleHover()).toEqual({ handleId: null, behavior: null });
+
+    store.activateTool('pen');
+    expect(store.getHandles()).toEqual([]);
+    expect(store.getHandleHover()).toEqual({ handleId: null, behavior: null });
   });
 });

@@ -1,4 +1,4 @@
-import type { Point } from '../model/primitives';
+import type { Point, Bounds } from '../model/primitives';
 import type { Shape } from '../model/shape';
 import type { UndoableAction } from '../actions';
 
@@ -6,7 +6,8 @@ export type ToolEventName =
   | 'pointerDown'
   | 'pointerMove'
   | 'pointerUp'
-  | 'pointerCancel';
+  | 'pointerCancel'
+  | 'hover';
 
 export interface ToolPointerEvent {
   point: Point;
@@ -14,6 +15,7 @@ export interface ToolPointerEvent {
   pressure?: number;
   shiftKey?: boolean;
   altKey?: boolean;
+  handleId?: string;
 }
 
 export type ToolEventHandler = (event: ToolPointerEvent) => void;
@@ -67,7 +69,40 @@ export interface ToolRuntime {
   toggleSelection(id: string): void;
   clearSelection(): void;
   isSelected(id: string): boolean;
+  getShape(shapeId: string): Shape | undefined;
+  onEvent<TPayload>(
+    type: ToolRuntimeEvent<TPayload>['type'],
+    listener: (payload: TPayload) => void,
+  ): () => void;
+  emit<TPayload>(event: ToolRuntimeEvent<TPayload>): void;
 }
+
+export interface HandleDescriptor {
+  id: string;
+  position: { u: number; v: number };
+  behavior: HandleBehavior;
+  altBehavior?: HandleBehavior;
+  shiftBehavior?: HandleBehavior;
+}
+
+export type HandleBehavior =
+  | { type: 'move' }
+  | { type: 'rotate' }
+  | { type: 'resize'; proportional?: boolean };
+
+export type ToolRuntimeEvent<TPayload = unknown> = {
+  type: 'handles';
+  payload: HandleDescriptor[];
+} | {
+  type: 'handle-hover';
+  payload: { handleId: string | null; behavior: HandleBehavior | null };
+} | {
+  type: 'selection-frame';
+  payload: Bounds | null;
+} | {
+  type: 'custom';
+  payload: TPayload;
+};
 
 export interface ToolDefinition {
   id: string;

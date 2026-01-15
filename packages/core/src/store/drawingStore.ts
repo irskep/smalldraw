@@ -4,6 +4,9 @@ import { UndoManager } from '../undo';
 import { ToolRuntimeImpl } from '../tools/runtime';
 import type {
   DraftShape,
+  HandleBehavior,
+  HandleDescriptor,
+  Bounds,
   SelectionState,
   SharedToolSettings,
   ToolDefinition,
@@ -28,6 +31,12 @@ export class DrawingStore {
   private toolStates = new Map<string, unknown>();
   private activeToolId: string | null = null;
   private runtimes = new Map<string, ToolRuntimeImpl>();
+  private handles: HandleDescriptor[] = [];
+  private handleHover: { handleId: string | null; behavior: HandleBehavior | null } = {
+    handleId: null,
+    behavior: null,
+  };
+  private selectionFrame: Bounds | null = null;
 
   constructor(options: DrawingStoreOptions) {
     this.document = options.document ?? createDocument();
@@ -66,6 +75,18 @@ export class DrawingStore {
     );
   }
 
+  getHandles(): HandleDescriptor[] {
+    return this.handles;
+  }
+
+  getHandleHover(): { handleId: string | null; behavior: HandleBehavior | null } {
+    return this.handleHover;
+  }
+
+  getSelectionFrame(): Bounds | null {
+    return this.selectionFrame;
+  }
+
   private getOrCreateRuntime(toolId: string): ToolRuntimeImpl {
     let runtime = this.runtimes.get(toolId);
     if (runtime) {
@@ -82,6 +103,21 @@ export class DrawingStore {
         this.runtimeDrafts.set(toolId, draft);
       },
     });
+    runtime.onEvent('handles', (payload) => {
+      if (this.activeToolId === toolId) {
+        this.handles = payload;
+      }
+    });
+    runtime.onEvent('handle-hover', (payload) => {
+      if (this.activeToolId === toolId) {
+        this.handleHover = payload;
+      }
+    });
+    runtime.onEvent('selection-frame', (payload) => {
+      if (this.activeToolId === toolId) {
+        this.selectionFrame = payload;
+      }
+    });
     this.runtimes.set(toolId, runtime);
     return runtime;
   }
@@ -94,6 +130,9 @@ export class DrawingStore {
     tool?.deactivate?.(runtime as ToolRuntimeImpl);
     runtime?.dispose();
     this.runtimeDrafts.set(currentId, null);
+    this.handles = [];
+    this.handleHover = { handleId: null, behavior: null };
+    this.selectionFrame = null;
     this.activeToolId = null;
   }
 

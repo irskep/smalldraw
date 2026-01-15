@@ -36,7 +36,7 @@ describe('rectangle tool', () => {
     expect(Object.values(document.shapes)).toHaveLength(1);
     const shape = Object.values(document.shapes)[0];
     expect(shape.geometry).toEqual(draft?.geometry);
-    expect(shape.transform?.translation).toEqual({ x: 10, y: 10 });
+    expect(shape.transform?.translation).toEqual({ x: 20, y: 25 });
     expect(shape.interactions?.resizable).toBe(true);
   });
 

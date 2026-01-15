@@ -7,10 +7,11 @@ import {
 import { createDocument } from '../model/document';
 import type { Geometry } from '../model/geometry';
 import type { Shape } from '../model/shape';
+import { canonicalizeShape } from '../model/shape';
 import { UndoManager } from '../undo';
 
 function createShape(id: string, geometry: Geometry): Shape {
-  return {
+  return canonicalizeShape({
     id,
     geometry,
     zIndex: id,
@@ -19,7 +20,11 @@ function createShape(id: string, geometry: Geometry): Shape {
       scale: { x: 1, y: 1 },
       rotation: 0,
     },
-  };
+  });
+}
+
+function canonicalGeometry(shape: Shape, geometry: Geometry): Geometry {
+  return canonicalizeShape({ ...shape, geometry }).geometry;
 }
 
 describe('Geometry actions', () => {
@@ -47,7 +52,7 @@ describe('Geometry actions', () => {
       simulatePressure: true,
     };
     undo.apply(new UpdateShapeGeometry(pen.id, updatedGeometry), doc);
-    expect(doc.shapes[pen.id]?.geometry).toEqual(updatedGeometry);
+    expect(doc.shapes[pen.id]?.geometry).toEqual(canonicalGeometry(pen, updatedGeometry));
     undo.undo(doc);
     expect(doc.shapes[pen.id]?.geometry).toEqual(pen.geometry);
   });
@@ -141,7 +146,7 @@ describe('Geometry actions', () => {
       closed: true,
     };
     undo.apply(new UpdateShapeGeometry(poly.id, next), doc);
-    expect(doc.shapes[poly.id]?.geometry).toEqual(next);
+    expect(doc.shapes[poly.id]?.geometry).toEqual(canonicalGeometry(poly, next));
     undo.undo(doc);
     expect(doc.shapes[poly.id]?.geometry).toEqual(poly.geometry);
   });
@@ -185,7 +190,7 @@ describe('Geometry actions', () => {
       closed: true,
     };
     undo.apply(new UpdateShapeGeometry(bezier.id, next), doc);
-    expect(doc.shapes[bezier.id]?.geometry).toEqual(next);
+    expect(doc.shapes[bezier.id]?.geometry).toEqual(canonicalGeometry(bezier, next));
     undo.undo(doc);
     expect(doc.shapes[bezier.id]?.geometry).toEqual(bezier.geometry);
   });

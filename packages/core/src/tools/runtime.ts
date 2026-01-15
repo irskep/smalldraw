@@ -10,6 +10,7 @@ import type {
   ToolEventName,
   ToolPointerEvent,
   ToolRuntime,
+  ToolRuntimeEvent,
 } from './types';
 
 interface ToolRuntimeConfig<TOptions = unknown> {
@@ -41,6 +42,7 @@ export class ToolRuntimeImpl<TOptions = unknown>
   private readonly sharedSettings: SharedToolSettings;
   private readonly selectionState: SelectionState;
   private handlers = new Map<ToolEventName, Set<ToolEventHandler>>();
+  private eventListeners = new Map<string, Set<(payload: unknown) => void>>();
   private draft: DraftShape | null = null;
   private idCounter = 0;
 
@@ -72,6 +74,26 @@ export class ToolRuntimeImpl<TOptions = unknown>
 
   dispatch(event: ToolEventName, payload: ToolPointerEvent): void {
     this.handlers.get(event)?.forEach((handler) => handler(payload));
+  }
+
+  emit<TPayload>(event: ToolRuntimeEvent<TPayload>): void {
+    const listeners = this.eventListeners.get(event.type);
+    listeners?.forEach((listener) => listener(event.payload));
+  }
+
+  onEvent<TPayload>(
+    type: ToolRuntimeEvent<TPayload>['type'],
+    listener: (payload: TPayload) => void,
+  ): () => void {
+    const set = this.eventListeners.get(type) ?? new Set<(payload: unknown) => void>();
+    set.add(listener as (payload: unknown) => void);
+    this.eventListeners.set(type, set);
+    return () => {
+      set.delete(listener as (payload: unknown) => void);
+      if (!set.size) {
+        this.eventListeners.delete(type);
+      }
+    };
   }
 
   setDraft(shape: DraftShape | null): void {
@@ -188,8 +210,13 @@ export class ToolRuntimeImpl<TOptions = unknown>
     return this.selectionState.ids.has(id);
   }
 
+  getShape(shapeId: string) {
+    return this.document.shapes[shapeId];
+  }
+
   dispose(): void {
     this.handlers.clear();
     this.clearDraft();
+    this.eventListeners.clear();
   }
 }

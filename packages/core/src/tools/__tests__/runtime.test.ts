@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { AddShape } from '../../actions';
 import { createDocument } from '../../model/document';
 import type { Shape } from '../../model/shape';
+import { canonicalizeShape } from '../../model/shape';
 import { UndoManager } from '../../undo';
 import { getZIndexBetween } from '../../zindex';
 import type { SelectionState, SharedToolSettings } from '../types';
@@ -83,7 +84,7 @@ describe('ToolRuntimeImpl', () => {
     };
 
     runtime.commit(new AddShape(shape));
-    expect(document.shapes[shape.id]).toEqual(shape);
+    expect(document.shapes[shape.id]).toEqual(canonicalizeShape(shape));
   });
 
   test('getNextZIndex generates keys after top shape', () => {

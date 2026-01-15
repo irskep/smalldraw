@@ -2,11 +2,8 @@ import { AddShape } from '../actions';
 import type { Point } from '../model/primitives';
 import type { Shape } from '../model/shape';
 import type { StrokeStyle } from '../model/style';
-import type {
-  ToolDefinition,
-  ToolEventHandler,
-  ToolRuntime,
-} from './types';
+import type { ToolDefinition, ToolEventHandler, ToolRuntime } from './types';
+import { attachPointerHandlers } from './pointerHandlers';
 
 const PRIMARY_BUTTON_MASK = 1;
 
@@ -94,16 +91,11 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   const updateDraft = (runtime: ToolRuntime) => {
     const state = runtimeState.get(runtime);
     if (!state?.drawing) return;
+    const draftShape = createStrokeShape(state.drawing);
     runtime.setDraft({
+      ...draftShape,
       toolId: runtime.toolId,
       temporary: true,
-      id: state.drawing.id,
-      geometry: {
-        type: 'pen',
-        points: state.drawing.points.map((pt) => ({ ...pt })),
-      },
-      stroke: state.drawing.stroke,
-      zIndex: state.drawing.zIndex,
     });
   };
 
@@ -113,30 +105,13 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       runtime.clearDraft();
       return;
     }
-    const { points, stroke, zIndex } = state.drawing;
-    if (points.length < 2) {
+    if (state.drawing.points.length < 2) {
       runtime.clearDraft();
       state.drawing = null;
       return;
     }
-    const shape: Shape = {
-      id: runtime.generateShapeId('pen'),
-      geometry: {
-        type: 'pen',
-        points: points.map((pt) => ({ ...pt })),
-      },
-      stroke,
-      zIndex,
-      interactions: {
-        resizable: false,
-        rotatable: false,
-      },
-      transform: {
-        translation: { x: 0, y: 0 },
-        scale: { x: 1, y: 1 },
-        rotation: 0,
-      },
-    };
+    const shape = createStrokeShape(state.drawing);
+    shape.id = runtime.generateShapeId('pen');
     runtime.commit(new AddShape(shape));
     runtime.clearDraft();
     state.drawing = null;
@@ -190,10 +165,14 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       state.disposers.forEach((dispose) => dispose());
       state.disposers = [];
       state.drawing = null;
-      state.disposers.push(runtime.on('pointerDown', createPointerDownHandler(runtime)));
-      state.disposers.push(runtime.on('pointerMove', createPointerMoveHandler(runtime)));
-      state.disposers.push(runtime.on('pointerUp', createPointerUpHandler(runtime)));
-      state.disposers.push(runtime.on('pointerCancel', createPointerCancelHandler(runtime)));
+      state.disposers.push(
+        attachPointerHandlers(runtime, {
+          onPointerDown: createPointerDownHandler(runtime),
+          onPointerMove: createPointerMoveHandler(runtime),
+          onPointerUp: createPointerUpHandler(runtime),
+          onPointerCancel: createPointerCancelHandler(runtime),
+        }),
+      );
       runtime.clearDraft();
     },
     deactivate(runtime) {
@@ -207,3 +186,53 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     },
   };
 }
+  const createStrokeShape = (draft: StrokeDraftState): Shape => {
+    const bounds = calculateBounds(draft.points);
+    const center = bounds
+      ? {
+          x: (bounds.minX + bounds.maxX) / 2,
+          y: (bounds.minY + bounds.maxY) / 2,
+        }
+      : { x: 0, y: 0 };
+    const localPoints = bounds
+      ? draft.points.map((pt) => ({ x: pt.x - center.x, y: pt.y - center.y, pressure: pt.pressure }))
+      : draft.points.map((pt) => ({ ...pt }));
+    const geometry = {
+      type: 'pen' as const,
+      points: localPoints,
+    };
+    const shape: Shape = {
+      id: draft.id,
+      geometry,
+      stroke: draft.stroke,
+      zIndex: draft.zIndex,
+      interactions: {
+        resizable: true,
+        rotatable: false,
+      },
+      transform: {
+        translation: center,
+        scale: { x: 1, y: 1 },
+        rotation: 0,
+      },
+    };
+    return shape;
+  };
+
+  const calculateBounds = (points: Point[]) => {
+    if (!points.length) return null;
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const pt of points) {
+      minX = Math.min(minX, pt.x);
+      minY = Math.min(minY, pt.y);
+      maxX = Math.max(maxX, pt.x);
+      maxY = Math.max(maxY, pt.y);
+    }
+    if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+      return null;
+    }
+    return { minX, minY, maxX, maxY };
+  };

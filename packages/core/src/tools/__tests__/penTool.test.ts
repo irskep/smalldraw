@@ -35,9 +35,9 @@ describe('pen tool integration with runtime', () => {
     expect(runtime.getDraft()?.geometry).toEqual({
       type: 'pen',
       points: [
-        { x: 0, y: 0, pressure: undefined },
-        { x: 10, y: 10, pressure: undefined },
-        { x: 20, y: 5, pressure: undefined },
+        { x: -10, y: -5, pressure: undefined },
+        { x: 0, y: 5, pressure: undefined },
+        { x: 10, y: 0, pressure: undefined },
       ],
     });
 
@@ -50,11 +50,12 @@ describe('pen tool integration with runtime', () => {
     expect(shape.geometry).toEqual({
       type: 'pen',
       points: [
-        { x: 0, y: 0, pressure: undefined },
-        { x: 10, y: 10, pressure: undefined },
-        { x: 20, y: 5, pressure: undefined },
+        { x: -10, y: -5, pressure: undefined },
+        { x: 0, y: 5, pressure: undefined },
+        { x: 10, y: 0, pressure: undefined },
       ],
     });
+    expect(shape.transform?.translation).toEqual({ x: 10, y: 5 });
   });
 
   test('uses runtime stroke options when provided', () => {

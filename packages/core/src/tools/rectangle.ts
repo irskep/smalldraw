@@ -3,6 +3,7 @@ import type { Point, Size } from '../model/primitives';
 import type { Shape } from '../model/shape';
 import type { Fill, StrokeStyle } from '../model/style';
 import type { ToolDefinition, ToolEventHandler, ToolRuntime } from './types';
+import { attachPointerHandlers } from './pointerHandlers';
 
 interface RectDraftState {
   id: string;
@@ -83,26 +84,26 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
     updateDraft(runtime);
   };
 
-  const computeSizeAndTranslation = (start: Point, current: Point) => {
+  const computeSizeAndCenter = (start: Point, current: Point) => {
     const x1 = start.x;
     const y1 = start.y;
     const x2 = current.x;
     const y2 = current.y;
-    const translation = {
-      x: Math.min(x1, x2),
-      y: Math.min(y1, y2),
-    };
     const size: Size = {
       width: Math.abs(x2 - x1),
       height: Math.abs(y2 - y1),
     };
-    return { translation, size };
+    const center = {
+      x: (x1 + x2) / 2,
+      y: (y1 + y2) / 2,
+    };
+    return { center, size };
   };
 
   const updateDraft = (runtime: ToolRuntime) => {
     const state = runtimeState.get(runtime);
     if (!state?.draft) return;
-    const { translation, size } = computeSizeAndTranslation(
+    const { center, size } = computeSizeAndCenter(
       state.draft.start,
       state.draft.current,
     );
@@ -122,7 +123,7 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
         rotatable: true,
       },
       transform: {
-        translation,
+        translation: center,
         scale: { x: 1, y: 1 },
         rotation: 0,
       },
@@ -135,7 +136,7 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
       runtime.clearDraft();
       return;
     }
-    const { translation, size } = computeSizeAndTranslation(
+    const { center, size } = computeSizeAndCenter(
       state.draft.start,
       state.draft.current,
     );
@@ -158,7 +159,7 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
         rotatable: true,
       },
       transform: {
-        translation,
+        translation: center,
         scale: { x: 1, y: 1 },
         rotation: 0,
       },
@@ -204,10 +205,14 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
       state.disposers.forEach((dispose) => dispose());
       state.disposers = [];
       state.draft = null;
-      state.disposers.push(runtime.on('pointerDown', createPointerDownHandler(runtime)));
-      state.disposers.push(runtime.on('pointerMove', createPointerMoveHandler(runtime)));
-      state.disposers.push(runtime.on('pointerUp', createPointerUpHandler(runtime)));
-      state.disposers.push(runtime.on('pointerCancel', createPointerCancelHandler(runtime)));
+      state.disposers.push(
+        attachPointerHandlers(runtime, {
+          onPointerDown: createPointerDownHandler(runtime),
+          onPointerMove: createPointerMoveHandler(runtime),
+          onPointerUp: createPointerUpHandler(runtime),
+          onPointerCancel: createPointerCancelHandler(runtime),
+        }),
+      );
     },
     deactivate(runtime) {
       const state = runtimeState.get(runtime);

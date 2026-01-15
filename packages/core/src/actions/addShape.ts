@@ -1,9 +1,14 @@
 import type { DrawingDocument } from '../model/document';
 import type { Shape } from '../model/shape';
+import { canonicalizeShape } from '../model/shape';
 import type { UndoableAction } from './types';
 
 export class AddShape implements UndoableAction {
-  constructor(private readonly shape: Shape) {}
+  private readonly shape: Shape;
+
+  constructor(shape: Shape) {
+    this.shape = canonicalizeShape(shape);
+  }
 
   redo(doc: DrawingDocument): void {
     doc.shapes[this.shape.id] = this.shape;

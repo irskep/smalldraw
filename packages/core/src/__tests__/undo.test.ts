@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { AddShape, DeleteShape } from '../actions';
 import { createDocument } from '../model/document';
 import type { Shape } from '../model/shape';
+import { canonicalizeShape } from '../model/shape';
 import { UndoManager } from '../undo';
 
 const rectangle: Shape = {
@@ -20,6 +21,8 @@ const rectangle: Shape = {
   },
 };
 
+const canonicalRectangle = canonicalizeShape(rectangle);
+
 describe('Undo stack interactions for rectangle shapes', () => {
   test('AddShape action can be undone/redone', () => {
     const doc = createDocument();
@@ -27,7 +30,7 @@ describe('Undo stack interactions for rectangle shapes', () => {
     const addAction = new AddShape(rectangle);
 
     undo.apply(addAction, doc);
-    expect(doc.shapes[rectangle.id]).toBe(rectangle);
+    expect(doc.shapes[rectangle.id]).toEqual(canonicalRectangle);
     expect(undo.canUndo()).toBe(true);
     expect(undo.canRedo()).toBe(false);
 
@@ -36,7 +39,7 @@ describe('Undo stack interactions for rectangle shapes', () => {
     expect(undo.canRedo()).toBe(true);
 
     expect(undo.redo(doc)).toBe(true);
-    expect(doc.shapes[rectangle.id]).toBe(rectangle);
+    expect(doc.shapes[rectangle.id]).toEqual(canonicalRectangle);
   });
 
   test('DeleteShape action restores removed rectangle on undo', () => {
@@ -48,7 +51,7 @@ describe('Undo stack interactions for rectangle shapes', () => {
     expect(doc.shapes[rectangle.id]).toBeUndefined();
 
     expect(undo.undo(doc)).toBe(true);
-    expect(doc.shapes[rectangle.id]).toEqual(rectangle);
+    expect(doc.shapes[rectangle.id]).toEqual(canonicalRectangle);
 
     expect(undo.redo(doc)).toBe(true);
     expect(doc.shapes[rectangle.id]).toBeUndefined();
