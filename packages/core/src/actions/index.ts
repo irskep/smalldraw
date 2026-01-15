@@ -1,2 +1,3 @@
-// TODO: export actions from this barrel file
-export {};
+export * from './types';
+export * from './addShape';
+export * from './deleteShape';

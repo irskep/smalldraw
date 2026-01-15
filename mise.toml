@@ -44,3 +44,6 @@ run = "bunx drizzle-kit push"
 
 [tasks."ts:check:all"]
 run = "bun run --cwd apps/app ts:check && bun run --cwd apps/server ts:check"
+
+[tasks.test]
+run = "bun run test"
