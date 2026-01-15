@@ -4,25 +4,43 @@ node = "24"
 "pipx:persistproc" = "latest"
 
 [tasks."db:push"]
-env = { _.file = ".env" }
+env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
 run = "bunx drizzle-kit push"
 
 [tasks."db:generate"]
-env = { _.file = ".env" }
+env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
 run = "bunx drizzle-kit generate"
 
 [tasks."server:test"]
-env = { _.file = ".env" }
-run = "cd apps/server && bun test"
+dir = "apps/server"
+env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
+run = "bun test"
 
 [tasks."server:dev"]
-env = { _.file = ".env" }
-run = "cd apps/server && bun run dev"
+dir = "apps/server"
+env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
+run = "bun run dev"
 
 [tasks."db:studio"]
-env = { _.file = ".env" }
+env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
 run = "bunx drizzle-kit studio"
 
 [tasks."app:dev"]
 dir = "apps/app"
 run = "bun run dev"
+
+[tasks."prod:build"]
+env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db" }
+run = "bun run --cwd apps/app build && rm -rf apps/server/public && mkdir -p apps/server/public && cp -R apps/app/dist/. apps/server/public/"
+
+[tasks."prod:serve"]
+dir = "apps/server"
+env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db", FRONTEND_ORIGIN = "http://localhost:3030" }
+run = "bun src/index.ts"
+
+[tasks."db:push:prod"]
+env = { _.file = ".env", DATABASE_URL = "./sqlite/prod.db" }
+run = "bunx drizzle-kit push"
+
+[tasks."ts:check:all"]
+run = "bun run --cwd apps/app ts:check && bun run --cwd apps/server ts:check"
