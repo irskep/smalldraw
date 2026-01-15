@@ -9,7 +9,7 @@
     "build": "tsup src/index.ts --dts --format esm",
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "echo 'No lint script yet'",
-    "test": "echo 'No tests yet'"
+    "test": "bun test"
   },
   "dependencies": {
     "jittered-fractional-indexing": "^1.0.0"
