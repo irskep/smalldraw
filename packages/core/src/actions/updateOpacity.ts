@@ -27,4 +27,8 @@ export class UpdateShapeOpacity implements UndoableAction {
     const shape = requireShape(doc, this.shapeId);
     shape.opacity = this.previous;
   }
+
+  affectedShapeIds(): string[] {
+    return [this.shapeId];
+  }
 }

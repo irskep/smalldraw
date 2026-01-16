@@ -22,4 +22,8 @@ export class DeleteShape implements UndoableAction {
     }
     doc.shapes[this.shapeId] = this.deletedShape;
   }
+
+  affectedShapeIds(): string[] {
+    return [this.shapeId];
+  }
 }

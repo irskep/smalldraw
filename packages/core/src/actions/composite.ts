@@ -15,4 +15,14 @@ export class CompositeAction implements UndoableAction {
       this.actions[i].undo(doc);
     }
   }
+
+  affectedShapeIds(): string[] {
+    const ids = new Set<string>();
+    for (const action of this.actions) {
+      for (const id of action.affectedShapeIds()) {
+        ids.add(id);
+      }
+    }
+    return Array.from(ids);
+  }
 }

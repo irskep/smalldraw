@@ -28,4 +28,8 @@ export class UpdateShapeStroke implements UndoableAction {
     const shape = requireShape(doc, this.shapeId);
     shape.stroke = this.previous;
   }
+
+  affectedShapeIds(): string[] {
+    return [this.shapeId];
+  }
 }

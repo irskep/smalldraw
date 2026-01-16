@@ -28,4 +28,8 @@ export class UpdateShapeFill implements UndoableAction {
     const shape = requireShape(doc, this.shapeId);
     shape.fill = this.previous;
   }
+
+  affectedShapeIds(): string[] {
+    return [this.shapeId];
+  }
 }

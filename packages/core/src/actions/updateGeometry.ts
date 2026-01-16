@@ -36,4 +36,8 @@ export class UpdateShapeGeometry implements UndoableAction {
     shape.geometry = this.previousGeometry;
     shape.transform = this.previousTransform;
   }
+
+  affectedShapeIds(): string[] {
+    return [this.shapeId];
+  }
 }

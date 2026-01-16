@@ -1,9 +1,10 @@
-import type { DrawingDocument } from '@smalldraw/core';
+import type { DirtyState, DrawingDocument, Shape } from '@smalldraw/core';
 import { getOrderedShapes } from '@smalldraw/core';
 import Konva from 'konva';
 import type { Layer } from 'konva/lib/Layer.js';
 import type { Stage, StageConfig } from 'konva/lib/Stage.js';
 
+import { KonvaReconciler } from './reconciler.js';
 import {
   defaultShapeRendererRegistry,
   renderShapeNode,
@@ -70,6 +71,77 @@ function fillBackground(layer: Layer, options?: RenderDocumentOptions): void {
   if (!stage) return;
   const color = options?.backgroundColor ?? options?.viewport?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR;
   const bgRect = new Konva.Rect({
+    x: 0,
+    y: 0,
+    width: stage.width(),
+    height: stage.height(),
+    fill: color,
+    listening: false,
+  });
+  layer.add(bgRect);
+  bgRect.moveToBottom();
+}
+
+export interface ReconcileDocumentOptions {
+  layerId?: string;
+  registry?: ShapeRendererRegistry;
+  viewport?: Viewport;
+  backgroundColor?: string;
+}
+
+/**
+ * Incrementally render a document using dirty tracking.
+ * Only shapes in the dirty set are updated; deleted shapes are removed.
+ * This is more efficient than full re-render for small changes.
+ *
+ * @param stage - The Konva stage
+ * @param reconciler - The reconciler instance (maintains node cache)
+ * @param shapes - All shapes to render (in z-order)
+ * @param dirtyState - The dirty/deleted state from the store
+ * @param options - Rendering options
+ */
+export function reconcileDocument(
+  stage: Stage,
+  reconciler: KonvaReconciler,
+  shapes: Shape[],
+  dirtyState: DirtyState,
+  options?: ReconcileDocumentOptions,
+): Layer {
+  const layer = ensureRendererLayer(stage, options?.layerId ?? DEFAULT_LAYER_ID);
+  if (options?.viewport) {
+    applyViewportToStage(stage, layer, options.viewport);
+  }
+
+  // Ensure background exists (only on first call or if cleared)
+  ensureBackground(layer, options);
+
+  // Reconcile shapes
+  reconciler.reconcile(layer, shapes, dirtyState.dirty, dirtyState.deleted);
+
+  layer.batchDraw();
+  return layer;
+}
+
+/**
+ * Ensure background rect exists and is at the bottom.
+ * Unlike fillBackground, this doesn't recreate it every time.
+ */
+function ensureBackground(layer: Layer, options?: ReconcileDocumentOptions): void {
+  const stage = layer.getStage();
+  if (!stage) return;
+
+  const existingBg = layer.findOne<Konva.Rect>('.smalldraw-background');
+  if (existingBg) {
+    // Update size if stage changed
+    existingBg.width(stage.width());
+    existingBg.height(stage.height());
+    existingBg.moveToBottom();
+    return;
+  }
+
+  const color = options?.backgroundColor ?? options?.viewport?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR;
+  const bgRect = new Konva.Rect({
+    name: 'smalldraw-background',
     x: 0,
     y: 0,
     width: stage.width(),

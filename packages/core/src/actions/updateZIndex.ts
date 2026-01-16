@@ -27,4 +27,8 @@ export class UpdateShapeZIndex implements UndoableAction {
     const shape = requireShape(doc, this.shapeId);
     shape.zIndex = this.previous;
   }
+
+  affectedShapeIds(): string[] {
+    return [this.shapeId];
+  }
 }

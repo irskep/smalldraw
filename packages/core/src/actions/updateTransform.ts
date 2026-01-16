@@ -28,4 +28,8 @@ export class UpdateShapeTransform implements UndoableAction {
     const shape = requireShape(doc, this.shapeId);
     shape.transform = this.previous ? { ...this.previous } : undefined;
   }
+
+  affectedShapeIds(): string[] {
+    return [this.shapeId];
+  }
 }

@@ -17,4 +17,8 @@ export class AddShape implements UndoableAction {
   undo(doc: DrawingDocument): void {
     delete doc.shapes[this.shape.id];
   }
+
+  affectedShapeIds(): string[] {
+    return [this.shape.id];
+  }
 }

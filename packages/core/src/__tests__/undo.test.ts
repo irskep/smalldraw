@@ -34,11 +34,11 @@ describe('Undo stack interactions for rectangle shapes', () => {
     expect(undo.canUndo()).toBe(true);
     expect(undo.canRedo()).toBe(false);
 
-    expect(undo.undo(doc)).toBe(true);
+    expect(undo.undo(doc)).toBeTruthy();
     expect(doc.shapes[rectangle.id]).toBeUndefined();
     expect(undo.canRedo()).toBe(true);
 
-    expect(undo.redo(doc)).toBe(true);
+    expect(undo.redo(doc)).toBeTruthy();
     expect(doc.shapes[rectangle.id]).toEqual(canonicalRectangle);
   });
 
@@ -50,10 +50,10 @@ describe('Undo stack interactions for rectangle shapes', () => {
     undo.apply(deleteAction, doc);
     expect(doc.shapes[rectangle.id]).toBeUndefined();
 
-    expect(undo.undo(doc)).toBe(true);
+    expect(undo.undo(doc)).toBeTruthy();
     expect(doc.shapes[rectangle.id]).toEqual(canonicalRectangle);
 
-    expect(undo.redo(doc)).toBe(true);
+    expect(undo.redo(doc)).toBeTruthy();
     expect(doc.shapes[rectangle.id]).toBeUndefined();
   });
 });

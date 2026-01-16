@@ -1,5 +1,6 @@
-import type { UndoableAction } from '../actions';
+import { AddShape, DeleteShape, UpdateShapeZIndex, type UndoableAction } from '../actions';
 import { createDocument, type DrawingDocument } from '../model/document';
+import type { Shape } from '../model/shape';
 import { UndoManager } from '../undo';
 import { ToolRuntimeImpl } from '../tools/runtime';
 import type {
@@ -21,6 +22,14 @@ export interface DrawingStoreOptions {
   initialSharedSettings?: SharedToolSettings;
 }
 
+/** Result of consuming dirty state for incremental rendering. */
+export interface DirtyState {
+  /** Shape IDs that were modified and still exist. */
+  dirty: Set<string>;
+  /** Shape IDs that were deleted and no longer exist. */
+  deleted: Set<string>;
+}
+
 export class DrawingStore {
   private document: DrawingDocument;
   private undoManager: UndoManager;
@@ -37,6 +46,13 @@ export class DrawingStore {
     behavior: null,
   };
   private selectionFrame: Bounds | null = null;
+
+  // Dirty tracking for incremental rendering
+  private dirtyShapeIds = new Set<string>();
+  private deletedShapeIds = new Set<string>();
+
+  // Cached ordered shapes for performance
+  private orderedCache: Shape[] | null = null;
 
   constructor(options: DrawingStoreOptions) {
     this.document = options.document ?? createDocument();
@@ -139,10 +155,78 @@ export class DrawingStore {
 
   mutateDocument(action: UndoableAction): void {
     this.undoManager.apply(action, this.document);
+    this.trackDirtyState(action);
+  }
+
+  /**
+   * Track dirty/deleted state based on action's affected shapes.
+   * After an action, if a shape exists → dirty; if not → deleted.
+   * Also invalidates the ordered cache when z-order might have changed.
+   */
+  private trackDirtyState(action: UndoableAction): void {
+    // Invalidate ordered cache if action affects z-order
+    if (this.affectsZOrder(action)) {
+      this.orderedCache = null;
+    }
+
+    for (const id of action.affectedShapeIds()) {
+      if (this.document.shapes[id]) {
+        // Shape exists after action → it was modified
+        this.dirtyShapeIds.add(id);
+        this.deletedShapeIds.delete(id); // In case it was previously marked deleted
+      } else {
+        // Shape doesn't exist after action → it was deleted
+        this.deletedShapeIds.add(id);
+        this.dirtyShapeIds.delete(id); // No longer dirty, it's gone
+      }
+    }
+  }
+
+  /**
+   * Check if an action affects the z-order of shapes.
+   * The ordered cache must be invalidated for these actions.
+   */
+  private affectsZOrder(action: UndoableAction): boolean {
+    if (action instanceof AddShape) return true;
+    if (action instanceof DeleteShape) return true;
+    if (action instanceof UpdateShapeZIndex) return true;
+    // CompositeAction: check children
+    if ('actions' in action && Array.isArray((action as { actions: UndoableAction[] }).actions)) {
+      return (action as { actions: UndoableAction[] }).actions.some((a) => this.affectsZOrder(a));
+    }
+    return false;
+  }
+
+  /**
+   * Consume and clear the dirty state. Call this before rendering to get
+   * the set of shapes that need updating.
+   */
+  consumeDirtyState(): DirtyState {
+    const result: DirtyState = {
+      dirty: this.dirtyShapeIds,
+      deleted: this.deletedShapeIds,
+    };
+    this.dirtyShapeIds = new Set();
+    this.deletedShapeIds = new Set();
+    return result;
   }
 
   getDocument(): DrawingDocument {
     return this.document;
+  }
+
+  /**
+   * Get shapes sorted by z-index. Uses cached result when possible.
+   * The cache is invalidated when shapes are added, deleted, or reordered.
+   */
+  getOrderedShapes(): Shape[] {
+    if (!this.orderedCache) {
+      this.orderedCache = Object.values(this.document.shapes).sort((a, b) => {
+        if (a.zIndex === b.zIndex) return 0;
+        return a.zIndex < b.zIndex ? -1 : 1;
+      });
+    }
+    return this.orderedCache;
   }
 
   getActiveToolId(): string | null {
@@ -199,11 +283,21 @@ export class DrawingStore {
   }
 
   undo(): boolean {
-    return this.undoManager.undo(this.document);
+    const action = this.undoManager.undo(this.document);
+    if (action) {
+      this.trackDirtyState(action);
+      return true;
+    }
+    return false;
   }
 
   redo(): boolean {
-    return this.undoManager.redo(this.document);
+    const action = this.undoManager.redo(this.document);
+    if (action) {
+      this.trackDirtyState(action);
+      return true;
+    }
+    return false;
   }
 
   canUndo(): boolean {

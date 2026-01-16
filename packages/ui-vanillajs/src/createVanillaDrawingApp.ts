@@ -8,6 +8,7 @@ import {
   getOrderedShapes,
   type Bounds,
   type DrawingDocument,
+  type HandleDescriptor,
   type Point,
   type Shape,
   type ToolDefinition,
@@ -18,6 +19,7 @@ import {
   renderDocument,
   type Viewport,
 } from '@smalldraw/renderer-konva';
+import { SelectionOverlay } from './selectionOverlay.js';
 
 const DEFAULT_COLORS = ['#000000', '#ffffff', '#ff4b4b', '#1a73e8', '#ffcc00', '#00c16a', '#9c27b0'];
 const HANDLE_SIZE = 8;
@@ -124,6 +126,9 @@ export function createVanillaDrawingApp(options: VanillaDrawingAppOptions): Vani
   });
   overlay.appendChild(selectionLayer);
 
+  // Create SelectionOverlay for incremental DOM updates
+  const selectionOverlay = new SelectionOverlay(selectionLayer);
+
   options.container.appendChild(root);
 
   const viewport: Viewport = {
@@ -176,7 +181,7 @@ export function createVanillaDrawingApp(options: VanillaDrawingAppOptions): Vani
   function renderAll() {
     const live = buildLiveDocument(store);
     renderDocument(stage, live, { viewport });
-    renderSelectionOverlay(selectionLayer, store);
+    updateSelectionOverlay(selectionOverlay, store);
     syncToolButtons(toolButtons, store.getActiveToolId());
     syncSwatches(strokeSwatches.buttons, store.getSharedSettings().strokeColor);
     syncSwatches(fillSwatches.buttons, store.getSharedSettings().fillColor ?? '#000000');
@@ -418,79 +423,23 @@ function buildLiveDocument(store: DrawingStore): DrawingDocument {
   return { shapes };
 }
 
-function renderSelectionOverlay(layer: HTMLElement, store: DrawingStore) {
-  layer.innerHTML = '';
+/**
+ * Update the selection overlay with incremental DOM updates.
+ * Uses SelectionOverlay class to avoid rebuilding the entire DOM each frame.
+ */
+function updateSelectionOverlay(overlay: SelectionOverlay, store: DrawingStore): void {
   const bounds = store.getSelectionFrame() ?? computeSelectionBounds(store);
-  if (!bounds) {
-    return;
-  }
-  console.debug('[selection] frame', bounds);
-  const frame = document.createElement('div');
-  Object.assign(frame.style, {
-    position: 'absolute',
-    left: `${bounds.minX}px`,
-    top: `${bounds.minY}px`,
-    width: `${bounds.width}px`,
-    height: `${bounds.height}px`,
-    border: '1px dashed #4a90e2',
-    background: 'rgba(74, 144, 226, 0.05)',
-  });
-  layer.appendChild(frame);
   const showAxisHandles = canShowAxisHandles(store);
   const handles = store
     .getHandles()
-    .filter((handle) => showAxisHandles || handle.behavior?.type !== 'resize-axis');
+    .filter((handle: HandleDescriptor) => showAxisHandles || handle.behavior?.type !== 'resize-axis');
   const liveDoc = buildLiveDocument(store);
   const selection = store.getSelection();
   const selectedId = selection.ids.size
     ? Array.from(selection.ids)[0]
     : selection.primaryId;
   const selectedShape = selectedId ? liveDoc.shapes[selectedId] : undefined;
-  const handlePositions = handles.map((handle) => ({
-    id: handle.id,
-    point: resolveHandlePoint(bounds, handle, selectedShape),
-    handle,
-  }));
-  console.debug(
-    '[selection] handles',
-    handlePositions.map(({ id, point, handle }) => ({
-      id,
-      type: handle.behavior?.type,
-      point,
-    })),
-  );
-  const rotation = selectedShape?.transform?.rotation ?? 0;
-  for (const { id, point, handle } of handlePositions) {
-    const axisHandle = handle.behavior?.type === 'resize-axis';
-    const axis = handle.behavior?.type === 'resize-axis' ? handle.behavior.axis : null;
-    const size = axisHandle
-      ? axis === 'x'
-        ? { width: 6, height: 12 }
-        : { width: 12, height: 6 }
-      : { width: HANDLE_SIZE, height: HANDLE_SIZE };
-    const handleEl = document.createElement('div');
-    handleEl.dataset.handle = id;
-    const axisRotation =
-      axisHandle && axis
-        ? axis === 'x'
-          ? rotation
-          : rotation + Math.PI / 2
-        : null;
-    Object.assign(handleEl.style, {
-      position: 'absolute',
-      width: `${size.width}px`,
-      height: `${size.height}px`,
-      background: axisHandle ? '#4a90e2' : '#ffffff',
-      border: axisHandle ? '1px solid #2c6db2' : '1px solid #4a90e2',
-      borderRadius: axisHandle ? '2px' : '0px',
-      left: axisHandle ? `${point.x}px` : `${point.x - size.width / 2}px`,
-      top: axisHandle ? `${point.y}px` : `${point.y - size.height / 2}px`,
-      transform: axisHandle && axisRotation !== null
-        ? `translate(-50%, -50%) rotate(${(axisRotation * 180) / Math.PI}deg)`
-        : undefined,
-    });
-    layer.appendChild(handleEl);
-  }
+  overlay.update(bounds, handles, selectedShape);
 }
 
 function computeSelectionBounds(store: DrawingStore): Bounds | null {

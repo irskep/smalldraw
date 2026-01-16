@@ -11,24 +11,24 @@ export class UndoManager {
     this.redoStack = [];
   }
 
-  undo(doc: DrawingDocument): boolean {
+  undo(doc: DrawingDocument): UndoableAction | null {
     const action = this.undoStack.pop();
     if (!action) {
-      return false;
+      return null;
     }
     action.undo(doc);
     this.redoStack.push(action);
-    return true;
+    return action;
   }
 
-  redo(doc: DrawingDocument): boolean {
+  redo(doc: DrawingDocument): UndoableAction | null {
     const action = this.redoStack.pop();
     if (!action) {
-      return false;
+      return null;
     }
     action.redo(doc);
     this.undoStack.push(action);
-    return true;
+    return action;
   }
 
   canUndo(): boolean {
