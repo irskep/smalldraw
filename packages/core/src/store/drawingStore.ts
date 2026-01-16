@@ -126,7 +126,10 @@ export class DrawingStore {
     const tool = this.tools.get(currentId);
     const runtime = this.runtimes.get(currentId);
     tool?.deactivate?.(runtime as ToolRuntimeImpl);
-    runtime?.dispose();
+    // Note: Don't call runtime.dispose() here - we cache runtimes and their
+    // DrawingStore event listeners should persist across tool switches.
+    // The tool's deactivate() already cleans up its own handlers.
+    runtime?.clearDraft();
     this.runtimeDrafts.set(currentId, []);
     this.handles = [];
     this.handleHover = { handleId: null, behavior: null };

@@ -267,6 +267,12 @@ export function createSelectionTool(): ToolDefinition {
             onPointerDown(runtime)({ ...event, point, buttons: event.buttons ?? 1 });
             return ensureState(runtime).drag ?? null;
           },
+          onMove(drag, point, event) {
+            drag.lastPoint = point;
+            const frame = computeDragFrame(runtime, drag);
+            emitSelectionFrame(runtime, frame ?? drag.selectionBounds);
+            runtime.setDrafts(computePreviewShapes(runtime, drag));
+          },
           onEnd(state, point, event) {
             onPointerUp(runtime)({ ...event, point, buttons: event.buttons ?? 0 });
           },
