@@ -31,7 +31,12 @@ run = "bun run dev"
 
 [tasks."prod:build"]
 env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db" }
-run = "bun run --cwd apps/app build && rm -rf apps/server/public && mkdir -p apps/server/public && cp -R apps/app/dist/. apps/server/public/"
+run = """
+bun run --cwd apps/app build
+rm -rf apps/server/public
+mkdir -p apps/server/public
+cp -R apps/app/dist/. apps/server/public/
+"""
 
 [tasks."prod:serve"]
 dir = "apps/server"
@@ -55,14 +60,21 @@ env = { _.file = ".env", DATABASE_URL = "./sqlite/prod.db" }
 run = "bunx drizzle-kit push"
 
 [tasks."ts:check:all"]
-run = "bun --filter='*' run ts:check"
+# Run all ts:check tasks across the monorepo using wildcard pattern
+run = ["mise run '//packages/...:ts:check'", "mise run '//apps/...:ts:check'"]
 
 [tasks."test:all"]
 # Run all test tasks across the monorepo using wildcard pattern
 run = ["mise run '//packages/...:test'", "mise run '//apps/...:test'"]
 
 [tasks."docs:typedoc"]
-run = "bun x typedoc --tsconfig packages/core/tsconfig.typedoc.json --entryPoints packages/core/src/index.ts --plugin typedoc-plugin-markdown --out docs/api"
+run = """
+bun x typedoc \
+  --tsconfig packages/core/tsconfig.typedoc.json \
+  --entryPoints packages/core/src/index.ts \
+  --plugin typedoc-plugin-markdown \
+  --out docs/api
+"""
 
 [tasks."docs:dev"]
 dir = "apps/docs-site"

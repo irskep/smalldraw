@@ -1,5 +1,5 @@
 [tasks.test]
 run = "bun test"
 
-[tasks."ui:vanillajs:watch"]
-run = "bun run build --watch"
+[tasks."ts:check"]
+run = "bun run ts:check"

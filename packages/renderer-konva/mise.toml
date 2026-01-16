@@ -1,2 +1,5 @@
 [tasks.test]
 run = "bun test"
+
+[tasks."ts:check"]
+run = "bun run ts:check"
