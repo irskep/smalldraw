@@ -1,6 +1,6 @@
-import type { DrawingDocument } from '../model/document';
-import type { UndoableAction } from './types';
-import { requireShape } from './utils';
+import type { DrawingDocument } from "../model/document";
+import type { UndoableAction } from "./types";
+import { requireShape } from "./utils";
 
 export class UpdateShapeZIndex implements UndoableAction {
   private previous?: string;
@@ -8,7 +8,7 @@ export class UpdateShapeZIndex implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly nextZIndex: string,
+    private readonly nextZIndex: string
   ) {}
 
   redo(doc: DrawingDocument): void {
@@ -30,5 +30,9 @@ export class UpdateShapeZIndex implements UndoableAction {
 
   affectedShapeIds(): string[] {
     return [this.shapeId];
+  }
+
+  affectsZOrder(): boolean {
+    return true;
   }
 }

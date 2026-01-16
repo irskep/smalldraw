@@ -1,5 +1,5 @@
-import type { DrawingDocument } from '../model/document';
-import type { UndoableAction } from './types';
+import type { DrawingDocument } from "../model/document";
+import type { UndoableAction } from "./types";
 
 export class CompositeAction implements UndoableAction {
   constructor(private readonly actions: UndoableAction[]) {}
@@ -24,5 +24,9 @@ export class CompositeAction implements UndoableAction {
       }
     }
     return Array.from(ids);
+  }
+
+  affectsZOrder(): boolean {
+    return this.actions.some((item) => item.affectsZOrder());
   }
 }

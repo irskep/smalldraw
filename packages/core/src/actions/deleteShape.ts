@@ -1,6 +1,6 @@
-import type { DrawingDocument } from '../model/document';
-import type { Shape } from '../model/shape';
-import type { UndoableAction } from './types';
+import type { DrawingDocument } from "../model/document";
+import type { Shape } from "../model/shape";
+import type { UndoableAction } from "./types";
 
 export class DeleteShape implements UndoableAction {
   private deletedShape?: Shape;
@@ -17,7 +17,7 @@ export class DeleteShape implements UndoableAction {
   undo(doc: DrawingDocument): void {
     if (!this.deletedShape) {
       throw new Error(
-        `Cannot undo delete because shape ${this.shapeId} was never captured`,
+        `Cannot undo delete because shape ${this.shapeId} was never captured`
       );
     }
     doc.shapes[this.shapeId] = this.deletedShape;
@@ -25,5 +25,9 @@ export class DeleteShape implements UndoableAction {
 
   affectedShapeIds(): string[] {
     return [this.shapeId];
+  }
+
+  affectsZOrder(): boolean {
+    return true;
   }
 }

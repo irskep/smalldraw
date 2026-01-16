@@ -1,9 +1,9 @@
-import type { DrawingDocument } from '../model/document';
-import type { Geometry } from '../model/geometry';
-import type { ShapeTransform } from '../model/shape';
-import { canonicalizeShape } from '../model/shape';
-import type { UndoableAction } from './types';
-import { requireShape } from './utils';
+import type { DrawingDocument } from "../model/document";
+import type { Geometry } from "../model/geometry";
+import type { ShapeTransform } from "../model/shape";
+import { canonicalizeShape } from "../model/shape";
+import type { UndoableAction } from "./types";
+import { requireShape } from "./utils";
 
 export class UpdateShapeGeometry implements UndoableAction {
   private previousGeometry?: Geometry;
@@ -11,7 +11,7 @@ export class UpdateShapeGeometry implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly newGeometry: Geometry,
+    private readonly newGeometry: Geometry
   ) {}
 
   redo(doc: DrawingDocument): void {
@@ -29,7 +29,7 @@ export class UpdateShapeGeometry implements UndoableAction {
   undo(doc: DrawingDocument): void {
     if (!this.previousGeometry) {
       throw new Error(
-        `Cannot undo geometry update for ${this.shapeId} because previous geometry was not recorded`,
+        `Cannot undo geometry update for ${this.shapeId} because previous geometry was not recorded`
       );
     }
     const shape = requireShape(doc, this.shapeId);
@@ -39,5 +39,9 @@ export class UpdateShapeGeometry implements UndoableAction {
 
   affectedShapeIds(): string[] {
     return [this.shapeId];
+  }
+
+  affectsZOrder(): boolean {
+    return false;
   }
 }

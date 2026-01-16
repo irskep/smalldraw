@@ -1,7 +1,7 @@
-import type { DrawingDocument } from '../model/document';
-import type { StrokeStyle } from '../model/style';
-import type { UndoableAction } from './types';
-import { requireShape } from './utils';
+import type { DrawingDocument } from "../model/document";
+import type { StrokeStyle } from "../model/style";
+import type { UndoableAction } from "./types";
+import { requireShape } from "./utils";
 
 export class UpdateShapeStroke implements UndoableAction {
   private previous?: StrokeStyle;
@@ -9,7 +9,7 @@ export class UpdateShapeStroke implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly nextStroke: StrokeStyle | undefined,
+    private readonly nextStroke: StrokeStyle | undefined
   ) {}
 
   redo(doc: DrawingDocument): void {
@@ -31,5 +31,9 @@ export class UpdateShapeStroke implements UndoableAction {
 
   affectedShapeIds(): string[] {
     return [this.shapeId];
+  }
+
+  affectsZOrder(): boolean {
+    return false;
   }
 }

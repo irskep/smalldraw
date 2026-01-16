@@ -1,8 +1,13 @@
-import { AddShape, DeleteShape, UpdateShapeZIndex, type UndoableAction } from '../actions';
-import { createDocument, type DrawingDocument } from '../model/document';
-import type { Shape } from '../model/shape';
-import { UndoManager } from '../undo';
-import { ToolRuntimeImpl } from '../tools/runtime';
+import {
+  AddShape,
+  DeleteShape,
+  UpdateShapeZIndex,
+  type UndoableAction,
+} from "../actions";
+import { createDocument, type DrawingDocument } from "../model/document";
+import type { Shape } from "../model/shape";
+import { UndoManager } from "../undo";
+import { ToolRuntimeImpl } from "../tools/runtime";
 import type {
   DraftShape,
   HandleBehavior,
@@ -13,7 +18,7 @@ import type {
   ToolDefinition,
   ToolEventName,
   ToolPointerEvent,
-} from '../tools/types';
+} from "../tools/types";
 
 export interface DrawingStoreOptions {
   document?: DrawingDocument;
@@ -41,7 +46,10 @@ export class DrawingStore {
   private activeToolId: string | null = null;
   private runtimes = new Map<string, ToolRuntimeImpl>();
   private handles: HandleDescriptor[] = [];
-  private handleHover: { handleId: string | null; behavior: HandleBehavior | null } = {
+  private handleHover: {
+    handleId: string | null;
+    behavior: HandleBehavior | null;
+  } = {
     handleId: null,
     behavior: null,
   };
@@ -58,9 +66,9 @@ export class DrawingStore {
     this.document = options.document ?? createDocument();
     this.undoManager = options.undoManager ?? new UndoManager();
     this.sharedSettings = options.initialSharedSettings ?? {
-      strokeColor: '#000000',
+      strokeColor: "#000000",
       strokeWidth: 2,
-      fillColor: '#ffffff',
+      fillColor: "#ffffff",
     };
     for (const tool of options.tools) {
       this.tools.set(tool.id, tool);
@@ -93,7 +101,10 @@ export class DrawingStore {
     return this.handles;
   }
 
-  getHandleHover(): { handleId: string | null; behavior: HandleBehavior | null } {
+  getHandleHover(): {
+    handleId: string | null;
+    behavior: HandleBehavior | null;
+  } {
     return this.handleHover;
   }
 
@@ -117,17 +128,23 @@ export class DrawingStore {
         this.runtimeDrafts.set(toolId, drafts);
       },
     });
-    runtime.onEvent('handles', (payload: HandleDescriptor[]) => {
+    runtime.onEvent("handles", (payload: HandleDescriptor[]) => {
       if (this.activeToolId === toolId) {
         this.handles = payload;
       }
     });
-    runtime.onEvent('handle-hover', (payload: { handleId: string | null; behavior: HandleBehavior | null }) => {
-      if (this.activeToolId === toolId) {
-        this.handleHover = payload;
+    runtime.onEvent(
+      "handle-hover",
+      (payload: {
+        handleId: string | null;
+        behavior: HandleBehavior | null;
+      }) => {
+        if (this.activeToolId === toolId) {
+          this.handleHover = payload;
+        }
       }
-    });
-    runtime.onEvent('selection-frame', (payload: Bounds | null) => {
+    );
+    runtime.onEvent("selection-frame", (payload: Bounds | null) => {
       if (this.activeToolId === toolId) {
         this.selectionFrame = payload;
       }
@@ -165,7 +182,7 @@ export class DrawingStore {
    */
   private trackDirtyState(action: UndoableAction): void {
     // Invalidate ordered cache if action affects z-order
-    if (this.affectsZOrder(action)) {
+    if (action.affectsZOrder()) {
       this.orderedCache = null;
     }
 
@@ -180,21 +197,6 @@ export class DrawingStore {
         this.dirtyShapeIds.delete(id); // No longer dirty, it's gone
       }
     }
-  }
-
-  /**
-   * Check if an action affects the z-order of shapes.
-   * The ordered cache must be invalidated for these actions.
-   */
-  private affectsZOrder(action: UndoableAction): boolean {
-    if (action instanceof AddShape) return true;
-    if (action instanceof DeleteShape) return true;
-    if (action instanceof UpdateShapeZIndex) return true;
-    // CompositeAction: check children
-    if ('actions' in action && Array.isArray((action as { actions: UndoableAction[] }).actions)) {
-      return (action as { actions: UndoableAction[] }).actions.some((a) => this.affectsZOrder(a));
-    }
-    return false;
   }
 
   /**
@@ -238,11 +240,11 @@ export class DrawingStore {
   }
 
   updateSharedSettings<TSettings = SharedToolSettings>(
-    updater: Partial<TSettings> | ((prev: TSettings) => TSettings),
+    updater: Partial<TSettings> | ((prev: TSettings) => TSettings)
   ): void {
     const current = { ...this.sharedSettings } as TSettings;
     const next =
-      typeof updater === 'function'
+      typeof updater === "function"
         ? (updater(current) as Record<string, unknown>)
         : { ...current, ...(updater as Record<string, unknown>) };
     Object.assign(this.sharedSettings, next);

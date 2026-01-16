@@ -1,6 +1,6 @@
-import type { DrawingDocument } from '../model/document';
-import type { UndoableAction } from './types';
-import { requireShape } from './utils';
+import type { DrawingDocument } from "../model/document";
+import type { UndoableAction } from "./types";
+import { requireShape } from "./utils";
 
 export class UpdateShapeOpacity implements UndoableAction {
   private previous?: number;
@@ -8,7 +8,7 @@ export class UpdateShapeOpacity implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly nextOpacity: number | undefined,
+    private readonly nextOpacity: number | undefined
   ) {}
 
   redo(doc: DrawingDocument): void {
@@ -30,5 +30,9 @@ export class UpdateShapeOpacity implements UndoableAction {
 
   affectedShapeIds(): string[] {
     return [this.shapeId];
+  }
+
+  affectsZOrder(): boolean {
+    return false;
   }
 }

@@ -1,7 +1,7 @@
-import type { DrawingDocument } from '../model/document';
-import type { Fill } from '../model/style';
-import type { UndoableAction } from './types';
-import { requireShape } from './utils';
+import type { DrawingDocument } from "../model/document";
+import type { Fill } from "../model/style";
+import type { UndoableAction } from "./types";
+import { requireShape } from "./utils";
 
 export class UpdateShapeFill implements UndoableAction {
   private previous?: Fill;
@@ -9,7 +9,7 @@ export class UpdateShapeFill implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly nextFill: Fill | undefined,
+    private readonly nextFill: Fill | undefined
   ) {}
 
   redo(doc: DrawingDocument): void {
@@ -31,5 +31,9 @@ export class UpdateShapeFill implements UndoableAction {
 
   affectedShapeIds(): string[] {
     return [this.shapeId];
+  }
+
+  affectsZOrder(): boolean {
+    return false;
   }
 }
