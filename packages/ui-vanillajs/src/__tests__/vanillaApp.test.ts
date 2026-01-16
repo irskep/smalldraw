@@ -4,6 +4,11 @@ import { Canvas, Image } from 'canvas';
 
 import { createVanillaDrawingApp } from '../createVanillaDrawingApp';
 
+// happy-dom types don't match standard DOM types, so we cast through unknown
+function qs<T extends Element>(container: HTMLElement, selector: string): T | null {
+  return container.querySelector(selector) as unknown as T | null;
+}
+
 function setupDom() {
   const windowInstance = new Window();
   const { document } = windowInstance;
@@ -16,7 +21,8 @@ function setupDom() {
   (globalThis as any).PointerEvent = (windowInstance as any).PointerEvent ?? windowInstance.MouseEvent;
   const container = document.createElement('div');
   document.body.appendChild(container);
-  return { window: windowInstance, document, container };
+  // Cast to standard DOM type for use with createVanillaDrawingApp
+  return { window: windowInstance, document, container: container as unknown as HTMLElement };
 }
 
 function stubOverlayRect(overlay: HTMLElement, width: number, height: number) {
@@ -51,10 +57,10 @@ describe('createVanillaDrawingApp', () => {
   test('draws a rectangle via pointer interaction', () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container, width: 300, height: 200 });
-    const rectBtn = container.querySelector('[data-tool="rect"]') as HTMLButtonElement;
+    const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
     rectBtn?.click();
 
-    const overlay = container.querySelector('.smalldraw-overlay') as HTMLElement;
+    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
     stubOverlayRect(overlay, 300, 200);
 
     dispatchPointer(overlay, 'pointerdown', 50, 50, 1);
@@ -70,8 +76,8 @@ describe('createVanillaDrawingApp', () => {
   test('updates shared colors via palette clicks', () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container });
-    const strokeRow = container.querySelector('[data-role="stroke-swatches"]');
-    const target = strokeRow?.querySelector('button[data-color="#ff4b4b"]') as HTMLButtonElement;
+    const strokeRow = qs<HTMLElement>(container, '[data-role="stroke-swatches"]');
+    const target = qs<HTMLButtonElement>(strokeRow!, 'button[data-color="#ff4b4b"]');
     target?.click();
     expect(app.store.getSharedSettings().strokeColor.toLowerCase()).toBe('#ff4b4b');
     app.destroy();
@@ -80,21 +86,21 @@ describe('createVanillaDrawingApp', () => {
   test('selects and undoes shapes via toolbar controls', () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container, width: 320, height: 240 });
-    const rectBtn = container.querySelector('[data-tool="rect"]') as HTMLButtonElement;
+    const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
     rectBtn?.click();
-    const overlay = container.querySelector('.smalldraw-overlay') as HTMLElement;
+    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
     stubOverlayRect(overlay, 320, 240);
     dispatchPointer(overlay, 'pointerdown', 40, 40, 1);
     dispatchPointer(overlay, 'pointermove', 140, 120, 1);
     dispatchPointer(overlay, 'pointerup', 140, 120, 0);
 
-    const selectBtn = container.querySelector('[data-tool="selection"]') as HTMLButtonElement;
+    const selectBtn = qs<HTMLButtonElement>(container, '[data-tool="selection"]');
     selectBtn?.click();
     dispatchPointer(overlay, 'pointerdown', 90, 80, 1);
     dispatchPointer(overlay, 'pointerup', 90, 80, 0);
     expect(app.store.getSelection().ids.size).toBe(1);
 
-    const undoBtn = container.querySelector('button[data-action="undo"]') as HTMLButtonElement;
+    const undoBtn = qs<HTMLButtonElement>(container, 'button[data-action="undo"]');
     undoBtn?.click();
     expect(Object.values(app.store.getDocument().shapes)).toHaveLength(0);
     app.destroy();
@@ -118,11 +124,11 @@ describe('createVanillaDrawingApp', () => {
     };
     app.store.activateTool('selection');
     app.store.setSelection([shapeId], shapeId);
-    const overlay = container.querySelector('.smalldraw-overlay') as HTMLElement;
+    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
     stubOverlayRect(overlay, 300, 300);
     dispatchPointer(overlay, 'pointermove', 150, 150, 0);
 
-    const axisHandle = container.querySelector('[data-handle="mid-right"]') as HTMLElement;
+    const axisHandle = qs<HTMLElement>(container, '[data-handle="mid-right"]')!;
     expect(axisHandle).not.toBeNull();
     const handleTop = parseFloat(axisHandle.style.top);
     const handleHeight = parseFloat(axisHandle.style.height);
