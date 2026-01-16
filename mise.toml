@@ -60,3 +60,11 @@ run = "bun run --cwd apps/app ts:check && bun run --cwd apps/server ts:check"
 [tasks."test:all"]
 # Run all test tasks across the monorepo using wildcard pattern
 run = ["mise run '//packages/...:test'", "mise run '//apps/...:test'"]
+
+[tasks."docs:dev"]
+dir = "apps/docs-site"
+run = "bun run dev"
+
+[tasks."docs:build"]
+dir = "apps/docs-site"
+run = "bun run build"
