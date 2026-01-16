@@ -99,4 +99,35 @@ describe('createVanillaDrawingApp', () => {
     expect(Object.values(app.store.getDocument().shapes)).toHaveLength(0);
     app.destroy();
   });
+
+  test('axis handles follow rotated rectangle geometry', () => {
+    const { container } = setupDom();
+    const app = createVanillaDrawingApp({ container, width: 300, height: 300 });
+    const doc = app.store.getDocument();
+    const shapeId = 'rot-rect';
+    doc.shapes[shapeId] = {
+      id: shapeId,
+      geometry: { type: 'rect', size: { width: 40, height: 20 } },
+      zIndex: 'z',
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 0, y: 0 },
+        rotation: Math.PI / 4,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    app.store.activateTool('selection');
+    app.store.setSelection([shapeId], shapeId);
+    const overlay = container.querySelector('.smalldraw-overlay') as HTMLElement;
+    stubOverlayRect(overlay, 300, 300);
+    dispatchPointer(overlay, 'pointermove', 150, 150, 0);
+
+    const axisHandle = container.querySelector('[data-handle="mid-right"]') as HTMLElement;
+    expect(axisHandle).not.toBeNull();
+    const handleTop = parseFloat(axisHandle.style.top);
+    const handleHeight = parseFloat(axisHandle.style.height);
+    const centerY = handleTop + handleHeight / 2;
+    expect(centerY).not.toBeCloseTo(0, 3);
+    app.destroy();
+  });
 });

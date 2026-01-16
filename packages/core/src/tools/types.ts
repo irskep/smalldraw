@@ -92,7 +92,8 @@ export interface HandleDescriptor {
 export type HandleBehavior =
   | { type: 'move' }
   | { type: 'rotate' }
-  | { type: 'resize'; proportional?: boolean };
+  | { type: 'resize'; proportional?: boolean }
+  | { type: 'resize-axis'; axis: 'x' | 'y' };
 
 export type ToolRuntimeEvent<TPayload = unknown> = {
   type: 'handles';

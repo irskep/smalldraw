@@ -39,8 +39,17 @@ interface SelectionToolState {
   disposers: Array<() => void>;
 }
 
+interface AxisResizeState {
+  shapeId: string;
+  axis: 'x' | 'y';
+  anchor: Point;
+  direction: Point;
+  startExtent: number;
+  startProjection: number;
+}
+
 interface DragState {
-  mode: 'move' | 'resize' | 'resize-proportional' | 'rotate';
+  mode: 'move' | 'resize' | 'resize-proportional' | 'resize-axis' | 'rotate';
   selectionIds: string[];
   startPoint: Point;
   lastPoint: Point;
@@ -49,6 +58,7 @@ interface DragState {
   selectionBounds?: Bounds;
   oppositeCorner?: Point;
   center?: Point;
+  axisResize?: AxisResizeState;
   resizeEntries: Map<string, ShapeResizeEntry>;
   shapeBounds: Map<string, Bounds>;
 }
@@ -116,11 +126,21 @@ const HANDLE_DESCRIPTORS: HandleDescriptor[] = [
     shiftBehavior: { type: 'resize', proportional: true },
   },
   {
+    id: 'mid-top',
+    position: { u: 0.5, v: 0 },
+    behavior: { type: 'resize-axis', axis: 'y' },
+  },
+  {
     id: 'top-right',
     position: { u: 1, v: 0 },
     behavior: { type: 'resize' },
     altBehavior: { type: 'rotate' },
     shiftBehavior: { type: 'resize', proportional: true },
+  },
+  {
+    id: 'mid-left',
+    position: { u: 0, v: 0.5 },
+    behavior: { type: 'resize-axis', axis: 'x' },
   },
   {
     id: 'bottom-left',
@@ -130,6 +150,11 @@ const HANDLE_DESCRIPTORS: HandleDescriptor[] = [
     shiftBehavior: { type: 'resize', proportional: true },
   },
   {
+    id: 'mid-right',
+    position: { u: 1, v: 0.5 },
+    behavior: { type: 'resize-axis', axis: 'x' },
+  },
+  {
     id: 'bottom-right',
     position: { u: 1, v: 1 },
     behavior: { type: 'resize' },
@@ -137,8 +162,13 @@ const HANDLE_DESCRIPTORS: HandleDescriptor[] = [
     shiftBehavior: { type: 'resize', proportional: true },
   },
   {
+    id: 'mid-bottom',
+    position: { u: 0.5, v: 1 },
+    behavior: { type: 'resize-axis', axis: 'y' },
+  },
+  {
     id: 'rotate',
-    position: { u: 0.5, v: 0 },
+    position: { u: 0.5, v: -0.2 },
     behavior: { type: 'rotate' },
   },
 ];
@@ -201,6 +231,22 @@ export function createSelectionTool(): ToolDefinition {
       dragState.center = bounds
         ? getBoundsCenter(bounds)
         : getShapeCenter(primaryShape, transforms.get(primaryShape.id)!);
+    } else if (
+      behavior &&
+      behavior.type === 'resize-axis' &&
+      event.handleId
+    ) {
+      const axisResize = createAxisResizeState(
+        shapes,
+        dragState,
+        behavior.axis,
+        event.handleId,
+        event.point,
+      );
+      if (axisResize) {
+        dragState.mode = 'resize-axis';
+        dragState.axisResize = axisResize;
+      }
     } else if (
       behavior &&
       behavior.type === 'resize' &&
@@ -327,6 +373,115 @@ function computeSelectionBounds(shapes: Shape[]): SelectionBoundsResult {
   };
 }
 
+function getRotatedRectAabbSize(
+  width: number,
+  height: number,
+  rotation: number,
+): { width: number; height: number } {
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const absCos = Math.abs(cos);
+  const absSin = Math.abs(sin);
+  return {
+    width: width * absCos + height * absSin,
+    height: width * absSin + height * absCos,
+  };
+}
+
+function solveRectSizeForAabb(
+  targetWidth: number,
+  targetHeight: number,
+  rotation: number,
+  baseSize: { width: number; height: number },
+): { width: number; height: number } {
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const absCos = Math.abs(cos);
+  const absSin = Math.abs(sin);
+  const det = absCos * absCos - absSin * absSin;
+  if (det !== 0) {
+    const width = (absCos * targetWidth - absSin * targetHeight) / det;
+    const height = (absCos * targetHeight - absSin * targetWidth) / det;
+    return {
+      width: Math.max(0, width),
+      height: Math.max(0, height),
+    };
+  }
+  const sum =
+    absCos === 0 ? 0 : (targetWidth + targetHeight) / (2 * absCos);
+  const baseWidth = baseSize.width;
+  const baseHeight = baseSize.height;
+  if (baseWidth === 0 && baseHeight === 0) {
+    return { width: 0, height: 0 };
+  }
+  if (baseHeight === 0) {
+    return { width: sum, height: 0 };
+  }
+  if (baseWidth === 0) {
+    return { width: 0, height: sum };
+  }
+  const ratio = baseWidth / baseHeight;
+  const height = sum / (1 + ratio);
+  const width = sum - height;
+  return { width, height };
+}
+
+function getRotatedEllipseAabbSize(
+  radiusX: number,
+  radiusY: number,
+  rotation: number,
+): { width: number; height: number } {
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const width = 2 * Math.sqrt((radiusX * cos) ** 2 + (radiusY * sin) ** 2);
+  const height = 2 * Math.sqrt((radiusX * sin) ** 2 + (radiusY * cos) ** 2);
+  return { width, height };
+}
+
+function solveEllipseRadiiForAabb(
+  targetWidth: number,
+  targetHeight: number,
+  rotation: number,
+  baseRadii: { radiusX: number; radiusY: number },
+): { radiusX: number; radiusY: number } {
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const cos2 = cos * cos;
+  const sin2 = sin * sin;
+  const det = cos2 - sin2;
+  const halfWidth = targetWidth / 2;
+  const halfHeight = targetHeight / 2;
+  const w2 = halfWidth * halfWidth;
+  const h2 = halfHeight * halfHeight;
+  if (det !== 0) {
+    const rx2 = (cos2 * w2 - sin2 * h2) / det;
+    const ry2 = (cos2 * h2 - sin2 * w2) / det;
+    return {
+      radiusX: Math.sqrt(Math.max(0, rx2)),
+      radiusY: Math.sqrt(Math.max(0, ry2)),
+    };
+  }
+  const sumSq = cos2 === 0 ? 0 : (w2 + h2) / (2 * cos2);
+  const baseX = baseRadii.radiusX;
+  const baseY = baseRadii.radiusY;
+  if (baseX === 0 && baseY === 0) {
+    return { radiusX: 0, radiusY: 0 };
+  }
+  if (baseY === 0) {
+    return { radiusX: Math.sqrt(Math.max(0, sumSq)), radiusY: 0 };
+  }
+  if (baseX === 0) {
+    return { radiusX: 0, radiusY: Math.sqrt(Math.max(0, sumSq)) };
+  }
+  const ratio = (baseX * baseX) / (baseY * baseY);
+  const ry2 = sumSq / (1 + ratio);
+  const rx2 = sumSq - ry2;
+  return {
+    radiusX: Math.sqrt(Math.max(0, rx2)),
+    radiusY: Math.sqrt(Math.max(0, ry2)),
+  };
+}
+
 function createRectangleResizeAdapter(): SelectionResizeAdapter<RectGeometry> {
   return {
     matches(shape): shape is Shape & { geometry: RectGeometry } {
@@ -340,13 +495,30 @@ function createRectangleResizeAdapter(): SelectionResizeAdapter<RectGeometry> {
         },
       };
     },
-    resize({ snapshotGeometry, selectionScale, nextBounds, layout }) {
+    resize({ snapshotGeometry, selectionScale, nextBounds, layout, transform }) {
       if (!layout) return null;
+      const scaleX = Math.abs(transform.scale.x);
+      const scaleY = Math.abs(transform.scale.y);
+      const baseWidth = snapshotGeometry.size.width * scaleX;
+      const baseHeight = snapshotGeometry.size.height * scaleY;
+      const currentAabb = getRotatedRectAabbSize(
+        baseWidth,
+        baseHeight,
+        transform.rotation,
+      );
+      const targetAabbWidth = currentAabb.width * selectionScale.x;
+      const targetAabbHeight = currentAabb.height * selectionScale.y;
+      const solved = solveRectSizeForAabb(
+        targetAabbWidth,
+        targetAabbHeight,
+        transform.rotation,
+        { width: baseWidth, height: baseHeight },
+      );
       const geometry: RectGeometry = {
         type: 'rect',
         size: {
-          width: snapshotGeometry.size.width * selectionScale.x,
-          height: snapshotGeometry.size.height * selectionScale.y,
+          width: scaleX === 0 ? 0 : solved.width / scaleX,
+          height: scaleY === 0 ? 0 : solved.height / scaleY,
         },
       };
       const translation = getPointFromLayout(layout, nextBounds);
@@ -369,12 +541,29 @@ function createEllipseResizeAdapter(): SelectionResizeAdapter<EllipseGeometry> {
         },
       };
     },
-    resize({ snapshotGeometry, selectionScale, nextBounds, layout }) {
+    resize({ snapshotGeometry, selectionScale, nextBounds, layout, transform }) {
       if (!layout) return null;
+      const scaleX = Math.abs(transform.scale.x);
+      const scaleY = Math.abs(transform.scale.y);
+      const baseRadiusX = snapshotGeometry.radiusX * scaleX;
+      const baseRadiusY = snapshotGeometry.radiusY * scaleY;
+      const currentAabb = getRotatedEllipseAabbSize(
+        baseRadiusX,
+        baseRadiusY,
+        transform.rotation,
+      );
+      const targetAabbWidth = currentAabb.width * selectionScale.x;
+      const targetAabbHeight = currentAabb.height * selectionScale.y;
+      const solved = solveEllipseRadiiForAabb(
+        targetAabbWidth,
+        targetAabbHeight,
+        transform.rotation,
+        { radiusX: baseRadiusX, radiusY: baseRadiusY },
+      );
       const geometry: EllipseGeometry = {
         type: 'ellipse',
-        radiusX: snapshotGeometry.radiusX * selectionScale.x,
-        radiusY: snapshotGeometry.radiusY * selectionScale.y,
+        radiusX: scaleX === 0 ? 0 : solved.radiusX / scaleX,
+        radiusY: scaleY === 0 ? 0 : solved.radiusY / scaleY,
       };
       const translation = getPointFromLayout(layout, nextBounds);
       return { geometry, translation };
@@ -476,7 +665,7 @@ function getHandlePosition(bounds: SelectionBounds, handleId: string): Point {
     case 'bottom-right':
       return { x: maxX, y: maxY };
     case 'rotate':
-      return { x: (minX + maxX) / 2, y: minY };
+      return { x: (minX + maxX) / 2, y: minY - (maxY - minY) * 0.2 };
     default:
       return { x: minX, y: minY };
   }
@@ -507,6 +696,9 @@ function applyDrag(runtime: ToolRuntime, drag: DragState) {
     case 'resize':
     case 'resize-proportional':
       applyResize(runtime, drag);
+      return;
+    case 'resize-axis':
+      applyAxisResize(runtime, drag);
       return;
     case 'rotate':
       applyRotate(runtime, drag);
@@ -603,6 +795,25 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
       }),
     );
   }
+  commitActions(runtime, actions);
+}
+
+function applyAxisResize(runtime: ToolRuntime, drag: DragState) {
+  const axisResize = drag.axisResize;
+  if (!axisResize) return;
+  const shapeId = axisResize.shapeId;
+  const shape = runtime.getShape(shapeId);
+  const transform = drag.transforms.get(shapeId);
+  if (!shape || !transform) return;
+  const result = computeAxisResizeResult(drag, shape, transform, drag.lastPoint);
+  if (!result) return;
+  const actions: UndoableAction[] = [
+    new UpdateShapeGeometry(shapeId, result.geometry),
+    new UpdateShapeTransform(shapeId, {
+      ...transform,
+      translation: result.translation,
+    }),
+  ];
   commitActions(runtime, actions);
 }
 
@@ -704,6 +915,17 @@ function computePreviewShapes(runtime: ToolRuntime, drag: DragState): DraftShape
         }
         break;
       }
+      case 'resize-axis': {
+        const result = computeAxisResizeResult(drag, shape, transform, drag.lastPoint);
+        if (result) {
+          previewGeometry = result.geometry;
+          previewTransform = {
+            ...transform,
+            translation: result.translation,
+          };
+        }
+        break;
+      }
       case 'rotate': {
         const delta = getRotationDelta(drag);
         if (shape.interactions?.rotatable) {
@@ -789,10 +1011,139 @@ function computeDragFrame(runtime: ToolRuntime, drag: DragState): Bounds | undef
       return drag.oppositeCorner
         ? createBoundsFromPoints(drag.oppositeCorner, drag.lastPoint)
         : drag.selectionBounds;
+    case 'resize-axis':
+      return computeAxisResizeBounds(runtime, drag);
     case 'rotate':
       return computeRotatedBounds(runtime, drag);
     default:
       return drag.selectionBounds;
+  }
+}
+
+function computeAxisResizeBounds(runtime: ToolRuntime, drag: DragState): Bounds | undefined {
+  const axisResize = drag.axisResize;
+  if (!axisResize) return drag.selectionBounds;
+  const shape = runtime.getShape(axisResize.shapeId);
+  const transform = drag.transforms.get(axisResize.shapeId);
+  if (!shape || !transform) return drag.selectionBounds;
+  const result = computeAxisResizeResult(drag, shape, transform, drag.lastPoint);
+  if (!result) return drag.selectionBounds;
+  const previewShape: Shape = {
+    ...shape,
+    geometry: result.geometry,
+  };
+  const previewTransform: CanonicalShapeTransform = {
+    ...transform,
+    translation: result.translation,
+  };
+  return getShapeBounds(previewShape, previewTransform);
+}
+
+function computeAxisResizeResult(
+  drag: DragState,
+  shape: Shape,
+  transform: CanonicalShapeTransform,
+  point: Point,
+): { geometry: RectGeometry; translation: Point } | null {
+  const axisResize = drag.axisResize;
+  if (!axisResize || axisResize.shapeId !== shape.id) return null;
+  if (shape.geometry.type !== 'rect') return null;
+  const entry = drag.resizeEntries.get(shape.id);
+  if (!entry || entry.snapshot.geometry.type !== 'rect') return null;
+  const snapshot = entry.snapshot.geometry;
+  const direction = axisResize.direction;
+  const anchor = axisResize.anchor;
+  const delta = { x: point.x - anchor.x, y: point.y - anchor.y };
+  const projected = delta.x * direction.x + delta.y * direction.y;
+  const extent = Math.max(0, axisResize.startExtent + (projected - axisResize.startProjection));
+  const half = extent / 2;
+  const scaleX = Math.abs(transform.scale.x);
+  const scaleY = Math.abs(transform.scale.y);
+  const width =
+    axisResize.axis === 'x'
+      ? scaleX === 0
+        ? 0
+        : extent / scaleX
+      : snapshot.size.width;
+  const height =
+    axisResize.axis === 'y'
+      ? scaleY === 0
+        ? 0
+        : extent / scaleY
+      : snapshot.size.height;
+  return {
+    geometry: {
+      type: 'rect',
+      size: { width, height },
+    },
+    translation: {
+      x: anchor.x + direction.x * half,
+      y: anchor.y + direction.y * half,
+    },
+  };
+}
+
+function createAxisResizeState(
+  shapes: Shape[],
+  drag: DragState,
+  axis: 'x' | 'y',
+  handleId: string,
+  startPoint: Point,
+): AxisResizeState | null {
+  if (shapes.length !== 1) return null;
+  const shape = shapes[0];
+  if (shape.geometry.type !== 'rect' || shape.interactions?.resizable === false) {
+    return null;
+  }
+  const transform = drag.transforms.get(shape.id);
+  const entry = drag.resizeEntries.get(shape.id);
+  if (!transform || !entry || entry.snapshot.geometry.type !== 'rect') return null;
+  const side = getAxisHandleSide(handleId);
+  if (!side) return null;
+  const rotation = transform.rotation;
+  const signX = transform.scale.x === 0 ? 1 : Math.sign(transform.scale.x);
+  const signY = transform.scale.y === 0 ? 1 : Math.sign(transform.scale.y);
+  const baseDirection =
+    axis === 'x'
+      ? { x: Math.cos(rotation) * signX, y: Math.sin(rotation) * signX }
+      : { x: -Math.sin(rotation) * signY, y: Math.cos(rotation) * signY };
+  const snapshot = entry.snapshot.geometry;
+  const startExtent =
+    axis === 'x'
+      ? snapshot.size.width * Math.abs(transform.scale.x)
+      : snapshot.size.height * Math.abs(transform.scale.y);
+  const half = startExtent / 2;
+  const center = transform.translation;
+  const direction =
+    side === 'positive'
+      ? baseDirection
+      : { x: -baseDirection.x, y: -baseDirection.y };
+  const anchor =
+    side === 'positive'
+      ? { x: center.x - direction.x * half, y: center.y - direction.y * half }
+      : { x: center.x - direction.x * half, y: center.y - direction.y * half };
+  const startDelta = { x: startPoint.x - anchor.x, y: startPoint.y - anchor.y };
+  const startProjection = startDelta.x * direction.x + startDelta.y * direction.y;
+  return {
+    shapeId: shape.id,
+    axis,
+    anchor,
+    direction,
+    startExtent,
+    startProjection,
+  };
+}
+
+function getAxisHandleSide(handleId: string): 'positive' | 'negative' | null {
+  switch (handleId) {
+    case 'mid-right':
+    case 'mid-bottom':
+      return 'positive';
+    case 'mid-left':
+    case 'mid-top':
+      return 'negative';
+    default:
+      return null;
   }
 }
 

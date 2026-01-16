@@ -4,6 +4,7 @@ import {
   createRectangleTool,
   createSelectionTool,
   getShapeBounds,
+  applyTransformToPoint,
   getOrderedShapes,
   type Bounds,
   type DrawingDocument,
@@ -21,6 +22,7 @@ import {
 const DEFAULT_COLORS = ['#000000', '#ffffff', '#ff4b4b', '#1a73e8', '#ffcc00', '#00c16a', '#9c27b0'];
 const HANDLE_SIZE = 8;
 const HANDLE_HIT_PADDING = 6;
+const AXIS_HANDLE_IDS = new Set(['mid-left', 'mid-right', 'mid-top', 'mid-bottom']);
 
 export interface VanillaDrawingAppOptions {
   container: HTMLElement;
@@ -422,6 +424,7 @@ function renderSelectionOverlay(layer: HTMLElement, store: DrawingStore) {
   if (!bounds) {
     return;
   }
+  console.debug('[selection] frame', bounds);
   const frame = document.createElement('div');
   Object.assign(frame.style, {
     position: 'absolute',
@@ -433,22 +436,58 @@ function renderSelectionOverlay(layer: HTMLElement, store: DrawingStore) {
     background: 'rgba(74, 144, 226, 0.05)',
   });
   layer.appendChild(frame);
-  const handles = store.getHandles();
+  const showAxisHandles = canShowAxisHandles(store);
+  const handles = store
+    .getHandles()
+    .filter((handle) => showAxisHandles || handle.behavior?.type !== 'resize-axis');
+  const liveDoc = buildLiveDocument(store);
+  const selection = store.getSelection();
+  const selectedId = selection.ids.size
+    ? Array.from(selection.ids)[0]
+    : selection.primaryId;
+  const selectedShape = selectedId ? liveDoc.shapes[selectedId] : undefined;
   const handlePositions = handles.map((handle) => ({
     id: handle.id,
-    point: resolveHandlePoint(bounds, handle),
+    point: resolveHandlePoint(bounds, handle, selectedShape),
+    handle,
   }));
-  for (const { id, point } of handlePositions) {
+  console.debug(
+    '[selection] handles',
+    handlePositions.map(({ id, point, handle }) => ({
+      id,
+      type: handle.behavior?.type,
+      point,
+    })),
+  );
+  const rotation = selectedShape?.transform?.rotation ?? 0;
+  for (const { id, point, handle } of handlePositions) {
+    const axisHandle = handle.behavior?.type === 'resize-axis';
+    const axis = handle.behavior?.type === 'resize-axis' ? handle.behavior.axis : null;
+    const size = axisHandle
+      ? axis === 'x'
+        ? { width: 6, height: 12 }
+        : { width: 12, height: 6 }
+      : { width: HANDLE_SIZE, height: HANDLE_SIZE };
     const handleEl = document.createElement('div');
     handleEl.dataset.handle = id;
+    const axisRotation =
+      axisHandle && axis
+        ? axis === 'x'
+          ? rotation
+          : rotation + Math.PI / 2
+        : null;
     Object.assign(handleEl.style, {
       position: 'absolute',
-      width: `${HANDLE_SIZE}px`,
-      height: `${HANDLE_SIZE}px`,
-      background: '#ffffff',
-      border: '1px solid #4a90e2',
-      left: `${point.x - HANDLE_SIZE / 2}px`,
-      top: `${point.y - HANDLE_SIZE / 2}px`,
+      width: `${size.width}px`,
+      height: `${size.height}px`,
+      background: axisHandle ? '#4a90e2' : '#ffffff',
+      border: axisHandle ? '1px solid #2c6db2' : '1px solid #4a90e2',
+      borderRadius: axisHandle ? '2px' : '0px',
+      left: axisHandle ? `${point.x}px` : `${point.x - size.width / 2}px`,
+      top: axisHandle ? `${point.y}px` : `${point.y - size.height / 2}px`,
+      transform: axisHandle && axisRotation !== null
+        ? `translate(-50%, -50%) rotate(${(axisRotation * 180) / Math.PI}deg)`
+        : undefined,
     });
     layer.appendChild(handleEl);
   }
@@ -471,11 +510,56 @@ function computeSelectionBounds(store: DrawingStore): Bounds | null {
   return result;
 }
 
-function resolveHandlePoint(bounds: Bounds, handle: { position: { u: number; v: number } }): Point {
+function canShowAxisHandles(store: DrawingStore): boolean {
+  const selection = store.getSelection();
+  const ids = Array.from(selection.ids);
+  if (ids.length !== 1) {
+    return false;
+  }
+  const liveDoc = buildLiveDocument(store);
+  const shape = liveDoc.shapes[ids[0]];
+  return shape?.geometry.type === 'rect';
+}
+
+function resolveHandlePoint(
+  bounds: Bounds,
+  handle: { id: string; position: { u: number; v: number }; behavior?: { type?: string; axis?: string } },
+  shape?: Shape,
+): Point {
+  if (handle.behavior?.type === 'resize-axis' && shape?.geometry.type === 'rect') {
+    const point = resolveAxisHandlePoint(handle.id, shape);
+    if (point) return point;
+  }
   return {
     x: bounds.minX + bounds.width * handle.position.u,
     y: bounds.minY + bounds.height * handle.position.v,
   };
+}
+
+function resolveAxisHandlePoint(handleId: string, shape: Shape): Point | null {
+  if (shape.geometry.type !== 'rect') return null;
+  const halfWidth = shape.geometry.size.width / 2;
+  const halfHeight = shape.geometry.size.height / 2;
+  let local: Point | null = null;
+  switch (handleId) {
+    case 'mid-right':
+      local = { x: halfWidth, y: 0 };
+      break;
+    case 'mid-left':
+      local = { x: -halfWidth, y: 0 };
+      break;
+    case 'mid-top':
+      local = { x: 0, y: -halfHeight };
+      break;
+    case 'mid-bottom':
+      local = { x: 0, y: halfHeight };
+      break;
+    default:
+      return null;
+  }
+  const world = applyTransformToPoint(local, shape.transform);
+  console.debug('[selection] axis handle', { handleId, local, world, transform: shape.transform });
+  return world;
 }
 
 function mergeBounds(a: Bounds, b: Bounds): Bounds {
@@ -496,9 +580,22 @@ function mergeBounds(a: Bounds, b: Bounds): Bounds {
 function hitTestHandles(point: Point, store: DrawingStore): string | undefined {
   const bounds = store.getSelectionFrame() ?? computeSelectionBounds(store);
   if (!bounds) return undefined;
-  for (const handle of store.getHandles()) {
-    const handlePoint = resolveHandlePoint(bounds, handle);
-    if (distance(handlePoint, point) <= HANDLE_SIZE / 2 + HANDLE_HIT_PADDING) {
+  const liveDoc = buildLiveDocument(store);
+  const selection = store.getSelection();
+  const selectedId = selection.ids.size
+    ? Array.from(selection.ids)[0]
+    : selection.primaryId;
+  const selectedShape = selectedId ? liveDoc.shapes[selectedId] : undefined;
+  const showAxisHandles = canShowAxisHandles(store);
+  for (const handle of store
+    .getHandles()
+    .filter((descriptor) => showAxisHandles || descriptor.behavior?.type !== 'resize-axis')) {
+    const handlePoint = resolveHandlePoint(bounds, handle, selectedShape);
+    const hitSize =
+      handle.behavior?.type === 'resize-axis'
+        ? Math.max(12, HANDLE_SIZE)
+        : HANDLE_SIZE;
+    if (distance(handlePoint, point) <= hitSize / 2 + HANDLE_HIT_PADDING) {
       return handle.id;
     }
   }
@@ -552,6 +649,18 @@ function updateCursor(overlay: HTMLElement, store: DrawingStore) {
 function cursorForHandle(handleId: string, behaviorType?: string | null): string {
   if (behaviorType === 'rotate' || handleId === 'rotate') {
     return 'alias';
+  }
+  if (behaviorType === 'resize-axis') {
+    switch (handleId) {
+      case 'mid-left':
+      case 'mid-right':
+        return 'ew-resize';
+      case 'mid-top':
+      case 'mid-bottom':
+        return 'ns-resize';
+      default:
+        return 'pointer';
+    }
   }
   switch (handleId) {
     case 'top-left':

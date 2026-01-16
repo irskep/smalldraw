@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { createDocument } from '../../model/document';
 import type { Shape } from '../../model/shape';
 import type { Bounds } from '../../model/primitives';
+import { getShapeBounds } from '../../model/geometryBounds';
 import { UndoManager } from '../../undo';
 import { ToolRuntimeImpl } from '../runtime';
 import { createSelectionTool } from '../selection';
@@ -338,8 +339,265 @@ describe('selection tool', () => {
     if (geometry?.type !== 'rect') {
       throw new Error('Expected rectangle geometry');
     }
-    expect(geometry.size.width).toBeCloseTo(40, 6);
-    expect(geometry.size.height).toBeCloseTo(15, 6);
+    expect(geometry.size.width).toBeCloseTo(30, 6);
+    expect(geometry.size.height).toBeCloseTo(20, 6);
+  });
+
+  test('resizes rotated rectangle with world-axis scale', () => {
+    const rotatedRect: Shape = {
+      id: 'rot-rect-scale',
+      geometry: { type: 'rect', size: { width: 24, height: 12 } },
+      zIndex: 'rot-scale',
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 0, y: 0 },
+        rotation: Math.PI / 3,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    const document = setupDoc([rotatedRect]);
+    const undoManager = new UndoManager();
+    const selectionState = { ids: new Set<string>(['rot-rect-scale']), primaryId: 'rot-rect-scale' };
+    const runtime = new ToolRuntimeImpl({
+      toolId: 'selection',
+      document,
+      undoManager,
+      selectionState,
+    });
+    const tool = createSelectionTool();
+    tool.activate(runtime);
+
+    const bounds = getShapeBounds(rotatedRect);
+    const targetWidth = bounds.width * 1.5;
+    const targetHeight = bounds.height * 0.75;
+    const opposite = { x: bounds.maxX, y: bounds.maxY };
+    const nextPoint = { x: opposite.x - targetWidth, y: opposite.y - targetHeight };
+
+    runtime.dispatch('pointerDown', {
+      point: { x: bounds.minX, y: bounds.minY },
+      buttons: 1,
+      handleId: 'top-left',
+    });
+    runtime.dispatch('pointerMove', {
+      point: nextPoint,
+      buttons: 1,
+      handleId: 'top-left',
+    });
+    runtime.dispatch('pointerUp', {
+      point: nextPoint,
+      buttons: 0,
+      handleId: 'top-left',
+    });
+
+    const resized = document.shapes['rot-rect-scale'];
+    const geometry = resized?.geometry;
+    expect(geometry?.type).toBe('rect');
+    if (geometry?.type !== 'rect') {
+      throw new Error('Expected rectangle geometry');
+    }
+    const cos = Math.abs(Math.cos(rotatedRect.transform?.rotation ?? 0));
+    const sin = Math.abs(Math.sin(rotatedRect.transform?.rotation ?? 0));
+    const det = cos * cos - sin * sin;
+    const expectedWidth = (cos * targetWidth - sin * targetHeight) / det;
+    const expectedHeight = (cos * targetHeight - sin * targetWidth) / det;
+    expect(geometry.size.width).toBeCloseTo(expectedWidth, 6);
+    expect(geometry.size.height).toBeCloseTo(expectedHeight, 6);
+  });
+
+  test('resizes rotated rectangle along local width using axis handle', () => {
+    const rotation = Math.PI / 4;
+    const rectShape: Shape = {
+      id: 'axis-rect',
+      geometry: { type: 'rect', size: { width: 20, height: 10 } },
+      zIndex: 'axis-rect',
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 0, y: 0 },
+        rotation,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    const document = setupDoc([rectShape]);
+    const undoManager = new UndoManager();
+    const selectionState = { ids: new Set<string>(['axis-rect']), primaryId: 'axis-rect' };
+    const runtime = new ToolRuntimeImpl({
+      toolId: 'selection',
+      document,
+      undoManager,
+      selectionState,
+    });
+    const tool = createSelectionTool();
+    tool.activate(runtime);
+
+    const bounds = getShapeBounds(rectShape);
+    const startPoint = { x: bounds.maxX, y: (bounds.minY + bounds.maxY) / 2 };
+    const axisX = { x: Math.cos(rotation), y: Math.sin(rotation) };
+    const targetPoint = { x: startPoint.x + axisX.x * 10, y: startPoint.y + axisX.y * 10 };
+
+    runtime.dispatch('pointerDown', {
+      point: startPoint,
+      buttons: 1,
+      handleId: 'mid-right',
+    });
+    runtime.dispatch('pointerMove', {
+      point: targetPoint,
+      buttons: 1,
+      handleId: 'mid-right',
+    });
+    runtime.dispatch('pointerUp', {
+      point: targetPoint,
+      buttons: 0,
+      handleId: 'mid-right',
+    });
+
+    const resized = document.shapes['axis-rect'];
+    const geometry = resized?.geometry;
+    expect(geometry?.type).toBe('rect');
+    if (geometry?.type !== 'rect') {
+      throw new Error('Expected rectangle geometry');
+    }
+    expect(geometry.size.width).toBeCloseTo(30, 6);
+    expect(geometry.size.height).toBeCloseTo(10, 6);
+    expect(resized?.transform?.translation.x).toBeCloseTo(axisX.x * 5, 6);
+    expect(resized?.transform?.translation.y).toBeCloseTo(axisX.y * 5, 6);
+  });
+
+  test('axis resize keeps opposite edge fixed on unrotated rectangle', () => {
+    const rectShape: Shape = {
+      id: 'axis-rect-0',
+      geometry: { type: 'rect', size: { width: 10, height: 10 } },
+      zIndex: 'axis-rect-0',
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 0, y: 0 },
+        rotation: 0,
+        scale: { x: 2, y: 1 },
+      },
+    };
+    const document = setupDoc([rectShape]);
+    const undoManager = new UndoManager();
+    const selectionState = { ids: new Set<string>(['axis-rect-0']), primaryId: 'axis-rect-0' };
+    const runtime = new ToolRuntimeImpl({
+      toolId: 'selection',
+      document,
+      undoManager,
+      selectionState,
+    });
+    const tool = createSelectionTool();
+    tool.activate(runtime);
+
+    runtime.dispatch('pointerDown', {
+      point: { x: 10, y: 0 },
+      buttons: 1,
+      handleId: 'mid-right',
+    });
+    runtime.dispatch('pointerMove', {
+      point: { x: 20, y: 0 },
+      buttons: 1,
+      handleId: 'mid-right',
+    });
+    runtime.dispatch('pointerUp', {
+      point: { x: 20, y: 0 },
+      buttons: 0,
+      handleId: 'mid-right',
+    });
+
+    const resized = document.shapes['axis-rect-0'];
+    const bounds = resized ? getShapeBounds(resized) : null;
+    expect(bounds?.minX).toBeCloseTo(-10, 6);
+    expect(bounds?.maxX).toBeCloseTo(20, 6);
+  });
+
+  test('axis resize from left handle keeps right edge fixed', () => {
+    const rectShape: Shape = {
+      id: 'axis-rect-left',
+      geometry: { type: 'rect', size: { width: 20, height: 10 } },
+      zIndex: 'axis-rect-left',
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 0, y: 0 },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    const document = setupDoc([rectShape]);
+    const undoManager = new UndoManager();
+    const selectionState = { ids: new Set<string>(['axis-rect-left']), primaryId: 'axis-rect-left' };
+    const runtime = new ToolRuntimeImpl({
+      toolId: 'selection',
+      document,
+      undoManager,
+      selectionState,
+    });
+    const tool = createSelectionTool();
+    tool.activate(runtime);
+
+    runtime.dispatch('pointerDown', {
+      point: { x: -10, y: 0 },
+      buttons: 1,
+      handleId: 'mid-left',
+    });
+    runtime.dispatch('pointerMove', {
+      point: { x: -20, y: 0 },
+      buttons: 1,
+      handleId: 'mid-left',
+    });
+    runtime.dispatch('pointerUp', {
+      point: { x: -20, y: 0 },
+      buttons: 0,
+      handleId: 'mid-left',
+    });
+
+    const resized = document.shapes['axis-rect-left'];
+    const bounds = resized ? getShapeBounds(resized) : null;
+    expect(bounds?.minX).toBeCloseTo(-20, 6);
+    expect(bounds?.maxX).toBeCloseTo(10, 6);
+  });
+
+  test('axis resize from top handle keeps bottom edge fixed', () => {
+    const rectShape: Shape = {
+      id: 'axis-rect-top',
+      geometry: { type: 'rect', size: { width: 12, height: 10 } },
+      zIndex: 'axis-rect-top',
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 0, y: 0 },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    const document = setupDoc([rectShape]);
+    const undoManager = new UndoManager();
+    const selectionState = { ids: new Set<string>(['axis-rect-top']), primaryId: 'axis-rect-top' };
+    const runtime = new ToolRuntimeImpl({
+      toolId: 'selection',
+      document,
+      undoManager,
+      selectionState,
+    });
+    const tool = createSelectionTool();
+    tool.activate(runtime);
+
+    runtime.dispatch('pointerDown', {
+      point: { x: 0, y: -5 },
+      buttons: 1,
+      handleId: 'mid-top',
+    });
+    runtime.dispatch('pointerMove', {
+      point: { x: 0, y: -15 },
+      buttons: 1,
+      handleId: 'mid-top',
+    });
+    runtime.dispatch('pointerUp', {
+      point: { x: 0, y: -15 },
+      buttons: 0,
+      handleId: 'mid-top',
+    });
+
+    const resized = document.shapes['axis-rect-top'];
+    const bounds = resized ? getShapeBounds(resized) : null;
+    expect(bounds?.minY).toBeCloseTo(-15, 6);
+    expect(bounds?.maxY).toBeCloseTo(5, 6);
   });
 
   test('non-resizable shapes keep relative position during resize', () => {
