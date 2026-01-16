@@ -1,3 +1,8 @@
+experimental_monorepo_root = true
+
+[settings]
+experimental = true
+
 [tools]
 bun = "latest"
 node = "24"
@@ -10,11 +15,6 @@ run = "bunx drizzle-kit push"
 [tasks."db:generate"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
 run = "bunx drizzle-kit generate"
-
-[tasks."server:test"]
-dir = "apps/server"
-env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
-run = "bun test"
 
 [tasks."server:dev"]
 dir = "apps/server"
@@ -53,5 +53,6 @@ run = "bunx drizzle-kit push"
 [tasks."ts:check:all"]
 run = "bun run --cwd apps/app ts:check && bun run --cwd apps/server ts:check"
 
-[tasks.test]
-run = "bun run test"
+[tasks."test:all"]
+# Run all test tasks across the monorepo using wildcard pattern
+run = ["mise run '//packages/...:test'", "mise run '//apps/...:test'"]
