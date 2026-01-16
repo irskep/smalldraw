@@ -61,10 +61,14 @@ run = "bun run --cwd apps/app ts:check && bun run --cwd apps/server ts:check"
 # Run all test tasks across the monorepo using wildcard pattern
 run = ["mise run '//packages/...:test'", "mise run '//apps/...:test'"]
 
+[tasks."docs:typedoc"]
+run = "bun x typedoc --tsconfig packages/core/tsconfig.typedoc.json --entryPoints packages/core/src/index.ts --plugin typedoc-plugin-markdown --out docs/api"
+
 [tasks."docs:dev"]
 dir = "apps/docs-site"
 run = "bun run dev"
 
 [tasks."docs:build"]
+depends = ["docs:typedoc"]
 dir = "apps/docs-site"
 run = "bun run build"

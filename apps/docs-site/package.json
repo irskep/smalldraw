@@ -8,10 +8,17 @@
     "build": "vuepress build ../../docs"
   },
   "devDependencies": {
-    "@vuepress/bundler-vite": "2.0.0-rc.18",
-    "@vuepress/theme-default": "2.0.0-rc.61",
+    "@vuepress/bundler-vite": "^2.0.0-rc.26",
+    "@vuepress/theme-default": "^2.0.0-rc.121",
     "sass-embedded": "^1.97.2",
     "vue": "^3.5.13",
-    "vuepress": "2.0.0-rc.18"
+    "vuepress": "^2.0.0-rc.26"
+  },
+  "dependencies": {
+    "@vuepress/plugin-copy-code": "^2.0.0-rc.121",
+    "@vuepress/plugin-markdown-chart": "^2.0.0-rc.121",
+    "mermaid": "^11.12.2",
+    "typedoc": "^0.28.16",
+    "typedoc-plugin-markdown": "^4.9.0"
   }
 }
