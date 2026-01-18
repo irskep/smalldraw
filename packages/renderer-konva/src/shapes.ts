@@ -4,6 +4,7 @@ import type {
   EllipseGeometry,
   Fill,
   GradientStop,
+  ShapeHandlerRegistry,
   PathGeometry,
   PenGeometry,
   Point,
@@ -21,41 +22,50 @@ import { createFreehandStroke } from './stroke.js';
 
 type RenderableNode = Konva.Shape | Konva.Group;
 
-export type GeometryType = Shape['geometry']['type'];
+export type ShapeRenderer = (shape: Shape, geometryRegistry?: ShapeHandlerRegistry) => RenderableNode | RenderableNode[] | null;
 
-export type ShapeRenderer = (shape: Shape) => RenderableNode | RenderableNode[] | null;
+export type ShapeRendererRegistry = Map<string, ShapeRenderer>;
 
-export type ShapeRendererRegistry = Partial<Record<GeometryType, ShapeRenderer>>;
-
-const baseRenderers: ShapeRendererRegistry = {
-  rect: (shape) => createRectNode(shape as Shape & { geometry: RectGeometry }),
-  ellipse: (shape) => createEllipseNode(shape as Shape & { geometry: EllipseGeometry }),
-  regularPolygon: (shape) =>
-    createRegularPolygonNode(shape as Shape & { geometry: RegularPolygonGeometry }),
-  polygon: (shape) => createPolygonNode(shape as Shape & { geometry: PolygonGeometry }),
-  pen: (shape) => createPenNode(shape as Shape & { geometry: PenGeometry }),
-  stroke: (shape) => createStrokeNode(shape as Shape & { geometry: StrokeGeometry }),
-  path: (shape) => createPathNode(shape as Shape & { geometry: PathGeometry }),
-  bezier: (shape) => createBezierNode(shape as Shape & { geometry: BezierGeometry }),
-};
-
-export function createShapeRendererRegistry(
-  overrides?: ShapeRendererRegistry,
-): ShapeRendererRegistry {
-  return { ...baseRenderers, ...(overrides ?? {}) };
+function createDefaultShapeRendererRegistry(): ShapeRendererRegistry {
+  const registry = new Map<string, ShapeRenderer>();
+  registry.set('rect', (shape, geometryRegistry) => createRectNode(shape as Shape & { geometry: RectGeometry }, geometryRegistry));
+  registry.set('ellipse', (shape, geometryRegistry) => createEllipseNode(shape as Shape & { geometry: EllipseGeometry }, geometryRegistry));
+  registry.set('regularPolygon', (shape, geometryRegistry) =>
+    createRegularPolygonNode(shape as Shape & { geometry: RegularPolygonGeometry }, geometryRegistry),
+  );
+  registry.set('polygon', (shape, geometryRegistry) => createPolygonNode(shape as Shape & { geometry: PolygonGeometry }, geometryRegistry));
+  registry.set('pen', (shape, geometryRegistry) => createPenNode(shape as Shape & { geometry: PenGeometry }, geometryRegistry));
+  registry.set('stroke', (shape, geometryRegistry) => createStrokeNode(shape as Shape & { geometry: StrokeGeometry }, geometryRegistry));
+  registry.set('path', (shape, geometryRegistry) => createPathNode(shape as Shape & { geometry: PathGeometry }, geometryRegistry));
+  registry.set('bezier', (shape, geometryRegistry) => createBezierNode(shape as Shape & { geometry: BezierGeometry }, geometryRegistry));
+  return registry;
 }
 
-export const defaultShapeRendererRegistry = createShapeRendererRegistry();
+export function createShapeRendererRegistry(
+  overrides?: Map<string, ShapeRenderer>,
+): ShapeRendererRegistry {
+  const registry = new Map(createDefaultShapeRendererRegistry());
+  if (overrides) {
+    for (const [type, renderer] of overrides) {
+      registry.set(type, renderer);
+    }
+  }
+  return registry;
+}
+
+export const defaultShapeRendererRegistry = createDefaultShapeRendererRegistry();
 
 export function renderShapeNode(
   shape: Shape,
   registry: ShapeRendererRegistry = defaultShapeRendererRegistry,
+  geometryRegistry?: ShapeHandlerRegistry,
 ): Konva.Group | null {
-  const renderer = registry[shape.geometry.type];
+  const renderer = registry.get(shape.geometry.type);
   if (!renderer) {
+    console.warn(`No renderer for geometry type: ${shape.geometry.type}`);
     return null;
   }
-  const nodes = renderer(shape);
+  const nodes = renderer(shape, geometryRegistry);
   if (!nodes) {
     return null;
   }
@@ -85,10 +95,10 @@ function createContainerForShape(shape: Shape): Konva.Group {
   return group;
 }
 
-function createRectNode(shape: Shape & { geometry: RectGeometry }): Konva.Rect {
+function createRectNode(shape: Shape & { geometry: RectGeometry }, geometryRegistry?: ShapeHandlerRegistry): Konva.Rect {
   const { width, height } = shape.geometry.size;
   return new Konva.Rect({
-    ...buildShapeVisualConfig(shape),
+    ...buildShapeVisualConfig(shape, geometryRegistry),
     x: -width / 2,
     y: -height / 2,
     width,
@@ -96,9 +106,9 @@ function createRectNode(shape: Shape & { geometry: RectGeometry }): Konva.Rect {
   });
 }
 
-function createEllipseNode(shape: Shape & { geometry: EllipseGeometry }): Konva.Ellipse {
+function createEllipseNode(shape: Shape & { geometry: EllipseGeometry }, geometryRegistry?: ShapeHandlerRegistry): Konva.Ellipse {
   return new Konva.Ellipse({
-    ...buildShapeVisualConfig(shape),
+    ...buildShapeVisualConfig(shape, geometryRegistry),
     radiusX: shape.geometry.radiusX,
     radiusY: shape.geometry.radiusY,
   });
@@ -106,27 +116,28 @@ function createEllipseNode(shape: Shape & { geometry: EllipseGeometry }): Konva.
 
 function createRegularPolygonNode(
   shape: Shape & { geometry: RegularPolygonGeometry },
+  geometryRegistry?: ShapeHandlerRegistry,
 ): Konva.RegularPolygon {
   return new Konva.RegularPolygon({
-    ...buildShapeVisualConfig(shape),
+    ...buildShapeVisualConfig(shape, geometryRegistry),
     radius: shape.geometry.radius,
     sides: shape.geometry.sides,
   });
 }
 
-function createPolygonNode(shape: Shape & { geometry: PolygonGeometry }): Konva.Line | null {
+function createPolygonNode(shape: Shape & { geometry: PolygonGeometry }, geometryRegistry?: ShapeHandlerRegistry): Konva.Line | null {
   const points = flattenPoints(shape.geometry.points);
   if (!points.length) {
     return null;
   }
   return new Konva.Line({
-    ...buildShapeVisualConfig(shape),
+    ...buildShapeVisualConfig(shape, geometryRegistry),
     closed: shape.geometry.closed ?? true,
     points,
   });
 }
 
-function createStrokeNode(shape: Shape & { geometry: StrokeGeometry }): Konva.Line | null {
+function createStrokeNode(shape: Shape & { geometry: StrokeGeometry }, geometryRegistry?: ShapeHandlerRegistry): Konva.Line | null {
   const points = flattenPoints(shape.geometry.points);
   if (!points.length) {
     return null;
@@ -134,7 +145,7 @@ function createStrokeNode(shape: Shape & { geometry: StrokeGeometry }): Konva.Li
   const strokeColor = shape.stroke?.color ?? '#000000';
   const strokeWidth = shape.stroke?.size ?? 1;
   return new Konva.Line({
-    ...buildShapeVisualConfig(shape),
+    ...buildShapeVisualConfig(shape, geometryRegistry),
     stroke: strokeColor,
     strokeWidth,
     points,
@@ -142,7 +153,7 @@ function createStrokeNode(shape: Shape & { geometry: StrokeGeometry }): Konva.Li
   });
 }
 
-function createPenNode(shape: Shape & { geometry: PenGeometry }): Konva.Line | null {
+function createPenNode(shape: Shape & { geometry: PenGeometry }, geometryRegistry?: ShapeHandlerRegistry): Konva.Line | null {
   const stroke = shape.stroke;
   const color = stroke?.color ?? '#000000';
   const size = stroke?.size ?? 4;
@@ -164,34 +175,34 @@ function createPenNode(shape: Shape & { geometry: PenGeometry }): Konva.Line | n
   });
 }
 
-function createPathNode(shape: Shape & { geometry: PathGeometry }): Konva.Path | null {
+function createPathNode(shape: Shape & { geometry: PathGeometry }, geometryRegistry?: ShapeHandlerRegistry): Konva.Path | null {
   const data = pathSegmentsToData(shape.geometry);
   if (!data) {
     return null;
   }
   return new Konva.Path({
-    ...buildShapeVisualConfig(shape),
+    ...buildShapeVisualConfig(shape, geometryRegistry),
     data,
   });
 }
 
-function createBezierNode(shape: Shape & { geometry: BezierGeometry }): Konva.Path | null {
+function createBezierNode(shape: Shape & { geometry: BezierGeometry }, geometryRegistry?: ShapeHandlerRegistry): Konva.Path | null {
   const data = bezierToPathData(shape.geometry);
   if (!data) {
     return null;
   }
   return new Konva.Path({
-    ...buildShapeVisualConfig(shape),
+    ...buildShapeVisualConfig(shape, geometryRegistry),
     data,
   });
 }
 
-function buildShapeVisualConfig(shape: Shape): Konva.ShapeConfig {
+function buildShapeVisualConfig(shape: Shape, geometryRegistry?: ShapeHandlerRegistry): Konva.ShapeConfig {
   const config: Konva.ShapeConfig = {
     listening: false,
   };
   applyStrokeConfig(config, shape.stroke);
-  applyFillConfig(config, shape);
+  applyFillConfig(config, shape, geometryRegistry);
   return config;
 }
 
@@ -205,7 +216,7 @@ function applyStrokeConfig(config: Konva.ShapeConfig, stroke?: StrokeStyle): voi
   config.lineJoin = 'round';
 }
 
-function applyFillConfig(config: Konva.ShapeConfig, shape: Shape): void {
+function applyFillConfig(config: Konva.ShapeConfig, shape: Shape, geometryRegistry?: ShapeHandlerRegistry): void {
   const fill = shape.fill;
   if (!fill) {
     return;
@@ -214,7 +225,14 @@ function applyFillConfig(config: Konva.ShapeConfig, shape: Shape): void {
     config.fill = fill.color;
     return;
   }
-  const bounds = getGeometryLocalBounds(shape.geometry);
+  if (!geometryRegistry) {
+    // Fallback: use solid color from first gradient stop if no registry available
+    if (fill.type === 'gradient' && fill.stops.length > 0) {
+      config.fill = fill.stops[0].color;
+    }
+    return;
+  }
+  const bounds = getGeometryLocalBounds(shape.geometry, geometryRegistry);
   if (!bounds) {
     return;
   }

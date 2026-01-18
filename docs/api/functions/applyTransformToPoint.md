@@ -8,7 +8,7 @@
 
 > **applyTransformToPoint**(`point`, `transform?`): [`Point`](../interfaces/Point.md)
 
-Defined in: [model/geometryBounds.ts:65](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometryBounds.ts#L65)
+Defined in: [model/geometryBounds.ts:32](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometryBounds.ts#L32)
 
 ## Parameters
 
@@ -18,7 +18,7 @@ Defined in: [model/geometryBounds.ts:65](https://github.com/irskep/smalldraw/blo
 
 ### transform?
 
-[`ShapeTransform`](../interfaces/ShapeTransform.md) | [`CanonicalShapeTransform`](../interfaces/CanonicalShapeTransform.md) | `null`
+[`CanonicalShapeTransform`](../interfaces/CanonicalShapeTransform.md) | [`ShapeTransform`](../interfaces/ShapeTransform.md) | `null`
 
 ## Returns
 

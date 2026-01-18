@@ -5,6 +5,7 @@ import { createPenTool } from "../../tools/pen";
 import { createRectangleTool } from "../../tools/rectangle";
 import { createSelectionTool as createSelectionDefinition } from "../../tools/selection";
 import { createDocument } from "../../model/document";
+import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { ToolDefinition } from "../../tools/types";
 
 function createDraftTool(): ToolDefinition {
@@ -171,6 +172,7 @@ describe("DrawingStore", () => {
   });
 
   test("selection frame updates can be read from store", () => {
+    const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([
       {
         id: "rect-frame",
@@ -183,7 +185,7 @@ describe("DrawingStore", () => {
           scale: { x: 1, y: 1 },
         },
       },
-    ]);
+    ], registry);
     const store = new DrawingStore({
       document: doc,
       tools: [createRuntimeSelectionTool(["rect-frame"])],
@@ -204,6 +206,7 @@ describe("DrawingStore", () => {
   });
 
   test("store exposes handles and hover events for selection tool", () => {
+    const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([
       {
         id: "rect",
@@ -216,7 +219,7 @@ describe("DrawingStore", () => {
           scale: { x: 1, y: 1 },
         },
       },
-    ]);
+    ], registry);
     const store = new DrawingStore({
       document: doc,
       tools: [createRuntimeSelectionTool(["rect"]), createPenTool()],

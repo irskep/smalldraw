@@ -6,7 +6,7 @@
 
 # Interface: ToolDefinition
 
-Defined in: [tools/types.ts:116](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L116)
+Defined in: [tools/types.ts:118](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L118)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [tools/types.ts:116](https://github.com/irskep/smalldraw/blob/96a50f
 
 > **id**: `string`
 
-Defined in: [tools/types.ts:117](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L117)
+Defined in: [tools/types.ts:119](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L119)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [tools/types.ts:117](https://github.com/irskep/smalldraw/blob/96a50f
 
 > **label**: `string`
 
-Defined in: [tools/types.ts:118](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L118)
+Defined in: [tools/types.ts:120](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L120)
 
 ## Methods
 
@@ -30,7 +30,7 @@ Defined in: [tools/types.ts:118](https://github.com/irskep/smalldraw/blob/96a50f
 
 > **activate**(`runtime`): `void` \| () => `void` \| `undefined`
 
-Defined in: [tools/types.ts:119](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L119)
+Defined in: [tools/types.ts:121](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L121)
 
 #### Parameters
 

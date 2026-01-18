@@ -6,7 +6,7 @@
 
 # Interface: Shape
 
-Defined in: [model/shape.ts:30](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L30)
+Defined in: [model/shape.ts:30](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L30)
 
 ## Extended by
 
@@ -18,7 +18,7 @@ Defined in: [model/shape.ts:30](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > `optional` **fill**: [`Fill`](../type-aliases/Fill.md)
 
-Defined in: [model/shape.ts:33](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L33)
+Defined in: [model/shape.ts:33](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L33)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [model/shape.ts:33](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > **geometry**: [`Geometry`](../type-aliases/Geometry.md)
 
-Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L32)
+Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L32)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > **id**: `string`
 
-Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L31)
+Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L31)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > `optional` **interactions**: [`ShapeInteractions`](ShapeInteractions.md)
 
-Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L37)
+Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L37)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > `optional` **opacity**: `number`
 
-Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L35)
+Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L35)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > `optional` **stroke**: [`BrushStyle`](BrushStyle.md)
 
-Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L34)
+Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L34)
 
 ***
 
@@ -66,7 +66,7 @@ Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > `optional` **transform**: [`ShapeTransform`](ShapeTransform.md)
 
-Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L38)
+Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L38)
 
 ***
 
@@ -74,4 +74,4 @@ Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > **zIndex**: `string`
 
-Defined in: [model/shape.ts:36](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L36)
+Defined in: [model/shape.ts:36](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L36)

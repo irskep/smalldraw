@@ -1,10 +1,12 @@
 import { describe, expect, test } from 'bun:test';
 
 import { getShapeBounds } from '../geometryBounds';
+import { getDefaultShapeHandlerRegistry } from '../shapeHandlers';
 import type { Shape } from '../shape';
 
 describe('geometry bounds helpers', () => {
   test('computes bounds for rotated rectangle using center-based transform', () => {
+    const registry = getDefaultShapeHandlerRegistry();
     const shape: Shape = {
       id: 'rect',
       geometry: { type: 'rect', size: { width: 20, height: 10 } },
@@ -16,7 +18,7 @@ describe('geometry bounds helpers', () => {
       },
       zIndex: 'rect',
     };
-    const bounds = getShapeBounds(shape);
+    const bounds = getShapeBounds(shape, registry);
     expect(bounds.minX).toBeCloseTo(-5);
     expect(bounds.maxX).toBeCloseTo(5);
     expect(bounds.minY).toBeCloseTo(-10);
@@ -26,6 +28,7 @@ describe('geometry bounds helpers', () => {
   });
 
   test('derives bounds from pen geometry points and translation', () => {
+    const registry = getDefaultShapeHandlerRegistry();
     const shape: Shape = {
       id: 'pen',
       geometry: {
@@ -42,7 +45,7 @@ describe('geometry bounds helpers', () => {
       },
       zIndex: 'pen',
     };
-    const bounds = getShapeBounds(shape);
+    const bounds = getShapeBounds(shape, registry);
     expect(bounds.minX).toBeCloseTo(3);
     expect(bounds.maxX).toBeCloseTo(8);
     expect(bounds.minY).toBeCloseTo(-6);
@@ -50,6 +53,7 @@ describe('geometry bounds helpers', () => {
   });
 
   test('includes stroke width in computed bounds', () => {
+    const registry = getDefaultShapeHandlerRegistry();
     const shape: Shape = {
       id: 'stroked',
       geometry: { type: 'rect', size: { width: 10, height: 10 } },
@@ -61,7 +65,7 @@ describe('geometry bounds helpers', () => {
       },
       zIndex: 'stroked',
     };
-    const bounds = getShapeBounds(shape);
+    const bounds = getShapeBounds(shape, registry);
     expect(bounds.minX).toBe(-5 - 2);
     expect(bounds.maxX).toBe(5 + 2);
     expect(bounds.minY).toBe(-5 - 2);

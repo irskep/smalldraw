@@ -2,6 +2,10 @@ import type { Geometry } from './geometry';
 import type { Point, Bounds } from './primitives';
 import type { Shape, ShapeTransform, CanonicalShapeTransform } from './shape';
 import { normalizeShapeTransform } from './shape';
+import type { ShapeHandlerRegistry } from './shapeHandlers';
+import { getBoundsFromPoints } from './geometryUtils';
+
+export { getBoundsFromPoints } from './geometryUtils';
 
 function createBounds(minX: number, minY: number, maxX: number, maxY: number): Bounds {
   return {
@@ -14,52 +18,15 @@ function createBounds(minX: number, minY: number, maxX: number, maxY: number): B
   };
 }
 
-export function getBoundsFromPoints(points: Point[]): Bounds | null {
-  if (!points.length) return null;
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (const point of points) {
-    minX = Math.min(minX, point.x);
-    minY = Math.min(minY, point.y);
-    maxX = Math.max(maxX, point.x);
-    maxY = Math.max(maxY, point.y);
+export function getGeometryLocalBounds(
+  geometry: Geometry,
+  registry: ShapeHandlerRegistry,
+): Bounds | null {
+  const ops = registry.getGeometryOps(geometry.type);
+  if (ops?.getBounds) {
+    return ops.getBounds(geometry);
   }
-  if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
-    return null;
-  }
-  return createBounds(minX, minY, maxX, maxY);
-}
-
-export function getGeometryLocalBounds(geometry: Geometry): Bounds | null {
-  switch (geometry.type) {
-    case 'rect': {
-      const halfWidth = geometry.size.width / 2;
-      const halfHeight = geometry.size.height / 2;
-      return createBounds(-halfWidth, -halfHeight, halfWidth, halfHeight);
-    }
-    case 'ellipse':
-      return createBounds(-geometry.radiusX, -geometry.radiusY, geometry.radiusX, geometry.radiusY);
-    case 'regularPolygon':
-      return createBounds(-geometry.radius, -geometry.radius, geometry.radius, geometry.radius);
-    case 'pen':
-    case 'stroke':
-    case 'polygon':
-      return getBoundsFromPoints(geometry.points);
-    case 'path':
-      return getBoundsFromPoints(geometry.segments.flatMap((segment) => segment.points));
-    case 'bezier':
-      return getBoundsFromPoints(
-        geometry.nodes.flatMap((node) =>
-          [node.anchor, node.handleIn, node.handleOut].filter(
-            (pt): pt is Point => Boolean(pt),
-          ),
-        ),
-      );
-    default:
-      return null;
-  }
+  return null;
 }
 
 export function applyTransformToPoint(
@@ -90,10 +57,11 @@ function rotatePoint(point: Point, angle: number): Point {
 
 export function getShapeBounds(
   shape: Shape,
+  registry: ShapeHandlerRegistry,
   transformOverride?: ShapeTransform | CanonicalShapeTransform | null,
 ): Bounds {
   const transform = normalizeShapeTransform(transformOverride ?? shape.transform);
-  const geometryBounds = getGeometryLocalBounds(shape.geometry);
+  const geometryBounds = getGeometryLocalBounds(shape.geometry, registry);
   const corners: Point[] = geometryBounds
     ? [
         { x: geometryBounds.minX, y: geometryBounds.minY },

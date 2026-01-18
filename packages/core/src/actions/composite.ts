@@ -1,18 +1,18 @@
 import type { DrawingDocument } from "../model/document";
-import type { UndoableAction } from "./types";
+import type { ActionContext, UndoableAction } from "./types";
 
 export class CompositeAction implements UndoableAction {
   constructor(private readonly actions: UndoableAction[]) {}
 
-  redo(doc: DrawingDocument): void {
+  redo(doc: DrawingDocument, ctx: ActionContext): void {
     for (const action of this.actions) {
-      action.redo(doc);
+      action.redo(doc, ctx);
     }
   }
 
-  undo(doc: DrawingDocument): void {
+  undo(doc: DrawingDocument, ctx: ActionContext): void {
     for (let i = this.actions.length - 1; i >= 0; i -= 1) {
-      this.actions[i].undo(doc);
+      this.actions[i].undo(doc, ctx);
     }
   }
 

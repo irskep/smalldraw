@@ -10,6 +10,7 @@ import {
   type DrawingDocument,
   type HandleDescriptor,
   type Point,
+  type RectGeometry,
   type Shape,
   type ToolDefinition,
   type ToolPointerEvent,
@@ -452,10 +453,11 @@ function computeSelectionBounds(store: DrawingStore): Bounds | null {
   }
   const doc = store.getDocument();
   let result: Bounds | null = null;
+  const registry = store.getShapeHandlers();
   for (const id of ids) {
     const shape = doc.shapes[id];
     if (!shape) continue;
-    const bounds = getShapeBounds(shape);
+    const bounds = getShapeBounds(shape, registry);
     result = result ? mergeBounds(result, bounds) : bounds;
   }
   return result;
@@ -489,8 +491,9 @@ function resolveHandlePoint(
 
 function resolveAxisHandlePoint(handleId: string, shape: Shape): Point | null {
   if (shape.geometry.type !== 'rect') return null;
-  const halfWidth = shape.geometry.size.width / 2;
-  const halfHeight = shape.geometry.size.height / 2;
+  const rectGeometry = shape.geometry as RectGeometry;
+  const halfWidth = rectGeometry.size.width / 2;
+  const halfHeight = rectGeometry.size.height / 2;
   let local: Point | null = null;
   switch (handleId) {
     case 'mid-right':
@@ -571,9 +574,10 @@ function updateSelectionForPoint(point: Point, additive: boolean, store: Drawing
 function hitTestShapes(point: Point, store: DrawingStore): Shape | null {
   const doc = store.getDocument();
   const ordered = getOrderedShapes(doc);
+  const registry = store.getShapeHandlers();
   for (let i = ordered.length - 1; i >= 0; i -= 1) {
     const shape = ordered[i];
-    const bounds = getShapeBounds(shape);
+    const bounds = getShapeBounds(shape, registry);
     if (point.x >= bounds.minX && point.x <= bounds.maxX && point.y >= bounds.minY && point.y <= bounds.maxY) {
       return shape;
     }

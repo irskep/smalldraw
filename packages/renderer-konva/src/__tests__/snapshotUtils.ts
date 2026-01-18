@@ -1,5 +1,5 @@
 import { createStage, renderDocument, type RenderDocumentOptions, type Viewport } from '../index';
-import type { DrawingDocument } from '@smalldraw/core';
+import type { DrawingDocument, ShapeHandlerRegistry } from '@smalldraw/core';
 import { promises as fs } from 'fs';
 import path from 'path';
 import looksSame from 'looks-same';
@@ -14,9 +14,14 @@ export async function renderDocumentToImage(
   document: DrawingDocument,
   viewport: Viewport,
   options?: Omit<RenderDocumentOptions, 'viewport'>,
+  geometryHandlerRegistry?: ShapeHandlerRegistry,
 ): Promise<Buffer> {
   const stage = createStage({ width: viewport.width, height: viewport.height });
-  const layer = renderDocument(stage, document, { ...(options ?? {}), viewport });
+  const layer = renderDocument(stage, document, {
+    ...(options ?? {}),
+    viewport,
+    geometryHandlerRegistry,
+  });
   type BufferCanvas = HTMLCanvasElement & { toBuffer: (mimeType?: string) => Buffer };
   const canvas = layer.getCanvas()._canvas as BufferCanvas;
   return canvas.toBuffer('image/png');

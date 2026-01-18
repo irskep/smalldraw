@@ -6,7 +6,7 @@
 
 # Class: UpdateShapeFill
 
-Defined in: [actions/updateFill.ts:6](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateFill.ts#L6)
+Defined in: [actions/updateFill.ts:6](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateFill.ts#L6)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/updateFill.ts:6](https://github.com/irskep/smalldraw/blob/9
 
 > **new UpdateShapeFill**(`shapeId`, `nextFill`): `UpdateShapeFill`
 
-Defined in: [actions/updateFill.ts:10](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateFill.ts#L10)
+Defined in: [actions/updateFill.ts:10](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateFill.ts#L10)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [actions/updateFill.ts:10](https://github.com/irskep/smalldraw/blob/
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/updateFill.ts:32](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateFill.ts#L32)
+Defined in: [actions/updateFill.ts:32](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateFill.ts#L32)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -58,7 +58,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/updateFill.ts:36](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateFill.ts#L36)
+Defined in: [actions/updateFill.ts:36](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateFill.ts#L36)
 
 #### Returns
 
@@ -72,15 +72,19 @@ Defined in: [actions/updateFill.ts:36](https://github.com/irskep/smalldraw/blob/
 
 ### redo()
 
-> **redo**(`doc`): `void`
+> **redo**(`doc`, `ctx`): `void`
 
-Defined in: [actions/updateFill.ts:15](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateFill.ts#L15)
+Defined in: [actions/updateFill.ts:15](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateFill.ts#L15)
 
 #### Parameters
 
 ##### doc
 
 [`DrawingDocument`](../interfaces/DrawingDocument.md)
+
+##### ctx
+
+[`ActionContext`](../interfaces/ActionContext.md)
 
 #### Returns
 
@@ -94,15 +98,19 @@ Defined in: [actions/updateFill.ts:15](https://github.com/irskep/smalldraw/blob/
 
 ### undo()
 
-> **undo**(`doc`): `void`
+> **undo**(`doc`, `ctx`): `void`
 
-Defined in: [actions/updateFill.ts:24](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateFill.ts#L24)
+Defined in: [actions/updateFill.ts:24](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateFill.ts#L24)
 
 #### Parameters
 
 ##### doc
 
 [`DrawingDocument`](../interfaces/DrawingDocument.md)
+
+##### ctx
+
+[`ActionContext`](../interfaces/ActionContext.md)
 
 #### Returns
 

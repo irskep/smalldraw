@@ -3,14 +3,17 @@ import { describe, expect, test } from 'bun:test';
 import {
   AddShape,
   UpdateShapeGeometry,
+  type ActionContext,
 } from '../actions';
 import { createDocument } from '../model/document';
 import type { Geometry } from '../model/geometry';
+import { getDefaultShapeHandlerRegistry } from '../model/shapeHandlers';
 import type { Shape } from '../model/shape';
 import { canonicalizeShape } from '../model/shape';
 import { UndoManager } from '../undo';
 
 function createShape(id: string, geometry: Geometry): Shape {
+  const registry = getDefaultShapeHandlerRegistry();
   return canonicalizeShape({
     id,
     geometry,
@@ -20,17 +23,20 @@ function createShape(id: string, geometry: Geometry): Shape {
       scale: { x: 1, y: 1 },
       rotation: 0,
     },
-  });
+  }, registry);
 }
 
 function canonicalGeometry(shape: Shape, geometry: Geometry): Geometry {
-  return canonicalizeShape({ ...shape, geometry }).geometry;
+  const registry = getDefaultShapeHandlerRegistry();
+  return canonicalizeShape({ ...shape, geometry }, registry).geometry;
 }
 
 describe('Geometry actions', () => {
   test('pen geometry can be added and updated', () => {
-    const doc = createDocument();
+    const registry = getDefaultShapeHandlerRegistry();
+    const doc = createDocument([], registry);
     const undo = new UndoManager();
+    const ctx: ActionContext = { registry };
     const pen = createShape('pen', {
       type: 'pen',
       points: [
@@ -39,7 +45,7 @@ describe('Geometry actions', () => {
       ],
     });
 
-    undo.apply(new AddShape(pen), doc);
+    undo.apply(new AddShape(pen), doc, ctx);
     expect(doc.shapes[pen.id]?.geometry).toEqual(pen.geometry);
 
     const updatedGeometry: Geometry = {
@@ -51,21 +57,23 @@ describe('Geometry actions', () => {
       ],
       simulatePressure: true,
     };
-    undo.apply(new UpdateShapeGeometry(pen.id, updatedGeometry), doc);
+    undo.apply(new UpdateShapeGeometry(pen.id, updatedGeometry), doc, ctx);
     expect(doc.shapes[pen.id]?.geometry).toEqual(canonicalGeometry(pen, updatedGeometry));
-    undo.undo(doc);
+    undo.undo(doc, ctx);
     expect(doc.shapes[pen.id]?.geometry).toEqual(pen.geometry);
   });
 
   test('ellipse geometry stores radius values', () => {
-    const doc = createDocument();
+    const registry = getDefaultShapeHandlerRegistry();
+    const doc = createDocument([], registry);
     const undo = new UndoManager();
+    const ctx: ActionContext = { registry };
     const ellipse = createShape('ellipse', {
       type: 'ellipse',
       radiusX: 30,
       radiusY: 15,
     });
-    undo.apply(new AddShape(ellipse), doc);
+    undo.apply(new AddShape(ellipse), doc, ctx);
     expect(doc.shapes[ellipse.id]?.geometry).toEqual(ellipse.geometry);
 
     const next: Geometry = {
@@ -73,41 +81,45 @@ describe('Geometry actions', () => {
       radiusX: 10,
       radiusY: 5,
     };
-    undo.apply(new UpdateShapeGeometry(ellipse.id, next), doc);
+    undo.apply(new UpdateShapeGeometry(ellipse.id, next), doc, ctx);
     expect(doc.shapes[ellipse.id]?.geometry).toEqual(next);
-    undo.undo(doc);
+    undo.undo(doc, ctx);
     expect(doc.shapes[ellipse.id]?.geometry).toEqual(ellipse.geometry);
   });
 
   test('rect geometry persists bounds', () => {
-    const doc = createDocument();
+    const registry = getDefaultShapeHandlerRegistry();
+    const doc = createDocument([], registry);
     const undo = new UndoManager();
+    const ctx: ActionContext = { registry };
     const rect = createShape('rect', {
       type: 'rect',
       size: { width: 100, height: 40 },
     });
-    undo.apply(new AddShape(rect), doc);
+    undo.apply(new AddShape(rect), doc, ctx);
     expect(doc.shapes[rect.id]?.geometry).toEqual(rect.geometry);
 
     const next: Geometry = {
       type: 'rect',
       size: { width: 50, height: 50 },
     };
-    undo.apply(new UpdateShapeGeometry(rect.id, next), doc);
+    undo.apply(new UpdateShapeGeometry(rect.id, next), doc, ctx);
     expect(doc.shapes[rect.id]?.geometry).toEqual(next);
-    undo.undo(doc);
+    undo.undo(doc, ctx);
     expect(doc.shapes[rect.id]?.geometry).toEqual(rect.geometry);
   });
 
   test('regular polygon geometry tracks sides and rotation', () => {
-    const doc = createDocument();
+    const registry = getDefaultShapeHandlerRegistry();
+    const doc = createDocument([], registry);
     const undo = new UndoManager();
+    const ctx: ActionContext = { registry };
     const polygon = createShape('regular-polygon', {
       type: 'regularPolygon',
       radius: 30,
       sides: 6,
     });
-    undo.apply(new AddShape(polygon), doc);
+    undo.apply(new AddShape(polygon), doc, ctx);
     expect(doc.shapes[polygon.id]?.geometry).toEqual(polygon.geometry);
 
     const next: Geometry = {
@@ -115,15 +127,17 @@ describe('Geometry actions', () => {
       radius: 40,
       sides: 5,
     };
-    undo.apply(new UpdateShapeGeometry(polygon.id, next), doc);
+    undo.apply(new UpdateShapeGeometry(polygon.id, next), doc, ctx);
     expect(doc.shapes[polygon.id]?.geometry).toEqual(next);
-    undo.undo(doc);
+    undo.undo(doc, ctx);
     expect(doc.shapes[polygon.id]?.geometry).toEqual(polygon.geometry);
   });
 
   test('arbitrary polygon geometry stores vertices', () => {
-    const doc = createDocument();
+    const registry = getDefaultShapeHandlerRegistry();
+    const doc = createDocument([], registry);
     const undo = new UndoManager();
+    const ctx: ActionContext = { registry };
     const poly = createShape('poly', {
       type: 'polygon',
       points: [
@@ -132,7 +146,7 @@ describe('Geometry actions', () => {
         { x: 5, y: 10 },
       ],
     });
-    undo.apply(new AddShape(poly), doc);
+    undo.apply(new AddShape(poly), doc, ctx);
     expect(doc.shapes[poly.id]?.geometry).toEqual(poly.geometry);
 
     const next: Geometry = {
@@ -145,15 +159,17 @@ describe('Geometry actions', () => {
       ],
       closed: true,
     };
-    undo.apply(new UpdateShapeGeometry(poly.id, next), doc);
+    undo.apply(new UpdateShapeGeometry(poly.id, next), doc, ctx);
     expect(doc.shapes[poly.id]?.geometry).toEqual(canonicalGeometry(poly, next));
-    undo.undo(doc);
+    undo.undo(doc, ctx);
     expect(doc.shapes[poly.id]?.geometry).toEqual(poly.geometry);
   });
 
   test('bezier geometry persists nodes and handles', () => {
-    const doc = createDocument();
+    const registry = getDefaultShapeHandlerRegistry();
+    const doc = createDocument([], registry);
     const undo = new UndoManager();
+    const ctx: ActionContext = { registry };
     const bezier = createShape('bezier', {
       type: 'bezier',
       nodes: [
@@ -167,7 +183,7 @@ describe('Geometry actions', () => {
         },
       ],
     });
-    undo.apply(new AddShape(bezier), doc);
+    undo.apply(new AddShape(bezier), doc, ctx);
     expect(doc.shapes[bezier.id]?.geometry).toEqual(bezier.geometry);
 
     const next: Geometry = {
@@ -189,9 +205,9 @@ describe('Geometry actions', () => {
       ],
       closed: true,
     };
-    undo.apply(new UpdateShapeGeometry(bezier.id, next), doc);
+    undo.apply(new UpdateShapeGeometry(bezier.id, next), doc, ctx);
     expect(doc.shapes[bezier.id]?.geometry).toEqual(canonicalGeometry(bezier, next));
-    undo.undo(doc);
+    undo.undo(doc, ctx);
     expect(doc.shapes[bezier.id]?.geometry).toEqual(bezier.geometry);
   });
 });

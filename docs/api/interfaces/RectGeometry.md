@@ -6,7 +6,7 @@
 
 # Interface: RectGeometry
 
-Defined in: [model/geometry.ts:14](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L14)
+Defined in: [model/geometry.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometry.ts#L14)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/geometry.ts:14](https://github.com/irskep/smalldraw/blob/96a5
 
 > **size**: [`Size`](Size.md)
 
-Defined in: [model/geometry.ts:16](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L16)
+Defined in: [model/geometry.ts:16](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometry.ts#L16)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [model/geometry.ts:16](https://github.com/irskep/smalldraw/blob/96a5
 
 > **type**: `"rect"`
 
-Defined in: [model/geometry.ts:15](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L15)
+Defined in: [model/geometry.ts:15](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometry.ts#L15)

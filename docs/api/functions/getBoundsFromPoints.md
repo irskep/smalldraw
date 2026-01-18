@@ -8,7 +8,7 @@
 
 > **getBoundsFromPoints**(`points`): [`Bounds`](../interfaces/Bounds.md) \| `null`
 
-Defined in: [model/geometryBounds.ts:17](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometryBounds.ts#L17)
+Defined in: [model/geometryUtils.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometryUtils.ts#L14)
 
 ## Parameters
 

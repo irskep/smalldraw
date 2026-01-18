@@ -6,9 +6,9 @@
 
 # Function: getShapeBounds()
 
-> **getShapeBounds**(`shape`, `transformOverride?`): [`Bounds`](../interfaces/Bounds.md)
+> **getShapeBounds**(`shape`, `registry`, `transformOverride?`): [`Bounds`](../interfaces/Bounds.md)
 
-Defined in: [model/geometryBounds.ts:91](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometryBounds.ts#L91)
+Defined in: [model/geometryBounds.ts:58](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometryBounds.ts#L58)
 
 ## Parameters
 
@@ -16,9 +16,13 @@ Defined in: [model/geometryBounds.ts:91](https://github.com/irskep/smalldraw/blo
 
 [`Shape`](../interfaces/Shape.md)
 
+### registry
+
+[`ShapeHandlerRegistry`](../classes/ShapeHandlerRegistry.md)
+
 ### transformOverride?
 
-[`ShapeTransform`](../interfaces/ShapeTransform.md) | [`CanonicalShapeTransform`](../interfaces/CanonicalShapeTransform.md) | `null`
+[`CanonicalShapeTransform`](../interfaces/CanonicalShapeTransform.md) | [`ShapeTransform`](../interfaces/ShapeTransform.md) | `null`
 
 ## Returns
 

@@ -8,7 +8,7 @@
 
 > **createRectangleTool**(`options?`): [`ToolDefinition`](../interfaces/ToolDefinition.md)
 
-Defined in: [tools/rectangle.ts:29](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/rectangle.ts#L29)
+Defined in: [tools/rectangle.ts:30](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/rectangle.ts#L30)
 
 ## Parameters
 

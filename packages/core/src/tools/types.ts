@@ -74,6 +74,8 @@ export interface ToolRuntime {
   clearSelection(): void;
   isSelected(id: string): boolean;
   getShape(shapeId: string): Shape | undefined;
+  /** Get the shape handler registry for this drawing session */
+  getShapeHandlers(): import('../model/shapeHandlers').ShapeHandlerRegistry;
   onEvent<TPayload>(
     type: ToolRuntimeEvent<TPayload>["type"],
     listener: (payload: TPayload) => void

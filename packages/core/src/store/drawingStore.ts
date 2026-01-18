@@ -1,4 +1,4 @@
-import { type UndoableAction } from "../actions";
+import { type ActionContext, type UndoableAction } from "../actions";
 import { createDocument, type DrawingDocument } from "../model/document";
 import type { Shape } from "../model/shape";
 import { UndoManager } from "../undo";
@@ -14,6 +14,10 @@ import type {
   ToolEventName,
   ToolPointerEvent,
 } from "../tools/types";
+import {
+  getDefaultShapeHandlerRegistry,
+  type ShapeHandlerRegistry,
+} from "../model/shapeHandlers";
 
 export interface DrawingStoreOptions {
   document?: DrawingDocument;
@@ -21,6 +25,7 @@ export interface DrawingStoreOptions {
   tools: ToolDefinition[];
   initialSharedSettings?: SharedToolSettings;
   onRenderNeeded?: () => void;
+  shapeHandlers?: ShapeHandlerRegistry;
 }
 
 /** Result of consuming dirty state for incremental rendering. */
@@ -62,8 +67,17 @@ export class DrawingStore {
   // Callback invoked whenever rendering is needed
   private onRenderNeeded?: () => void;
 
+  // Shape handler registry
+  private shapeHandlers: ShapeHandlerRegistry;
+
+  // Action context for undo/redo
+  private actionContext: ActionContext;
+
   constructor(options: DrawingStoreOptions) {
-    this.document = options.document ?? createDocument();
+    this.shapeHandlers =
+      options.shapeHandlers ?? getDefaultShapeHandlerRegistry();
+    this.actionContext = { registry: this.shapeHandlers };
+    this.document = options.document ?? createDocument(undefined, this.shapeHandlers);
     this.undoManager = options.undoManager ?? new UndoManager();
     this.onRenderNeeded = options.onRenderNeeded;
     this.sharedSettings = options.initialSharedSettings ?? {
@@ -124,6 +138,7 @@ export class DrawingStore {
       toolId,
       document: this.document,
       undoManager: this.undoManager,
+      shapeHandlers: this.shapeHandlers,
       sharedSettings: this.sharedSettings,
       selectionState: this.selectionState,
       toolStates: this.toolStates,
@@ -185,7 +200,7 @@ export class DrawingStore {
   }
 
   mutateDocument(action: UndoableAction): void {
-    this.undoManager.apply(action, this.document);
+    this.undoManager.apply(action, this.document, this.actionContext);
     this.trackDirtyState(action);
     this.triggerRender();
   }
@@ -338,7 +353,7 @@ export class DrawingStore {
   }
 
   undo(): boolean {
-    const action = this.undoManager.undo(this.document);
+    const action = this.undoManager.undo(this.document, this.actionContext);
     if (action) {
       this.trackDirtyState(action);
       this.triggerRender();
@@ -348,7 +363,7 @@ export class DrawingStore {
   }
 
   redo(): boolean {
-    const action = this.undoManager.redo(this.document);
+    const action = this.undoManager.redo(this.document, this.actionContext);
     if (action) {
       this.trackDirtyState(action);
       this.triggerRender();
@@ -363,5 +378,9 @@ export class DrawingStore {
 
   canRedo(): boolean {
     return this.undoManager.canRedo();
+  }
+
+  getShapeHandlers(): ShapeHandlerRegistry {
+    return this.shapeHandlers;
   }
 }

@@ -1,7 +1,7 @@
-import type { Geometry, PathGeometry, PolygonGeometry, PenGeometry, StrokeGeometry, BezierGeometry } from './geometry';
+import type { Geometry } from './geometry';
 import type { Fill, StrokeStyle } from './style';
-import type { Point } from './primitives';
-import { getBoundsCenter, getBoundsFromPoints } from './geometryBounds';
+import { getBoundsCenter } from './geometryBounds';
+import type { ShapeHandlerRegistry } from './shapeHandlers';
 
 export interface CanonicalShapeTransform {
   translation: { x: number; y: number };
@@ -53,120 +53,32 @@ export function normalizeShapeTransform(
   };
 }
 
-export function canonicalizeShape(shape: Shape): Shape {
+export function canonicalizeShape(
+  shape: Shape,
+  registry: ShapeHandlerRegistry,
+): Shape {
   const transform = normalizeShapeTransform(shape.transform);
-  switch (shape.geometry.type) {
-    case 'pen':
-    case 'stroke':
-    case 'polygon':
-      return canonicalizePointListShape(
-        shape as Shape & { geometry: PenGeometry | StrokeGeometry | PolygonGeometry },
-        transform,
-      );
-    case 'path':
-      return canonicalizePathShape(shape as Shape & { geometry: PathGeometry }, transform);
-    case 'bezier':
-      return canonicalizeBezierShape(shape as Shape & { geometry: BezierGeometry }, transform);
-    default:
-      return { ...shape, transform };
-  }
-}
+  const ops = registry.getGeometryOps(shape.geometry.type);
 
-function canonicalizePointListShape(
-  shape: Shape & { geometry: PenGeometry | StrokeGeometry | PolygonGeometry },
-  transform: CanonicalShapeTransform,
-): Shape {
-  const bounds = getBoundsFromPoints(shape.geometry.points);
-  if (!bounds) {
-    return { ...shape, transform };
+  if (ops?.canonicalize && ops?.getBounds) {
+    const bounds = ops.getBounds(shape.geometry);
+    if (bounds) {
+      const center = getBoundsCenter(bounds);
+      const canonicalGeometry = ops.canonicalize(shape.geometry, center);
+      return {
+        ...shape,
+        geometry: canonicalGeometry,
+        transform: {
+          ...transform,
+          translation: {
+            x: transform.translation.x + center.x,
+            y: transform.translation.y + center.y,
+          },
+        },
+      };
+    }
   }
-  const center = getBoundsCenter(bounds);
-  const localPoints = shape.geometry.points.map((pt) => ({
-    ...pt,
-    x: pt.x - center.x,
-    y: pt.y - center.y,
-  }));
-  return {
-    ...shape,
-    geometry: { ...shape.geometry, points: localPoints },
-    transform: {
-      ...transform,
-      translation: {
-        x: transform.translation.x + center.x,
-        y: transform.translation.y + center.y,
-      },
-    },
-  };
-}
 
-function canonicalizePathShape(
-  shape: Shape & { geometry: PathGeometry },
-  transform: CanonicalShapeTransform,
-): Shape {
-  const allPoints = shape.geometry.segments.flatMap((segment) => segment.points);
-  const bounds = getBoundsFromPoints(allPoints);
-  if (!bounds) {
-    return { ...shape, transform };
-  }
-  const center = getBoundsCenter(bounds);
-  const segments = shape.geometry.segments.map((segment) => ({
-    ...segment,
-    points: segment.points.map((pt) => ({
-      ...pt,
-      x: pt.x - center.x,
-      y: pt.y - center.y,
-    })),
-  }));
-  return {
-    ...shape,
-    geometry: { ...shape.geometry, segments },
-    transform: {
-      ...transform,
-      translation: {
-        x: transform.translation.x + center.x,
-        y: transform.translation.y + center.y,
-      },
-    },
-  };
-}
-
-function canonicalizeBezierShape(
-  shape: Shape & { geometry: BezierGeometry },
-  transform: CanonicalShapeTransform,
-): Shape {
-  const allPoints: Point[] = [];
-  for (const node of shape.geometry.nodes) {
-    allPoints.push(node.anchor);
-    if (node.handleIn) allPoints.push(node.handleIn);
-    if (node.handleOut) allPoints.push(node.handleOut);
-  }
-  const bounds = getBoundsFromPoints(allPoints);
-  if (!bounds) {
-    return { ...shape, transform };
-  }
-  const center = getBoundsCenter(bounds);
-  const nodes = shape.geometry.nodes.map((node) => ({
-    anchor: shiftPoint(node.anchor, center),
-    handleIn: node.handleIn ? shiftPoint(node.handleIn, center) : undefined,
-    handleOut: node.handleOut ? shiftPoint(node.handleOut, center) : undefined,
-  }));
-  return {
-    ...shape,
-    geometry: { ...shape.geometry, nodes },
-    transform: {
-      ...transform,
-      translation: {
-        x: transform.translation.x + center.x,
-        y: transform.translation.y + center.y,
-      },
-    },
-  };
-}
-
-function shiftPoint<T extends Point>(point: T, center: Point): T {
-  return {
-    ...point,
-    x: point.x - center.x,
-    y: point.y - center.y,
-  };
+  // No handler or no canonicalization - return with normalized transform
+  return { ...shape, transform };
 }

@@ -1,4 +1,4 @@
-import type { DirtyState, DrawingDocument, Shape } from '@smalldraw/core';
+import type { DirtyState, DrawingDocument, ShapeHandlerRegistry, Shape } from '@smalldraw/core';
 import { getOrderedShapes } from '@smalldraw/core';
 import Konva from 'konva';
 import type { Layer } from 'konva/lib/Layer.js';
@@ -18,6 +18,7 @@ export interface RenderDocumentOptions {
   layerId?: string;
   clear?: boolean;
   registry?: ShapeRendererRegistry;
+  geometryHandlerRegistry?: ShapeHandlerRegistry;
   viewport?: Viewport;
   backgroundColor?: string;
 }
@@ -43,10 +44,11 @@ export function renderDocument(
   }
   fillBackground(layer, options);
   const registry = options?.registry ?? defaultShapeRendererRegistry;
+  const geometryHandlerRegistry = options?.geometryHandlerRegistry;
   const orderedShapes = getOrderedShapes(document);
   let zIndex = 1; // Start at 1 to keep shapes above background rect
   for (const shape of orderedShapes) {
-    const node = renderShapeNode(shape, registry);
+    const node = renderShapeNode(shape, registry, geometryHandlerRegistry);
     if (!node) continue;
     layer.add(node);
     node.zIndex(zIndex);
@@ -85,6 +87,7 @@ function fillBackground(layer: Layer, options?: RenderDocumentOptions): void {
 export interface ReconcileDocumentOptions {
   layerId?: string;
   registry?: ShapeRendererRegistry;
+  geometryHandlerRegistry?: ShapeHandlerRegistry;
   viewport?: Viewport;
   backgroundColor?: string;
 }

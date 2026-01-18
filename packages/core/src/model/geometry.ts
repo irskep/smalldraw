@@ -56,6 +56,23 @@ export interface PathGeometry {
   segments: PathSegment[];
 }
 
+/**
+ * Base interface for custom geometry types. To create a custom geometry,
+ * define an interface that extends Geometry with a specific type literal:
+ *
+ * @example
+ * ```typescript
+ * interface StarGeometry extends Geometry {
+ *   type: 'star';
+ *   radius: number;
+ *   points: number;
+ * }
+ * ```
+ */
+export interface CustomGeometry {
+  type: string;
+}
+
 export type Geometry =
   | PenGeometry
   | StrokeGeometry
@@ -64,4 +81,5 @@ export type Geometry =
   | RegularPolygonGeometry
   | PolygonGeometry
   | BezierGeometry
-  | PathGeometry;
+  | PathGeometry
+  | CustomGeometry;

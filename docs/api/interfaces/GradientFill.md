@@ -6,7 +6,7 @@
 
 # Interface: GradientFill
 
-Defined in: [model/style.ts:12](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L12)
+Defined in: [model/style.ts:12](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L12)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/style.ts:12](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > **angle**: `number`
 
-Defined in: [model/style.ts:15](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L15)
+Defined in: [model/style.ts:15](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L15)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/style.ts:15](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > **stops**: [`GradientStop`](GradientStop.md)[]
 
-Defined in: [model/style.ts:14](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L14)
+Defined in: [model/style.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L14)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [model/style.ts:14](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > **type**: `"gradient"`
 
-Defined in: [model/style.ts:13](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L13)
+Defined in: [model/style.ts:13](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L13)

@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import { AddShape } from '../../actions';
 import { createDocument } from '../../model/document';
+import { getDefaultShapeHandlerRegistry } from '../../model/shapeHandlers';
 import type { Shape } from '../../model/shape';
 import { canonicalizeShape } from '../../model/shape';
 import { UndoManager } from '../../undo';
@@ -17,13 +18,15 @@ interface RuntimeOverrides {
 }
 
 function createRuntime(overrides?: RuntimeOverrides) {
-  const document = createDocument();
+  const registry = getDefaultShapeHandlerRegistry();
+  const document = createDocument(undefined, registry);
   const undoManager = new UndoManager();
   const draftChanges: Array<unknown> = [];
   const runtime = new ToolRuntimeImpl({
     toolId: 'pen',
     document,
     undoManager,
+    shapeHandlers: registry,
     options: overrides?.options,
     onDraftChange: (draft) => draftChanges.push(draft),
     sharedSettings: overrides?.sharedSettings,
@@ -69,6 +72,7 @@ describe('ToolRuntimeImpl', () => {
 
   test('commit applies undoable action to the document', () => {
     const { runtime, document } = createRuntime();
+    const registry = getDefaultShapeHandlerRegistry();
     const shape: Shape = {
       id: 'rect-1',
       geometry: {
@@ -84,10 +88,11 @@ describe('ToolRuntimeImpl', () => {
     };
 
     runtime.commit(new AddShape(shape));
-    expect(document.shapes[shape.id]).toEqual(canonicalizeShape(shape));
+    expect(document.shapes[shape.id]).toEqual(canonicalizeShape(shape, registry));
   });
 
   test('getNextZIndex generates keys after top shape', () => {
+    const registry = getDefaultShapeHandlerRegistry();
     const zIndex = getZIndexBetween(null, null);
     const document = createDocument([
       {
@@ -103,12 +108,13 @@ describe('ToolRuntimeImpl', () => {
           rotation: 0,
         },
       },
-    ]);
+    ], registry);
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({
       toolId: 'pen',
       document,
       undoManager,
+      shapeHandlers: registry,
     });
     const next = runtime.getNextZIndex();
     expect(next).not.toBe(zIndex);

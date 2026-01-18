@@ -6,7 +6,7 @@
 
 # Interface: RectangleToolOptions
 
-Defined in: [tools/rectangle.ts:24](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/rectangle.ts#L24)
+Defined in: [tools/rectangle.ts:25](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/rectangle.ts#L25)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [tools/rectangle.ts:24](https://github.com/irskep/smalldraw/blob/96a
 
 > `optional` **fill**: [`Fill`](../type-aliases/Fill.md)
 
-Defined in: [tools/rectangle.ts:26](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/rectangle.ts#L26)
+Defined in: [tools/rectangle.ts:27](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/rectangle.ts#L27)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [tools/rectangle.ts:26](https://github.com/irskep/smalldraw/blob/96a
 
 > `optional` **stroke**: [`BrushStyle`](BrushStyle.md)
 
-Defined in: [tools/rectangle.ts:25](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/rectangle.ts#L25)
+Defined in: [tools/rectangle.ts:26](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/rectangle.ts#L26)

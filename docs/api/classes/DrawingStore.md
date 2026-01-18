@@ -6,7 +6,7 @@
 
 # Class: DrawingStore
 
-Defined in: [store/drawingStore.ts:33](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L33)
+Defined in: [store/drawingStore.ts:39](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L39)
 
 ## Constructors
 
@@ -14,7 +14,7 @@ Defined in: [store/drawingStore.ts:33](https://github.com/irskep/smalldraw/blob/
 
 > **new DrawingStore**(`options`): `DrawingStore`
 
-Defined in: [store/drawingStore.ts:61](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L61)
+Defined in: [store/drawingStore.ts:76](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L76)
 
 #### Parameters
 
@@ -32,7 +32,7 @@ Defined in: [store/drawingStore.ts:61](https://github.com/irskep/smalldraw/blob/
 
 > **activateTool**(`toolId`): `void`
 
-Defined in: [store/drawingStore.ts:74](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L74)
+Defined in: [store/drawingStore.ts:93](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L93)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: [store/drawingStore.ts:74](https://github.com/irskep/smalldraw/blob/
 
 > **canRedo**(): `boolean`
 
-Defined in: [store/drawingStore.ts:306](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L306)
+Defined in: [store/drawingStore.ts:379](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L379)
 
 #### Returns
 
@@ -62,7 +62,7 @@ Defined in: [store/drawingStore.ts:306](https://github.com/irskep/smalldraw/blob
 
 > **canUndo**(): `boolean`
 
-Defined in: [store/drawingStore.ts:302](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L302)
+Defined in: [store/drawingStore.ts:375](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L375)
 
 #### Returns
 
@@ -74,7 +74,7 @@ Defined in: [store/drawingStore.ts:302](https://github.com/irskep/smalldraw/blob
 
 > **clearSelection**(): `void`
 
-Defined in: [store/drawingStore.ts:279](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L279)
+Defined in: [store/drawingStore.ts:349](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L349)
 
 #### Returns
 
@@ -86,7 +86,7 @@ Defined in: [store/drawingStore.ts:279](https://github.com/irskep/smalldraw/blob
 
 > **consumeDirtyState**(): [`DirtyState`](../interfaces/DirtyState.md)
 
-Defined in: [store/drawingStore.ts:203](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L203)
+Defined in: [store/drawingStore.ts:236](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L236)
 
 Consume and clear the dirty state. Call this before rendering to get
 the set of shapes that need updating.
@@ -101,7 +101,7 @@ the set of shapes that need updating.
 
 > **dispatch**(`event`, `payload`): `void`
 
-Defined in: [store/drawingStore.ts:86](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L86)
+Defined in: [store/drawingStore.ts:106](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L106)
 
 #### Parameters
 
@@ -123,7 +123,7 @@ Defined in: [store/drawingStore.ts:86](https://github.com/irskep/smalldraw/blob/
 
 > **getActiveToolId**(): `string` \| `null`
 
-Defined in: [store/drawingStore.ts:231](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L231)
+Defined in: [store/drawingStore.ts:297](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L297)
 
 #### Returns
 
@@ -135,7 +135,7 @@ Defined in: [store/drawingStore.ts:231](https://github.com/irskep/smalldraw/blob
 
 > **getDocument**(): [`DrawingDocument`](../interfaces/DrawingDocument.md)
 
-Defined in: [store/drawingStore.ts:213](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L213)
+Defined in: [store/drawingStore.ts:279](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L279)
 
 #### Returns
 
@@ -147,7 +147,7 @@ Defined in: [store/drawingStore.ts:213](https://github.com/irskep/smalldraw/blob
 
 > **getDrafts**(): [`DraftShape`](../interfaces/DraftShape.md)[]
 
-Defined in: [store/drawingStore.ts:92](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L92)
+Defined in: [store/drawingStore.ts:113](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L113)
 
 #### Returns
 
@@ -159,7 +159,7 @@ Defined in: [store/drawingStore.ts:92](https://github.com/irskep/smalldraw/blob/
 
 > **getHandleHover**(): `object`
 
-Defined in: [store/drawingStore.ts:100](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L100)
+Defined in: [store/drawingStore.ts:121](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L121)
 
 #### Returns
 
@@ -179,7 +179,7 @@ Defined in: [store/drawingStore.ts:100](https://github.com/irskep/smalldraw/blob
 
 > **getHandles**(): [`HandleDescriptor`](../interfaces/HandleDescriptor.md)[]
 
-Defined in: [store/drawingStore.ts:96](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L96)
+Defined in: [store/drawingStore.ts:117](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L117)
 
 #### Returns
 
@@ -191,7 +191,7 @@ Defined in: [store/drawingStore.ts:96](https://github.com/irskep/smalldraw/blob/
 
 > **getOrderedShapes**(): [`Shape`](../interfaces/Shape.md)[]
 
-Defined in: [store/drawingStore.ts:221](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L221)
+Defined in: [store/drawingStore.ts:287](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L287)
 
 Get shapes sorted by z-index. Uses cached result when possible.
 The cache is invalidated when shapes are added, deleted, or reordered.
@@ -202,11 +202,36 @@ The cache is invalidated when shapes are added, deleted, or reordered.
 
 ***
 
+### getRenderState()
+
+> **getRenderState**(): `object`
+
+Defined in: [store/drawingStore.ts:252](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L252)
+
+Get the complete render state including merged shapes and dirty tracking.
+This is the recommended method for UIs to use for rendering.
+Returns base document shapes merged with drafts, ordered by z-index,
+with dirty state that includes draft IDs.
+
+#### Returns
+
+`object`
+
+##### dirtyState
+
+> **dirtyState**: [`DirtyState`](../interfaces/DirtyState.md)
+
+##### shapes
+
+> **shapes**: [`Shape`](../interfaces/Shape.md)[]
+
+***
+
 ### getSelection()
 
 > **getSelection**(): [`SelectionState`](../interfaces/SelectionState.md)
 
-Defined in: [store/drawingStore.ts:250](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L250)
+Defined in: [store/drawingStore.ts:317](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L317)
 
 #### Returns
 
@@ -218,7 +243,7 @@ Defined in: [store/drawingStore.ts:250](https://github.com/irskep/smalldraw/blob
 
 > **getSelectionFrame**(): [`Bounds`](../interfaces/Bounds.md) \| `null`
 
-Defined in: [store/drawingStore.ts:107](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L107)
+Defined in: [store/drawingStore.ts:128](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L128)
 
 #### Returns
 
@@ -226,11 +251,23 @@ Defined in: [store/drawingStore.ts:107](https://github.com/irskep/smalldraw/blob
 
 ***
 
+### getShapeHandlers()
+
+> **getShapeHandlers**(): [`ShapeHandlerRegistry`](ShapeHandlerRegistry.md)
+
+Defined in: [store/drawingStore.ts:383](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L383)
+
+#### Returns
+
+[`ShapeHandlerRegistry`](ShapeHandlerRegistry.md)
+
+***
+
 ### getSharedSettings()
 
 > **getSharedSettings**(): [`SharedToolSettings`](../interfaces/SharedToolSettings.md)
 
-Defined in: [store/drawingStore.ts:235](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L235)
+Defined in: [store/drawingStore.ts:301](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L301)
 
 #### Returns
 
@@ -242,7 +279,7 @@ Defined in: [store/drawingStore.ts:235](https://github.com/irskep/smalldraw/blob
 
 > **mutateDocument**(`action`): `void`
 
-Defined in: [store/drawingStore.ts:170](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L170)
+Defined in: [store/drawingStore.ts:202](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L202)
 
 #### Parameters
 
@@ -260,7 +297,7 @@ Defined in: [store/drawingStore.ts:170](https://github.com/irskep/smalldraw/blob
 
 > **redo**(): `boolean`
 
-Defined in: [store/drawingStore.ts:293](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L293)
+Defined in: [store/drawingStore.ts:365](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L365)
 
 #### Returns
 
@@ -272,7 +309,7 @@ Defined in: [store/drawingStore.ts:293](https://github.com/irskep/smalldraw/blob
 
 > **setSelection**(`ids`, `primaryId?`): `void`
 
-Defined in: [store/drawingStore.ts:257](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L257)
+Defined in: [store/drawingStore.ts:324](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L324)
 
 #### Parameters
 
@@ -294,7 +331,7 @@ Defined in: [store/drawingStore.ts:257](https://github.com/irskep/smalldraw/blob
 
 > **toggleSelection**(`id`): `void`
 
-Defined in: [store/drawingStore.ts:264](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L264)
+Defined in: [store/drawingStore.ts:332](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L332)
 
 #### Parameters
 
@@ -312,7 +349,7 @@ Defined in: [store/drawingStore.ts:264](https://github.com/irskep/smalldraw/blob
 
 > **undo**(): `boolean`
 
-Defined in: [store/drawingStore.ts:284](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L284)
+Defined in: [store/drawingStore.ts:355](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L355)
 
 #### Returns
 
@@ -324,7 +361,7 @@ Defined in: [store/drawingStore.ts:284](https://github.com/irskep/smalldraw/blob
 
 > **updateSharedSettings**\<`TSettings`\>(`updater`): `void`
 
-Defined in: [store/drawingStore.ts:239](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L239)
+Defined in: [store/drawingStore.ts:305](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L305)
 
 #### Type Parameters
 

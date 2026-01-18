@@ -1,18 +1,21 @@
 import { describe, expect, test } from 'bun:test';
 
 import { createDocument } from '../../model/document';
+import { getDefaultShapeHandlerRegistry } from '../../model/shapeHandlers';
 import { UndoManager } from '../../undo';
 import { ToolRuntimeImpl } from '../runtime';
 import { createRectangleTool } from '../rectangle';
 import type { SharedToolSettings } from '../types';
 
 function setup(params?: { sharedSettings?: SharedToolSettings }) {
-  const document = createDocument();
+  const registry = getDefaultShapeHandlerRegistry();
+  const document = createDocument(undefined, registry);
   const undoManager = new UndoManager();
   const runtime = new ToolRuntimeImpl({
     toolId: 'rect',
     document,
     undoManager,
+    shapeHandlers: registry,
     sharedSettings: params?.sharedSettings,
   });
   const tool = createRectangleTool();

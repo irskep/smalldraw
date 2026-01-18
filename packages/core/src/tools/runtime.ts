@@ -1,6 +1,7 @@
-import type { UndoableAction } from '../actions';
+import type { ActionContext, UndoableAction } from '../actions';
 import { getOrderedShapes, getZIndexBetween } from '../zindex';
 import type { DrawingDocument } from '../model/document';
+import type { ShapeHandlerRegistry } from '../model/shapeHandlers';
 import { UndoManager } from '../undo';
 import type {
   DraftShape,
@@ -17,6 +18,7 @@ interface ToolRuntimeConfig<TOptions = unknown> {
   toolId: string;
   document: DrawingDocument;
   undoManager: UndoManager;
+  shapeHandlers: ShapeHandlerRegistry;
   options?: TOptions;
   onDraftChange?: (drafts: DraftShape[]) => void;
   sharedSettings?: SharedToolSettings;
@@ -36,6 +38,7 @@ export class ToolRuntimeImpl<TOptions = unknown>
   public readonly toolId: string;
   private readonly document: DrawingDocument;
   private readonly undoManager: UndoManager;
+  private readonly shapeHandlers: ShapeHandlerRegistry;
   private readonly options?: TOptions;
   private readonly onDraftChange?: (drafts: DraftShape[]) => void;
   private readonly toolStates: Map<string, unknown>;
@@ -48,6 +51,7 @@ export class ToolRuntimeImpl<TOptions = unknown>
 
   constructor(config: ToolRuntimeConfig<TOptions>) {
     this.toolId = config.toolId;
+    this.shapeHandlers = config.shapeHandlers;
     this.document = config.document;
     this.undoManager = config.undoManager;
     this.options = config.options;
@@ -128,7 +132,8 @@ export class ToolRuntimeImpl<TOptions = unknown>
   }
 
   commit(action: UndoableAction): void {
-    this.undoManager.apply(action, this.document);
+    const ctx: ActionContext = { registry: this.shapeHandlers };
+    this.undoManager.apply(action, this.document, ctx);
   }
 
   generateShapeId(prefix = 'shape'): string {
@@ -220,6 +225,10 @@ export class ToolRuntimeImpl<TOptions = unknown>
 
   getShape(shapeId: string) {
     return this.document.shapes[shapeId];
+  }
+
+  getShapeHandlers(): ShapeHandlerRegistry {
+    return this.shapeHandlers;
   }
 
   dispose(): void {

@@ -1,32 +1,32 @@
 import type { DrawingDocument } from './model/document';
-import type { UndoableAction } from './actions';
+import type { ActionContext, UndoableAction } from './actions';
 
 export class UndoManager {
   private undoStack: UndoableAction[] = [];
   private redoStack: UndoableAction[] = [];
 
-  apply(action: UndoableAction, doc: DrawingDocument): void {
-    action.redo(doc);
+  apply(action: UndoableAction, doc: DrawingDocument, ctx: ActionContext): void {
+    action.redo(doc, ctx);
     this.undoStack.push(action);
     this.redoStack = [];
   }
 
-  undo(doc: DrawingDocument): UndoableAction | null {
+  undo(doc: DrawingDocument, ctx: ActionContext): UndoableAction | null {
     const action = this.undoStack.pop();
     if (!action) {
       return null;
     }
-    action.undo(doc);
+    action.undo(doc, ctx);
     this.redoStack.push(action);
     return action;
   }
 
-  redo(doc: DrawingDocument): UndoableAction | null {
+  redo(doc: DrawingDocument, ctx: ActionContext): UndoableAction | null {
     const action = this.redoStack.pop();
     if (!action) {
       return null;
     }
-    action.redo(doc);
+    action.redo(doc, ctx);
     this.undoStack.push(action);
     return action;
   }

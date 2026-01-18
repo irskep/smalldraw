@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { createDocument } from "../../model/document";
+import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createPenTool } from "../pen";
@@ -11,7 +12,8 @@ describe("pen tool integration with runtime", () => {
     runtimeStrokeColor?: string;
     sharedSettings?: SharedToolSettings;
   }) {
-    const document = createDocument();
+    const registry = getDefaultShapeHandlerRegistry();
+    const document = createDocument(undefined, registry);
     const undoManager = new UndoManager();
     const runtimeOptions = params?.runtimeStrokeColor
       ? { stroke: { type: "brush", color: params.runtimeStrokeColor, size: 5 } }
@@ -20,6 +22,7 @@ describe("pen tool integration with runtime", () => {
       toolId: "pen",
       document,
       undoManager,
+      shapeHandlers: registry,
       options: runtimeOptions,
       sharedSettings: params?.sharedSettings,
     });

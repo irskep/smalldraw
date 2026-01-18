@@ -1,6 +1,6 @@
 import { describe, test } from 'bun:test';
 
-import { createDocument, type Shape } from '@smalldraw/core';
+import { createDocument, type Shape, getDefaultShapeHandlerRegistry } from '@smalldraw/core';
 
 import type { Viewport } from '../index';
 import { expectSnapshot, renderDocumentToImage } from './snapshotUtils';
@@ -18,8 +18,9 @@ async function expectDocumentSnapshot(
   shapes: Shape[],
   viewport: Viewport = baseViewport,
 ) {
-  const document = createDocument(shapes);
-  const image = await renderDocumentToImage(document, viewport);
+  const registry = getDefaultShapeHandlerRegistry();
+  const document = createDocument(shapes, registry);
+  const image = await renderDocumentToImage(document, viewport, undefined, registry);
   await expectSnapshot(image, name);
 }
 

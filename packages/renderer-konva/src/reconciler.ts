@@ -1,4 +1,4 @@
-import type { Shape, ShapeTransform } from '@smalldraw/core';
+import type { ShapeHandlerRegistry, Shape, ShapeTransform } from '@smalldraw/core';
 import { normalizeShapeTransform } from '@smalldraw/core';
 import Konva from 'konva';
 import type { Layer } from 'konva/lib/Layer.js';
@@ -16,9 +16,14 @@ import {
 export class KonvaReconciler {
   private nodes = new Map<string, Konva.Group>();
   private registry: ShapeRendererRegistry;
+  private geometryRegistry?: ShapeHandlerRegistry;
 
-  constructor(registry: ShapeRendererRegistry = defaultShapeRendererRegistry) {
+  constructor(
+    registry: ShapeRendererRegistry = defaultShapeRendererRegistry,
+    geometryRegistry?: ShapeHandlerRegistry,
+  ) {
     this.registry = registry;
+    this.geometryRegistry = geometryRegistry;
   }
 
   /**
@@ -55,7 +60,7 @@ export class KonvaReconciler {
         // else: clean, leave it alone
       } else {
         // New shape - create and add
-        const node = renderShapeNode(shape, this.registry);
+        const node = renderShapeNode(shape, this.registry, this.geometryRegistry);
         if (node) {
           this.nodes.set(shape.id, node);
           layer.add(node);
@@ -129,7 +134,7 @@ export class KonvaReconciler {
     // For simplicity, rebuild geometry children
     // A more sophisticated approach could diff geometry properties
     group.destroyChildren();
-    const renderer = this.registry[shape.geometry.type];
+    const renderer = this.registry.get(shape.geometry.type);
     if (renderer) {
       const nodes = renderer(shape);
       if (nodes) {

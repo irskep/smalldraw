@@ -6,7 +6,7 @@
 
 # Interface: ShapeInteractions
 
-Defined in: [model/shape.ts:13](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L13)
+Defined in: [model/shape.ts:13](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L13)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/shape.ts:13](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > `optional` **resizable**: `boolean`
 
-Defined in: [model/shape.ts:14](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L14)
+Defined in: [model/shape.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L14)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [model/shape.ts:14](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > `optional` **rotatable**: `boolean`
 
-Defined in: [model/shape.ts:15](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L15)
+Defined in: [model/shape.ts:15](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L15)

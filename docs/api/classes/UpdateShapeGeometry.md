@@ -6,7 +6,7 @@
 
 # Class: UpdateShapeGeometry
 
-Defined in: [actions/updateGeometry.ts:8](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateGeometry.ts#L8)
+Defined in: [actions/updateGeometry.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L8)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/updateGeometry.ts:8](https://github.com/irskep/smalldraw/bl
 
 > **new UpdateShapeGeometry**(`shapeId`, `newGeometry`): `UpdateShapeGeometry`
 
-Defined in: [actions/updateGeometry.ts:12](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateGeometry.ts#L12)
+Defined in: [actions/updateGeometry.ts:12](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L12)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [actions/updateGeometry.ts:12](https://github.com/irskep/smalldraw/b
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/updateGeometry.ts:40](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateGeometry.ts#L40)
+Defined in: [actions/updateGeometry.ts:40](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L40)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -58,7 +58,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/updateGeometry.ts:44](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateGeometry.ts#L44)
+Defined in: [actions/updateGeometry.ts:44](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L44)
 
 #### Returns
 
@@ -72,15 +72,19 @@ Defined in: [actions/updateGeometry.ts:44](https://github.com/irskep/smalldraw/b
 
 ### redo()
 
-> **redo**(`doc`): `void`
+> **redo**(`doc`, `ctx`): `void`
 
-Defined in: [actions/updateGeometry.ts:17](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateGeometry.ts#L17)
+Defined in: [actions/updateGeometry.ts:17](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L17)
 
 #### Parameters
 
 ##### doc
 
 [`DrawingDocument`](../interfaces/DrawingDocument.md)
+
+##### ctx
+
+[`ActionContext`](../interfaces/ActionContext.md)
 
 #### Returns
 
@@ -94,15 +98,19 @@ Defined in: [actions/updateGeometry.ts:17](https://github.com/irskep/smalldraw/b
 
 ### undo()
 
-> **undo**(`doc`): `void`
+> **undo**(`doc`, `ctx`): `void`
 
-Defined in: [actions/updateGeometry.ts:29](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateGeometry.ts#L29)
+Defined in: [actions/updateGeometry.ts:29](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L29)
 
 #### Parameters
 
 ##### doc
 
 [`DrawingDocument`](../interfaces/DrawingDocument.md)
+
+##### ctx
+
+[`ActionContext`](../interfaces/ActionContext.md)
 
 #### Returns
 

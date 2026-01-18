@@ -1,25 +1,32 @@
 import type { DrawingDocument } from "../model/document";
 import type { Shape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
-import type { UndoableAction } from "./types";
+import type { ActionContext, UndoableAction } from "./types";
 
 export class AddShape implements UndoableAction {
-  private readonly shape: Shape;
+  private readonly inputShape: Shape;
+  private canonicalShape?: Shape;
 
   constructor(shape: Shape) {
-    this.shape = canonicalizeShape(shape);
+    this.inputShape = shape;
   }
 
-  redo(doc: DrawingDocument): void {
-    doc.shapes[this.shape.id] = this.shape;
+  redo(doc: DrawingDocument, ctx: ActionContext): void {
+    if (!this.canonicalShape) {
+      this.canonicalShape = canonicalizeShape(this.inputShape, ctx.registry);
+    }
+    doc.shapes[this.canonicalShape.id] = this.canonicalShape;
   }
 
-  undo(doc: DrawingDocument): void {
-    delete doc.shapes[this.shape.id];
+  undo(doc: DrawingDocument, ctx: ActionContext): void {
+    if (!this.canonicalShape) {
+      throw new Error("Cannot undo AddShape before redo");
+    }
+    delete doc.shapes[this.canonicalShape.id];
   }
 
   affectedShapeIds(): string[] {
-    return [this.shape.id];
+    return [this.inputShape.id];
   }
 
   affectsZOrder(): boolean {

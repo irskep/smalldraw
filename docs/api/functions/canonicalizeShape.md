@@ -6,15 +6,19 @@
 
 # Function: canonicalizeShape()
 
-> **canonicalizeShape**(`shape`): [`Shape`](../interfaces/Shape.md)
+> **canonicalizeShape**(`shape`, `registry`): [`Shape`](../interfaces/Shape.md)
 
-Defined in: [model/shape.ts:56](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L56)
+Defined in: [model/shape.ts:56](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L56)
 
 ## Parameters
 
 ### shape
 
 [`Shape`](../interfaces/Shape.md)
+
+### registry
+
+[`ShapeHandlerRegistry`](../classes/ShapeHandlerRegistry.md)
 
 ## Returns
 

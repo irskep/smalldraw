@@ -6,15 +6,19 @@
 
 # Function: getGeometryLocalBounds()
 
-> **getGeometryLocalBounds**(`geometry`): [`Bounds`](../interfaces/Bounds.md) \| `null`
+> **getGeometryLocalBounds**(`geometry`, `registry`): [`Bounds`](../interfaces/Bounds.md) \| `null`
 
-Defined in: [model/geometryBounds.ts:35](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometryBounds.ts#L35)
+Defined in: [model/geometryBounds.ts:21](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometryBounds.ts#L21)
 
 ## Parameters
 
 ### geometry
 
 [`Geometry`](../type-aliases/Geometry.md)
+
+### registry
+
+[`ShapeHandlerRegistry`](../classes/ShapeHandlerRegistry.md)
 
 ## Returns
 

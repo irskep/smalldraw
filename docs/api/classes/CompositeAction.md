@@ -6,7 +6,7 @@
 
 # Class: CompositeAction
 
-Defined in: [actions/composite.ts:4](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L4)
+Defined in: [actions/composite.ts:4](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/composite.ts#L4)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/composite.ts:4](https://github.com/irskep/smalldraw/blob/96
 
 > **new CompositeAction**(`actions`): `CompositeAction`
 
-Defined in: [actions/composite.ts:5](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L5)
+Defined in: [actions/composite.ts:5](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/composite.ts#L5)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [actions/composite.ts:5](https://github.com/irskep/smalldraw/blob/96
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/composite.ts:19](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L19)
+Defined in: [actions/composite.ts:19](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/composite.ts#L19)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -54,7 +54,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/composite.ts:29](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L29)
+Defined in: [actions/composite.ts:29](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/composite.ts#L29)
 
 #### Returns
 
@@ -68,15 +68,19 @@ Defined in: [actions/composite.ts:29](https://github.com/irskep/smalldraw/blob/9
 
 ### redo()
 
-> **redo**(`doc`): `void`
+> **redo**(`doc`, `ctx`): `void`
 
-Defined in: [actions/composite.ts:7](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L7)
+Defined in: [actions/composite.ts:7](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/composite.ts#L7)
 
 #### Parameters
 
 ##### doc
 
 [`DrawingDocument`](../interfaces/DrawingDocument.md)
+
+##### ctx
+
+[`ActionContext`](../interfaces/ActionContext.md)
 
 #### Returns
 
@@ -90,15 +94,19 @@ Defined in: [actions/composite.ts:7](https://github.com/irskep/smalldraw/blob/96
 
 ### undo()
 
-> **undo**(`doc`): `void`
+> **undo**(`doc`, `ctx`): `void`
 
-Defined in: [actions/composite.ts:13](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L13)
+Defined in: [actions/composite.ts:13](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/composite.ts#L13)
 
 #### Parameters
 
 ##### doc
 
 [`DrawingDocument`](../interfaces/DrawingDocument.md)
+
+##### ctx
+
+[`ActionContext`](../interfaces/ActionContext.md)
 
 #### Returns
 

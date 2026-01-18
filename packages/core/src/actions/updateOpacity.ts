@@ -1,5 +1,5 @@
 import type { DrawingDocument } from "../model/document";
-import type { UndoableAction } from "./types";
+import type { ActionContext, UndoableAction } from "./types";
 import { requireShape } from "./utils";
 
 export class UpdateShapeOpacity implements UndoableAction {
@@ -11,7 +11,7 @@ export class UpdateShapeOpacity implements UndoableAction {
     private readonly nextOpacity: number | undefined
   ) {}
 
-  redo(doc: DrawingDocument): void {
+  redo(doc: DrawingDocument, ctx: ActionContext): void {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       this.previous = shape.opacity;
@@ -20,7 +20,7 @@ export class UpdateShapeOpacity implements UndoableAction {
     shape.opacity = this.nextOpacity;
   }
 
-  undo(doc: DrawingDocument): void {
+  undo(doc: DrawingDocument, ctx: ActionContext): void {
     if (!this.recorded) {
       throw new Error(`Cannot undo opacity update for ${this.shapeId}`);
     }

@@ -4,6 +4,8 @@ export * from './model/style';
 export * from './model/shape';
 export * from './model/document';
 export * from './model/geometryBounds';
+export * from './model/shapeHandlers';
+export * from './model/hitTest';
 export * from './zindex';
 export * from './actions';
 export * from './undo';

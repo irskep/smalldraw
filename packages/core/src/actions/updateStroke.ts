@@ -1,6 +1,6 @@
 import type { DrawingDocument } from "../model/document";
 import type { StrokeStyle } from "../model/style";
-import type { UndoableAction } from "./types";
+import type { ActionContext, UndoableAction } from "./types";
 import { requireShape } from "./utils";
 
 export class UpdateShapeStroke implements UndoableAction {
@@ -12,7 +12,7 @@ export class UpdateShapeStroke implements UndoableAction {
     private readonly nextStroke: StrokeStyle | undefined
   ) {}
 
-  redo(doc: DrawingDocument): void {
+  redo(doc: DrawingDocument, ctx: ActionContext): void {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       this.previous = shape.stroke;
@@ -21,7 +21,7 @@ export class UpdateShapeStroke implements UndoableAction {
     shape.stroke = this.nextStroke;
   }
 
-  undo(doc: DrawingDocument): void {
+  undo(doc: DrawingDocument, ctx: ActionContext): void {
     if (!this.recorded) {
       throw new Error(`Cannot undo stroke update for ${this.shapeId}`);
     }

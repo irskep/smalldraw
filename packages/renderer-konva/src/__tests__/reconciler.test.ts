@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { createDocument, type DirtyState, type Shape } from '@smalldraw/core';
+import { createDocument, type DirtyState, type Shape, getDefaultShapeHandlerRegistry } from '@smalldraw/core';
 
 import { createStage, ensureRendererLayer, reconcileDocument, renderDocument } from '../document';
 import { KonvaReconciler } from '../reconciler';
@@ -128,7 +128,8 @@ describe('KonvaReconciler', () => {
       createTestShape('shape-2', 80, 80),
       createTestShape('shape-3', 130, 50),
     ];
-    const doc = createDocument(shapes);
+    const registry = getDefaultShapeHandlerRegistry();
+    const doc = createDocument(shapes, registry);
 
     // Full render on stage A
     renderDocument(stageA, doc, { viewport: baseViewport });

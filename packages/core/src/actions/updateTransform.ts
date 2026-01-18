@@ -1,6 +1,6 @@
 import type { DrawingDocument } from "../model/document";
 import type { ShapeTransform } from "../model/shape";
-import type { UndoableAction } from "./types";
+import type { ActionContext, UndoableAction } from "./types";
 import { requireShape } from "./utils";
 
 export class UpdateShapeTransform implements UndoableAction {
@@ -12,7 +12,7 @@ export class UpdateShapeTransform implements UndoableAction {
     private readonly nextTransform: ShapeTransform
   ) {}
 
-  redo(doc: DrawingDocument): void {
+  redo(doc: DrawingDocument, ctx: ActionContext): void {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       this.previous = shape.transform;
@@ -21,7 +21,7 @@ export class UpdateShapeTransform implements UndoableAction {
     shape.transform = { ...this.nextTransform };
   }
 
-  undo(doc: DrawingDocument): void {
+  undo(doc: DrawingDocument, ctx: ActionContext): void {
     if (!this.recorded) {
       throw new Error(`Cannot undo transform update for ${this.shapeId}`);
     }

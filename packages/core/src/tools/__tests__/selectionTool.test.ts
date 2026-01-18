@@ -3,14 +3,17 @@ import { describe, expect, test } from "bun:test";
 import { createDocument } from "../../model/document";
 import type { Shape } from "../../model/shape";
 import type { Bounds } from "../../model/primitives";
+import type { RectGeometry, EllipseGeometry } from "../../model/geometry";
 import { getShapeBounds } from "../../model/geometryBounds";
+import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
 import type { HandleBehavior } from "../types";
 
 function setupDoc(shapes: Shape[]) {
-  return createDocument(shapes);
+  const registry = getDefaultShapeHandlerRegistry();
+  return { doc: createDocument(shapes, registry), registry };
 }
 
 describe("selection tool", () => {
@@ -29,12 +32,13 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rectShape]);
+    const { doc: document, registry } = setupDoc([rectShape]);
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
     });
     const tool = createSelectionTool();
     const payloads: unknown[] = [];
@@ -60,12 +64,13 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rectShape]);
+    const { doc: document, registry } = setupDoc([rectShape]);
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
     });
     const tool = createSelectionTool();
     const hovers: Array<{
@@ -121,7 +126,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([penShape]);
+    const { doc: document, registry } = setupDoc([penShape]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["pen-1"]),
@@ -131,6 +136,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -173,7 +179,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rect, pen]);
+    const { doc: document, registry } = setupDoc([rect, pen]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["rect-move", "pen-move"]),
@@ -183,6 +189,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -214,7 +221,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rect]);
+    const { doc: document, registry } = setupDoc([rect]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["rect-frame"]),
@@ -224,6 +231,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -289,7 +297,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rectShape]);
+    const { doc: document, registry } = setupDoc([rectShape]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["rect-1"]),
@@ -299,6 +307,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -340,7 +349,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rotatedRect]);
+    const { doc: document, registry } = setupDoc([rotatedRect]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["rot-rect"]),
@@ -350,6 +359,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -378,8 +388,9 @@ describe("selection tool", () => {
     if (geometry?.type !== "rect") {
       throw new Error("Expected rectangle geometry");
     }
-    expect(geometry.size.width).toBeCloseTo(30, 6);
-    expect(geometry.size.height).toBeCloseTo(20, 6);
+    const rectGeometry = geometry as RectGeometry;
+    expect(rectGeometry.size.width).toBeCloseTo(30, 6);
+    expect(rectGeometry.size.height).toBeCloseTo(20, 6);
   });
 
   test("resizes rotated rectangle with world-axis scale", () => {
@@ -394,7 +405,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rotatedRect]);
+    const { doc: document, registry } = setupDoc([rotatedRect]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["rot-rect-scale"]),
@@ -404,12 +415,13 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
-    const bounds = getShapeBounds(rotatedRect);
+    const bounds = getShapeBounds(rotatedRect, registry);
     const targetWidth = bounds.width * 1.5;
     const targetHeight = bounds.height * 0.75;
     const opposite = { x: bounds.maxX, y: bounds.maxY };
@@ -440,13 +452,14 @@ describe("selection tool", () => {
     if (geometry?.type !== "rect") {
       throw new Error("Expected rectangle geometry");
     }
+    const rectGeometry = geometry as RectGeometry;
     const cos = Math.abs(Math.cos(rotatedRect.transform?.rotation ?? 0));
     const sin = Math.abs(Math.sin(rotatedRect.transform?.rotation ?? 0));
     const det = cos * cos - sin * sin;
     const expectedWidth = (cos * targetWidth - sin * targetHeight) / det;
     const expectedHeight = (cos * targetHeight - sin * targetWidth) / det;
-    expect(geometry.size.width).toBeCloseTo(expectedWidth, 6);
-    expect(geometry.size.height).toBeCloseTo(expectedHeight, 6);
+    expect(rectGeometry.size.width).toBeCloseTo(expectedWidth, 6);
+    expect(rectGeometry.size.height).toBeCloseTo(expectedHeight, 6);
   });
 
   test("resizes rotated rectangle along local width using axis handle", () => {
@@ -462,7 +475,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rectShape]);
+    const { doc: document, registry } = setupDoc([rectShape]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["axis-rect"]),
@@ -472,12 +485,13 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
-    const bounds = getShapeBounds(rectShape);
+    const bounds = getShapeBounds(rectShape, registry);
     const startPoint = { x: bounds.maxX, y: (bounds.minY + bounds.maxY) / 2 };
     const axisX = { x: Math.cos(rotation), y: Math.sin(rotation) };
     const targetPoint = {
@@ -507,8 +521,9 @@ describe("selection tool", () => {
     if (geometry?.type !== "rect") {
       throw new Error("Expected rectangle geometry");
     }
-    expect(geometry.size.width).toBeCloseTo(30, 6);
-    expect(geometry.size.height).toBeCloseTo(10, 6);
+    const rectGeometry = geometry as RectGeometry;
+    expect(rectGeometry.size.width).toBeCloseTo(30, 6);
+    expect(rectGeometry.size.height).toBeCloseTo(10, 6);
     expect(resized?.transform?.translation.x).toBeCloseTo(axisX.x * 5, 6);
     expect(resized?.transform?.translation.y).toBeCloseTo(axisX.y * 5, 6);
   });
@@ -525,7 +540,7 @@ describe("selection tool", () => {
         scale: { x: 2, y: 1 },
       },
     };
-    const document = setupDoc([rectShape]);
+    const { doc: document, registry } = setupDoc([rectShape]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["axis-rect-0"]),
@@ -535,6 +550,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -557,7 +573,7 @@ describe("selection tool", () => {
     });
 
     const resized = document.shapes["axis-rect-0"];
-    const bounds = resized ? getShapeBounds(resized) : null;
+    const bounds = resized ? getShapeBounds(resized, registry) : null;
     expect(bounds?.minX).toBeCloseTo(-10, 6);
     expect(bounds?.maxX).toBeCloseTo(20, 6);
   });
@@ -574,7 +590,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rectShape]);
+    const { doc: document, registry } = setupDoc([rectShape]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["axis-rect-left"]),
@@ -584,6 +600,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -606,7 +623,7 @@ describe("selection tool", () => {
     });
 
     const resized = document.shapes["axis-rect-left"];
-    const bounds = resized ? getShapeBounds(resized) : null;
+    const bounds = resized ? getShapeBounds(resized, registry) : null;
     expect(bounds?.minX).toBeCloseTo(-20, 6);
     expect(bounds?.maxX).toBeCloseTo(10, 6);
   });
@@ -623,7 +640,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rectShape]);
+    const { doc: document, registry } = setupDoc([rectShape]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["axis-rect-top"]),
@@ -633,6 +650,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -655,7 +673,7 @@ describe("selection tool", () => {
     });
 
     const resized = document.shapes["axis-rect-top"];
-    const bounds = resized ? getShapeBounds(resized) : null;
+    const bounds = resized ? getShapeBounds(resized, registry) : null;
     expect(bounds?.minY).toBeCloseTo(-15, 6);
     expect(bounds?.maxY).toBeCloseTo(5, 6);
   });
@@ -689,7 +707,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rect, pen]);
+    const { doc: document, registry } = setupDoc([rect, pen]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["rect-relative", "pen-relative"]),
@@ -699,6 +717,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -738,7 +757,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([ellipse]);
+    const { doc: document, registry } = setupDoc([ellipse]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["ellipse"]),
@@ -748,6 +767,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -775,8 +795,9 @@ describe("selection tool", () => {
     if (geometry?.type !== "ellipse") {
       throw new Error("Expected ellipse geometry");
     }
-    expect(geometry.radiusX).toBeCloseTo(30, 6);
-    expect(geometry.radiusY).toBeCloseTo(15, 6);
+    const ellipseGeometry = geometry as EllipseGeometry;
+    expect(ellipseGeometry.radiusX).toBeCloseTo(30, 6);
+    expect(ellipseGeometry.radiusY).toBeCloseTo(15, 6);
     expect(resized?.transform?.translation).toEqual({ x: -10, y: -5 });
   });
 
@@ -798,7 +819,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([penShape]);
+    const { doc: document, registry } = setupDoc([penShape]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["pen-scale"]),
@@ -808,6 +829,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -864,7 +886,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([left, right]);
+    const { doc: document, registry } = setupDoc([left, right]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["left", "right"]),
@@ -874,6 +896,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -928,7 +951,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([rectShape]);
+    const { doc: document, registry } = setupDoc([rectShape]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["rect-2"]),
@@ -938,6 +961,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();
@@ -989,7 +1013,7 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const document = setupDoc([left, right]);
+    const { doc: document, registry } = setupDoc([left, right]);
     const undoManager = new UndoManager();
     const selectionState = {
       ids: new Set<string>(["left-rot", "right-rot"]),
@@ -999,6 +1023,7 @@ describe("selection tool", () => {
       toolId: "selection",
       document,
       undoManager,
+      shapeHandlers: registry,
       selectionState,
     });
     const tool = createSelectionTool();

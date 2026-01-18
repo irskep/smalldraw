@@ -8,4 +8,4 @@
 
 > **StrokeStyle** = [`BrushStyle`](../interfaces/BrushStyle.md)
 
-Defined in: [model/style.ts:27](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L27)
+Defined in: [model/style.ts:27](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L27)

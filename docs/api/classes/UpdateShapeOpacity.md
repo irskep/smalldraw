@@ -6,7 +6,7 @@
 
 # Class: UpdateShapeOpacity
 
-Defined in: [actions/updateOpacity.ts:5](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateOpacity.ts#L5)
+Defined in: [actions/updateOpacity.ts:5](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateOpacity.ts#L5)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/updateOpacity.ts:5](https://github.com/irskep/smalldraw/blo
 
 > **new UpdateShapeOpacity**(`shapeId`, `nextOpacity`): `UpdateShapeOpacity`
 
-Defined in: [actions/updateOpacity.ts:9](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateOpacity.ts#L9)
+Defined in: [actions/updateOpacity.ts:9](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateOpacity.ts#L9)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [actions/updateOpacity.ts:9](https://github.com/irskep/smalldraw/blo
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/updateOpacity.ts:31](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateOpacity.ts#L31)
+Defined in: [actions/updateOpacity.ts:31](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateOpacity.ts#L31)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -58,7 +58,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/updateOpacity.ts:35](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateOpacity.ts#L35)
+Defined in: [actions/updateOpacity.ts:35](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateOpacity.ts#L35)
 
 #### Returns
 
@@ -72,15 +72,19 @@ Defined in: [actions/updateOpacity.ts:35](https://github.com/irskep/smalldraw/bl
 
 ### redo()
 
-> **redo**(`doc`): `void`
+> **redo**(`doc`, `ctx`): `void`
 
-Defined in: [actions/updateOpacity.ts:14](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateOpacity.ts#L14)
+Defined in: [actions/updateOpacity.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateOpacity.ts#L14)
 
 #### Parameters
 
 ##### doc
 
 [`DrawingDocument`](../interfaces/DrawingDocument.md)
+
+##### ctx
+
+[`ActionContext`](../interfaces/ActionContext.md)
 
 #### Returns
 
@@ -94,15 +98,19 @@ Defined in: [actions/updateOpacity.ts:14](https://github.com/irskep/smalldraw/bl
 
 ### undo()
 
-> **undo**(`doc`): `void`
+> **undo**(`doc`, `ctx`): `void`
 
-Defined in: [actions/updateOpacity.ts:23](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateOpacity.ts#L23)
+Defined in: [actions/updateOpacity.ts:23](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateOpacity.ts#L23)
 
 #### Parameters
 
 ##### doc
 
 [`DrawingDocument`](../interfaces/DrawingDocument.md)
+
+##### ctx
+
+[`ActionContext`](../interfaces/ActionContext.md)
 
 #### Returns
 

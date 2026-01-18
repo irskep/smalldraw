@@ -6,7 +6,7 @@
 
 # Interface: HandleDescriptor
 
-Defined in: [tools/types.ts:84](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L84)
+Defined in: [tools/types.ts:86](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L86)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [tools/types.ts:84](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > `optional` **altBehavior**: [`HandleBehavior`](../type-aliases/HandleBehavior.md)
 
-Defined in: [tools/types.ts:88](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L88)
+Defined in: [tools/types.ts:90](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L90)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [tools/types.ts:88](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > **behavior**: [`HandleBehavior`](../type-aliases/HandleBehavior.md)
 
-Defined in: [tools/types.ts:87](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L87)
+Defined in: [tools/types.ts:89](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L89)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [tools/types.ts:87](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > **id**: `string`
 
-Defined in: [tools/types.ts:85](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L85)
+Defined in: [tools/types.ts:87](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L87)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [tools/types.ts:85](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > **position**: `object`
 
-Defined in: [tools/types.ts:86](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L86)
+Defined in: [tools/types.ts:88](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L88)
 
 #### u
 
@@ -54,4 +54,4 @@ Defined in: [tools/types.ts:86](https://github.com/irskep/smalldraw/blob/96a50fa
 
 > `optional` **shiftBehavior**: [`HandleBehavior`](../type-aliases/HandleBehavior.md)
 
-Defined in: [tools/types.ts:89](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L89)
+Defined in: [tools/types.ts:91](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L91)

@@ -1,4 +1,4 @@
-import type { Bounds, HandleDescriptor, Shape } from '@smalldraw/core';
+import type { Bounds, HandleDescriptor, RectGeometry, Shape } from '@smalldraw/core';
 
 /** Size of corner handles in pixels */
 const HANDLE_SIZE = 8;
@@ -197,9 +197,10 @@ export class SelectionOverlay {
     shape: Shape,
   ): { x: number; y: number } | null {
     if (shape.geometry.type !== 'rect') return null;
+    const rectGeometry = shape.geometry as RectGeometry;
 
-    const halfWidth = shape.geometry.size.width / 2;
-    const halfHeight = shape.geometry.size.height / 2;
+    const halfWidth = rectGeometry.size.width / 2;
+    const halfHeight = rectGeometry.size.height / 2;
 
     let local: { x: number; y: number } | null = null;
     switch (handleId) {
