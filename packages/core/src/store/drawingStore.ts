@@ -20,6 +20,7 @@ export interface DrawingStoreOptions {
   undoManager?: UndoManager;
   tools: ToolDefinition[];
   initialSharedSettings?: SharedToolSettings;
+  onRenderNeeded?: () => void;
 }
 
 /** Result of consuming dirty state for incremental rendering. */
@@ -58,9 +59,13 @@ export class DrawingStore {
   // Cached ordered shapes for performance
   private orderedCache: Shape[] | null = null;
 
+  // Callback invoked whenever rendering is needed
+  private onRenderNeeded?: () => void;
+
   constructor(options: DrawingStoreOptions) {
     this.document = options.document ?? createDocument();
     this.undoManager = options.undoManager ?? new UndoManager();
+    this.onRenderNeeded = options.onRenderNeeded;
     this.sharedSettings = options.initialSharedSettings ?? {
       strokeColor: "#000000",
       strokeWidth: 2,
@@ -81,12 +86,14 @@ export class DrawingStore {
     const runtime = this.getOrCreateRuntime(toolId);
     this.activeToolId = toolId;
     this.activeToolDeactivate = tool.activate(runtime) ?? undefined;
+    this.triggerRender();
   }
 
   dispatch(event: ToolEventName, payload: ToolPointerEvent) {
     if (!this.activeToolId) return;
     const runtime = this.runtimes.get(this.activeToolId);
     runtime?.dispatch(event, payload);
+    this.triggerRender();
   }
 
   getDrafts(): DraftShape[] {
@@ -122,11 +129,13 @@ export class DrawingStore {
       toolStates: this.toolStates,
       onDraftChange: (drafts) => {
         this.runtimeDrafts.set(toolId, drafts);
+        this.triggerRender();
       },
     });
     runtime.onEvent("handles", (payload: HandleDescriptor[]) => {
       if (this.activeToolId === toolId) {
         this.handles = payload;
+        this.triggerRender();
       }
     });
     runtime.onEvent(
@@ -137,12 +146,14 @@ export class DrawingStore {
       }) => {
         if (this.activeToolId === toolId) {
           this.handleHover = payload;
+          this.triggerRender();
         }
       }
     );
     runtime.onEvent("selection-frame", (payload: Bounds | null) => {
       if (this.activeToolId === toolId) {
         this.selectionFrame = payload;
+        this.triggerRender();
       }
     });
     this.runtimes.set(toolId, runtime);
@@ -167,9 +178,14 @@ export class DrawingStore {
     this.activeToolId = null;
   }
 
+  private triggerRender(): void {
+    this.onRenderNeeded?.();
+  }
+
   mutateDocument(action: UndoableAction): void {
     this.undoManager.apply(action, this.document);
     this.trackDirtyState(action);
+    this.triggerRender();
   }
 
   /**
@@ -210,6 +226,39 @@ export class DrawingStore {
     return result;
   }
 
+  /**
+   * Get the complete render state including merged shapes and dirty tracking.
+   * This is the recommended method for UIs to use for rendering.
+   * Returns base document shapes merged with drafts, ordered by z-index,
+   * with dirty state that includes draft IDs.
+   */
+  getRenderState(): { shapes: Shape[]; dirtyState: DirtyState } {
+    // Merge base document with drafts
+    const shapes: Record<string, Shape> = {};
+    for (const shape of Object.values(this.document.shapes)) {
+      shapes[shape.id] = shape;
+    }
+    const drafts = this.getDrafts();
+    for (const draft of drafts) {
+      const { temporary: _temp, toolId: _tool, ...shape } = draft;
+      shapes[draft.id] = shape;
+    }
+
+    // Get ordered shapes
+    const orderedShapes = Object.values(shapes).sort((a, b) => {
+      if (a.zIndex === b.zIndex) return 0;
+      return a.zIndex < b.zIndex ? -1 : 1;
+    });
+
+    // Get dirty state and mark drafts as dirty
+    const dirtyState = this.consumeDirtyState();
+    for (const draft of drafts) {
+      dirtyState.dirty.add(draft.id);
+    }
+
+    return { shapes: orderedShapes, dirtyState };
+  }
+
   getDocument(): DrawingDocument {
     return this.document;
   }
@@ -245,6 +294,7 @@ export class DrawingStore {
         ? (updater(current) as Record<string, unknown>)
         : { ...current, ...(updater as Record<string, unknown>) };
     Object.assign(this.sharedSettings, next);
+    this.triggerRender();
   }
 
   getSelection(): SelectionState {
@@ -259,6 +309,7 @@ export class DrawingStore {
     const ordered = Array.from(this.selectionState.ids);
     this.selectionState.primaryId =
       primaryId ?? (ordered.length ? ordered[ordered.length - 1] : undefined);
+    this.triggerRender();
   }
 
   toggleSelection(id: string): void {
@@ -270,21 +321,25 @@ export class DrawingStore {
           ? ordered[ordered.length - 1]
           : undefined;
       }
+      this.triggerRender();
       return;
     }
     this.selectionState.ids.add(id);
     this.selectionState.primaryId = id;
+    this.triggerRender();
   }
 
   clearSelection(): void {
     this.selectionState.ids.clear();
     this.selectionState.primaryId = undefined;
+    this.triggerRender();
   }
 
   undo(): boolean {
     const action = this.undoManager.undo(this.document);
     if (action) {
       this.trackDirtyState(action);
+      this.triggerRender();
       return true;
     }
     return false;
@@ -294,6 +349,7 @@ export class DrawingStore {
     const action = this.undoManager.redo(this.document);
     if (action) {
       this.trackDirtyState(action);
+      this.triggerRender();
       return true;
     }
     return false;

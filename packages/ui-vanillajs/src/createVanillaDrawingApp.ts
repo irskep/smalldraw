@@ -58,8 +58,6 @@ export function createVanillaDrawingApp(options: VanillaDrawingAppOptions): Vani
   const baseTools = options.tools ?? [createSelectionTool(), createRectangleTool(), createPenTool()];
   const tools = ensureSelectionTool(baseTools);
   const availableToolIds = new Set(tools.map((tool) => tool.id));
-  const store = new DrawingStore({ tools });
-  store.activateTool('selection');
 
   const root = document.createElement('div');
   root.className = 'smalldraw-app';
@@ -142,56 +140,16 @@ export function createVanillaDrawingApp(options: VanillaDrawingAppOptions): Vani
   const stage = createStage({ container: stageContainer, width, height });
   const reconciler = new KonvaReconciler();
 
-  const toolButtons = setupToolButtons(toolbar, store, availableToolIds, () => renderAll());
-  const strokeSwatches = createColorRow('Stroke', palette, (color) => {
-    store.updateSharedSettings({ strokeColor: color });
-    renderAll();
-  });
-  strokeSwatches.row.dataset.role = 'stroke-swatches';
-  toolbar.appendChild(strokeSwatches.row);
-
-  const fillSwatches = createColorRow('Fill', palette, (color) => {
-    store.updateSharedSettings({ fillColor: color });
-    renderAll();
-  });
-  fillSwatches.row.dataset.role = 'fill-swatches';
-  toolbar.appendChild(fillSwatches.row);
-
-  const undoButton = document.createElement('button');
-  undoButton.type = 'button';
-  undoButton.textContent = 'Undo';
-  undoButton.dataset.action = 'undo';
-  undoButton.addEventListener('click', () => {
-    if (store.undo()) {
-      renderAll();
-    }
-  });
-  const redoButton = document.createElement('button');
-  redoButton.type = 'button';
-  redoButton.textContent = 'Redo';
-  redoButton.dataset.action = 'redo';
-  redoButton.addEventListener('click', () => {
-    if (store.redo()) {
-      renderAll();
-    }
-  });
-  toolbar.appendChild(undoButton);
-  toolbar.appendChild(redoButton);
-
-  const pointerHandlers = createPointerHandlers(store, overlay, () => renderAll());
+  // Will be populated after store is created
+  let toolButtons: Map<string, HTMLButtonElement>;
+  let strokeSwatches: SwatchGroup;
+  let fillSwatches: SwatchGroup;
+  let undoButton: HTMLButtonElement;
+  let redoButton: HTMLButtonElement;
 
   function renderAll() {
-    const live = buildLiveDocument(store);
-    const orderedShapes = getOrderedShapes(live);
-    const dirtyState = store.consumeDirtyState();
-
-    // Draft shapes are not tracked in dirty state, so mark them as dirty
-    const drafts = store.getDrafts();
-    for (const draft of drafts) {
-      dirtyState.dirty.add(draft.id);
-    }
-
-    reconcileDocument(stage, reconciler, orderedShapes, dirtyState, { viewport });
+    const { shapes, dirtyState } = store.getRenderState();
+    reconcileDocument(stage, reconciler, shapes, dirtyState, { viewport });
     updateSelectionOverlay(selectionOverlay, store);
     syncToolButtons(toolButtons, store.getActiveToolId());
     syncSwatches(strokeSwatches.buttons, store.getSharedSettings().strokeColor);
@@ -201,7 +159,46 @@ export function createVanillaDrawingApp(options: VanillaDrawingAppOptions): Vani
     updateCursor(overlay, store);
   }
 
-  renderAll();
+  // Create store with render callback
+  const store = new DrawingStore({ tools, onRenderNeeded: renderAll });
+
+  // Setup UI controls
+  toolButtons = setupToolButtons(toolbar, store, availableToolIds);
+
+  strokeSwatches = createColorRow('Stroke', palette, (color) => {
+    store.updateSharedSettings({ strokeColor: color });
+  });
+  strokeSwatches.row.dataset.role = 'stroke-swatches';
+  toolbar.appendChild(strokeSwatches.row);
+
+  fillSwatches = createColorRow('Fill', palette, (color) => {
+    store.updateSharedSettings({ fillColor: color });
+  });
+  fillSwatches.row.dataset.role = 'fill-swatches';
+  toolbar.appendChild(fillSwatches.row);
+
+  undoButton = document.createElement('button');
+  undoButton.type = 'button';
+  undoButton.textContent = 'Undo';
+  undoButton.dataset.action = 'undo';
+  undoButton.addEventListener('click', () => {
+    store.undo();
+  });
+
+  redoButton = document.createElement('button');
+  redoButton.type = 'button';
+  redoButton.textContent = 'Redo';
+  redoButton.dataset.action = 'redo';
+  redoButton.addEventListener('click', () => {
+    store.redo();
+  });
+  toolbar.appendChild(undoButton);
+  toolbar.appendChild(redoButton);
+
+  const pointerHandlers = createPointerHandlers(store, overlay);
+
+  // Activate default tool and render initial state
+  store.activateTool('selection');
 
   function resize(nextWidth: number, nextHeight: number) {
     viewport.width = nextWidth;
@@ -246,7 +243,6 @@ function setupToolButtons(
   toolbar: HTMLElement,
   store: DrawingStore,
   availableToolIds: Set<string>,
-  onChange: () => void,
 ): Map<string, HTMLButtonElement> {
   const config = [
     { id: 'selection', label: 'Select' },
@@ -262,7 +258,6 @@ function setupToolButtons(
     button.dataset.tool = tool.id;
     button.addEventListener('click', () => {
       store.activateTool(tool.id);
-      onChange();
     });
     toolbar.appendChild(button);
     buttons.set(tool.id, button);
@@ -331,7 +326,6 @@ function syncSwatches(buttons: HTMLButtonElement[], activeColor: string) {
 function createPointerHandlers(
   store: DrawingStore,
   overlay: HTMLElement,
-  onChange: () => void,
 ) {
   const handlers = {
     down: handlePointerDown,
@@ -364,7 +358,6 @@ function createPointerHandlers(
       // Pointer capture can fail with synthetic events or if pointer was released
     }
     store.dispatch('pointerDown', payload);
-    onChange();
   }
 
   function handlePointerMove(event: PointerEvent) {
@@ -374,7 +367,6 @@ function createPointerHandlers(
       payload.handleId = hitTestHandles(point, store);
     }
     store.dispatch('pointerMove', payload);
-    onChange();
   }
 
   function handlePointerUp(event: PointerEvent) {
@@ -387,14 +379,12 @@ function createPointerHandlers(
       // Release can fail if pointer was never captured or already released
     }
     store.dispatch('pointerUp', payload);
-    onChange();
   }
 
   function handlePointerCancel(event: PointerEvent) {
     const point = getPointerPoint(event, overlay);
     const payload = buildToolEvent(event, point, 0);
     store.dispatch('pointerCancel', payload);
-    onChange();
   }
 
   return handlers;
