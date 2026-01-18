@@ -136,4 +136,61 @@ describe('createVanillaDrawingApp', () => {
     expect(centerY).not.toBeCloseTo(0, 3);
     app.destroy();
   });
+
+  test('renders draft shapes during pen tool interaction', () => {
+    const { container } = setupDom();
+    const app = createVanillaDrawingApp({ container, width: 300, height: 200 });
+    const penBtn = qs<HTMLButtonElement>(container, '[data-tool="pen"]');
+    penBtn?.click();
+
+    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
+    stubOverlayRect(overlay, 300, 200);
+
+    // Start drawing with pen - creates initial draft
+    dispatchPointer(overlay, 'pointerdown', 50, 50, 1);
+    const draftsAfterDown = app.store.getDrafts();
+    expect(draftsAfterDown.length).toBeGreaterThan(0);
+    expect(draftsAfterDown[0]?.geometry.type).toBe('pen');
+
+    // Move updates draft shape
+    dispatchPointer(overlay, 'pointermove', 100, 100, 1);
+    const draftsAfterMove = app.store.getDrafts();
+    expect(draftsAfterMove.length).toBeGreaterThan(0);
+    expect(draftsAfterMove[0]?.geometry.type).toBe('pen');
+
+    // Complete drawing
+    dispatchPointer(overlay, 'pointerup', 100, 100, 0);
+    expect(app.store.getDrafts()).toHaveLength(0);
+    expect(Object.values(app.store.getDocument().shapes)).toHaveLength(1);
+
+    app.destroy();
+  });
+
+  test('renders draft shapes during rect tool interaction', () => {
+    const { container } = setupDom();
+    const app = createVanillaDrawingApp({ container, width: 300, height: 200 });
+    const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
+    rectBtn?.click();
+
+    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
+    stubOverlayRect(overlay, 300, 200);
+
+    // Start drawing rect
+    dispatchPointer(overlay, 'pointerdown', 50, 50, 1);
+    const draftsAfterDown = app.store.getDrafts();
+    expect(draftsAfterDown.length).toBeGreaterThan(0);
+
+    // Move updates draft shape
+    dispatchPointer(overlay, 'pointermove', 150, 100, 1);
+    const draftsAfterMove = app.store.getDrafts();
+    expect(draftsAfterMove.length).toBeGreaterThan(0);
+    expect(draftsAfterMove[0]?.geometry.type).toBe('rect');
+
+    // Complete drawing
+    dispatchPointer(overlay, 'pointerup', 150, 100, 0);
+    expect(app.store.getDrafts()).toHaveLength(0);
+    expect(Object.values(app.store.getDocument().shapes)).toHaveLength(1);
+
+    app.destroy();
+  });
 });

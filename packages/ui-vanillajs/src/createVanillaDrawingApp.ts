@@ -16,7 +16,8 @@ import {
 } from '@smalldraw/core';
 import {
   createStage,
-  renderDocument,
+  reconcileDocument,
+  KonvaReconciler,
   type Viewport,
 } from '@smalldraw/renderer-konva';
 import { SelectionOverlay } from './selectionOverlay.js';
@@ -139,6 +140,7 @@ export function createVanillaDrawingApp(options: VanillaDrawingAppOptions): Vani
     backgroundColor: options.backgroundColor ?? '#ffffff',
   };
   const stage = createStage({ container: stageContainer, width, height });
+  const reconciler = new KonvaReconciler();
 
   const toolButtons = setupToolButtons(toolbar, store, availableToolIds, () => renderAll());
   const strokeSwatches = createColorRow('Stroke', palette, (color) => {
@@ -180,7 +182,16 @@ export function createVanillaDrawingApp(options: VanillaDrawingAppOptions): Vani
 
   function renderAll() {
     const live = buildLiveDocument(store);
-    renderDocument(stage, live, { viewport });
+    const orderedShapes = getOrderedShapes(live);
+    const dirtyState = store.consumeDirtyState();
+
+    // Draft shapes are not tracked in dirty state, so mark them as dirty
+    const drafts = store.getDrafts();
+    for (const draft of drafts) {
+      dirtyState.dirty.add(draft.id);
+    }
+
+    reconcileDocument(stage, reconciler, orderedShapes, dirtyState, { viewport });
     updateSelectionOverlay(selectionOverlay, store);
     syncToolButtons(toolButtons, store.getActiveToolId());
     syncSwatches(strokeSwatches.buttons, store.getSharedSettings().strokeColor);
@@ -210,6 +221,7 @@ export function createVanillaDrawingApp(options: VanillaDrawingAppOptions): Vani
     overlay.removeEventListener('pointerup', pointerHandlers.up);
     overlay.removeEventListener('pointercancel', pointerHandlers.cancel);
     overlay.removeEventListener('pointerleave', pointerHandlers.cancel);
+    reconciler.clear();
     stage.destroy();
     root.remove();
   }
