@@ -6,7 +6,7 @@
 
 # Interface: Bounds
 
-Defined in: [model/primitives.ts:12](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L12)
+Defined in: [model/primitives.ts:12](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L12)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/primitives.ts:12](https://github.com/irskep/smalldraw/blob/23
 
 > **height**: `number`
 
-Defined in: [model/primitives.ts:18](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L18)
+Defined in: [model/primitives.ts:18](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L18)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/primitives.ts:18](https://github.com/irskep/smalldraw/blob/23
 
 > **maxX**: `number`
 
-Defined in: [model/primitives.ts:15](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L15)
+Defined in: [model/primitives.ts:15](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L15)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [model/primitives.ts:15](https://github.com/irskep/smalldraw/blob/23
 
 > **maxY**: `number`
 
-Defined in: [model/primitives.ts:16](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L16)
+Defined in: [model/primitives.ts:16](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L16)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [model/primitives.ts:16](https://github.com/irskep/smalldraw/blob/23
 
 > **minX**: `number`
 
-Defined in: [model/primitives.ts:13](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L13)
+Defined in: [model/primitives.ts:13](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L13)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [model/primitives.ts:13](https://github.com/irskep/smalldraw/blob/23
 
 > **minY**: `number`
 
-Defined in: [model/primitives.ts:14](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L14)
+Defined in: [model/primitives.ts:14](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L14)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [model/primitives.ts:14](https://github.com/irskep/smalldraw/blob/23
 
 > **width**: `number`
 
-Defined in: [model/primitives.ts:17](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L17)
+Defined in: [model/primitives.ts:17](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L17)

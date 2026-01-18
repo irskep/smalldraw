@@ -6,7 +6,7 @@
 
 # Interface: SharedToolSettings
 
-Defined in: [tools/types.ts:30](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L30)
+Defined in: [tools/types.ts:30](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L30)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [tools/types.ts:30](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **fillColor**: `string`
 
-Defined in: [tools/types.ts:33](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L33)
+Defined in: [tools/types.ts:33](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L33)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [tools/types.ts:33](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **strokeColor**: `string`
 
-Defined in: [tools/types.ts:31](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L31)
+Defined in: [tools/types.ts:31](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L31)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [tools/types.ts:31](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **strokeWidth**: `number`
 
-Defined in: [tools/types.ts:32](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L32)
+Defined in: [tools/types.ts:32](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L32)

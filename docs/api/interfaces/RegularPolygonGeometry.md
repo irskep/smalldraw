@@ -6,7 +6,7 @@
 
 # Interface: RegularPolygonGeometry
 
-Defined in: [model/geometry.ts:25](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L25)
+Defined in: [model/geometry.ts:25](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L25)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/geometry.ts:25](https://github.com/irskep/smalldraw/blob/2384
 
 > **radius**: `number`
 
-Defined in: [model/geometry.ts:27](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L27)
+Defined in: [model/geometry.ts:27](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L27)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/geometry.ts:27](https://github.com/irskep/smalldraw/blob/2384
 
 > **sides**: `number`
 
-Defined in: [model/geometry.ts:28](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L28)
+Defined in: [model/geometry.ts:28](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L28)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [model/geometry.ts:28](https://github.com/irskep/smalldraw/blob/2384
 
 > **type**: `"regularPolygon"`
 
-Defined in: [model/geometry.ts:26](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L26)
+Defined in: [model/geometry.ts:26](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L26)

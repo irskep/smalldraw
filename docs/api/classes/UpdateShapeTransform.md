@@ -6,7 +6,7 @@
 
 # Class: UpdateShapeTransform
 
-Defined in: [actions/updateTransform.ts:6](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/actions/updateTransform.ts#L6)
+Defined in: [actions/updateTransform.ts:6](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateTransform.ts#L6)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/updateTransform.ts:6](https://github.com/irskep/smalldraw/b
 
 > **new UpdateShapeTransform**(`shapeId`, `nextTransform`): `UpdateShapeTransform`
 
-Defined in: [actions/updateTransform.ts:10](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/actions/updateTransform.ts#L10)
+Defined in: [actions/updateTransform.ts:10](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateTransform.ts#L10)
 
 #### Parameters
 
@@ -36,11 +36,45 @@ Defined in: [actions/updateTransform.ts:10](https://github.com/irskep/smalldraw/
 
 ## Methods
 
+### affectedShapeIds()
+
+> **affectedShapeIds**(): `string`[]
+
+Defined in: [actions/updateTransform.ts:32](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateTransform.ts#L32)
+
+Returns IDs of shapes affected by this action for dirty tracking.
+
+#### Returns
+
+`string`[]
+
+#### Implementation of
+
+[`UndoableAction`](../interfaces/UndoableAction.md).[`affectedShapeIds`](../interfaces/UndoableAction.md#affectedshapeids)
+
+***
+
+### affectsZOrder()
+
+> **affectsZOrder**(): `boolean`
+
+Defined in: [actions/updateTransform.ts:36](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateTransform.ts#L36)
+
+#### Returns
+
+`boolean`
+
+#### Implementation of
+
+[`UndoableAction`](../interfaces/UndoableAction.md).[`affectsZOrder`](../interfaces/UndoableAction.md#affectszorder)
+
+***
+
 ### redo()
 
 > **redo**(`doc`): `void`
 
-Defined in: [actions/updateTransform.ts:15](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/actions/updateTransform.ts#L15)
+Defined in: [actions/updateTransform.ts:15](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateTransform.ts#L15)
 
 #### Parameters
 
@@ -62,7 +96,7 @@ Defined in: [actions/updateTransform.ts:15](https://github.com/irskep/smalldraw/
 
 > **undo**(`doc`): `void`
 
-Defined in: [actions/updateTransform.ts:24](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/actions/updateTransform.ts#L24)
+Defined in: [actions/updateTransform.ts:24](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/updateTransform.ts#L24)
 
 #### Parameters
 

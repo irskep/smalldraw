@@ -1,15 +1,15 @@
-import type { Point, Bounds } from '../model/primitives';
+import type { Point, Bounds } from "../model/primitives";
 
 export type { Bounds };
-import type { Shape } from '../model/shape';
-import type { UndoableAction } from '../actions';
+import type { Shape } from "../model/shape";
+import type { UndoableAction } from "../actions";
 
 export type ToolEventName =
-  | 'pointerDown'
-  | 'pointerMove'
-  | 'pointerUp'
-  | 'pointerCancel'
-  | 'hover';
+  | "pointerDown"
+  | "pointerMove"
+  | "pointerUp"
+  | "pointerCancel"
+  | "hover";
 
 export interface ToolPointerEvent {
   point: Point;
@@ -58,13 +58,13 @@ export interface ToolRuntime {
   /** Access shared drawing settings (stroke color/width, fill color, etc.). */
   getSharedSettings<TSettings = SharedToolSettings>(): TSettings;
   updateSharedSettings<TSettings = SharedToolSettings>(
-    updater: Partial<TSettings> | ((prev: TSettings) => TSettings),
+    updater: Partial<TSettings> | ((prev: TSettings) => TSettings)
   ): void;
   /** Access tool-specific state persisted across activations. */
   getToolState<TState = unknown>(): TState | undefined;
   setToolState<TState = unknown>(state: TState): void;
   updateToolState<TState = unknown>(
-    updater: (prev: TState | undefined) => TState,
+    updater: (prev: TState | undefined) => TState
   ): void;
   clearToolState(): void;
   /** Selection helpers */
@@ -75,8 +75,8 @@ export interface ToolRuntime {
   isSelected(id: string): boolean;
   getShape(shapeId: string): Shape | undefined;
   onEvent<TPayload>(
-    type: ToolRuntimeEvent<TPayload>['type'],
-    listener: (payload: TPayload) => void,
+    type: ToolRuntimeEvent<TPayload>["type"],
+    listener: (payload: TPayload) => void
   ): () => void;
   emit<TPayload>(event: ToolRuntimeEvent<TPayload>): void;
 }
@@ -90,28 +90,31 @@ export interface HandleDescriptor {
 }
 
 export type HandleBehavior =
-  | { type: 'move' }
-  | { type: 'rotate' }
-  | { type: 'resize'; proportional?: boolean }
-  | { type: 'resize-axis'; axis: 'x' | 'y' };
+  | { type: "move" }
+  | { type: "rotate" }
+  | { type: "resize"; proportional?: boolean }
+  | { type: "resize-axis"; axis: "x" | "y" };
 
-export type ToolRuntimeEvent<TPayload = unknown> = {
-  type: 'handles';
-  payload: HandleDescriptor[];
-} | {
-  type: 'handle-hover';
-  payload: { handleId: string | null; behavior: HandleBehavior | null };
-} | {
-  type: 'selection-frame';
-  payload: Bounds | null;
-} | {
-  type: 'custom';
-  payload: TPayload;
-};
+export type ToolRuntimeEvent<TPayload = unknown> =
+  | {
+      type: "handles";
+      payload: HandleDescriptor[];
+    }
+  | {
+      type: "handle-hover";
+      payload: { handleId: string | null; behavior: HandleBehavior | null };
+    }
+  | {
+      type: "selection-frame";
+      payload: Bounds | null;
+    }
+  | {
+      type: "custom";
+      payload: TPayload;
+    };
 
 export interface ToolDefinition {
   id: string;
   label: string;
-  activate(runtime: ToolRuntime): void;
-  deactivate?(runtime: ToolRuntime): void;
+  activate(runtime: ToolRuntime): void | undefined | (() => void);
 }

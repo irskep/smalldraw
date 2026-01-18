@@ -26,6 +26,7 @@
 - [Bounds](interfaces/Bounds.md)
 - [BrushStyle](interfaces/BrushStyle.md)
 - [CanonicalShapeTransform](interfaces/CanonicalShapeTransform.md)
+- [DirtyState](interfaces/DirtyState.md)
 - [DraftShape](interfaces/DraftShape.md)
 - [DragCallbacks](interfaces/DragCallbacks.md)
 - [DrawingDocument](interfaces/DrawingDocument.md)

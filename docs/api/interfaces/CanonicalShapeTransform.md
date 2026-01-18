@@ -6,7 +6,7 @@
 
 # Interface: CanonicalShapeTransform
 
-Defined in: [model/shape.ts:6](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L6)
+Defined in: [model/shape.ts:6](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L6)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/shape.ts:6](https://github.com/irskep/smalldraw/blob/23842d39
 
 > **origin**: `object`
 
-Defined in: [model/shape.ts:10](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L10)
+Defined in: [model/shape.ts:10](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L10)
 
 #### x
 
@@ -30,7 +30,7 @@ Defined in: [model/shape.ts:10](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **rotation**: `number`
 
-Defined in: [model/shape.ts:8](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L8)
+Defined in: [model/shape.ts:8](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L8)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [model/shape.ts:8](https://github.com/irskep/smalldraw/blob/23842d39
 
 > **scale**: `object`
 
-Defined in: [model/shape.ts:9](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L9)
+Defined in: [model/shape.ts:9](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L9)
 
 #### x
 
@@ -54,7 +54,7 @@ Defined in: [model/shape.ts:9](https://github.com/irskep/smalldraw/blob/23842d39
 
 > **translation**: `object`
 
-Defined in: [model/shape.ts:7](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L7)
+Defined in: [model/shape.ts:7](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L7)
 
 #### x
 

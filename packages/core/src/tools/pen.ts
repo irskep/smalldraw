@@ -1,9 +1,9 @@
-import { AddShape } from '../actions';
-import type { Point } from '../model/primitives';
-import type { Shape } from '../model/shape';
-import type { StrokeStyle } from '../model/style';
-import type { ToolDefinition, ToolEventHandler, ToolRuntime } from './types';
-import { attachPointerHandlers } from './pointerHandlers';
+import { AddShape } from "../actions";
+import type { Point } from "../model/primitives";
+import type { Shape } from "../model/shape";
+import type { StrokeStyle } from "../model/style";
+import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
+import { attachPointerHandlers } from "./pointerHandlers";
 
 const PRIMARY_BUTTON_MASK = 1;
 
@@ -28,13 +28,11 @@ export interface PenToolOptions {
 export function createPenTool(options?: PenToolOptions): ToolDefinition {
   const fallbackStroke: StrokeStyle =
     options?.stroke ??
-    (
-      {
-        type: 'brush',
-        color: '#000000',
-        size: 2,
-      } as const
-    );
+    ({
+      type: "brush",
+      color: "#000000",
+      size: 2,
+    } as const);
 
   const ensureState = (runtime: ToolRuntime): ActivePenState => {
     let state = runtimeState.get(runtime);
@@ -50,7 +48,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     const shared = runtime.getSharedSettings();
     const override = runtimeOptions?.stroke ?? options?.stroke;
     return {
-      type: 'brush',
+      type: "brush",
       color: override?.color ?? shared.strokeColor ?? fallbackStroke.color,
       size: override?.size ?? shared.strokeWidth ?? fallbackStroke.size,
       brushId: override?.brushId ?? fallbackStroke.brushId,
@@ -60,13 +58,13 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   const beginDrawing = (
     runtime: ToolRuntime,
     point: Point,
-    pressure?: number,
+    pressure?: number
   ) => {
     const state = ensureState(runtime);
     if (state.drawing) {
       finishStroke(runtime);
     }
-    const draftId = runtime.generateShapeId('pen-draft');
+    const draftId = runtime.generateShapeId("pen-draft");
     const zIndex = runtime.getNextZIndex();
     state.drawing = {
       id: draftId,
@@ -80,7 +78,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   const appendPoint = (
     runtime: ToolRuntime,
     point: Point,
-    pressure?: number,
+    pressure?: number
   ) => {
     const state = runtimeState.get(runtime);
     if (!state?.drawing) return;
@@ -111,7 +109,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       return;
     }
     const shape = createStrokeShape(state.drawing);
-    shape.id = runtime.generateShapeId('pen');
+    shape.id = runtime.generateShapeId("pen");
     runtime.commit(new AddShape(shape));
     runtime.clearDraft();
     state.drawing = null;
@@ -125,9 +123,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     runtime.clearDraft();
   };
 
-  const createPointerDownHandler = (
-    runtime: ToolRuntime,
-  ): ToolEventHandler => {
+  const createPointerDownHandler = (runtime: ToolRuntime): ToolEventHandler => {
     return (event) => {
       if ((event.buttons ?? PRIMARY_BUTTON_MASK) & PRIMARY_BUTTON_MASK) {
         beginDrawing(runtime, event.point, event.pressure);
@@ -135,9 +131,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     };
   };
 
-  const createPointerMoveHandler = (
-    runtime: ToolRuntime,
-  ): ToolEventHandler => {
+  const createPointerMoveHandler = (runtime: ToolRuntime): ToolEventHandler => {
     return (event) => {
       appendPoint(runtime, event.point, event.pressure);
     };
@@ -150,7 +144,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   };
 
   const createPointerCancelHandler = (
-    runtime: ToolRuntime,
+    runtime: ToolRuntime
   ): ToolEventHandler => {
     return () => {
       cancelStroke(runtime);
@@ -158,8 +152,8 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   };
 
   return {
-    id: 'pen',
-    label: 'Pen',
+    id: "pen",
+    label: "Pen",
     activate(runtime) {
       const state = ensureState(runtime);
       state.disposers.forEach((dispose) => dispose());
@@ -171,68 +165,77 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
           onPointerMove: createPointerMoveHandler(runtime),
           onPointerUp: createPointerUpHandler(runtime),
           onPointerCancel: createPointerCancelHandler(runtime),
-        }),
+        })
       );
       runtime.clearDraft();
-    },
-    deactivate(runtime) {
-      const state = runtimeState.get(runtime);
-      if (state) {
-        state.disposers.forEach((dispose) => dispose());
-        state.disposers = [];
-        state.drawing = null;
-      }
-      runtime.clearDraft();
+      return () => {
+        const state = runtimeState.get(runtime);
+        if (state) {
+          state.disposers.forEach((dispose) => dispose());
+          state.disposers = [];
+          state.drawing = null;
+        }
+        runtime.clearDraft();
+      };
     },
   };
 }
-  const createStrokeShape = (draft: StrokeDraftState): Shape => {
-    const bounds = calculateBounds(draft.points);
-    const center = bounds
-      ? {
-          x: (bounds.minX + bounds.maxX) / 2,
-          y: (bounds.minY + bounds.maxY) / 2,
-        }
-      : { x: 0, y: 0 };
-    const localPoints = bounds
-      ? draft.points.map((pt) => ({ x: pt.x - center.x, y: pt.y - center.y, pressure: pt.pressure }))
-      : draft.points.map((pt) => ({ ...pt }));
-    const geometry = {
-      type: 'pen' as const,
-      points: localPoints,
-    };
-    const shape: Shape = {
-      id: draft.id,
-      geometry,
-      stroke: draft.stroke,
-      zIndex: draft.zIndex,
-      interactions: {
-        resizable: true,
-        rotatable: false,
-      },
-      transform: {
-        translation: center,
-        scale: { x: 1, y: 1 },
-        rotation: 0,
-      },
-    };
-    return shape;
+const createStrokeShape = (draft: StrokeDraftState): Shape => {
+  const bounds = calculateBounds(draft.points);
+  const center = bounds
+    ? {
+        x: (bounds.minX + bounds.maxX) / 2,
+        y: (bounds.minY + bounds.maxY) / 2,
+      }
+    : { x: 0, y: 0 };
+  const localPoints = bounds
+    ? draft.points.map((pt) => ({
+        x: pt.x - center.x,
+        y: pt.y - center.y,
+        pressure: pt.pressure,
+      }))
+    : draft.points.map((pt) => ({ ...pt }));
+  const geometry = {
+    type: "pen" as const,
+    points: localPoints,
   };
+  const shape: Shape = {
+    id: draft.id,
+    geometry,
+    stroke: draft.stroke,
+    zIndex: draft.zIndex,
+    interactions: {
+      resizable: true,
+      rotatable: false,
+    },
+    transform: {
+      translation: center,
+      scale: { x: 1, y: 1 },
+      rotation: 0,
+    },
+  };
+  return shape;
+};
 
-  const calculateBounds = (points: Point[]) => {
-    if (!points.length) return null;
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-    for (const pt of points) {
-      minX = Math.min(minX, pt.x);
-      minY = Math.min(minY, pt.y);
-      maxX = Math.max(maxX, pt.x);
-      maxY = Math.max(maxY, pt.y);
-    }
-    if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
-      return null;
-    }
-    return { minX, minY, maxX, maxY };
-  };
+const calculateBounds = (points: Point[]) => {
+  if (!points.length) return null;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const pt of points) {
+    minX = Math.min(minX, pt.x);
+    minY = Math.min(minY, pt.y);
+    maxX = Math.max(maxX, pt.x);
+    maxY = Math.max(maxY, pt.y);
+  }
+  if (
+    !isFinite(minX) ||
+    !isFinite(minY) ||
+    !isFinite(maxX) ||
+    !isFinite(maxY)
+  ) {
+    return null;
+  }
+  return { minX, minY, maxX, maxY };
+};

@@ -8,7 +8,7 @@
 
 > **applyTransformToPoint**(`point`, `transform?`): [`Point`](../interfaces/Point.md)
 
-Defined in: [model/geometryBounds.ts:65](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometryBounds.ts#L65)
+Defined in: [model/geometryBounds.ts:65](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometryBounds.ts#L65)
 
 ## Parameters
 

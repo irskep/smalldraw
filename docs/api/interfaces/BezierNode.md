@@ -6,7 +6,7 @@
 
 # Interface: BezierNode
 
-Defined in: [model/geometry.ts:37](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L37)
+Defined in: [model/geometry.ts:37](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L37)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/geometry.ts:37](https://github.com/irskep/smalldraw/blob/2384
 
 > **anchor**: [`Point`](Point.md)
 
-Defined in: [model/geometry.ts:38](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L38)
+Defined in: [model/geometry.ts:38](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L38)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/geometry.ts:38](https://github.com/irskep/smalldraw/blob/2384
 
 > `optional` **handleIn**: [`Point`](Point.md)
 
-Defined in: [model/geometry.ts:39](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L39)
+Defined in: [model/geometry.ts:39](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L39)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [model/geometry.ts:39](https://github.com/irskep/smalldraw/blob/2384
 
 > `optional` **handleOut**: [`Point`](Point.md)
 
-Defined in: [model/geometry.ts:40](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L40)
+Defined in: [model/geometry.ts:40](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L40)

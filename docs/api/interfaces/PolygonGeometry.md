@@ -6,7 +6,7 @@
 
 # Interface: PolygonGeometry
 
-Defined in: [model/geometry.ts:31](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L31)
+Defined in: [model/geometry.ts:31](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L31)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/geometry.ts:31](https://github.com/irskep/smalldraw/blob/2384
 
 > `optional` **closed**: `boolean`
 
-Defined in: [model/geometry.ts:34](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L34)
+Defined in: [model/geometry.ts:34](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L34)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/geometry.ts:34](https://github.com/irskep/smalldraw/blob/2384
 
 > **points**: [`Point`](Point.md)[]
 
-Defined in: [model/geometry.ts:33](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L33)
+Defined in: [model/geometry.ts:33](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L33)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [model/geometry.ts:33](https://github.com/irskep/smalldraw/blob/2384
 
 > **type**: `"polygon"`
 
-Defined in: [model/geometry.ts:32](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L32)
+Defined in: [model/geometry.ts:32](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L32)

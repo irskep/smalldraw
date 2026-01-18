@@ -6,7 +6,7 @@
 
 # Interface: Point
 
-Defined in: [model/primitives.ts:1](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L1)
+Defined in: [model/primitives.ts:1](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L1)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/primitives.ts:1](https://github.com/irskep/smalldraw/blob/238
 
 > `optional` **pressure**: `number`
 
-Defined in: [model/primitives.ts:4](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L4)
+Defined in: [model/primitives.ts:4](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L4)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/primitives.ts:4](https://github.com/irskep/smalldraw/blob/238
 
 > **x**: `number`
 
-Defined in: [model/primitives.ts:2](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L2)
+Defined in: [model/primitives.ts:2](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L2)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [model/primitives.ts:2](https://github.com/irskep/smalldraw/blob/238
 
 > **y**: `number`
 
-Defined in: [model/primitives.ts:3](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/primitives.ts#L3)
+Defined in: [model/primitives.ts:3](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/primitives.ts#L3)

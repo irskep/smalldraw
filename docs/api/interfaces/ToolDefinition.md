@@ -6,7 +6,7 @@
 
 # Interface: ToolDefinition
 
-Defined in: [tools/types.ts:112](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L112)
+Defined in: [tools/types.ts:116](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L116)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [tools/types.ts:112](https://github.com/irskep/smalldraw/blob/23842d
 
 > **id**: `string`
 
-Defined in: [tools/types.ts:113](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L113)
+Defined in: [tools/types.ts:117](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L117)
 
 ***
 
@@ -22,33 +22,15 @@ Defined in: [tools/types.ts:113](https://github.com/irskep/smalldraw/blob/23842d
 
 > **label**: `string`
 
-Defined in: [tools/types.ts:114](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L114)
+Defined in: [tools/types.ts:118](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L118)
 
 ## Methods
 
 ### activate()
 
-> **activate**(`runtime`): `void`
+> **activate**(`runtime`): `void` \| () => `void` \| `undefined`
 
-Defined in: [tools/types.ts:115](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L115)
-
-#### Parameters
-
-##### runtime
-
-[`ToolRuntime`](ToolRuntime.md)
-
-#### Returns
-
-`void`
-
-***
-
-### deactivate()?
-
-> `optional` **deactivate**(`runtime`): `void`
-
-Defined in: [tools/types.ts:116](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L116)
+Defined in: [tools/types.ts:119](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L119)
 
 #### Parameters
 
@@ -58,4 +40,4 @@ Defined in: [tools/types.ts:116](https://github.com/irskep/smalldraw/blob/23842d
 
 #### Returns
 
-`void`
+`void` \| () => `void` \| `undefined`

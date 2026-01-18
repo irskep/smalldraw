@@ -6,7 +6,7 @@
 
 # Class: CompositeAction
 
-Defined in: [actions/composite.ts:4](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/actions/composite.ts#L4)
+Defined in: [actions/composite.ts:4](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L4)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/composite.ts:4](https://github.com/irskep/smalldraw/blob/23
 
 > **new CompositeAction**(`actions`): `CompositeAction`
 
-Defined in: [actions/composite.ts:5](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/actions/composite.ts#L5)
+Defined in: [actions/composite.ts:5](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L5)
 
 #### Parameters
 
@@ -32,11 +32,45 @@ Defined in: [actions/composite.ts:5](https://github.com/irskep/smalldraw/blob/23
 
 ## Methods
 
+### affectedShapeIds()
+
+> **affectedShapeIds**(): `string`[]
+
+Defined in: [actions/composite.ts:19](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L19)
+
+Returns IDs of shapes affected by this action for dirty tracking.
+
+#### Returns
+
+`string`[]
+
+#### Implementation of
+
+[`UndoableAction`](../interfaces/UndoableAction.md).[`affectedShapeIds`](../interfaces/UndoableAction.md#affectedshapeids)
+
+***
+
+### affectsZOrder()
+
+> **affectsZOrder**(): `boolean`
+
+Defined in: [actions/composite.ts:29](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L29)
+
+#### Returns
+
+`boolean`
+
+#### Implementation of
+
+[`UndoableAction`](../interfaces/UndoableAction.md).[`affectsZOrder`](../interfaces/UndoableAction.md#affectszorder)
+
+***
+
 ### redo()
 
 > **redo**(`doc`): `void`
 
-Defined in: [actions/composite.ts:7](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/actions/composite.ts#L7)
+Defined in: [actions/composite.ts:7](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L7)
 
 #### Parameters
 
@@ -58,7 +92,7 @@ Defined in: [actions/composite.ts:7](https://github.com/irskep/smalldraw/blob/23
 
 > **undo**(`doc`): `void`
 
-Defined in: [actions/composite.ts:13](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/actions/composite.ts#L13)
+Defined in: [actions/composite.ts:13](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/actions/composite.ts#L13)
 
 #### Parameters
 

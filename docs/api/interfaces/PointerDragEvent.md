@@ -6,7 +6,7 @@
 
 # Interface: PointerDragEvent
 
-Defined in: [tools/pointerDrag.ts:11](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/pointerDrag.ts#L11)
+Defined in: [tools/pointerDrag.ts:11](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/pointerDrag.ts#L11)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [tools/pointerDrag.ts:11](https://github.com/irskep/smalldraw/blob/2
 
 > `optional` **altKey**: `boolean`
 
-Defined in: [tools/pointerDrag.ts:15](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/pointerDrag.ts#L15)
+Defined in: [tools/pointerDrag.ts:15](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/pointerDrag.ts#L15)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [tools/pointerDrag.ts:15](https://github.com/irskep/smalldraw/blob/2
 
 > **buttons**: `number`
 
-Defined in: [tools/pointerDrag.ts:12](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/pointerDrag.ts#L12)
+Defined in: [tools/pointerDrag.ts:12](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/pointerDrag.ts#L12)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [tools/pointerDrag.ts:12](https://github.com/irskep/smalldraw/blob/2
 
 > `optional` **handleId**: `string`
 
-Defined in: [tools/pointerDrag.ts:16](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/pointerDrag.ts#L16)
+Defined in: [tools/pointerDrag.ts:16](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/pointerDrag.ts#L16)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [tools/pointerDrag.ts:16](https://github.com/irskep/smalldraw/blob/2
 
 > `optional` **pressure**: `number`
 
-Defined in: [tools/pointerDrag.ts:13](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/pointerDrag.ts#L13)
+Defined in: [tools/pointerDrag.ts:13](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/pointerDrag.ts#L13)
 
 ***
 
@@ -46,4 +46,4 @@ Defined in: [tools/pointerDrag.ts:13](https://github.com/irskep/smalldraw/blob/2
 
 > `optional` **shiftKey**: `boolean`
 
-Defined in: [tools/pointerDrag.ts:14](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/pointerDrag.ts#L14)
+Defined in: [tools/pointerDrag.ts:14](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/pointerDrag.ts#L14)

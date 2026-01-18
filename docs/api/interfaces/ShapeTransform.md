@@ -6,7 +6,7 @@
 
 # Interface: ShapeTransform
 
-Defined in: [model/shape.ts:18](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L18)
+Defined in: [model/shape.ts:18](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L18)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/shape.ts:18](https://github.com/irskep/smalldraw/blob/23842d3
 
 > `optional` **origin**: `object`
 
-Defined in: [model/shape.ts:27](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L27)
+Defined in: [model/shape.ts:27](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L27)
 
 #### x
 
@@ -30,7 +30,7 @@ Defined in: [model/shape.ts:27](https://github.com/irskep/smalldraw/blob/23842d3
 
 > `optional` **rotation**: `number`
 
-Defined in: [model/shape.ts:25](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L25)
+Defined in: [model/shape.ts:25](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L25)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [model/shape.ts:25](https://github.com/irskep/smalldraw/blob/23842d3
 
 > `optional` **scale**: `object`
 
-Defined in: [model/shape.ts:26](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L26)
+Defined in: [model/shape.ts:26](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L26)
 
 #### x
 
@@ -54,7 +54,7 @@ Defined in: [model/shape.ts:26](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **translation**: `object`
 
-Defined in: [model/shape.ts:24](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L24)
+Defined in: [model/shape.ts:24](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L24)
 
 Translation stores the world-space center of the shape's geometry. Tools should not
 mix coordinate origins (e.g. top-left) because selection/rotation math assumes this

@@ -9,6 +9,7 @@ export default defineUserConfig({
   theme: defaultTheme({
     navbar: [
       { text: 'Home', link: '/' },
+      { text: 'Guides', link: '/guides/' },
       { text: 'Explanation', link: '/explanation/' },
       { text: 'API', link: '/api/' },
     ],

@@ -6,7 +6,7 @@
 
 # Class: UndoManager
 
-Defined in: [undo.ts:4](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/undo.ts#L4)
+Defined in: [undo.ts:4](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/undo.ts#L4)
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: [undo.ts:4](https://github.com/irskep/smalldraw/blob/23842d392e9e05d
 
 > **apply**(`action`, `doc`): `void`
 
-Defined in: [undo.ts:8](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/undo.ts#L8)
+Defined in: [undo.ts:8](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/undo.ts#L8)
 
 #### Parameters
 
@@ -46,7 +46,7 @@ Defined in: [undo.ts:8](https://github.com/irskep/smalldraw/blob/23842d392e9e05d
 
 > **canRedo**(): `boolean`
 
-Defined in: [undo.ts:38](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/undo.ts#L38)
+Defined in: [undo.ts:38](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/undo.ts#L38)
 
 #### Returns
 
@@ -58,7 +58,7 @@ Defined in: [undo.ts:38](https://github.com/irskep/smalldraw/blob/23842d392e9e05
 
 > **canUndo**(): `boolean`
 
-Defined in: [undo.ts:34](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/undo.ts#L34)
+Defined in: [undo.ts:34](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/undo.ts#L34)
 
 #### Returns
 
@@ -70,7 +70,7 @@ Defined in: [undo.ts:34](https://github.com/irskep/smalldraw/blob/23842d392e9e05
 
 > **clear**(): `void`
 
-Defined in: [undo.ts:42](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/undo.ts#L42)
+Defined in: [undo.ts:42](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/undo.ts#L42)
 
 #### Returns
 
@@ -80,9 +80,9 @@ Defined in: [undo.ts:42](https://github.com/irskep/smalldraw/blob/23842d392e9e05
 
 ### redo()
 
-> **redo**(`doc`): `boolean`
+> **redo**(`doc`): [`UndoableAction`](../interfaces/UndoableAction.md) \| `null`
 
-Defined in: [undo.ts:24](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/undo.ts#L24)
+Defined in: [undo.ts:24](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/undo.ts#L24)
 
 #### Parameters
 
@@ -92,15 +92,15 @@ Defined in: [undo.ts:24](https://github.com/irskep/smalldraw/blob/23842d392e9e05
 
 #### Returns
 
-`boolean`
+[`UndoableAction`](../interfaces/UndoableAction.md) \| `null`
 
 ***
 
 ### undo()
 
-> **undo**(`doc`): `boolean`
+> **undo**(`doc`): [`UndoableAction`](../interfaces/UndoableAction.md) \| `null`
 
-Defined in: [undo.ts:14](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/undo.ts#L14)
+Defined in: [undo.ts:14](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/undo.ts#L14)
 
 #### Parameters
 
@@ -110,4 +110,4 @@ Defined in: [undo.ts:14](https://github.com/irskep/smalldraw/blob/23842d392e9e05
 
 #### Returns
 
-`boolean`
+[`UndoableAction`](../interfaces/UndoableAction.md) \| `null`

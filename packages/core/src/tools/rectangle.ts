@@ -1,9 +1,9 @@
-import { AddShape } from '../actions';
-import type { Point, Size } from '../model/primitives';
-import type { Shape } from '../model/shape';
-import type { Fill, StrokeStyle } from '../model/style';
-import type { ToolDefinition, ToolEventHandler, ToolRuntime } from './types';
-import { attachPointerHandlers } from './pointerHandlers';
+import { AddShape } from "../actions";
+import type { Point, Size } from "../model/primitives";
+import type { Shape } from "../model/shape";
+import type { Fill, StrokeStyle } from "../model/style";
+import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
+import { attachPointerHandlers } from "./pointerHandlers";
 
 interface RectDraftState {
   id: string;
@@ -26,7 +26,9 @@ export interface RectangleToolOptions {
   fill?: Fill;
 }
 
-export function createRectangleTool(options?: RectangleToolOptions): ToolDefinition {
+export function createRectangleTool(
+  options?: RectangleToolOptions
+): ToolDefinition {
   const ensureState = (runtime: ToolRuntime): ActiveRectState => {
     let state = runtimeState.get(runtime);
     if (!state) {
@@ -41,7 +43,7 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
     const shared = runtime.getSharedSettings();
     const override = runtimeOptions?.stroke ?? options?.stroke;
     return {
-      type: 'brush',
+      type: "brush",
       color: override?.color ?? shared.strokeColor,
       size: override?.size ?? shared.strokeWidth,
       brushId: override?.brushId,
@@ -53,20 +55,16 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
     const override = runtimeOptions?.fill ?? options?.fill;
     return (
       override ?? {
-        type: 'solid',
+        type: "solid",
         color: runtime.getSharedSettings().fillColor,
       }
     );
   };
 
-  const beginRect = (
-    runtime: ToolRuntime,
-    point: Point,
-    pressure?: number,
-  ) => {
+  const beginRect = (runtime: ToolRuntime, point: Point, pressure?: number) => {
     const state = ensureState(runtime);
     const draft: RectDraftState = {
-      id: runtime.generateShapeId('rect-draft'),
+      id: runtime.generateShapeId("rect-draft"),
       start: { ...point, pressure },
       current: { ...point, pressure },
       stroke: resolveStroke(runtime),
@@ -77,7 +75,11 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
     updateDraft(runtime);
   };
 
-  const updatePoint = (runtime: ToolRuntime, point: Point, pressure?: number) => {
+  const updatePoint = (
+    runtime: ToolRuntime,
+    point: Point,
+    pressure?: number
+  ) => {
     const state = runtimeState.get(runtime);
     if (!state?.draft) return;
     state.draft.current = { ...point, pressure };
@@ -105,14 +107,14 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
     if (!state?.draft) return;
     const { center, size } = computeSizeAndCenter(
       state.draft.start,
-      state.draft.current,
+      state.draft.current
     );
     runtime.setDraft({
       toolId: runtime.toolId,
       temporary: true,
       id: state.draft.id,
       geometry: {
-        type: 'rect',
+        type: "rect",
         size,
       },
       stroke: state.draft.stroke,
@@ -138,7 +140,7 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
     }
     const { center, size } = computeSizeAndCenter(
       state.draft.start,
-      state.draft.current,
+      state.draft.current
     );
     if (size.width === 0 && size.height === 0) {
       runtime.clearDraft();
@@ -146,9 +148,9 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
       return;
     }
     const shape: Shape = {
-      id: runtime.generateShapeId('rect'),
+      id: runtime.generateShapeId("rect"),
       geometry: {
-        type: 'rect',
+        type: "rect",
         size,
       },
       stroke: state.draft.stroke,
@@ -193,13 +195,15 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
     return () => commitRect(runtime);
   };
 
-  const createPointerCancelHandler = (runtime: ToolRuntime): ToolEventHandler => {
+  const createPointerCancelHandler = (
+    runtime: ToolRuntime
+  ): ToolEventHandler => {
     return () => cancelRect(runtime);
   };
 
   return {
-    id: 'rect',
-    label: 'Rectangle',
+    id: "rect",
+    label: "Rectangle",
     activate(runtime) {
       const state = ensureState(runtime);
       state.disposers.forEach((dispose) => dispose());
@@ -211,17 +215,17 @@ export function createRectangleTool(options?: RectangleToolOptions): ToolDefinit
           onPointerMove: createPointerMoveHandler(runtime),
           onPointerUp: createPointerUpHandler(runtime),
           onPointerCancel: createPointerCancelHandler(runtime),
-        }),
+        })
       );
-    },
-    deactivate(runtime) {
-      const state = runtimeState.get(runtime);
-      if (state) {
-        state.disposers.forEach((dispose) => dispose());
-        state.disposers = [];
-        state.draft = null;
-      }
-      runtime.clearDraft();
+      return () => {
+        const state = runtimeState.get(runtime);
+        if (state) {
+          state.disposers.forEach((dispose) => dispose());
+          state.disposers = [];
+          state.draft = null;
+        }
+        runtime.clearDraft();
+      };
     },
   };
 }

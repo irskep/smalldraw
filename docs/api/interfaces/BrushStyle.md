@@ -6,7 +6,7 @@
 
 # Interface: BrushStyle
 
-Defined in: [model/style.ts:20](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/style.ts#L20)
+Defined in: [model/style.ts:20](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L20)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/style.ts:20](https://github.com/irskep/smalldraw/blob/23842d3
 
 > `optional` **brushId**: `string`
 
-Defined in: [model/style.ts:24](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/style.ts#L24)
+Defined in: [model/style.ts:24](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L24)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/style.ts:24](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **color**: `string`
 
-Defined in: [model/style.ts:22](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/style.ts#L22)
+Defined in: [model/style.ts:22](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L22)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [model/style.ts:22](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **size**: `number`
 
-Defined in: [model/style.ts:23](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/style.ts#L23)
+Defined in: [model/style.ts:23](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L23)
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: [model/style.ts:23](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **type**: `"brush"`
 
-Defined in: [model/style.ts:21](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/style.ts#L21)
+Defined in: [model/style.ts:21](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/style.ts#L21)

@@ -1,9 +1,4 @@
-import {
-  AddShape,
-  DeleteShape,
-  UpdateShapeZIndex,
-  type UndoableAction,
-} from "../actions";
+import { type UndoableAction } from "../actions";
 import { createDocument, type DrawingDocument } from "../model/document";
 import type { Shape } from "../model/shape";
 import { UndoManager } from "../undo";
@@ -44,6 +39,7 @@ export class DrawingStore {
   private selectionState: SelectionState = { ids: new Set<string>() };
   private toolStates = new Map<string, unknown>();
   private activeToolId: string | null = null;
+  private activeToolDeactivate?: () => void;
   private runtimes = new Map<string, ToolRuntimeImpl>();
   private handles: HandleDescriptor[] = [];
   private handleHover: {
@@ -84,7 +80,7 @@ export class DrawingStore {
     }
     const runtime = this.getOrCreateRuntime(toolId);
     this.activeToolId = toolId;
-    tool.activate(runtime);
+    this.activeToolDeactivate = tool.activate(runtime) ?? undefined;
   }
 
   dispatch(event: ToolEventName, payload: ToolPointerEvent) {
@@ -158,7 +154,8 @@ export class DrawingStore {
     const currentId = this.activeToolId;
     const tool = this.tools.get(currentId);
     const runtime = this.runtimes.get(currentId);
-    tool?.deactivate?.(runtime as ToolRuntimeImpl);
+    this.activeToolDeactivate?.();
+    this.activeToolDeactivate = undefined;
     // Note: Don't call runtime.dispose() here - we cache runtimes and their
     // DrawingStore event listeners should persist across tool switches.
     // The tool's deactivate() already cleans up its own handlers.

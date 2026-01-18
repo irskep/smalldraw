@@ -6,7 +6,7 @@
 
 # Interface: DrawingStoreOptions
 
-Defined in: [store/drawingStore.ts:17](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/store/drawingStore.ts#L17)
+Defined in: [store/drawingStore.ts:18](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L18)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [store/drawingStore.ts:17](https://github.com/irskep/smalldraw/blob/
 
 > `optional` **document**: [`DrawingDocument`](DrawingDocument.md)
 
-Defined in: [store/drawingStore.ts:18](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/store/drawingStore.ts#L18)
+Defined in: [store/drawingStore.ts:19](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L19)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [store/drawingStore.ts:18](https://github.com/irskep/smalldraw/blob/
 
 > `optional` **initialSharedSettings**: [`SharedToolSettings`](SharedToolSettings.md)
 
-Defined in: [store/drawingStore.ts:21](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/store/drawingStore.ts#L21)
+Defined in: [store/drawingStore.ts:22](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L22)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [store/drawingStore.ts:21](https://github.com/irskep/smalldraw/blob/
 
 > **tools**: [`ToolDefinition`](ToolDefinition.md)[]
 
-Defined in: [store/drawingStore.ts:20](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/store/drawingStore.ts#L20)
+Defined in: [store/drawingStore.ts:21](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L21)
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: [store/drawingStore.ts:20](https://github.com/irskep/smalldraw/blob/
 
 > `optional` **undoManager**: [`UndoManager`](../classes/UndoManager.md)
 
-Defined in: [store/drawingStore.ts:19](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/store/drawingStore.ts#L19)
+Defined in: [store/drawingStore.ts:20](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/store/drawingStore.ts#L20)

@@ -10,8 +10,8 @@ A tool is an object with an `id`, a `label`, and an `activate` function:
 interface ToolDefinition {
   id: string;
   label: string;
-  activate(runtime: ToolRuntime): void;
-  deactivate?(runtime: ToolRuntime): void;
+  activate(runtime: ToolRuntime): void | undefined | (() => void);
+  // activate()'s return value is run at deactivation time
 }
 ```
 
@@ -57,6 +57,7 @@ sequenceDiagram
 ```
 
 Events the tool can subscribe to:
+
 - `pointerDown` — press
 - `pointerMove` — drag or movement
 - `pointerUp` — release
@@ -76,7 +77,7 @@ Events the tool can subscribe to:
 1. **Registration.** Store learns about available tools
 2. **Activation.** `activate(runtime)` called when tool selected
 3. **Interaction.** Tool handles events, sets drafts, commits actions
-4. **Deactivation.** `deactivate(runtime)` called when switching away
+4. **Deactivation.** `activate()`'s return value is called when switching away
 
 The runtime persists. State stored with `runtime.setToolState()` survives deactivation.
 

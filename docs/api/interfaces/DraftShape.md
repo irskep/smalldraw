@@ -6,7 +6,7 @@
 
 # Interface: DraftShape
 
-Defined in: [tools/types.ts:25](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L25)
+Defined in: [tools/types.ts:25](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L25)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [tools/types.ts:25](https://github.com/irskep/smalldraw/blob/23842d3
 
 > `optional` **fill**: [`Fill`](../type-aliases/Fill.md)
 
-Defined in: [model/shape.ts:33](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L33)
+Defined in: [model/shape.ts:33](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L33)
 
 #### Inherited from
 
@@ -30,7 +30,7 @@ Defined in: [model/shape.ts:33](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **geometry**: [`Geometry`](../type-aliases/Geometry.md)
 
-Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L32)
+Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L32)
 
 #### Inherited from
 
@@ -42,7 +42,7 @@ Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **id**: `string`
 
-Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L31)
+Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L31)
 
 #### Inherited from
 
@@ -54,7 +54,7 @@ Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/23842d3
 
 > `optional` **interactions**: [`ShapeInteractions`](ShapeInteractions.md)
 
-Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L37)
+Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L37)
 
 #### Inherited from
 
@@ -66,7 +66,7 @@ Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/23842d3
 
 > `optional` **opacity**: `number`
 
-Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L35)
+Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L35)
 
 #### Inherited from
 
@@ -78,7 +78,7 @@ Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/23842d3
 
 > `optional` **stroke**: [`BrushStyle`](BrushStyle.md)
 
-Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L34)
+Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L34)
 
 #### Inherited from
 
@@ -90,7 +90,7 @@ Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **temporary**: `true`
 
-Defined in: [tools/types.ts:27](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L27)
+Defined in: [tools/types.ts:27](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L27)
 
 ***
 
@@ -98,7 +98,7 @@ Defined in: [tools/types.ts:27](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **toolId**: `string`
 
-Defined in: [tools/types.ts:26](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/tools/types.ts#L26)
+Defined in: [tools/types.ts:26](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/tools/types.ts#L26)
 
 ***
 
@@ -106,7 +106,7 @@ Defined in: [tools/types.ts:26](https://github.com/irskep/smalldraw/blob/23842d3
 
 > `optional` **transform**: [`ShapeTransform`](ShapeTransform.md)
 
-Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L38)
+Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L38)
 
 #### Inherited from
 
@@ -118,7 +118,7 @@ Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/23842d3
 
 > **zIndex**: `string`
 
-Defined in: [model/shape.ts:36](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/shape.ts#L36)
+Defined in: [model/shape.ts:36](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/shape.ts#L36)
 
 #### Inherited from
 

@@ -37,7 +37,7 @@ Mutations occur through `UndoableAction` objects. Key actions include `AddShape`
 
 ## Tools
 
-Tools are declarative modules implementing `ToolDefinition` with `activate`/`deactivate`. Core tools include:
+Tools are declarative modules implementing `ToolDefinition`. Core tools include:
 
 - **Pen** – Collects pointer points, writes local-space pen geometry, and marks strokes as resizable. Draft updates and final commits share a helper to ensure consistent canonicalization.
 - **Rectangle** – Drags out center/size data from two points, writes canonical transforms, and flags rectangles as rotatable/resizable.

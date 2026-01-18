@@ -6,7 +6,7 @@
 
 # Interface: EllipseGeometry
 
-Defined in: [model/geometry.ts:19](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L19)
+Defined in: [model/geometry.ts:19](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L19)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/geometry.ts:19](https://github.com/irskep/smalldraw/blob/2384
 
 > **radiusX**: `number`
 
-Defined in: [model/geometry.ts:21](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L21)
+Defined in: [model/geometry.ts:21](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L21)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/geometry.ts:21](https://github.com/irskep/smalldraw/blob/2384
 
 > **radiusY**: `number`
 
-Defined in: [model/geometry.ts:22](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L22)
+Defined in: [model/geometry.ts:22](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L22)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [model/geometry.ts:22](https://github.com/irskep/smalldraw/blob/2384
 
 > **type**: `"ellipse"`
 
-Defined in: [model/geometry.ts:20](https://github.com/irskep/smalldraw/blob/23842d392e9e05da6a41ad6992d9fc742cdc6f30/packages/core/src/model/geometry.ts#L20)
+Defined in: [model/geometry.ts:20](https://github.com/irskep/smalldraw/blob/96a50fa2ec78e697fccacd3ef6b146f637d38bd0/packages/core/src/model/geometry.ts#L20)
