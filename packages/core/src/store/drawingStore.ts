@@ -167,9 +167,11 @@ export class DrawingStore {
     const runtime = this.runtimes.get(currentId);
     this.activeToolDeactivate?.();
     this.activeToolDeactivate = undefined;
+    // Canonical cleanup: The store is responsible for clearing tool state
+    // between activations. Tools should not clear drafts in their deactivate
+    // callbacks - the store handles it here to ensure clean state.
     // Note: Don't call runtime.dispose() here - we cache runtimes and their
     // DrawingStore event listeners should persist across tool switches.
-    // The tool's deactivate() already cleans up its own handlers.
     runtime?.clearDraft();
     this.runtimeDrafts.set(currentId, []);
     this.handles = [];

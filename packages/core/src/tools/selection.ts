@@ -21,6 +21,7 @@ import type { CanonicalShapeTransform, Shape } from "../model/shape";
 import { normalizeShapeTransform } from "../model/shape";
 import { attachPointerHandlers } from "./pointerHandlers";
 import { createPointerDragHandler } from "./pointerDrag";
+import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import type {
   DraftShape,
   HandleBehavior,
@@ -49,7 +50,7 @@ const RESIZE_ADAPTERS: SelectionResizeAdapter[] = [
 
 interface SelectionToolState {
   drag?: DragState;
-  disposers: Array<() => void>;
+  disposers: DisposerBucket;
 }
 
 interface AxisResizeState {
@@ -137,7 +138,7 @@ interface ShapeResizeEntry {
 function ensureState(runtime: ToolRuntime): SelectionToolState {
   let state = runtimeState.get(runtime);
   if (!state) {
-    state = { disposers: [] };
+    state = { disposers: createDisposerBucket() };
     runtimeState.set(runtime, state);
   }
   return state;
@@ -343,10 +344,9 @@ export function createSelectionTool(): ToolDefinition {
     label: "Selection",
     activate(runtime) {
       const state = ensureState(runtime);
-      state.disposers.forEach((dispose) => dispose());
-      state.disposers = [];
+      state.disposers.dispose();
       state.drag = undefined;
-      state.disposers.push(
+      state.disposers.add(
         createPointerDragHandler(runtime, {
           onStart(point, event) {
             onPointerDown(runtime)({
@@ -374,13 +374,10 @@ export function createSelectionTool(): ToolDefinition {
           },
         })
       );
-      state.disposers.push(runtime.on("pointerMove", onPointerMove(runtime)));
+      state.disposers.add(runtime.on("pointerMove", onPointerMove(runtime)));
       runtime.emit({ type: "handles", payload: HANDLE_DESCRIPTORS });
       return () => {
-        const state = ensureState(runtime);
-        state.disposers.forEach((dispose) => dispose());
-        state.disposers = [];
-        state.drag = undefined;
+        state.disposers.dispose();
         runtime.emit({ type: "handles", payload: [] });
         runtime.emit({
           type: "handle-hover",

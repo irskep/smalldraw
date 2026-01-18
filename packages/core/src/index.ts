@@ -14,4 +14,5 @@ export * from './tools/selection';
 export * from './tools/runtime';
 export * from './tools/pointerHandlers';
 export * from './tools/pointerDrag';
+export * from './tools/disposerBucket';
 export * from './store/drawingStore';

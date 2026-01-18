@@ -4,6 +4,7 @@ import type { Shape } from "../model/shape";
 import type { Fill, StrokeStyle } from "../model/style";
 import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 import { attachPointerHandlers } from "./pointerHandlers";
+import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 
 interface RectDraftState {
   id: string;
@@ -16,7 +17,7 @@ interface RectDraftState {
 
 interface ActiveRectState {
   draft: RectDraftState | null;
-  disposers: Array<() => void>;
+  disposers: DisposerBucket;
 }
 
 const runtimeState = new WeakMap<ToolRuntime, ActiveRectState>();
@@ -32,7 +33,7 @@ export function createRectangleTool(
   const ensureState = (runtime: ToolRuntime): ActiveRectState => {
     let state = runtimeState.get(runtime);
     if (!state) {
-      state = { draft: null, disposers: [] };
+      state = { draft: null, disposers: createDisposerBucket() };
       runtimeState.set(runtime, state);
     }
     return state;
@@ -206,10 +207,9 @@ export function createRectangleTool(
     label: "Rectangle",
     activate(runtime) {
       const state = ensureState(runtime);
-      state.disposers.forEach((dispose) => dispose());
-      state.disposers = [];
+      state.disposers.dispose();
       state.draft = null;
-      state.disposers.push(
+      state.disposers.add(
         attachPointerHandlers(runtime, {
           onPointerDown: createPointerDownHandler(runtime),
           onPointerMove: createPointerMoveHandler(runtime),
@@ -218,12 +218,7 @@ export function createRectangleTool(
         })
       );
       return () => {
-        const state = runtimeState.get(runtime);
-        if (state) {
-          state.disposers.forEach((dispose) => dispose());
-          state.disposers = [];
-          state.draft = null;
-        }
+        state.disposers.dispose();
         runtime.clearDraft();
       };
     },

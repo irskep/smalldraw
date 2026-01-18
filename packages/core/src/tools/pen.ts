@@ -4,12 +4,13 @@ import type { Shape } from "../model/shape";
 import type { StrokeStyle } from "../model/style";
 import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 import { attachPointerHandlers } from "./pointerHandlers";
+import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 
 const PRIMARY_BUTTON_MASK = 1;
 
 interface ActivePenState {
   drawing: StrokeDraftState | null;
-  disposers: Array<() => void>;
+  disposers: DisposerBucket;
 }
 
 interface StrokeDraftState {
@@ -37,7 +38,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   const ensureState = (runtime: ToolRuntime): ActivePenState => {
     let state = runtimeState.get(runtime);
     if (!state) {
-      state = { drawing: null, disposers: [] };
+      state = { drawing: null, disposers: createDisposerBucket() };
       runtimeState.set(runtime, state);
     }
     return state;
@@ -156,10 +157,9 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     label: "Pen",
     activate(runtime) {
       const state = ensureState(runtime);
-      state.disposers.forEach((dispose) => dispose());
-      state.disposers = [];
+      state.disposers.dispose();
       state.drawing = null;
-      state.disposers.push(
+      state.disposers.add(
         attachPointerHandlers(runtime, {
           onPointerDown: createPointerDownHandler(runtime),
           onPointerMove: createPointerMoveHandler(runtime),
@@ -167,14 +167,8 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
           onPointerCancel: createPointerCancelHandler(runtime),
         })
       );
-      runtime.clearDraft();
       return () => {
-        const state = runtimeState.get(runtime);
-        if (state) {
-          state.disposers.forEach((dispose) => dispose());
-          state.disposers = [];
-          state.drawing = null;
-        }
+        state.disposers.dispose();
         runtime.clearDraft();
       };
     },
