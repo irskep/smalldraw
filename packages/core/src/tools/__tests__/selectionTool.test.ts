@@ -195,9 +195,9 @@ describe("selection tool", () => {
     const tool = createSelectionTool();
     tool.activate(runtime);
 
-    runtime.dispatch("pointerDown", { point: { x: 0, y: 0 }, buttons: 1 });
-    runtime.dispatch("pointerMove", { point: { x: 5, y: 5 }, buttons: 1 });
-    runtime.dispatch("pointerUp", { point: { x: 5, y: 5 }, buttons: 0 });
+    runtime.dispatch("pointerDown", { point: { x: 15, y: 15 }, buttons: 1 });
+    runtime.dispatch("pointerMove", { point: { x: 20, y: 20 }, buttons: 1 });
+    runtime.dispatch("pointerUp", { point: { x: 20, y: 20 }, buttons: 0 });
 
     expect(document.shapes["rect-move"]?.transform?.translation).toEqual({
       x: 20,
@@ -1059,5 +1059,115 @@ describe("selection tool", () => {
       expectedDelta,
       3
     );
+  });
+
+  test("clears selection frame when clicking outside selected shapes", () => {
+    const rect1: Shape = {
+      id: "rect-1",
+      geometry: { type: "rect", size: { width: 50, height: 50 } },
+      zIndex: "a",
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 100, y: 100 },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    const rect2: Shape = {
+      id: "rect-2",
+      geometry: { type: "rect", size: { width: 50, height: 50 } },
+      zIndex: "b",
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 200, y: 100 },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    const { doc: document, registry } = setupDoc([rect1, rect2]);
+    const undoManager = new UndoManager();
+    const selectionState = {
+      ids: new Set<string>(["rect-1", "rect-2"]),
+      primaryId: "rect-1",
+    };
+    const runtime = new ToolRuntimeImpl({
+      toolId: "selection",
+      document,
+      undoManager,
+      shapeHandlers: registry,
+      selectionState,
+    });
+
+    const tool = createSelectionTool();
+    const frames: Array<Bounds | null> = [];
+    runtime.onEvent("selection-frame", (payload: Bounds | null) =>
+      frames.push(payload)
+    );
+    tool.activate(runtime);
+
+    // Click at a point outside the selection bounding box
+    // The selection bounding box spans from (75, 75) to (225, 125)
+    // Click at (50, 50) which is outside
+    runtime.dispatch("pointerDown", { point: { x: 50, y: 50 }, buttons: 1 });
+
+    // Should emit selection-frame with null to clear the visual frame
+    expect(frames.at(-1)).toBe(null);
+  });
+
+  test("keeps selection frame when clicking inside multi-select bounding box", () => {
+    const rect1: Shape = {
+      id: "rect-3",
+      geometry: { type: "rect", size: { width: 50, height: 50 } },
+      zIndex: "a",
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 100, y: 100 },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    const rect2: Shape = {
+      id: "rect-4",
+      geometry: { type: "rect", size: { width: 50, height: 50 } },
+      zIndex: "b",
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 200, y: 100 },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    const { doc: document, registry } = setupDoc([rect1, rect2]);
+    const undoManager = new UndoManager();
+    const selectionState = {
+      ids: new Set<string>(["rect-3", "rect-4"]),
+      primaryId: "rect-3",
+    };
+    const runtime = new ToolRuntimeImpl({
+      toolId: "selection",
+      document,
+      undoManager,
+      shapeHandlers: registry,
+      selectionState,
+    });
+
+    const tool = createSelectionTool();
+    const frames: Array<Bounds | null> = [];
+    runtime.onEvent("selection-frame", (payload: Bounds | null) =>
+      frames.push(payload)
+    );
+    tool.activate(runtime);
+
+    // Click at a point inside the bounding box but not on a shape
+    // The selection bounding box spans from (75, 75) to (225, 125)
+    // Click at (150, 100) which is inside the box but between the two rectangles
+    const initialFrameCount = frames.length;
+    runtime.dispatch("pointerDown", { point: { x: 150, y: 100 }, buttons: 1 });
+
+    // Should start a drag operation, not clear the selection
+    // The selection frame should be updated but not cleared (not null)
+    const lastFrame = frames.at(-1);
+    expect(lastFrame).not.toBe(null);
+    expect(frames.length).toBeGreaterThan(initialFrameCount);
   });
 });

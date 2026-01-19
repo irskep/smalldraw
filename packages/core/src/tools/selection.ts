@@ -9,6 +9,7 @@ import {
   getBoundsCenter,
   getShapeBounds,
 } from "../model/geometryBounds";
+import { hitTestShape } from "../model/hitTest";
 import type {
   Geometry,
   RectGeometry,
@@ -163,12 +164,60 @@ export function createSelectionTool(): ToolDefinition {
         : selection.primaryId
           ? [selection.primaryId]
           : [];
-      if (!selectionIds.length) return;
+      console.log('[selectionTool.onPointerDown] START', {
+        point: event.point,
+        handleId: event.handleId,
+        shiftKey: event.shiftKey,
+        selectionIds,
+      });
+      if (!selectionIds.length) {
+        // No selection - ensure selection frame is cleared
+        console.log('[selectionTool.onPointerDown] no selection, clearing frame and returning');
+        emitSelectionFrame(runtime, undefined);
+        return;
+      }
 
       const shapes = selectionIds
         .map((id) => runtime.getShape(id))
         .filter((shape): shape is Shape => Boolean(shape));
+      console.log('[selectionTool.onPointerDown] shapes found:', shapes.length);
       if (!shapes.length) return;
+
+      // Check if pointer is over the selection when not clicking on a handle
+      if (!event.handleId) {
+        const registry = runtime.getShapeHandlers();
+        let isOverSelection = false;
+
+        if (shapes.length === 1) {
+          // Single selection: hit test the shape itself
+          isOverSelection = hitTestShape(shapes[0], event.point, registry);
+          console.log('[selectionTool.onPointerDown] single shape hit test:', isOverSelection);
+        } else {
+          // Multi-selection: hit test the selection bounding box
+          const { bounds } = computeSelectionBounds(shapes, runtime);
+          console.log('[selectionTool.onPointerDown] multi-select bounds:', bounds);
+          if (bounds) {
+            isOverSelection =
+              event.point.x >= bounds.minX &&
+              event.point.x <= bounds.maxX &&
+              event.point.y >= bounds.minY &&
+              event.point.y <= bounds.maxY;
+          }
+          console.log('[selectionTool.onPointerDown] multi-select hit test:', isOverSelection);
+        }
+
+        if (!isOverSelection) {
+          // Clicked away from selection
+          console.log('[selectionTool.onPointerDown] NOT over selection, shiftKey:', event.shiftKey);
+          if (!event.shiftKey) {
+            console.log('[selectionTool.onPointerDown] clearing selection and returning');
+            runtime.clearSelection();
+            emitSelectionFrame(runtime, undefined);
+          }
+          return;
+        }
+        console.log('[selectionTool.onPointerDown] IS over selection, proceeding with drag setup');
+      }
 
       const transforms = new Map<string, CanonicalShapeTransform>();
       const resizeEntries = new Map<string, ShapeResizeEntry>();

@@ -117,7 +117,7 @@ describe('createVanillaDrawingApp', () => {
       zIndex: 'z',
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: { x: 0, y: 0 },
+        translation: { x: 150, y: 150 },
         rotation: Math.PI / 4,
         scale: { x: 1, y: 1 },
       },
@@ -126,14 +126,17 @@ describe('createVanillaDrawingApp', () => {
     app.store.setSelection([shapeId], shapeId);
     const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
     stubOverlayRect(overlay, 300, 300);
-    dispatchPointer(overlay, 'pointermove', 150, 150, 0);
+
+    // Trigger interaction to render handles
+    dispatchPointer(overlay, 'pointerdown', 150, 150, 1);
+    dispatchPointer(overlay, 'pointerup', 150, 150, 0);
 
     const axisHandle = qs<HTMLElement>(container, '[data-handle="mid-right"]')!;
     expect(axisHandle).not.toBeNull();
     const handleTop = parseFloat(axisHandle.style.top);
     const handleHeight = parseFloat(axisHandle.style.height);
     const centerY = handleTop + handleHeight / 2;
-    expect(centerY).not.toBeCloseTo(0, 3);
+    expect(centerY).not.toBeCloseTo(150, 3);
     app.destroy();
   });
 
@@ -190,6 +193,73 @@ describe('createVanillaDrawingApp', () => {
     dispatchPointer(overlay, 'pointerup', 150, 100, 0);
     expect(app.store.getDrafts()).toHaveLength(0);
     expect(Object.values(app.store.getDocument().shapes)).toHaveLength(1);
+
+    app.destroy();
+  });
+
+  test('clears selection frame when clicking away from multi-select', () => {
+    const { container } = setupDom();
+    const app = createVanillaDrawingApp({ container, width: 400, height: 300 });
+
+    // Add two rectangles to the document
+    const doc = app.store.getDocument();
+    doc.shapes['rect-1'] = {
+      id: 'rect-1',
+      geometry: { type: 'rect', size: { width: 50, height: 50 } },
+      zIndex: 'a',
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 100, y: 100 },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+      },
+    };
+    doc.shapes['rect-2'] = {
+      id: 'rect-2',
+      geometry: { type: 'rect', size: { width: 50, height: 50 } },
+      zIndex: 'b',
+      interactions: { resizable: true, rotatable: true },
+      transform: {
+        translation: { x: 200, y: 100 },
+        rotation: 0,
+        scale: { x: 1, y: 1 },
+      },
+    };
+
+    // Activate selection tool and select both rectangles
+    app.store.activateTool('selection');
+    app.store.setSelection(['rect-1', 'rect-2'], 'rect-1');
+
+    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
+    stubOverlayRect(overlay, 400, 300);
+
+    // Click on one of the shapes to trigger selection-frame emission
+    dispatchPointer(overlay, 'pointerdown', 100, 100, 1);
+    dispatchPointer(overlay, 'pointerup', 100, 100, 0);
+
+    // Selection frame should now exist after interaction
+    let selectionFrame = app.store.getSelectionFrame();
+    expect(selectionFrame).not.toBeNull();
+
+    // Visual selection frame element should exist
+    let frameEl = qs<HTMLElement>(container, '.smalldraw-selection-frame');
+    expect(frameEl).not.toBeNull();
+
+    // Click outside the selection bounding box (which spans from 75,75 to 225,125)
+    // Click at (50, 50) which is outside
+    dispatchPointer(overlay, 'pointerdown', 50, 50, 1);
+    dispatchPointer(overlay, 'pointerup', 50, 50, 0);
+
+    // Selection should be cleared
+    expect(app.store.getSelection().ids.size).toBe(0);
+
+    // Selection frame should be cleared (null)
+    selectionFrame = app.store.getSelectionFrame();
+    expect(selectionFrame).toBeNull();
+
+    // Visual selection frame overlay should also be cleared
+    frameEl = qs<HTMLElement>(container, '.smalldraw-selection-frame');
+    expect(frameEl).toBeNull();
 
     app.destroy();
   });

@@ -345,12 +345,26 @@ function createPointerHandlers(
     const point = getPointerPoint(event, overlay);
     const payload = buildToolEvent(event, point);
     const activeTool = store.getActiveToolId();
+    const selectionBefore = store.getSelection();
+    console.log('[pointerDown] START', {
+      point,
+      activeTool,
+      shiftKey: event.shiftKey,
+      selectionBefore: { ids: Array.from(selectionBefore.ids), primaryId: selectionBefore.primaryId }
+    });
     if (activeTool === 'selection') {
       const handleId = hitTestHandles(point, store);
+      console.log('[pointerDown] hitTestHandles result:', handleId);
       if (handleId) {
         payload.handleId = handleId;
       } else {
+        console.log('[pointerDown] calling updateSelectionForPoint');
         updateSelectionForPoint(point, event.shiftKey, store);
+        const selectionAfter = store.getSelection();
+        console.log('[pointerDown] selection after updateSelectionForPoint:', {
+          ids: Array.from(selectionAfter.ids),
+          primaryId: selectionAfter.primaryId
+        });
       }
     }
     try {
@@ -358,7 +372,9 @@ function createPointerHandlers(
     } catch {
       // Pointer capture can fail with synthetic events or if pointer was released
     }
+    console.log('[pointerDown] dispatching to tool with payload:', payload);
     store.dispatch('pointerDown', payload);
+    console.log('[pointerDown] END');
   }
 
   function handlePointerMove(event: PointerEvent) {
@@ -512,7 +528,6 @@ function resolveAxisHandlePoint(handleId: string, shape: Shape): Point | null {
       return null;
   }
   const world = applyTransformToPoint(local, shape.transform);
-  console.debug('[selection] axis handle', { handleId, local, world, transform: shape.transform });
   return world;
 }
 
@@ -557,18 +572,73 @@ function hitTestHandles(point: Point, store: DrawingStore): string | undefined {
 }
 
 function updateSelectionForPoint(point: Point, additive: boolean, store: DrawingStore) {
+  const selection = store.getSelection();
+  console.log('[updateSelectionForPoint] START', {
+    point,
+    additive,
+    selectionIds: Array.from(selection.ids),
+    selectionSize: selection.ids.size
+  });
+
+  // If clicking within current selection bounds, don't change selection (allow drag)
+  if (selection.ids.size > 0 && !additive) {
+    const inBounds = isPointInSelectionBounds(point, store);
+    console.log('[updateSelectionForPoint] checking if in selection bounds:', inBounds);
+    if (inBounds) {
+      console.log('[updateSelectionForPoint] EARLY RETURN - point is in selection bounds');
+      return;
+    }
+  }
+
   const hit = hitTestShapes(point, store);
+  console.log('[updateSelectionForPoint] hitTestShapes result:', hit?.id ?? null);
   if (hit) {
     if (additive) {
+      console.log('[updateSelectionForPoint] toggling selection for:', hit.id);
       store.toggleSelection(hit.id);
     } else {
+      console.log('[updateSelectionForPoint] setting selection to:', hit.id);
       store.setSelection([hit.id], hit.id);
     }
     return;
   }
   if (!additive) {
+    console.log('[updateSelectionForPoint] clearing selection (clicked empty space)');
     store.clearSelection();
   }
+}
+
+function isPointInSelectionBounds(point: Point, store: DrawingStore): boolean {
+  const selection = store.getSelection();
+  const ids = Array.from(selection.ids);
+  console.log('[isPointInSelectionBounds] checking point', point, 'against selection ids:', ids);
+  if (!ids.length) {
+    console.log('[isPointInSelectionBounds] no selection, returning false');
+    return false;
+  }
+
+  const doc = store.getDocument();
+  const registry = store.getShapeHandlers();
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  for (const id of ids) {
+    const shape = doc.shapes[id];
+    if (!shape) {
+      console.log('[isPointInSelectionBounds] shape not found:', id);
+      continue;
+    }
+    const bounds = getShapeBounds(shape, registry);
+    console.log('[isPointInSelectionBounds] shape', id, 'bounds:', bounds);
+    minX = Math.min(minX, bounds.minX);
+    minY = Math.min(minY, bounds.minY);
+    maxX = Math.max(maxX, bounds.maxX);
+    maxY = Math.max(maxY, bounds.maxY);
+  }
+
+  const selectionBounds = { minX, minY, maxX, maxY };
+  const isInside = point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
+  console.log('[isPointInSelectionBounds] selection bounds:', selectionBounds, 'point:', point, 'isInside:', isInside);
+  return isInside;
 }
 
 function hitTestShapes(point: Point, store: DrawingStore): Shape | null {

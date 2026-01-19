@@ -6,8 +6,8 @@ This repository keeps the data model (`@smalldraw/core`), renderer (`@smalldraw/
 
 1. **Define the geometry interface** in `packages/core/src/model/geometry.ts`. Give it a unique `type` string and any parameters it needs (radii, points, etc.).
 2. **Export the geometry** from `packages/core/src/index.ts` so other packages can import it.
-3. **Canonicalize transforms** in `packages/core/src/model/shape.ts` if the geometry depends on world/local coordinates (e.g., point lists or paths). Update `canonicalizeShape` to normalize its data and translation.
-4. **Update bounds + tools**: ensure `getGeometryLocalBounds` (same file) knows how to compute selection bounds. Add or update tool logic and undo actions if the shape is editable through user input.
+3. **Register a shape handler** in `packages/core/src/model/shapeHandlers.ts`. Provide `geometry.getBounds()` at minimum, plus optional `canonicalize`, `shape.hitTest`, and `selection` operations (resize, axis resize, etc.) for interactive shapes.
+4. **Update tools and actions** if the shape is editable through user input. Selection and hit testing will use the handler registry, so ensure the handler is complete before wiring tool logic.
 5. **Add unit tests** that exercise the new geometry’s math (bounds, transforms, actions). Use Bun’s test runner in `packages/core`.
 
 ## 2. Wire up the Konva Renderer

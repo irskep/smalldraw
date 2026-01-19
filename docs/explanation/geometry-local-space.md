@@ -59,8 +59,8 @@ function applyTransformToPoint(point, transform): Point {
 Shape to world bounds:
 
 ```typescript
-function getShapeBounds(shape): Bounds {
-  const localBounds = getGeometryLocalBounds(shape.geometry);
+function getShapeBounds(shape, registry): Bounds {
+  const localBounds = getGeometryLocalBounds(shape.geometry, registry);
   const corners = [topLeft, topRight, bottomRight, bottomLeft];
   const worldCorners = corners.map(c => applyTransformToPoint(c, shape.transform));
   return boundingBoxOf(worldCorners);
@@ -68,6 +68,8 @@ function getShapeBounds(shape): Bounds {
 ```
 
 World bounds of a rotated shape is axis-aligned—larger than local bounds.
+
+In application code, the registry comes from `store.getShapeHandlers()` or `runtime.getShapeHandlers()`.
 
 ## When Each Space Matters
 

@@ -5,13 +5,19 @@ All document changes go through actions. An action knows how to apply a change a
 ## The Action Interface
 
 ```typescript
+interface ActionContext {
+  registry: ShapeHandlerRegistry;
+}
+
 interface UndoableAction {
-  redo(doc: DrawingDocument): void;
-  undo(doc: DrawingDocument): void;
+  redo(doc: DrawingDocument, ctx: ActionContext): void;
+  undo(doc: DrawingDocument, ctx: ActionContext): void;
+  affectedShapeIds(): string[];
+  affectsZOrder(): boolean;
 }
 ```
 
-Both methods receive the document and mutate it directly. `redo` applies the change; `undo` reverses it.
+Both methods receive the document and action context and mutate the document directly. `redo` applies the change; `undo` reverses it. The context currently carries the shape handler registry for canonicalization and geometry logic. The metadata helpers (`affectedShapeIds`, `affectsZOrder`) let the store update dirty state and caches efficiently.
 
 ## Redo-First Design
 
@@ -25,7 +31,7 @@ sequenceDiagram
     participant Document
 
     Tool->>UndoManager: apply(action)
-    UndoManager->>Action: redo(doc)
+    UndoManager->>Action: redo(doc, ctx)
     Action->>Document: mutate
     UndoManager->>UndoManager: push to undo stack
 ```
@@ -40,12 +46,20 @@ Actions capture what they need to reverse themselves. `AddShape` keeps the shape
 class AddShape implements UndoableAction {
   constructor(private shape: Shape) {}
 
-  redo(doc: DrawingDocument): void {
-    doc.shapes[this.shape.id] = this.shape;
+  redo(doc: DrawingDocument, ctx: ActionContext): void {
+    doc.shapes[this.shape.id] = canonicalizeShape(this.shape, ctx.registry);
   }
 
-  undo(doc: DrawingDocument): void {
+  undo(doc: DrawingDocument, ctx: ActionContext): void {
     delete doc.shapes[this.shape.id];
+  }
+
+  affectedShapeIds(): string[] {
+    return [this.shape.id];
+  }
+
+  affectsZOrder(): boolean {
+    return true;
   }
 }
 ```
@@ -53,7 +67,7 @@ class AddShape implements UndoableAction {
 Actions that modify existing data capture previous state during `redo`:
 
 ```typescript
-redo(doc: DrawingDocument): void {
+redo(doc: DrawingDocument, ctx: ActionContext): void {
   const shape = doc.shapes[this.shapeId];
   this.previousTransform = shape.transform;  // capture for undo
   shape.transform = this.newTransform;
@@ -90,13 +104,21 @@ Multiple changes that should undo together:
 class CompositeAction implements UndoableAction {
   constructor(private actions: UndoableAction[]) {}
 
-  redo(doc): void {
-    this.actions.forEach(a => a.redo(doc));
+  redo(doc, ctx): void {
+    this.actions.forEach(a => a.redo(doc, ctx));
   }
 
-  undo(doc): void {
+  undo(doc, ctx): void {
     // Reverse order
-    [...this.actions].reverse().forEach(a => a.undo(doc));
+    [...this.actions].reverse().forEach(a => a.undo(doc, ctx));
+  }
+
+  affectedShapeIds(): string[] {
+    return this.actions.flatMap(action => action.affectedShapeIds());
+  }
+
+  affectsZOrder(): boolean {
+    return this.actions.some(action => action.affectsZOrder());
   }
 }
 ```
