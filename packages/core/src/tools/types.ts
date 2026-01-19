@@ -58,13 +58,13 @@ export interface ToolRuntime {
   /** Access shared drawing settings (stroke color/width, fill color, etc.). */
   getSharedSettings<TSettings = SharedToolSettings>(): TSettings;
   updateSharedSettings<TSettings = SharedToolSettings>(
-    updater: Partial<TSettings> | ((prev: TSettings) => TSettings)
+    updater: Partial<TSettings> | ((prev: TSettings) => TSettings),
   ): void;
   /** Access tool-specific state persisted across activations. */
   getToolState<TState = unknown>(): TState | undefined;
   setToolState<TState = unknown>(state: TState): void;
   updateToolState<TState = unknown>(
-    updater: (prev: TState | undefined) => TState
+    updater: (prev: TState | undefined) => TState,
   ): void;
   clearToolState(): void;
   /** Selection helpers */
@@ -75,10 +75,10 @@ export interface ToolRuntime {
   isSelected(id: string): boolean;
   getShape(shapeId: string): Shape | undefined;
   /** Get the shape handler registry for this drawing session */
-  getShapeHandlers(): import('../model/shapeHandlers').ShapeHandlerRegistry;
+  getShapeHandlers(): import("../model/shapeHandlers").ShapeHandlerRegistry;
   onEvent<TPayload>(
     type: ToolRuntimeEvent<TPayload>["type"],
-    listener: (payload: TPayload) => void
+    listener: (payload: TPayload) => void,
   ): () => void;
   emit<TPayload>(event: ToolRuntimeEvent<TPayload>): void;
 }

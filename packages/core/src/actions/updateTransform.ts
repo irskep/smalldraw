@@ -9,7 +9,7 @@ export class UpdateShapeTransform implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly nextTransform: ShapeTransform
+    private readonly nextTransform: ShapeTransform,
   ) {}
 
   redo(doc: DrawingDocument, ctx: ActionContext): void {

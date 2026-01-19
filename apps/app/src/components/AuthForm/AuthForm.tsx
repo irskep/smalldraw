@@ -17,7 +17,7 @@ export const AuthForm = ({ onSubmit, isPending, children }: Props) => {
       onSubmit={(
         e: React.FormEvent<HTMLFormElement> & {
           nativeEvent: { submitter: HTMLButtonElement };
-        }
+        },
       ) => {
         e.preventDefault();
         onSubmit({ username, password });

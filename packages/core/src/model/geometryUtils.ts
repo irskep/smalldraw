@@ -1,6 +1,11 @@
-import type { Point, Bounds } from './primitives';
+import type { Point, Bounds } from "./primitives";
 
-function createBounds(minX: number, minY: number, maxX: number, maxY: number): Bounds {
+function createBounds(
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+): Bounds {
   return {
     minX,
     minY,
@@ -23,7 +28,12 @@ export function getBoundsFromPoints(points: Point[]): Bounds | null {
     maxX = Math.max(maxX, point.x);
     maxY = Math.max(maxY, point.y);
   }
-  if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+  if (
+    !isFinite(minX) ||
+    !isFinite(minY) ||
+    !isFinite(maxX) ||
+    !isFinite(maxY)
+  ) {
     return null;
   }
   return createBounds(minX, minY, maxX, maxY);

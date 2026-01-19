@@ -41,7 +41,7 @@ app.use(
   trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext,
-  })
+  }),
 );
 
 app.use(express.static(staticDir, { index: false }));

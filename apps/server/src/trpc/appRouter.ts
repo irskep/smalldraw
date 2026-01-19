@@ -54,7 +54,7 @@ export const appRouter = router({
       z.object({
         id: z.string(),
         name: z.string(),
-      })
+      }),
     )
     .mutation(async (opts) => {
       const updatedDocument = await updateDocument({
@@ -68,7 +68,7 @@ export const appRouter = router({
     .input(
       z.object({
         name: z.string(),
-      })
+      }),
     )
     .mutation(async (opts) => {
       const { documentId } = repo.create();
@@ -84,7 +84,7 @@ export const appRouter = router({
     .input(
       z.object({
         documentId: z.string(),
-      })
+      }),
     )
     .mutation(async (opts) => {
       const documentInvitation = await createOrRefreshDocumentInvitation({
@@ -109,7 +109,7 @@ export const appRouter = router({
     .input(
       z.object({
         token: z.string(),
-      })
+      }),
     )
     .mutation(async (opts) => {
       const result = await addUserToDocument({
@@ -149,7 +149,7 @@ export const appRouter = router({
           serverSetup: getOpaqueServerSetup(),
           userIdentifier,
           registrationRequest,
-        }
+        },
       );
 
       return { registrationResponse };

@@ -18,7 +18,7 @@ const TanStackRouterDevtools =
         // lazy load in development
         import("@tanstack/router-devtools").then((res) => ({
           default: res.TanStackRouterDevtools,
-        }))
+        })),
       );
 
 const getRedirectParam = () => {

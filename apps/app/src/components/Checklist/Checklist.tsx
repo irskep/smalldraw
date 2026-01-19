@@ -54,7 +54,7 @@ export const Checklist = ({ docUrl }: { docUrl: AutomergeUrl }) => {
             .sort(
               (a, b) =>
                 new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime()
+                new Date(a.createdAt).getTime(),
             )
             .map((checklistItem) => (
               <li key={checklistItem.id}>

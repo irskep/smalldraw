@@ -1,6 +1,6 @@
-import type { Point } from '@smalldraw/core';
-import getStroke from 'perfect-freehand';
-import type { StrokeOptions as FreehandStrokeOptions } from 'perfect-freehand';
+import type { Point } from "@smalldraw/core";
+import getStroke from "perfect-freehand";
+import type { StrokeOptions as FreehandStrokeOptions } from "perfect-freehand";
 
 export type StrokePathOptions = FreehandStrokeOptions;
 
@@ -39,18 +39,21 @@ export function flattenOutline(outline: number[][]): number[] {
 
 export function outlineToPath(outline: number[][]): string {
   if (!outline.length) {
-    return '';
+    return "";
   }
   const commands: string[] = [];
   for (let i = 0; i < outline.length; i += 1) {
     const [x, y] = outline[i];
-    commands.push(`${i === 0 ? 'M' : 'L'}${x} ${y}`);
+    commands.push(`${i === 0 ? "M" : "L"}${x} ${y}`);
   }
-  commands.push('Z');
-  return commands.join(' ');
+  commands.push("Z");
+  return commands.join(" ");
 }
 
-function createDotStroke(point: Point, options?: StrokePathOptions): StrokePolygonResult {
+function createDotStroke(
+  point: Point,
+  options?: StrokePathOptions,
+): StrokePolygonResult {
   const radius = Math.max(1, (options?.size ?? 1) / 2);
   const outline: number[][] = [
     [point.x - radius, point.y - radius],

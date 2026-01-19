@@ -1,13 +1,18 @@
-import type { Geometry } from './geometry';
-import type { Point, Bounds } from './primitives';
-import type { Shape, ShapeTransform, CanonicalShapeTransform } from './shape';
-import { normalizeShapeTransform } from './shape';
-import type { ShapeHandlerRegistry } from './shapeHandlers';
-import { getBoundsFromPoints } from './geometryUtils';
+import type { Geometry } from "./geometry";
+import type { Point, Bounds } from "./primitives";
+import type { Shape, ShapeTransform, CanonicalShapeTransform } from "./shape";
+import { normalizeShapeTransform } from "./shape";
+import type { ShapeHandlerRegistry } from "./shapeHandlers";
+import { getBoundsFromPoints } from "./geometryUtils";
 
-export { getBoundsFromPoints } from './geometryUtils';
+export { getBoundsFromPoints } from "./geometryUtils";
 
-function createBounds(minX: number, minY: number, maxX: number, maxY: number): Bounds {
+function createBounds(
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+): Bounds {
   return {
     minX,
     minY,
@@ -39,7 +44,8 @@ export function applyTransformToPoint(
     x: (point.x - origin.x) * scale.x,
     y: (point.y - origin.y) * scale.y,
   };
-  const rotated = rotation === 0 ? translated : rotatePoint(translated, rotation);
+  const rotated =
+    rotation === 0 ? translated : rotatePoint(translated, rotation);
   return {
     x: rotated.x + origin.x + translation.x,
     y: rotated.y + origin.y + translation.y,
@@ -60,7 +66,9 @@ export function getShapeBounds(
   registry: ShapeHandlerRegistry,
   transformOverride?: ShapeTransform | CanonicalShapeTransform | null,
 ): Bounds {
-  const transform = normalizeShapeTransform(transformOverride ?? shape.transform);
+  const transform = normalizeShapeTransform(
+    transformOverride ?? shape.transform,
+  );
   const geometryBounds = getGeometryLocalBounds(shape.geometry, registry);
   const corners: Point[] = geometryBounds
     ? [
@@ -81,9 +89,19 @@ export function getShapeBounds(
     maxX = Math.max(maxX, world.x);
     maxY = Math.max(maxY, world.y);
   }
-  if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+  if (
+    !isFinite(minX) ||
+    !isFinite(minY) ||
+    !isFinite(maxX) ||
+    !isFinite(maxY)
+  ) {
     const { translation } = transform;
-    return createBounds(translation.x, translation.y, translation.x, translation.y);
+    return createBounds(
+      translation.x,
+      translation.y,
+      translation.x,
+      translation.y,
+    );
   }
   const baseBounds = createBounds(minX, minY, maxX, maxY);
   return applyStrokePadding(baseBounds, shape);

@@ -1,10 +1,24 @@
-import type { Point } from '../model/primitives';
-import type { ToolEventHandler, ToolRuntime } from './types';
+import type { Point } from "../model/primitives";
+import type { ToolEventHandler, ToolRuntime } from "./types";
 
 export interface DragCallbacks<TState> {
-  onStart: (point: Point, event: PointerDragEvent, runtime: ToolRuntime) => TState | null;
-  onMove?: (state: TState, point: Point, event: PointerDragEvent, runtime: ToolRuntime) => void;
-  onEnd?: (state: TState, point: Point, event: PointerDragEvent, runtime: ToolRuntime) => void;
+  onStart: (
+    point: Point,
+    event: PointerDragEvent,
+    runtime: ToolRuntime,
+  ) => TState | null;
+  onMove?: (
+    state: TState,
+    point: Point,
+    event: PointerDragEvent,
+    runtime: ToolRuntime,
+  ) => void;
+  onEnd?: (
+    state: TState,
+    point: Point,
+    event: PointerDragEvent,
+    runtime: ToolRuntime,
+  ) => void;
   onCancel?: (state: TState | null, runtime: ToolRuntime) => void;
 }
 
@@ -45,10 +59,10 @@ export function createPointerDragHandler<TState>(
   };
 
   const disposers: Array<() => void> = [];
-  disposers.push(runtime.on('pointerDown', handlePointerDown));
-  disposers.push(runtime.on('pointerMove', handlePointerMove));
-  disposers.push(runtime.on('pointerUp', handlePointerUp));
-  disposers.push(runtime.on('pointerCancel', handlePointerCancel));
+  disposers.push(runtime.on("pointerDown", handlePointerDown));
+  disposers.push(runtime.on("pointerMove", handlePointerMove));
+  disposers.push(runtime.on("pointerUp", handlePointerUp));
+  disposers.push(runtime.on("pointerCancel", handlePointerCancel));
 
   return () => {
     disposers.forEach((dispose) => dispose());

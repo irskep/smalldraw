@@ -8,132 +8,132 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as LoginRouteImport } from './routes/login'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as RegisterRouteImport } from "./routes/register";
+import { Route as LoginRouteImport } from "./routes/login";
 
-const IndexLazyRouteImport = createFileRoute('/')()
-const ListDocumentIdLazyRouteImport = createFileRoute('/list/$documentId')()
-const InvitationTokenLazyRouteImport = createFileRoute('/invitation/$token')()
+const IndexLazyRouteImport = createFileRoute("/")();
+const ListDocumentIdLazyRouteImport = createFileRoute("/list/$documentId")();
+const InvitationTokenLazyRouteImport = createFileRoute("/invitation/$token")();
 
 const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
+  id: "/register",
+  path: "/register",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+  id: "/login",
+  path: "/login",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const IndexLazyRoute = IndexLazyRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+} as any).lazy(() => import("./routes/index.lazy").then((d) => d.Route));
 const ListDocumentIdLazyRoute = ListDocumentIdLazyRouteImport.update({
-  id: '/list/$documentId',
-  path: '/list/$documentId',
+  id: "/list/$documentId",
+  path: "/list/$documentId",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() =>
-  import('./routes/list/$documentId.lazy').then((d) => d.Route),
-)
+  import("./routes/list/$documentId.lazy").then((d) => d.Route),
+);
 const InvitationTokenLazyRoute = InvitationTokenLazyRouteImport.update({
-  id: '/invitation/$token',
-  path: '/invitation/$token',
+  id: "/invitation/$token",
+  path: "/invitation/$token",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() =>
-  import('./routes/invitation/$token.lazy').then((d) => d.Route),
-)
+  import("./routes/invitation/$token.lazy").then((d) => d.Route),
+);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexLazyRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/invitation/$token': typeof InvitationTokenLazyRoute
-  '/list/$documentId': typeof ListDocumentIdLazyRoute
+  "/": typeof IndexLazyRoute;
+  "/login": typeof LoginRoute;
+  "/register": typeof RegisterRoute;
+  "/invitation/$token": typeof InvitationTokenLazyRoute;
+  "/list/$documentId": typeof ListDocumentIdLazyRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexLazyRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/invitation/$token': typeof InvitationTokenLazyRoute
-  '/list/$documentId': typeof ListDocumentIdLazyRoute
+  "/": typeof IndexLazyRoute;
+  "/login": typeof LoginRoute;
+  "/register": typeof RegisterRoute;
+  "/invitation/$token": typeof InvitationTokenLazyRoute;
+  "/list/$documentId": typeof ListDocumentIdLazyRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexLazyRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/invitation/$token': typeof InvitationTokenLazyRoute
-  '/list/$documentId': typeof ListDocumentIdLazyRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexLazyRoute;
+  "/login": typeof LoginRoute;
+  "/register": typeof RegisterRoute;
+  "/invitation/$token": typeof InvitationTokenLazyRoute;
+  "/list/$documentId": typeof ListDocumentIdLazyRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/login'
-    | '/register'
-    | '/invitation/$token'
-    | '/list/$documentId'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/invitation/$token' | '/list/$documentId'
+    | "/"
+    | "/login"
+    | "/register"
+    | "/invitation/$token"
+    | "/list/$documentId";
+  fileRoutesByTo: FileRoutesByTo;
+  to: "/" | "/login" | "/register" | "/invitation/$token" | "/list/$documentId";
   id:
-    | '__root__'
-    | '/'
-    | '/login'
-    | '/register'
-    | '/invitation/$token'
-    | '/list/$documentId'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/"
+    | "/login"
+    | "/register"
+    | "/invitation/$token"
+    | "/list/$documentId";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexLazyRoute: typeof IndexLazyRoute
-  LoginRoute: typeof LoginRoute
-  RegisterRoute: typeof RegisterRoute
-  InvitationTokenLazyRoute: typeof InvitationTokenLazyRoute
-  ListDocumentIdLazyRoute: typeof ListDocumentIdLazyRoute
+  IndexLazyRoute: typeof IndexLazyRoute;
+  LoginRoute: typeof LoginRoute;
+  RegisterRoute: typeof RegisterRoute;
+  InvitationTokenLazyRoute: typeof InvitationTokenLazyRoute;
+  ListDocumentIdLazyRoute: typeof ListDocumentIdLazyRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/list/$documentId': {
-      id: '/list/$documentId'
-      path: '/list/$documentId'
-      fullPath: '/list/$documentId'
-      preLoaderRoute: typeof ListDocumentIdLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/invitation/$token': {
-      id: '/invitation/$token'
-      path: '/invitation/$token'
-      fullPath: '/invitation/$token'
-      preLoaderRoute: typeof InvitationTokenLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    "/register": {
+      id: "/register";
+      path: "/register";
+      fullPath: "/register";
+      preLoaderRoute: typeof RegisterRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/login": {
+      id: "/login";
+      path: "/login";
+      fullPath: "/login";
+      preLoaderRoute: typeof LoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexLazyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/list/$documentId": {
+      id: "/list/$documentId";
+      path: "/list/$documentId";
+      fullPath: "/list/$documentId";
+      preLoaderRoute: typeof ListDocumentIdLazyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/invitation/$token": {
+      id: "/invitation/$token";
+      path: "/invitation/$token";
+      fullPath: "/invitation/$token";
+      preLoaderRoute: typeof InvitationTokenLazyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
@@ -143,7 +143,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   InvitationTokenLazyRoute: InvitationTokenLazyRoute,
   ListDocumentIdLazyRoute: ListDocumentIdLazyRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();

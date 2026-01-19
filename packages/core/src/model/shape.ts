@@ -1,7 +1,7 @@
-import type { Geometry } from './geometry';
-import type { Fill, StrokeStyle } from './style';
-import { getBoundsCenter } from './geometryBounds';
-import type { ShapeHandlerRegistry } from './shapeHandlers';
+import type { Geometry } from "./geometry";
+import type { Fill, StrokeStyle } from "./style";
+import { getBoundsCenter } from "./geometryBounds";
+import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
 export interface CanonicalShapeTransform {
   translation: { x: number; y: number };

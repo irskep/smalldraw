@@ -71,7 +71,7 @@ export const App: React.FC = () => {
             retry: false,
           },
         },
-      })
+      }),
   );
 
   return (

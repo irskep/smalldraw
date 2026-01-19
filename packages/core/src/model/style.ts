@@ -5,12 +5,12 @@ export interface GradientStop {
 }
 
 export interface SolidFill {
-  type: 'solid';
+  type: "solid";
   color: string;
 }
 
 export interface GradientFill {
-  type: 'gradient';
+  type: "gradient";
   stops: GradientStop[];
   angle: number;
 }
@@ -18,7 +18,7 @@ export interface GradientFill {
 export type Fill = SolidFill | GradientFill;
 
 export interface BrushStyle {
-  type: 'brush';
+  type: "brush";
   color: string;
   size: number;
   brushId?: string;

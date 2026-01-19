@@ -1,11 +1,14 @@
-import { describe, expect, test } from 'bun:test';
-import { Window } from 'happy-dom';
-import { Canvas, Image } from 'canvas';
+import { describe, expect, test } from "bun:test";
+import { Window } from "happy-dom";
+import { Canvas, Image } from "canvas";
 
-import { createVanillaDrawingApp } from '../createVanillaDrawingApp';
+import { createVanillaDrawingApp } from "../createVanillaDrawingApp";
 
 // happy-dom types don't match standard DOM types, so we cast through unknown
-function qs<T extends Element>(container: HTMLElement, selector: string): T | null {
+function qs<T extends Element>(
+  container: HTMLElement,
+  selector: string,
+): T | null {
   return container.querySelector(selector) as unknown as T | null;
 }
 
@@ -15,33 +18,47 @@ function setupDom() {
   (globalThis as any).window = windowInstance as any;
   (globalThis as any).document = document;
   (globalThis as any).HTMLElement = windowInstance.HTMLElement;
-  (globalThis as any).HTMLCanvasElement = Canvas as unknown as typeof windowInstance.HTMLCanvasElement;
-  (globalThis as any).HTMLImageElement = Image as unknown as typeof windowInstance.HTMLImageElement;
+  (globalThis as any).HTMLCanvasElement =
+    Canvas as unknown as typeof windowInstance.HTMLCanvasElement;
+  (globalThis as any).HTMLImageElement =
+    Image as unknown as typeof windowInstance.HTMLImageElement;
   (globalThis as any).navigator = windowInstance.navigator;
-  (globalThis as any).PointerEvent = (windowInstance as any).PointerEvent ?? windowInstance.MouseEvent;
-  const container = document.createElement('div');
+  (globalThis as any).PointerEvent =
+    (windowInstance as any).PointerEvent ?? windowInstance.MouseEvent;
+  const container = document.createElement("div");
   document.body.appendChild(container);
   // Cast to standard DOM type for use with createVanillaDrawingApp
-  return { window: windowInstance, document, container: container as unknown as HTMLElement };
+  return {
+    window: windowInstance,
+    document,
+    container: container as unknown as HTMLElement,
+  };
 }
 
 function stubOverlayRect(overlay: HTMLElement, width: number, height: number) {
-  overlay.getBoundingClientRect = () => ({
-    x: 0,
-    y: 0,
-    width,
-    height,
-    left: 0,
-    top: 0,
-    right: width,
-    bottom: height,
-    toJSON() {
-      return {};
-    },
-  }) as DOMRect;
+  overlay.getBoundingClientRect = () =>
+    ({
+      x: 0,
+      y: 0,
+      width,
+      height,
+      left: 0,
+      top: 0,
+      right: width,
+      bottom: height,
+      toJSON() {
+        return {};
+      },
+    }) as DOMRect;
 }
 
-function dispatchPointer(overlay: HTMLElement, type: string, x: number, y: number, buttons = 1) {
+function dispatchPointer(
+  overlay: HTMLElement,
+  type: string,
+  x: number,
+  y: number,
+  buttons = 1,
+) {
   const PointerCtor = (globalThis as any).PointerEvent ?? globalThis.MouseEvent;
   const event = new PointerCtor(type, {
     bubbles: true,
@@ -53,68 +70,82 @@ function dispatchPointer(overlay: HTMLElement, type: string, x: number, y: numbe
   overlay.dispatchEvent(event);
 }
 
-describe('createVanillaDrawingApp', () => {
-  test('draws a rectangle via pointer interaction', () => {
+describe("createVanillaDrawingApp", () => {
+  test("draws a rectangle via pointer interaction", () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container, width: 300, height: 200 });
     const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
     rectBtn?.click();
 
-    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
+    const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;
     stubOverlayRect(overlay, 300, 200);
 
-    dispatchPointer(overlay, 'pointerdown', 50, 50, 1);
-    dispatchPointer(overlay, 'pointermove', 180, 150, 1);
-    dispatchPointer(overlay, 'pointerup', 180, 150, 0);
+    dispatchPointer(overlay, "pointerdown", 50, 50, 1);
+    dispatchPointer(overlay, "pointermove", 180, 150, 1);
+    dispatchPointer(overlay, "pointerup", 180, 150, 0);
 
     const shapes = Object.values(app.store.getDocument().shapes);
     expect(shapes).toHaveLength(1);
-    expect(shapes[0]?.geometry.type).toBe('rect');
+    expect(shapes[0]?.geometry.type).toBe("rect");
     app.destroy();
   });
 
-  test('updates shared colors via palette clicks', () => {
+  test("updates shared colors via palette clicks", () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container });
-    const strokeRow = qs<HTMLElement>(container, '[data-role="stroke-swatches"]');
-    const target = qs<HTMLButtonElement>(strokeRow!, 'button[data-color="#ff4b4b"]');
+    const strokeRow = qs<HTMLElement>(
+      container,
+      '[data-role="stroke-swatches"]',
+    );
+    const target = qs<HTMLButtonElement>(
+      strokeRow!,
+      'button[data-color="#ff4b4b"]',
+    );
     target?.click();
-    expect(app.store.getSharedSettings().strokeColor.toLowerCase()).toBe('#ff4b4b');
+    expect(app.store.getSharedSettings().strokeColor.toLowerCase()).toBe(
+      "#ff4b4b",
+    );
     app.destroy();
   });
 
-  test('selects and undoes shapes via toolbar controls', () => {
+  test("selects and undoes shapes via toolbar controls", () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container, width: 320, height: 240 });
     const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
     rectBtn?.click();
-    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
+    const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;
     stubOverlayRect(overlay, 320, 240);
-    dispatchPointer(overlay, 'pointerdown', 40, 40, 1);
-    dispatchPointer(overlay, 'pointermove', 140, 120, 1);
-    dispatchPointer(overlay, 'pointerup', 140, 120, 0);
+    dispatchPointer(overlay, "pointerdown", 40, 40, 1);
+    dispatchPointer(overlay, "pointermove", 140, 120, 1);
+    dispatchPointer(overlay, "pointerup", 140, 120, 0);
 
-    const selectBtn = qs<HTMLButtonElement>(container, '[data-tool="selection"]');
+    const selectBtn = qs<HTMLButtonElement>(
+      container,
+      '[data-tool="selection"]',
+    );
     selectBtn?.click();
-    dispatchPointer(overlay, 'pointerdown', 90, 80, 1);
-    dispatchPointer(overlay, 'pointerup', 90, 80, 0);
+    dispatchPointer(overlay, "pointerdown", 90, 80, 1);
+    dispatchPointer(overlay, "pointerup", 90, 80, 0);
     expect(app.store.getSelection().ids.size).toBe(1);
 
-    const undoBtn = qs<HTMLButtonElement>(container, 'button[data-action="undo"]');
+    const undoBtn = qs<HTMLButtonElement>(
+      container,
+      'button[data-action="undo"]',
+    );
     undoBtn?.click();
     expect(Object.values(app.store.getDocument().shapes)).toHaveLength(0);
     app.destroy();
   });
 
-  test('axis handles follow rotated rectangle geometry', () => {
+  test("axis handles follow rotated rectangle geometry", () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container, width: 300, height: 300 });
     const doc = app.store.getDocument();
-    const shapeId = 'rot-rect';
+    const shapeId = "rot-rect";
     doc.shapes[shapeId] = {
       id: shapeId,
-      geometry: { type: 'rect', size: { width: 40, height: 20 } },
-      zIndex: 'z',
+      geometry: { type: "rect", size: { width: 40, height: 20 } },
+      zIndex: "z",
       interactions: { resizable: true, rotatable: true },
       transform: {
         translation: { x: 150, y: 150 },
@@ -122,14 +153,14 @@ describe('createVanillaDrawingApp', () => {
         scale: { x: 1, y: 1 },
       },
     };
-    app.store.activateTool('selection');
+    app.store.activateTool("selection");
     app.store.setSelection([shapeId], shapeId);
-    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
+    const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;
     stubOverlayRect(overlay, 300, 300);
 
     // Trigger interaction to render handles
-    dispatchPointer(overlay, 'pointerdown', 150, 150, 1);
-    dispatchPointer(overlay, 'pointerup', 150, 150, 0);
+    dispatchPointer(overlay, "pointerdown", 150, 150, 1);
+    dispatchPointer(overlay, "pointerup", 150, 150, 0);
 
     const axisHandle = qs<HTMLElement>(container, '[data-handle="mid-right"]')!;
     expect(axisHandle).not.toBeNull();
@@ -140,73 +171,73 @@ describe('createVanillaDrawingApp', () => {
     app.destroy();
   });
 
-  test('renders draft shapes during pen tool interaction', () => {
+  test("renders draft shapes during pen tool interaction", () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container, width: 300, height: 200 });
     const penBtn = qs<HTMLButtonElement>(container, '[data-tool="pen"]');
     penBtn?.click();
 
-    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
+    const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;
     stubOverlayRect(overlay, 300, 200);
 
     // Start drawing with pen - creates initial draft
-    dispatchPointer(overlay, 'pointerdown', 50, 50, 1);
+    dispatchPointer(overlay, "pointerdown", 50, 50, 1);
     const draftsAfterDown = app.store.getDrafts();
     expect(draftsAfterDown.length).toBeGreaterThan(0);
-    expect(draftsAfterDown[0]?.geometry.type).toBe('pen');
+    expect(draftsAfterDown[0]?.geometry.type).toBe("pen");
 
     // Move updates draft shape
-    dispatchPointer(overlay, 'pointermove', 100, 100, 1);
+    dispatchPointer(overlay, "pointermove", 100, 100, 1);
     const draftsAfterMove = app.store.getDrafts();
     expect(draftsAfterMove.length).toBeGreaterThan(0);
-    expect(draftsAfterMove[0]?.geometry.type).toBe('pen');
+    expect(draftsAfterMove[0]?.geometry.type).toBe("pen");
 
     // Complete drawing
-    dispatchPointer(overlay, 'pointerup', 100, 100, 0);
+    dispatchPointer(overlay, "pointerup", 100, 100, 0);
     expect(app.store.getDrafts()).toHaveLength(0);
     expect(Object.values(app.store.getDocument().shapes)).toHaveLength(1);
 
     app.destroy();
   });
 
-  test('renders draft shapes during rect tool interaction', () => {
+  test("renders draft shapes during rect tool interaction", () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container, width: 300, height: 200 });
     const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
     rectBtn?.click();
 
-    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
+    const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;
     stubOverlayRect(overlay, 300, 200);
 
     // Start drawing rect
-    dispatchPointer(overlay, 'pointerdown', 50, 50, 1);
+    dispatchPointer(overlay, "pointerdown", 50, 50, 1);
     const draftsAfterDown = app.store.getDrafts();
     expect(draftsAfterDown.length).toBeGreaterThan(0);
 
     // Move updates draft shape
-    dispatchPointer(overlay, 'pointermove', 150, 100, 1);
+    dispatchPointer(overlay, "pointermove", 150, 100, 1);
     const draftsAfterMove = app.store.getDrafts();
     expect(draftsAfterMove.length).toBeGreaterThan(0);
-    expect(draftsAfterMove[0]?.geometry.type).toBe('rect');
+    expect(draftsAfterMove[0]?.geometry.type).toBe("rect");
 
     // Complete drawing
-    dispatchPointer(overlay, 'pointerup', 150, 100, 0);
+    dispatchPointer(overlay, "pointerup", 150, 100, 0);
     expect(app.store.getDrafts()).toHaveLength(0);
     expect(Object.values(app.store.getDocument().shapes)).toHaveLength(1);
 
     app.destroy();
   });
 
-  test('clears selection frame when clicking away from multi-select', () => {
+  test("clears selection frame when clicking away from multi-select", () => {
     const { container } = setupDom();
     const app = createVanillaDrawingApp({ container, width: 400, height: 300 });
 
     // Add two rectangles to the document
     const doc = app.store.getDocument();
-    doc.shapes['rect-1'] = {
-      id: 'rect-1',
-      geometry: { type: 'rect', size: { width: 50, height: 50 } },
-      zIndex: 'a',
+    doc.shapes["rect-1"] = {
+      id: "rect-1",
+      geometry: { type: "rect", size: { width: 50, height: 50 } },
+      zIndex: "a",
       interactions: { resizable: true, rotatable: true },
       transform: {
         translation: { x: 100, y: 100 },
@@ -214,10 +245,10 @@ describe('createVanillaDrawingApp', () => {
         scale: { x: 1, y: 1 },
       },
     };
-    doc.shapes['rect-2'] = {
-      id: 'rect-2',
-      geometry: { type: 'rect', size: { width: 50, height: 50 } },
-      zIndex: 'b',
+    doc.shapes["rect-2"] = {
+      id: "rect-2",
+      geometry: { type: "rect", size: { width: 50, height: 50 } },
+      zIndex: "b",
       interactions: { resizable: true, rotatable: true },
       transform: {
         translation: { x: 200, y: 100 },
@@ -227,28 +258,28 @@ describe('createVanillaDrawingApp', () => {
     };
 
     // Activate selection tool and select both rectangles
-    app.store.activateTool('selection');
-    app.store.setSelection(['rect-1', 'rect-2'], 'rect-1');
+    app.store.activateTool("selection");
+    app.store.setSelection(["rect-1", "rect-2"], "rect-1");
 
-    const overlay = qs<HTMLElement>(container, '.smalldraw-overlay')!;
+    const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;
     stubOverlayRect(overlay, 400, 300);
 
     // Click on one of the shapes to trigger selection-frame emission
-    dispatchPointer(overlay, 'pointerdown', 100, 100, 1);
-    dispatchPointer(overlay, 'pointerup', 100, 100, 0);
+    dispatchPointer(overlay, "pointerdown", 100, 100, 1);
+    dispatchPointer(overlay, "pointerup", 100, 100, 0);
 
     // Selection frame should now exist after interaction
     let selectionFrame = app.store.getSelectionFrame();
     expect(selectionFrame).not.toBeNull();
 
     // Visual selection frame element should exist
-    let frameEl = qs<HTMLElement>(container, '.smalldraw-selection-frame');
+    let frameEl = qs<HTMLElement>(container, ".smalldraw-selection-frame");
     expect(frameEl).not.toBeNull();
 
     // Click outside the selection bounding box (which spans from 75,75 to 225,125)
     // Click at (50, 50) which is outside
-    dispatchPointer(overlay, 'pointerdown', 50, 50, 1);
-    dispatchPointer(overlay, 'pointerup', 50, 50, 0);
+    dispatchPointer(overlay, "pointerdown", 50, 50, 1);
+    dispatchPointer(overlay, "pointerup", 50, 50, 0);
 
     // Selection should be cleared
     expect(app.store.getSelection().ids.size).toBe(0);
@@ -258,7 +289,7 @@ describe('createVanillaDrawingApp', () => {
     expect(selectionFrame).toBeNull();
 
     // Visual selection frame overlay should also be cleared
-    frameEl = qs<HTMLElement>(container, '.smalldraw-selection-frame');
+    frameEl = qs<HTMLElement>(container, ".smalldraw-selection-frame");
     expect(frameEl).toBeNull();
 
     app.destroy();

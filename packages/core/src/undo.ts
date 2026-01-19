@@ -1,11 +1,15 @@
-import type { DrawingDocument } from './model/document';
-import type { ActionContext, UndoableAction } from './actions';
+import type { DrawingDocument } from "./model/document";
+import type { ActionContext, UndoableAction } from "./actions";
 
 export class UndoManager {
   private undoStack: UndoableAction[] = [];
   private redoStack: UndoableAction[] = [];
 
-  apply(action: UndoableAction, doc: DrawingDocument, ctx: ActionContext): void {
+  apply(
+    action: UndoableAction,
+    doc: DrawingDocument,
+    ctx: ActionContext,
+  ): void {
     action.redo(doc, ctx);
     this.undoStack.push(action);
     this.redoStack = [];

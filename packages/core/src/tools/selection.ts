@@ -164,7 +164,7 @@ export function createSelectionTool(): ToolDefinition {
         : selection.primaryId
           ? [selection.primaryId]
           : [];
-      console.log('[selectionTool.onPointerDown] START', {
+      console.log("[selectionTool.onPointerDown] START", {
         point: event.point,
         handleId: event.handleId,
         shiftKey: event.shiftKey,
@@ -172,7 +172,9 @@ export function createSelectionTool(): ToolDefinition {
       });
       if (!selectionIds.length) {
         // No selection - ensure selection frame is cleared
-        console.log('[selectionTool.onPointerDown] no selection, clearing frame and returning');
+        console.log(
+          "[selectionTool.onPointerDown] no selection, clearing frame and returning",
+        );
         emitSelectionFrame(runtime, undefined);
         return;
       }
@@ -180,7 +182,7 @@ export function createSelectionTool(): ToolDefinition {
       const shapes = selectionIds
         .map((id) => runtime.getShape(id))
         .filter((shape): shape is Shape => Boolean(shape));
-      console.log('[selectionTool.onPointerDown] shapes found:', shapes.length);
+      console.log("[selectionTool.onPointerDown] shapes found:", shapes.length);
       if (!shapes.length) return;
 
       // Check if pointer is over the selection when not clicking on a handle
@@ -191,11 +193,17 @@ export function createSelectionTool(): ToolDefinition {
         if (shapes.length === 1) {
           // Single selection: hit test the shape itself
           isOverSelection = hitTestShape(shapes[0], event.point, registry);
-          console.log('[selectionTool.onPointerDown] single shape hit test:', isOverSelection);
+          console.log(
+            "[selectionTool.onPointerDown] single shape hit test:",
+            isOverSelection,
+          );
         } else {
           // Multi-selection: hit test the selection bounding box
           const { bounds } = computeSelectionBounds(shapes, runtime);
-          console.log('[selectionTool.onPointerDown] multi-select bounds:', bounds);
+          console.log(
+            "[selectionTool.onPointerDown] multi-select bounds:",
+            bounds,
+          );
           if (bounds) {
             isOverSelection =
               event.point.x >= bounds.minX &&
@@ -203,20 +211,30 @@ export function createSelectionTool(): ToolDefinition {
               event.point.y >= bounds.minY &&
               event.point.y <= bounds.maxY;
           }
-          console.log('[selectionTool.onPointerDown] multi-select hit test:', isOverSelection);
+          console.log(
+            "[selectionTool.onPointerDown] multi-select hit test:",
+            isOverSelection,
+          );
         }
 
         if (!isOverSelection) {
           // Clicked away from selection
-          console.log('[selectionTool.onPointerDown] NOT over selection, shiftKey:', event.shiftKey);
+          console.log(
+            "[selectionTool.onPointerDown] NOT over selection, shiftKey:",
+            event.shiftKey,
+          );
           if (!event.shiftKey) {
-            console.log('[selectionTool.onPointerDown] clearing selection and returning');
+            console.log(
+              "[selectionTool.onPointerDown] clearing selection and returning",
+            );
             runtime.clearSelection();
             emitSelectionFrame(runtime, undefined);
           }
           return;
         }
-        console.log('[selectionTool.onPointerDown] IS over selection, proceeding with drag setup');
+        console.log(
+          "[selectionTool.onPointerDown] IS over selection, proceeding with drag setup",
+        );
       }
 
       const transforms = new Map<string, CanonicalShapeTransform>();
@@ -262,7 +280,11 @@ export function createSelectionTool(): ToolDefinition {
         dragState.mode = "rotate";
         dragState.center = bounds
           ? getBoundsCenter(bounds)
-          : getShapeCenter(primaryShape, transforms.get(primaryShape.id)!, runtime);
+          : getShapeCenter(
+              primaryShape,
+              transforms.get(primaryShape.id)!,
+              runtime,
+            );
       } else if (
         behavior &&
         behavior.type === "resize-axis" &&
@@ -274,7 +296,7 @@ export function createSelectionTool(): ToolDefinition {
           behavior.axis,
           event.handleId,
           event.point,
-          runtime
+          runtime,
         );
         if (axisResize) {
           dragState.mode = "resize-axis";
@@ -291,13 +313,17 @@ export function createSelectionTool(): ToolDefinition {
           : "resize";
         dragState.oppositeCorner = getHandlePosition(
           bounds,
-          getOppositeHandle(event.handleId!)
+          getOppositeHandle(event.handleId!),
         );
       } else if (event.altKey && hasRotatableShape(shapes)) {
         dragState.mode = "rotate";
         dragState.center = bounds
           ? getBoundsCenter(bounds)
-          : getShapeCenter(primaryShape, transforms.get(primaryShape.id)!, runtime);
+          : getShapeCenter(
+              primaryShape,
+              transforms.get(primaryShape.id)!,
+              runtime,
+            );
       }
 
       ensureState(runtime).drag = dragState;
@@ -376,7 +402,7 @@ export function createSelectionTool(): ToolDefinition {
           onCancel() {
             onPointerCancel(runtime)({ point: { x: 0, y: 0 }, buttons: 0 });
           },
-        })
+        }),
       );
       state.disposers.add(runtime.on("pointerMove", onPointerMove(runtime)));
       runtime.emit({ type: "handles", payload: HANDLE_DESCRIPTORS });
@@ -395,7 +421,7 @@ export function createSelectionTool(): ToolDefinition {
 
 function computeSelectionBounds(
   shapes: Shape[],
-  runtime: ToolRuntime
+  runtime: ToolRuntime,
 ): SelectionBoundsResult {
   const shapeBounds = new Map<string, SelectionBounds>();
   if (!shapes.length) return { bounds: undefined, shapeBounds };
@@ -433,11 +459,10 @@ function computeSelectionBounds(
   };
 }
 
-
 function computeNormalizedLayouts(
   shapes: Shape[],
   bounds: SelectionBounds,
-  shapeBounds: Map<string, SelectionBounds>
+  shapeBounds: Map<string, SelectionBounds>,
 ): Map<string, NormalizedLayout> {
   const layouts = new Map<string, NormalizedLayout>();
   for (const shape of shapes) {
@@ -476,7 +501,7 @@ function getHandlePosition(bounds: SelectionBounds, handleId: string): Point {
 
 function getPointFromLayout(
   layout: NormalizedLayout,
-  bounds: SelectionBounds
+  bounds: SelectionBounds,
 ): Point {
   const width = bounds.width;
   const height = bounds.height;
@@ -531,7 +556,7 @@ function applyMove(runtime: ToolRuntime, drag: DragState) {
           x: transform.translation.x + dx,
           y: transform.translation.y + dy,
         },
-      })
+      }),
     );
   }
   commitActions(runtime, actions);
@@ -588,7 +613,7 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
                 new UpdateShapeTransform(shapeId, {
                   ...transform,
                   translation: result.translation,
-                })
+                }),
               );
               continue;
             }
@@ -608,7 +633,7 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
       new UpdateShapeTransform(shapeId, {
         ...transform,
         translation: fallbackTranslation,
-      })
+      }),
     );
   }
   commitActions(runtime, actions);
@@ -625,7 +650,7 @@ function applyAxisResize(runtime: ToolRuntime, drag: DragState) {
     drag,
     shape,
     transform,
-    drag.lastPoint
+    drag.lastPoint,
   );
   if (!result) return;
   const actions: UndoableAction[] = [
@@ -650,7 +675,7 @@ function applyRotate(runtime: ToolRuntime, drag: DragState) {
       new UpdateShapeTransform(shapeId, {
         ...transform,
         rotation: transform.rotation + delta,
-      })
+      }),
     );
   }
   commitActions(runtime, actions);
@@ -667,7 +692,7 @@ function commitActions(runtime: ToolRuntime, actions: UndoableAction[]): void {
 
 function computePreviewShapes(
   runtime: ToolRuntime,
-  drag: DragState
+  drag: DragState,
 ): DraftShape[] {
   const previews: DraftShape[] = [];
 
@@ -753,7 +778,7 @@ function computePreviewShapes(
           drag,
           shape,
           transform,
-          drag.lastPoint
+          drag.lastPoint,
         );
         if (result) {
           previewGeometry = result.geometry;
@@ -791,7 +816,7 @@ function computePreviewShapes(
 function getShapeCenter(
   shape: Shape,
   transform: CanonicalShapeTransform,
-  runtime: ToolRuntime
+  runtime: ToolRuntime,
 ): Point {
   const registry = runtime.getShapeHandlers();
   const bounds = getShapeBounds(shape, registry, transform);
@@ -805,7 +830,7 @@ function angleBetween(a: Point, b: Point) {
 function emitHandleHover(
   runtime: ToolRuntime,
   handleId: string | undefined,
-  event: ToolPointerEvent
+  event: ToolPointerEvent,
 ) {
   if (!handleId) {
     runtime.emit({
@@ -823,7 +848,7 @@ function emitHandleHover(
 
 function resolveHandleBehavior(
   event: ToolPointerEvent,
-  handleId: string
+  handleId: string,
 ): HandleBehavior | null {
   const handle = HANDLE_DESCRIPTORS.find((h) => h.id === handleId);
   if (!handle) return null;
@@ -849,7 +874,7 @@ function getOppositeHandle(handleId: string): string {
 
 function computeDragFrame(
   runtime: ToolRuntime,
-  drag: DragState
+  drag: DragState,
 ): Bounds | undefined {
   switch (drag.mode) {
     case "move": {
@@ -874,7 +899,7 @@ function computeDragFrame(
 
 function computeAxisResizeBounds(
   runtime: ToolRuntime,
-  drag: DragState
+  drag: DragState,
 ): Bounds | undefined {
   const axisResize = drag.axisResize;
   if (!axisResize) return drag.selectionBounds;
@@ -885,7 +910,7 @@ function computeAxisResizeBounds(
     drag,
     shape,
     transform,
-    drag.lastPoint
+    drag.lastPoint,
   );
   if (!result) return drag.selectionBounds;
   const previewShape: Shape = {
@@ -904,7 +929,7 @@ function computeAxisResizeResult(
   drag: DragState,
   shape: Shape,
   transform: CanonicalShapeTransform,
-  point: Point
+  point: Point,
 ): { geometry: RectGeometry; translation: Point } | null {
   const axisResize = drag.axisResize;
   if (!axisResize || axisResize.shapeId !== shape.id) return null;
@@ -918,7 +943,7 @@ function computeAxisResizeResult(
   const projected = delta.x * direction.x + delta.y * direction.y;
   const extent = Math.max(
     0,
-    axisResize.startExtent + (projected - axisResize.startProjection)
+    axisResize.startExtent + (projected - axisResize.startProjection),
   );
   const half = extent / 2;
   const scaleX = Math.abs(transform.scale.x);
@@ -953,7 +978,7 @@ function createAxisResizeState(
   axis: "x" | "y",
   handleId: string,
   startPoint: Point,
-  runtime: ToolRuntime
+  runtime: ToolRuntime,
 ): AxisResizeState | null {
   if (shapes.length !== 1) return null;
   const shape = shapes[0];
@@ -1025,7 +1050,7 @@ function getAxisHandleSide(handleId: string): "positive" | "negative" | null {
 
 function computeRotatedBounds(
   runtime: ToolRuntime,
-  drag: DragState
+  drag: DragState,
 ): Bounds | undefined {
   if (!drag.selectionBounds || !drag.center) {
     return drag.selectionBounds;
@@ -1092,7 +1117,7 @@ function mergeBounds(a: Bounds, b: Bounds): Bounds {
 
 function computeBoundsForSelection(
   runtime: ToolRuntime,
-  ids: string[]
+  ids: string[],
 ): Bounds | undefined {
   const shapes = ids
     .map((id) => runtime.getShape(id))

@@ -25,7 +25,7 @@ export const useRedirectIfAuthenticated = (redirect?: string) => {
 
   const safeRedirectTarget = useMemo(
     () => getSafeRedirectTarget(redirect),
-    [redirect]
+    [redirect],
   );
   const shouldRedirect = meQuery.isSuccess && Boolean(meQuery.data);
 

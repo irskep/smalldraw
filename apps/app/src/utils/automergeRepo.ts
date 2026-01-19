@@ -36,7 +36,7 @@ export const initializeRepo = (sessionKey: string | null) => {
   })();
 
   browserWebSocketClientAdapter = new BrowserWebSocketClientAdapter(
-    syncServerUrl
+    syncServerUrl,
   );
   broadcastAdapter = new BroadcastChannelNetworkAdapter();
 

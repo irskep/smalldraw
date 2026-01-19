@@ -11,7 +11,7 @@ export class UpdateShapeGeometry implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly newGeometry: Geometry
+    private readonly newGeometry: Geometry,
   ) {}
 
   redo(doc: DrawingDocument, ctx: ActionContext): void {
@@ -29,7 +29,7 @@ export class UpdateShapeGeometry implements UndoableAction {
   undo(doc: DrawingDocument, ctx: ActionContext): void {
     if (!this.previousGeometry) {
       throw new Error(
-        `Cannot undo geometry update for ${this.shapeId} because previous geometry was not recorded`
+        `Cannot undo geometry update for ${this.shapeId} because previous geometry was not recorded`,
       );
     }
     const shape = requireShape(doc, this.shapeId);

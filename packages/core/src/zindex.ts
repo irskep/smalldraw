@@ -1,7 +1,7 @@
-import { generateKeyBetween } from 'jittered-fractional-indexing';
+import { generateKeyBetween } from "jittered-fractional-indexing";
 
-import type { DrawingDocument } from './model/document';
-import type { Shape } from './model/shape';
+import type { DrawingDocument } from "./model/document";
+import type { Shape } from "./model/shape";
 
 export function getOrderedShapes(doc: DrawingDocument): Shape[] {
   return Object.values(doc.shapes).sort((a, b) => {

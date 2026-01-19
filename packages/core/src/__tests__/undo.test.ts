@@ -1,20 +1,20 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from "bun:test";
 
-import { AddShape, DeleteShape, type ActionContext } from '../actions';
-import { createDocument } from '../model/document';
-import { getDefaultShapeHandlerRegistry } from '../model/shapeHandlers';
-import type { Shape } from '../model/shape';
-import { canonicalizeShape } from '../model/shape';
-import { UndoManager } from '../undo';
+import { AddShape, DeleteShape, type ActionContext } from "../actions";
+import { createDocument } from "../model/document";
+import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
+import type { Shape } from "../model/shape";
+import { canonicalizeShape } from "../model/shape";
+import { UndoManager } from "../undo";
 
 const rectangle: Shape = {
-  id: 'rect-1',
+  id: "rect-1",
   geometry: {
-    type: 'rect',
+    type: "rect",
     size: { width: 100, height: 50 },
   },
-  fill: { type: 'solid', color: '#ff0000' },
-  zIndex: 'a0',
+  fill: { type: "solid", color: "#ff0000" },
+  zIndex: "a0",
   transform: {
     translation: { x: 0, y: 0 },
     scale: { x: 1, y: 1 },
@@ -25,8 +25,8 @@ const rectangle: Shape = {
 const registry = getDefaultShapeHandlerRegistry();
 const canonicalRectangle = canonicalizeShape(rectangle, registry);
 
-describe('Undo stack interactions for rectangle shapes', () => {
-  test('AddShape action can be undone/redone', () => {
+describe("Undo stack interactions for rectangle shapes", () => {
+  test("AddShape action can be undone/redone", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([], registry);
     const undo = new UndoManager();
@@ -46,7 +46,7 @@ describe('Undo stack interactions for rectangle shapes', () => {
     expect(doc.shapes[rectangle.id]).toEqual(canonicalRectangle);
   });
 
-  test('DeleteShape action restores removed rectangle on undo', () => {
+  test("DeleteShape action restores removed rectangle on undo", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([rectangle], registry);
     const undo = new UndoManager();

@@ -85,7 +85,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
 
   onEvent<TPayload>(
     type: ToolRuntimeEvent<TPayload>["type"],
-    listener: (payload: TPayload) => void
+    listener: (payload: TPayload) => void,
   ): () => void {
     const set =
       this.eventListeners.get(type) ?? new Set<(payload: unknown) => void>();
@@ -102,7 +102,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   setDraft(shape: DraftShape | null): void {
     if (shape && shape.toolId !== this.toolId) {
       throw new Error(
-        `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`
+        `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`,
       );
     }
     this.drafts = shape ? [shape] : [];
@@ -113,7 +113,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
     for (const shape of shapes) {
       if (shape.toolId !== this.toolId) {
         throw new Error(
-          `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`
+          `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`,
         );
       }
     }
@@ -155,7 +155,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   }
 
   updateSharedSettings<T = SharedToolSettings>(
-    updater: Partial<T> | ((prev: T) => T)
+    updater: Partial<T> | ((prev: T) => T),
   ): void {
     const current = { ...this.sharedSettings } as T;
     const next =
@@ -174,7 +174,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   }
 
   updateToolState<TState = unknown>(
-    updater: (prev: TState | undefined) => TState
+    updater: (prev: TState | undefined) => TState,
   ): void {
     const next = updater(this.getToolState<TState>());
     this.setToolState(next);

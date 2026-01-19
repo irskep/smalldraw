@@ -21,8 +21,8 @@ export const getDocument = async ({ documentId, userId }: Params) => {
       usersOnDocuments,
       and(
         eq(usersOnDocuments.documentId, documents.id),
-        eq(usersOnDocuments.userId, userId)
-      )
+        eq(usersOnDocuments.userId, userId),
+      ),
     )
     .where(eq(documents.id, documentId))
     .limit(1);

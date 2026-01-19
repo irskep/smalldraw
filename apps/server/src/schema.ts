@@ -9,7 +9,7 @@ const noProtoString = z
     },
     {
       message: "String must not include '__proto__'",
-    }
+    },
   );
 
 export const LoginStartParams = z.object({

@@ -28,7 +28,7 @@ export interface RectangleToolOptions {
 }
 
 export function createRectangleTool(
-  options?: RectangleToolOptions
+  options?: RectangleToolOptions,
 ): ToolDefinition {
   const ensureState = (runtime: ToolRuntime): ActiveRectState => {
     let state = runtimeState.get(runtime);
@@ -79,7 +79,7 @@ export function createRectangleTool(
   const updatePoint = (
     runtime: ToolRuntime,
     point: Point,
-    pressure?: number
+    pressure?: number,
   ) => {
     const state = runtimeState.get(runtime);
     if (!state?.draft) return;
@@ -108,7 +108,7 @@ export function createRectangleTool(
     if (!state?.draft) return;
     const { center, size } = computeSizeAndCenter(
       state.draft.start,
-      state.draft.current
+      state.draft.current,
     );
     runtime.setDraft({
       toolId: runtime.toolId,
@@ -141,7 +141,7 @@ export function createRectangleTool(
     }
     const { center, size } = computeSizeAndCenter(
       state.draft.start,
-      state.draft.current
+      state.draft.current,
     );
     if (size.width === 0 && size.height === 0) {
       runtime.clearDraft();
@@ -197,7 +197,7 @@ export function createRectangleTool(
   };
 
   const createPointerCancelHandler = (
-    runtime: ToolRuntime
+    runtime: ToolRuntime,
   ): ToolEventHandler => {
     return () => cancelRect(runtime);
   };
@@ -215,7 +215,7 @@ export function createRectangleTool(
           onPointerMove: createPointerMoveHandler(runtime),
           onPointerUp: createPointerUpHandler(runtime),
           onPointerCancel: createPointerCancelHandler(runtime),
-        })
+        }),
       );
       return () => {
         state.disposers.dispose();

@@ -16,8 +16,8 @@ export const updateDocument = async ({ documentId, userId, name }: Params) => {
       and(
         eq(usersOnDocuments.documentId, documentId),
         eq(usersOnDocuments.userId, userId),
-        eq(usersOnDocuments.isAdmin, true)
-      )
+        eq(usersOnDocuments.isAdmin, true),
+      ),
     )
     .limit(1);
 

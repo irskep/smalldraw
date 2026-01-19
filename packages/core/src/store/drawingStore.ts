@@ -162,7 +162,7 @@ export class DrawingStore {
           this.handleHover = payload;
           this.triggerRender();
         }
-      }
+      },
     );
     runtime.onEvent("selection-frame", (payload: Bounds | null) => {
       if (this.activeToolId === toolId) {
@@ -302,7 +302,7 @@ export class DrawingStore {
   }
 
   updateSharedSettings<TSettings = SharedToolSettings>(
-    updater: Partial<TSettings> | ((prev: TSettings) => TSettings)
+    updater: Partial<TSettings> | ((prev: TSettings) => TSettings),
   ): void {
     const current = { ...this.sharedSettings } as TSettings;
     const next =

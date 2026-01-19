@@ -80,7 +80,7 @@ describe("selection tool", () => {
     runtime.onEvent(
       "handle-hover",
       (payload: { handleId: string | null; behavior: HandleBehavior | null }) =>
-        hovers.push(payload)
+        hovers.push(payload),
     );
     tool.activate(runtime);
 
@@ -237,7 +237,7 @@ describe("selection tool", () => {
     const tool = createSelectionTool();
     const frames: Array<Bounds | null> = [];
     runtime.onEvent("selection-frame", (payload: Bounds | null) =>
-      frames.push(payload)
+      frames.push(payload),
     );
     tool.activate(runtime);
 
@@ -1053,11 +1053,11 @@ describe("selection tool", () => {
       Math.atan2(startPoint.y - center.y, startPoint.x - center.x);
     expect(document.shapes["left-rot"]?.transform?.rotation).toBeCloseTo(
       expectedDelta,
-      3
+      3,
     );
     expect(document.shapes["right-rot"]?.transform?.rotation).toBeCloseTo(
       expectedDelta,
-      3
+      3,
     );
   });
 
@@ -1101,7 +1101,7 @@ describe("selection tool", () => {
     const tool = createSelectionTool();
     const frames: Array<Bounds | null> = [];
     runtime.onEvent("selection-frame", (payload: Bounds | null) =>
-      frames.push(payload)
+      frames.push(payload),
     );
     tool.activate(runtime);
 
@@ -1154,7 +1154,7 @@ describe("selection tool", () => {
     const tool = createSelectionTool();
     const frames: Array<Bounds | null> = [];
     runtime.onEvent("selection-frame", (payload: Bounds | null) =>
-      frames.push(payload)
+      frames.push(payload),
     );
     tool.activate(runtime);
 

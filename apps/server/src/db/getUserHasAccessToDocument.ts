@@ -19,8 +19,8 @@ export const getUserHasAccessToDocument = async ({
     .where(
       and(
         eq(usersOnDocuments.userId, userId),
-        eq(usersOnDocuments.documentId, documentId)
-      )
+        eq(usersOnDocuments.documentId, documentId),
+      ),
     )
     .limit(1);
 

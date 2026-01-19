@@ -12,8 +12,8 @@ export const getLoginAttempt = async (username: string) => {
     .where(
       and(
         eq(users.username, username),
-        gte(loginAttempts.createdAt, threshold)
-      )
+        gte(loginAttempts.createdAt, threshold),
+      ),
     )
     .limit(1);
 

@@ -94,7 +94,11 @@ const Document = () => {
   const { documentId } = Route.useParams();
 
   if (!repo) {
-    return <div className="p-4 text-center text-red-500">Sync not initialized - try logging in again</div>;
+    return (
+      <div className="p-4 text-center text-red-500">
+        Sync not initialized - try logging in again
+      </div>
+    );
   }
 
   return (

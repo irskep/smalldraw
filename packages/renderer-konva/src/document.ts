@@ -1,18 +1,27 @@
-import type { DirtyState, DrawingDocument, ShapeHandlerRegistry, Shape } from '@smalldraw/core';
-import { getOrderedShapes } from '@smalldraw/core';
-import Konva from 'konva';
-import type { Layer } from 'konva/lib/Layer.js';
-import type { Stage, StageConfig } from 'konva/lib/Stage.js';
+import type {
+  DirtyState,
+  DrawingDocument,
+  ShapeHandlerRegistry,
+  Shape,
+} from "@smalldraw/core";
+import { getOrderedShapes } from "@smalldraw/core";
+import Konva from "konva";
+import type { Layer } from "konva/lib/Layer.js";
+import type { Stage, StageConfig } from "konva/lib/Stage.js";
 
-import { KonvaReconciler } from './reconciler.js';
+import { KonvaReconciler } from "./reconciler.js";
 import {
   defaultShapeRendererRegistry,
   renderShapeNode,
   type ShapeRendererRegistry,
-} from './shapes.js';
-import { applyViewportToStage, DEFAULT_BACKGROUND_COLOR, type Viewport } from './viewport.js';
+} from "./shapes.js";
+import {
+  applyViewportToStage,
+  DEFAULT_BACKGROUND_COLOR,
+  type Viewport,
+} from "./viewport.js";
 
-const DEFAULT_LAYER_ID = 'smalldraw-layer';
+const DEFAULT_LAYER_ID = "smalldraw-layer";
 
 export interface RenderDocumentOptions {
   layerId?: string;
@@ -34,7 +43,10 @@ export function renderDocument(
   document: DrawingDocument,
   options?: RenderDocumentOptions,
 ): Layer {
-  const layer = ensureRendererLayer(stage, options?.layerId ?? DEFAULT_LAYER_ID);
+  const layer = ensureRendererLayer(
+    stage,
+    options?.layerId ?? DEFAULT_LAYER_ID,
+  );
   if (options?.viewport) {
     applyViewportToStage(stage, layer, options.viewport);
   }
@@ -58,12 +70,15 @@ export function renderDocument(
   return layer;
 }
 
-export function ensureRendererLayer(stage: Stage, layerId: string = DEFAULT_LAYER_ID): Layer {
+export function ensureRendererLayer(
+  stage: Stage,
+  layerId: string = DEFAULT_LAYER_ID,
+): Layer {
   const existing = stage.findOne<Layer>(`#${layerId}`);
   if (existing) {
     return existing;
   }
-  const layer = new Konva.Layer({ id: layerId, name: 'smalldraw-layer' });
+  const layer = new Konva.Layer({ id: layerId, name: "smalldraw-layer" });
   stage.add(layer);
   return layer;
 }
@@ -71,7 +86,10 @@ export function ensureRendererLayer(stage: Stage, layerId: string = DEFAULT_LAYE
 function fillBackground(layer: Layer, options?: RenderDocumentOptions): void {
   const stage = layer.getStage();
   if (!stage) return;
-  const color = options?.backgroundColor ?? options?.viewport?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR;
+  const color =
+    options?.backgroundColor ??
+    options?.viewport?.backgroundColor ??
+    DEFAULT_BACKGROUND_COLOR;
   const bgRect = new Konva.Rect({
     x: 0,
     y: 0,
@@ -110,7 +128,10 @@ export function reconcileDocument(
   dirtyState: DirtyState,
   options?: ReconcileDocumentOptions,
 ): Layer {
-  const layer = ensureRendererLayer(stage, options?.layerId ?? DEFAULT_LAYER_ID);
+  const layer = ensureRendererLayer(
+    stage,
+    options?.layerId ?? DEFAULT_LAYER_ID,
+  );
   if (options?.viewport) {
     applyViewportToStage(stage, layer, options.viewport);
   }
@@ -129,11 +150,14 @@ export function reconcileDocument(
  * Ensure background rect exists and is at the bottom.
  * Unlike fillBackground, this doesn't recreate it every time.
  */
-function ensureBackground(layer: Layer, options?: ReconcileDocumentOptions): void {
+function ensureBackground(
+  layer: Layer,
+  options?: ReconcileDocumentOptions,
+): void {
   const stage = layer.getStage();
   if (!stage) return;
 
-  const existingBg = layer.findOne<Konva.Rect>('.smalldraw-background');
+  const existingBg = layer.findOne<Konva.Rect>(".smalldraw-background");
   if (existingBg) {
     // Update size if stage changed
     existingBg.width(stage.width());
@@ -142,9 +166,12 @@ function ensureBackground(layer: Layer, options?: ReconcileDocumentOptions): voi
     return;
   }
 
-  const color = options?.backgroundColor ?? options?.viewport?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR;
+  const color =
+    options?.backgroundColor ??
+    options?.viewport?.backgroundColor ??
+    DEFAULT_BACKGROUND_COLOR;
   const bgRect = new Konva.Rect({
-    name: 'smalldraw-background',
+    name: "smalldraw-background",
     x: 0,
     y: 0,
     width: stage.width(),

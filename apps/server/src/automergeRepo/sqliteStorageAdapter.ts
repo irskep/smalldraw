@@ -32,9 +32,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
 
   async save(key: StorageKey, data: Uint8Array): Promise<void> {
     this.db
-      .query(
-        "INSERT OR REPLACE INTO automerge_data (key, value) VALUES (?, ?)",
-      )
+      .query("INSERT OR REPLACE INTO automerge_data (key, value) VALUES (?, ?)")
       .run(this.serializeKey(key), data);
   }
 
@@ -54,7 +52,8 @@ export class SqliteStorageAdapter implements StorageAdapter {
 
     return rows.map((row) => ({
       key: this.deserializeKey(row.key),
-      data: row.value instanceof Uint8Array ? row.value : new Uint8Array(row.value),
+      data:
+        row.value instanceof Uint8Array ? row.value : new Uint8Array(row.value),
     }));
   }
 

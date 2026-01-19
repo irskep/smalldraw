@@ -15,8 +15,8 @@ export const getDocumentInvitation = async ({ documentId, userId }: Params) => {
       and(
         eq(usersOnDocuments.documentId, documentId),
         eq(usersOnDocuments.userId, userId),
-        eq(usersOnDocuments.isAdmin, true)
-      )
+        eq(usersOnDocuments.isAdmin, true),
+      ),
     )
     .limit(1);
 

@@ -57,7 +57,7 @@ interface SwatchGroup {
 }
 
 export function createVanillaDrawingApp(
-  options: VanillaDrawingAppOptions
+  options: VanillaDrawingAppOptions,
 ): VanillaDrawingApp {
   if (!options?.container) {
     throw new Error("container is required");
@@ -171,7 +171,7 @@ export function createVanillaDrawingApp(
     syncSwatches(strokeSwatches.buttons, store.getSharedSettings().strokeColor);
     syncSwatches(
       fillSwatches.buttons,
-      store.getSharedSettings().fillColor ?? "#000000"
+      store.getSharedSettings().fillColor ?? "#000000",
     );
     undoButton.disabled = !store.canUndo();
     redoButton.disabled = !store.canRedo();
@@ -261,7 +261,7 @@ function ensureSelectionTool(tools: ToolDefinition[]): ToolDefinition[] {
 function setupToolButtons(
   toolbar: HTMLElement,
   store: DrawingStore,
-  availableToolIds: Set<string>
+  availableToolIds: Set<string>,
 ): Map<string, HTMLButtonElement> {
   const config = [
     { id: "selection", label: "Select" },
@@ -286,7 +286,7 @@ function setupToolButtons(
 
 function syncToolButtons(
   buttons: Map<string, HTMLButtonElement>,
-  activeId: string | null
+  activeId: string | null,
 ): void {
   buttons.forEach((button, id) => {
     if (id === activeId) {
@@ -302,7 +302,7 @@ function syncToolButtons(
 function createColorRow(
   label: string,
   palette: string[],
-  onSelect: (color: string) => void
+  onSelect: (color: string) => void,
 ): SwatchGroup {
   const row = document.createElement("div");
   Object.assign(row.style, {
@@ -428,7 +428,7 @@ function createPointerHandlers(store: DrawingStore, overlay: HTMLElement) {
 function buildToolEvent(
   event: PointerEvent,
   point: Point,
-  buttonsOverride?: number
+  buttonsOverride?: number,
 ): ToolPointerEvent {
   return {
     point,
@@ -467,7 +467,7 @@ function buildLiveDocument(store: DrawingStore): DrawingDocument {
  */
 function updateSelectionOverlay(
   overlay: SelectionOverlay,
-  store: DrawingStore
+  store: DrawingStore,
 ): void {
   const bounds = store.getSelectionFrame() ?? computeSelectionBounds(store);
   const showAxisHandles = canShowAxisHandles(store);
@@ -475,7 +475,7 @@ function updateSelectionOverlay(
     .getHandles()
     .filter(
       (handle: HandleDescriptor) =>
-        showAxisHandles || handle.behavior?.type !== "resize-axis"
+        showAxisHandles || handle.behavior?.type !== "resize-axis",
     );
   const liveDoc = buildLiveDocument(store);
   const selection = store.getSelection();
@@ -522,7 +522,7 @@ function resolveHandlePoint(
     position: { u: number; v: number };
     behavior?: { type?: string; axis?: string };
   },
-  shape?: Shape
+  shape?: Shape,
 ): Point {
   if (
     handle.behavior?.type === "resize-axis" &&
@@ -592,7 +592,7 @@ function hitTestHandles(point: Point, store: DrawingStore): string | undefined {
     .getHandles()
     .filter(
       (descriptor) =>
-        showAxisHandles || descriptor.behavior?.type !== "resize-axis"
+        showAxisHandles || descriptor.behavior?.type !== "resize-axis",
     )) {
     const handlePoint = resolveHandlePoint(bounds, handle, selectedShape);
     const hitSize =
@@ -609,7 +609,7 @@ function hitTestHandles(point: Point, store: DrawingStore): string | undefined {
 function updateSelectionForPoint(
   point: Point,
   additive: boolean,
-  store: DrawingStore
+  store: DrawingStore,
 ) {
   const selection = store.getSelection();
   console.log("[updateSelectionForPoint] START", {
@@ -624,11 +624,11 @@ function updateSelectionForPoint(
     const inBounds = isPointInSelectionBounds(point, store);
     console.log(
       "[updateSelectionForPoint] checking if in selection bounds:",
-      inBounds
+      inBounds,
     );
     if (inBounds) {
       console.log(
-        "[updateSelectionForPoint] EARLY RETURN - point is in selection bounds"
+        "[updateSelectionForPoint] EARLY RETURN - point is in selection bounds",
       );
       return;
     }
@@ -637,7 +637,7 @@ function updateSelectionForPoint(
   const hit = hitTestShapes(point, store);
   console.log(
     "[updateSelectionForPoint] hitTestShapes result:",
-    hit?.id ?? null
+    hit?.id ?? null,
   );
   if (hit) {
     if (additive) {
@@ -651,7 +651,7 @@ function updateSelectionForPoint(
   }
   if (!additive) {
     console.log(
-      "[updateSelectionForPoint] clearing selection (clicked empty space)"
+      "[updateSelectionForPoint] clearing selection (clicked empty space)",
     );
     store.clearSelection();
   }
@@ -664,7 +664,7 @@ function isPointInSelectionBounds(point: Point, store: DrawingStore): boolean {
     "[isPointInSelectionBounds] checking point",
     point,
     "against selection ids:",
-    ids
+    ids,
   );
   if (!ids.length) {
     console.log("[isPointInSelectionBounds] no selection, returning false");
@@ -701,7 +701,7 @@ function isPointInSelectionBounds(point: Point, store: DrawingStore): boolean {
     "point:",
     point,
     "isInside:",
-    isInside
+    isInside,
   );
   return isInside;
 }
@@ -736,7 +736,7 @@ function updateCursor(overlay: HTMLElement, store: DrawingStore) {
   if (hover.handleId) {
     overlay.style.cursor = cursorForHandle(
       hover.handleId,
-      hover.behavior?.type
+      hover.behavior?.type,
     );
     return;
   }
@@ -747,7 +747,7 @@ function updateCursor(overlay: HTMLElement, store: DrawingStore) {
 
 function cursorForHandle(
   handleId: string,
-  behaviorType?: string | null
+  behaviorType?: string | null,
 ): string {
   if (behaviorType === "rotate" || handleId === "rotate") {
     return "alias";

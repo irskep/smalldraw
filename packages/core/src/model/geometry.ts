@@ -1,35 +1,35 @@
-import type { Point, Size } from './primitives';
+import type { Point, Size } from "./primitives";
 
 export interface PenGeometry {
-  type: 'pen';
+  type: "pen";
   points: Point[];
   simulatePressure?: boolean;
 }
 
 export interface StrokeGeometry {
-  type: 'stroke';
+  type: "stroke";
   points: Point[];
 }
 
 export interface RectGeometry {
-  type: 'rect';
+  type: "rect";
   size: Size;
 }
 
 export interface EllipseGeometry {
-  type: 'ellipse';
+  type: "ellipse";
   radiusX: number;
   radiusY: number;
 }
 
 export interface RegularPolygonGeometry {
-  type: 'regularPolygon';
+  type: "regularPolygon";
   radius: number;
   sides: number;
 }
 
 export interface PolygonGeometry {
-  type: 'polygon';
+  type: "polygon";
   points: Point[];
   closed?: boolean;
 }
@@ -41,18 +41,18 @@ export interface BezierNode {
 }
 
 export interface BezierGeometry {
-  type: 'bezier';
+  type: "bezier";
   nodes: BezierNode[];
   closed?: boolean;
 }
 
 export interface PathSegment {
-  type: 'move' | 'line' | 'bezier';
+  type: "move" | "line" | "bezier";
   points: Point[];
 }
 
 export interface PathGeometry {
-  type: 'path';
+  type: "path";
   segments: PathSegment[];
 }
 

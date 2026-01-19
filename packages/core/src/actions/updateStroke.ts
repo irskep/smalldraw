@@ -9,7 +9,7 @@ export class UpdateShapeStroke implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly nextStroke: StrokeStyle | undefined
+    private readonly nextStroke: StrokeStyle | undefined,
   ) {}
 
   redo(doc: DrawingDocument, ctx: ActionContext): void {

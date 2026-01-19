@@ -1,5 +1,5 @@
-import type { DrawingDocument } from '../model/document';
-import type { Shape } from '../model/shape';
+import type { DrawingDocument } from "../model/document";
+import type { Shape } from "../model/shape";
 
 export function requireShape(doc: DrawingDocument, shapeId: string): Shape {
   const shape = doc.shapes[shapeId];

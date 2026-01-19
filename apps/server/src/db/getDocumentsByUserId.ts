@@ -6,9 +6,6 @@ export const getDocumentsByUserId = async (userId: string) => {
   return db
     .select({ id: documents.id, name: documents.name })
     .from(documents)
-    .innerJoin(
-      usersOnDocuments,
-      eq(usersOnDocuments.documentId, documents.id)
-    )
+    .innerJoin(usersOnDocuments, eq(usersOnDocuments.documentId, documents.id))
     .where(eq(usersOnDocuments.userId, userId));
 };

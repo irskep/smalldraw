@@ -1,13 +1,17 @@
-import type { ShapeHandlerRegistry, Shape, ShapeTransform } from '@smalldraw/core';
-import { normalizeShapeTransform } from '@smalldraw/core';
-import Konva from 'konva';
-import type { Layer } from 'konva/lib/Layer.js';
+import type {
+  ShapeHandlerRegistry,
+  Shape,
+  ShapeTransform,
+} from "@smalldraw/core";
+import { normalizeShapeTransform } from "@smalldraw/core";
+import Konva from "konva";
+import type { Layer } from "konva/lib/Layer.js";
 
 import {
   defaultShapeRendererRegistry,
   renderShapeNode,
   type ShapeRendererRegistry,
-} from './shapes.js';
+} from "./shapes.js";
 
 /**
  * Maintains a map of shape ID → Konva node and performs incremental updates
@@ -60,7 +64,11 @@ export class KonvaReconciler {
         // else: clean, leave it alone
       } else {
         // New shape - create and add
-        const node = renderShapeNode(shape, this.registry, this.geometryRegistry);
+        const node = renderShapeNode(
+          shape,
+          this.registry,
+          this.geometryRegistry,
+        );
         if (node) {
           this.nodes.set(shape.id, node);
           layer.add(node);

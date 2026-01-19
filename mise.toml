@@ -54,9 +54,16 @@ run = "bun apps/demo-ui-vanillajs/src/index.html --watch"
 env = { _.file = ".env", DATABASE_URL = "./sqlite/prod.db" }
 run = "bunx drizzle-kit push"
 
+[tasks.format]
+run = "bunx biome format --write"
+
 [tasks."ts:check:all"]
 # Run all ts:check tasks across the monorepo using wildcard pattern
-run = ["mise run '//packages/...:ts:check'", "mise run '//apps/...:ts:check'"]
+# also lint just so there's one easy command to run
+run = ["mise run '//packages/...:ts:check'", "mise run '//apps/...:ts:check'", 'mise run lint:all']
+
+[tasks."lint:all"]
+run = ["mise run '//packages/...:lint'", "mise run '//apps/...:lint'"]
 
 [tasks."test:all"]
 # Run all test tasks across the monorepo using wildcard pattern

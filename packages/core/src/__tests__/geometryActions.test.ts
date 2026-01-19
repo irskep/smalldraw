@@ -1,29 +1,28 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from "bun:test";
 
-import {
-  AddShape,
-  UpdateShapeGeometry,
-  type ActionContext,
-} from '../actions';
-import { createDocument } from '../model/document';
-import type { Geometry } from '../model/geometry';
-import { getDefaultShapeHandlerRegistry } from '../model/shapeHandlers';
-import type { Shape } from '../model/shape';
-import { canonicalizeShape } from '../model/shape';
-import { UndoManager } from '../undo';
+import { AddShape, UpdateShapeGeometry, type ActionContext } from "../actions";
+import { createDocument } from "../model/document";
+import type { Geometry } from "../model/geometry";
+import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
+import type { Shape } from "../model/shape";
+import { canonicalizeShape } from "../model/shape";
+import { UndoManager } from "../undo";
 
 function createShape(id: string, geometry: Geometry): Shape {
   const registry = getDefaultShapeHandlerRegistry();
-  return canonicalizeShape({
-    id,
-    geometry,
-    zIndex: id,
-    transform: {
-      translation: { x: 0, y: 0 },
-      scale: { x: 1, y: 1 },
-      rotation: 0,
+  return canonicalizeShape(
+    {
+      id,
+      geometry,
+      zIndex: id,
+      transform: {
+        translation: { x: 0, y: 0 },
+        scale: { x: 1, y: 1 },
+        rotation: 0,
+      },
     },
-  }, registry);
+    registry,
+  );
 }
 
 function canonicalGeometry(shape: Shape, geometry: Geometry): Geometry {
@@ -31,14 +30,14 @@ function canonicalGeometry(shape: Shape, geometry: Geometry): Geometry {
   return canonicalizeShape({ ...shape, geometry }, registry).geometry;
 }
 
-describe('Geometry actions', () => {
-  test('pen geometry can be added and updated', () => {
+describe("Geometry actions", () => {
+  test("pen geometry can be added and updated", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([], registry);
     const undo = new UndoManager();
     const ctx: ActionContext = { registry };
-    const pen = createShape('pen', {
-      type: 'pen',
+    const pen = createShape("pen", {
+      type: "pen",
       points: [
         { x: 0, y: 0 },
         { x: 10, y: 10 },
@@ -49,7 +48,7 @@ describe('Geometry actions', () => {
     expect(doc.shapes[pen.id]?.geometry).toEqual(pen.geometry);
 
     const updatedGeometry: Geometry = {
-      type: 'pen',
+      type: "pen",
       points: [
         { x: 5, y: 5 },
         { x: 15, y: 15 },
@@ -58,18 +57,20 @@ describe('Geometry actions', () => {
       simulatePressure: true,
     };
     undo.apply(new UpdateShapeGeometry(pen.id, updatedGeometry), doc, ctx);
-    expect(doc.shapes[pen.id]?.geometry).toEqual(canonicalGeometry(pen, updatedGeometry));
+    expect(doc.shapes[pen.id]?.geometry).toEqual(
+      canonicalGeometry(pen, updatedGeometry),
+    );
     undo.undo(doc, ctx);
     expect(doc.shapes[pen.id]?.geometry).toEqual(pen.geometry);
   });
 
-  test('ellipse geometry stores radius values', () => {
+  test("ellipse geometry stores radius values", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([], registry);
     const undo = new UndoManager();
     const ctx: ActionContext = { registry };
-    const ellipse = createShape('ellipse', {
-      type: 'ellipse',
+    const ellipse = createShape("ellipse", {
+      type: "ellipse",
       radiusX: 30,
       radiusY: 15,
     });
@@ -77,7 +78,7 @@ describe('Geometry actions', () => {
     expect(doc.shapes[ellipse.id]?.geometry).toEqual(ellipse.geometry);
 
     const next: Geometry = {
-      type: 'ellipse',
+      type: "ellipse",
       radiusX: 10,
       radiusY: 5,
     };
@@ -87,20 +88,20 @@ describe('Geometry actions', () => {
     expect(doc.shapes[ellipse.id]?.geometry).toEqual(ellipse.geometry);
   });
 
-  test('rect geometry persists bounds', () => {
+  test("rect geometry persists bounds", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([], registry);
     const undo = new UndoManager();
     const ctx: ActionContext = { registry };
-    const rect = createShape('rect', {
-      type: 'rect',
+    const rect = createShape("rect", {
+      type: "rect",
       size: { width: 100, height: 40 },
     });
     undo.apply(new AddShape(rect), doc, ctx);
     expect(doc.shapes[rect.id]?.geometry).toEqual(rect.geometry);
 
     const next: Geometry = {
-      type: 'rect',
+      type: "rect",
       size: { width: 50, height: 50 },
     };
     undo.apply(new UpdateShapeGeometry(rect.id, next), doc, ctx);
@@ -109,13 +110,13 @@ describe('Geometry actions', () => {
     expect(doc.shapes[rect.id]?.geometry).toEqual(rect.geometry);
   });
 
-  test('regular polygon geometry tracks sides and rotation', () => {
+  test("regular polygon geometry tracks sides and rotation", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([], registry);
     const undo = new UndoManager();
     const ctx: ActionContext = { registry };
-    const polygon = createShape('regular-polygon', {
-      type: 'regularPolygon',
+    const polygon = createShape("regular-polygon", {
+      type: "regularPolygon",
       radius: 30,
       sides: 6,
     });
@@ -123,7 +124,7 @@ describe('Geometry actions', () => {
     expect(doc.shapes[polygon.id]?.geometry).toEqual(polygon.geometry);
 
     const next: Geometry = {
-      type: 'regularPolygon',
+      type: "regularPolygon",
       radius: 40,
       sides: 5,
     };
@@ -133,13 +134,13 @@ describe('Geometry actions', () => {
     expect(doc.shapes[polygon.id]?.geometry).toEqual(polygon.geometry);
   });
 
-  test('arbitrary polygon geometry stores vertices', () => {
+  test("arbitrary polygon geometry stores vertices", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([], registry);
     const undo = new UndoManager();
     const ctx: ActionContext = { registry };
-    const poly = createShape('poly', {
-      type: 'polygon',
+    const poly = createShape("poly", {
+      type: "polygon",
       points: [
         { x: 0, y: 0 },
         { x: 10, y: 0 },
@@ -150,7 +151,7 @@ describe('Geometry actions', () => {
     expect(doc.shapes[poly.id]?.geometry).toEqual(poly.geometry);
 
     const next: Geometry = {
-      type: 'polygon',
+      type: "polygon",
       points: [
         { x: 10, y: 10 },
         { x: 30, y: 10 },
@@ -160,18 +161,20 @@ describe('Geometry actions', () => {
       closed: true,
     };
     undo.apply(new UpdateShapeGeometry(poly.id, next), doc, ctx);
-    expect(doc.shapes[poly.id]?.geometry).toEqual(canonicalGeometry(poly, next));
+    expect(doc.shapes[poly.id]?.geometry).toEqual(
+      canonicalGeometry(poly, next),
+    );
     undo.undo(doc, ctx);
     expect(doc.shapes[poly.id]?.geometry).toEqual(poly.geometry);
   });
 
-  test('bezier geometry persists nodes and handles', () => {
+  test("bezier geometry persists nodes and handles", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const doc = createDocument([], registry);
     const undo = new UndoManager();
     const ctx: ActionContext = { registry };
-    const bezier = createShape('bezier', {
-      type: 'bezier',
+    const bezier = createShape("bezier", {
+      type: "bezier",
       nodes: [
         {
           anchor: { x: 0, y: 0 },
@@ -187,7 +190,7 @@ describe('Geometry actions', () => {
     expect(doc.shapes[bezier.id]?.geometry).toEqual(bezier.geometry);
 
     const next: Geometry = {
-      type: 'bezier',
+      type: "bezier",
       nodes: [
         {
           anchor: { x: 5, y: 5 },
@@ -206,7 +209,9 @@ describe('Geometry actions', () => {
       closed: true,
     };
     undo.apply(new UpdateShapeGeometry(bezier.id, next), doc, ctx);
-    expect(doc.shapes[bezier.id]?.geometry).toEqual(canonicalGeometry(bezier, next));
+    expect(doc.shapes[bezier.id]?.geometry).toEqual(
+      canonicalGeometry(bezier, next),
+    );
     undo.undo(doc, ctx);
     expect(doc.shapes[bezier.id]?.geometry).toEqual(bezier.geometry);
   });

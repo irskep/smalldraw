@@ -1,7 +1,13 @@
-import type { Bounds, Point } from './primitives';
-import type { Geometry, RectGeometry, EllipseGeometry, RegularPolygonGeometry, PenGeometry } from './geometry';
-import type { Shape, CanonicalShapeTransform } from './shape';
-import { getBoundsFromPoints } from './geometryUtils';
+import type { Bounds, Point } from "./primitives";
+import type {
+  Geometry,
+  RectGeometry,
+  EllipseGeometry,
+  RegularPolygonGeometry,
+  PenGeometry,
+} from "./geometry";
+import type { Shape, CanonicalShapeTransform } from "./shape";
+import { getBoundsFromPoints } from "./geometryUtils";
 
 /**
  * Operations that work on Geometry alone (no transform/style needed)
@@ -48,7 +54,10 @@ export interface ResizeResult {
 /**
  * Snapshot of a shape before resize begins
  */
-export interface ResizeSnapshot<TGeometry extends Geometry = Geometry, TData = unknown> {
+export interface ResizeSnapshot<
+  TGeometry extends Geometry = Geometry,
+  TData = unknown,
+> {
   geometry: TGeometry;
   data?: TData;
 }
@@ -56,7 +65,10 @@ export interface ResizeSnapshot<TGeometry extends Geometry = Geometry, TData = u
 /**
  * Parameters for a resize operation
  */
-export interface ResizeOperation<TGeometry extends Geometry = Geometry, TData = unknown> {
+export interface ResizeOperation<
+  TGeometry extends Geometry = Geometry,
+  TData = unknown,
+> {
   shape: Shape & { geometry: TGeometry };
   snapshotGeometry: TGeometry;
   snapshotData?: TData;
@@ -70,7 +82,10 @@ export interface ResizeOperation<TGeometry extends Geometry = Geometry, TData = 
 /**
  * Selection and resize operations
  */
-export interface SelectionOperations<T extends Geometry = Geometry, TData = unknown> {
+export interface SelectionOperations<
+  T extends Geometry = Geometry,
+  TData = unknown,
+> {
   /** Check if this shape can be resized */
   canResize?: (shape: Shape & { geometry: T }) => boolean;
 
@@ -87,7 +102,10 @@ export interface SelectionOperations<T extends Geometry = Geometry, TData = unkn
 /**
  * Complete handler for a shape type - all operations optional except getBounds
  */
-export interface ShapeHandler<T extends Geometry = Geometry, TResizeData = unknown> {
+export interface ShapeHandler<
+  T extends Geometry = Geometry,
+  TResizeData = unknown,
+> {
   /** Operations on geometry alone (REQUIRED) */
   geometry: GeometryOperations<T>;
 
@@ -138,7 +156,12 @@ export class ShapeHandlerRegistry {
 }
 
 // Helper functions
-function createBounds(minX: number, minY: number, maxX: number, maxY: number): Bounds {
+function createBounds(
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+): Bounds {
   return {
     minX,
     minY,
@@ -169,7 +192,7 @@ function getPointFromLayout(layout: NormalizedLayout, bounds: Bounds): Point {
 function getRotatedRectAabbSize(
   width: number,
   height: number,
-  rotation: number
+  rotation: number,
 ): { width: number; height: number } {
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
@@ -185,7 +208,7 @@ function solveRectSizeForAabb(
   targetWidth: number,
   targetHeight: number,
   rotation: number,
-  baseSize: { width: number; height: number }
+  baseSize: { width: number; height: number },
 ): { width: number; height: number } {
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
@@ -221,7 +244,7 @@ function solveRectSizeForAabb(
 function getRotatedEllipseAabbSize(
   radiusX: number,
   radiusY: number,
-  rotation: number
+  rotation: number,
 ): { width: number; height: number } {
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
@@ -234,7 +257,7 @@ function solveEllipseRadiiForAabb(
   targetWidth: number,
   targetHeight: number,
   rotation: number,
-  baseRadii: { radiusX: number; radiusY: number }
+  baseRadii: { radiusX: number; radiusY: number },
 ): { radiusX: number; radiusY: number } {
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
@@ -276,7 +299,10 @@ function solveEllipseRadiiForAabb(
 
 // Point-based geometries share the same bounds logic
 const pointBasedBoundsHandler = (geometry: Geometry) => {
-  const g = geometry as Extract<Geometry, { type: 'pen' | 'stroke' | 'polygon' }>;
+  const g = geometry as Extract<
+    Geometry,
+    { type: "pen" | "stroke" | "polygon" }
+  >;
   return getBoundsFromPoints(g.points);
 };
 
@@ -284,7 +310,7 @@ const pointBasedBoundsHandler = (geometry: Geometry) => {
 const defaultRegistry = new ShapeHandlerRegistry();
 
 // Rectangle - full featured with geometry, selection (including axis-resize)
-defaultRegistry.register('rect', {
+defaultRegistry.register("rect", {
   geometry: {
     getBounds(geometry) {
       const g = geometry as RectGeometry;
@@ -299,29 +325,39 @@ defaultRegistry.register('rect', {
       const g = shape.geometry as RectGeometry;
       return {
         geometry: {
-          type: 'rect',
+          type: "rect",
           size: { ...g.size },
         },
       };
     },
-    resize({ snapshotGeometry, selectionScale, nextBounds, layout, transform }) {
+    resize({
+      snapshotGeometry,
+      selectionScale,
+      nextBounds,
+      layout,
+      transform,
+    }) {
       if (!layout) return null;
       const g = snapshotGeometry as RectGeometry;
       const scaleX = Math.abs(transform.scale.x);
       const scaleY = Math.abs(transform.scale.y);
       const baseWidth = g.size.width * scaleX;
       const baseHeight = g.size.height * scaleY;
-      const currentAabb = getRotatedRectAabbSize(baseWidth, baseHeight, transform.rotation);
+      const currentAabb = getRotatedRectAabbSize(
+        baseWidth,
+        baseHeight,
+        transform.rotation,
+      );
       const targetAabbWidth = currentAabb.width * selectionScale.x;
       const targetAabbHeight = currentAabb.height * selectionScale.y;
       const solved = solveRectSizeForAabb(
         targetAabbWidth,
         targetAabbHeight,
         transform.rotation,
-        { width: baseWidth, height: baseHeight }
+        { width: baseWidth, height: baseHeight },
       );
       const geometry: RectGeometry = {
-        type: 'rect',
+        type: "rect",
         size: {
           width: scaleX === 0 ? 0 : solved.width / scaleX,
           height: scaleY === 0 ? 0 : solved.height / scaleY,
@@ -335,7 +371,7 @@ defaultRegistry.register('rect', {
 });
 
 // Ellipse - geometry + selection (no axis-resize)
-defaultRegistry.register('ellipse', {
+defaultRegistry.register("ellipse", {
   geometry: {
     getBounds(geometry) {
       const g = geometry as EllipseGeometry;
@@ -348,30 +384,40 @@ defaultRegistry.register('ellipse', {
       const g = shape.geometry as EllipseGeometry;
       return {
         geometry: {
-          type: 'ellipse',
+          type: "ellipse",
           radiusX: g.radiusX,
           radiusY: g.radiusY,
         },
       };
     },
-    resize({ snapshotGeometry, selectionScale, nextBounds, layout, transform }) {
+    resize({
+      snapshotGeometry,
+      selectionScale,
+      nextBounds,
+      layout,
+      transform,
+    }) {
       if (!layout) return null;
       const g = snapshotGeometry as EllipseGeometry;
       const scaleX = Math.abs(transform.scale.x);
       const scaleY = Math.abs(transform.scale.y);
       const baseRadiusX = g.radiusX * scaleX;
       const baseRadiusY = g.radiusY * scaleY;
-      const currentAabb = getRotatedEllipseAabbSize(baseRadiusX, baseRadiusY, transform.rotation);
+      const currentAabb = getRotatedEllipseAabbSize(
+        baseRadiusX,
+        baseRadiusY,
+        transform.rotation,
+      );
       const targetAabbWidth = currentAabb.width * selectionScale.x;
       const targetAabbHeight = currentAabb.height * selectionScale.y;
       const solved = solveEllipseRadiiForAabb(
         targetAabbWidth,
         targetAabbHeight,
         transform.rotation,
-        { radiusX: baseRadiusX, radiusY: baseRadiusY }
+        { radiusX: baseRadiusX, radiusY: baseRadiusY },
       );
       const geometry: EllipseGeometry = {
-        type: 'ellipse',
+        type: "ellipse",
         radiusX: scaleX === 0 ? 0 : solved.radiusX / scaleX,
         radiusY: scaleY === 0 ? 0 : solved.radiusY / scaleY,
       };
@@ -383,7 +429,7 @@ defaultRegistry.register('ellipse', {
 });
 
 // Regular Polygon - geometry + selection (resize via transform)
-defaultRegistry.register('regularPolygon', {
+defaultRegistry.register("regularPolygon", {
   geometry: {
     getBounds(geometry) {
       const g = geometry as RegularPolygonGeometry;
@@ -396,7 +442,7 @@ defaultRegistry.register('regularPolygon', {
       const g = shape.geometry as RegularPolygonGeometry;
       return {
         geometry: {
-          type: 'regularPolygon',
+          type: "regularPolygon",
           radius: g.radius,
           sides: g.sides,
         },
@@ -423,7 +469,7 @@ defaultRegistry.register('regularPolygon', {
 });
 
 // Pen - geometry + canonicalize + selection (resize via transform)
-defaultRegistry.register('pen', {
+defaultRegistry.register("pen", {
   geometry: {
     getBounds: pointBasedBoundsHandler,
     canonicalize(geometry, center) {
@@ -440,7 +486,7 @@ defaultRegistry.register('pen', {
       const g = shape.geometry as PenGeometry;
       return {
         geometry: {
-          type: 'pen',
+          type: "pen",
           points: g.points.map((pt) => ({ ...pt })),
           simulatePressure: g.simulatePressure,
         },
@@ -466,11 +512,11 @@ defaultRegistry.register('pen', {
 });
 
 // Stroke - geometry + canonicalize only (no selection)
-defaultRegistry.register('stroke', {
+defaultRegistry.register("stroke", {
   geometry: {
     getBounds: pointBasedBoundsHandler,
     canonicalize(geometry, center) {
-      const g = geometry as Extract<Geometry, { type: 'stroke' }>;
+      const g = geometry as Extract<Geometry, { type: "stroke" }>;
       return {
         ...g,
         points: g.points.map((pt) => shiftPoint(pt, center)),
@@ -480,11 +526,11 @@ defaultRegistry.register('stroke', {
 });
 
 // Polygon - geometry + canonicalize only (no selection)
-defaultRegistry.register('polygon', {
+defaultRegistry.register("polygon", {
   geometry: {
     getBounds: pointBasedBoundsHandler,
     canonicalize(geometry, center) {
-      const g = geometry as Extract<Geometry, { type: 'polygon' }>;
+      const g = geometry as Extract<Geometry, { type: "polygon" }>;
       return {
         ...g,
         points: g.points.map((pt) => shiftPoint(pt, center)),
@@ -494,14 +540,14 @@ defaultRegistry.register('polygon', {
 });
 
 // Path - geometry + canonicalize only (no selection)
-defaultRegistry.register('path', {
+defaultRegistry.register("path", {
   geometry: {
     getBounds(geometry) {
-      const g = geometry as Extract<Geometry, { type: 'path' }>;
+      const g = geometry as Extract<Geometry, { type: "path" }>;
       return getBoundsFromPoints(g.segments.flatMap((seg) => seg.points));
     },
     canonicalize(geometry, center) {
-      const g = geometry as Extract<Geometry, { type: 'path' }>;
+      const g = geometry as Extract<Geometry, { type: "path" }>;
       return {
         ...g,
         segments: g.segments.map((seg) => ({
@@ -514,23 +560,29 @@ defaultRegistry.register('path', {
 });
 
 // Bezier - geometry + canonicalize only (no selection)
-defaultRegistry.register('bezier', {
+defaultRegistry.register("bezier", {
   geometry: {
     getBounds(geometry) {
-      const g = geometry as Extract<Geometry, { type: 'bezier' }>;
+      const g = geometry as Extract<Geometry, { type: "bezier" }>;
       const points = g.nodes.flatMap((node) =>
-        [node.anchor, node.handleIn, node.handleOut].filter((pt): pt is Point => Boolean(pt))
+        [node.anchor, node.handleIn, node.handleOut].filter((pt): pt is Point =>
+          Boolean(pt),
+        ),
       );
       return getBoundsFromPoints(points);
     },
     canonicalize(geometry, center) {
-      const g = geometry as Extract<Geometry, { type: 'bezier' }>;
+      const g = geometry as Extract<Geometry, { type: "bezier" }>;
       return {
         ...g,
         nodes: g.nodes.map((node) => ({
           anchor: shiftPoint(node.anchor, center),
-          handleIn: node.handleIn ? shiftPoint(node.handleIn, center) : undefined,
-          handleOut: node.handleOut ? shiftPoint(node.handleOut, center) : undefined,
+          handleIn: node.handleIn
+            ? shiftPoint(node.handleIn, center)
+            : undefined,
+          handleOut: node.handleOut
+            ? shiftPoint(node.handleOut, center)
+            : undefined,
         })),
       };
     },

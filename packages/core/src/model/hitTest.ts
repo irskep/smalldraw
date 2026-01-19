@@ -1,7 +1,7 @@
-import type { Shape } from './shape';
-import type { Point } from './primitives';
-import type { ShapeHandlerRegistry } from './shapeHandlers';
-import { getShapeBounds } from './geometryBounds';
+import type { Shape } from "./shape";
+import type { Point } from "./primitives";
+import type { ShapeHandlerRegistry } from "./shapeHandlers";
+import { getShapeBounds } from "./geometryBounds";
 
 /**
  * Test if a world-space point hits a shape
@@ -10,7 +10,7 @@ import { getShapeBounds } from './geometryBounds';
 export function hitTestShape(
   shape: Shape,
   point: Point,
-  registry: ShapeHandlerRegistry
+  registry: ShapeHandlerRegistry,
 ): boolean {
   const ops = registry.getShapeOps(shape.geometry.type);
 
@@ -35,7 +35,7 @@ export function hitTestShape(
 export function hitTestShapes(
   shapes: Shape[],
   point: Point,
-  registry: ShapeHandlerRegistry
+  registry: ShapeHandlerRegistry,
 ): Shape | null {
   for (let i = shapes.length - 1; i >= 0; i--) {
     if (hitTestShape(shapes[i], point, registry)) {

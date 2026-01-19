@@ -14,8 +14,8 @@ export const getDocumentMembers = async ({ documentId, userId }: Params) => {
     .where(
       and(
         eq(usersOnDocuments.documentId, documentId),
-        eq(usersOnDocuments.userId, userId)
-      )
+        eq(usersOnDocuments.userId, userId),
+      ),
     )
     .limit(1);
 

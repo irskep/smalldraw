@@ -1,6 +1,6 @@
-import type { Shape } from './shape';
-import { canonicalizeShape } from './shape';
-import type { ShapeHandlerRegistry } from './shapeHandlers';
+import type { Shape } from "./shape";
+import { canonicalizeShape } from "./shape";
+import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
 export interface DrawingDocument {
   shapes: Record<string, Shape>;

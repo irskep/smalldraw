@@ -8,7 +8,7 @@ export class UpdateShapeZIndex implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly nextZIndex: string
+    private readonly nextZIndex: string,
   ) {}
 
   redo(doc: DrawingDocument, ctx: ActionContext): void {

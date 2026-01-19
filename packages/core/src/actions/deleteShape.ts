@@ -17,7 +17,7 @@ export class DeleteShape implements UndoableAction {
   undo(doc: DrawingDocument, ctx: ActionContext): void {
     if (!this.deletedShape) {
       throw new Error(
-        `Cannot undo delete because shape ${this.shapeId} was never captured`
+        `Cannot undo delete because shape ${this.shapeId} was never captured`,
       );
     }
     doc.shapes[this.shapeId] = this.deletedShape;

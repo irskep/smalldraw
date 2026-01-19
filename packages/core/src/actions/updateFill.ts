@@ -9,7 +9,7 @@ export class UpdateShapeFill implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly nextFill: Fill | undefined
+    private readonly nextFill: Fill | undefined,
   ) {}
 
   redo(doc: DrawingDocument, ctx: ActionContext): void {

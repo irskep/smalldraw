@@ -1,10 +1,6 @@
 import { generateId } from "../utils/generateId.js";
 import { db } from "./client.js";
-import {
-  documentInvitations,
-  documents,
-  usersOnDocuments,
-} from "./schema.js";
+import { documentInvitations, documents, usersOnDocuments } from "./schema.js";
 
 type Params = {
   userId: string;

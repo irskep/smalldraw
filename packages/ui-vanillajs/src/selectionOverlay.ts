@@ -1,4 +1,9 @@
-import type { Bounds, HandleDescriptor, RectGeometry, Shape } from '@smalldraw/core';
+import type {
+  Bounds,
+  HandleDescriptor,
+  RectGeometry,
+  Shape,
+} from "@smalldraw/core";
 
 /** Size of corner handles in pixels */
 const HANDLE_SIZE = 8;
@@ -71,13 +76,13 @@ export class SelectionOverlay {
    */
   private updateFrame(bounds: Bounds): void {
     if (!this.frameEl) {
-      this.frameEl = document.createElement('div');
-      this.frameEl.className = 'smalldraw-selection-frame';
+      this.frameEl = document.createElement("div");
+      this.frameEl.className = "smalldraw-selection-frame";
       Object.assign(this.frameEl.style, {
-        position: 'absolute',
-        border: '1px dashed #4a90e2',
-        background: 'rgba(74, 144, 226, 0.05)',
-        pointerEvents: 'none',
+        position: "absolute",
+        border: "1px dashed #4a90e2",
+        background: "rgba(74, 144, 226, 0.05)",
+        pointerEvents: "none",
       });
       this.container.appendChild(this.frameEl);
     }
@@ -99,8 +104,9 @@ export class SelectionOverlay {
     rotation: number,
   ): void {
     const point = this.resolveHandlePoint(bounds, handle, shape);
-    const axisHandle = handle.behavior?.type === 'resize-axis';
-    const axis = handle.behavior?.type === 'resize-axis' ? handle.behavior.axis : null;
+    const axisHandle = handle.behavior?.type === "resize-axis";
+    const axis =
+      handle.behavior?.type === "resize-axis" ? handle.behavior.axis : null;
 
     let el = this.handleEls.get(handle.id);
     if (!el) {
@@ -122,23 +128,23 @@ export class SelectionOverlay {
     axis: string | null,
   ): HTMLDivElement {
     const size = axisHandle
-      ? axis === 'x'
+      ? axis === "x"
         ? { width: 6, height: 12 }
         : { width: 12, height: 6 }
       : { width: HANDLE_SIZE, height: HANDLE_SIZE };
 
-    const el = document.createElement('div');
-    el.className = 'smalldraw-handle';
+    const el = document.createElement("div");
+    el.className = "smalldraw-handle";
     el.dataset.handle = id;
 
     Object.assign(el.style, {
-      position: 'absolute',
+      position: "absolute",
       width: `${size.width}px`,
       height: `${size.height}px`,
-      background: axisHandle ? '#4a90e2' : '#ffffff',
-      border: axisHandle ? '1px solid #2c6db2' : '1px solid #4a90e2',
-      borderRadius: axisHandle ? '2px' : '0px',
-      pointerEvents: 'none',
+      background: axisHandle ? "#4a90e2" : "#ffffff",
+      border: axisHandle ? "1px solid #2c6db2" : "1px solid #4a90e2",
+      borderRadius: axisHandle ? "2px" : "0px",
+      pointerEvents: "none",
     });
 
     return el;
@@ -155,20 +161,28 @@ export class SelectionOverlay {
     rotation: number,
   ): void {
     const size = axisHandle
-      ? axis === 'x'
+      ? axis === "x"
         ? { width: 6, height: 12 }
         : { width: 12, height: 6 }
       : { width: HANDLE_SIZE, height: HANDLE_SIZE };
 
-    const axisRotation = axisHandle && axis
-      ? axis === 'x' ? rotation : rotation + Math.PI / 2
-      : null;
+    const axisRotation =
+      axisHandle && axis
+        ? axis === "x"
+          ? rotation
+          : rotation + Math.PI / 2
+        : null;
 
-    el.style.left = axisHandle ? `${point.x}px` : `${point.x - size.width / 2}px`;
-    el.style.top = axisHandle ? `${point.y}px` : `${point.y - size.height / 2}px`;
-    el.style.transform = axisHandle && axisRotation !== null
-      ? `translate(-50%, -50%) rotate(${(axisRotation * 180) / Math.PI}deg)`
-      : '';
+    el.style.left = axisHandle
+      ? `${point.x}px`
+      : `${point.x - size.width / 2}px`;
+    el.style.top = axisHandle
+      ? `${point.y}px`
+      : `${point.y - size.height / 2}px`;
+    el.style.transform =
+      axisHandle && axisRotation !== null
+        ? `translate(-50%, -50%) rotate(${(axisRotation * 180) / Math.PI}deg)`
+        : "";
   }
 
   /**
@@ -179,7 +193,10 @@ export class SelectionOverlay {
     handle: HandleDescriptor,
     shape?: Shape,
   ): { x: number; y: number } {
-    if (handle.behavior?.type === 'resize-axis' && shape?.geometry.type === 'rect') {
+    if (
+      handle.behavior?.type === "resize-axis" &&
+      shape?.geometry.type === "rect"
+    ) {
       const point = this.resolveAxisHandlePoint(handle.id, shape);
       if (point) return point;
     }
@@ -196,7 +213,7 @@ export class SelectionOverlay {
     handleId: string,
     shape: Shape,
   ): { x: number; y: number } | null {
-    if (shape.geometry.type !== 'rect') return null;
+    if (shape.geometry.type !== "rect") return null;
     const rectGeometry = shape.geometry as RectGeometry;
 
     const halfWidth = rectGeometry.size.width / 2;
@@ -204,16 +221,16 @@ export class SelectionOverlay {
 
     let local: { x: number; y: number } | null = null;
     switch (handleId) {
-      case 'mid-right':
+      case "mid-right":
         local = { x: halfWidth, y: 0 };
         break;
-      case 'mid-left':
+      case "mid-left":
         local = { x: -halfWidth, y: 0 };
         break;
-      case 'mid-top':
+      case "mid-top":
         local = { x: 0, y: -halfHeight };
         break;
-      case 'mid-bottom':
+      case "mid-bottom":
         local = { x: 0, y: halfHeight };
         break;
       default:
@@ -229,7 +246,11 @@ export class SelectionOverlay {
  */
 function applyTransformToPoint(
   point: { x: number; y: number },
-  transform?: { translation?: { x: number; y: number }; rotation?: number; scale?: { x: number; y: number } },
+  transform?: {
+    translation?: { x: number; y: number };
+    rotation?: number;
+    scale?: { x: number; y: number };
+  },
 ): { x: number; y: number } {
   const translation = transform?.translation ?? { x: 0, y: 0 };
   const rotation = transform?.rotation ?? 0;

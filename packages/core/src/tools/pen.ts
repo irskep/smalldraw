@@ -59,7 +59,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   const beginDrawing = (
     runtime: ToolRuntime,
     point: Point,
-    pressure?: number
+    pressure?: number,
   ) => {
     const state = ensureState(runtime);
     if (state.drawing) {
@@ -79,7 +79,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   const appendPoint = (
     runtime: ToolRuntime,
     point: Point,
-    pressure?: number
+    pressure?: number,
   ) => {
     const state = runtimeState.get(runtime);
     if (!state?.drawing) return;
@@ -145,7 +145,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   };
 
   const createPointerCancelHandler = (
-    runtime: ToolRuntime
+    runtime: ToolRuntime,
   ): ToolEventHandler => {
     return () => {
       cancelStroke(runtime);
@@ -165,7 +165,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
           onPointerMove: createPointerMoveHandler(runtime),
           onPointerUp: createPointerUpHandler(runtime),
           onPointerCancel: createPointerCancelHandler(runtime),
-        })
+        }),
       );
       return () => {
         state.disposers.dispose();

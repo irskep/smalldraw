@@ -43,7 +43,7 @@ export const loginAttempts = sqliteTable(
   },
   (table) => ({
     userUnique: uniqueIndex("login_attempts_user_unique").on(table.userId),
-  })
+  }),
 );
 
 export const documents = sqliteTable("documents", {
@@ -66,7 +66,7 @@ export const usersOnDocuments = sqliteTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.userId, table.documentId] }),
-  })
+  }),
 );
 
 export const documentInvitations = sqliteTable("document_invitations", {

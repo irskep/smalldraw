@@ -1,19 +1,24 @@
-import { createStage, renderDocument, type RenderDocumentOptions, type Viewport } from '../index';
-import type { DrawingDocument, ShapeHandlerRegistry } from '@smalldraw/core';
-import { promises as fs } from 'fs';
-import path from 'path';
-import looksSame from 'looks-same';
-import { fileURLToPath } from 'url';
+import {
+  createStage,
+  renderDocument,
+  type RenderDocumentOptions,
+  type Viewport,
+} from "../index";
+import type { DrawingDocument, ShapeHandlerRegistry } from "@smalldraw/core";
+import { promises as fs } from "fs";
+import path from "path";
+import looksSame from "looks-same";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const SNAPSHOT_DIR = path.resolve(__dirname, '../../__snapshots__');
-const SHOULD_UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === '1';
+const SNAPSHOT_DIR = path.resolve(__dirname, "../../__snapshots__");
+const SHOULD_UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === "1";
 
 export async function renderDocumentToImage(
   document: DrawingDocument,
   viewport: Viewport,
-  options?: Omit<RenderDocumentOptions, 'viewport'>,
+  options?: Omit<RenderDocumentOptions, "viewport">,
   geometryHandlerRegistry?: ShapeHandlerRegistry,
 ): Promise<Buffer> {
   const stage = createStage({ width: viewport.width, height: viewport.height });
@@ -22,9 +27,11 @@ export async function renderDocumentToImage(
     viewport,
     geometryHandlerRegistry,
   });
-  type BufferCanvas = HTMLCanvasElement & { toBuffer: (mimeType?: string) => Buffer };
+  type BufferCanvas = HTMLCanvasElement & {
+    toBuffer: (mimeType?: string) => Buffer;
+  };
   const canvas = layer.getCanvas()._canvas as BufferCanvas;
-  return canvas.toBuffer('image/png');
+  return canvas.toBuffer("image/png");
 }
 
 export async function expectSnapshot(
@@ -38,7 +45,7 @@ export async function expectSnapshot(
   try {
     expected = await fs.readFile(snapshotPath);
   } catch (error: any) {
-    if (error?.code === 'ENOENT') {
+    if (error?.code === "ENOENT") {
       await fs.writeFile(snapshotPath, buffer);
       if (SHOULD_UPDATE_SNAPSHOTS) {
         return;
@@ -71,7 +78,11 @@ export async function expectSnapshot(
   );
 }
 
-function compareImages(actual: Buffer, expected: Buffer, tolerance: number): Promise<boolean> {
+function compareImages(
+  actual: Buffer,
+  expected: Buffer,
+  tolerance: number,
+): Promise<boolean> {
   return new Promise((resolve, reject) => {
     looksSame(actual, expected, { tolerance }, (err, result) => {
       if (err) {
@@ -95,7 +106,7 @@ function createDiff(
         reference: expected,
         current: actual,
         diff: diffPath,
-        highlightColor: '#ff00ff',
+        highlightColor: "#ff00ff",
         tolerance,
       },
       (err) => {

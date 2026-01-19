@@ -67,7 +67,7 @@ describe("User operations", () => {
       createUser({
         username: "duplicate",
         registrationRecord: "another-record",
-      })
+      }),
     ).rejects.toThrow();
   });
 });
@@ -192,10 +192,10 @@ describe("Document operations", () => {
 
   it("getUserHasAccessToDocument returns false for invalid inputs", async () => {
     expect(
-      await getUserHasAccessToDocument({ userId: "", documentId: "doc" })
+      await getUserHasAccessToDocument({ userId: "", documentId: "doc" }),
     ).toBe(false);
     expect(
-      await getUserHasAccessToDocument({ userId: "user", documentId: "" })
+      await getUserHasAccessToDocument({ userId: "user", documentId: "" }),
     ).toBe(false);
   });
 });

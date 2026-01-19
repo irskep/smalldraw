@@ -173,19 +173,22 @@ describe("DrawingStore", () => {
 
   test("selection frame updates can be read from store", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([
-      {
-        id: "rect-frame",
-        geometry: { type: "rect", size: { width: 10, height: 10 } },
-        zIndex: "frame",
-        interactions: { resizable: true, rotatable: true },
-        transform: {
-          translation: { x: 5, y: 5 },
-          rotation: 0,
-          scale: { x: 1, y: 1 },
+    const doc = createDocument(
+      [
+        {
+          id: "rect-frame",
+          geometry: { type: "rect", size: { width: 10, height: 10 } },
+          zIndex: "frame",
+          interactions: { resizable: true, rotatable: true },
+          transform: {
+            translation: { x: 5, y: 5 },
+            rotation: 0,
+            scale: { x: 1, y: 1 },
+          },
         },
-      },
-    ], registry);
+      ],
+      registry,
+    );
     const store = new DrawingStore({
       document: doc,
       tools: [createRuntimeSelectionTool(["rect-frame"])],
@@ -207,19 +210,22 @@ describe("DrawingStore", () => {
 
   test("store exposes handles and hover events for selection tool", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([
-      {
-        id: "rect",
-        geometry: { type: "rect", size: { width: 10, height: 10 } },
-        zIndex: "a",
-        interactions: { resizable: true, rotatable: true },
-        transform: {
-          translation: { x: 0, y: 0 },
-          rotation: 0,
-          scale: { x: 1, y: 1 },
+    const doc = createDocument(
+      [
+        {
+          id: "rect",
+          geometry: { type: "rect", size: { width: 10, height: 10 } },
+          zIndex: "a",
+          interactions: { resizable: true, rotatable: true },
+          transform: {
+            translation: { x: 0, y: 0 },
+            rotation: 0,
+            scale: { x: 1, y: 1 },
+          },
         },
-      },
-    ], registry);
+      ],
+      registry,
+    );
     const store = new DrawingStore({
       document: doc,
       tools: [createRuntimeSelectionTool(["rect"]), createPenTool()],

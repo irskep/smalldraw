@@ -9,7 +9,9 @@ const getProdApiUrl = () => {
   return `https://${apiProductionHost}/api`;
 };
 
-const apiUrl = import.meta.env.PROD ? getProdApiUrl() : "http://localhost:3030/api";
+const apiUrl = import.meta.env.PROD
+  ? getProdApiUrl()
+  : "http://localhost:3030/api";
 
 export const trpc = createTRPCReact<AppRouter>();
 

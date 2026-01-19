@@ -21,7 +21,7 @@ const Invitation: React.FC = () => {
             navigate({ to: `/list/${data.documentId}` });
           }
         },
-      }
+      },
     );
   };
 

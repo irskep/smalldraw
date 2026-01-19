@@ -8,7 +8,7 @@ export class UpdateShapeOpacity implements UndoableAction {
 
   constructor(
     private readonly shapeId: string,
-    private readonly nextOpacity: number | undefined
+    private readonly nextOpacity: number | undefined,
   ) {}
 
   redo(doc: DrawingDocument, ctx: ActionContext): void {

@@ -1,22 +1,22 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from "bun:test";
 
-import { getShapeBounds } from '../geometryBounds';
-import { getDefaultShapeHandlerRegistry } from '../shapeHandlers';
-import type { Shape } from '../shape';
+import { getShapeBounds } from "../geometryBounds";
+import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
+import type { Shape } from "../shape";
 
-describe('geometry bounds helpers', () => {
-  test('computes bounds for rotated rectangle using center-based transform', () => {
+describe("geometry bounds helpers", () => {
+  test("computes bounds for rotated rectangle using center-based transform", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const shape: Shape = {
-      id: 'rect',
-      geometry: { type: 'rect', size: { width: 20, height: 10 } },
+      id: "rect",
+      geometry: { type: "rect", size: { width: 20, height: 10 } },
       interactions: { resizable: true, rotatable: true },
       transform: {
         translation: { x: 0, y: 0 },
         rotation: Math.PI / 2,
         scale: { x: 1, y: 1 },
       },
-      zIndex: 'rect',
+      zIndex: "rect",
     };
     const bounds = getShapeBounds(shape, registry);
     expect(bounds.minX).toBeCloseTo(-5);
@@ -27,12 +27,12 @@ describe('geometry bounds helpers', () => {
     expect(bounds.height).toBeCloseTo(20);
   });
 
-  test('derives bounds from pen geometry points and translation', () => {
+  test("derives bounds from pen geometry points and translation", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const shape: Shape = {
-      id: 'pen',
+      id: "pen",
       geometry: {
-        type: 'pen',
+        type: "pen",
         points: [
           { x: -2, y: -1 },
           { x: 3, y: 4 },
@@ -43,7 +43,7 @@ describe('geometry bounds helpers', () => {
         rotation: 0,
         scale: { x: 1, y: 1 },
       },
-      zIndex: 'pen',
+      zIndex: "pen",
     };
     const bounds = getShapeBounds(shape, registry);
     expect(bounds.minX).toBeCloseTo(3);
@@ -52,18 +52,18 @@ describe('geometry bounds helpers', () => {
     expect(bounds.maxY).toBeCloseTo(-1);
   });
 
-  test('includes stroke width in computed bounds', () => {
+  test("includes stroke width in computed bounds", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const shape: Shape = {
-      id: 'stroked',
-      geometry: { type: 'rect', size: { width: 10, height: 10 } },
-      stroke: { type: 'brush', color: '#000', size: 4 },
+      id: "stroked",
+      geometry: { type: "rect", size: { width: 10, height: 10 } },
+      stroke: { type: "brush", color: "#000", size: 4 },
       transform: {
         translation: { x: 0, y: 0 },
         rotation: 0,
         scale: { x: 1, y: 1 },
       },
-      zIndex: 'stroked',
+      zIndex: "stroked",
     };
     const bounds = getShapeBounds(shape, registry);
     expect(bounds.minX).toBe(-5 - 2);

@@ -36,7 +36,7 @@ export const DocumentInvitation: React.FC<Props> = ({ documentId }) => {
                 onSuccess: () => {
                   documentInvitationQuery.refetch();
                 },
-              }
+              },
             )
           }
         >
