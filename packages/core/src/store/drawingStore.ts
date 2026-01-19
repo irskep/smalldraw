@@ -2,7 +2,7 @@ import { type ActionContext, type UndoableAction } from "../actions";
 import { createDocument, type DrawingDocument } from "../model/document";
 import type { Shape } from "../model/shape";
 import { UndoManager } from "../undo";
-import { ToolRuntimeImpl } from "../tools/runtime";
+import { DEFAULT_SHARED_SETTINGS, ToolRuntimeImpl } from "../tools/runtime";
 import type {
   DraftShape,
   HandleBehavior,
@@ -74,17 +74,16 @@ export class DrawingStore {
   private actionContext: ActionContext;
 
   constructor(options: DrawingStoreOptions) {
+    console.log("i reloaded");
     this.shapeHandlers =
       options.shapeHandlers ?? getDefaultShapeHandlerRegistry();
     this.actionContext = { registry: this.shapeHandlers };
-    this.document = options.document ?? createDocument(undefined, this.shapeHandlers);
+    this.document =
+      options.document ?? createDocument(undefined, this.shapeHandlers);
     this.undoManager = options.undoManager ?? new UndoManager();
     this.onRenderNeeded = options.onRenderNeeded;
-    this.sharedSettings = options.initialSharedSettings ?? {
-      strokeColor: "#000000",
-      strokeWidth: 2,
-      fillColor: "#ffffff",
-    };
+    this.sharedSettings =
+      options.initialSharedSettings ?? DEFAULT_SHARED_SETTINGS;
     for (const tool of options.tools) {
       this.tools.set(tool.id, tool);
     }

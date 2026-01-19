@@ -1,2 +1,0 @@
-[tasks."demo:dev"]
-run = "bun ./src/index.html"

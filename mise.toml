@@ -48,12 +48,7 @@ dir = "apps/demo-ui-vanillajs"
 run = "bunx serve dist"
 
 [tasks."demo:dev"]
-dir = "apps/demo-ui-vanillajs"
-run = "bun ./src/index.html"
-
-[tasks."ui:vanillajs:watch"]
-dir = "packages/ui-vanillajs"
-run = "bun run build --watch"
+run = "bun apps/demo-ui-vanillajs/src/index.html --watch"
 
 [tasks."db:push:prod"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/prod.db" }

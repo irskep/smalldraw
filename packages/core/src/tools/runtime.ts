@@ -1,8 +1,8 @@
-import type { ActionContext, UndoableAction } from '../actions';
-import { getOrderedShapes, getZIndexBetween } from '../zindex';
-import type { DrawingDocument } from '../model/document';
-import type { ShapeHandlerRegistry } from '../model/shapeHandlers';
-import { UndoManager } from '../undo';
+import type { ActionContext, UndoableAction } from "../actions";
+import { getOrderedShapes, getZIndexBetween } from "../zindex";
+import type { DrawingDocument } from "../model/document";
+import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
+import { UndoManager } from "../undo";
 import type {
   DraftShape,
   SelectionState,
@@ -12,7 +12,7 @@ import type {
   ToolPointerEvent,
   ToolRuntime,
   ToolRuntimeEvent,
-} from './types';
+} from "./types";
 
 interface ToolRuntimeConfig<TOptions = unknown> {
   toolId: string;
@@ -26,15 +26,13 @@ interface ToolRuntimeConfig<TOptions = unknown> {
   toolStates?: Map<string, unknown>;
 }
 
-const DEFAULT_SHARED_SETTINGS: SharedToolSettings = {
-  strokeColor: '#000000',
+export const DEFAULT_SHARED_SETTINGS: SharedToolSettings = {
+  strokeColor: "#000000",
   strokeWidth: 2,
-  fillColor: '#ffffff',
+  fillColor: "#ffffff",
 };
 
-export class ToolRuntimeImpl<TOptions = unknown>
-  implements ToolRuntime
-{
+export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   public readonly toolId: string;
   private readonly document: DrawingDocument;
   private readonly undoManager: UndoManager;
@@ -86,10 +84,11 @@ export class ToolRuntimeImpl<TOptions = unknown>
   }
 
   onEvent<TPayload>(
-    type: ToolRuntimeEvent<TPayload>['type'],
-    listener: (payload: TPayload) => void,
+    type: ToolRuntimeEvent<TPayload>["type"],
+    listener: (payload: TPayload) => void
   ): () => void {
-    const set = this.eventListeners.get(type) ?? new Set<(payload: unknown) => void>();
+    const set =
+      this.eventListeners.get(type) ?? new Set<(payload: unknown) => void>();
     set.add(listener as (payload: unknown) => void);
     this.eventListeners.set(type, set);
     return () => {
@@ -103,7 +102,7 @@ export class ToolRuntimeImpl<TOptions = unknown>
   setDraft(shape: DraftShape | null): void {
     if (shape && shape.toolId !== this.toolId) {
       throw new Error(
-        `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`,
+        `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`
       );
     }
     this.drafts = shape ? [shape] : [];
@@ -114,7 +113,7 @@ export class ToolRuntimeImpl<TOptions = unknown>
     for (const shape of shapes) {
       if (shape.toolId !== this.toolId) {
         throw new Error(
-          `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`,
+          `Draft shape ${shape.id} toolId ${shape.toolId} does not match runtime ${this.toolId}`
         );
       }
     }
@@ -136,7 +135,7 @@ export class ToolRuntimeImpl<TOptions = unknown>
     this.undoManager.apply(action, this.document, ctx);
   }
 
-  generateShapeId(prefix = 'shape'): string {
+  generateShapeId(prefix = "shape"): string {
     this.idCounter += 1;
     return `${prefix}-${this.idCounter}`;
   }
@@ -156,11 +155,11 @@ export class ToolRuntimeImpl<TOptions = unknown>
   }
 
   updateSharedSettings<T = SharedToolSettings>(
-    updater: Partial<T> | ((prev: T) => T),
+    updater: Partial<T> | ((prev: T) => T)
   ): void {
     const current = { ...this.sharedSettings } as T;
     const next =
-      typeof updater === 'function'
+      typeof updater === "function"
         ? (updater(current) as Record<string, unknown>)
         : { ...current, ...(updater as Record<string, unknown>) };
     Object.assign(this.sharedSettings, next);
@@ -175,7 +174,7 @@ export class ToolRuntimeImpl<TOptions = unknown>
   }
 
   updateToolState<TState = unknown>(
-    updater: (prev: TState | undefined) => TState,
+    updater: (prev: TState | undefined) => TState
   ): void {
     const next = updater(this.getToolState<TState>());
     this.setToolState(next);
