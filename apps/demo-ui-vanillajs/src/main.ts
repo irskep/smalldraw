@@ -29,3 +29,5 @@ resetButton?.addEventListener("click", () => {
 });
 
 mount();
+
+import.meta.hot.accept();
