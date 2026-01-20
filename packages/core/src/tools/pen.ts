@@ -1,8 +1,8 @@
 import { AddShape } from "../actions";
+import { getBoundsFromPoints } from "../model/geometryUtils";
 import type { Point } from "../model/primitives";
 import type { Shape } from "../model/shape";
 import type { StrokeStyle } from "../model/style";
-import { allValuesAreFinite } from "../util";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { attachPointerHandlers } from "./pointerHandlers";
 import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
@@ -176,7 +176,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   };
 }
 const createStrokeShape = (draft: StrokeDraftState): Shape => {
-  const bounds = calculateBounds(draft.points);
+  const bounds = getBoundsFromPoints(draft.points);
   const center = bounds
     ? {
         x: (bounds.minX + bounds.maxX) / 2,
@@ -210,20 +210,4 @@ const createStrokeShape = (draft: StrokeDraftState): Shape => {
     },
   };
   return shape;
-};
-
-const calculateBounds = (points: Point[]) => {
-  if (!points.length) return null;
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (const pt of points) {
-    minX = Math.min(minX, pt.x);
-    minY = Math.min(minY, pt.y);
-    maxX = Math.max(maxX, pt.x);
-    maxY = Math.max(maxY, pt.y);
-  }
-  if (!allValuesAreFinite(minX, minY, maxX, maxY)) return null;
-  return { minX, minY, maxX, maxY };
 };

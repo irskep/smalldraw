@@ -9,12 +9,12 @@ import { getShapeBounds } from "../model/geometryShapeUtils";
 import {
   getBoundsCenter,
   getBoundsFromPointPair,
+  getBoundsFromPoints,
 } from "../model/geometryUtils";
 import { hitTestShape } from "../model/hitTest";
 import type { Bounds, Point } from "../model/primitives";
 import type { CanonicalShapeTransform, Shape } from "../model/shape";
 import { normalizeShapeTransform } from "../model/shape";
-import { allValuesAreFinite } from "../util";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { createPointerDragHandler } from "./pointerDrag";
 import type {
@@ -419,34 +419,27 @@ function computeSelectionBounds(
   shapes: Shape[],
   runtime: ToolRuntime,
 ): SelectionBoundsResult {
-  const shapeBounds = new Map<string, SelectionBounds>();
-  if (!shapes.length) return { bounds: undefined, shapeBounds };
+  const shapeBoundsById = new Map<string, SelectionBounds>();
+  if (!shapes.length)
+    return { bounds: undefined, shapeBounds: shapeBoundsById };
   const registry = runtime.getShapeHandlers();
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (const shape of shapes) {
+  const shapeBoundsArray = shapes.map((shape) => {
     const bounds = getShapeBounds(shape, registry);
-    shapeBounds.set(shape.id, bounds);
-    minX = Math.min(minX, bounds.minX);
-    minY = Math.min(minY, bounds.minY);
-    maxX = Math.max(maxX, bounds.maxX);
-    maxY = Math.max(maxY, bounds.maxY);
-  }
-  if (!allValuesAreFinite(minX, minY, maxX, maxY)) {
-    return { bounds: undefined, shapeBounds };
+    shapeBoundsById.set(shape.id, bounds);
+    return bounds;
+  });
+  const omniBoundingBox = getBoundsFromPoints(
+    shapeBoundsArray.flatMap((b) => [
+      { x: b.minX, y: b.minY },
+      { x: b.maxX, y: b.maxY },
+    ]),
+  );
+  if (!omniBoundingBox) {
+    return { bounds: undefined, shapeBounds: shapeBoundsById };
   }
   return {
-    bounds: {
-      minX,
-      minY,
-      maxX,
-      maxY,
-      width: maxX - minX,
-      height: maxY - minY,
-    },
-    shapeBounds,
+    bounds: omniBoundingBox,
+    shapeBounds: shapeBoundsById,
   };
 }
 
