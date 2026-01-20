@@ -81,8 +81,9 @@ export class DrawingStore {
       options.document ?? createDocument(undefined, this.shapeHandlers);
     this.undoManager = options.undoManager ?? new UndoManager();
     this.onRenderNeeded = options.onRenderNeeded;
-    this.sharedSettings =
-      options.initialSharedSettings ?? DEFAULT_SHARED_SETTINGS;
+    this.sharedSettings = options.initialSharedSettings ?? {
+      ...DEFAULT_SHARED_SETTINGS,
+    };
     for (const tool of options.tools) {
       this.tools.set(tool.id, tool);
     }
