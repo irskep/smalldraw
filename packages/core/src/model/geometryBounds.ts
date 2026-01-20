@@ -1,9 +1,9 @@
+import { allValuesAreFinite } from "../util";
 import type { Geometry } from "./geometry";
-import type { Point, Bounds } from "./primitives";
-import type { Shape, ShapeTransform, CanonicalShapeTransform } from "./shape";
+import type { Bounds, Point } from "./primitives";
+import type { CanonicalShapeTransform, Shape, ShapeTransform } from "./shape";
 import { normalizeShapeTransform } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
-import { getBoundsFromPoints } from "./geometryUtils";
 
 export { getBoundsFromPoints } from "./geometryUtils";
 
@@ -89,12 +89,7 @@ export function getShapeBounds(
     maxX = Math.max(maxX, world.x);
     maxY = Math.max(maxY, world.y);
   }
-  if (
-    !isFinite(minX) ||
-    !isFinite(minY) ||
-    !isFinite(maxX) ||
-    !isFinite(maxY)
-  ) {
+  if (!allValuesAreFinite(minX, minY, maxX, maxY)) {
     const { translation } = transform;
     return createBounds(
       translation.x,

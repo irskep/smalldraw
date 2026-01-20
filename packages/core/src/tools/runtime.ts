@@ -1,8 +1,8 @@
 import type { ActionContext, UndoableAction } from "../actions";
-import { getOrderedShapes, getZIndexBetween } from "../zindex";
 import type { DrawingDocument } from "../model/document";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
-import { UndoManager } from "../undo";
+import type { UndoManager } from "../undo";
+import { getOrderedShapes, getZIndexBetween } from "../zindex";
 import type {
   DraftShape,
   SelectionState,
@@ -75,12 +75,16 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   }
 
   dispatch(event: ToolEventName, payload: ToolPointerEvent): void {
-    this.handlers.get(event)?.forEach((handler) => handler(payload));
+    this.handlers.get(event)?.forEach((handler) => {
+      handler(payload);
+    });
   }
 
   emit<TPayload>(event: ToolRuntimeEvent<TPayload>): void {
     const listeners = this.eventListeners.get(event.type);
-    listeners?.forEach((listener) => listener(event.payload));
+    listeners?.forEach((listener) => {
+      listener(event.payload);
+    });
   }
 
   onEvent<TPayload>(

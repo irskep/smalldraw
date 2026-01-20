@@ -12,7 +12,7 @@ export class UpdateShapeTransform implements UndoableAction {
     private readonly nextTransform: ShapeTransform,
   ) {}
 
-  redo(doc: DrawingDocument, ctx: ActionContext): void {
+  redo(doc: DrawingDocument, _ctx: ActionContext): void {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       this.previous = shape.transform;
@@ -21,7 +21,7 @@ export class UpdateShapeTransform implements UndoableAction {
     shape.transform = { ...this.nextTransform };
   }
 
-  undo(doc: DrawingDocument, ctx: ActionContext): void {
+  undo(doc: DrawingDocument, _ctx: ActionContext): void {
     if (!this.recorded) {
       throw new Error(`Cannot undo transform update for ${this.shapeId}`);
     }

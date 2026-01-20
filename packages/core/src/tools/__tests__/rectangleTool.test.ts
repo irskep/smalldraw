@@ -3,8 +3,8 @@ import { describe, expect, test } from "bun:test";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { UndoManager } from "../../undo";
-import { ToolRuntimeImpl } from "../runtime";
 import { createRectangleTool } from "../rectangle";
+import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
 
 function setup(params?: { sharedSettings?: SharedToolSettings }) {

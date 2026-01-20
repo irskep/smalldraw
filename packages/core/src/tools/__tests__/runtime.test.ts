@@ -2,13 +2,13 @@ import { describe, expect, test } from "bun:test";
 
 import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
-import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { Shape } from "../../model/shape";
 import { canonicalizeShape } from "../../model/shape";
+import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { UndoManager } from "../../undo";
 import { getZIndexBetween } from "../../zindex";
-import type { SelectionState, SharedToolSettings } from "../types";
 import { ToolRuntimeImpl } from "../runtime";
+import type { SelectionState, SharedToolSettings } from "../types";
 
 interface RuntimeOverrides {
   options?: Record<string, unknown>;

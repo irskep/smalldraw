@@ -1,23 +1,23 @@
-import { type ActionContext, type UndoableAction } from "../actions";
+import type { ActionContext, UndoableAction } from "../actions";
 import { createDocument, type DrawingDocument } from "../model/document";
 import type { Shape } from "../model/shape";
-import { UndoManager } from "../undo";
+import {
+  getDefaultShapeHandlerRegistry,
+  type ShapeHandlerRegistry,
+} from "../model/shapeHandlers";
 import { DEFAULT_SHARED_SETTINGS, ToolRuntimeImpl } from "../tools/runtime";
 import type {
+  Bounds,
   DraftShape,
   HandleBehavior,
   HandleDescriptor,
-  Bounds,
   SelectionState,
   SharedToolSettings,
   ToolDefinition,
   ToolEventName,
   ToolPointerEvent,
 } from "../tools/types";
-import {
-  getDefaultShapeHandlerRegistry,
-  type ShapeHandlerRegistry,
-} from "../model/shapeHandlers";
+import { UndoManager } from "../undo";
 
 export interface DrawingStoreOptions {
   document?: DrawingDocument;
@@ -74,7 +74,6 @@ export class DrawingStore {
   private actionContext: ActionContext;
 
   constructor(options: DrawingStoreOptions) {
-    console.log("i reloaded");
     this.shapeHandlers =
       options.shapeHandlers ?? getDefaultShapeHandlerRegistry();
     this.actionContext = { registry: this.shapeHandlers };
@@ -177,7 +176,6 @@ export class DrawingStore {
   private deactivateActiveTool(): void {
     if (!this.activeToolId) return;
     const currentId = this.activeToolId;
-    const tool = this.tools.get(currentId);
     const runtime = this.runtimes.get(currentId);
     this.activeToolDeactivate?.();
     this.activeToolDeactivate = undefined;

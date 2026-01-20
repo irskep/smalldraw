@@ -65,6 +65,8 @@ export function createPointerDragHandler<TState>(
   disposers.push(runtime.on("pointerCancel", handlePointerCancel));
 
   return () => {
-    disposers.forEach((dispose) => dispose());
+    disposers.forEach((dispose) => {
+      dispose();
+    });
   };
 }

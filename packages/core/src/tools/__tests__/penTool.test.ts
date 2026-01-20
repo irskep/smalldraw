@@ -3,8 +3,8 @@ import { describe, expect, test } from "bun:test";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { UndoManager } from "../../undo";
-import { ToolRuntimeImpl } from "../runtime";
 import { createPenTool } from "../pen";
+import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
 
 describe("pen tool integration with runtime", () => {
@@ -94,7 +94,7 @@ describe("pen tool integration with runtime", () => {
   });
 
   test("deactivation clears drafts and prevents further commits", () => {
-    const { runtime, document, tool, deactivate } = setup();
+    const { runtime, document, deactivate } = setup();
 
     runtime.dispatch("pointerDown", { point: { x: 1, y: 1 }, buttons: 1 });
     expect(runtime.getDraft()).not.toBeNull();

@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { AddShape, DeleteShape, type ActionContext } from "../actions";
+import { type ActionContext, AddShape, DeleteShape } from "../actions";
 import { createDocument } from "../model/document";
-import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import type { Shape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
+import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
 
 const rectangle: Shape = {

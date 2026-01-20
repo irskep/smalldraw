@@ -1,12 +1,11 @@
 import { describe, expect, test } from "bun:test";
-
-import { DrawingStore } from "../drawingStore";
+import { createDocument } from "../../model/document";
+import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { createPenTool } from "../../tools/pen";
 import { createRectangleTool } from "../../tools/rectangle";
 import { createSelectionTool as createSelectionDefinition } from "../../tools/selection";
-import { createDocument } from "../../model/document";
-import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { ToolDefinition } from "../../tools/types";
+import { DrawingStore } from "../drawingStore";
 
 function createDraftTool(): ToolDefinition {
   return {
@@ -255,8 +254,8 @@ describe("DrawingStore", () => {
   test("shared settings helpers update global state", () => {
     const store = new DrawingStore({ tools: [createPenTool()] });
     expect(store.getSharedSettings().strokeWidth).toBe(2);
-    store.updateSharedSettings({ strokeWidth: 9 });
-    expect(store.getSharedSettings().strokeWidth).toBe(9);
+    store.updateSharedSettings({ strokeWidth: 10 });
+    expect(store.getSharedSettings().strokeWidth).toBe(10);
   });
 
   test("selection helpers manage ids consistently", () => {

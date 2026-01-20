@@ -1,5 +1,5 @@
-import type { DrawingDocument } from "./model/document";
 import type { ActionContext, UndoableAction } from "./actions";
+import type { DrawingDocument } from "./model/document";
 
 export class UndoManager {
   private undoStack: UndoableAction[] = [];

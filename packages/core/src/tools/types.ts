@@ -1,8 +1,9 @@
-import type { Point, Bounds } from "../model/primitives";
+import type { Bounds, Point } from "../model/primitives";
 
 export type { Bounds };
-import type { Shape } from "../model/shape";
+
 import type { UndoableAction } from "../actions";
+import type { Shape } from "../model/shape";
 
 export type ToolEventName =
   | "pointerDown"
@@ -118,5 +119,6 @@ export type ToolRuntimeEvent<TPayload = unknown> =
 export interface ToolDefinition {
   id: string;
   label: string;
+  // biome-ignore lint/suspicious/noConfusingVoidType: API conciseness
   activate(runtime: ToolRuntime): void | undefined | (() => void);
 }

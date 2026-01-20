@@ -1,7 +1,7 @@
-import type { Shape } from "./shape";
-import type { Point } from "./primitives";
-import type { ShapeHandlerRegistry } from "./shapeHandlers";
 import { getShapeBounds } from "./geometryBounds";
+import type { Point } from "./primitives";
+import type { Shape } from "./shape";
+import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
 /**
  * Test if a world-space point hits a shape
@@ -16,7 +16,7 @@ export function hitTestShape(
 
   // Use specific hit test if available
   if (ops?.hitTest) {
-    return ops.hitTest(shape as any, point);
+    return ops.hitTest(shape, point);
   }
 
   // Fallback to AABB test

@@ -2,9 +2,10 @@ import { AddShape } from "../actions";
 import type { Point } from "../model/primitives";
 import type { Shape } from "../model/shape";
 import type { StrokeStyle } from "../model/style";
-import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
-import { attachPointerHandlers } from "./pointerHandlers";
+import { allValuesAreFinite } from "../util";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
+import { attachPointerHandlers } from "./pointerHandlers";
+import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 
 const PRIMARY_BUTTON_MASK = 1;
 
@@ -223,13 +224,6 @@ const calculateBounds = (points: Point[]) => {
     maxX = Math.max(maxX, pt.x);
     maxY = Math.max(maxY, pt.y);
   }
-  if (
-    !isFinite(minX) ||
-    !isFinite(minY) ||
-    !isFinite(maxX) ||
-    !isFinite(maxY)
-  ) {
-    return null;
-  }
+  if (!allValuesAreFinite(minX, minY, maxX, maxY)) return null;
   return { minX, minY, maxX, maxY };
 };

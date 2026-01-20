@@ -28,7 +28,9 @@ export function createDisposerBucket(): DisposerBucket {
   const disposers: Array<() => void> = [];
 
   const dispose = () => {
-    disposers.forEach((d) => d());
+    disposers.forEach((d) => {
+      d();
+    });
     disposers.length = 0;
   };
 

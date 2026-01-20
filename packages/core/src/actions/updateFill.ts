@@ -12,7 +12,7 @@ export class UpdateShapeFill implements UndoableAction {
     private readonly nextFill: Fill | undefined,
   ) {}
 
-  redo(doc: DrawingDocument, ctx: ActionContext): void {
+  redo(doc: DrawingDocument, _ctx: ActionContext): void {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       this.previous = shape.fill;
@@ -21,7 +21,7 @@ export class UpdateShapeFill implements UndoableAction {
     shape.fill = this.nextFill;
   }
 
-  undo(doc: DrawingDocument, ctx: ActionContext): void {
+  undo(doc: DrawingDocument, _ctx: ActionContext): void {
     if (!this.recorded) {
       throw new Error(`Cannot undo fill update for ${this.shapeId}`);
     }

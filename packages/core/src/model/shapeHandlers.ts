@@ -1,13 +1,13 @@
-import type { Bounds, Point } from "./primitives";
 import type {
-  Geometry,
-  RectGeometry,
   EllipseGeometry,
-  RegularPolygonGeometry,
+  Geometry,
   PenGeometry,
+  RectGeometry,
+  RegularPolygonGeometry,
 } from "./geometry";
-import type { Shape, CanonicalShapeTransform } from "./shape";
 import { getBoundsFromPoints } from "./geometryUtils";
+import type { Bounds, Point } from "./primitives";
+import type { CanonicalShapeTransform, Shape } from "./shape";
 
 /**
  * Operations that work on Geometry alone (no transform/style needed)

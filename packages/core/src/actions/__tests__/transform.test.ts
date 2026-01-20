@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
-
-import { CompositeAction, UpdateShapeTransform, type ActionContext } from "..";
 import { createDocument } from "../../model/document";
-import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { Shape } from "../../model/shape";
+import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { UndoManager } from "../../undo";
+import { type ActionContext, CompositeAction, UpdateShapeTransform } from "..";
 
 describe("UpdateShapeTransform action", () => {
   const baseShape: Shape = {

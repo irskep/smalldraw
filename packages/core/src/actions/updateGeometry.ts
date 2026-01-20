@@ -26,7 +26,7 @@ export class UpdateShapeGeometry implements UndoableAction {
     shape.transform = canonical.transform;
   }
 
-  undo(doc: DrawingDocument, ctx: ActionContext): void {
+  undo(doc: DrawingDocument, _ctx: ActionContext): void {
     if (!this.previousGeometry) {
       throw new Error(
         `Cannot undo geometry update for ${this.shapeId} because previous geometry was not recorded`,

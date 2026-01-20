@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  type ActionContext,
   AddShape,
   UpdateShapeFill,
+  UpdateShapeOpacity,
   UpdateShapeStroke,
   UpdateShapeZIndex,
-  UpdateShapeOpacity,
-  type ActionContext,
 } from "../actions";
 import { createDocument } from "../model/document";
-import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import type { Shape } from "../model/shape";
+import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import type { Fill, StrokeStyle } from "../model/style";
 import { UndoManager } from "../undo";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";

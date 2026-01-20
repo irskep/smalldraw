@@ -2,9 +2,9 @@ import { AddShape } from "../actions";
 import type { Point, Size } from "../model/primitives";
 import type { Shape } from "../model/shape";
 import type { Fill, StrokeStyle } from "../model/style";
-import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
-import { attachPointerHandlers } from "./pointerHandlers";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
+import { attachPointerHandlers } from "./pointerHandlers";
+import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 
 interface RectDraftState {
   id: string;

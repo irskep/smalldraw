@@ -3,7 +3,7 @@ import {
   type VanillaDrawingApp,
 } from "@smalldraw/ui-vanillajs";
 
-const container = document.getElementById("app")!;
+const container = document.getElementById("app");
 if (!container) {
   throw new Error("Missing #app container");
 }
@@ -11,6 +11,7 @@ if (!container) {
 let app: VanillaDrawingApp | null = null;
 
 function mount() {
+  if (!container) return;
   container.innerHTML = "";
   app = createVanillaDrawingApp({
     container,

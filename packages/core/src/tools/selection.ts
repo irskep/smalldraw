@@ -1,28 +1,22 @@
+import type { UndoableAction } from "../actions";
 import {
   CompositeAction,
   UpdateShapeGeometry,
   UpdateShapeTransform,
 } from "../actions";
-import type { UndoableAction } from "../actions";
+import type { Geometry, RectGeometry } from "../model/geometry";
 import {
   createBoundsFromPoints,
   getBoundsCenter,
   getShapeBounds,
 } from "../model/geometryBounds";
 import { hitTestShape } from "../model/hitTest";
-import type {
-  Geometry,
-  RectGeometry,
-  EllipseGeometry,
-  RegularPolygonGeometry,
-  PenGeometry,
-} from "../model/geometry";
 import type { Bounds, Point } from "../model/primitives";
 import type { CanonicalShapeTransform, Shape } from "../model/shape";
 import { normalizeShapeTransform } from "../model/shape";
-import { attachPointerHandlers } from "./pointerHandlers";
-import { createPointerDragHandler } from "./pointerDrag";
+import { allValuesAreFinite } from "../util";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
+import { createPointerDragHandler } from "./pointerDrag";
 import type {
   DraftShape,
   HandleBehavior,
@@ -244,8 +238,8 @@ export function createSelectionTool(): ToolDefinition {
         const normalized = normalizeShapeTransform(shape.transform);
         transforms.set(shape.id, normalized);
         const ops = registry.getSelectionOps(shape.geometry.type);
-        if (ops?.canResize?.(shape as any) && ops?.prepareResize) {
-          const snapshot = ops.prepareResize(shape as any);
+        if (ops?.canResize?.(shape) && ops?.prepareResize) {
+          const snapshot = ops.prepareResize(shape);
           resizeEntries.set(shape.id, {
             geometryType: shape.geometry.type,
             snapshot,
@@ -276,15 +270,16 @@ export function createSelectionTool(): ToolDefinition {
         ? resolveHandleBehavior(event, event.handleId)
         : null;
 
-      if (behavior?.type === "rotate" && hasRotatableShape(shapes)) {
+      const primaryShapeTransform = transforms.get(primaryShape.id);
+      if (
+        behavior?.type === "rotate" &&
+        hasRotatableShape(shapes) &&
+        primaryShapeTransform
+      ) {
         dragState.mode = "rotate";
         dragState.center = bounds
           ? getBoundsCenter(bounds)
-          : getShapeCenter(
-              primaryShape,
-              transforms.get(primaryShape.id)!,
-              runtime,
-            );
+          : getShapeCenter(primaryShape, primaryShapeTransform, runtime);
       } else if (
         behavior &&
         behavior.type === "resize-axis" &&
@@ -306,24 +301,25 @@ export function createSelectionTool(): ToolDefinition {
         behavior &&
         behavior.type === "resize" &&
         hasResizableShape(shapes, runtime) &&
-        bounds
+        bounds &&
+        event.handleId
       ) {
         dragState.mode = behavior.proportional
           ? "resize-proportional"
           : "resize";
         dragState.oppositeCorner = getHandlePosition(
           bounds,
-          getOppositeHandle(event.handleId!),
+          getOppositeHandle(event.handleId),
         );
-      } else if (event.altKey && hasRotatableShape(shapes)) {
+      } else if (
+        event.altKey &&
+        hasRotatableShape(shapes) &&
+        primaryShapeTransform
+      ) {
         dragState.mode = "rotate";
         dragState.center = bounds
           ? getBoundsCenter(bounds)
-          : getShapeCenter(
-              primaryShape,
-              transforms.get(primaryShape.id)!,
-              runtime,
-            );
+          : getShapeCenter(primaryShape, primaryShapeTransform, runtime);
       }
 
       ensureState(runtime).drag = dragState;
@@ -386,13 +382,13 @@ export function createSelectionTool(): ToolDefinition {
             });
             return ensureState(runtime).drag ?? null;
           },
-          onMove(drag, point, event) {
+          onMove(drag, point, _event) {
             drag.lastPoint = point;
             const frame = computeDragFrame(runtime, drag);
             emitSelectionFrame(runtime, frame ?? drag.selectionBounds);
             runtime.setDrafts(computePreviewShapes(runtime, drag));
           },
-          onEnd(state, point, event) {
+          onEnd(_state, point, event) {
             onPointerUp(runtime)({
               ...event,
               point,
@@ -438,12 +434,7 @@ function computeSelectionBounds(
     maxX = Math.max(maxX, bounds.maxX);
     maxY = Math.max(maxY, bounds.maxY);
   }
-  if (
-    !isFinite(minX) ||
-    !isFinite(minY) ||
-    !isFinite(maxX) ||
-    !isFinite(maxY)
-  ) {
+  if (!allValuesAreFinite(minX, minY, maxX, maxY)) {
     return { bounds: undefined, shapeBounds };
   }
   return {
@@ -519,7 +510,7 @@ function hasResizableShape(shapes: Shape[], runtime: ToolRuntime): boolean {
   const registry = runtime.getShapeHandlers();
   return shapes.some((shape) => {
     const ops = registry.getSelectionOps(shape.geometry.type);
-    return ops?.canResize?.(shape as any) ?? false;
+    return ops?.canResize?.(shape) ?? false;
   });
 }
 
@@ -591,7 +582,7 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
         const ops = registry.getSelectionOps(entry.geometryType);
         if (ops?.resize) {
           const result = ops.resize({
-            shape: shape as any,
+            shape: shape,
             snapshotGeometry: entry.snapshot.geometry as Geometry,
             snapshotData: entry.snapshot.data,
             transform,
@@ -735,7 +726,7 @@ function computePreviewShapes(
             const ops = registry.getSelectionOps(entry.geometryType);
             if (ops?.resize) {
               const result = ops.resize({
-                shape: shape as any,
+                shape: shape,
                 snapshotGeometry: entry.snapshot.geometry as Geometry,
                 snapshotData: entry.snapshot.data,
                 transform,
@@ -985,7 +976,7 @@ function createAxisResizeState(
   const registry = runtime.getShapeHandlers();
   const ops = registry.getSelectionOps(shape.geometry.type);
   if (
-    !ops?.supportsAxisResize?.(shape as any) ||
+    !ops?.supportsAxisResize?.(shape) ||
     shape.interactions?.resizable === false
   ) {
     return null;

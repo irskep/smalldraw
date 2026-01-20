@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
 import { createDocument } from "../../model/document";
-import type { Shape } from "../../model/shape";
-import type { Bounds } from "../../model/primitives";
-import type { RectGeometry, EllipseGeometry } from "../../model/geometry";
+import type { EllipseGeometry, RectGeometry } from "../../model/geometry";
 import { getShapeBounds } from "../../model/geometryBounds";
+import type { Bounds } from "../../model/primitives";
+import type { Shape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
@@ -789,7 +789,7 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = document.shapes["ellipse"];
+    const resized = document.shapes.ellipse;
     const geometry = resized?.geometry;
     expect(geometry?.type).toBe("ellipse");
     if (geometry?.type !== "ellipse") {
@@ -918,19 +918,19 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    expect(document.shapes["left"]?.transform?.translation).toEqual({
+    expect(document.shapes.left?.transform?.translation).toEqual({
       x: -12.5,
       y: 0,
     });
-    expect(document.shapes["left"]?.geometry).toEqual({
+    expect(document.shapes.left?.geometry).toEqual({
       type: "rect",
       size: { width: 15, height: 20 },
     });
-    expect(document.shapes["right"]?.transform?.translation).toEqual({
+    expect(document.shapes.right?.transform?.translation).toEqual({
       x: 25,
       y: 0,
     });
-    expect(document.shapes["right"]?.geometry).toEqual({
+    expect(document.shapes.right?.geometry).toEqual({
       type: "rect",
       size: { width: 30, height: 20 },
     });

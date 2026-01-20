@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
 import { getShapeBounds } from "../geometryBounds";
-import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
 import type { Shape } from "../shape";
+import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
 
 describe("geometry bounds helpers", () => {
   test("computes bounds for rotated rectangle using center-based transform", () => {

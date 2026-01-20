@@ -25,6 +25,8 @@ export function attachPointerHandlers(
     disposers.push(runtime.on("pointerCancel", handlers.onPointerCancel));
   }
   return () => {
-    disposers.forEach((dispose) => dispose());
+    disposers.forEach((dispose) => {
+      dispose();
+    });
   };
 }

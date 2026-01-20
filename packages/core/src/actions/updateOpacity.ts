@@ -11,7 +11,7 @@ export class UpdateShapeOpacity implements UndoableAction {
     private readonly nextOpacity: number | undefined,
   ) {}
 
-  redo(doc: DrawingDocument, ctx: ActionContext): void {
+  redo(doc: DrawingDocument, _ctx: ActionContext): void {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       this.previous = shape.opacity;
@@ -20,7 +20,7 @@ export class UpdateShapeOpacity implements UndoableAction {
     shape.opacity = this.nextOpacity;
   }
 
-  undo(doc: DrawingDocument, ctx: ActionContext): void {
+  undo(doc: DrawingDocument, _ctx: ActionContext): void {
     if (!this.recorded) {
       throw new Error(`Cannot undo opacity update for ${this.shapeId}`);
     }

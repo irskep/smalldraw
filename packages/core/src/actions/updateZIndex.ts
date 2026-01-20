@@ -11,7 +11,7 @@ export class UpdateShapeZIndex implements UndoableAction {
     private readonly nextZIndex: string,
   ) {}
 
-  redo(doc: DrawingDocument, ctx: ActionContext): void {
+  redo(doc: DrawingDocument, _ctx: ActionContext): void {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       this.previous = shape.zIndex;
@@ -20,7 +20,7 @@ export class UpdateShapeZIndex implements UndoableAction {
     shape.zIndex = this.nextZIndex;
   }
 
-  undo(doc: DrawingDocument, ctx: ActionContext): void {
+  undo(doc: DrawingDocument, _ctx: ActionContext): void {
     if (!this.recorded || this.previous === undefined) {
       throw new Error(`Cannot undo z-index update for ${this.shapeId}`);
     }

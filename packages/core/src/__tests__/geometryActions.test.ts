@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { AddShape, UpdateShapeGeometry, type ActionContext } from "../actions";
+import { type ActionContext, AddShape, UpdateShapeGeometry } from "../actions";
 import { createDocument } from "../model/document";
 import type { Geometry } from "../model/geometry";
-import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import type { Shape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
+import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
 
 function createShape(id: string, geometry: Geometry): Shape {

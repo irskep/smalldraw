@@ -18,7 +18,7 @@ export class AddShape implements UndoableAction {
     doc.shapes[this.canonicalShape.id] = this.canonicalShape;
   }
 
-  undo(doc: DrawingDocument, ctx: ActionContext): void {
+  undo(doc: DrawingDocument, _ctx: ActionContext): void {
     if (!this.canonicalShape) {
       throw new Error("Cannot undo AddShape before redo");
     }
