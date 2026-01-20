@@ -1,4 +1,4 @@
-import { getShapeBounds } from "./geometryBounds";
+import { getShapeBounds } from "./geometryShapeUtils";
 import type { Point } from "./primitives";
 import type { Shape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";

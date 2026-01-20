@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { getShapeBounds } from "../geometryBounds";
+import { getShapeBounds } from "../geometryShapeUtils";
 import type { Shape } from "../shape";
 import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
 

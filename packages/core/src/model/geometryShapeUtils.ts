@@ -1,27 +1,9 @@
-import { allValuesAreFinite } from "../util";
 import type { Geometry } from "./geometry";
+import { createBounds, getBoundsFromPoints } from "./geometryUtils";
 import type { Bounds, Point } from "./primitives";
 import type { CanonicalShapeTransform, Shape, ShapeTransform } from "./shape";
 import { normalizeShapeTransform } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
-
-export { getBoundsFromPoints } from "./geometryUtils";
-
-function createBounds(
-  minX: number,
-  minY: number,
-  maxX: number,
-  maxY: number,
-): Bounds {
-  return {
-    minX,
-    minY,
-    maxX,
-    maxY,
-    width: maxX - minX,
-    height: maxY - minY,
-  };
-}
 
 export function getGeometryLocalBounds(
   geometry: Geometry,
@@ -78,18 +60,10 @@ export function getShapeBounds(
         { x: geometryBounds.minX, y: geometryBounds.maxY },
       ]
     : [{ x: 0, y: 0 }];
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (const corner of corners) {
-    const world = applyTransformToPoint(corner, transform);
-    minX = Math.min(minX, world.x);
-    minY = Math.min(minY, world.y);
-    maxX = Math.max(maxX, world.x);
-    maxY = Math.max(maxY, world.y);
-  }
-  if (!allValuesAreFinite(minX, minY, maxX, maxY)) {
+  const baseBounds = getBoundsFromPoints(
+    corners.map((corner) => applyTransformToPoint(corner, transform)),
+  );
+  if (!baseBounds) {
     const { translation } = transform;
     return createBounds(
       translation.x,
@@ -98,23 +72,7 @@ export function getShapeBounds(
       translation.y,
     );
   }
-  const baseBounds = createBounds(minX, minY, maxX, maxY);
   return applyStrokePadding(baseBounds, shape);
-}
-
-export function getBoundsCenter(bounds: Bounds): Point {
-  return {
-    x: (bounds.minX + bounds.maxX) / 2,
-    y: (bounds.minY + bounds.maxY) / 2,
-  };
-}
-
-export function createBoundsFromPoints(a: Point, b: Point): Bounds {
-  const minX = Math.min(a.x, b.x);
-  const minY = Math.min(a.y, b.y);
-  const maxX = Math.max(a.x, b.x);
-  const maxY = Math.max(a.y, b.y);
-  return createBounds(minX, minY, maxX, maxY);
 }
 
 function applyStrokePadding(bounds: Bounds, shape: Shape): Bounds {

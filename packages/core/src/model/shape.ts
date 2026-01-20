@@ -1,5 +1,5 @@
 import type { Geometry } from "./geometry";
-import { getBoundsCenter } from "./geometryBounds";
+import { getBoundsCenter } from "./geometryUtils";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 import type { Fill, StrokeStyle } from "./style";
 

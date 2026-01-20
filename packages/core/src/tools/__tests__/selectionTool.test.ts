@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { createDocument } from "../../model/document";
 import type { EllipseGeometry, RectGeometry } from "../../model/geometry";
-import { getShapeBounds } from "../../model/geometryBounds";
+import { getShapeBounds } from "../../model/geometryShapeUtils";
 import type { Bounds } from "../../model/primitives";
 import type { Shape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";

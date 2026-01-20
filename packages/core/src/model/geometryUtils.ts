@@ -1,7 +1,7 @@
 import { allValuesAreFinite } from "../util";
 import type { Bounds, Point } from "./primitives";
 
-function createBounds(
+export function createBounds(
   minX: number,
   minY: number,
   maxX: number,
@@ -33,4 +33,20 @@ export function getBoundsFromPoints(points: Point[]): Bounds | null {
     return null;
   }
   return createBounds(minX, minY, maxX, maxY);
+}
+
+export function getBoundsFromPointPair(a: Point, b: Point): Bounds {
+  return createBounds(
+    Math.min(a.x, b.x),
+    Math.min(a.y, b.y),
+    Math.max(a.x, b.x),
+    Math.max(a.y, b.y),
+  );
+}
+
+export function getBoundsCenter(bounds: Bounds): Point {
+  return {
+    x: (bounds.minX + bounds.maxX) / 2,
+    y: (bounds.minY + bounds.maxY) / 2,
+  };
 }

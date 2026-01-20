@@ -5,11 +5,11 @@ import {
   UpdateShapeTransform,
 } from "../actions";
 import type { Geometry, RectGeometry } from "../model/geometry";
+import { getShapeBounds } from "../model/geometryShapeUtils";
 import {
-  createBoundsFromPoints,
   getBoundsCenter,
-  getShapeBounds,
-} from "../model/geometryBounds";
+  getBoundsFromPointPair,
+} from "../model/geometryUtils";
 import { hitTestShape } from "../model/hitTest";
 import type { Bounds, Point } from "../model/primitives";
 import type { CanonicalShapeTransform, Shape } from "../model/shape";
@@ -561,7 +561,7 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
     applyMove(runtime, drag);
     return;
   }
-  const newBounds = createBoundsFromPoints(opposite, drag.lastPoint);
+  const newBounds = getBoundsFromPointPair(opposite, drag.lastPoint);
   if (newBounds.width === 0 && newBounds.height === 0) {
     return;
   }
@@ -713,7 +713,7 @@ function computePreviewShapes(
         const bounds = drag.selectionBounds;
         const opposite = drag.oppositeCorner;
         if (bounds && opposite) {
-          const newBounds = createBoundsFromPoints(opposite, drag.lastPoint);
+          const newBounds = getBoundsFromPointPair(opposite, drag.lastPoint);
           const selectionScale = {
             x: bounds.width === 0 ? 1 : newBounds.width / bounds.width,
             y: bounds.height === 0 ? 1 : newBounds.height / bounds.height,
@@ -877,7 +877,7 @@ function computeDragFrame(
     case "resize":
     case "resize-proportional":
       return drag.oppositeCorner
-        ? createBoundsFromPoints(drag.oppositeCorner, drag.lastPoint)
+        ? getBoundsFromPointPair(drag.oppositeCorner, drag.lastPoint)
         : drag.selectionBounds;
     case "resize-axis":
       return computeAxisResizeBounds(runtime, drag);
