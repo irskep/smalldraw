@@ -113,6 +113,7 @@
       "name": "@smalldraw/core",
       "version": "0.0.0",
       "dependencies": {
+        "@mathigon/euclid": "^1.2.4",
         "jittered-fractional-indexing": "^1.0.0",
       },
     },
@@ -388,6 +389,12 @@
     "@libsql/linux-x64-musl": ["@libsql/linux-x64-musl@0.5.22", "", { "os": "linux", "cpu": "x64" }, "sha512-UZ4Xdxm4pu3pQXjvfJiyCzZop/9j/eA2JjmhMaAhe3EVLH2g11Fy4fwyUp9sT1QJYR1kpc2JLuybPM0kuXv/Tg=="],
 
     "@libsql/win32-x64-msvc": ["@libsql/win32-x64-msvc@0.5.22", "", { "os": "win32", "cpu": "x64" }, "sha512-Fj0j8RnBpo43tVZUVoNK6BV/9AtDUM5S7DF3LB4qTYg1LMSZqi3yeCneUTLJD6XomQJlZzbI4mst89yspVSAnA=="],
+
+    "@mathigon/core": ["@mathigon/core@1.1.23", "", {}, "sha512-V7x0bX8EEZtdpyVBs5joac5L9MofbSjE1l1hpEPZhxnfz319tQ9ZHUt/ED7tMxmloD4OyxRbu/H55WZjqEnU7g=="],
+
+    "@mathigon/euclid": ["@mathigon/euclid@1.2.4", "", { "dependencies": { "@mathigon/core": "1.1.23", "@mathigon/fermat": "1.1.24" } }, "sha512-J6ePC0eMzqKf/yNqOqq2N+GJaMvrs+aBAVOktTCI0E55NDj4C96H0ZM/dle3+YlNDjscSoqIr50eiGvo2prQdw=="],
+
+    "@mathigon/fermat": ["@mathigon/fermat@1.1.24", "", { "dependencies": { "@mathigon/core": "1.1.23" } }, "sha512-OV2Zy70BmAXAkGgyW26oAcoWSc35Euc8twnA0E0isiP3zKBC5NnZJ8lJ0WErbVRO41B5LxuyJjLTrv6+Qsph7A=="],
 
     "@mdit-vue/plugin-component": ["@mdit-vue/plugin-component@3.0.2", "", { "dependencies": { "@types/markdown-it": "^14.1.2", "markdown-it": "^14.1.0" } }, "sha512-Fu53MajrZMOAjOIPGMTdTXgHLgGU9KwTqKtYc6WNYtFZNKw04euSfJ/zFg8eBY/2MlciVngkF7Gyc2IL7e8Bsw=="],
 
