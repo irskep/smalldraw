@@ -1,4 +1,3 @@
-import type { Geometry } from "./geometry";
 import { getBoundsCenter } from "./geometryUtils";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 import type { Fill, StrokeStyle } from "./style";
@@ -29,7 +28,7 @@ export interface ShapeTransform {
 
 export interface Shape {
   id: string;
-  geometry: Geometry;
+  type: string;
   fill?: Fill;
   stroke?: StrokeStyle;
   opacity?: number;
@@ -56,29 +55,31 @@ export function normalizeShapeTransform(
 export function canonicalizeShape(
   shape: Shape,
   registry: ShapeHandlerRegistry,
-): Shape {
+): Shape & { geometry: unknown } {
   const transform = normalizeShapeTransform(shape.transform);
-  const ops = registry.getGeometryOps(shape.geometry.type);
+  const ops = registry.get(shape.type)?.geometry;
 
-  if (ops?.canonicalize && ops?.getBounds) {
-    const bounds = ops.getBounds(shape.geometry);
-    if (bounds) {
-      const center = getBoundsCenter(bounds);
-      const canonicalGeometry = ops.canonicalize(shape.geometry, center);
-      return {
-        ...shape,
-        geometry: canonicalGeometry,
-        transform: {
-          ...transform,
-          translation: {
-            x: transform.translation.x + center.x,
-            y: transform.translation.y + center.y,
-          },
-        },
-      };
-    }
+  const shapeWithGeometry = shape as Shape & { geometry: unknown };
+
+  if (!ops) return { ...shapeWithGeometry, transform };
+
+  const bounds = ops.getBounds(shapeWithGeometry);
+
+  if (!bounds || !ops.canonicalize) {
+    // No handler or no canonicalization - return with normalized transform
+    return { ...shapeWithGeometry, transform };
   }
+  const center = getBoundsCenter(bounds);
 
-  // No handler or no canonicalization - return with normalized transform
-  return { ...shape, transform };
+  return {
+    ...shape,
+    geometry: ops.canonicalize(shapeWithGeometry, center),
+    transform: {
+      ...transform,
+      translation: {
+        x: transform.translation.x + center.x,
+        y: transform.translation.y + center.y,
+      },
+    },
+  };
 }

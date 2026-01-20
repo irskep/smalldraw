@@ -12,11 +12,12 @@ export function hitTestShape(
   point: Point,
   registry: ShapeHandlerRegistry,
 ): boolean {
-  const ops = registry.getShapeOps(shape.geometry.type);
+  const ops = registry.get(shape.type)?.shape;
+  const shapeWithGeometry = shape as Shape & { geometry: unknown };
 
   // Use specific hit test if available
   if (ops?.hitTest) {
-    return ops.hitTest(shape, point);
+    return ops.hitTest(shapeWithGeometry, point);
   }
 
   // Fallback to AABB test

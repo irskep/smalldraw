@@ -1,6 +1,5 @@
 export * from "./actions";
 export * from "./model/document";
-export * from "./model/geometry";
 export * from "./model/geometryShapeUtils";
 export * from "./model/hitTest";
 export * from "./model/primitives";

@@ -1,6 +1,6 @@
 import type { Point } from "@smalldraw/core";
-import getStroke from "perfect-freehand";
 import type { StrokeOptions as FreehandStrokeOptions } from "perfect-freehand";
+import getStroke from "perfect-freehand";
 
 export type StrokePathOptions = FreehandStrokeOptions;
 

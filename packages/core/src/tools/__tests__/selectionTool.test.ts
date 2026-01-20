@@ -1,25 +1,29 @@
 import { describe, expect, test } from "bun:test";
 
 import { createDocument } from "../../model/document";
-import type { EllipseGeometry, RectGeometry } from "../../model/geometry";
 import { getShapeBounds } from "../../model/geometryShapeUtils";
 import type { Bounds } from "../../model/primitives";
-import type { Shape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
+import type { PenShape } from "../../model/shapes/penShape";
+import type { RectGeometry, RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
 import type { HandleBehavior } from "../types";
 
-function setupDoc(shapes: Shape[]) {
+// Union type for all shapes used in tests
+type TestShape = RectShape | PenShape;
+
+function setupDoc(shapes: TestShape[]) {
   const registry = getDefaultShapeHandlerRegistry();
   return { doc: createDocument(shapes, registry), registry };
 }
 
 describe("selection tool", () => {
   test("emits handle descriptors on activation", () => {
-    const rectShape: Shape = {
+    const rectShape: RectShape = {
       id: "rect-handle",
+      type: "rect",
       geometry: {
         type: "rect",
         size: { width: 10, height: 10 },
@@ -50,8 +54,9 @@ describe("selection tool", () => {
   });
 
   test("hover events describe handle behavior with modifiers", () => {
-    const rectShape: Shape = {
+    const rectShape: RectShape = {
       id: "rect-hover",
+      type: "rect",
       geometry: {
         type: "rect",
         size: { width: 10, height: 10 },
@@ -108,8 +113,9 @@ describe("selection tool", () => {
   });
 
   test("moves selected pen shape by dragging", () => {
-    const penShape: Shape = {
+    const penShape: PenShape = {
       id: "pen-1",
+      type: "pen",
       geometry: {
         type: "pen",
         points: [
@@ -151,8 +157,9 @@ describe("selection tool", () => {
   });
 
   test("moves all selected shapes when dragging", () => {
-    const rect: Shape = {
+    const rect: RectShape = {
       id: "rect-move",
+      type: "rect",
       geometry: { type: "rect", size: { width: 10, height: 10 } },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
@@ -162,8 +169,9 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const pen: Shape = {
+    const pen: PenShape = {
       id: "pen-move",
+      type: "pen",
       geometry: {
         type: "pen",
         points: [
@@ -210,8 +218,9 @@ describe("selection tool", () => {
   });
 
   test("emits selection frame updates during move and resize", () => {
-    const rect: Shape = {
+    const rect: RectShape = {
       id: "rect-frame",
+      type: "rect",
       geometry: { type: "rect", size: { width: 10, height: 10 } },
       zIndex: "frame",
       interactions: { resizable: true, rotatable: true },
@@ -283,8 +292,9 @@ describe("selection tool", () => {
   });
 
   test("resizes rectangle using corner handle", () => {
-    const rectShape: Shape = {
+    const rectShape: RectShape = {
       id: "rect-1",
+      type: "rect",
       geometry: {
         type: "rect",
         size: { width: 20, height: 10 },
@@ -329,7 +339,7 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = document.shapes["rect-1"];
+    const resized = document.shapes["rect-1"] as RectShape | undefined;
     expect(resized?.geometry).toEqual({
       type: "rect",
       size: { width: 30, height: 15 },
@@ -338,8 +348,9 @@ describe("selection tool", () => {
   });
 
   test("resizes rotated rectangle around selection frame", () => {
-    const rotatedRect: Shape = {
+    const rotatedRect: RectShape = {
       id: "rot-rect",
+      type: "rect",
       geometry: { type: "rect", size: { width: 20, height: 10 } },
       zIndex: "rot",
       interactions: { resizable: true, rotatable: true },
@@ -381,7 +392,7 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = document.shapes["rot-rect"];
+    const resized = document.shapes["rot-rect"] as RectShape | undefined;
     expect(resized?.transform?.translation).toEqual({ x: -5, y: -5 });
     const geometry = resized?.geometry;
     expect(geometry?.type).toBe("rect");
@@ -394,8 +405,9 @@ describe("selection tool", () => {
   });
 
   test("resizes rotated rectangle with world-axis scale", () => {
-    const rotatedRect: Shape = {
+    const rotatedRect: RectShape = {
       id: "rot-rect-scale",
+      type: "rect",
       geometry: { type: "rect", size: { width: 24, height: 12 } },
       zIndex: "rot-scale",
       interactions: { resizable: true, rotatable: true },
@@ -446,7 +458,7 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = document.shapes["rot-rect-scale"];
+    const resized = document.shapes["rot-rect-scale"] as RectShape | undefined;
     const geometry = resized?.geometry;
     expect(geometry?.type).toBe("rect");
     if (geometry?.type !== "rect") {
@@ -464,8 +476,9 @@ describe("selection tool", () => {
 
   test("resizes rotated rectangle along local width using axis handle", () => {
     const rotation = Math.PI / 4;
-    const rectShape: Shape = {
+    const rectShape: RectShape = {
       id: "axis-rect",
+      type: "rect",
       geometry: { type: "rect", size: { width: 20, height: 10 } },
       zIndex: "axis-rect",
       interactions: { resizable: true, rotatable: true },
@@ -515,7 +528,7 @@ describe("selection tool", () => {
       handleId: "mid-right",
     });
 
-    const resized = document.shapes["axis-rect"];
+    const resized = document.shapes["axis-rect"] as RectShape | undefined;
     const geometry = resized?.geometry;
     expect(geometry?.type).toBe("rect");
     if (geometry?.type !== "rect") {
@@ -529,8 +542,9 @@ describe("selection tool", () => {
   });
 
   test("axis resize keeps opposite edge fixed on unrotated rectangle", () => {
-    const rectShape: Shape = {
+    const rectShape: RectShape = {
       id: "axis-rect-0",
+      type: "rect",
       geometry: { type: "rect", size: { width: 10, height: 10 } },
       zIndex: "axis-rect-0",
       interactions: { resizable: true, rotatable: true },
@@ -579,8 +593,9 @@ describe("selection tool", () => {
   });
 
   test("axis resize from left handle keeps right edge fixed", () => {
-    const rectShape: Shape = {
+    const rectShape: RectShape = {
       id: "axis-rect-left",
+      type: "rect",
       geometry: { type: "rect", size: { width: 20, height: 10 } },
       zIndex: "axis-rect-left",
       interactions: { resizable: true, rotatable: true },
@@ -629,8 +644,9 @@ describe("selection tool", () => {
   });
 
   test("axis resize from top handle keeps bottom edge fixed", () => {
-    const rectShape: Shape = {
+    const rectShape: RectShape = {
       id: "axis-rect-top",
+      type: "rect",
       geometry: { type: "rect", size: { width: 12, height: 10 } },
       zIndex: "axis-rect-top",
       interactions: { resizable: true, rotatable: true },
@@ -679,8 +695,9 @@ describe("selection tool", () => {
   });
 
   test("non-resizable shapes keep relative position during resize", () => {
-    const rect: Shape = {
+    const rect: RectShape = {
       id: "rect-relative",
+      type: "rect",
       geometry: { type: "rect", size: { width: 10, height: 10 } },
       zIndex: "rect-relative",
       interactions: { resizable: true, rotatable: true },
@@ -690,8 +707,9 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const pen: Shape = {
+    const pen: PenShape = {
       id: "pen-relative",
+      type: "pen",
       geometry: {
         type: "pen",
         points: [
@@ -745,65 +763,10 @@ describe("selection tool", () => {
     });
   });
 
-  test("resizes ellipse geometry using handles", () => {
-    const ellipse: Shape = {
-      id: "ellipse",
-      geometry: { type: "ellipse", radiusX: 20, radiusY: 10 },
-      zIndex: "ell",
-      interactions: { resizable: true, rotatable: true },
-      transform: {
-        translation: { x: 0, y: 0 },
-        rotation: 0,
-        scale: { x: 1, y: 1 },
-      },
-    };
-    const { doc: document, registry } = setupDoc([ellipse]);
-    const undoManager = new UndoManager();
-    const selectionState = {
-      ids: new Set<string>(["ellipse"]),
-      primaryId: "ellipse",
-    };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
-    const tool = createSelectionTool();
-    tool.activate(runtime);
-
-    runtime.dispatch("pointerDown", {
-      point: { x: -20, y: -10 },
-      buttons: 1,
-      handleId: "top-left",
-    });
-    runtime.dispatch("pointerMove", {
-      point: { x: -40, y: -20 },
-      buttons: 1,
-      handleId: "top-left",
-    });
-    runtime.dispatch("pointerUp", {
-      point: { x: -40, y: -20 },
-      buttons: 0,
-      handleId: "top-left",
-    });
-
-    const resized = document.shapes.ellipse;
-    const geometry = resized?.geometry;
-    expect(geometry?.type).toBe("ellipse");
-    if (geometry?.type !== "ellipse") {
-      throw new Error("Expected ellipse geometry");
-    }
-    const ellipseGeometry = geometry as EllipseGeometry;
-    expect(ellipseGeometry.radiusX).toBeCloseTo(30, 6);
-    expect(ellipseGeometry.radiusY).toBeCloseTo(15, 6);
-    expect(resized?.transform?.translation).toEqual({ x: -10, y: -5 });
-  });
-
   test("resizes pen stroke updates transform scale", () => {
-    const penShape: Shape = {
+    const penShape: PenShape = {
       id: "pen-scale",
+      type: "pen",
       geometry: {
         type: "pen",
         points: [
@@ -851,7 +814,7 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = document.shapes["pen-scale"];
+    const resized = document.shapes["pen-scale"] as PenShape | undefined;
     expect(resized?.transform?.translation).toEqual({ x: 7.5, y: 7.5 });
     expect(resized?.transform?.scale).toEqual({ x: 1.5, y: 1.5 });
     expect(resized?.geometry).toEqual({
@@ -864,8 +827,9 @@ describe("selection tool", () => {
   });
 
   test("resizes multiple rectangles as a group", () => {
-    const left: Shape = {
+    const left: RectShape = {
       id: "left",
+      type: "rect",
       geometry: { type: "rect", size: { width: 10, height: 10 } },
       zIndex: "l",
       interactions: { resizable: true, rotatable: true },
@@ -875,8 +839,9 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const right: Shape = {
+    const right: RectShape = {
       id: "right",
+      type: "rect",
       geometry: { type: "rect", size: { width: 20, height: 10 } },
       zIndex: "r",
       interactions: { resizable: true, rotatable: true },
@@ -922,7 +887,7 @@ describe("selection tool", () => {
       x: -12.5,
       y: 0,
     });
-    expect(document.shapes.left?.geometry).toEqual({
+    expect((document.shapes.left as RectShape | undefined)?.geometry).toEqual({
       type: "rect",
       size: { width: 15, height: 20 },
     });
@@ -930,15 +895,16 @@ describe("selection tool", () => {
       x: 25,
       y: 0,
     });
-    expect(document.shapes.right?.geometry).toEqual({
+    expect((document.shapes.right as RectShape | undefined)?.geometry).toEqual({
       type: "rect",
       size: { width: 30, height: 20 },
     });
   });
 
   test("rotates rectangle using rotation handle", () => {
-    const rectShape: Shape = {
+    const rectShape: RectShape = {
       id: "rect-2",
+      type: "rect",
       geometry: {
         type: "rect",
         size: { width: 10, height: 10 },
@@ -991,8 +957,9 @@ describe("selection tool", () => {
   });
 
   test("rotates all selected rotatable shapes", () => {
-    const left: Shape = {
+    const left: RectShape = {
       id: "left-rot",
+      type: "rect",
       geometry: { type: "rect", size: { width: 10, height: 10 } },
       zIndex: "x",
       interactions: { resizable: true, rotatable: true },
@@ -1002,8 +969,9 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const right: Shape = {
+    const right: RectShape = {
       id: "right-rot",
+      type: "rect",
       geometry: { type: "rect", size: { width: 10, height: 10 } },
       zIndex: "y",
       interactions: { resizable: true, rotatable: true },
@@ -1062,8 +1030,9 @@ describe("selection tool", () => {
   });
 
   test("clears selection frame when clicking outside selected shapes", () => {
-    const rect1: Shape = {
+    const rect1: RectShape = {
       id: "rect-1",
+      type: "rect",
       geometry: { type: "rect", size: { width: 50, height: 50 } },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
@@ -1073,8 +1042,9 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const rect2: Shape = {
+    const rect2: RectShape = {
       id: "rect-2",
+      type: "rect",
       geometry: { type: "rect", size: { width: 50, height: 50 } },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
@@ -1115,8 +1085,9 @@ describe("selection tool", () => {
   });
 
   test("keeps selection frame when clicking inside multi-select bounding box", () => {
-    const rect1: Shape = {
+    const rect1: RectShape = {
       id: "rect-3",
+      type: "rect",
       geometry: { type: "rect", size: { width: 50, height: 50 } },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
@@ -1126,8 +1097,9 @@ describe("selection tool", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    const rect2: Shape = {
+    const rect2: RectShape = {
       id: "rect-4",
+      type: "rect",
       geometry: { type: "rect", size: { width: 50, height: 50 } },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },

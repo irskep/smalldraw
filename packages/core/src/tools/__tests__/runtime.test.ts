@@ -2,9 +2,10 @@ import { describe, expect, test } from "bun:test";
 
 import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
-import type { Shape } from "../../model/shape";
 import { canonicalizeShape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
+import type { PenShape } from "../../model/shapes/penShape";
+import type { RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { getZIndexBetween } from "../../zindex";
 import { ToolRuntimeImpl } from "../runtime";
@@ -58,6 +59,7 @@ describe("ToolRuntimeImpl", () => {
       toolId: "pen",
       temporary: true,
       id: "draft-1",
+      type: "pen",
       geometry: {
         type: "pen",
         points: [{ x: 0, y: 0 }],
@@ -73,8 +75,9 @@ describe("ToolRuntimeImpl", () => {
   test("commit applies undoable action to the document", () => {
     const { runtime, document } = createRuntime();
     const registry = getDefaultShapeHandlerRegistry();
-    const shape: Shape = {
+    const shape: RectShape = {
       id: "rect-1",
+      type: "rect",
       geometry: {
         type: "rect",
         size: { width: 10, height: 10 },
@@ -100,6 +103,7 @@ describe("ToolRuntimeImpl", () => {
       [
         {
           id: "shape-1",
+          type: "rect",
           geometry: {
             type: "rect",
             size: { width: 10, height: 10 },
@@ -110,7 +114,7 @@ describe("ToolRuntimeImpl", () => {
             scale: { x: 1, y: 1 },
             rotation: 0,
           },
-        },
+        } as RectShape,
       ],
       registry,
     );

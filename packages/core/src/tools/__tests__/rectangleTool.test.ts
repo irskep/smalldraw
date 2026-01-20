@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
+import type { RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { createRectangleTool } from "../rectangle";
 import { ToolRuntimeImpl } from "../runtime";
@@ -29,7 +30,7 @@ describe("rectangle tool", () => {
     runtime.dispatch("pointerDown", { point: { x: 10, y: 10 }, buttons: 1 });
     runtime.dispatch("pointerMove", { point: { x: 30, y: 40 }, buttons: 1 });
 
-    const draft = runtime.getDraft();
+    const draft = runtime.getDraft() as RectShape | null;
     expect(draft?.geometry).toEqual({
       type: "rect",
       size: { width: 20, height: 30 },
@@ -37,7 +38,7 @@ describe("rectangle tool", () => {
 
     runtime.dispatch("pointerUp", { point: { x: 30, y: 40 }, buttons: 0 });
     expect(Object.values(document.shapes)).toHaveLength(1);
-    const shape = Object.values(document.shapes)[0];
+    const shape = Object.values(document.shapes)[0] as RectShape;
     expect(draft).toBeDefined();
     expect(shape.geometry).toEqual(draft!.geometry);
     expect(shape.transform?.translation).toEqual({ x: 20, y: 25 });

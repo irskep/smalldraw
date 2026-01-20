@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
+import type { PenShape } from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
 import { createPenTool } from "../pen";
 import { ToolRuntimeImpl } from "../runtime";
@@ -38,7 +39,7 @@ describe("pen tool integration with runtime", () => {
     runtime.dispatch("pointerMove", { point: { x: 10, y: 10 }, buttons: 1 });
     runtime.dispatch("pointerMove", { point: { x: 20, y: 5 }, buttons: 1 });
 
-    expect(runtime.getDraft()?.geometry).toEqual({
+    expect((runtime.getDraft() as PenShape | null)?.geometry).toEqual({
       type: "pen",
       points: [
         { x: -10, y: -5, pressure: undefined },
@@ -50,7 +51,10 @@ describe("pen tool integration with runtime", () => {
     runtime.dispatch("pointerUp", { point: { x: 20, y: 5 }, buttons: 0 });
 
     expect(runtime.getDraft()).toBeNull();
-    const shapeEntries = Object.entries(document.shapes);
+    const shapeEntries = Object.entries(document.shapes) as [
+      string,
+      PenShape,
+    ][];
     expect(shapeEntries).toHaveLength(1);
     const [, shape] = shapeEntries[0];
     expect(shape.geometry).toEqual({

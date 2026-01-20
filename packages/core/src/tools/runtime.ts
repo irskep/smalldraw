@@ -58,8 +58,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
     this.sharedSettings = config.sharedSettings ?? {
       ...DEFAULT_SHARED_SETTINGS,
     };
-    this.selectionState =
-      config.selectionState ?? ({ ids: new Set<string>() } as SelectionState);
+    this.selectionState = config.selectionState ?? { ids: new Set<string>() };
   }
 
   on(event: ToolEventName, handler: ToolEventHandler): () => void {
@@ -164,8 +163,8 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
     const current = { ...this.sharedSettings } as T;
     const next =
       typeof updater === "function"
-        ? (updater(current) as Record<string, unknown>)
-        : { ...current, ...(updater as Record<string, unknown>) };
+        ? updater(current)
+        : { ...current, ...updater };
     Object.assign(this.sharedSettings, next);
   }
 

@@ -114,6 +114,7 @@ export function createRectangleTool(
       toolId: runtime.toolId,
       temporary: true,
       id: state.draft.id,
+      type: "rect",
       geometry: {
         type: "rect",
         size,
@@ -148,8 +149,9 @@ export function createRectangleTool(
       state.draft = null;
       return;
     }
-    const shape: Shape = {
+    const shape: Shape & { geometry: { type: "rect"; size: Size } } = {
       id: runtime.generateShapeId("rect"),
+      type: "rect",
       geometry: {
         type: "rect",
         size,

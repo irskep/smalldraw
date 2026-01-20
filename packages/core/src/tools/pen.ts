@@ -1,7 +1,7 @@
 import { AddShape } from "../actions";
 import { getBoundsFromPoints } from "../model/geometryUtils";
 import type { Point } from "../model/primitives";
-import type { Shape } from "../model/shape";
+import type { PenShape } from "../model/shapes/penShape";
 import type { StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { attachPointerHandlers } from "./pointerHandlers";
@@ -175,7 +175,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     },
   };
 }
-const createStrokeShape = (draft: StrokeDraftState): Shape => {
+const createStrokeShape = (draft: StrokeDraftState): PenShape => {
   const bounds = getBoundsFromPoints(draft.points);
   const center = bounds
     ? {
@@ -190,13 +190,13 @@ const createStrokeShape = (draft: StrokeDraftState): Shape => {
         pressure: pt.pressure,
       }))
     : draft.points.map((pt) => ({ ...pt }));
-  const geometry = {
-    type: "pen" as const,
-    points: localPoints,
-  };
-  const shape: Shape = {
+  const shape: PenShape = {
     id: draft.id,
-    geometry,
+    type: "pen",
+    geometry: {
+      type: "pen",
+      points: localPoints,
+    },
     stroke: draft.stroke,
     zIndex: draft.zIndex,
     interactions: {

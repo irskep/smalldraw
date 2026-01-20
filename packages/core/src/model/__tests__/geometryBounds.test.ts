@@ -1,14 +1,16 @@
 import { describe, expect, test } from "bun:test";
 
 import { getShapeBounds } from "../geometryShapeUtils";
-import type { Shape } from "../shape";
 import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
+import type { PenShape } from "../shapes/penShape";
+import type { RectShape } from "../shapes/rectShape";
 
 describe("geometry bounds helpers", () => {
   test("computes bounds for rotated rectangle using center-based transform", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const shape: Shape = {
+    const shape: RectShape = {
       id: "rect",
+      type: "rect",
       geometry: { type: "rect", size: { width: 20, height: 10 } },
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -29,8 +31,9 @@ describe("geometry bounds helpers", () => {
 
   test("derives bounds from pen geometry points and translation", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const shape: Shape = {
+    const shape: PenShape = {
       id: "pen",
+      type: "pen",
       geometry: {
         type: "pen",
         points: [
@@ -54,8 +57,9 @@ describe("geometry bounds helpers", () => {
 
   test("includes stroke width in computed bounds", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const shape: Shape = {
+    const shape: RectShape = {
       id: "stroked",
+      type: "rect",
       geometry: { type: "rect", size: { width: 10, height: 10 } },
       stroke: { type: "brush", color: "#000", size: 4 },
       transform: {

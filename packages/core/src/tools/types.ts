@@ -26,6 +26,7 @@ export type ToolEventHandler = (event: ToolPointerEvent) => void;
 export interface DraftShape extends Shape {
   toolId: string;
   temporary: true;
+  geometry: unknown;
 }
 
 export interface SharedToolSettings {

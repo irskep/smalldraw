@@ -12,6 +12,7 @@ import { DrawingStore } from "../store/drawingStore";
 function createTestShape(id: string) {
   return {
     id,
+    type: "rect" as const,
     geometry: { type: "rect" as const, size: { width: 100, height: 50 } },
     fill: { type: "solid" as const, color: "#ff0000" },
     zIndex: "a0",

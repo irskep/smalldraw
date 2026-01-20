@@ -50,3 +50,35 @@ export function getBoundsCenter(bounds: Bounds): Point {
     y: (bounds.minY + bounds.maxY) / 2,
   };
 }
+
+export function pointAdd<T extends Point>(a: T, b: Point): T {
+  return {
+    ...a,
+    x: a.x + b.x,
+    y: a.y + b.y,
+  };
+}
+
+export function pointSubtract<T extends Point>(a: T, b: Point): T {
+  return {
+    ...a,
+    x: a.x - b.x,
+    y: a.y - b.y,
+  };
+}
+
+export function pointScalarMultiply<T extends Point>(a: T, b: number): T {
+  return {
+    ...a,
+    x: a.x * b,
+    y: a.y * b,
+  };
+}
+
+export function pointPairMultiply<T extends Point>(a: T, b: Point): T {
+  return {
+    ...a,
+    x: a.x * b.x,
+    y: a.y * b.y,
+  };
+}

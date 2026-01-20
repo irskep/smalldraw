@@ -4,7 +4,6 @@ import {
   UpdateShapeGeometry,
   UpdateShapeTransform,
 } from "../actions";
-import type { Geometry, RectGeometry } from "../model/geometry";
 import { getShapeBounds } from "../model/geometryShapeUtils";
 import {
   getBoundsCenter,
@@ -54,7 +53,7 @@ interface DragState {
   oppositeCorner?: Point;
   center?: Point;
   axisResize?: AxisResizeState;
-  resizeEntries: Map<string, ShapeResizeEntry>;
+  resizeEntries: Map<string, ShapeResizeEntry<unknown, unknown>>;
   shapeBounds: Map<string, Bounds>;
 }
 
@@ -70,17 +69,14 @@ interface NormalizedLayout {
   offsetV: number;
 }
 
-interface SelectionResizeSnapshot<
-  TGeometry extends Geometry = Geometry,
-  TData = unknown,
-> {
+interface SelectionResizeSnapshot<TGeometry, TData = unknown> {
   geometry: TGeometry;
   data?: TData;
 }
 
-interface ShapeResizeEntry {
+interface ShapeResizeEntry<TGeometry, TData = unknown> {
   geometryType: string;
-  snapshot: SelectionResizeSnapshot;
+  snapshot: SelectionResizeSnapshot<TGeometry, TData>;
 }
 
 function ensureState(runtime: ToolRuntime): SelectionToolState {
@@ -232,16 +228,24 @@ export function createSelectionTool(): ToolDefinition {
       }
 
       const transforms = new Map<string, CanonicalShapeTransform>();
-      const resizeEntries = new Map<string, ShapeResizeEntry>();
+      const resizeEntries = new Map<
+        string,
+        ShapeResizeEntry<unknown, unknown>
+      >();
       const registry = runtime.getShapeHandlers();
       for (const shape of shapes) {
         const normalized = normalizeShapeTransform(shape.transform);
         transforms.set(shape.id, normalized);
-        const ops = registry.getSelectionOps(shape.geometry.type);
-        if (ops?.canResize?.(shape) && ops?.prepareResize) {
-          const snapshot = ops.prepareResize(shape);
+        const ops = registry.get(shape.type)?.selection;
+        if (
+          ops?.canResize?.(shape as Shape & { geometry: unknown }) &&
+          ops?.prepareResize
+        ) {
+          const snapshot = ops.prepareResize(
+            shape as Shape & { geometry: unknown },
+          );
           resizeEntries.set(shape.id, {
-            geometryType: shape.geometry.type,
+            geometryType: shape.type,
             snapshot,
           });
         }
@@ -502,8 +506,8 @@ function hasRotatableShape(shapes: Shape[]): boolean {
 function hasResizableShape(shapes: Shape[], runtime: ToolRuntime): boolean {
   const registry = runtime.getShapeHandlers();
   return shapes.some((shape) => {
-    const ops = registry.getSelectionOps(shape.geometry.type);
-    return ops?.canResize?.(shape) ?? false;
+    const ops = registry.get(shape.type)?.selection;
+    return ops?.canResize?.(shape as Shape & { geometry: unknown }) ?? false;
   });
 }
 
@@ -571,12 +575,12 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
     const entry = drag.resizeEntries.get(shapeId);
     if (entry) {
       const shape = runtime.getShape(shapeId);
-      if (shape && shape.geometry.type === entry.geometryType) {
-        const ops = registry.getSelectionOps(entry.geometryType);
+      if (shape && shape.type === entry.geometryType) {
+        const ops = registry.get(entry.geometryType)?.selection;
         if (ops?.resize) {
           const result = ops.resize({
-            shape: shape,
-            snapshotGeometry: entry.snapshot.geometry as Geometry,
+            shape: shape as Shape & { geometry: unknown },
+            snapshotGeometry: entry.snapshot.geometry,
             snapshotData: entry.snapshot.data,
             transform,
             initialBounds: bounds,
@@ -635,6 +639,7 @@ function applyAxisResize(runtime: ToolRuntime, drag: DragState) {
     shape,
     transform,
     drag.lastPoint,
+    runtime,
   );
   if (!result) return;
   const actions: UndoableAction[] = [
@@ -682,10 +687,11 @@ function computePreviewShapes(
 
   for (const shapeId of drag.selectionIds) {
     const shape = runtime.getShape(shapeId);
+    const shapeWithGeometry = shape as Shape & { geometry: unknown };
     const transform = drag.transforms.get(shapeId);
     if (!shape || !transform) continue;
 
-    let previewGeometry = shape.geometry;
+    let previewGeometry = shapeWithGeometry.geometry;
     let previewTransform = transform;
 
     switch (drag.mode) {
@@ -714,13 +720,13 @@ function computePreviewShapes(
           const layout = drag.layouts.get(shapeId);
           const entry = drag.resizeEntries.get(shapeId);
 
-          if (entry && shape.geometry.type === entry.geometryType) {
+          if (entry && shape.type === entry.geometryType) {
             const registry = runtime.getShapeHandlers();
-            const ops = registry.getSelectionOps(entry.geometryType);
+            const ops = registry.get(entry.geometryType)?.selection;
             if (ops?.resize) {
               const result = ops.resize({
-                shape: shape,
-                snapshotGeometry: entry.snapshot.geometry as Geometry,
+                shape: shapeWithGeometry,
+                snapshotGeometry: entry.snapshot.geometry,
                 snapshotData: entry.snapshot.data,
                 transform,
                 initialBounds: bounds,
@@ -763,6 +769,7 @@ function computePreviewShapes(
           shape,
           transform,
           drag.lastPoint,
+          runtime,
         );
         if (result) {
           previewGeometry = result.geometry;
@@ -895,9 +902,10 @@ function computeAxisResizeBounds(
     shape,
     transform,
     drag.lastPoint,
+    runtime,
   );
   if (!result) return drag.selectionBounds;
-  const previewShape: Shape = {
+  const previewShape: Shape & { geometry: unknown } = {
     ...shape,
     geometry: result.geometry,
   };
@@ -914,41 +922,34 @@ function computeAxisResizeResult(
   shape: Shape,
   transform: CanonicalShapeTransform,
   point: Point,
-): { geometry: RectGeometry; translation: Point } | null {
+  runtime: ToolRuntime,
+): { geometry: unknown; translation: Point } | null {
   const axisResize = drag.axisResize;
   if (!axisResize || axisResize.shapeId !== shape.id) return null;
-  if (shape.geometry.type !== "rect") return null;
   const entry = drag.resizeEntries.get(shape.id);
-  if (!entry || entry.snapshot.geometry.type !== "rect") return null;
-  const snapshot = entry.snapshot.geometry as RectGeometry;
+  if (!entry) return null;
+  const registry = runtime.getShapeHandlers();
+  const ops = registry.get(shape.type)?.selection;
+  if (!ops?.axisResize) return null;
   const direction = axisResize.direction;
   const anchor = axisResize.anchor;
   const delta = { x: point.x - anchor.x, y: point.y - anchor.y };
   const projected = delta.x * direction.x + delta.y * direction.y;
-  const extent = Math.max(
+  const newExtent = Math.max(
     0,
     axisResize.startExtent + (projected - axisResize.startProjection),
   );
-  const half = extent / 2;
-  const scaleX = Math.abs(transform.scale.x);
-  const scaleY = Math.abs(transform.scale.y);
-  const width =
-    axisResize.axis === "x"
-      ? scaleX === 0
-        ? 0
-        : extent / scaleX
-      : snapshot.size.width;
-  const height =
-    axisResize.axis === "y"
-      ? scaleY === 0
-        ? 0
-        : extent / scaleY
-      : snapshot.size.height;
+  const result = ops.axisResize({
+    snapshotGeometry: entry.snapshot.geometry,
+    snapshotData: entry.snapshot.data,
+    transform,
+    axis: axisResize.axis,
+    newExtent,
+  });
+  if (!result) return null;
+  const half = newExtent / 2;
   return {
-    geometry: {
-      type: "rect",
-      size: { width, height },
-    },
+    geometry: result.geometry,
     translation: {
       x: anchor.x + direction.x * half,
       y: anchor.y + direction.y * half,
@@ -967,21 +968,18 @@ function createAxisResizeState(
   if (shapes.length !== 1) return null;
   const shape = shapes[0];
   const registry = runtime.getShapeHandlers();
-  const ops = registry.getSelectionOps(shape.geometry.type);
+  const ops = registry.get(shape.type)?.selection;
+  const shapeWithGeometry = shape as Shape & { geometry: unknown };
   if (
-    !ops?.supportsAxisResize?.(shape) ||
+    !ops?.supportsAxisResize?.(shapeWithGeometry) ||
     shape.interactions?.resizable === false
   ) {
     return null;
   }
-  // Axis resize is currently only implemented for rect geometry
-  if (shape.geometry.type !== "rect") {
-    return null;
-  }
+  if (!ops.getAxisExtent) return null;
   const transform = drag.transforms.get(shape.id);
   const entry = drag.resizeEntries.get(shape.id);
-  if (!transform || !entry || entry.snapshot.geometry.type !== "rect")
-    return null;
+  if (!transform || !entry) return null;
   const side = getAxisHandleSide(handleId);
   if (!side) return null;
   const rotation = transform.rotation;
@@ -991,11 +989,7 @@ function createAxisResizeState(
     axis === "x"
       ? { x: Math.cos(rotation) * signX, y: Math.sin(rotation) * signX }
       : { x: -Math.sin(rotation) * signY, y: Math.cos(rotation) * signY };
-  const snapshot = entry.snapshot.geometry as RectGeometry;
-  const startExtent =
-    axis === "x"
-      ? snapshot.size.width * Math.abs(transform.scale.x)
-      : snapshot.size.height * Math.abs(transform.scale.y);
+  const startExtent = ops.getAxisExtent(entry.snapshot.geometry, transform, axis);
   const half = startExtent / 2;
   const center = transform.translation;
   const direction =

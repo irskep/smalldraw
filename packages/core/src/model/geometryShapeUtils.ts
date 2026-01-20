@@ -1,17 +1,18 @@
-import type { Geometry } from "./geometry";
 import { createBounds, getBoundsFromPoints } from "./geometryUtils";
 import type { Bounds, Point } from "./primitives";
 import type { CanonicalShapeTransform, Shape, ShapeTransform } from "./shape";
 import { normalizeShapeTransform } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
+type ShapeWithGeometry = Shape & { geometry: unknown };
+
 export function getGeometryLocalBounds(
-  geometry: Geometry,
+  shape: ShapeWithGeometry,
   registry: ShapeHandlerRegistry,
 ): Bounds | null {
-  const ops = registry.getGeometryOps(geometry.type);
+  const ops = registry.get(shape.type)?.geometry;
   if (ops?.getBounds) {
-    return ops.getBounds(geometry);
+    return ops.getBounds(shape);
   }
   return null;
 }
@@ -51,7 +52,10 @@ export function getShapeBounds(
   const transform = normalizeShapeTransform(
     transformOverride ?? shape.transform,
   );
-  const geometryBounds = getGeometryLocalBounds(shape.geometry, registry);
+  const geometryBounds = getGeometryLocalBounds(
+    shape as ShapeWithGeometry,
+    registry,
+  );
   const corners: Point[] = geometryBounds
     ? [
         { x: geometryBounds.minX, y: geometryBounds.minY },

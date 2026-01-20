@@ -1,21 +1,22 @@
 import type { DrawingDocument } from "../model/document";
-import type { Geometry } from "../model/geometry";
-import type { ShapeTransform } from "../model/shape";
+import type { Shape, ShapeTransform } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import type { ActionContext, UndoableAction } from "./types";
 import { requireShape } from "./utils";
 
+type ShapeWithGeometry = Shape & { geometry: unknown };
+
 export class UpdateShapeGeometry implements UndoableAction {
-  private previousGeometry?: Geometry;
+  private previousGeometry?: unknown;
   private previousTransform?: ShapeTransform;
 
   constructor(
     private readonly shapeId: string,
-    private readonly newGeometry: Geometry,
+    private readonly newGeometry: unknown,
   ) {}
 
   redo(doc: DrawingDocument, ctx: ActionContext): void {
-    const shape = requireShape(doc, this.shapeId);
+    const shape = requireShape(doc, this.shapeId) as ShapeWithGeometry;
     if (!this.previousGeometry) {
       this.previousGeometry = shape.geometry;
       this.previousTransform = shape.transform;
@@ -32,7 +33,7 @@ export class UpdateShapeGeometry implements UndoableAction {
         `Cannot undo geometry update for ${this.shapeId} because previous geometry was not recorded`,
       );
     }
-    const shape = requireShape(doc, this.shapeId);
+    const shape = requireShape(doc, this.shapeId) as ShapeWithGeometry;
     shape.geometry = this.previousGeometry;
     shape.transform = this.previousTransform;
   }

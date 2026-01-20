@@ -15,9 +15,10 @@ import type { Fill, StrokeStyle } from "../model/style";
 import { UndoManager } from "../undo";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
 
-function baseShape(id: string): Shape {
+function baseShape(id: string): Shape & { geometry: unknown } {
   return {
     id,
+    type: "rect",
     zIndex: id,
     geometry: {
       type: "rect",

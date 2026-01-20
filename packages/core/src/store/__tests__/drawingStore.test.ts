@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { createDocument } from "../../model/document";
+import type { Shape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
+import type { PenShape } from "../../model/shapes/penShape";
+import type { RectShape } from "../../model/shapes/rectShape";
 import { createPenTool } from "../../tools/pen";
 import { createRectangleTool } from "../../tools/rectangle";
 import { createSelectionTool as createSelectionDefinition } from "../../tools/selection";
@@ -17,6 +20,7 @@ function createDraftTool(): ToolDefinition {
           toolId: runtime.toolId,
           temporary: true,
           id: "draft-1",
+          type: "rect",
           geometry: {
             type: "rect",
             size: { width: 10, height: 10 },
@@ -94,7 +98,7 @@ describe("DrawingStore", () => {
     store.dispatch("pointerMove", { point: { x: 5, y: 5 }, buttons: 1 });
     store.dispatch("pointerUp", { point: { x: 5, y: 5 }, buttons: 0 });
 
-    const shapes = Object.values(store.getDocument().shapes);
+    const shapes = Object.values(store.getDocument().shapes) as PenShape[];
     expect(shapes).toHaveLength(1);
     expect(shapes[0].geometry).toEqual({
       type: "pen",
@@ -114,7 +118,7 @@ describe("DrawingStore", () => {
     store.dispatch("pointerDown", { point: { x: 10, y: 10 }, buttons: 1 });
 
     expect(store.getDrafts()).toHaveLength(1);
-    expect(store.getDrafts()[0]?.geometry).toEqual({
+    expect((store.getDrafts()[0] as RectShape)?.geometry).toEqual({
       type: "rect",
       size: { width: 10, height: 10 },
     });
@@ -163,7 +167,10 @@ describe("DrawingStore", () => {
     store.dispatch("pointerMove", { point: { x: 20, y: 25 }, buttons: 1 });
     store.dispatch("pointerUp", { point: { x: 20, y: 25 }, buttons: 0 });
 
-    const shapes = Object.values(store.getDocument().shapes);
+    const shapes = Object.values(store.getDocument().shapes) as (
+      | PenShape
+      | RectShape
+    )[];
     const penShape = shapes.find((shape) => shape.geometry.type === "pen");
     const rectShape = shapes.find((shape) => shape.geometry.type === "rect");
     expect(penShape?.interactions?.resizable).toBe(true);
@@ -176,6 +183,7 @@ describe("DrawingStore", () => {
       [
         {
           id: "rect-frame",
+          type: "rect",
           geometry: { type: "rect", size: { width: 10, height: 10 } },
           zIndex: "frame",
           interactions: { resizable: true, rotatable: true },
@@ -184,7 +192,7 @@ describe("DrawingStore", () => {
             rotation: 0,
             scale: { x: 1, y: 1 },
           },
-        },
+        } as RectShape,
       ],
       registry,
     );
@@ -213,6 +221,7 @@ describe("DrawingStore", () => {
       [
         {
           id: "rect",
+          type: "rect",
           geometry: { type: "rect", size: { width: 10, height: 10 } },
           zIndex: "a",
           interactions: { resizable: true, rotatable: true },
@@ -221,7 +230,7 @@ describe("DrawingStore", () => {
             rotation: 0,
             scale: { x: 1, y: 1 },
           },
-        },
+        } as RectShape,
       ],
       registry,
     );

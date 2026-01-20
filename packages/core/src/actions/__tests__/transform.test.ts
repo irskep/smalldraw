@@ -1,13 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { createDocument } from "../../model/document";
-import type { Shape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
+import type { RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { type ActionContext, CompositeAction, UpdateShapeTransform } from "..";
 
 describe("UpdateShapeTransform action", () => {
-  const baseShape: Shape = {
+  const baseShape: RectShape = {
     id: "shape-1",
+    type: "rect",
     geometry: { type: "rect", size: { width: 10, height: 10 } },
     zIndex: "a",
     transform: {

@@ -7,8 +7,9 @@ import { canonicalizeShape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
 
-const rectangle: Shape = {
+const rectangle: Shape & { geometry: unknown } = {
   id: "rect-1",
+  type: "rect",
   geometry: {
     type: "rect",
     size: { width: 100, height: 50 },

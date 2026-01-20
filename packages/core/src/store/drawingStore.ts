@@ -306,8 +306,8 @@ export class DrawingStore {
     const current = { ...this.sharedSettings } as TSettings;
     const next =
       typeof updater === "function"
-        ? (updater(current) as Record<string, unknown>)
-        : { ...current, ...(updater as Record<string, unknown>) };
+        ? updater(current)
+        : { ...current, ...updater };
     Object.assign(this.sharedSettings, next);
     this.triggerRender();
   }
