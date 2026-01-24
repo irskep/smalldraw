@@ -25,13 +25,7 @@ This repository keeps the data model (`@smalldraw/core`), renderer (`@smalldraw/
    ```
    The first run fails with a helpful message if a snapshot is missing or changed; rerun with `UPDATE_SNAPSHOTS=1` only after visually confirming the PNG diff in `packages/renderer-konva/__snapshots__` is expected.
 
-## 3. Update UI Bindings (when applicable)
-
-1. **Expose the shape in React tooling** (`packages/ui-react`) so tools and inspectors understand it.
-2. **Add icon/tooling** to the UI if the shape should be drawable from the toolbar.
-3. **Write integration tests** (React-level) once the viewport/renderer snapshot passes.
-
-## 4. Final Verification
+## 3. Final Verification
 
 1. Run `bun --filter '*' ts:check` to make sure TypeScript types still pass everywhere.
 2. Run the renderer snapshot suite again without `UPDATE_SNAPSHOTS`. It should pass with zero diffs.

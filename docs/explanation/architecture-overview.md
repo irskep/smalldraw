@@ -7,7 +7,6 @@ graph TB
     subgraph UI["UI Layer"]
         direction LR
         VanillaUI["ui-vanillajs"]
-        ReactUI["ui-react"]
     end
 
     subgraph Renderer["Rendering Layer"]
