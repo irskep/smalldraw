@@ -1,10 +1,10 @@
 import type {
-  ShapeHandlerRegistry,
   Shape,
+  ShapeHandlerRegistry,
   ShapeTransform,
 } from "@smalldraw/core";
 import { normalizeShapeTransform } from "@smalldraw/core";
-import Konva from "konva";
+import type Konva from "konva";
 import type { Layer } from "konva/lib/Layer.js";
 
 import {
@@ -142,7 +142,7 @@ export class KonvaReconciler {
     // For simplicity, rebuild geometry children
     // A more sophisticated approach could diff geometry properties
     group.destroyChildren();
-    const renderer = this.registry.get(shape.geometry.type);
+    const renderer = this.registry.get(shape.type);
     if (renderer) {
       const nodes = renderer(shape);
       if (nodes) {
@@ -169,7 +169,7 @@ export class KonvaReconciler {
    * Update z-order of nodes to match shape order.
    * Shapes are expected to be in z-order (sorted by zIndex).
    */
-  private updateZOrder(layer: Layer, shapes: Shape[]): void {
+  private updateZOrder(_layer: Layer, shapes: Shape[]): void {
     // Start at 1 to keep shapes above background rect
     let zIndex = 1;
     for (const shape of shapes) {

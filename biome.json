@@ -34,7 +34,7 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.test.ts"],
+      "includes": ["**/*.test.ts", "**/__tests__/**/*"],
       "linter": {
         "rules": {
           "style": {

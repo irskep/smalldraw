@@ -2,8 +2,8 @@ import { describe, test } from "bun:test";
 
 import {
   createDocument,
-  type Shape,
   getDefaultShapeHandlerRegistry,
+  type Shape,
 } from "@smalldraw/core";
 
 import type { Viewport } from "../index";
@@ -19,7 +19,7 @@ const baseViewport: Viewport = {
 
 async function expectDocumentSnapshot(
   name: string,
-  shapes: Shape[],
+  shapes: (Shape & { geometry: unknown })[],
   viewport: Viewport = baseViewport,
 ) {
   const registry = getDefaultShapeHandlerRegistry();
@@ -34,21 +34,11 @@ async function expectDocumentSnapshot(
 }
 
 describe("renderer snapshots", () => {
-  test("circle stroke baseline", async () => {
-    await expectDocumentSnapshot("circle", [
-      {
-        id: "circle",
-        zIndex: "a",
-        geometry: { type: "ellipse", radiusX: 5, radiusY: 5 },
-        stroke: { type: "brush", color: "#000000", size: 1 },
-      },
-    ]);
-  });
-
   test("solid rectangle with stroke", async () => {
     await expectDocumentSnapshot("rectangle-solid", [
       {
         id: "solid-rect",
+        type: "rect",
         zIndex: "a",
         geometry: { type: "rect", size: { width: 80, height: 60 } },
         fill: { type: "solid", color: "#2E7D32" },
@@ -58,146 +48,13 @@ describe("renderer snapshots", () => {
     ]);
   });
 
-  test("gradient ellipse fills", async () => {
-    await expectDocumentSnapshot(
-      "ellipse-gradient",
-      [
-        {
-          id: "gradient-ellipse",
-          zIndex: "a",
-          geometry: { type: "ellipse", radiusX: 50, radiusY: 30 },
-          fill: {
-            type: "gradient",
-            angle: 90,
-            stops: [
-              { offset: 0, color: "#ff7043" },
-              { offset: 1, color: "#1e88e5" },
-            ],
-          },
-          stroke: { type: "brush", color: "#212121", size: 2 },
-          transform: { translation: { x: 0, y: 0 } },
-        },
-      ],
-      {
-        width: 200,
-        height: 160,
-        center: { x: 0, y: 0 },
-        scale: 1,
-        backgroundColor: "#ffffff",
-      },
-    );
-  });
-
-  test("polygons and regular polygons", async () => {
-    await expectDocumentSnapshot(
-      "polygons",
-      [
-        {
-          id: "polygon",
-          zIndex: "a",
-          geometry: {
-            type: "polygon",
-            points: [
-              { x: -60, y: 30 },
-              { x: -20, y: -40 },
-              { x: 30, y: -10 },
-              { x: 10, y: 40 },
-            ],
-            closed: true,
-          },
-          fill: { type: "solid", color: "#00897b" },
-          stroke: { type: "brush", color: "#004d40", size: 2 },
-        },
-        {
-          id: "regular",
-          zIndex: "b",
-          geometry: { type: "regularPolygon", radius: 25, sides: 5 },
-          fill: { type: "solid", color: "#ffc107" },
-          stroke: { type: "brush", color: "#ff6f00", size: 2 },
-          transform: { translation: { x: 40, y: 10 } },
-        },
-      ],
-      {
-        width: 220,
-        height: 180,
-        center: { x: 0, y: 0 },
-        scale: 1,
-        backgroundColor: "#ffffff",
-      },
-    );
-  });
-
-  test("paths and bezier curves", async () => {
-    await expectDocumentSnapshot(
-      "paths-bezier",
-      [
-        {
-          id: "path-shape",
-          zIndex: "a",
-          geometry: {
-            type: "path",
-            segments: [
-              { type: "move", points: [{ x: -80, y: -20 }] },
-              {
-                type: "line",
-                points: [
-                  { x: -20, y: -20 },
-                  { x: 0, y: -50 },
-                ],
-              },
-              {
-                type: "bezier",
-                points: [
-                  { x: 40, y: -50 },
-                  { x: 40, y: 20 },
-                  { x: 0, y: 20 },
-                ],
-              },
-              { type: "line", points: [{ x: -60, y: 40 }] },
-            ],
-          },
-          stroke: { type: "brush", color: "#6a1b9a", size: 3 },
-        },
-        {
-          id: "bezier-shape",
-          zIndex: "b",
-          geometry: {
-            type: "bezier",
-            nodes: [
-              {
-                anchor: { x: -10, y: 60 },
-                handleOut: { x: 20, y: 40 },
-              },
-              {
-                anchor: { x: 40, y: 60 },
-                handleIn: { x: 10, y: 80 },
-                handleOut: { x: 60, y: 80 },
-              },
-              {
-                anchor: { x: 70, y: 30 },
-                handleIn: { x: 70, y: 55 },
-              },
-            ],
-          },
-          stroke: { type: "brush", color: "#ad1457", size: 4 },
-        },
-      ],
-      {
-        width: 240,
-        height: 200,
-        center: { x: 0, y: 0 },
-        scale: 1,
-        backgroundColor: "#ffffff",
-      },
-    );
-  });
-
   test("pen strokes and raw strokes", async () => {
     await expectDocumentSnapshot(
       "pen-strokes",
       [
         {
           id: "pen-shape",
+          type: "pen",
           zIndex: "a",
           geometry: {
             type: "pen",
@@ -215,6 +72,7 @@ describe("renderer snapshots", () => {
         },
         {
           id: "polyline-stroke",
+          type: "pen",
           zIndex: "b",
           geometry: {
             type: "stroke",
@@ -244,6 +102,7 @@ describe("renderer snapshots", () => {
       [
         {
           id: "rotated-rect",
+          type: "rect",
           zIndex: "a",
           geometry: { type: "rect", size: { width: 80, height: 40 } },
           fill: { type: "solid", color: "#26c6da" },
@@ -251,18 +110,6 @@ describe("renderer snapshots", () => {
           transform: {
             translation: { x: -20, y: -10 },
             rotation: Math.PI / 4,
-          },
-        },
-        {
-          id: "scaled-ellipse",
-          zIndex: "b",
-          geometry: { type: "ellipse", radiusX: 30, radiusY: 20 },
-          fill: { type: "solid", color: "#f06292" },
-          stroke: { type: "brush", color: "#880e4f", size: 2 },
-          transform: {
-            translation: { x: 40, y: 20 },
-            scale: { x: 1.5, y: 0.7 },
-            rotation: Math.PI / 6,
           },
         },
       ],

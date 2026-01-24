@@ -1,14 +1,14 @@
-import {
-  createStage,
-  renderDocument,
-  type RenderDocumentOptions,
-  type Viewport,
-} from "../index";
 import type { DrawingDocument, ShapeHandlerRegistry } from "@smalldraw/core";
 import { promises as fs } from "fs";
-import path from "path";
 import looksSame from "looks-same";
+import path from "path";
 import { fileURLToPath } from "url";
+import {
+  createStage,
+  type RenderDocumentOptions,
+  renderDocument,
+  type Viewport,
+} from "../index";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -89,7 +89,7 @@ function compareImages(
         reject(err);
         return;
       }
-      resolve(Boolean(result && result.equal));
+      resolve(Boolean(result?.equal));
     });
   });
 }

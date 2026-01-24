@@ -3,10 +3,10 @@ import { describe, expect, test } from "bun:test";
 import {
   createDocument,
   type DirtyState,
-  type Shape,
   getDefaultShapeHandlerRegistry,
+  type Shape,
 } from "@smalldraw/core";
-
+import type { RectShape } from "packages/core/src/model/shapes/rectShape";
 import {
   createStage,
   ensureRendererLayer,
@@ -24,23 +24,15 @@ const baseViewport: Viewport = {
   backgroundColor: "#ffffff",
 };
 
-function createTestShape(id: string, x = 50, y = 50): Shape {
+function createTestShape(id: string, x = 50, y = 50): RectShape {
   return {
     id,
+    type: "rect",
     geometry: { type: "rect", size: { width: 40, height: 30 } },
     fill: { type: "solid", color: "#ff0000" },
     zIndex: `a-${id}`,
     transform: { translation: { x, y }, scale: { x: 1, y: 1 }, rotation: 0 },
   };
-}
-
-function renderToBuffer(stage: any): Buffer {
-  const layer = stage.getLayers()[0];
-  type BufferCanvas = HTMLCanvasElement & {
-    toBuffer: (mimeType?: string) => Buffer;
-  };
-  const canvas = layer.getCanvas()._canvas as BufferCanvas;
-  return canvas.toBuffer("image/png");
 }
 
 describe("KonvaReconciler", () => {

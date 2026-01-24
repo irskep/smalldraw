@@ -1,15 +1,15 @@
 import type {
   DirtyState,
   DrawingDocument,
-  ShapeHandlerRegistry,
   Shape,
+  ShapeHandlerRegistry,
 } from "@smalldraw/core";
 import { getOrderedShapes } from "@smalldraw/core";
 import Konva from "konva";
 import type { Layer } from "konva/lib/Layer.js";
 import type { Stage, StageConfig } from "konva/lib/Stage.js";
 
-import { KonvaReconciler } from "./reconciler.js";
+import type { KonvaReconciler } from "./reconciler.js";
 import {
   defaultShapeRendererRegistry,
   renderShapeNode,
