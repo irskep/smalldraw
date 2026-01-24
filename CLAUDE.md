@@ -4,3 +4,5 @@ packages/ contains logic
 apps/ contains applications of the packages
 
 This is a bun project. NEVER invoke node or npm.
+
+Backward compatibility is NOT a concern.

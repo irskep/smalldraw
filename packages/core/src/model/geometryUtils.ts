@@ -51,6 +51,24 @@ export function getBoundsCenter(bounds: Bounds): Point {
   };
 }
 
+/**
+ * Merge two bounding boxes into a single bounding box that contains both.
+ */
+export function mergeBounds(a: Bounds, b: Bounds): Bounds {
+  const minX = Math.min(a.minX, b.minX);
+  const minY = Math.min(a.minY, b.minY);
+  const maxX = Math.max(a.maxX, b.maxX);
+  const maxY = Math.max(a.maxY, b.maxY);
+  return {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
+
 export function pointAdd<T extends Point>(a: T, b: Point): T {
   return {
     ...a,

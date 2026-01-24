@@ -1,26 +1,22 @@
-import {
-  createVanillaDrawingApp,
-  type VanillaDrawingApp,
-} from "@smalldraw/ui-vanillajs";
+import { DrawingApp } from "@smalldraw/ui-vanillajs";
 
 const container = document.getElementById("app");
 if (!container) {
   throw new Error("Missing #app container");
 }
 
-let app: VanillaDrawingApp | null = null;
+let app: DrawingApp | null = null;
 
 function mount() {
   if (!container) return;
   container.innerHTML = "";
-  app = createVanillaDrawingApp({
+  app = new DrawingApp({
     container,
     width: 960,
     height: 600,
     backgroundColor: "#ffffff",
   });
-  (window as unknown as { smalldrawApp?: VanillaDrawingApp }).smalldrawApp =
-    app;
+  (window as unknown as { smalldrawApp?: DrawingApp }).smalldrawApp = app;
 }
 
 const resetButton = document.getElementById("reset");

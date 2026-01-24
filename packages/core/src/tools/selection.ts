@@ -9,6 +9,7 @@ import {
   getBoundsCenter,
   getBoundsFromPointPair,
   getBoundsFromPoints,
+  mergeBounds,
 } from "../model/geometryUtils";
 import { hitTestShape } from "../model/hitTest";
 import type { Bounds, Point } from "../model/primitives";
@@ -1075,21 +1076,6 @@ function offsetBounds(bounds: Bounds, dx: number, dy: number): Bounds {
     maxY: bounds.maxY + dy,
     width: bounds.width,
     height: bounds.height,
-  };
-}
-
-function mergeBounds(a: Bounds, b: Bounds): Bounds {
-  const minX = Math.min(a.minX, b.minX);
-  const minY = Math.min(a.minY, b.minY);
-  const maxX = Math.max(a.maxX, b.maxX);
-  const maxY = Math.max(a.maxY, b.maxY);
-  return {
-    minX,
-    minY,
-    maxX,
-    maxY,
-    width: maxX - minX,
-    height: maxY - minY,
   };
 }
 

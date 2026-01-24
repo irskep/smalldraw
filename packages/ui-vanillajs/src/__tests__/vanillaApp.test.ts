@@ -1,8 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { Window } from "happy-dom";
 import { Canvas, Image } from "canvas";
+import type { PenGeometry, RectGeometry, Shape } from "@smalldraw/core";
 
-import { createVanillaDrawingApp } from "../createVanillaDrawingApp";
+import { DrawingApp } from "../components/DrawingApp.js";
+
+type ShapeWithGeometry = Shape & { geometry: PenGeometry | RectGeometry };
 
 // happy-dom types don't match standard DOM types, so we cast through unknown
 function qs<T extends Element>(
@@ -22,12 +25,13 @@ function setupDom() {
     Canvas as unknown as typeof windowInstance.HTMLCanvasElement;
   (globalThis as any).HTMLImageElement =
     Image as unknown as typeof windowInstance.HTMLImageElement;
+  (globalThis as any).SVGElement = windowInstance.SVGElement;
   (globalThis as any).navigator = windowInstance.navigator;
   (globalThis as any).PointerEvent =
     (windowInstance as any).PointerEvent ?? windowInstance.MouseEvent;
   const container = document.createElement("div");
   document.body.appendChild(container);
-  // Cast to standard DOM type for use with createVanillaDrawingApp
+  // Cast to standard DOM type for use with DrawingApp
   return {
     window: windowInstance,
     document,
@@ -70,10 +74,10 @@ function dispatchPointer(
   overlay.dispatchEvent(event);
 }
 
-describe("createVanillaDrawingApp", () => {
+describe("DrawingApp", () => {
   test("draws a rectangle via pointer interaction", () => {
     const { container } = setupDom();
-    const app = createVanillaDrawingApp({ container, width: 300, height: 200 });
+    const app = new DrawingApp({ container, width: 300, height: 200 });
     const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
     rectBtn?.click();
 
@@ -84,7 +88,7 @@ describe("createVanillaDrawingApp", () => {
     dispatchPointer(overlay, "pointermove", 180, 150, 1);
     dispatchPointer(overlay, "pointerup", 180, 150, 0);
 
-    const shapes = Object.values(app.store.getDocument().shapes);
+    const shapes = Object.values(app.store.getDocument().shapes) as ShapeWithGeometry[];
     expect(shapes).toHaveLength(1);
     expect(shapes[0]?.geometry.type).toBe("rect");
     app.destroy();
@@ -92,7 +96,7 @@ describe("createVanillaDrawingApp", () => {
 
   test("updates shared colors via palette clicks", () => {
     const { container } = setupDom();
-    const app = createVanillaDrawingApp({ container });
+    const app = new DrawingApp({ container });
     const strokeRow = qs<HTMLElement>(
       container,
       '[data-role="stroke-swatches"]',
@@ -110,7 +114,7 @@ describe("createVanillaDrawingApp", () => {
 
   test("selects and undoes shapes via toolbar controls", () => {
     const { container } = setupDom();
-    const app = createVanillaDrawingApp({ container, width: 320, height: 240 });
+    const app = new DrawingApp({ container, width: 320, height: 240 });
     const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
     rectBtn?.click();
     const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;
@@ -139,11 +143,12 @@ describe("createVanillaDrawingApp", () => {
 
   test("axis handles follow rotated rectangle geometry", () => {
     const { container } = setupDom();
-    const app = createVanillaDrawingApp({ container, width: 300, height: 300 });
+    const app = new DrawingApp({ container, width: 300, height: 300 });
     const doc = app.store.getDocument();
     const shapeId = "rot-rect";
-    doc.shapes[shapeId] = {
+    (doc.shapes[shapeId] as any) = {
       id: shapeId,
+      type: "rect",
       geometry: { type: "rect", size: { width: 40, height: 20 } },
       zIndex: "z",
       interactions: { resizable: true, rotatable: true },
@@ -173,7 +178,7 @@ describe("createVanillaDrawingApp", () => {
 
   test("renders draft shapes during pen tool interaction", () => {
     const { container } = setupDom();
-    const app = createVanillaDrawingApp({ container, width: 300, height: 200 });
+    const app = new DrawingApp({ container, width: 300, height: 200 });
     const penBtn = qs<HTMLButtonElement>(container, '[data-tool="pen"]');
     penBtn?.click();
 
@@ -182,13 +187,13 @@ describe("createVanillaDrawingApp", () => {
 
     // Start drawing with pen - creates initial draft
     dispatchPointer(overlay, "pointerdown", 50, 50, 1);
-    const draftsAfterDown = app.store.getDrafts();
+    const draftsAfterDown = app.store.getDrafts() as ShapeWithGeometry[];
     expect(draftsAfterDown.length).toBeGreaterThan(0);
     expect(draftsAfterDown[0]?.geometry.type).toBe("pen");
 
     // Move updates draft shape
     dispatchPointer(overlay, "pointermove", 100, 100, 1);
-    const draftsAfterMove = app.store.getDrafts();
+    const draftsAfterMove = app.store.getDrafts() as ShapeWithGeometry[];
     expect(draftsAfterMove.length).toBeGreaterThan(0);
     expect(draftsAfterMove[0]?.geometry.type).toBe("pen");
 
@@ -202,7 +207,7 @@ describe("createVanillaDrawingApp", () => {
 
   test("renders draft shapes during rect tool interaction", () => {
     const { container } = setupDom();
-    const app = createVanillaDrawingApp({ container, width: 300, height: 200 });
+    const app = new DrawingApp({ container, width: 300, height: 200 });
     const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
     rectBtn?.click();
 
@@ -211,12 +216,12 @@ describe("createVanillaDrawingApp", () => {
 
     // Start drawing rect
     dispatchPointer(overlay, "pointerdown", 50, 50, 1);
-    const draftsAfterDown = app.store.getDrafts();
+    const draftsAfterDown = app.store.getDrafts() as ShapeWithGeometry[];
     expect(draftsAfterDown.length).toBeGreaterThan(0);
 
     // Move updates draft shape
     dispatchPointer(overlay, "pointermove", 150, 100, 1);
-    const draftsAfterMove = app.store.getDrafts();
+    const draftsAfterMove = app.store.getDrafts() as ShapeWithGeometry[];
     expect(draftsAfterMove.length).toBeGreaterThan(0);
     expect(draftsAfterMove[0]?.geometry.type).toBe("rect");
 
@@ -230,12 +235,13 @@ describe("createVanillaDrawingApp", () => {
 
   test("clears selection frame when clicking away from multi-select", () => {
     const { container } = setupDom();
-    const app = createVanillaDrawingApp({ container, width: 400, height: 300 });
+    const app = new DrawingApp({ container, width: 400, height: 300 });
 
     // Add two rectangles to the document
     const doc = app.store.getDocument();
-    doc.shapes["rect-1"] = {
+    (doc.shapes["rect-1"] as any) = {
       id: "rect-1",
+      type: "rect",
       geometry: { type: "rect", size: { width: 50, height: 50 } },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
@@ -245,8 +251,9 @@ describe("createVanillaDrawingApp", () => {
         scale: { x: 1, y: 1 },
       },
     };
-    doc.shapes["rect-2"] = {
+    (doc.shapes["rect-2"] as any) = {
       id: "rect-2",
+      type: "rect",
       geometry: { type: "rect", size: { width: 50, height: 50 } },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },

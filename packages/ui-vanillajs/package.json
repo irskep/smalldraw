@@ -13,9 +13,11 @@
   },
   "dependencies": {
     "@smalldraw/core": "workspace:*",
-    "@smalldraw/renderer-konva": "workspace:*"
+    "@smalldraw/renderer-konva": "workspace:*",
+    "redom": "^3.27.1"
   },
   "devDependencies": {
+    "@types/redom": "^3.2.4",
     "happy-dom": "^14.10.1"
   }
 }
