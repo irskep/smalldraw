@@ -1,12 +1,7 @@
+import type { RectGeometry } from "@smalldraw/geometry";
 import { createBounds } from "../geometryUtils";
-import type { Size } from "../primitives";
 import type { Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
-
-export interface RectGeometry {
-  type: "rect";
-  size: Size;
-}
 
 export type RectShape = Shape & { geometry: RectGeometry };
 

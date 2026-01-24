@@ -1,13 +1,7 @@
+import type { PenGeometry } from "@smalldraw/geometry";
 import { getBoundsFromPoints, pointSubtract } from "../geometryUtils";
-import type { Point } from "../primitives";
 import type { Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
-
-export interface PenGeometry {
-  type: "pen";
-  points: Point[];
-  simulatePressure?: boolean;
-}
 
 export type PenShape = Shape & { geometry: PenGeometry };
 
@@ -29,7 +23,7 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
         geometry: {
           type: "pen",
           points: g.points.map((pt) => ({ ...pt })),
-          simulatePressure: g.simulatePressure,
+          intensity: g.intensity,
         },
       };
     },

@@ -114,7 +114,15 @@
       "version": "0.0.0",
       "dependencies": {
         "@mathigon/euclid": "^1.2.4",
+        "@smalldraw/geometry": "workspace:",
         "jittered-fractional-indexing": "^1.0.0",
+      },
+    },
+    "packages/geometry": {
+      "name": "@smalldraw/geometry",
+      "version": "0.0.0",
+      "dependencies": {
+        "@mathigon/euclid": "^1.2.4",
       },
     },
     "packages/renderer-konva": {
@@ -590,6 +598,8 @@
     "@shikijs/vscode-textmate": ["@shikijs/vscode-textmate@10.0.2", "", {}, "sha512-83yeghZ2xxin3Nj8z1NMd/NCuca+gsYXswywDy5bHvwlWL8tpTQmzGeUuHd9FC3E/SBEMvzJRwWEOz5gGes9Qg=="],
 
     "@smalldraw/core": ["@smalldraw/core@workspace:packages/core"],
+
+    "@smalldraw/geometry": ["@smalldraw/geometry@workspace:packages/geometry"],
 
     "@smalldraw/renderer-konva": ["@smalldraw/renderer-konva@workspace:packages/renderer-konva"],
 

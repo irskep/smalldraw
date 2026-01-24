@@ -1,3 +1,4 @@
+export type { AnyGeometry } from "@smalldraw/geometry";
 export * from "./actions";
 export * from "./model/document";
 export * from "./model/geometryShapeUtils";
@@ -17,6 +18,7 @@ export * from "./tools/pointerHandlers";
 export * from "./tools/rectangle";
 export * from "./tools/runtime";
 export * from "./tools/selection";
+export * from "./tools/selectionHandles";
 export * from "./tools/types";
 export * from "./undo";
 export * from "./zindex";

@@ -1,16 +1,16 @@
 import {
-  DrawingStore,
-  getOrderedShapes,
-  getShapeBounds,
-  type Bounds,
+  type AnyGeometry,
   type DrawingDocument,
+  type DrawingStore,
+  getOrderedShapes,
+  resolveSelectionHandlePoint,
+  getShapeBounds,
   type Point,
-  type RectGeometry,
   type Shape,
 } from "@smalldraw/core";
-import { computeSelectionBounds, distance, resolveHandlePoint } from "./geometryHelpers.js";
+import { computeSelectionBounds, distance } from "./geometryHelpers.js";
 
-type ShapeWithGeometry = Shape & { geometry: RectGeometry };
+type ShapeWithGeometry = Shape & { geometry: AnyGeometry };
 
 const HANDLE_SIZE = 8;
 const HANDLE_HIT_PADDING = 6;
@@ -42,13 +42,20 @@ export function canShowAxisHandles(store: DrawingStore): boolean {
   }
   const liveDoc = buildLiveDocument(store);
   const shape = liveDoc.shapes[ids[0]] as ShapeWithGeometry | undefined;
-  return shape?.geometry.type === "rect";
+  if (!shape) return false;
+  const registry = store.getShapeHandlers();
+  return registry
+    .get(shape.type)
+    ?.selection?.supportsAxisResize?.(shape as ShapeWithGeometry) ?? false;
 }
 
 /**
  * Hit test against selection handles.
  */
-export function hitTestHandles(point: Point, store: DrawingStore): string | undefined {
+export function hitTestHandles(
+  point: Point,
+  store: DrawingStore,
+): string | undefined {
   const bounds = store.getSelectionFrame() ?? computeSelectionBounds(store);
   if (!bounds) return undefined;
   const liveDoc = buildLiveDocument(store);
@@ -58,13 +65,19 @@ export function hitTestHandles(point: Point, store: DrawingStore): string | unde
     : selection.primaryId;
   const selectedShape = selectedId ? liveDoc.shapes[selectedId] : undefined;
   const showAxisHandles = canShowAxisHandles(store);
+  const registry = store.getShapeHandlers();
   for (const handle of store
     .getHandles()
     .filter(
       (descriptor) =>
         showAxisHandles || descriptor.behavior?.type !== "resize-axis",
     )) {
-    const handlePoint = resolveHandlePoint(bounds, handle, selectedShape);
+    const handlePoint = resolveSelectionHandlePoint(
+      bounds,
+      handle,
+      selectedShape,
+      registry,
+    );
     const hitSize =
       handle.behavior?.type === "resize-axis"
         ? Math.max(12, HANDLE_SIZE)
@@ -101,7 +114,10 @@ export function hitTestShapes(point: Point, store: DrawingStore): Shape | null {
 /**
  * Check if a point is within the selection bounds.
  */
-export function isPointInSelectionBounds(point: Point, store: DrawingStore): boolean {
+export function isPointInSelectionBounds(
+  point: Point,
+  store: DrawingStore,
+): boolean {
   const selection = store.getSelection();
   const ids = Array.from(selection.ids);
   console.log(

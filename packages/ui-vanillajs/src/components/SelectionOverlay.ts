@@ -1,13 +1,11 @@
-import { el } from "redom";
 import {
-  applyTransformToPoint,
   type Bounds,
   type HandleDescriptor,
-  type RectGeometry,
+  resolveSelectionHandlePoint,
   type Shape,
+  type ShapeHandlerRegistry,
 } from "@smalldraw/core";
-
-type ShapeWithGeometry = Shape & { geometry: RectGeometry };
+import { el } from "redom";
 
 const HANDLE_SIZE = 8;
 
@@ -33,6 +31,7 @@ export class SelectionOverlay {
     bounds: Bounds | null,
     handles: HandleDescriptor[],
     shape?: Shape,
+    registry?: ShapeHandlerRegistry,
   ): void {
     if (!bounds) {
       this.clear();
@@ -56,7 +55,7 @@ export class SelectionOverlay {
     // Update or create handles
     const rotation = shape?.transform?.rotation ?? 0;
     for (const handle of handles) {
-      this.updateHandle(handle, bounds, shape, rotation);
+      this.updateHandle(handle, bounds, shape, rotation, registry);
     }
   }
 
@@ -107,8 +106,15 @@ export class SelectionOverlay {
     bounds: Bounds,
     shape: Shape | undefined,
     rotation: number,
+    registry: ShapeHandlerRegistry | undefined,
   ): void {
-    const point = this.resolveHandlePoint(bounds, handle, shape);
+    const point =
+      registry && shape
+        ? resolveSelectionHandlePoint(bounds, handle, shape, registry)
+        : {
+            x: bounds.minX + bounds.width * handle.position.u,
+            y: bounds.minY + bounds.height * handle.position.v,
+          };
     const axisHandle = handle.behavior?.type === "resize-axis";
     const axis =
       handle.behavior?.type === "resize-axis" ? handle.behavior.axis : null;
@@ -191,59 +197,4 @@ export class SelectionOverlay {
     });
   }
 
-  /**
-   * Resolve a handle's screen position based on bounds and shape.
-   */
-  private resolveHandlePoint(
-    bounds: Bounds,
-    handle: HandleDescriptor,
-    shape?: Shape,
-  ): { x: number; y: number } {
-    const shapeWithGeom = shape as ShapeWithGeometry | undefined;
-    if (
-      handle.behavior?.type === "resize-axis" &&
-      shapeWithGeom?.geometry.type === "rect"
-    ) {
-      const point = this.resolveAxisHandlePoint(handle.id, shapeWithGeom);
-      if (point) return point;
-    }
-    return {
-      x: bounds.minX + bounds.width * handle.position.u,
-      y: bounds.minY + bounds.height * handle.position.v,
-    };
-  }
-
-  /**
-   * Resolve position for axis handles on rectangles.
-   */
-  private resolveAxisHandlePoint(
-    handleId: string,
-    shape: ShapeWithGeometry,
-  ): { x: number; y: number } | null {
-    if (shape.geometry.type !== "rect") return null;
-    const rectGeometry = shape.geometry;
-
-    const halfWidth = rectGeometry.size.width / 2;
-    const halfHeight = rectGeometry.size.height / 2;
-
-    let local: { x: number; y: number } | null = null;
-    switch (handleId) {
-      case "mid-right":
-        local = { x: halfWidth, y: 0 };
-        break;
-      case "mid-left":
-        local = { x: -halfWidth, y: 0 };
-        break;
-      case "mid-top":
-        local = { x: 0, y: -halfHeight };
-        break;
-      case "mid-bottom":
-        local = { x: 0, y: halfHeight };
-        break;
-      default:
-        return null;
-    }
-
-    return applyTransformToPoint(local, shape.transform);
-  }
 }

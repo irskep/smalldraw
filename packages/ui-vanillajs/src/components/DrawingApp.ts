@@ -214,7 +214,8 @@ export class DrawingApp {
       ? Array.from(selection.ids)[0]
       : selection.primaryId;
     const selectedShape = selectedId ? liveDoc.shapes[selectedId] : undefined;
-    this.selectionOverlay.update(bounds, handles, selectedShape);
+    const registry = this.store.getShapeHandlers();
+    this.selectionOverlay.update(bounds, handles, selectedShape, registry);
   }
 
   private createPointerHandlers() {

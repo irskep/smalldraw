@@ -102,6 +102,13 @@ export interface ShapeHandler<T, TResizeData = unknown> {
     /** Check if this shape supports axis-aligned resize (mid-handles) */
     supportsAxisResize?: (shape: Shape & { geometry: T }) => boolean;
 
+    /** Resolve a world-space point for axis handles (mid-handles) */
+    getAxisHandlePoint?: (
+      shape: Shape & { geometry: T },
+      axis: "x" | "y",
+      direction: -1 | 1,
+    ) => Point | null;
+
     /** Get the world-space extent of the shape along its local axis */
     getAxisExtent?: (
       geometry: T,

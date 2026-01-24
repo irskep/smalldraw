@@ -113,7 +113,7 @@ function createPenNode(
   const size = stroke?.size ?? 4;
   const strokeResult = createFreehandStroke(shape.geometry.points, {
     size,
-    simulatePressure: shape.geometry.simulatePressure ?? true,
+    simulatePressure: shape.geometry.intensity ?? true,
     smoothing: 0.6,
     streamline: 0.4,
     thinning: 0.6,

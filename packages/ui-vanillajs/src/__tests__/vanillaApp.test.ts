@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { Window } from "happy-dom";
+import type { AnyGeometry, Shape } from "@smalldraw/core";
 import { Canvas, Image } from "canvas";
-import type { PenGeometry, RectGeometry, Shape } from "@smalldraw/core";
+import { Window } from "happy-dom";
 
 import { DrawingApp } from "../components/DrawingApp.js";
 
-type ShapeWithGeometry = Shape & { geometry: PenGeometry | RectGeometry };
+type ShapeWithGeometry = Shape & { geometry: AnyGeometry };
 
 // happy-dom types don't match standard DOM types, so we cast through unknown
 function qs<T extends Element>(
@@ -88,7 +88,9 @@ describe("DrawingApp", () => {
     dispatchPointer(overlay, "pointermove", 180, 150, 1);
     dispatchPointer(overlay, "pointerup", 180, 150, 0);
 
-    const shapes = Object.values(app.store.getDocument().shapes) as ShapeWithGeometry[];
+    const shapes = Object.values(
+      app.store.getDocument().shapes,
+    ) as ShapeWithGeometry[];
     expect(shapes).toHaveLength(1);
     expect(shapes[0]?.geometry.type).toBe("rect");
     app.destroy();

@@ -1,11 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
+import type { RectGeometry } from "@smalldraw/geometry";
 import { createDocument } from "../../model/document";
 import { getShapeBounds } from "../../model/geometryShapeUtils";
 import type { Bounds } from "../../model/primitives";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
-import type { RectGeometry, RectShape } from "../../model/shapes/rectShape";
+import type { RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
