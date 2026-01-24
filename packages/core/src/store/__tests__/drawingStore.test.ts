@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import { createDocument } from "../../model/document";
-import type { Shape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
 import type { RectShape } from "../../model/shapes/rectShape";

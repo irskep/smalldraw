@@ -4,7 +4,6 @@ import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
 import { canonicalizeShape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { PenShape } from "../../model/shapes/penShape";
 import type { RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { getZIndexBetween } from "../../zindex";
