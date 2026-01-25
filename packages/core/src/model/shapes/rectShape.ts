@@ -1,5 +1,4 @@
-import type { RectGeometry } from "@smalldraw/geometry";
-import { createBounds } from "../geometryUtils";
+import { createBounds, type RectGeometry } from "@smalldraw/geometry";
 import type { Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 

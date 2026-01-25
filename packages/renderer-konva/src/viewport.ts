@@ -1,4 +1,4 @@
-import type { Point } from "@smalldraw/core";
+import type { Point } from "@smalldraw/geometry";
 import type { Layer } from "konva/lib/Layer.js";
 import type { Stage } from "konva/lib/Stage.js";
 

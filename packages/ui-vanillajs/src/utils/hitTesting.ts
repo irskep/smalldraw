@@ -3,12 +3,12 @@ import {
   type DrawingDocument,
   type DrawingStore,
   getOrderedShapes,
-  resolveSelectionHandlePoint,
   getShapeBounds,
-  type Point,
+  resolveSelectionHandlePoint,
   type Shape,
 } from "@smalldraw/core";
-import { computeSelectionBounds, distance } from "./geometryHelpers.js";
+import { distance, type Point } from "@smalldraw/geometry";
+import { computeSelectionBounds } from "./geometryHelpers.js";
 
 type ShapeWithGeometry = Shape & { geometry: AnyGeometry };
 
@@ -44,9 +44,11 @@ export function canShowAxisHandles(store: DrawingStore): boolean {
   const shape = liveDoc.shapes[ids[0]] as ShapeWithGeometry | undefined;
   if (!shape) return false;
   const registry = store.getShapeHandlers();
-  return registry
-    .get(shape.type)
-    ?.selection?.supportsAxisResize?.(shape as ShapeWithGeometry) ?? false;
+  return (
+    registry
+      .get(shape.type)
+      ?.selection?.supportsAxisResize?.(shape as ShapeWithGeometry) ?? false
+  );
 }
 
 /**

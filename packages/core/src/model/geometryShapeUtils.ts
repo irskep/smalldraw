@@ -1,5 +1,9 @@
-import { createBounds, getBoundsFromPoints } from "./geometryUtils";
-import type { Bounds, Point } from "./primitives";
+import {
+  type Bounds,
+  createBounds,
+  getBoundsFromPoints,
+  type Point,
+} from "@smalldraw/geometry";
 import type { CanonicalShapeTransform, Shape, ShapeTransform } from "./shape";
 import { normalizeShapeTransform } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";

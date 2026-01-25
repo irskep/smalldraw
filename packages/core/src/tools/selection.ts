@@ -1,3 +1,11 @@
+import {
+  type Bounds,
+  getBoundsCenter,
+  getBoundsFromPointPair,
+  getBoundsFromPoints,
+  mergeBounds,
+  type Point,
+} from "@smalldraw/geometry";
 import type { UndoableAction } from "../actions";
 import {
   CompositeAction,
@@ -5,14 +13,7 @@ import {
   UpdateShapeTransform,
 } from "../actions";
 import { getShapeBounds } from "../model/geometryShapeUtils";
-import {
-  getBoundsCenter,
-  getBoundsFromPointPair,
-  getBoundsFromPoints,
-  mergeBounds,
-} from "../model/geometryUtils";
 import { hitTestShape } from "../model/hitTest";
-import type { Bounds, Point } from "../model/primitives";
 import type { CanonicalShapeTransform, Shape } from "../model/shape";
 import { normalizeShapeTransform } from "../model/shape";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
@@ -990,7 +991,11 @@ function createAxisResizeState(
     axis === "x"
       ? { x: Math.cos(rotation) * signX, y: Math.sin(rotation) * signX }
       : { x: -Math.sin(rotation) * signY, y: Math.cos(rotation) * signY };
-  const startExtent = ops.getAxisExtent(entry.snapshot.geometry, transform, axis);
+  const startExtent = ops.getAxisExtent(
+    entry.snapshot.geometry,
+    transform,
+    axis,
+  );
   const half = startExtent / 2;
   const center = transform.translation;
   const direction =

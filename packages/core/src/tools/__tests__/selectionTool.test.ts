@@ -1,9 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-import type { RectGeometry } from "@smalldraw/geometry";
+import type { Bounds, RectGeometry } from "@smalldraw/geometry";
 import { createDocument } from "../../model/document";
 import { getShapeBounds } from "../../model/geometryShapeUtils";
-import type { Bounds } from "../../model/primitives";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
 import type { RectShape } from "../../model/shapes/rectShape";

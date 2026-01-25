@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import type { Bounds } from "../../model/primitives";
-import type { AnyGeometry } from "@smalldraw/geometry";
+import type { AnyGeometry, Bounds } from "@smalldraw/geometry";
 import type { Shape } from "../../model/shape";
 import { ShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { HandleDescriptor } from "../types";
 import { resolveSelectionHandlePoint } from "../selectionHandles";
+import type { HandleDescriptor } from "../types";
 
 const selectionBounds: Bounds = {
   minX: 0,

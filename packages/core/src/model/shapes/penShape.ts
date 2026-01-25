@@ -1,5 +1,8 @@
-import type { PenGeometry } from "@smalldraw/geometry";
-import { getBoundsFromPoints, pointSubtract } from "../geometryUtils";
+import {
+  getBoundsFromPoints,
+  type PenGeometry,
+  pointSubtract,
+} from "@smalldraw/geometry";
 import type { Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 

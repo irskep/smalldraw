@@ -1,5 +1,5 @@
+import type { Point, Size } from "@smalldraw/geometry";
 import { AddShape } from "../actions";
-import type { Point, Size } from "../model/primitives";
 import type { Shape } from "../model/shape";
 import type { Fill, StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";

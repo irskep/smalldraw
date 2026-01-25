@@ -3,5 +3,21 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports.biome": "explicit",
     "source.fixAll.biome": "explicit"
-  }
+  },
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "**/node_modules/**"
+  ],
+  "javascript.preferences.autoImportFileExcludePatterns": [
+    "**/node_modules/**"
+  ],
+  "typescript.preferences.autoImportSpecifierExcludeRegexes": [
+    "^packages/",
+    "^node_modules/"
+  ],
+  "javascript.preferences.autoImportSpecifierExcludeRegexes": [
+    "^packages/",
+    "^node_modules/"
+  ],
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.preferences.importModuleSpecifier": "non-relative"
 }

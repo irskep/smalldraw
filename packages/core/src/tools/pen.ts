@@ -1,6 +1,5 @@
+import { getBoundsFromPoints, type Point } from "@smalldraw/geometry";
 import { AddShape } from "../actions";
-import { getBoundsFromPoints } from "../model/geometryUtils";
-import type { Point } from "../model/primitives";
 import type { PenShape } from "../model/shapes/penShape";
 import type { StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
@@ -16,6 +15,7 @@ interface ActivePenState {
 
 interface StrokeDraftState {
   id: string;
+  // TODO: use PenGeometry directly, not a custom point list
   points: Point[];
   stroke: StrokeStyle;
   zIndex: string;

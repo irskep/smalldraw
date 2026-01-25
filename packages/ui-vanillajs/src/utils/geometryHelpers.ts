@@ -2,12 +2,8 @@ import {
   type Bounds,
   type DrawingStore,
   getShapeBounds,
-  mergeBounds,
-  type Point,
 } from "@smalldraw/core";
-
-// Re-export mergeBounds for convenience
-export { mergeBounds };
+import { mergeBounds } from "@smalldraw/geometry";
 
 /**
  * Compute the bounding box of the current selection.
@@ -28,13 +24,4 @@ export function computeSelectionBounds(store: DrawingStore): Bounds | null {
     result = result ? mergeBounds(result, bounds) : bounds;
   }
   return result;
-}
-
-/**
- * Calculate distance between two points.
- */
-export function distance(a: Point, b: Point): number {
-  const dx = a.x - b.x;
-  const dy = a.y - b.y;
-  return Math.hypot(dx, dy);
 }

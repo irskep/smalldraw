@@ -1,5 +1,5 @@
-import { allValuesAreFinite } from "../util";
-import type { Bounds, Point } from "./primitives";
+import type { Bounds, Point } from "./types";
+import { allValuesAreFinite } from "./util";
 
 export function createBounds(
   minX: number,

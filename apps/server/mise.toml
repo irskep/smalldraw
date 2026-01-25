@@ -1,5 +1,5 @@
 [tasks.test]
-run = "bun test"
+run = "bun test --only-failures"
 
 [tasks."ts:check"]
 run = "bun run ts:check"

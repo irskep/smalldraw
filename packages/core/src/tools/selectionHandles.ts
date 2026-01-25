@@ -1,8 +1,11 @@
-import { applyTransformToPoint, getGeometryLocalBounds } from "../model/geometryShapeUtils";
-import type { Bounds, Point } from "../model/primitives";
+import type { Point } from "@smalldraw/geometry";
+import {
+  applyTransformToPoint,
+  getGeometryLocalBounds,
+} from "../model/geometryShapeUtils";
 import type { Shape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
-import type { HandleDescriptor } from "./types";
+import type { Bounds, HandleDescriptor } from "./types";
 
 function getAxisDirection(handle: HandleDescriptor): -1 | 1 | null {
   if (handle.behavior.type !== "resize-axis") return null;

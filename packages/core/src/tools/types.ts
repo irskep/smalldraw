@@ -1,4 +1,4 @@
-import type { Bounds, Point } from "../model/primitives";
+import type { Bounds, Point } from "@smalldraw/geometry";
 
 export type { Bounds };
 

@@ -1,4 +1,4 @@
-import type { Bounds, Point } from "./primitives";
+import type { Bounds, Point } from "@smalldraw/geometry";
 import type { CanonicalShapeTransform, Shape } from "./shape";
 
 /**

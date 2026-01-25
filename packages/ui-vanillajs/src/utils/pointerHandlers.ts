@@ -1,4 +1,5 @@
-import type { Point, ToolPointerEvent } from "@smalldraw/core";
+import type { ToolPointerEvent } from "@smalldraw/core";
+import type { Point } from "@smalldraw/geometry";
 
 /**
  * Build a ToolPointerEvent from a native PointerEvent.
@@ -21,7 +22,10 @@ export function buildToolEvent(
 /**
  * Get the pointer position relative to an overlay element.
  */
-export function getPointerPoint(event: PointerEvent, overlay: HTMLElement): Point {
+export function getPointerPoint(
+  event: PointerEvent,
+  overlay: HTMLElement,
+): Point {
   const rect = overlay.getBoundingClientRect();
   return {
     x: event.clientX - rect.left,

@@ -1,4 +1,4 @@
-import type { Point } from "../model/primitives";
+import type { Point } from "@smalldraw/geometry";
 import type { ToolEventHandler, ToolRuntime } from "./types";
 
 export interface DragCallbacks<TState> {

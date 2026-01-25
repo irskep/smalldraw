@@ -1,4 +1,4 @@
-import { getBoundsCenter } from "./geometryUtils";
+import { getBoundsCenter } from "@smalldraw/geometry";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 import type { Fill, StrokeStyle } from "./style";
 
