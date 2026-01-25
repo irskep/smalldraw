@@ -58,7 +58,9 @@ export function renderDocument(
   const registry = options?.registry ?? defaultShapeRendererRegistry;
   const geometryHandlerRegistry = options?.geometryHandlerRegistry;
   const orderedShapes = getOrderedShapes(document);
-  let zIndex = 1; // Start at 1 to keep shapes above background rect
+  const hasBackground =
+    layer.findOne<Konva.Rect>(".smalldraw-background") !== null;
+  let zIndex = hasBackground ? 1 : 0;
   for (const shape of orderedShapes) {
     const node = renderShapeNode(shape, registry, geometryHandlerRegistry);
     if (!node) continue;
@@ -91,6 +93,7 @@ function fillBackground(layer: Layer, options?: RenderDocumentOptions): void {
     options?.viewport?.backgroundColor ??
     DEFAULT_BACKGROUND_COLOR;
   const bgRect = new Konva.Rect({
+    name: "smalldraw-background",
     x: 0,
     y: 0,
     width: stage.width(),

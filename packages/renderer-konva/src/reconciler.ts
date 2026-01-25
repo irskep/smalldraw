@@ -170,9 +170,13 @@ export class KonvaReconciler {
    * Update z-order of nodes to match shape order.
    * Shapes are expected to be in z-order (sorted by zIndex).
    */
-  private updateZOrder(_layer: Layer, shapes: Shape[]): void {
-    // Start at 1 to keep shapes above background rect
-    let zIndex = 1;
+  private updateZOrder(layer: Layer, shapes: Shape[]): void {
+    const children = layer.getChildren();
+    const shapeNodes = new Set(this.nodes.values());
+    const offset = children.filter(
+      (child) => !shapeNodes.has(child as Konva.Group),
+    ).length;
+    let zIndex = offset;
     for (const shape of shapes) {
       const node = this.nodes.get(shape.id);
       if (node) {
