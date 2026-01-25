@@ -1,3 +1,60 @@
+# Smalldraw
+
+This is a greenfield prototype of a "drawing program construction kit." It is a vector/raster hybrid but can be used to specialize in vector or raster work.
+
+## Packages
+
+### `@smalldraw/geometry`
+
+Contains:
+- What is a shape geometrically
+- What is true about a given shape geometrically
+
+Depends on: third party libs only (Euclid.ts)
+
+Exposes: geometry types and functions, wrapping any third party stuff and not just re-exporting it
+
+### `@smalldraw/core`
+
+Contains: 
+- Frontend-framework-agnostic model and reactive datastore for illustration programs
+- Tool implementations in pure logic, no UI framework integrations. What is a selection tool, what does it need, what does it do?
+- Later on (do not do now): will be based on Automerge for local-first and multiplayer
+
+Depends on: geometry, third party libraries, but not Euclid.ts because its logic comes in through geometry
+
+Exposes: generic interfaces, stores, controllers, managers, and registries for UI layers to use
+
+DOES NOT expose: individual shape types. the abstractions of the module should allow UI layer to be shape-agnostic.
+
+### `@smalldraw/renderer-konva`
+
+Contains:
+- Code to render core's data model on an HTML canvas using the Konva library, in an incremental way
+
+Depends on: core
+
+Exposes: as small a surface area as possible to keep a canvas updated
+
+### `@smalldraw/ui-vanillajs`
+
+Contains:
+- Complete implementation of a minimalistic drawing app using all features of Smalldraw, mountable in a DOM element
+
+Depends on: core, renderer-konva, re:dom
+
+Exposes: an object that can mount/unmount the app; eventually, access to core objects for serialization/deserialization/sync
+
+## Current status
+
+Codebase is messy and needs to be further conformed to the module boundaries. Code reuse is suboptimal. Many types are copy/pasted across files, especially in tests. The geometry package in particular should be beefed up substantially, but new abstractions are needed for generic shape intersections (do we even need that?) and hit testing (we definitely need that).
+
+---
+
+Original README continues below.
+
+---
+
 # Automerge Jumpstart
 
 A comprehensive boilerplate for building real-time

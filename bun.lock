@@ -113,7 +113,6 @@
       "name": "@smalldraw/core",
       "version": "0.0.0",
       "dependencies": {
-        "@mathigon/euclid": "^1.2.4",
         "@smalldraw/geometry": "workspace:",
         "jittered-fractional-indexing": "^1.0.0",
       },

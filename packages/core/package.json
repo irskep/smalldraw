@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@smalldraw/geometry": "workspace:",
-    "@mathigon/euclid": "^1.2.4",
     "jittered-fractional-indexing": "^1.0.0"
   }
 }
