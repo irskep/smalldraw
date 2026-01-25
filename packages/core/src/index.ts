@@ -3,6 +3,7 @@ export * from "./actions";
 export * from "./model/document";
 export * from "./model/geometryShapeUtils";
 export * from "./model/hitTest";
+export * from "./model/selectionBounds";
 export * from "./model/shape";
 export * from "./model/shapeHandlers";
 export * from "./model/shapes/penShape";

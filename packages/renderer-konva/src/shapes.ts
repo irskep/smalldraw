@@ -10,6 +10,7 @@ import {
   getGeometryLocalBounds,
   normalizeShapeTransform,
 } from "@smalldraw/core";
+import { clamp, degToRad, radToDeg } from "@smalldraw/geometry";
 import Konva from "konva";
 import type { PenShape } from "packages/core/src/model/shapes/penShape.js";
 import type { RectShape } from "packages/core/src/model/shapes/rectShape.js";
@@ -240,16 +241,4 @@ function parseHexColor(color: string): [number, number, number] | null {
     return [r, g, b];
   }
   return null;
-}
-
-function radToDeg(value: number): number {
-  return (value * 180) / Math.PI;
-}
-
-function degToRad(value: number): number {
-  return (value * Math.PI) / 180;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
 }

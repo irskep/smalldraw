@@ -49,6 +49,28 @@ Exposes: an object that can mount/unmount the app; eventually, access to core ob
 
 Codebase is messy and needs to be further conformed to the module boundaries. Code reuse is suboptimal. Many types are copy/pasted across files, especially in tests. The geometry package in particular should be beefed up substantially, but new abstractions are needed for generic shape intersections (do we even need that?) and hit testing (we definitely need that).
 
+## Roadmap
+
+- Polish the abstractions for the current feature set (YOU ARE HERE)
+  - pen and rect shapes
+  - selection tool that supports multi-select, scaling, and rotation
+    - scaling rotated shapes is buggy, but the fix will be easy
+- Move data model to Automerge; tackle JSON save/load
+- Add the rest of the main shapes
+  - ellipse
+  - line
+  - polygon
+  - emoji stamp
+  - perfect-freehand (note that we SHOULD NOT be using perfect-freehand right now as we are not at this stage)
+  - eraser (this will be complex, since this is a hybrid vector-raster program)
+- Develop web component color pickers
+- Develop a rich React UI
+- Iterate on the design
+- Write docs
+- Iterate on the design
+- Write docs
+- Release
+
 ---
 
 Original README continues below.

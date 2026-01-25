@@ -2,6 +2,7 @@ import {
   type Bounds,
   createBounds,
   getBoundsFromPoints,
+  rotatePoint,
   type Point,
 } from "@smalldraw/geometry";
 import type { CanonicalShapeTransform, Shape, ShapeTransform } from "./shape";
@@ -36,15 +37,6 @@ export function applyTransformToPoint(
   return {
     x: rotated.x + origin.x + translation.x,
     y: rotated.y + origin.y + translation.y,
-  };
-}
-
-function rotatePoint(point: Point, angle: number): Point {
-  const cos = Math.cos(angle);
-  const sin = Math.sin(angle);
-  return {
-    x: point.x * cos - point.y * sin,
-    y: point.x * sin + point.y * cos,
   };
 }
 

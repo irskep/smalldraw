@@ -1,9 +1,9 @@
 import {
+  computeSelectionBounds as computeSelectionBoundsForShapes,
   type Bounds,
   type DrawingStore,
-  getShapeBounds,
+  type Shape,
 } from "@smalldraw/core";
-import { mergeBounds } from "@smalldraw/geometry";
 
 /**
  * Compute the bounding box of the current selection.
@@ -15,13 +15,10 @@ export function computeSelectionBounds(store: DrawingStore): Bounds | null {
     return null;
   }
   const doc = store.getDocument();
-  let result: Bounds | null = null;
   const registry = store.getShapeHandlers();
-  for (const id of ids) {
-    const shape = doc.shapes[id];
-    if (!shape) continue;
-    const bounds = getShapeBounds(shape, registry);
-    result = result ? mergeBounds(result, bounds) : bounds;
-  }
-  return result;
+  const shapes = ids
+    .map((id) => doc.shapes[id])
+    .filter((shape): shape is Shape => Boolean(shape));
+  const { bounds } = computeSelectionBoundsForShapes(shapes, registry);
+  return bounds ?? null;
 }

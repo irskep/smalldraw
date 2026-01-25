@@ -51,6 +51,26 @@ export function getBoundsCenter(bounds: Bounds): Point {
   };
 }
 
+export function containsPoint(bounds: Bounds, point: Point): boolean {
+  return (
+    point.x >= bounds.minX &&
+    point.x <= bounds.maxX &&
+    point.y >= bounds.minY &&
+    point.y <= bounds.maxY
+  );
+}
+
+export function offsetBounds(bounds: Bounds, dx: number, dy: number): Bounds {
+  return {
+    minX: bounds.minX + dx,
+    minY: bounds.minY + dy,
+    maxX: bounds.maxX + dx,
+    maxY: bounds.maxY + dy,
+    width: bounds.width,
+    height: bounds.height,
+  };
+}
+
 /**
  * Merge two bounding boxes into a single bounding box that contains both.
  */

@@ -1,9 +1,11 @@
 import {
   type Bounds,
+  angleBetween,
+  containsPoint,
   getBoundsCenter,
   getBoundsFromPointPair,
-  getBoundsFromPoints,
   mergeBounds,
+  offsetBounds,
   type Point,
 } from "@smalldraw/geometry";
 import type { UndoableAction } from "../actions";
@@ -16,6 +18,8 @@ import { getShapeBounds } from "../model/geometryShapeUtils";
 import { hitTestShape } from "../model/hitTest";
 import type { CanonicalShapeTransform, Shape } from "../model/shape";
 import { normalizeShapeTransform } from "../model/shape";
+import { computeSelectionBounds } from "../model/selectionBounds";
+import { getPointFromLayout, type NormalizedLayout } from "../model/shapeTypes";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { createPointerDragHandler } from "./pointerDrag";
 import type {
@@ -60,16 +64,6 @@ interface DragState {
 }
 
 type SelectionBounds = Bounds;
-
-interface SelectionBoundsResult {
-  bounds?: Bounds;
-  shapeBounds: Map<string, Bounds>;
-}
-
-interface NormalizedLayout {
-  offsetU: number;
-  offsetV: number;
-}
 
 interface SelectionResizeSnapshot<TGeometry, TData = unknown> {
   geometry: TGeometry;
@@ -191,17 +185,16 @@ export function createSelectionTool(): ToolDefinition {
           );
         } else {
           // Multi-selection: hit test the selection bounding box
-          const { bounds } = computeSelectionBounds(shapes, runtime);
+          const { bounds } = computeSelectionBounds(
+            shapes,
+            runtime.getShapeHandlers(),
+          );
           console.log(
             "[selectionTool.onPointerDown] multi-select bounds:",
             bounds,
           );
           if (bounds) {
-            isOverSelection =
-              event.point.x >= bounds.minX &&
-              event.point.x <= bounds.maxX &&
-              event.point.y >= bounds.minY &&
-              event.point.y <= bounds.maxY;
+            isOverSelection = containsPoint(bounds, event.point);
           }
           console.log(
             "[selectionTool.onPointerDown] multi-select hit test:",
@@ -253,7 +246,10 @@ export function createSelectionTool(): ToolDefinition {
         }
       }
 
-      const { bounds, shapeBounds } = computeSelectionBounds(shapes, runtime);
+      const { bounds, shapeBounds } = computeSelectionBounds(
+        shapes,
+        runtime.getShapeHandlers(),
+      );
       const layouts = bounds
         ? computeNormalizedLayouts(shapes, bounds, shapeBounds)
         : new Map<string, NormalizedLayout>();
@@ -421,34 +417,6 @@ export function createSelectionTool(): ToolDefinition {
   };
 }
 
-function computeSelectionBounds(
-  shapes: Shape[],
-  runtime: ToolRuntime,
-): SelectionBoundsResult {
-  const shapeBoundsById = new Map<string, SelectionBounds>();
-  if (!shapes.length)
-    return { bounds: undefined, shapeBounds: shapeBoundsById };
-  const registry = runtime.getShapeHandlers();
-  const shapeBoundsArray = shapes.map((shape) => {
-    const bounds = getShapeBounds(shape, registry);
-    shapeBoundsById.set(shape.id, bounds);
-    return bounds;
-  });
-  const omniBoundingBox = getBoundsFromPoints(
-    shapeBoundsArray.flatMap((b) => [
-      { x: b.minX, y: b.minY },
-      { x: b.maxX, y: b.maxY },
-    ]),
-  );
-  if (!omniBoundingBox) {
-    return { bounds: undefined, shapeBounds: shapeBoundsById };
-  }
-  return {
-    bounds: omniBoundingBox,
-    shapeBounds: shapeBoundsById,
-  };
-}
-
 function computeNormalizedLayouts(
   shapes: Shape[],
   bounds: SelectionBounds,
@@ -487,18 +455,6 @@ function getHandlePosition(bounds: SelectionBounds, handleId: string): Point {
     default:
       return { x: minX, y: minY };
   }
-}
-
-function getPointFromLayout(
-  layout: NormalizedLayout,
-  bounds: SelectionBounds,
-): Point {
-  const width = bounds.width;
-  const height = bounds.height;
-  return {
-    x: bounds.minX + width * layout.offsetU,
-    y: bounds.minY + height * layout.offsetV,
-  };
 }
 
 function hasRotatableShape(shapes: Shape[]): boolean {
@@ -816,10 +772,6 @@ function getShapeCenter(
   return getBoundsCenter(bounds);
 }
 
-function angleBetween(a: Point, b: Point) {
-  return Math.atan2(b.y, b.x) - Math.atan2(a.y, a.x);
-}
-
 function emitHandleHover(
   runtime: ToolRuntime,
   handleId: string | undefined,
@@ -1073,17 +1025,6 @@ function getRotationDelta(drag: DragState): number {
   return angleBetween(startVector, currentVector);
 }
 
-function offsetBounds(bounds: Bounds, dx: number, dy: number): Bounds {
-  return {
-    minX: bounds.minX + dx,
-    minY: bounds.minY + dy,
-    maxX: bounds.maxX + dx,
-    maxY: bounds.maxY + dy,
-    width: bounds.width,
-    height: bounds.height,
-  };
-}
-
 function computeBoundsForSelection(
   runtime: ToolRuntime,
   ids: string[],
@@ -1091,7 +1032,7 @@ function computeBoundsForSelection(
   const shapes = ids
     .map((id) => runtime.getShape(id))
     .filter((shape): shape is Shape => Boolean(shape));
-  return computeSelectionBounds(shapes, runtime).bounds;
+  return computeSelectionBounds(shapes, runtime.getShapeHandlers()).bounds;
 }
 
 function emitSelectionFrame(runtime: ToolRuntime, bounds?: Bounds) {

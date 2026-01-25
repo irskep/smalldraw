@@ -1,4 +1,5 @@
 import type { Point } from "@smalldraw/geometry";
+import { containsPoint } from "@smalldraw/geometry";
 import { getShapeBounds } from "./geometryShapeUtils";
 import type { Shape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
@@ -22,12 +23,7 @@ export function hitTestShape(
 
   // Fallback to AABB test
   const bounds = getShapeBounds(shape, registry);
-  return (
-    point.x >= bounds.minX &&
-    point.x <= bounds.maxX &&
-    point.y >= bounds.minY &&
-    point.y <= bounds.maxY
-  );
+  return containsPoint(bounds, point);
 }
 
 /**

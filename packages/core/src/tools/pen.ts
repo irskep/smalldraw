@@ -1,4 +1,8 @@
-import { getBoundsFromPoints, type Point } from "@smalldraw/geometry";
+import {
+  getBoundsCenter,
+  getBoundsFromPoints,
+  type Point,
+} from "@smalldraw/geometry";
 import { AddShape } from "../actions";
 import type { PenShape } from "../model/shapes/penShape";
 import type { StrokeStyle } from "../model/style";
@@ -177,12 +181,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
 }
 const createStrokeShape = (draft: StrokeDraftState): PenShape => {
   const bounds = getBoundsFromPoints(draft.points);
-  const center = bounds
-    ? {
-        x: (bounds.minX + bounds.maxX) / 2,
-        y: (bounds.minY + bounds.maxY) / 2,
-      }
-    : { x: 0, y: 0 };
+  const center = bounds ? getBoundsCenter(bounds) : { x: 0, y: 0 };
   const localPoints = bounds
     ? draft.points.map((pt) => ({
         x: pt.x - center.x,

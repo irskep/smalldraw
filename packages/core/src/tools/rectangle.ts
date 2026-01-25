@@ -1,4 +1,9 @@
-import type { Point, Size } from "@smalldraw/geometry";
+import {
+  getBoundsCenter,
+  getBoundsFromPointPair,
+  type Point,
+  type Size,
+} from "@smalldraw/geometry";
 import { AddShape } from "../actions";
 import type { Shape } from "../model/shape";
 import type { Fill, StrokeStyle } from "../model/style";
@@ -88,19 +93,11 @@ export function createRectangleTool(
   };
 
   const computeSizeAndCenter = (start: Point, current: Point) => {
-    const x1 = start.x;
-    const y1 = start.y;
-    const x2 = current.x;
-    const y2 = current.y;
-    const size: Size = {
-      width: Math.abs(x2 - x1),
-      height: Math.abs(y2 - y1),
+    const bounds = getBoundsFromPointPair(start, current);
+    return {
+      center: getBoundsCenter(bounds),
+      size: { width: bounds.width, height: bounds.height },
     };
-    const center = {
-      x: (x1 + x2) / 2,
-      y: (y1 + y2) / 2,
-    };
-    return { center, size };
   };
 
   const updateDraft = (runtime: ToolRuntime) => {

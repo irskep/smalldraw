@@ -7,7 +7,7 @@ import {
   resolveSelectionHandlePoint,
   type Shape,
 } from "@smalldraw/core";
-import { distance, type Point } from "@smalldraw/geometry";
+import { containsPoint, distance, type Point } from "@smalldraw/geometry";
 import { computeSelectionBounds } from "./geometryHelpers.js";
 
 type ShapeWithGeometry = Shape & { geometry: AnyGeometry };
@@ -101,12 +101,7 @@ export function hitTestShapes(point: Point, store: DrawingStore): Shape | null {
   for (let i = ordered.length - 1; i >= 0; i -= 1) {
     const shape = ordered[i];
     const bounds = getShapeBounds(shape, registry);
-    if (
-      point.x >= bounds.minX &&
-      point.x <= bounds.maxX &&
-      point.y >= bounds.minY &&
-      point.y <= bounds.maxY
-    ) {
+    if (containsPoint(bounds, point)) {
       return shape;
     }
   }
@@ -120,50 +115,9 @@ export function isPointInSelectionBounds(
   point: Point,
   store: DrawingStore,
 ): boolean {
-  const selection = store.getSelection();
-  const ids = Array.from(selection.ids);
-  console.log(
-    "[isPointInSelectionBounds] checking point",
-    point,
-    "against selection ids:",
-    ids,
-  );
-  if (!ids.length) {
-    console.log("[isPointInSelectionBounds] no selection, returning false");
+  const bounds = computeSelectionBounds(store);
+  if (!bounds) {
     return false;
   }
-
-  const doc = store.getDocument();
-  const registry = store.getShapeHandlers();
-  let minX = Infinity,
-    minY = Infinity,
-    maxX = -Infinity,
-    maxY = -Infinity;
-
-  for (const id of ids) {
-    const shape = doc.shapes[id];
-    if (!shape) {
-      console.log("[isPointInSelectionBounds] shape not found:", id);
-      continue;
-    }
-    const bounds = getShapeBounds(shape, registry);
-    console.log("[isPointInSelectionBounds] shape", id, "bounds:", bounds);
-    minX = Math.min(minX, bounds.minX);
-    minY = Math.min(minY, bounds.minY);
-    maxX = Math.max(maxX, bounds.maxX);
-    maxY = Math.max(maxY, bounds.maxY);
-  }
-
-  const selectionBounds = { minX, minY, maxX, maxY };
-  const isInside =
-    point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
-  console.log(
-    "[isPointInSelectionBounds] selection bounds:",
-    selectionBounds,
-    "point:",
-    point,
-    "isInside:",
-    isInside,
-  );
-  return isInside;
+  return containsPoint(bounds, point);
 }

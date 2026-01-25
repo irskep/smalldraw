@@ -4,6 +4,7 @@ import type {
   ShapeTransform,
 } from "@smalldraw/core";
 import { normalizeShapeTransform } from "@smalldraw/core";
+import { radToDeg } from "@smalldraw/geometry";
 import type Konva from "konva";
 import type { Layer } from "konva/lib/Layer.js";
 
@@ -160,7 +161,7 @@ export class KonvaReconciler {
   private applyTransform(group: Konva.Group, transform?: ShapeTransform): void {
     const t = normalizeShapeTransform(transform);
     group.position({ x: t.translation.x, y: t.translation.y });
-    group.rotation((t.rotation * 180) / Math.PI);
+    group.rotation(radToDeg(t.rotation));
     group.scale({ x: t.scale.x, y: t.scale.y });
     group.offset({ x: t.origin.x, y: t.origin.y });
   }
