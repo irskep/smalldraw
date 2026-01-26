@@ -1,11 +1,16 @@
-import type { Point } from "@smalldraw/geometry";
+import {
+  type Box,
+  BoxOperations,
+  makePoint,
+  type Point,
+} from "@smalldraw/geometry";
 import {
   applyTransformToPoint,
   getGeometryLocalBounds,
 } from "../model/geometryShapeUtils";
-import type { Shape } from "../model/shape";
+import type { AnyShape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
-import type { Bounds, HandleDescriptor } from "./types";
+import type { HandleDescriptor } from "./types";
 
 function getAxisDirection(handle: HandleDescriptor): -1 | 1 | null {
   if (handle.behavior.type !== "resize-axis") return null;
@@ -22,9 +27,9 @@ function getAxisDirection(handle: HandleDescriptor): -1 | 1 | null {
 }
 
 export function resolveSelectionHandlePoint(
-  bounds: Bounds,
+  bounds: Box,
   handle: HandleDescriptor,
-  shape: Shape | undefined,
+  shape: AnyShape | undefined,
   registry: ShapeHandlerRegistry,
 ): Point {
   if (shape && handle.behavior.type === "resize-axis") {
@@ -32,29 +37,23 @@ export function resolveSelectionHandlePoint(
     const direction = getAxisDirection(handle);
     if (direction !== null) {
       const ops = registry.get(shape.type)?.selection;
-      const axisPoint = ops?.getAxisHandlePoint?.(
-        shape as Shape & { geometry: unknown },
-        axis,
-        direction,
-      );
+      const axisPoint = ops?.getAxisHandlePoint?.(shape, axis, direction);
       if (axisPoint) return axisPoint;
-      const localBounds = getGeometryLocalBounds(
-        shape as Shape & { geometry: unknown },
-        registry,
-      );
+      const localBounds = getGeometryLocalBounds(shape, registry);
       if (localBounds) {
+        const localBoundsOps = new BoxOperations(localBounds);
         const half =
-          axis === "x" ? localBounds.width / 2 : localBounds.height / 2;
+          axis === "x" ? localBoundsOps.width / 2 : localBoundsOps.height / 2;
         const local =
           axis === "x"
-            ? { x: direction * half, y: 0 }
-            : { x: 0, y: direction * half };
+            ? makePoint(direction * half, 0)
+            : makePoint(0, direction * half);
         return applyTransformToPoint(local, shape.transform);
       }
     }
   }
-  return {
-    x: bounds.minX + bounds.width * handle.position.u,
-    y: bounds.minY + bounds.height * handle.position.v,
-  };
+  const boundsOps = new BoxOperations(bounds);
+  return makePoint(bounds.min).add(
+    boundsOps.size.mul(makePoint(handle.position.u, handle.position.v)),
+  );
 }

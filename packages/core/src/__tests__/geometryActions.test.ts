@@ -1,19 +1,17 @@
 import { describe, expect, test } from "bun:test";
-
+import {
+  type AnyGeometry,
+  makePoint,
+  type PenGeometry,
+} from "@smalldraw/geometry";
 import { type ActionContext, AddShape, UpdateShapeGeometry } from "../actions";
 import { createDocument } from "../model/document";
-import type { Shape } from "../model/shape";
+import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
 
-type ShapeWithGeometry = Shape & { geometry: unknown };
-
-function getGeometry(shape: Shape | undefined): unknown {
-  return (shape as ShapeWithGeometry | undefined)?.geometry;
-}
-
-function createShape(id: string, geometry: unknown): ShapeWithGeometry {
+function createShape(id: string, geometry: unknown): AnyShape {
   const registry = getDefaultShapeHandlerRegistry();
   const shapeType = (geometry as { type: string }).type;
   return canonicalizeShape(
@@ -27,20 +25,14 @@ function createShape(id: string, geometry: unknown): ShapeWithGeometry {
         scale: { x: 1, y: 1 },
         rotation: 0,
       },
-    } as ShapeWithGeometry,
+    } as AnyShape,
     registry,
   );
 }
 
-function canonicalGeometry(
-  shape: ShapeWithGeometry,
-  geometry: unknown,
-): unknown {
+function canonicalGeometry(shape: AnyShape, geometry: AnyGeometry): AnyShape {
   const registry = getDefaultShapeHandlerRegistry();
-  return canonicalizeShape(
-    { ...shape, geometry } as ShapeWithGeometry,
-    registry,
-  ).geometry;
+  return canonicalizeShape({ ...shape, geometry }, registry);
 }
 
 describe("Geometry actions", () => {
@@ -58,23 +50,19 @@ describe("Geometry actions", () => {
     });
 
     undo.apply(new AddShape(pen), doc, ctx);
-    expect(getGeometry(doc.shapes[pen.id])).toEqual(pen.geometry);
+    expect(doc.shapes[pen.id].geometry).toEqual(pen.geometry);
 
-    const updatedGeometry = {
+    const updatedGeometry: PenGeometry = {
       type: "pen",
-      points: [
-        { x: 5, y: 5 },
-        { x: 15, y: 15 },
-        { x: 20, y: 0 },
-      ],
-      simulatePressure: true,
+      points: [makePoint(5), makePoint(15), makePoint(20, 0)],
+      pressures: undefined,
     };
     undo.apply(new UpdateShapeGeometry(pen.id, updatedGeometry), doc, ctx);
-    expect(getGeometry(doc.shapes[pen.id])).toEqual(
-      canonicalGeometry(pen, updatedGeometry),
+    expect(doc.shapes[pen.id].geometry).toEqual(
+      canonicalGeometry(pen, updatedGeometry).geometry,
     );
     undo.undo(doc, ctx);
-    expect(getGeometry(doc.shapes[pen.id])).toEqual(pen.geometry);
+    expect(doc.shapes[pen.id].geometry).toEqual(pen.geometry);
   });
 
   test("rect geometry persists bounds", () => {
@@ -87,15 +75,15 @@ describe("Geometry actions", () => {
       size: { width: 100, height: 40 },
     });
     undo.apply(new AddShape(rect), doc, ctx);
-    expect(getGeometry(doc.shapes[rect.id])).toEqual(rect.geometry);
+    expect(doc.shapes[rect.id].geometry).toEqual(rect.geometry);
 
     const next = {
       type: "rect",
       size: { width: 50, height: 50 },
     };
     undo.apply(new UpdateShapeGeometry(rect.id, next), doc, ctx);
-    expect(getGeometry(doc.shapes[rect.id])).toEqual(next);
+    expect(doc.shapes[rect.id].geometry).toEqual(next);
     undo.undo(doc, ctx);
-    expect(getGeometry(doc.shapes[rect.id])).toEqual(rect.geometry);
+    expect(doc.shapes[rect.id].geometry).toEqual(rect.geometry);
   });
 });

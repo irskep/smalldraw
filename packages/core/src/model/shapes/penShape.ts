@@ -1,7 +1,7 @@
 import {
-  getBoundsFromPoints,
+  BoxOperations,
+  makePoint,
   type PenGeometry,
-  pointSubtract,
 } from "@smalldraw/geometry";
 import type { Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
@@ -10,11 +10,14 @@ export type PenShape = Shape & { geometry: PenGeometry };
 
 export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
   geometry: {
-    getBounds: (shape: PenShape) => getBoundsFromPoints(shape.geometry.points),
+    getBounds: (shape: PenShape) =>
+      BoxOperations.fromPointArray(shape.geometry.points),
     canonicalize(shape: PenShape, center) {
       return {
         ...shape.geometry,
-        points: shape.geometry.points.map((pt) => pointSubtract(pt, center)),
+        points: shape.geometry.points.map((pt) =>
+          makePoint(0, 0).add(pt).sub(center),
+        ),
       };
     },
   },
@@ -25,8 +28,8 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
       return {
         geometry: {
           type: "pen",
-          points: g.points.map((pt) => ({ ...pt })),
-          intensity: g.intensity,
+          points: g.points.map(makePoint),
+          pressures: g.pressures,
         },
       };
     },
@@ -38,10 +41,7 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
         transform: {
           ...transform,
           translation,
-          scale: {
-            x: transform.scale.x * selectionScale.x,
-            y: transform.scale.y * selectionScale.y,
-          },
+          scale: makePoint(transform.scale).mul(selectionScale),
         },
       };
     },

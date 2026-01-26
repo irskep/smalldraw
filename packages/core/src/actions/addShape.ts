@@ -1,13 +1,13 @@
 import type { DrawingDocument } from "../model/document";
-import type { Shape } from "../model/shape";
+import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import type { ActionContext, UndoableAction } from "./types";
 
 export class AddShape implements UndoableAction {
-  private readonly inputShape: Shape;
-  private canonicalShape?: Shape;
+  private readonly inputShape: AnyShape;
+  private canonicalShape?: AnyShape;
 
-  constructor(shape: Shape) {
+  constructor(shape: AnyShape) {
     this.inputShape = shape;
   }
 

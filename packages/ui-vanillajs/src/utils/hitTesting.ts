@@ -1,5 +1,5 @@
 import {
-  type AnyGeometry,
+  type AnyShape,
   type DrawingDocument,
   type DrawingStore,
   getOrderedShapes,
@@ -7,10 +7,8 @@ import {
   resolveSelectionHandlePoint,
   type Shape,
 } from "@smalldraw/core";
-import { containsPoint, distance, type Point } from "@smalldraw/geometry";
+import { BoxOperations, distance, type Point } from "@smalldraw/geometry";
 import { computeSelectionBounds } from "./geometryHelpers.js";
-
-type ShapeWithGeometry = Shape & { geometry: AnyGeometry };
 
 const HANDLE_SIZE = 8;
 const HANDLE_HIT_PADDING = 6;
@@ -20,7 +18,7 @@ const HANDLE_HIT_PADDING = 6;
  */
 export function buildLiveDocument(store: DrawingStore): DrawingDocument {
   const base = store.getDocument();
-  const shapes: Record<string, Shape> = {};
+  const shapes: Record<string, AnyShape> = {};
   for (const shape of Object.values(base.shapes)) {
     shapes[shape.id] = shape;
   }
@@ -41,13 +39,11 @@ export function canShowAxisHandles(store: DrawingStore): boolean {
     return false;
   }
   const liveDoc = buildLiveDocument(store);
-  const shape = liveDoc.shapes[ids[0]] as ShapeWithGeometry | undefined;
+  const shape = liveDoc.shapes[ids[0]] as AnyShape | undefined;
   if (!shape) return false;
   const registry = store.getShapeHandlers();
   return (
-    registry
-      .get(shape.type)
-      ?.selection?.supportsAxisResize?.(shape as ShapeWithGeometry) ?? false
+    registry.get(shape.type)?.selection?.supportsAxisResize?.(shape) ?? false
   );
 }
 
@@ -94,14 +90,17 @@ export function hitTestHandles(
 /**
  * Hit test against shapes (top-down order).
  */
-export function hitTestShapes(point: Point, store: DrawingStore): Shape | null {
+export function hitTestShapes(
+  point: Point,
+  store: DrawingStore,
+): AnyShape | null {
   const doc = store.getDocument();
   const ordered = getOrderedShapes(doc);
   const registry = store.getShapeHandlers();
   for (let i = ordered.length - 1; i >= 0; i -= 1) {
     const shape = ordered[i];
     const bounds = getShapeBounds(shape, registry);
-    if (containsPoint(bounds, point)) {
+    if (new BoxOperations(bounds).containsPoint(point)) {
       return shape;
     }
   }
@@ -119,5 +118,5 @@ export function isPointInSelectionBounds(
   if (!bounds) {
     return false;
   }
-  return containsPoint(bounds, point);
+  return new BoxOperations(bounds).containsPoint(point);
 }

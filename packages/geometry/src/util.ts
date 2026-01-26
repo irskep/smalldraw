@@ -1,10 +1,5 @@
-export function allValuesAreFinite(a: number, b: number, c: number, d: number) {
-  return (
-    Number.isFinite(a) &&
-    Number.isFinite(b) &&
-    Number.isFinite(c) &&
-    Number.isFinite(d)
-  );
+export function allValuesAreFinite(values: number[]) {
+  return values.every((n) => Number.isFinite(n));
 }
 
 export function clamp(value: number, min: number, max: number): number {

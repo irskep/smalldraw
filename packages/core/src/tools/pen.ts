@@ -1,6 +1,7 @@
 import {
-  getBoundsCenter,
-  getBoundsFromPoints,
+  BoxOperations,
+  makePoint,
+  type PenGeometry,
   type Point,
 } from "@smalldraw/geometry";
 import { AddShape } from "../actions";
@@ -19,8 +20,7 @@ interface ActivePenState {
 
 interface StrokeDraftState {
   id: string;
-  // TODO: use PenGeometry directly, not a custom point list
-  points: Point[];
+  geometry: PenGeometry;
   stroke: StrokeStyle;
   zIndex: string;
 }
@@ -74,7 +74,11 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     const zIndex = runtime.getNextZIndex();
     state.drawing = {
       id: draftId,
-      points: [{ ...point, pressure }],
+      geometry: {
+        type: "pen",
+        points: [point],
+        pressures: pressure ? [pressure] : undefined,
+      },
       stroke: resolveStroke(runtime),
       zIndex,
     };
@@ -88,19 +92,25 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   ) => {
     const state = runtimeState.get(runtime);
     if (!state?.drawing) return;
-    state.drawing.points.push({ ...point, pressure });
+    state.drawing.geometry.points.push(point);
+    if (state.drawing.geometry.pressures && pressure)
+      state.drawing.geometry.pressures.push(pressure);
     updateDraft(runtime);
   };
 
   const updateDraft = (runtime: ToolRuntime) => {
     const state = runtimeState.get(runtime);
     if (!state?.drawing) return;
-    const draftShape = createStrokeShape(state.drawing);
-    runtime.setDraft({
-      ...draftShape,
-      toolId: runtime.toolId,
-      temporary: true,
-    });
+    const draftShape = createStrokeShape(state.drawing) ?? null;
+    if (draftShape) {
+      runtime.setDraft({
+        ...draftShape,
+        toolId: runtime.toolId,
+        temporary: true,
+      });
+    } else {
+      runtime.clearDraft();
+    }
   };
 
   const finishStroke = (runtime: ToolRuntime) => {
@@ -109,14 +119,16 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       runtime.clearDraft();
       return;
     }
-    if (state.drawing.points.length < 2) {
+    if (state.drawing.geometry.points.length < 2) {
       runtime.clearDraft();
       state.drawing = null;
       return;
     }
     const shape = createStrokeShape(state.drawing);
-    shape.id = runtime.generateShapeId("pen");
-    runtime.commit(new AddShape(shape));
+    if (shape) {
+      shape.id = runtime.generateShapeId("pen");
+      runtime.commit(new AddShape(shape));
+    }
     runtime.clearDraft();
     state.drawing = null;
   };
@@ -179,22 +191,21 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     },
   };
 }
-const createStrokeShape = (draft: StrokeDraftState): PenShape => {
-  const bounds = getBoundsFromPoints(draft.points);
-  const center = bounds ? getBoundsCenter(bounds) : { x: 0, y: 0 };
-  const localPoints = bounds
-    ? draft.points.map((pt) => ({
-        x: pt.x - center.x,
-        y: pt.y - center.y,
-        pressure: pt.pressure,
-      }))
-    : draft.points.map((pt) => ({ ...pt }));
+const createStrokeShape = (draft: StrokeDraftState): PenShape | undefined => {
+  const bounds = BoxOperations.fromPointArray(draft.geometry.points);
+  if (!bounds) return undefined;
+  const boxOps = new BoxOperations(bounds);
+  const center = boxOps.center;
+  const localPoints = draft.geometry.points.map((pt) =>
+    makePoint(pt).sub(center),
+  );
   const shape: PenShape = {
     id: draft.id,
     type: "pen",
     geometry: {
       type: "pen",
       points: localPoints,
+      ...(draft.geometry.pressures && { pressures: draft.geometry.pressures }),
     },
     stroke: draft.stroke,
     zIndex: draft.zIndex,
@@ -204,7 +215,7 @@ const createStrokeShape = (draft: StrokeDraftState): PenShape => {
     },
     transform: {
       translation: center,
-      scale: { x: 1, y: 1 },
+      scale: makePoint(1),
       rotation: 0,
     },
   };

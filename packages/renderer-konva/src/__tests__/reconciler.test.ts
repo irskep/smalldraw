@@ -1,11 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  type AnyShape,
   createDocument,
   type DirtyState,
   getDefaultShapeHandlerRegistry,
-  type Shape,
 } from "@smalldraw/core";
+import { makePoint } from "@smalldraw/geometry";
 import type { RectShape } from "packages/core/src/model/shapes/rectShape";
 import {
   createStage,
@@ -19,7 +20,7 @@ import type { Viewport } from "../viewport";
 const baseViewport: Viewport = {
   width: 200,
   height: 200,
-  center: { x: 100, y: 100 },
+  center: makePoint(100, 100),
   scale: 1,
   backgroundColor: "#ffffff",
 };
@@ -28,16 +29,20 @@ function createTestShape(id: string, x = 50, y = 50): RectShape {
   return {
     id,
     type: "rect",
-    geometry: { type: "rect", size: { width: 40, height: 30 } },
+    geometry: { type: "rect", size: makePoint(40, 30) },
     fill: { type: "solid", color: "#ff0000" },
     zIndex: `a-${id}`,
-    transform: { translation: { x, y }, scale: { x: 1, y: 1 }, rotation: 0 },
+    transform: {
+      translation: makePoint(x, y),
+      scale: makePoint(1, 1),
+      rotation: 0,
+    },
   };
 }
 
 describe("KonvaReconciler", () => {
   test("reconciler creates nodes for new shapes", () => {
-    const stage = createStage({ width: 200, height: 200 });
+    const stage = createStage({ x: 200, y: 200 });
     const layer = ensureRendererLayer(stage);
     const reconciler = new KonvaReconciler();
 
@@ -49,7 +54,7 @@ describe("KonvaReconciler", () => {
   });
 
   test("reconciler removes nodes for deleted shapes", () => {
-    const stage = createStage({ width: 200, height: 200 });
+    const stage = createStage({ x: 200, y: 200 });
     const layer = ensureRendererLayer(stage);
     const reconciler = new KonvaReconciler();
 
@@ -64,7 +69,7 @@ describe("KonvaReconciler", () => {
   });
 
   test("reconciler updates only dirty shapes", () => {
-    const stage = createStage({ width: 200, height: 200 });
+    const stage = createStage({ x: 200, y: 200 });
     const layer = ensureRendererLayer(stage);
     const reconciler = new KonvaReconciler();
 
@@ -86,7 +91,7 @@ describe("KonvaReconciler", () => {
     // Update only shape-1
     shapes[0] = {
       ...shapes[0],
-      transform: { ...shapes[0].transform!, translation: { x: 50, y: 50 } },
+      transform: { ...shapes[0].transform!, translation: makePoint(50, 50) },
     };
     reconciler.reconcile(layer, shapes, new Set(["shape-1"]), new Set());
 
@@ -96,7 +101,7 @@ describe("KonvaReconciler", () => {
   });
 
   test("reconciler clear removes all nodes", () => {
-    const stage = createStage({ width: 200, height: 200 });
+    const stage = createStage({ x: 200, y: 200 });
     const layer = ensureRendererLayer(stage);
     const reconciler = new KonvaReconciler();
 
@@ -116,7 +121,7 @@ describe("KonvaReconciler", () => {
   });
 
   test("fullRender handles all shapes", () => {
-    const stage = createStage({ width: 200, height: 200 });
+    const stage = createStage({ x: 200, y: 200 });
     const layer = ensureRendererLayer(stage);
     const reconciler = new KonvaReconciler();
 
@@ -134,10 +139,10 @@ describe("KonvaReconciler", () => {
 
   test("reconciled render matches full render", () => {
     // Create two stages - one for full render, one for reconciled
-    const stageA = createStage({ width: 200, height: 200 });
-    const stageB = createStage({ width: 200, height: 200 });
+    const stageA = createStage({ x: 200, y: 200 });
+    const stageB = createStage({ x: 200, y: 200 });
 
-    const shapes: Shape[] = [
+    const shapes: AnyShape[] = [
       createTestShape("shape-1", 30, 30),
       createTestShape("shape-2", 80, 80),
       createTestShape("shape-3", 130, 50),
@@ -171,9 +176,9 @@ describe("KonvaReconciler", () => {
   });
 
   test("reconciled render after move updates node position", () => {
-    const stage = createStage({ width: 200, height: 200 });
+    const stage = createStage({ x: 200, y: 200 });
 
-    const shapes: Shape[] = [
+    const shapes: AnyShape[] = [
       createTestShape("shape-1", 30, 30),
       createTestShape("shape-2", 80, 80),
     ];
@@ -196,7 +201,7 @@ describe("KonvaReconciler", () => {
     // Move shape-1
     shapes[0] = {
       ...shapes[0],
-      transform: { ...shapes[0].transform!, translation: { x: 120, y: 120 } },
+      transform: { ...shapes[0].transform!, translation: makePoint(120, 120) },
     };
 
     // Reconcile with only shape-1 dirty
@@ -216,9 +221,9 @@ describe("KonvaReconciler", () => {
   });
 
   test("reconciled render after delete removes node", () => {
-    const stage = createStage({ width: 200, height: 200 });
+    const stage = createStage({ x: 200, y: 200 });
 
-    const initialShapes: Shape[] = [
+    const initialShapes: AnyShape[] = [
       createTestShape("shape-1", 30, 30),
       createTestShape("shape-2", 80, 80),
       createTestShape("shape-3", 130, 50),

@@ -1,3 +1,4 @@
+import type { Box } from "@smalldraw/geometry";
 import type { ActionContext, UndoableAction } from "../actions";
 import { createDocument, type DrawingDocument } from "../model/document";
 import type { Shape } from "../model/shape";
@@ -7,7 +8,6 @@ import {
 } from "../model/shapeHandlers";
 import { DEFAULT_SHARED_SETTINGS, ToolRuntimeImpl } from "../tools/runtime";
 import type {
-  Bounds,
   DraftShape,
   HandleBehavior,
   HandleDescriptor,
@@ -55,7 +55,7 @@ export class DrawingStore {
     handleId: null,
     behavior: null,
   };
-  private selectionFrame: Bounds | null = null;
+  private selectionFrame: Box | null = null;
 
   // Dirty tracking for incremental rendering
   private dirtyShapeIds = new Set<string>();
@@ -124,7 +124,7 @@ export class DrawingStore {
     return this.handleHover;
   }
 
-  getSelectionFrame(): Bounds | null {
+  getSelectionFrame(): Box | null {
     return this.selectionFrame;
   }
 
@@ -164,7 +164,7 @@ export class DrawingStore {
         }
       },
     );
-    runtime.onEvent("selection-frame", (payload: Bounds | null) => {
+    runtime.onEvent("selection-frame", (payload: Box | null) => {
       if (this.activeToolId === toolId) {
         this.selectionFrame = payload;
         this.triggerRender();

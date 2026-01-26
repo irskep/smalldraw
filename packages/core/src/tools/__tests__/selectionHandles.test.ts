@@ -1,19 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
-import type { AnyGeometry, Bounds } from "@smalldraw/geometry";
+import { type AnyGeometry, type Box, makePoint } from "@smalldraw/geometry";
 import type { Shape } from "../../model/shape";
 import { ShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { resolveSelectionHandlePoint } from "../selectionHandles";
 import type { HandleDescriptor } from "../types";
 
-const selectionBounds: Bounds = {
-  minX: 0,
-  minY: 0,
-  maxX: 200,
-  maxY: 100,
-  width: 200,
-  height: 100,
-};
+const selectionBounds: Box = { min: makePoint(0), max: makePoint(200, 100) };
 
 const midRightHandle: HandleDescriptor = {
   id: "mid-right",
@@ -26,17 +19,10 @@ describe("resolveSelectionHandlePoint", () => {
     const registry = new ShapeHandlerRegistry();
     registry.register("custom", {
       geometry: {
-        getBounds: () => ({
-          minX: -10,
-          minY: -5,
-          maxX: 10,
-          maxY: 5,
-          width: 20,
-          height: 10,
-        }),
+        getBounds: () => ({ min: makePoint(-10, -5), max: makePoint(10, 5) }),
       },
       selection: {
-        getAxisHandlePoint: () => ({ x: 123, y: 456 }),
+        getAxisHandlePoint: () => makePoint(123, 456),
       },
     });
 
@@ -46,9 +32,9 @@ describe("resolveSelectionHandlePoint", () => {
       geometry: { type: "custom" },
       zIndex: "z",
       transform: {
-        translation: { x: 100, y: 100 },
+        translation: makePoint(100, 100),
         rotation: 0,
-        scale: { x: 1, y: 1 },
+        scale: makePoint(1, 1),
       },
     };
 
@@ -58,21 +44,14 @@ describe("resolveSelectionHandlePoint", () => {
       shape,
       registry,
     );
-    expect(point).toEqual({ x: 123, y: 456 });
+    expect(point).toEqual(makePoint(123, 456));
   });
 
   test("falls back to geometry local bounds when no override", () => {
     const registry = new ShapeHandlerRegistry();
     registry.register("custom", {
       geometry: {
-        getBounds: () => ({
-          minX: -10,
-          minY: -5,
-          maxX: 10,
-          maxY: 5,
-          width: 20,
-          height: 10,
-        }),
+        getBounds: () => ({ min: makePoint(-10, -5), max: makePoint(10, 5) }),
       },
     });
 
@@ -82,9 +61,9 @@ describe("resolveSelectionHandlePoint", () => {
       geometry: { type: "custom" },
       zIndex: "z",
       transform: {
-        translation: { x: 100, y: 100 },
+        translation: makePoint(100, 100),
         rotation: 0,
-        scale: { x: 1, y: 1 },
+        scale: makePoint(1, 1),
       },
     };
 
@@ -94,6 +73,6 @@ describe("resolveSelectionHandlePoint", () => {
       shape,
       registry,
     );
-    expect(point).toEqual({ x: 110, y: 100 });
+    expect(point).toEqual(makePoint(110, 100));
   });
 });

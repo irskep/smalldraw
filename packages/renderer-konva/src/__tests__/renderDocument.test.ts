@@ -1,25 +1,29 @@
 import { describe, test } from "bun:test";
 
 import {
+  type AnyShape,
   createDocument,
   getDefaultShapeHandlerRegistry,
-  type Shape,
 } from "@smalldraw/core";
-
+import {
+  makePoint,
+  type PenGeometry,
+  type RectGeometry,
+} from "@smalldraw/geometry";
 import type { Viewport } from "../index";
 import { expectSnapshot, renderDocumentToImage } from "./snapshotUtils";
 
 const baseViewport: Viewport = {
   width: 120,
   height: 120,
-  center: { x: 0, y: 0 },
+  center: makePoint(0),
   scale: 1,
   backgroundColor: "#ffffff",
 };
 
 async function expectDocumentSnapshot(
   name: string,
-  shapes: (Shape & { geometry: unknown })[],
+  shapes: AnyShape[],
   viewport: Viewport = baseViewport,
 ) {
   const registry = getDefaultShapeHandlerRegistry();
@@ -40,10 +44,10 @@ describe("renderer snapshots", () => {
         id: "solid-rect",
         type: "rect",
         zIndex: "a",
-        geometry: { type: "rect", size: { width: 80, height: 60 } },
+        geometry: { type: "rect", size: makePoint(80, 60) } as RectGeometry,
         fill: { type: "solid", color: "#2E7D32" },
         stroke: { type: "brush", color: "#0D47A1", size: 4 },
-        transform: { translation: { x: -15, y: 0 } },
+        transform: { translation: makePoint(-15, 0) },
       },
     ]);
   });
@@ -59,15 +63,15 @@ describe("renderer snapshots", () => {
           geometry: {
             type: "pen",
             points: [
-              { x: -80, y: -10 },
-              { x: -40, y: -30 },
-              { x: -10, y: -5 },
-              { x: 20, y: -35 },
-              { x: 60, y: 0 },
-              { x: 30, y: 30 },
+              makePoint(-80, -10),
+              makePoint(-40, -30),
+              makePoint(-10, -5),
+              makePoint(20, -35),
+              makePoint(60, 0),
+              makePoint(30, 30),
             ],
-            simulatePressure: true,
-          },
+            pressures: [1, 1, 1, 1, 1, 1],
+          } as PenGeometry,
           stroke: { type: "brush", color: "#e65100", size: 10 },
         },
         {
@@ -75,21 +79,22 @@ describe("renderer snapshots", () => {
           type: "pen",
           zIndex: "b",
           geometry: {
-            type: "stroke",
+            type: "pen",
             points: [
-              { x: -80, y: 40 },
-              { x: -20, y: 20 },
-              { x: 0, y: 50 },
-              { x: 60, y: 40 },
+              makePoint(-80, 40),
+              makePoint(-20, 20),
+              makePoint(0, 50),
+              makePoint(60, 40),
             ],
-          },
+            pressures: undefined,
+          } as PenGeometry,
           stroke: { type: "brush", color: "#1e88e5", size: 4 },
         },
       ],
       {
         width: 260,
         height: 180,
-        center: { x: 0, y: 0 },
+        center: makePoint(0, 0),
         scale: 1,
         backgroundColor: "#ffffff",
       },
@@ -104,11 +109,11 @@ describe("renderer snapshots", () => {
           id: "rotated-rect",
           type: "rect",
           zIndex: "a",
-          geometry: { type: "rect", size: { width: 80, height: 40 } },
+          geometry: { type: "rect", size: makePoint(80, 40) } as RectGeometry,
           fill: { type: "solid", color: "#26c6da" },
           stroke: { type: "brush", color: "#00838f", size: 3 },
           transform: {
-            translation: { x: -20, y: -10 },
+            translation: makePoint(-20, -10),
             rotation: Math.PI / 4,
           },
         },
@@ -116,7 +121,7 @@ describe("renderer snapshots", () => {
       {
         width: 240,
         height: 200,
-        center: { x: 0, y: 0 },
+        center: makePoint(0, 0),
         scale: 1,
         backgroundColor: "#ffffff",
       },

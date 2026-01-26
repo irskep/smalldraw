@@ -1,4 +1,10 @@
-import type { Bounds, Point } from "@smalldraw/geometry";
+import {
+  type AnyGeometry,
+  type Box,
+  BoxOperations,
+  makePoint,
+  type Point,
+} from "@smalldraw/geometry";
 import type { CanonicalShapeTransform, Shape } from "./shape";
 
 /**
@@ -12,7 +18,7 @@ export interface NormalizedLayout {
 /**
  * Result of a resize operation
  */
-export interface ResizeResult<TGeometry> {
+export interface ResizeResult<TGeometry extends AnyGeometry> {
   geometry?: TGeometry;
   translation?: Point;
   transform?: CanonicalShapeTransform;
@@ -21,7 +27,10 @@ export interface ResizeResult<TGeometry> {
 /**
  * Snapshot of a shape before resize begins
  */
-export interface ResizeSnapshot<TGeometry, TData = unknown> {
+export interface ResizeSnapshot<
+  TGeometry extends AnyGeometry,
+  TData = unknown,
+> {
   geometry: TGeometry;
   data?: TData;
 }
@@ -29,14 +38,17 @@ export interface ResizeSnapshot<TGeometry, TData = unknown> {
 /**
  * Parameters for a resize operation
  */
-export interface ResizeOperation<TGeometry, TData = unknown> {
+export interface ResizeOperation<
+  TGeometry extends AnyGeometry,
+  TData = unknown,
+> {
   shape: Shape & { geometry: TGeometry };
   snapshotGeometry: TGeometry;
   snapshotData?: TData;
   transform: CanonicalShapeTransform;
-  initialBounds: Bounds;
-  nextBounds: Bounds;
-  selectionScale: { x: number; y: number };
+  initialBounds: Box;
+  nextBounds: Box;
+  selectionScale: Point;
   layout?: NormalizedLayout;
 }
 
@@ -55,18 +67,18 @@ export interface AxisResizeOperation<TGeometry, TData = unknown> {
 /**
  * Result of an axis resize operation
  */
-export interface AxisResizeResult<TGeometry> {
+export interface AxisResizeResult<TGeometry extends AnyGeometry> {
   geometry: TGeometry;
 }
 
 /**
  * Complete handler for a shape type - all operations optional except getBounds
  */
-export interface ShapeHandler<T, TResizeData = unknown> {
+export interface ShapeHandler<T extends AnyGeometry, TResizeData = unknown> {
   /** Operations on geometry alone (REQUIRED) */
   geometry?: {
     /** Compute local bounds for this geometry */
-    getBounds: (shape: Shape & { geometry: T }) => Bounds | null;
+    getBounds: (shape: Shape & { geometry: T }) => Box | null;
 
     /** Canonicalize geometry (convert world coords to local) */
     canonicalize?: (shape: Shape & { geometry: T }, center: Point) => T;
@@ -125,12 +137,13 @@ export interface ShapeHandler<T, TResizeData = unknown> {
 
 export function getPointFromLayout(
   layout: NormalizedLayout,
-  bounds: Bounds,
+  bounds: Box,
 ): Point {
-  const width = bounds.width;
-  const height = bounds.height;
-  return {
-    x: bounds.minX + width * layout.offsetU,
-    y: bounds.minY + height * layout.offsetV,
-  };
+  const b = new BoxOperations(bounds);
+  const width = b.width;
+  const height = b.height;
+  return makePoint(
+    b.minX + width * layout.offsetU,
+    b.minY + height * layout.offsetV,
+  );
 }

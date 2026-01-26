@@ -1,9 +1,9 @@
 import { generateKeyBetween } from "jittered-fractional-indexing";
 
 import type { DrawingDocument } from "./model/document";
-import type { Shape } from "./model/shape";
+import type { AnyShape } from "./model/shape";
 
-export function getOrderedShapes(doc: DrawingDocument): Shape[] {
+export function getOrderedShapes(doc: DrawingDocument): AnyShape[] {
   return Object.values(doc.shapes).sort((a, b) => {
     if (a.zIndex === b.zIndex) return 0;
     return a.zIndex < b.zIndex ? -1 : 1;

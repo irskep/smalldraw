@@ -1,9 +1,6 @@
-import type { Bounds, Point } from "@smalldraw/geometry";
-
-export type { Bounds };
-
+import type { Box, Point } from "@smalldraw/geometry";
 import type { UndoableAction } from "../actions";
-import type { Shape } from "../model/shape";
+import type { AnyShape } from "../model/shape";
 
 export type ToolEventName =
   | "pointerDown"
@@ -23,10 +20,9 @@ export interface ToolPointerEvent {
 
 export type ToolEventHandler = (event: ToolPointerEvent) => void;
 
-export interface DraftShape extends Shape {
+export interface DraftShape extends AnyShape {
   toolId: string;
   temporary: true;
-  geometry: unknown;
 }
 
 export interface SharedToolSettings {
@@ -75,7 +71,7 @@ export interface ToolRuntime {
   toggleSelection(id: string): void;
   clearSelection(): void;
   isSelected(id: string): boolean;
-  getShape(shapeId: string): Shape | undefined;
+  getShape(shapeId: string): AnyShape | undefined;
   /** Get the shape handler registry for this drawing session */
   getShapeHandlers(): import("../model/shapeHandlers").ShapeHandlerRegistry;
   onEvent<TPayload>(
@@ -110,7 +106,7 @@ export type ToolRuntimeEvent<TPayload = unknown> =
     }
   | {
       type: "selection-frame";
-      payload: Bounds | null;
+      payload: Box | null;
     }
   | {
       type: "custom";

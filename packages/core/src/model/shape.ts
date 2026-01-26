@@ -1,12 +1,17 @@
-import { getBoundsCenter } from "@smalldraw/geometry";
+import {
+  type AnyGeometry,
+  BoxOperations,
+  makePoint,
+  type Point,
+} from "@smalldraw/geometry";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 import type { Fill, StrokeStyle } from "./style";
 
 export interface CanonicalShapeTransform {
-  translation: { x: number; y: number };
+  translation: Point;
   rotation: number;
-  scale: { x: number; y: number };
-  origin: { x: number; y: number };
+  scale: Point;
+  origin: Point;
 }
 
 export interface ShapeInteractions {
@@ -20,10 +25,10 @@ export interface ShapeTransform {
    * mix coordinate origins (e.g. top-left) because selection/rotation math assumes this
    * pivot when computing bounds.
    */
-  translation: { x: number; y: number };
+  translation: Point;
   rotation?: number;
-  scale?: { x: number; y: number };
-  origin?: { x: number; y: number };
+  scale?: Point;
+  origin?: Point;
 }
 
 export interface Shape {
@@ -37,49 +42,42 @@ export interface Shape {
   transform?: ShapeTransform;
 }
 
+export type AnyShape = Shape & { geometry: AnyGeometry };
+
 export function normalizeShapeTransform(
   transform?: ShapeTransform | CanonicalShapeTransform | null,
 ): CanonicalShapeTransform {
-  const translation = transform?.translation ?? { x: 0, y: 0 };
-  const rotation = transform?.rotation ?? 0;
-  const scale = transform?.scale ?? { x: 1, y: 1 };
-  const origin = transform?.origin ?? { x: 0, y: 0 };
   return {
-    translation: { ...translation },
-    rotation,
-    scale: { ...scale },
-    origin: { ...origin },
+    translation: transform?.translation ?? makePoint(),
+    rotation: transform?.rotation ?? 0,
+    scale: transform?.scale ?? makePoint(1, 1),
+    origin: transform?.origin ?? makePoint(),
   };
 }
 
 export function canonicalizeShape(
-  shape: Shape,
+  shape: AnyShape,
   registry: ShapeHandlerRegistry,
-): Shape & { geometry: unknown } {
+): AnyShape {
   const transform = normalizeShapeTransform(shape.transform);
   const ops = registry.get(shape.type)?.geometry;
 
-  const shapeWithGeometry = shape as Shape & { geometry: unknown };
+  if (!ops) return { ...shape, transform };
 
-  if (!ops) return { ...shapeWithGeometry, transform };
-
-  const bounds = ops.getBounds(shapeWithGeometry);
+  const bounds = ops.getBounds(shape);
 
   if (!bounds || !ops.canonicalize) {
     // No handler or no canonicalization - return with normalized transform
-    return { ...shapeWithGeometry, transform };
+    return { ...shape, transform };
   }
-  const center = getBoundsCenter(bounds);
+  const center = new BoxOperations(bounds).center;
 
   return {
     ...shape,
-    geometry: ops.canonicalize(shapeWithGeometry, center),
+    geometry: ops.canonicalize(shape, center) as AnyGeometry,
     transform: {
       ...transform,
-      translation: {
-        x: transform.translation.x + center.x,
-        y: transform.translation.y + center.y,
-      },
+      translation: makePoint(transform.translation).add(center),
     },
   };
 }

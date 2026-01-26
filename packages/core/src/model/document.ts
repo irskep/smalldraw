@@ -1,13 +1,13 @@
-import type { Shape } from "./shape";
+import type { AnyShape } from "./shape";
 import { canonicalizeShape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
 export interface DrawingDocument {
-  shapes: Record<string, Shape>;
+  shapes: Record<string, AnyShape>;
 }
 
 export function createDocument(
-  initialShapes: Shape[] | undefined,
+  initialShapes: AnyShape[] | undefined,
   registry: ShapeHandlerRegistry,
 ): DrawingDocument {
   const doc: DrawingDocument = { shapes: {} };

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { makePoint } from "@smalldraw/geometry";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { RectShape } from "../../model/shapes/rectShape";
@@ -9,13 +10,13 @@ describe("UpdateShapeTransform action", () => {
   const baseShape: RectShape = {
     id: "shape-1",
     type: "rect",
-    geometry: { type: "rect", size: { width: 10, height: 10 } },
+    geometry: { type: "rect", size: makePoint(10) },
     zIndex: "a",
     transform: {
-      translation: { x: 0, y: 0 },
+      translation: makePoint(),
       rotation: 0,
-      scale: { x: 1, y: 1 },
-      origin: { x: 0, y: 0 },
+      scale: makePoint(1),
+      origin: makePoint(),
     },
   };
 
@@ -25,16 +26,16 @@ describe("UpdateShapeTransform action", () => {
     const undo = new UndoManager();
     const ctx: ActionContext = { registry };
     const action = new UpdateShapeTransform("shape-1", {
-      translation: { x: 5, y: -3 },
+      translation: makePoint(5, -3),
       rotation: Math.PI / 4,
-      scale: { x: 2, y: 0.5 },
+      scale: makePoint(2, 0.5),
     });
 
     undo.apply(action, doc, ctx);
     expect(doc.shapes["shape-1"]?.transform).toEqual({
-      translation: { x: 5, y: -3 },
+      translation: makePoint(5, -3),
       rotation: Math.PI / 4,
-      scale: { x: 2, y: 0.5 },
+      scale: makePoint(2, 0.5),
     });
 
     undo.undo(doc, ctx);
@@ -47,21 +48,21 @@ describe("UpdateShapeTransform action", () => {
     const undo = new UndoManager();
     const ctx: ActionContext = { registry };
     const move = new UpdateShapeTransform("shape-1", {
-      translation: { x: 10, y: 0 },
+      translation: makePoint(10, 0),
       rotation: 0,
-      scale: { x: 1, y: 1 },
+      scale: makePoint(1),
     });
     const rotate = new UpdateShapeTransform("shape-1", {
-      translation: { x: 10, y: 0 },
+      translation: makePoint(10, 0),
       rotation: Math.PI / 2,
-      scale: { x: 1, y: 1 },
+      scale: makePoint(1),
     });
 
     undo.apply(new CompositeAction([move, rotate]), doc, ctx);
     expect(doc.shapes["shape-1"]?.transform).toEqual({
-      translation: { x: 10, y: 0 },
+      translation: makePoint(10, 0),
       rotation: Math.PI / 2,
-      scale: { x: 1, y: 1 },
+      scale: makePoint(1),
     });
 
     undo.undo(doc, ctx);

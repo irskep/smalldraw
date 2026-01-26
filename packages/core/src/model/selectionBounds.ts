@@ -1,33 +1,29 @@
-import type { Bounds } from "@smalldraw/geometry";
-import { getBoundsFromPoints } from "@smalldraw/geometry";
+import { type Box, BoxOperations } from "@smalldraw/geometry";
 import { getShapeBounds } from "./geometryShapeUtils";
-import type { Shape } from "./shape";
+import type { AnyShape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
 export interface SelectionBoundsResult {
-  bounds?: Bounds;
-  shapeBounds: Map<string, Bounds>;
+  bounds?: Box;
+  shapeBounds: Map<string, Box>;
 }
 
 export function computeSelectionBounds(
-  shapes: Shape[],
+  shapes: AnyShape[],
   registry: ShapeHandlerRegistry,
 ): SelectionBoundsResult {
-  const shapeBoundsById = new Map<string, Bounds>();
+  const shapeBoundsById = new Map<string, Box>();
   if (!shapes.length) {
     return { bounds: undefined, shapeBounds: shapeBoundsById };
   }
-  const boundsList: Bounds[] = [];
+  const boundsList: Box[] = [];
   for (const shape of shapes) {
     const bounds = getShapeBounds(shape, registry);
     shapeBoundsById.set(shape.id, bounds);
     boundsList.push(bounds);
   }
-  const selectionBounds = getBoundsFromPoints(
-    boundsList.flatMap((bounds) => [
-      { x: bounds.minX, y: bounds.minY },
-      { x: bounds.maxX, y: bounds.maxY },
-    ]),
+  const selectionBounds = BoxOperations.fromPointArray(
+    boundsList.flatMap((bounds) => [bounds.min, bounds.max]),
   );
   return {
     bounds: selectionBounds ?? undefined,

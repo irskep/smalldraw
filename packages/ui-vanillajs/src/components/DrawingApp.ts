@@ -1,23 +1,30 @@
-import { el, mount } from "redom";
 import {
-  DrawingStore,
   createPenTool,
   createRectangleTool,
   createSelectionTool,
+  DrawingStore,
   type ToolDefinition,
 } from "@smalldraw/core";
+import { makePoint, type Point } from "@smalldraw/geometry";
 import {
   createStage,
-  reconcileDocument,
   KonvaReconciler,
+  reconcileDocument,
   type Viewport,
 } from "@smalldraw/renderer-konva";
-import { Toolbar } from "./Toolbar.js";
-import { SelectionOverlay } from "./SelectionOverlay.js";
-import { buildLiveDocument, hitTestHandles, hitTestShapes, isPointInSelectionBounds, canShowAxisHandles } from "../utils/hitTesting.js";
-import { buildToolEvent, getPointerPoint } from "../utils/pointerHandlers.js";
+import { el, mount } from "redom";
 import { updateCursor } from "../utils/cursorHelpers.js";
 import { computeSelectionBounds } from "../utils/geometryHelpers.js";
+import {
+  buildLiveDocument,
+  canShowAxisHandles,
+  hitTestHandles,
+  hitTestShapes,
+  isPointInSelectionBounds,
+} from "../utils/hitTesting.js";
+import { buildToolEvent, getPointerPoint } from "../utils/pointerHandlers.js";
+import { SelectionOverlay } from "./SelectionOverlay.js";
+import { Toolbar } from "./Toolbar.js";
 
 const DEFAULT_COLORS = [
   "#000000",
@@ -147,7 +154,7 @@ export class DrawingApp {
       width,
       height,
       scale: 1,
-      center: { x: width / 2, y: height / 2 },
+      center: makePoint(width / 2, height / 2),
       backgroundColor: options.backgroundColor ?? "#ffffff",
     };
     this.stage = createStage({ container: this.stageContainer, width, height });
@@ -200,13 +207,13 @@ export class DrawingApp {
   }
 
   private updateSelectionOverlay(): void {
-    const bounds = this.store.getSelectionFrame() ?? computeSelectionBounds(this.store);
+    const bounds =
+      this.store.getSelectionFrame() ?? computeSelectionBounds(this.store);
     const showAxisHandles = canShowAxisHandles(this.store);
     const handles = this.store
       .getHandles()
       .filter(
-        (handle) =>
-          showAxisHandles || handle.behavior?.type !== "resize-axis",
+        (handle) => showAxisHandles || handle.behavior?.type !== "resize-axis",
       );
     const liveDoc = buildLiveDocument(this.store);
     const selection = this.store.getSelection();
@@ -244,10 +251,13 @@ export class DrawingApp {
             console.log("[pointerDown] calling updateSelectionForPoint");
             this.updateSelectionForPoint(point, event.shiftKey);
             const selectionAfter = this.store.getSelection();
-            console.log("[pointerDown] selection after updateSelectionForPoint:", {
-              ids: Array.from(selectionAfter.ids),
-              primaryId: selectionAfter.primaryId,
-            });
+            console.log(
+              "[pointerDown] selection after updateSelectionForPoint:",
+              {
+                ids: Array.from(selectionAfter.ids),
+                primaryId: selectionAfter.primaryId,
+              },
+            );
           }
         }
         try {
@@ -289,7 +299,7 @@ export class DrawingApp {
     };
   }
 
-  private updateSelectionForPoint(point: { x: number; y: number }, additive: boolean): void {
+  private updateSelectionForPoint(point: Point, additive: boolean): void {
     const selection = this.store.getSelection();
     console.log("[updateSelectionForPoint] START", {
       point,
@@ -320,7 +330,10 @@ export class DrawingApp {
     );
     if (hit) {
       if (additive) {
-        console.log("[updateSelectionForPoint] toggling selection for:", hit.id);
+        console.log(
+          "[updateSelectionForPoint] toggling selection for:",
+          hit.id,
+        );
         this.store.toggleSelection(hit.id);
       } else {
         console.log("[updateSelectionForPoint] setting selection to:", hit.id);
@@ -339,7 +352,7 @@ export class DrawingApp {
   resize(nextWidth: number, nextHeight: number): void {
     this.viewport.width = nextWidth;
     this.viewport.height = nextHeight;
-    this.viewport.center = { x: nextWidth / 2, y: nextHeight / 2 };
+    this.viewport.center = makePoint(nextWidth / 2, nextHeight / 2);
     this.stage.width(nextWidth);
     this.stage.height(nextHeight);
     this.canvasWrapper.style.width = `${nextWidth}px`;
@@ -352,8 +365,14 @@ export class DrawingApp {
     this.overlay.removeEventListener("pointerdown", this.pointerHandlers.down);
     this.overlay.removeEventListener("pointermove", this.pointerHandlers.move);
     this.overlay.removeEventListener("pointerup", this.pointerHandlers.up);
-    this.overlay.removeEventListener("pointercancel", this.pointerHandlers.cancel);
-    this.overlay.removeEventListener("pointerleave", this.pointerHandlers.cancel);
+    this.overlay.removeEventListener(
+      "pointercancel",
+      this.pointerHandlers.cancel,
+    );
+    this.overlay.removeEventListener(
+      "pointerleave",
+      this.pointerHandlers.cancel,
+    );
     this.toolbar.unmount();
     this.reconciler.clear();
     this.stage.destroy();

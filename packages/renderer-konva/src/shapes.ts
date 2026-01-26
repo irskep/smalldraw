@@ -1,5 +1,5 @@
 import type {
-  Bounds,
+  AnyShape,
   Fill,
   GradientStop,
   Shape,
@@ -10,13 +10,33 @@ import {
   getGeometryLocalBounds,
   normalizeShapeTransform,
 } from "@smalldraw/core";
-import { clamp, degToRad, radToDeg } from "@smalldraw/geometry";
+import {
+  type Box,
+  BoxOperations,
+  clamp,
+  degToRad,
+  makePoint,
+  radToDeg,
+} from "@smalldraw/geometry";
 import Konva from "konva";
 import type { PenShape } from "packages/core/src/model/shapes/penShape.js";
 import type { RectShape } from "packages/core/src/model/shapes/rectShape.js";
 import { createFreehandStroke } from "./stroke.js";
 
 type RenderableNode = Konva.Shape | Konva.Group;
+
+function makeKonvaRectFromBox(
+  box: Box,
+  extra?: Partial<Konva.ShapeConfig>,
+): Konva.Rect {
+  return new Konva.Rect({
+    ...(extra ?? {}),
+    x: box.min.x,
+    y: box.min.y,
+    width: box.max.x - box.min.x,
+    height: box.max.y - box.min.y,
+  });
+}
 
 export type ShapeRenderer = (
   shape: Shape,
@@ -95,13 +115,13 @@ function createRectNode(
   shape: RectShape,
   geometryRegistry?: ShapeHandlerRegistry,
 ): Konva.Rect {
-  const { width, height } = shape.geometry.size;
+  const g = shape.geometry;
   return new Konva.Rect({
     ...buildShapeVisualConfig(shape, geometryRegistry),
-    x: -width / 2,
-    y: -height / 2,
-    width,
-    height,
+    x: -g.size.x / 2,
+    y: -g.size.y / 2,
+    width: g.size.x,
+    height: g.size.y,
   });
 }
 
@@ -114,7 +134,7 @@ function createPenNode(
   const size = stroke?.size ?? 4;
   const strokeResult = createFreehandStroke(shape.geometry.points, {
     size,
-    simulatePressure: shape.geometry.intensity ?? true,
+    simulatePressure: !!shape.geometry.pressures,
     smoothing: 0.6,
     streamline: 0.4,
     thinning: 0.6,
@@ -131,7 +151,7 @@ function createPenNode(
 }
 
 function buildShapeVisualConfig(
-  shape: Shape & { geometry: unknown },
+  shape: AnyShape,
   geometryRegistry?: ShapeHandlerRegistry,
 ): Konva.ShapeConfig {
   const config: Konva.ShapeConfig = {
@@ -157,7 +177,7 @@ function applyStrokeConfig(
 
 function applyFillConfig(
   config: Konva.ShapeConfig,
-  shape: Shape & { geometry: unknown },
+  shape: AnyShape,
   geometryRegistry?: ShapeHandlerRegistry,
 ): void {
   const fill = shape.fill;
@@ -185,14 +205,14 @@ function applyFillConfig(
 
 function createLinearGradientConfig(
   fill: Extract<Fill, { type: "gradient" }>,
-  bounds: Bounds,
+  bounds: Box,
 ) {
+  const boundsOps = new BoxOperations(bounds);
   const angle = degToRad(fill.angle);
-  const halfWidth = bounds.width / 2;
-  const halfHeight = bounds.height / 2;
+  const halfSize = makePoint(boundsOps.size).div([2, 2]);
   const start = {
-    x: -Math.cos(angle) * halfWidth,
-    y: -Math.sin(angle) * halfHeight,
+    x: -Math.cos(angle) * halfSize.x,
+    y: -Math.sin(angle) * halfSize.y,
   };
   const end = { x: -start.x, y: -start.y };
   return {

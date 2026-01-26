@@ -1,10 +1,10 @@
 import {
-  type Bounds,
+  type AnyShape,
   type HandleDescriptor,
   resolveSelectionHandlePoint,
-  type Shape,
   type ShapeHandlerRegistry,
 } from "@smalldraw/core";
+import { type Box, BoxOperations, makePoint } from "@smalldraw/geometry";
 import { el } from "redom";
 
 const HANDLE_SIZE = 8;
@@ -28,9 +28,9 @@ export class SelectionOverlay {
    * Only modifies DOM elements that actually changed.
    */
   update(
-    bounds: Bounds | null,
+    bounds: Box | null,
     handles: HandleDescriptor[],
-    shape?: Shape,
+    shape?: AnyShape,
     registry?: ShapeHandlerRegistry,
   ): void {
     if (!bounds) {
@@ -76,7 +76,7 @@ export class SelectionOverlay {
   /**
    * Update or create the selection frame element.
    */
-  private updateFrame(bounds: Bounds): void {
+  private updateFrame(bounds: Box): void {
     if (!this.frameEl) {
       this.frameEl = el("div.smalldraw-selection-frame", {
         style: {
@@ -90,11 +90,12 @@ export class SelectionOverlay {
     }
 
     // Only update style properties (no DOM structure change)
+    const boundsOps = new BoxOperations(bounds);
     Object.assign(this.frameEl.style, {
-      left: `${bounds.minX}px`,
-      top: `${bounds.minY}px`,
-      width: `${bounds.width}px`,
-      height: `${bounds.height}px`,
+      left: `${bounds.min.x}px`,
+      top: `${bounds.min.y}px`,
+      width: `${boundsOps.width}px`,
+      height: `${boundsOps.height}px`,
     });
   }
 
@@ -103,18 +104,18 @@ export class SelectionOverlay {
    */
   private updateHandle(
     handle: HandleDescriptor,
-    bounds: Bounds,
-    shape: Shape | undefined,
+    bounds: Box,
+    shape: AnyShape | undefined,
     rotation: number,
     registry: ShapeHandlerRegistry | undefined,
   ): void {
+    const boundsOps = new BoxOperations(bounds);
     const point =
       registry && shape
         ? resolveSelectionHandlePoint(bounds, handle, shape, registry)
-        : {
-            x: bounds.minX + bounds.width * handle.position.u,
-            y: bounds.minY + bounds.height * handle.position.v,
-          };
+        : makePoint(bounds.min).add(
+            boundsOps.size.mul([handle.position.u, handle.position.v]),
+          );
     const axisHandle = handle.behavior?.type === "resize-axis";
     const axis =
       handle.behavior?.type === "resize-axis" ? handle.behavior.axis : null;
@@ -196,5 +197,4 @@ export class SelectionOverlay {
       transform,
     });
   }
-
 }

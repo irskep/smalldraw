@@ -1,3 +1,4 @@
+import type { AnyGeometry } from "@smalldraw/geometry";
 import { PenShapeHandler } from "./shapes/penShape";
 import { RectShapeHandler } from "./shapes/rectShape";
 import type { ShapeHandler } from "./shapeTypes";
@@ -5,14 +6,16 @@ import type { ShapeHandler } from "./shapeTypes";
 export class ShapeHandlerRegistry {
   private handlers = new Map<string, unknown>();
 
-  register<T, TResizeData>(
+  register<T extends AnyGeometry, TResizeData>(
     type: string,
     handler: ShapeHandler<T, TResizeData>,
   ): void {
     this.handlers.set(type, handler);
   }
 
-  get<T, TResizeData>(type: string): ShapeHandler<T, TResizeData> | undefined {
+  get<T extends AnyGeometry, TResizeData>(
+    type: string,
+  ): ShapeHandler<T, TResizeData> | undefined {
     return this.handlers.get(type) as ShapeHandler<T, TResizeData>;
   }
 
@@ -23,7 +26,7 @@ export class ShapeHandlerRegistry {
   clone(): ShapeHandlerRegistry {
     const registry = new ShapeHandlerRegistry();
     for (const [type, handler] of this.handlers) {
-      registry.register(type, handler as ShapeHandler<unknown, unknown>);
+      registry.register(type, handler as ShapeHandler<AnyGeometry, unknown>);
     }
     return registry;
   }

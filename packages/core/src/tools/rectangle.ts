@@ -1,11 +1,11 @@
 import {
-  getBoundsCenter,
-  getBoundsFromPointPair,
+  BoxOperations,
+  makePoint,
   type Point,
-  type Size,
+  type RectGeometry,
 } from "@smalldraw/geometry";
 import { AddShape } from "../actions";
-import type { Shape } from "../model/shape";
+import type { RectShape } from "../model/shapes/rectShape";
 import type { Fill, StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { attachPointerHandlers } from "./pointerHandlers";
@@ -15,6 +15,7 @@ interface RectDraftState {
   id: string;
   start: Point;
   current: Point;
+  pressures?: number[];
   stroke: StrokeStyle;
   fill: Fill;
   zIndex: string;
@@ -30,6 +31,18 @@ const runtimeState = new WeakMap<ToolRuntime, ActiveRectState>();
 export interface RectangleToolOptions {
   stroke?: StrokeStyle;
   fill?: Fill;
+}
+
+function computeSizeAndCenter(
+  start: Point,
+  current: Point,
+): { center: Point; size: Point } {
+  const bounds = BoxOperations.fromPointPair(start, current);
+  const boxOpts = new BoxOperations(bounds);
+  return {
+    center: boxOpts.center,
+    size: boxOpts.translate(makePoint(bounds.min).mul(makePoint(-1))).max,
+  };
 }
 
 export function createRectangleTool(
@@ -71,8 +84,9 @@ export function createRectangleTool(
     const state = ensureState(runtime);
     const draft: RectDraftState = {
       id: runtime.generateShapeId("rect-draft"),
-      start: { ...point, pressure },
-      current: { ...point, pressure },
+      start: point,
+      current: point,
+      pressures: pressure ? [pressure] : undefined,
       stroke: resolveStroke(runtime),
       fill: resolveFill(runtime),
       zIndex: runtime.getNextZIndex(),
@@ -88,16 +102,9 @@ export function createRectangleTool(
   ) => {
     const state = runtimeState.get(runtime);
     if (!state?.draft) return;
-    state.draft.current = { ...point, pressure };
+    state.draft.current = point;
+    if (state.draft.pressures && pressure) state.draft.pressures.push(pressure);
     updateDraft(runtime);
-  };
-
-  const computeSizeAndCenter = (start: Point, current: Point) => {
-    const bounds = getBoundsFromPointPair(start, current);
-    return {
-      center: getBoundsCenter(bounds),
-      size: { width: bounds.width, height: bounds.height },
-    };
   };
 
   const updateDraft = (runtime: ToolRuntime) => {
@@ -107,15 +114,16 @@ export function createRectangleTool(
       state.draft.start,
       state.draft.current,
     );
+    const geometry: RectGeometry = {
+      type: "rect",
+      size,
+    };
     runtime.setDraft({
       toolId: runtime.toolId,
       temporary: true,
       id: state.draft.id,
       type: "rect",
-      geometry: {
-        type: "rect",
-        size,
-      },
+      geometry,
       stroke: state.draft.stroke,
       fill: state.draft.fill,
       zIndex: state.draft.zIndex,
@@ -125,7 +133,7 @@ export function createRectangleTool(
       },
       transform: {
         translation: center,
-        scale: { x: 1, y: 1 },
+        scale: makePoint(1),
         rotation: 0,
       },
     });
@@ -141,12 +149,12 @@ export function createRectangleTool(
       state.draft.start,
       state.draft.current,
     );
-    if (size.width === 0 && size.height === 0) {
+    if (size.x === 0 && size.y === 0) {
       runtime.clearDraft();
       state.draft = null;
       return;
     }
-    const shape: Shape & { geometry: { type: "rect"; size: Size } } = {
+    const shape: RectShape = {
       id: runtime.generateShapeId("rect"),
       type: "rect",
       geometry: {
@@ -162,7 +170,7 @@ export function createRectangleTool(
       },
       transform: {
         translation: center,
-        scale: { x: 1, y: 1 },
+        scale: makePoint(1),
         rotation: 0,
       },
     };

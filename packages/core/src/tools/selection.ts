@@ -1,11 +1,9 @@
 import {
-  type Bounds,
+  type AnyGeometry,
   angleBetween,
-  containsPoint,
-  getBoundsCenter,
-  getBoundsFromPointPair,
-  mergeBounds,
-  offsetBounds,
+  type Box,
+  BoxOperations,
+  makePoint,
   type Point,
 } from "@smalldraw/geometry";
 import type { UndoableAction } from "../actions";
@@ -16,9 +14,9 @@ import {
 } from "../actions";
 import { getShapeBounds } from "../model/geometryShapeUtils";
 import { hitTestShape } from "../model/hitTest";
-import type { CanonicalShapeTransform, Shape } from "../model/shape";
-import { normalizeShapeTransform } from "../model/shape";
 import { computeSelectionBounds } from "../model/selectionBounds";
+import type { AnyShape, CanonicalShapeTransform, Shape } from "../model/shape";
+import { normalizeShapeTransform } from "../model/shape";
 import { getPointFromLayout, type NormalizedLayout } from "../model/shapeTypes";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { createPointerDragHandler } from "./pointerDrag";
@@ -55,22 +53,23 @@ interface DragState {
   lastPoint: Point;
   transforms: Map<string, CanonicalShapeTransform>;
   layouts: Map<string, NormalizedLayout>;
-  selectionBounds?: Bounds;
+  selectionBounds?: Box;
   oppositeCorner?: Point;
   center?: Point;
   axisResize?: AxisResizeState;
-  resizeEntries: Map<string, ShapeResizeEntry<unknown, unknown>>;
-  shapeBounds: Map<string, Bounds>;
+  resizeEntries: Map<string, ShapeResizeEntry<AnyGeometry, unknown>>;
+  shapeBounds: Map<string, Box>;
 }
 
-type SelectionBounds = Bounds;
-
-interface SelectionResizeSnapshot<TGeometry, TData = unknown> {
+interface SelectionResizeSnapshot<
+  TGeometry extends AnyGeometry,
+  TData = unknown,
+> {
   geometry: TGeometry;
   data?: TData;
 }
 
-interface ShapeResizeEntry<TGeometry, TData = unknown> {
+interface ShapeResizeEntry<TGeometry extends AnyGeometry, TData = unknown> {
   geometryType: string;
   snapshot: SelectionResizeSnapshot<TGeometry, TData>;
 }
@@ -167,7 +166,7 @@ export function createSelectionTool(): ToolDefinition {
 
       const shapes = selectionIds
         .map((id) => runtime.getShape(id))
-        .filter((shape): shape is Shape => Boolean(shape));
+        .filter((s) => !!s);
       console.log("[selectionTool.onPointerDown] shapes found:", shapes.length);
       if (!shapes.length) return;
 
@@ -194,7 +193,9 @@ export function createSelectionTool(): ToolDefinition {
             bounds,
           );
           if (bounds) {
-            isOverSelection = containsPoint(bounds, event.point);
+            isOverSelection = new BoxOperations(bounds).containsPoint(
+              event.point,
+            );
           }
           console.log(
             "[selectionTool.onPointerDown] multi-select hit test:",
@@ -225,20 +226,15 @@ export function createSelectionTool(): ToolDefinition {
       const transforms = new Map<string, CanonicalShapeTransform>();
       const resizeEntries = new Map<
         string,
-        ShapeResizeEntry<unknown, unknown>
+        ShapeResizeEntry<AnyGeometry, unknown>
       >();
       const registry = runtime.getShapeHandlers();
       for (const shape of shapes) {
         const normalized = normalizeShapeTransform(shape.transform);
         transforms.set(shape.id, normalized);
         const ops = registry.get(shape.type)?.selection;
-        if (
-          ops?.canResize?.(shape as Shape & { geometry: unknown }) &&
-          ops?.prepareResize
-        ) {
-          const snapshot = ops.prepareResize(
-            shape as Shape & { geometry: unknown },
-          );
+        if (ops?.canResize?.(shape) && ops?.prepareResize) {
+          const snapshot = ops.prepareResize(shape);
           resizeEntries.set(shape.id, {
             geometryType: shape.type,
             snapshot,
@@ -280,7 +276,7 @@ export function createSelectionTool(): ToolDefinition {
       ) {
         dragState.mode = "rotate";
         dragState.center = bounds
-          ? getBoundsCenter(bounds)
+          ? new BoxOperations(bounds).center
           : getShapeCenter(primaryShape, primaryShapeTransform, runtime);
       } else if (
         behavior &&
@@ -320,7 +316,7 @@ export function createSelectionTool(): ToolDefinition {
       ) {
         dragState.mode = "rotate";
         dragState.center = bounds
-          ? getBoundsCenter(bounds)
+          ? new BoxOperations(bounds).center
           : getShapeCenter(primaryShape, primaryShapeTransform, runtime);
       }
 
@@ -398,7 +394,7 @@ export function createSelectionTool(): ToolDefinition {
             });
           },
           onCancel() {
-            onPointerCancel(runtime)({ point: { x: 0, y: 0 }, buttons: 0 });
+            onPointerCancel(runtime)({ point: makePoint(), buttons: 0 });
           },
         }),
       );
@@ -419,18 +415,24 @@ export function createSelectionTool(): ToolDefinition {
 
 function computeNormalizedLayouts(
   shapes: Shape[],
-  bounds: SelectionBounds,
-  shapeBounds: Map<string, SelectionBounds>,
+  bounds: Box,
+  shapeBounds: Map<string, Box>,
 ): Map<string, NormalizedLayout> {
   const layouts = new Map<string, NormalizedLayout>();
   for (const shape of shapes) {
     const localBounds = shapeBounds.get(shape.id);
     if (!localBounds) continue;
-    const center = getBoundsCenter(localBounds);
+    const boundsBoxOpts = new BoxOperations(bounds);
+    const localBoxOps = new BoxOperations(localBounds);
+    const center = localBoxOps.center;
     const offsetU =
-      bounds.width === 0 ? 0.5 : (center.x - bounds.minX) / bounds.width;
+      boundsBoxOpts.width === 0
+        ? 0.5
+        : (center.x - bounds.min.x) / boundsBoxOpts.width;
     const offsetV =
-      bounds.height === 0 ? 0.5 : (center.y - bounds.minY) / bounds.height;
+      boundsBoxOpts.height === 0
+        ? 0.5
+        : (center.y - bounds.min.y) / boundsBoxOpts.height;
     layouts.set(shape.id, {
       offsetU,
       offsetV,
@@ -439,33 +441,35 @@ function computeNormalizedLayouts(
   return layouts;
 }
 
-function getHandlePosition(bounds: SelectionBounds, handleId: string): Point {
-  const { minX, minY, maxX, maxY } = bounds;
+function getHandlePosition(bounds: Box, handleId: string): Point {
   switch (handleId) {
     case "top-left":
-      return { x: minX, y: minY };
+      return makePoint(bounds.min.x, bounds.min.y);
     case "top-right":
-      return { x: maxX, y: minY };
+      return makePoint(bounds.max.x, bounds.min.y);
     case "bottom-left":
-      return { x: minX, y: maxY };
+      return makePoint(bounds.min.x, bounds.max.y);
     case "bottom-right":
-      return { x: maxX, y: maxY };
+      return makePoint(bounds.max.x, bounds.max.y);
     case "rotate":
-      return { x: (minX + maxX) / 2, y: minY - (maxY - minY) * 0.2 };
+      return makePoint(
+        (bounds.min.x + bounds.max.x) / 2,
+        bounds.min.y - (bounds.max.y - bounds.min.y) * 0.2,
+      );
     default:
-      return { x: minX, y: minY };
+      return makePoint(bounds.min.x, bounds.min.y);
   }
 }
 
-function hasRotatableShape(shapes: Shape[]): boolean {
+function hasRotatableShape(shapes: AnyShape[]): boolean {
   return shapes.some((shape) => shape.interactions?.rotatable);
 }
 
-function hasResizableShape(shapes: Shape[], runtime: ToolRuntime): boolean {
+function hasResizableShape(shapes: AnyShape[], runtime: ToolRuntime): boolean {
   const registry = runtime.getShapeHandlers();
   return shapes.some((shape) => {
     const ops = registry.get(shape.type)?.selection;
-    return ops?.canResize?.(shape as Shape & { geometry: unknown }) ?? false;
+    return ops?.canResize?.(shape) ?? false;
   });
 }
 
@@ -498,10 +502,7 @@ function applyMove(runtime: ToolRuntime, drag: DragState) {
     actions.push(
       new UpdateShapeTransform(shapeId, {
         ...transform,
-        translation: {
-          x: transform.translation.x + dx,
-          y: transform.translation.y + dy,
-        },
+        translation: makePoint(transform.translation).add([dx, dy]),
       }),
     );
   }
@@ -516,14 +517,16 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
     applyMove(runtime, drag);
     return;
   }
-  const newBounds = getBoundsFromPointPair(opposite, drag.lastPoint);
-  if (newBounds.width === 0 && newBounds.height === 0) {
+  const boundsOps = new BoxOperations(bounds);
+  const newBounds = BoxOperations.fromPointPair(opposite, drag.lastPoint);
+  const newBoundsOps = new BoxOperations(newBounds);
+  if (newBoundsOps.width === 0 && newBoundsOps.height === 0) {
     return;
   }
-  const selectionScale = {
-    x: bounds.width === 0 ? 1 : newBounds.width / bounds.width,
-    y: bounds.height === 0 ? 1 : newBounds.height / bounds.height,
-  };
+  const selectionScale = makePoint(
+    boundsOps.width === 0 ? 1 : newBoundsOps.width / boundsOps.width,
+    boundsOps.height === 0 ? 1 : newBoundsOps.height / boundsOps.height,
+  );
   const actions: UndoableAction[] = [];
   const registry = runtime.getShapeHandlers();
   for (const shapeId of drag.selectionIds) {
@@ -537,7 +540,7 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
         const ops = registry.get(entry.geometryType)?.selection;
         if (ops?.resize) {
           const result = ops.resize({
-            shape: shape as Shape & { geometry: unknown },
+            shape: shape,
             snapshotGeometry: entry.snapshot.geometry,
             snapshotData: entry.snapshot.data,
             transform,
@@ -548,7 +551,12 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
           });
           if (result) {
             if (result.geometry) {
-              actions.push(new UpdateShapeGeometry(shapeId, result.geometry));
+              actions.push(
+                new UpdateShapeGeometry(
+                  shapeId,
+                  result.geometry as AnyGeometry,
+                ),
+              );
             }
             if (result.transform) {
               actions.push(new UpdateShapeTransform(shapeId, result.transform));
@@ -571,10 +579,12 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
     const normalizedTranslation = layout
       ? getPointFromLayout(layout, newBounds)
       : undefined;
-    const fallbackTranslation = normalizedTranslation ?? {
-      x: transform.translation.x + (newBounds.minX - bounds.minX),
-      y: transform.translation.y + (newBounds.minY - bounds.minY),
-    };
+    const fallbackTranslation =
+      normalizedTranslation ??
+      makePoint(
+        transform.translation.x + (newBounds.min.x - bounds.min.x),
+        transform.translation.y + (newBounds.min.y - bounds.min.y),
+      );
     actions.push(
       new UpdateShapeTransform(shapeId, {
         ...transform,
@@ -645,11 +655,10 @@ function computePreviewShapes(
 
   for (const shapeId of drag.selectionIds) {
     const shape = runtime.getShape(shapeId);
-    const shapeWithGeometry = shape as Shape & { geometry: unknown };
     const transform = drag.transforms.get(shapeId);
     if (!shape || !transform) continue;
 
-    let previewGeometry = shapeWithGeometry.geometry;
+    let previewGeometry = shape.geometry;
     let previewTransform = transform;
 
     switch (drag.mode) {
@@ -658,10 +667,7 @@ function computePreviewShapes(
         const dy = drag.lastPoint.y - drag.startPoint.y;
         previewTransform = {
           ...transform,
-          translation: {
-            x: transform.translation.x + dx,
-            y: transform.translation.y + dy,
-          },
+          translation: makePoint(transform.translation).add([dx, dy]),
         };
         break;
       }
@@ -670,11 +676,16 @@ function computePreviewShapes(
         const bounds = drag.selectionBounds;
         const opposite = drag.oppositeCorner;
         if (bounds && opposite) {
-          const newBounds = getBoundsFromPointPair(opposite, drag.lastPoint);
-          const selectionScale = {
-            x: bounds.width === 0 ? 1 : newBounds.width / bounds.width,
-            y: bounds.height === 0 ? 1 : newBounds.height / bounds.height,
-          };
+          const newBounds = BoxOperations.fromPointPair(
+            opposite,
+            drag.lastPoint,
+          );
+          const newBoundsOps = new BoxOperations(newBounds);
+          const boundsOps = new BoxOperations(bounds);
+          const selectionScale = makePoint(
+            boundsOps.width === 0 ? 1 : newBoundsOps.width / boundsOps.width,
+            boundsOps.height === 0 ? 1 : newBoundsOps.height / boundsOps.height,
+          );
           const layout = drag.layouts.get(shapeId);
           const entry = drag.resizeEntries.get(shapeId);
 
@@ -683,7 +694,7 @@ function computePreviewShapes(
             const ops = registry.get(entry.geometryType)?.selection;
             if (ops?.resize) {
               const result = ops.resize({
-                shape: shapeWithGeometry,
+                shape,
                 snapshotGeometry: entry.snapshot.geometry,
                 snapshotData: entry.snapshot.data,
                 transform,
@@ -694,7 +705,7 @@ function computePreviewShapes(
               });
               if (result) {
                 if (result.geometry) {
-                  previewGeometry = result.geometry;
+                  previewGeometry = result.geometry as AnyGeometry;
                 }
                 if (result.transform) {
                   previewTransform = result.transform;
@@ -712,10 +723,11 @@ function computePreviewShapes(
               : undefined;
             previewTransform = {
               ...transform,
-              translation: normalizedTranslation ?? {
-                x: transform.translation.x + (newBounds.minX - bounds.minX),
-                y: transform.translation.y + (newBounds.minY - bounds.minY),
-              },
+              translation:
+                normalizedTranslation ??
+                makePoint(transform.translation).add(
+                  makePoint(newBounds.min).sub(bounds.min),
+                ),
             };
           }
         }
@@ -763,13 +775,13 @@ function computePreviewShapes(
 }
 
 function getShapeCenter(
-  shape: Shape,
+  shape: AnyShape,
   transform: CanonicalShapeTransform,
   runtime: ToolRuntime,
 ): Point {
   const registry = runtime.getShapeHandlers();
   const bounds = getShapeBounds(shape, registry, transform);
-  return getBoundsCenter(bounds);
+  return new BoxOperations(bounds).center;
 }
 
 function emitHandleHover(
@@ -820,18 +832,18 @@ function getOppositeHandle(handleId: string): string {
 function computeDragFrame(
   runtime: ToolRuntime,
   drag: DragState,
-): Bounds | undefined {
+): Box | undefined {
   switch (drag.mode) {
     case "move": {
       if (!drag.selectionBounds) return undefined;
-      const dx = drag.lastPoint.x - drag.startPoint.x;
-      const dy = drag.lastPoint.y - drag.startPoint.y;
-      return offsetBounds(drag.selectionBounds, dx, dy);
+      return new BoxOperations(drag.selectionBounds).translate(
+        makePoint(drag.lastPoint).sub(drag.startPoint),
+      );
     }
     case "resize":
     case "resize-proportional":
       return drag.oppositeCorner
-        ? getBoundsFromPointPair(drag.oppositeCorner, drag.lastPoint)
+        ? BoxOperations.fromPointPair(drag.oppositeCorner, drag.lastPoint)
         : drag.selectionBounds;
     case "resize-axis":
       return computeAxisResizeBounds(runtime, drag);
@@ -845,7 +857,7 @@ function computeDragFrame(
 function computeAxisResizeBounds(
   runtime: ToolRuntime,
   drag: DragState,
-): Bounds | undefined {
+): Box | undefined {
   const axisResize = drag.axisResize;
   if (!axisResize) return drag.selectionBounds;
   const shape = runtime.getShape(axisResize.shapeId);
@@ -859,7 +871,7 @@ function computeAxisResizeBounds(
     runtime,
   );
   if (!result) return drag.selectionBounds;
-  const previewShape: Shape & { geometry: unknown } = {
+  const previewShape: AnyShape = {
     ...shape,
     geometry: result.geometry,
   };
@@ -877,7 +889,7 @@ function computeAxisResizeResult(
   transform: CanonicalShapeTransform,
   point: Point,
   runtime: ToolRuntime,
-): { geometry: unknown; translation: Point } | null {
+): { geometry: AnyGeometry; translation: Point } | null {
   const axisResize = drag.axisResize;
   if (!axisResize || axisResize.shapeId !== shape.id) return null;
   const entry = drag.resizeEntries.get(shape.id);
@@ -903,16 +915,16 @@ function computeAxisResizeResult(
   if (!result) return null;
   const half = newExtent / 2;
   return {
-    geometry: result.geometry,
-    translation: {
-      x: anchor.x + direction.x * half,
-      y: anchor.y + direction.y * half,
-    },
+    geometry: result.geometry as AnyGeometry,
+    translation: makePoint(
+      anchor.x + direction.x * half,
+      anchor.y + direction.y * half,
+    ),
   };
 }
 
 function createAxisResizeState(
-  shapes: Shape[],
+  shapes: AnyShape[],
   drag: DragState,
   axis: "x" | "y",
   handleId: string,
@@ -923,9 +935,8 @@ function createAxisResizeState(
   const shape = shapes[0];
   const registry = runtime.getShapeHandlers();
   const ops = registry.get(shape.type)?.selection;
-  const shapeWithGeometry = shape as Shape & { geometry: unknown };
   if (
-    !ops?.supportsAxisResize?.(shapeWithGeometry) ||
+    !ops?.supportsAxisResize?.(shape) ||
     shape.interactions?.resizable === false
   ) {
     return null;
@@ -941,8 +952,8 @@ function createAxisResizeState(
   const signY = transform.scale.y === 0 ? 1 : Math.sign(transform.scale.y);
   const baseDirection =
     axis === "x"
-      ? { x: Math.cos(rotation) * signX, y: Math.sin(rotation) * signX }
-      : { x: -Math.sin(rotation) * signY, y: Math.cos(rotation) * signY };
+      ? makePoint(Math.cos(rotation) * signX, Math.sin(rotation) * signX)
+      : makePoint(-Math.sin(rotation) * signY, Math.cos(rotation) * signY);
   const startExtent = ops.getAxisExtent(
     entry.snapshot.geometry,
     transform,
@@ -953,12 +964,15 @@ function createAxisResizeState(
   const direction =
     side === "positive"
       ? baseDirection
-      : { x: -baseDirection.x, y: -baseDirection.y };
+      : makePoint(-baseDirection.x, -baseDirection.y);
   const anchor =
     side === "positive"
-      ? { x: center.x - direction.x * half, y: center.y - direction.y * half }
-      : { x: center.x - direction.x * half, y: center.y - direction.y * half };
-  const startDelta = { x: startPoint.x - anchor.x, y: startPoint.y - anchor.y };
+      ? makePoint(center.x - direction.x * half, center.y - direction.y * half)
+      : makePoint(center.x - direction.x * half, center.y - direction.y * half);
+  const startDelta = makePoint(
+    startPoint.x - anchor.x,
+    startPoint.y - anchor.y,
+  );
   const startProjection =
     startDelta.x * direction.x + startDelta.y * direction.y;
   return {
@@ -987,7 +1001,7 @@ function getAxisHandleSide(handleId: string): "positive" | "negative" | null {
 function computeRotatedBounds(
   runtime: ToolRuntime,
   drag: DragState,
-): Bounds | undefined {
+): Box | undefined {
   if (!drag.selectionBounds || !drag.center) {
     return drag.selectionBounds;
   }
@@ -996,7 +1010,7 @@ function computeRotatedBounds(
     return drag.selectionBounds;
   }
   const registry = runtime.getShapeHandlers();
-  let merged: Bounds | undefined;
+  let merged: Box | undefined;
   for (const shapeId of drag.selectionIds) {
     const transform = drag.transforms.get(shapeId);
     const shape = runtime.getShape(shapeId);
@@ -1006,35 +1020,27 @@ function computeRotatedBounds(
       rotation: transform.rotation + delta,
     };
     const bounds = getShapeBounds(shape, registry, rotatedTransform);
-    merged = merged ? mergeBounds(merged, bounds) : bounds;
+    merged = merged ? BoxOperations.fromBoxPair(merged, bounds) : bounds;
   }
   return merged ?? drag.selectionBounds;
 }
 
 function getRotationDelta(drag: DragState): number {
   if (!drag.center) return 0;
-  const startVector = {
-    x: drag.startPoint.x - drag.center.x,
-    y: drag.startPoint.y - drag.center.y,
-  };
+  const startVector = makePoint(drag.startPoint).sub(drag.center);
   if (startVector.x === 0 && startVector.y === 0) return 0;
-  const currentVector = {
-    x: drag.lastPoint.x - drag.center.x,
-    y: drag.lastPoint.y - drag.center.y,
-  };
+  const currentVector = makePoint(drag.lastPoint).sub(drag.center);
   return angleBetween(startVector, currentVector);
 }
 
 function computeBoundsForSelection(
   runtime: ToolRuntime,
   ids: string[],
-): Bounds | undefined {
-  const shapes = ids
-    .map((id) => runtime.getShape(id))
-    .filter((shape): shape is Shape => Boolean(shape));
+): Box | undefined {
+  const shapes = ids.map((id) => runtime.getShape(id)).filter((s) => !!s);
   return computeSelectionBounds(shapes, runtime.getShapeHandlers()).bounds;
 }
 
-function emitSelectionFrame(runtime: ToolRuntime, bounds?: Bounds) {
+function emitSelectionFrame(runtime: ToolRuntime, bounds?: Box) {
   runtime.emit({ type: "selection-frame", payload: bounds ?? null });
 }

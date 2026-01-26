@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-
+import { makePoint, type PenGeometry } from "@smalldraw/geometry";
 import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
 import { canonicalizeShape } from "../../model/shape";
@@ -44,25 +44,23 @@ describe("ToolRuntimeImpl", () => {
       count += 1;
     });
 
-    runtime.dispatch("pointerDown", { point: { x: 0, y: 0 }, buttons: 1 });
+    runtime.dispatch("pointerDown", { point: makePoint(0, 0), buttons: 1 });
     expect(count).toBe(1);
 
     disposer();
-    runtime.dispatch("pointerDown", { point: { x: 1, y: 1 }, buttons: 1 });
+    runtime.dispatch("pointerDown", { point: makePoint(1, 1), buttons: 1 });
     expect(count).toBe(1);
   });
 
   test("setDraft stores draft and clearDraft resets it", () => {
     const { runtime, draftChanges } = createRuntime();
+    const geometry: PenGeometry = { type: "pen", points: [makePoint(0, 0)] };
     runtime.setDraft({
       toolId: "pen",
       temporary: true,
       id: "draft-1",
       type: "pen",
-      geometry: {
-        type: "pen",
-        points: [{ x: 0, y: 0 }],
-      },
+      geometry,
       zIndex: "a",
     });
     expect(runtime.getDraft()?.id).toBe("draft-1");
@@ -79,12 +77,12 @@ describe("ToolRuntimeImpl", () => {
       type: "rect",
       geometry: {
         type: "rect",
-        size: { width: 10, height: 10 },
+        size: makePoint(10),
       },
       zIndex: "a",
       transform: {
-        translation: { x: 0, y: 0 },
-        scale: { x: 1, y: 1 },
+        translation: makePoint(0, 0),
+        scale: makePoint(1, 1),
         rotation: 0,
       },
     };
@@ -105,12 +103,12 @@ describe("ToolRuntimeImpl", () => {
           type: "rect",
           geometry: {
             type: "rect",
-            size: { width: 10, height: 10 },
+            size: makePoint(10),
           },
           zIndex,
           transform: {
-            translation: { x: 0, y: 0 },
-            scale: { x: 1, y: 1 },
+            translation: makePoint(0, 0),
+            scale: makePoint(1, 1),
             rotation: 0,
           },
         } as RectShape,

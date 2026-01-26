@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-
+import type { RectShape } from "@smalldraw/core";
+import { makePoint } from "@smalldraw/geometry";
 import {
   type ActionContext,
   AddShape,
@@ -9,20 +10,19 @@ import {
   UpdateShapeZIndex,
 } from "../actions";
 import { createDocument } from "../model/document";
-import type { Shape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import type { Fill, StrokeStyle } from "../model/style";
 import { UndoManager } from "../undo";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
 
-function baseShape(id: string): Shape & { geometry: unknown } {
+function baseShape(id: string): RectShape {
   return {
     id,
     type: "rect",
     zIndex: id,
     geometry: {
       type: "rect",
-      size: { width: 10, height: 10 },
+      size: makePoint(10),
     },
     fill: { type: "solid", color: "#000000" },
     stroke: { type: "brush", color: "#ffffff", size: 2 },

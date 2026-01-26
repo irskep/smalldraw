@@ -1,9 +1,9 @@
 import type { DrawingDocument } from "../model/document";
-import type { Shape } from "../model/shape";
+import type { AnyShape } from "../model/shape";
 import type { ActionContext, UndoableAction } from "./types";
 
 export class DeleteShape implements UndoableAction {
-  private deletedShape?: Shape;
+  private deletedShape?: AnyShape;
 
   constructor(private readonly shapeId: string) {}
 

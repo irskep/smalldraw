@@ -1,5 +1,5 @@
 import type { ToolPointerEvent } from "@smalldraw/core";
-import type { Point } from "@smalldraw/geometry";
+import { makePoint, type Point } from "@smalldraw/geometry";
 
 /**
  * Build a ToolPointerEvent from a native PointerEvent.
@@ -27,8 +27,5 @@ export function getPointerPoint(
   overlay: HTMLElement,
 ): Point {
   const rect = overlay.getBoundingClientRect();
-  return {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top,
-  };
+  return makePoint(event.clientX, event.clientY).sub([rect.left, rect.top]);
 }

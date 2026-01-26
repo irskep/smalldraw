@@ -1,29 +1,29 @@
-import { createBounds, type RectGeometry } from "@smalldraw/geometry";
+import {
+  BoxOperations,
+  makePoint,
+  type Point,
+  type RectGeometry,
+} from "@smalldraw/geometry";
 import type { Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 
 export type RectShape = Shape & { geometry: RectGeometry };
 
-function getRotatedRectAabbSize(
-  width: number,
-  height: number,
-  rotation: number,
-): { width: number; height: number } {
+function getRotatedRectAabbSize(size: Point, rotation: number): Point {
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
   const absCos = Math.abs(cos);
   const absSin = Math.abs(sin);
-  return {
-    width: width * absCos + height * absSin,
-    height: width * absSin + height * absCos,
-  };
+  return makePoint(
+    size.x * absCos + size.y * absSin,
+    size.x * absSin + size.y * absCos,
+  );
 }
 
 function solveRectSizeForAabb(
-  targetWidth: number,
-  targetHeight: number,
+  targetSize: Point,
   rotation: number,
-  baseSize: { width: number; height: number },
+  baseSize: Point,
 ): { width: number; height: number } {
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
@@ -31,26 +31,24 @@ function solveRectSizeForAabb(
   const absSin = Math.abs(sin);
   const det = absCos * absCos - absSin * absSin;
   if (det !== 0) {
-    const width = (absCos * targetWidth - absSin * targetHeight) / det;
-    const height = (absCos * targetHeight - absSin * targetWidth) / det;
+    const width = (absCos * targetSize.x - absSin * targetSize.y) / det;
+    const height = (absCos * targetSize.y - absSin * targetSize.x) / det;
     return {
       width: Math.max(0, width),
       height: Math.max(0, height),
     };
   }
-  const sum = absCos === 0 ? 0 : (targetWidth + targetHeight) / (2 * absCos);
-  const baseWidth = baseSize.width;
-  const baseHeight = baseSize.height;
-  if (baseWidth === 0 && baseHeight === 0) {
+  const sum = absCos === 0 ? 0 : (targetSize.x + targetSize.y) / (2 * absCos);
+  if (baseSize.x === 0 && baseSize.y === 0) {
     return { width: 0, height: 0 };
   }
-  if (baseHeight === 0) {
+  if (baseSize.y === 0) {
     return { width: sum, height: 0 };
   }
-  if (baseWidth === 0) {
+  if (baseSize.x === 0) {
     return { width: 0, height: sum };
   }
-  const ratio = baseWidth / baseHeight;
+  const ratio = baseSize.x / baseSize.y;
   const height = sum / (1 + ratio);
   const width = sum - height;
   return { width, height };
@@ -61,9 +59,10 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
   geometry: {
     getBounds(shape: RectShape) {
       const g = shape.geometry;
-      const halfWidth = g.size.width / 2;
-      const halfHeight = g.size.height / 2;
-      return createBounds(-halfWidth, -halfHeight, halfWidth, halfHeight);
+      return BoxOperations.fromPointPair(
+        makePoint().sub(g.size).div(makePoint(2)),
+        makePoint().add(g.size).div(makePoint(2)),
+      );
     },
   },
   selection: {
@@ -72,7 +71,7 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
       return {
         geometry: {
           type: "rect",
-          size: { ...shape.geometry.size },
+          size: makePoint(shape.geometry.size),
         },
       };
     },
@@ -85,29 +84,20 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
     }) {
       if (!layout) return null;
       const g = snapshotGeometry as RectGeometry;
-      const scaleX = Math.abs(transform.scale.x);
-      const scaleY = Math.abs(transform.scale.y);
-      const baseWidth = g.size.width * scaleX;
-      const baseHeight = g.size.height * scaleY;
-      const currentAabb = getRotatedRectAabbSize(
-        baseWidth,
-        baseHeight,
-        transform.rotation,
-      );
-      const targetAabbWidth = currentAabb.width * selectionScale.x;
-      const targetAabbHeight = currentAabb.height * selectionScale.y;
+      const scale = makePoint(transform.scale.x, transform.scale.y);
+      const baseSize = makePoint(g.size).mul(scale);
+      const currentAabb = getRotatedRectAabbSize(baseSize, transform.rotation);
       const solved = solveRectSizeForAabb(
-        targetAabbWidth,
-        targetAabbHeight,
+        makePoint(currentAabb).mul(selectionScale),
         transform.rotation,
-        { width: baseWidth, height: baseHeight },
+        baseSize,
       );
       const geometry: RectGeometry = {
         type: "rect",
-        size: {
-          width: scaleX === 0 ? 0 : solved.width / scaleX,
-          height: scaleY === 0 ? 0 : solved.height / scaleY,
-        },
+        size: makePoint(
+          scale.x === 0 ? 0 : solved.width / scale.x,
+          scale.y === 0 ? 0 : solved.height / scale.y,
+        ),
       };
       const translation = getPointFromLayout(layout, nextBounds);
       return { geometry, translation };
@@ -115,28 +105,26 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
     supportsAxisResize: () => true,
     getAxisExtent(geometry, transform, axis) {
       return axis === "x"
-        ? geometry.size.width * Math.abs(transform.scale.x)
-        : geometry.size.height * Math.abs(transform.scale.y);
+        ? geometry.size.x * Math.abs(transform.scale.x)
+        : geometry.size.y * Math.abs(transform.scale.y);
     },
     axisResize({ snapshotGeometry, transform, axis, newExtent }) {
-      const scaleX = Math.abs(transform.scale.x);
-      const scaleY = Math.abs(transform.scale.y);
       const width =
         axis === "x"
-          ? scaleX === 0
+          ? transform.scale.x === 0
             ? 0
-            : newExtent / scaleX
-          : snapshotGeometry.size.width;
+            : newExtent / transform.scale.x
+          : snapshotGeometry.size.x;
       const height =
         axis === "y"
-          ? scaleY === 0
+          ? transform.scale.y === 0
             ? 0
-            : newExtent / scaleY
-          : snapshotGeometry.size.height;
+            : newExtent / transform.scale.y
+          : snapshotGeometry.size.y;
       return {
         geometry: {
           type: "rect" as const,
-          size: { width, height },
+          size: makePoint(width, height),
         },
       };
     },

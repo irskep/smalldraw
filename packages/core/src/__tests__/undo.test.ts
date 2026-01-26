@@ -1,24 +1,24 @@
 import { describe, expect, test } from "bun:test";
-
+import type { RectShape } from "@smalldraw/core";
+import { makePoint } from "@smalldraw/geometry";
 import { type ActionContext, AddShape, DeleteShape } from "../actions";
 import { createDocument } from "../model/document";
-import type { Shape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
 
-const rectangle: Shape & { geometry: unknown } = {
+const rectangle: RectShape = {
   id: "rect-1",
   type: "rect",
   geometry: {
     type: "rect",
-    size: { width: 100, height: 50 },
+    size: makePoint(100, 50),
   },
   fill: { type: "solid", color: "#ff0000" },
   zIndex: "a0",
   transform: {
-    translation: { x: 0, y: 0 },
-    scale: { x: 1, y: 1 },
+    translation: makePoint(),
+    scale: makePoint(1, 1),
     rotation: 0,
   },
 };

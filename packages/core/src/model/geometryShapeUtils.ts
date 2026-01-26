@@ -1,20 +1,23 @@
 import {
-  type Bounds,
-  createBounds,
-  getBoundsFromPoints,
-  rotatePoint,
+  type Box,
+  BoxOperations,
+  makePoint,
   type Point,
+  rotatePoint,
 } from "@smalldraw/geometry";
-import type { CanonicalShapeTransform, Shape, ShapeTransform } from "./shape";
+import type {
+  AnyShape,
+  CanonicalShapeTransform,
+  Shape,
+  ShapeTransform,
+} from "./shape";
 import { normalizeShapeTransform } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
-type ShapeWithGeometry = Shape & { geometry: unknown };
-
 export function getGeometryLocalBounds(
-  shape: ShapeWithGeometry,
+  shape: AnyShape,
   registry: ShapeHandlerRegistry,
-): Bounds | null {
+): Box | null {
   const ops = registry.get(shape.type)?.geometry;
   if (ops?.getBounds) {
     return ops.getBounds(shape);
@@ -28,63 +31,47 @@ export function applyTransformToPoint(
 ): Point {
   const normalized = normalizeShapeTransform(transform ?? undefined);
   const { translation, rotation, scale, origin } = normalized;
-  const translated = {
-    x: (point.x - origin.x) * scale.x,
-    y: (point.y - origin.y) * scale.y,
-  };
+  const translated = makePoint(point).sub(origin).mul(scale);
   const rotated =
     rotation === 0 ? translated : rotatePoint(translated, rotation);
-  return {
-    x: rotated.x + origin.x + translation.x,
-    y: rotated.y + origin.y + translation.y,
-  };
+  return makePoint(rotated).add(origin).add(translation);
 }
 
 export function getShapeBounds(
-  shape: Shape,
+  shape: AnyShape,
   registry: ShapeHandlerRegistry,
   transformOverride?: ShapeTransform | CanonicalShapeTransform | null,
-): Bounds {
+): Box {
   const transform = normalizeShapeTransform(
     transformOverride ?? shape.transform,
   );
-  const geometryBounds = getGeometryLocalBounds(
-    shape as ShapeWithGeometry,
-    registry,
-  );
+  const geometryBounds = getGeometryLocalBounds(shape, registry);
   const corners: Point[] = geometryBounds
     ? [
-        { x: geometryBounds.minX, y: geometryBounds.minY },
-        { x: geometryBounds.maxX, y: geometryBounds.minY },
-        { x: geometryBounds.maxX, y: geometryBounds.maxY },
-        { x: geometryBounds.minX, y: geometryBounds.maxY },
+        makePoint(geometryBounds.min.x, geometryBounds.min.y),
+        makePoint(geometryBounds.max.x, geometryBounds.min.y),
+        makePoint(geometryBounds.max.x, geometryBounds.max.y),
+        makePoint(geometryBounds.min.x, geometryBounds.max.y),
       ]
-    : [{ x: 0, y: 0 }];
-  const baseBounds = getBoundsFromPoints(
+    : [makePoint()];
+  const baseBounds = BoxOperations.fromPointArray(
     corners.map((corner) => applyTransformToPoint(corner, transform)),
   );
   if (!baseBounds) {
     const { translation } = transform;
-    return createBounds(
-      translation.x,
-      translation.y,
-      translation.x,
-      translation.y,
-    );
+    return { min: translation, max: translation };
   }
   return applyStrokePadding(baseBounds, shape);
 }
 
-function applyStrokePadding(bounds: Bounds, shape: Shape): Bounds {
+function applyStrokePadding(bounds: Box, shape: Shape): Box {
   const strokeWidth = shape.stroke?.size ?? 0;
   if (!strokeWidth) {
     return bounds;
   }
   const padding = strokeWidth / 2;
-  return createBounds(
-    bounds.minX - padding,
-    bounds.minY - padding,
-    bounds.maxX + padding,
-    bounds.maxY + padding,
-  );
+  return {
+    min: makePoint(bounds.min.sub(makePoint(padding))),
+    max: makePoint(bounds.max.add(makePoint(padding))),
+  };
 }

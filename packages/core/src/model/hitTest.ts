@@ -1,7 +1,6 @@
-import type { Point } from "@smalldraw/geometry";
-import { containsPoint } from "@smalldraw/geometry";
+import { BoxOperations, type Point } from "@smalldraw/geometry";
 import { getShapeBounds } from "./geometryShapeUtils";
-import type { Shape } from "./shape";
+import type { AnyShape, Shape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
 /**
@@ -9,28 +8,27 @@ import type { ShapeHandlerRegistry } from "./shapeHandlers";
  * Falls back to AABB test if no specific hit test is provided
  */
 export function hitTestShape(
-  shape: Shape,
+  shape: AnyShape,
   point: Point,
   registry: ShapeHandlerRegistry,
 ): boolean {
   const ops = registry.get(shape.type)?.shape;
-  const shapeWithGeometry = shape as Shape & { geometry: unknown };
 
   // Use specific hit test if available
   if (ops?.hitTest) {
-    return ops.hitTest(shapeWithGeometry, point);
+    return ops.hitTest(shape, point);
   }
 
   // Fallback to AABB test
   const bounds = getShapeBounds(shape, registry);
-  return containsPoint(bounds, point);
+  return new BoxOperations(bounds).containsPoint(point);
 }
 
 /**
  * Find the topmost shape at a point (back-to-front z-order)
  */
 export function hitTestShapes(
-  shapes: Shape[],
+  shapes: AnyShape[],
   point: Point,
   registry: ShapeHandlerRegistry,
 ): Shape | null {
