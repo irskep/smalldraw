@@ -111,6 +111,11 @@ export interface ShapeHandler<T extends AnyGeometry, TResizeData = unknown> {
       operation: ResizeOperation<T, TResizeData>,
     ) => ResizeResult<T> | null;
 
+    /** Allow non-uniform scaling when the shape is rotated */
+    allowNonUniformScaleWhileRotated?: (
+      shape: Shape & { geometry: T },
+    ) => boolean;
+
     /** Check if this shape supports axis-aligned resize (mid-handles) */
     supportsAxisResize?: (shape: Shape & { geometry: T }) => boolean;
 

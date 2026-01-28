@@ -15,8 +15,13 @@ import {
 import { getShapeBounds } from "../model/geometryShapeUtils";
 import { hitTestShape } from "../model/hitTest";
 import { computeSelectionBounds } from "../model/selectionBounds";
-import type { AnyShape, CanonicalShapeTransform, Shape } from "../model/shape";
+import type {
+  AnyShape,
+  CanonicalShapeTransform,
+  Shape,
+} from "../model/shape";
 import { normalizeShapeTransform } from "../model/shape";
+import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
 import { getPointFromLayout, type NormalizedLayout } from "../model/shapeTypes";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { createPointerDragHandler } from "./pointerDrag";
@@ -539,6 +544,13 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
       if (shape && shape.type === entry.geometryType) {
         const ops = registry.get(entry.geometryType)?.selection;
         if (ops?.resize) {
+          const shapeSelectionScale = resolveSelectionScaleForShape(
+            selectionScale,
+            bounds,
+            shape,
+            transform,
+            registry,
+          );
           const result = ops.resize({
             shape: shape,
             snapshotGeometry: entry.snapshot.geometry,
@@ -546,7 +558,7 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
             transform,
             initialBounds: bounds,
             nextBounds: newBounds,
-            selectionScale,
+            selectionScale: shapeSelectionScale,
             layout,
           });
           if (result) {
@@ -693,6 +705,13 @@ function computePreviewShapes(
             const registry = runtime.getShapeHandlers();
             const ops = registry.get(entry.geometryType)?.selection;
             if (ops?.resize) {
+              const shapeSelectionScale = resolveSelectionScaleForShape(
+                selectionScale,
+                bounds,
+                shape,
+                transform,
+                registry,
+              );
               const result = ops.resize({
                 shape,
                 snapshotGeometry: entry.snapshot.geometry,
@@ -700,7 +719,7 @@ function computePreviewShapes(
                 transform,
                 initialBounds: bounds,
                 nextBounds: newBounds,
-                selectionScale,
+                selectionScale: shapeSelectionScale,
                 layout,
               });
               if (result) {
@@ -1043,4 +1062,35 @@ function computeBoundsForSelection(
 
 function emitSelectionFrame(runtime: ToolRuntime, bounds?: Box) {
   runtime.emit({ type: "selection-frame", payload: bounds ?? null });
+}
+
+function resolveSelectionScaleForShape(
+  selectionScale: Point,
+  selectionBounds: Box | undefined,
+  shape: Shape,
+  transform: CanonicalShapeTransform,
+  registry: ShapeHandlerRegistry,
+): Point {
+  if (
+    !selectionBounds ||
+    selectionScale.x === selectionScale.y ||
+    Math.abs(transform.rotation) < 1e-6
+  ) {
+    return selectionScale;
+  }
+  const ops = registry.get(shape.type)?.selection;
+  const allowNonUniform =
+    ops?.allowNonUniformScaleWhileRotated?.(shape) ?? true;
+  if (allowNonUniform) return selectionScale;
+  const boundsOps = new BoxOperations(selectionBounds);
+  const width = boundsOps.width;
+  const height = boundsOps.height;
+  const startDiagonal = Math.hypot(width, height);
+  if (startDiagonal === 0) return selectionScale;
+  const endDiagonal = Math.hypot(
+    width * selectionScale.x,
+    height * selectionScale.y,
+  );
+  const uniform = endDiagonal / startDiagonal;
+  return makePoint(uniform, uniform);
 }

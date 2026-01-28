@@ -102,6 +102,7 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
       const translation = getPointFromLayout(layout, nextBounds);
       return { geometry, translation };
     },
+    allowNonUniformScaleWhileRotated: () => false,
     supportsAxisResize: () => true,
     getAxisExtent(geometry, transform, axis) {
       return axis === "x"

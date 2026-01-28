@@ -389,8 +389,34 @@ describe("selection tool", () => {
       throw new Error("Expected rectangle geometry");
     }
     const rectGeometry = geometry as RectGeometry;
-    expect(rectGeometry.size.x).toBeCloseTo(30, 6);
-    expect(rectGeometry.size.y).toBeCloseTo(20, 6);
+    const initialBounds = getShapeBounds(rotatedRect, registry);
+    const newBounds = BoxOperations.fromPointPair(
+      initialBounds.max,
+      makePoint(-15, -20),
+    );
+    const initialBoundsOps = new BoxOperations(initialBounds);
+    const newBoundsOps = new BoxOperations(newBounds);
+    const selectionScale = makePoint(
+      newBoundsOps.width / initialBoundsOps.width,
+      newBoundsOps.height / initialBoundsOps.height,
+    );
+    const startDiagonal = Math.hypot(
+      initialBoundsOps.width,
+      initialBoundsOps.height,
+    );
+    const endDiagonal = Math.hypot(
+      initialBoundsOps.width * selectionScale.x,
+      initialBoundsOps.height * selectionScale.y,
+    );
+    const uniformScale = startDiagonal === 0 ? 1 : endDiagonal / startDiagonal;
+    expect(rectGeometry.size.x).toBeCloseTo(
+      rotatedRect.geometry.size.x * uniformScale,
+      6,
+    );
+    expect(rectGeometry.size.y).toBeCloseTo(
+      rotatedRect.geometry.size.y * uniformScale,
+      6,
+    );
   });
 
   test("resizes rotated rectangle with world-axis scale", () => {
@@ -452,13 +478,25 @@ describe("selection tool", () => {
       throw new Error("Expected rectangle geometry");
     }
     const rectGeometry = geometry as RectGeometry;
-    const cos = Math.abs(Math.cos(rotatedRect.transform?.rotation ?? 0));
-    const sin = Math.abs(Math.sin(rotatedRect.transform?.rotation ?? 0));
-    const det = cos * cos - sin * sin;
-    const expectedWidth = (cos * targetSize.x - sin * targetSize.y) / det;
-    const expectedHeight = (cos * targetSize.y - sin * targetSize.x) / det;
-    expect(rectGeometry.size.x).toBeCloseTo(expectedWidth, 5);
-    expect(rectGeometry.size.y).toBeCloseTo(expectedHeight, 5);
+    const boundsOps = new BoxOperations(bounds);
+    const selectionScale = makePoint(
+      targetSize.x / boundsOps.width,
+      targetSize.y / boundsOps.height,
+    );
+    const startDiagonal = Math.hypot(boundsOps.width, boundsOps.height);
+    const endDiagonal = Math.hypot(
+      boundsOps.width * selectionScale.x,
+      boundsOps.height * selectionScale.y,
+    );
+    const uniformScale = startDiagonal === 0 ? 1 : endDiagonal / startDiagonal;
+    expect(rectGeometry.size.x).toBeCloseTo(
+      rotatedRect.geometry.size.x * uniformScale,
+      5,
+    );
+    expect(rectGeometry.size.y).toBeCloseTo(
+      rotatedRect.geometry.size.y * uniformScale,
+      5,
+    );
   });
 
   test("resizes rotated rectangle along local width using axis handle", () => {
