@@ -62,6 +62,7 @@ interface DragState {
   oppositeCorner?: Point;
   center?: Point;
   axisResize?: AxisResizeState;
+  handleId?: string;
   resizeEntries: Map<string, ShapeResizeEntry<AnyGeometry, unknown>>;
   shapeBounds: Map<string, Box>;
 }
@@ -267,6 +268,7 @@ export function createSelectionTool(): ToolDefinition {
         selectionBounds: bounds,
         resizeEntries,
         shapeBounds,
+        handleId: event.handleId,
       };
 
       const behavior = event.handleId
@@ -336,6 +338,7 @@ export function createSelectionTool(): ToolDefinition {
       const state = ensureState(runtime);
       if (!state.drag) return;
       state.drag.lastPoint = event.point;
+      updateDragMode(runtime, state.drag, event);
       const frame = computeDragFrame(runtime, state.drag);
       emitSelectionFrame(runtime, frame ?? state.drag.selectionBounds);
       runtime.setDrafts(computePreviewShapes(runtime, state.drag));
@@ -385,8 +388,9 @@ export function createSelectionTool(): ToolDefinition {
             });
             return ensureState(runtime).drag ?? null;
           },
-          onMove(drag, point, _event) {
+          onMove(drag, point, event) {
             drag.lastPoint = point;
+            updateDragMode(runtime, drag, event);
             const frame = computeDragFrame(runtime, drag);
             emitSelectionFrame(runtime, frame ?? drag.selectionBounds);
             runtime.setDrafts(computePreviewShapes(runtime, drag));
@@ -523,7 +527,10 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
     return;
   }
   const boundsOps = new BoxOperations(bounds);
-  const newBounds = BoxOperations.fromPointPair(opposite, drag.lastPoint);
+  const newBounds =
+    drag.mode === "resize-proportional"
+      ? computeProportionalResizeBounds(bounds, opposite, drag.lastPoint)
+      : BoxOperations.fromPointPair(opposite, drag.lastPoint);
   const newBoundsOps = new BoxOperations(newBounds);
   if (newBoundsOps.width === 0 && newBoundsOps.height === 0) {
     return;
@@ -688,10 +695,10 @@ function computePreviewShapes(
         const bounds = drag.selectionBounds;
         const opposite = drag.oppositeCorner;
         if (bounds && opposite) {
-          const newBounds = BoxOperations.fromPointPair(
-            opposite,
-            drag.lastPoint,
-          );
+          const newBounds =
+            drag.mode === "resize-proportional"
+              ? computeProportionalResizeBounds(bounds, opposite, drag.lastPoint)
+              : BoxOperations.fromPointPair(opposite, drag.lastPoint);
           const newBoundsOps = new BoxOperations(newBounds);
           const boundsOps = new BoxOperations(bounds);
           const selectionScale = makePoint(
@@ -826,11 +833,130 @@ function resolveHandleBehavior(
   event: ToolPointerEvent,
   handleId: string,
 ): HandleBehavior | null {
+  const logState = (resolveHandleBehavior as { _lastLogKey?: string });
   const handle = HANDLE_DESCRIPTORS.find((h) => h.id === handleId);
-  if (!handle) return null;
-  if (event.shiftKey && handle.shiftBehavior) return handle.shiftBehavior;
-  if (event.altKey && handle.altBehavior) return handle.altBehavior;
+  if (!handle) {
+    const key = `unknown:${handleId}:${event.shiftKey ? 1 : 0}:${
+      event.altKey ? 1 : 0
+    }`;
+    if (logState._lastLogKey !== key) {
+      logState._lastLogKey = key;
+      console.log("[selectionTool.resolveHandleBehavior] unknown handle", {
+        handleId,
+        shiftKey: event.shiftKey,
+        altKey: event.altKey,
+      });
+    }
+    return null;
+  }
+  if (event.shiftKey && handle.shiftBehavior) {
+    const key = `shift:${handleId}:${handle.shiftBehavior.type}:${
+      "proportional" in handle.shiftBehavior
+        ? handle.shiftBehavior.proportional
+          ? 1
+          : 0
+        : 0
+    }`;
+    if (logState._lastLogKey !== key) {
+      logState._lastLogKey = key;
+      console.log("[selectionTool.resolveHandleBehavior] shift behavior", {
+        handleId,
+        behavior: handle.shiftBehavior,
+      });
+    }
+    return handle.shiftBehavior;
+  }
+  if (event.altKey && handle.altBehavior) {
+    const key = `alt:${handleId}:${handle.altBehavior.type}`;
+    if (logState._lastLogKey !== key) {
+      logState._lastLogKey = key;
+      console.log("[selectionTool.resolveHandleBehavior] alt behavior", {
+        handleId,
+        behavior: handle.altBehavior,
+      });
+    }
+    return handle.altBehavior;
+  }
+  const key = `default:${handleId}:${handle.behavior.type}`;
+  if (logState._lastLogKey !== key) {
+    logState._lastLogKey = key;
+    console.log("[selectionTool.resolveHandleBehavior] default behavior", {
+      handleId,
+      behavior: handle.behavior,
+    });
+  }
   return handle.behavior;
+}
+
+function updateDragMode(
+  runtime: ToolRuntime,
+  drag: DragState,
+  event: ToolPointerEvent,
+): void {
+  const handleId = drag.handleId;
+  if (!handleId) return;
+  const behavior = resolveHandleBehavior(event, handleId);
+  if (!behavior) return;
+  const shapes = drag.selectionIds
+    .map((id) => runtime.getShape(id))
+    .filter((shape) => !!shape) as AnyShape[];
+  if (!shapes.length) return;
+  const bounds = drag.selectionBounds;
+  const primaryShape = shapes[0];
+  const primaryTransform = drag.transforms.get(primaryShape.id);
+
+  if (
+    behavior.type === "rotate" &&
+    hasRotatableShape(shapes) &&
+    primaryTransform
+  ) {
+    drag.mode = "rotate";
+    drag.center =
+      drag.center ??
+      (bounds
+        ? new BoxOperations(bounds).center
+        : getShapeCenter(primaryShape, primaryTransform, runtime));
+    drag.oppositeCorner = undefined;
+    drag.axisResize = undefined;
+    return;
+  }
+
+  if (
+    behavior.type === "resize-axis" &&
+    handleId &&
+    drag.mode !== "resize-axis"
+  ) {
+    const axisResize = createAxisResizeState(
+      shapes,
+      drag,
+      behavior.axis,
+      handleId,
+      drag.startPoint,
+      runtime,
+    );
+    if (axisResize) {
+      drag.mode = "resize-axis";
+      drag.axisResize = axisResize;
+      drag.center = undefined;
+      drag.oppositeCorner = undefined;
+    }
+    return;
+  }
+
+  if (
+    behavior.type === "resize" &&
+    hasResizableShape(shapes, runtime) &&
+    bounds &&
+    handleId
+  ) {
+    drag.mode = behavior.proportional ? "resize-proportional" : "resize";
+    drag.oppositeCorner = getHandlePosition(
+      bounds,
+      getOppositeHandle(handleId),
+    );
+    drag.axisResize = undefined;
+    drag.center = undefined;
+  }
 }
 
 function getOppositeHandle(handleId: string): string {
@@ -860,9 +986,16 @@ function computeDragFrame(
       );
     }
     case "resize":
-    case "resize-proportional":
       return drag.oppositeCorner
         ? BoxOperations.fromPointPair(drag.oppositeCorner, drag.lastPoint)
+        : drag.selectionBounds;
+    case "resize-proportional":
+      return drag.oppositeCorner && drag.selectionBounds
+        ? computeProportionalResizeBounds(
+            drag.selectionBounds,
+            drag.oppositeCorner,
+            drag.lastPoint,
+          )
         : drag.selectionBounds;
     case "resize-axis":
       return computeAxisResizeBounds(runtime, drag);
@@ -1062,6 +1195,46 @@ function computeBoundsForSelection(
 
 function emitSelectionFrame(runtime: ToolRuntime, bounds?: Box) {
   runtime.emit({ type: "selection-frame", payload: bounds ?? null });
+}
+
+function computeProportionalResizeBounds(
+  bounds: Box,
+  opposite: Point,
+  point: Point,
+): Box {
+  const boundsOps = new BoxOperations(bounds);
+  const width = boundsOps.width;
+  const height = boundsOps.height;
+  if (width === 0 || height === 0) {
+    return BoxOperations.fromPointPair(opposite, point);
+  }
+  const dx = point.x - opposite.x;
+  const dy = point.y - opposite.y;
+  const signX = dx < 0 ? -1 : 1;
+  const signY = dy < 0 ? -1 : 1;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+  const ratio = width / height;
+  let targetWidth = absDx;
+  let targetHeight = absDy;
+  if (absDy === 0) {
+    targetWidth = absDx;
+    targetHeight = absDx / ratio;
+  } else if (absDx === 0) {
+    targetHeight = absDy;
+    targetWidth = absDy * ratio;
+  } else if (absDx / absDy >= ratio) {
+    targetWidth = absDx;
+    targetHeight = absDx / ratio;
+  } else {
+    targetHeight = absDy;
+    targetWidth = absDy * ratio;
+  }
+  const adjusted = makePoint(
+    opposite.x + signX * targetWidth,
+    opposite.y + signY * targetHeight,
+  );
+  return BoxOperations.fromPointPair(opposite, adjusted);
 }
 
 function resolveSelectionScaleForShape(

@@ -4,6 +4,7 @@ import {
   createSelectionTool,
   DrawingStore,
   type ToolDefinition,
+  type ToolPointerEvent,
 } from "@smalldraw/core";
 import { makePoint, type Point } from "@smalldraw/geometry";
 import {
@@ -67,6 +68,9 @@ export class DrawingApp {
     up: (event: PointerEvent) => void;
     cancel: (event: PointerEvent) => void;
   };
+  private lastPointerPoint: Point | null = null;
+  private lastPointerButtons = 0;
+  private readonly modifierHandler: (event: KeyboardEvent) => void;
 
   constructor(options: DrawingAppOptions) {
     if (!options?.container) {
@@ -181,6 +185,19 @@ export class DrawingApp {
     this.overlay.addEventListener("pointercancel", this.pointerHandlers.cancel);
     this.overlay.addEventListener("pointerleave", this.pointerHandlers.cancel);
 
+    this.modifierHandler = (event: KeyboardEvent) => {
+      if (
+        event.key !== "Shift" &&
+        event.key !== "Alt" &&
+        event.key !== "AltGraph"
+      ) {
+        return;
+      }
+      this.dispatchModifierSync(event);
+    };
+    window.addEventListener("keydown", this.modifierHandler);
+    window.addEventListener("keyup", this.modifierHandler);
+
     // Mount to container
     mount(options.container, this.el);
 
@@ -231,6 +248,8 @@ export class DrawingApp {
         event.preventDefault();
         const point = getPointerPoint(event, this.overlay);
         const payload = buildToolEvent(event, point);
+        this.lastPointerPoint = point;
+        this.lastPointerButtons = payload.buttons ?? 0;
         const activeTool = this.store.getActiveToolId();
         const selectionBefore = this.store.getSelection();
         console.log("[pointerDown] START", {
@@ -273,6 +292,8 @@ export class DrawingApp {
       move: (event: PointerEvent) => {
         const point = getPointerPoint(event, this.overlay);
         const payload = buildToolEvent(event, point);
+        this.lastPointerPoint = point;
+        this.lastPointerButtons = payload.buttons ?? 0;
         if (this.store.getActiveToolId() === "selection") {
           payload.handleId = hitTestHandles(point, this.store);
         }
@@ -282,6 +303,8 @@ export class DrawingApp {
       up: (event: PointerEvent) => {
         const point = getPointerPoint(event, this.overlay);
         const payload = buildToolEvent(event, point, 0);
+        this.lastPointerPoint = point;
+        this.lastPointerButtons = 0;
         payload.handleId = undefined;
         try {
           this.overlay.releasePointerCapture?.(event.pointerId ?? 0);
@@ -294,9 +317,25 @@ export class DrawingApp {
       cancel: (event: PointerEvent) => {
         const point = getPointerPoint(event, this.overlay);
         const payload = buildToolEvent(event, point, 0);
+        this.lastPointerPoint = null;
+        this.lastPointerButtons = 0;
         this.store.dispatch("pointerCancel", payload);
       },
     };
+  }
+
+  private dispatchModifierSync(event: KeyboardEvent): void {
+    if (!this.lastPointerPoint) return;
+    const payload: ToolPointerEvent = {
+      point: this.lastPointerPoint,
+      buttons: this.lastPointerButtons,
+      shiftKey: event.shiftKey,
+      altKey: event.altKey,
+    };
+    if (this.store.getActiveToolId() === "selection") {
+      payload.handleId = hitTestHandles(this.lastPointerPoint, this.store);
+    }
+    this.store.dispatch("pointerMove", payload);
   }
 
   private updateSelectionForPoint(point: Point, additive: boolean): void {
