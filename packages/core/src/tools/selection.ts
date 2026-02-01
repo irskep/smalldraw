@@ -1,6 +1,6 @@
+import { Vec2 } from "gl-matrix";
 import {
   type AnyGeometry,
-  angleBetween,
   type Box,
   BoxOperations,
   makePoint,
@@ -1102,10 +1102,10 @@ function createAxisResizeState(
   const rotation = transform.rotation;
   const signX = transform.scale.x === 0 ? 1 : Math.sign(transform.scale.x);
   const signY = transform.scale.y === 0 ? 1 : Math.sign(transform.scale.y);
-  const baseDirection =
-    axis === "x"
-      ? makePoint(Math.cos(rotation) * signX, Math.sin(rotation) * signX)
-      : makePoint(-Math.sin(rotation) * signY, Math.cos(rotation) * signY);
+  const baseAxis =
+    axis === "x" ? makePoint(signX, 0) : makePoint(0, signY);
+  const baseDirection = makePoint();
+  Vec2.rotate(baseDirection, baseAxis, [0, 0], rotation);
   const startExtent = ops.getAxisExtent(
     entry.snapshot.geometry,
     transform,
@@ -1113,20 +1113,15 @@ function createAxisResizeState(
   );
   const half = startExtent / 2;
   const center = transform.translation;
-  const direction =
-    side === "positive"
-      ? baseDirection
-      : makePoint(-baseDirection.x, -baseDirection.y);
-  const anchor =
-    side === "positive"
-      ? makePoint(center.x - direction.x * half, center.y - direction.y * half)
-      : makePoint(center.x - direction.x * half, center.y - direction.y * half);
+  const direction = makePoint();
+  Vec2.scale(direction, baseDirection, side === "positive" ? 1 : -1);
+  const anchor = makePoint();
+  Vec2.scaleAndAdd(anchor, center, direction, -half);
   const startDelta = makePoint(
     startPoint.x - anchor.x,
     startPoint.y - anchor.y,
   );
-  const startProjection =
-    startDelta.x * direction.x + startDelta.y * direction.y;
+  const startProjection = Vec2.dot(startDelta, direction);
   return {
     shapeId: shape.id,
     axis,
@@ -1180,9 +1175,17 @@ function computeRotatedBounds(
 function getRotationDelta(drag: DragState): number {
   if (!drag.center) return 0;
   const startVector = makePoint(drag.startPoint).sub(drag.center);
-  if (startVector.x === 0 && startVector.y === 0) return 0;
   const currentVector = makePoint(drag.lastPoint).sub(drag.center);
-  return angleBetween(startVector, currentVector);
+  if (startVector.x === 0 && startVector.y === 0) return 0;
+  const targetVector =
+    currentVector.x === 0 && currentVector.y === 0
+      ? makePoint(1, 0)
+      : currentVector;
+  const angle = Vec2.angle(startVector, targetVector);
+  if (angle === 0) return 0;
+  const cross = Vec2.cross(new Float32Array(3), startVector, targetVector);
+  const sign = Math.sign(cross[2]);
+  return sign === 0 ? 0 : angle * sign;
 }
 
 function computeBoundsForSelection(

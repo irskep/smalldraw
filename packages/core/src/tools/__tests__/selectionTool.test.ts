@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-
+import { Vec2 } from "gl-matrix";
 import {
   type Box,
   BoxOperations,
@@ -534,7 +534,7 @@ describe("selection tool", () => {
       bounds.max.x,
       (bounds.min.y + bounds.max.y) / 2,
     );
-    const axisX = makePoint(Math.cos(rotation), Math.sin(rotation));
+    const axisX = Vec2.rotate(makePoint(), makePoint(1, 0), [0, 0], rotation);
     const targetPoint = makePoint(
       startPoint.x + axisX.x * 10,
       startPoint.y + axisX.y * 10,
@@ -1032,9 +1032,15 @@ describe("selection tool", () => {
       handleId: "rotate",
     });
     const center = makePoint(15, 5);
-    const expectedDelta =
-      Math.atan2(endPoint.y - center.y, endPoint.x - center.x) -
-      Math.atan2(startPoint.y - center.y, startPoint.x - center.x);
+    const startVector = makePoint(startPoint).sub(center);
+    const currentVector = makePoint(endPoint).sub(center);
+    const targetVector =
+      currentVector.x === 0 && currentVector.y === 0
+        ? makePoint(1, 0)
+        : currentVector;
+    const expectedAngle = Vec2.angle(startVector, targetVector);
+    const cross = Vec2.cross(new Float32Array(3), startVector, targetVector);
+    const expectedDelta = expectedAngle * Math.sign(cross[2]);
     expect(document.shapes["left-rot"]?.transform?.rotation).toBeCloseTo(
       expectedDelta,
       3,

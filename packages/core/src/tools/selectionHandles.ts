@@ -1,3 +1,4 @@
+import { Vec2 } from "gl-matrix";
 import {
   type Box,
   BoxOperations,
@@ -5,7 +6,7 @@ import {
   type Point,
 } from "@smalldraw/geometry";
 import {
-  applyTransformToPoint,
+  buildTransformMatrix,
   getGeometryLocalBounds,
 } from "../model/geometryShapeUtils";
 import type { AnyShape } from "../model/shape";
@@ -48,7 +49,8 @@ export function resolveSelectionHandlePoint(
           axis === "x"
             ? makePoint(direction * half, 0)
             : makePoint(0, direction * half);
-        return applyTransformToPoint(local, shape.transform);
+        const matrix = buildTransformMatrix(shape.transform);
+        return Vec2.transformMat2d(makePoint(), local, matrix);
       }
     }
   }

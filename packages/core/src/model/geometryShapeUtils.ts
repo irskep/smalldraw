@@ -1,9 +1,9 @@
+import { Mat2d, Vec2 } from "gl-matrix";
 import {
   type Box,
   BoxOperations,
   makePoint,
   type Point,
-  rotatePoint,
 } from "@smalldraw/geometry";
 import type {
   AnyShape,
@@ -29,12 +29,27 @@ export function applyTransformToPoint(
   point: Point,
   transform?: ShapeTransform | CanonicalShapeTransform | null,
 ): Point {
+  const matrix = buildTransformMatrix(transform);
+  return Vec2.transformMat2d(makePoint(), point, matrix);
+}
+
+export function buildTransformMatrix(
+  transform?: ShapeTransform | CanonicalShapeTransform | null,
+): Mat2d {
   const normalized = normalizeShapeTransform(transform ?? undefined);
   const { translation, rotation, scale, origin } = normalized;
-  const translated = makePoint(point).sub(origin).mul(scale);
-  const rotated =
-    rotation === 0 ? translated : rotatePoint(translated, rotation);
-  return makePoint(rotated).add(origin).add(translation);
+  const translationMatrix = Mat2d.fromTranslation(new Mat2d(), translation);
+  const originMatrix = Mat2d.fromTranslation(new Mat2d(), origin);
+  const rotationMatrix = Mat2d.fromRotation(new Mat2d(), rotation);
+  const scaleMatrix = Mat2d.fromScaling(new Mat2d(), scale);
+  const negativeOrigin = makePoint(-origin.x, -origin.y);
+  const inverseOriginMatrix = Mat2d.fromTranslation(new Mat2d(), negativeOrigin);
+  const matrix = new Mat2d();
+  Mat2d.multiply(matrix, translationMatrix, originMatrix);
+  Mat2d.multiply(matrix, matrix, rotationMatrix);
+  Mat2d.multiply(matrix, matrix, scaleMatrix);
+  Mat2d.multiply(matrix, matrix, inverseOriginMatrix);
+  return matrix;
 }
 
 export function getShapeBounds(
@@ -45,6 +60,7 @@ export function getShapeBounds(
   const transform = normalizeShapeTransform(
     transformOverride ?? shape.transform,
   );
+  const matrix = buildTransformMatrix(transform);
   const geometryBounds = getGeometryLocalBounds(shape, registry);
   const corners: Point[] = geometryBounds
     ? [
@@ -55,7 +71,9 @@ export function getShapeBounds(
       ]
     : [makePoint()];
   const baseBounds = BoxOperations.fromPointArray(
-    corners.map((corner) => applyTransformToPoint(corner, transform)),
+    corners.map((corner) =>
+      Vec2.transformMat2d(makePoint(), corner, matrix),
+    ),
   );
   if (!baseBounds) {
     const { translation } = transform;
