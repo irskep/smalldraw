@@ -1,7 +1,13 @@
-import { BoxOperations, type RectGeometry } from "@smalldraw/geometry";
+import {
+  BoxOperations,
+  type RectGeometry,
+  getX,
+  getY,
+  toVec2Like,
+} from "@smalldraw/geometry";
 import { Mat2d, Vec2 } from "gl-matrix";
 import { buildTransformMatrix } from "../geometryShapeUtils";
-import type { Shape } from "../shape";
+import type { AnyShape, Shape } from "../shape";
 import { normalizeShapeTransform } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 
@@ -13,8 +19,8 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
     getBounds(shape: RectShape) {
       const g = shape.geometry;
       return BoxOperations.fromPointPair(
-        new Vec2().sub(g.size).div(new Vec2(2)),
-        new Vec2().add(g.size).div(new Vec2(2)),
+        new Vec2(-getX(g.size), -getY(g.size)).div(new Vec2(2)),
+        new Vec2(getX(g.size), getY(g.size)).div(new Vec2(2)),
       );
     },
   },
@@ -31,7 +37,10 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
         point,
         inverse,
       ) as Vec2;
-      const halfSize = new Vec2(shape.geometry.size).div(new Vec2(2));
+      const halfSize = new Vec2(
+        getX(shape.geometry.size),
+        getY(shape.geometry.size),
+      ).div(new Vec2(2));
       const padding = (shape.stroke?.size ?? 0) / 2;
       const min = new Vec2(-halfSize.x - padding, -halfSize.y - padding);
       const max = new Vec2(halfSize.x + padding, halfSize.y + padding);
@@ -44,7 +53,7 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
       return {
         geometry: {
           type: "rect",
-          size: new Vec2(shape.geometry.size),
+          size: toVec2Like(shape.geometry.size),
         },
       };
     },
@@ -53,7 +62,9 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
       const g = snapshotGeometry as RectGeometry;
       const geometry: RectGeometry = {
         type: "rect",
-        size: new Vec2(g.size).mul(selectionScale),
+        size: toVec2Like(
+          new Vec2(getX(g.size), getY(g.size)).mul(selectionScale),
+        ),
       };
       const translation = getPointFromLayout(layout, nextBounds);
       return { geometry, translation };
@@ -62,27 +73,58 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
     supportsAxisResize: () => true,
     getAxisExtent(geometry, transform, axis) {
       return axis === "x"
-        ? geometry.size.x * Math.abs(transform.scale.x)
-        : geometry.size.y * Math.abs(transform.scale.y);
+        ? getX(geometry.size) * Math.abs(getX(transform.scale))
+        : getY(geometry.size) * Math.abs(getY(transform.scale));
     },
     axisResize({ snapshotGeometry, transform, axis, newExtent }) {
       const width =
         axis === "x"
-          ? transform.scale.x === 0
+          ? getX(transform.scale) === 0
             ? 0
-            : newExtent / transform.scale.x
-          : snapshotGeometry.size.x;
+            : newExtent / getX(transform.scale)
+          : getX(snapshotGeometry.size);
       const height =
         axis === "y"
-          ? transform.scale.y === 0
+          ? getY(transform.scale) === 0
             ? 0
-            : newExtent / transform.scale.y
-          : snapshotGeometry.size.y;
+            : newExtent / getY(transform.scale)
+          : getY(snapshotGeometry.size);
       return {
         geometry: {
           type: "rect" as const,
-          size: new Vec2(width, height),
+          size: toVec2Like(new Vec2(width, height)),
         },
+      };
+    },
+  },
+  serialization: {
+    toJSON(shape: RectShape) {
+      return {
+        ...shape,
+        geometry: {
+          type: "rect",
+          size: toVec2Like(shape.geometry.size),
+        },
+        ...(shape.transform
+          ? {
+              transform: shape.transform,
+            }
+          : {}),
+      };
+    },
+    fromJSON(shape: AnyShape) {
+      const rectShape = shape as RectShape;
+      return {
+        ...rectShape,
+        geometry: {
+          type: "rect",
+          size: toVec2Like(rectShape.geometry.size),
+        },
+        ...(rectShape.transform
+          ? {
+              transform: rectShape.transform,
+            }
+          : {}),
       };
     },
   },

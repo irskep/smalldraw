@@ -1,26 +1,33 @@
 import type { DrawingDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
 import type { ActionContext, UndoableAction } from "./types";
+import { stripUndefined } from "./utils";
 
 export class DeleteShape implements UndoableAction {
   private deletedShape?: AnyShape;
 
   constructor(private readonly shapeId: string) {}
 
-  redo(doc: DrawingDocument, _ctx: ActionContext): void {
+  redo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     if (!this.deletedShape) {
-      this.deletedShape = doc.shapes[this.shapeId];
+      const shape = doc.shapes[this.shapeId];
+      this.deletedShape = shape ? stripUndefined(shape) : undefined;
     }
-    delete doc.shapes[this.shapeId];
+    return ctx.change(doc, (draft) => {
+      delete draft.shapes[this.shapeId];
+    });
   }
 
-  undo(doc: DrawingDocument, _ctx: ActionContext): void {
+  undo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     if (!this.deletedShape) {
       throw new Error(
         `Cannot undo delete because shape ${this.shapeId} was never captured`,
       );
     }
-    doc.shapes[this.shapeId] = this.deletedShape;
+    const restored = this.deletedShape;
+    return ctx.change(doc, (draft) => {
+      draft.shapes[this.shapeId] = restored;
+    });
   }
 
   affectedShapeIds(): string[] {

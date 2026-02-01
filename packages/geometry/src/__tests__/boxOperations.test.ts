@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { Vec2 } from "gl-matrix";
+import { Vec2, type Vec2Like } from "gl-matrix";
 import { BoxOperations } from "../BoxOperations";
 
-function expectPoint(point: { x: number; y: number }, x: number, y: number) {
-  expect(point.x).toBeCloseTo(x, 6);
-  expect(point.y).toBeCloseTo(y, 6);
+function expectPoint(point: Vec2Like, x: number, y: number) {
+  expect(point[0]).toBeCloseTo(x, 6);
+  expect(point[1]).toBeCloseTo(y, 6);
 }
 
 describe("BoxOperations", () => {

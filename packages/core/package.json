@@ -12,6 +12,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@automerge/automerge": "^2.2.4",
     "@smalldraw/geometry": "workspace:",
     "jittered-fractional-indexing": "^1.0.0"
   }

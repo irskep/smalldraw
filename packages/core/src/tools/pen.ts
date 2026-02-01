@@ -1,4 +1,9 @@
-import { BoxOperations, type PenGeometry } from "@smalldraw/geometry";
+import {
+  BoxOperations,
+  type PenGeometry,
+  toVec2,
+  toVec2Like,
+} from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
 import type { PenShape } from "../model/shapes/penShape";
@@ -53,7 +58,9 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       type: "brush",
       color: override?.color ?? shared.strokeColor ?? fallbackStroke.color,
       size: override?.size ?? shared.strokeWidth ?? fallbackStroke.size,
-      brushId: override?.brushId ?? fallbackStroke.brushId,
+      ...(override?.brushId ?? fallbackStroke.brushId
+        ? { brushId: override?.brushId ?? fallbackStroke.brushId }
+        : {}),
     } satisfies StrokeStyle;
   };
 
@@ -72,7 +79,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       id: draftId,
       geometry: {
         type: "pen",
-        points: [point],
+        points: [toVec2Like(point)],
         pressures: pressure ? [pressure] : undefined,
       },
       stroke: resolveStroke(runtime),
@@ -88,7 +95,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
   ) => {
     const state = runtimeState.get(runtime);
     if (!state?.drawing) return;
-    state.drawing.geometry.points.push(point);
+    state.drawing.geometry.points.push(toVec2Like(point));
     if (state.drawing.geometry.pressures && pressure)
       state.drawing.geometry.pressures.push(pressure);
     updateDraft(runtime);
@@ -193,7 +200,7 @@ const createStrokeShape = (draft: StrokeDraftState): PenShape | undefined => {
   const boxOps = new BoxOperations(bounds);
   const center = boxOps.center;
   const localPoints = draft.geometry.points.map((pt) =>
-    new Vec2(pt).sub(center),
+    toVec2Like(new Vec2().add(toVec2(pt)).sub(center)),
   );
   const shape: PenShape = {
     id: draft.id,
@@ -210,8 +217,8 @@ const createStrokeShape = (draft: StrokeDraftState): PenShape | undefined => {
       rotatable: false,
     },
     transform: {
-      translation: center,
-      scale: new Vec2(1),
+      translation: toVec2Like(center),
+      scale: toVec2Like(new Vec2(1, 1)),
       rotation: 0,
     },
   };

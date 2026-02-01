@@ -1,5 +1,6 @@
 export type { AnyGeometry } from "@smalldraw/geometry";
 export * from "./actions";
+export * from "./automerge/adapter";
 export * from "./model/document";
 export * from "./model/geometryShapeUtils";
 export * from "./model/hitTest";

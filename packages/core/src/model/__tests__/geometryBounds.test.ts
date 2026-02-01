@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { BoxOperations } from "@smalldraw/geometry";
+import { BoxOperations, getX, getY } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { getShapeBounds } from "../geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
@@ -7,25 +7,26 @@ import type { PenShape } from "../shapes/penShape";
 import type { RectShape } from "../shapes/rectShape";
 
 describe("geometry bounds helpers", () => {
+  const v = (x = 0, y = x): [number, number] => [x, y];
   test("computes bounds for rotated rectangle using center-based transform", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const shape: RectShape = {
       id: "rect",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(20, 10) },
+      geometry: { type: "rect", size: v(20, 10) },
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(),
+        translation: v(0, 0),
         rotation: Math.PI / 2,
-        scale: new Vec2(1),
+        scale: v(1, 1),
       },
       zIndex: "rect",
     };
     const bounds = getShapeBounds(shape, registry);
-    expect(bounds.min.x).toBeCloseTo(-5);
-    expect(bounds.max.x).toBeCloseTo(5);
-    expect(bounds.min.y).toBeCloseTo(-10);
-    expect(bounds.max.y).toBeCloseTo(10);
+    expect(getX(bounds.min)).toBeCloseTo(-5);
+    expect(getX(bounds.max)).toBeCloseTo(5);
+    expect(getY(bounds.min)).toBeCloseTo(-10);
+    expect(getY(bounds.max)).toBeCloseTo(10);
     expect(new BoxOperations(bounds).width).toBeCloseTo(10);
     expect(new BoxOperations(bounds).height).toBeCloseTo(20);
   });
@@ -37,20 +38,20 @@ describe("geometry bounds helpers", () => {
       type: "pen",
       geometry: {
         type: "pen",
-        points: [new Vec2(-2, -1), new Vec2(3, 4)],
+        points: [v(-2, -1), v(3, 4)],
       },
       transform: {
-        translation: new Vec2(5, -5),
+        translation: v(5, -5),
         rotation: 0,
-        scale: new Vec2(1),
+        scale: v(1, 1),
       },
       zIndex: "pen",
     };
     const bounds = getShapeBounds(shape, registry);
-    expect(bounds.min.x).toBeCloseTo(3);
-    expect(bounds.max.x).toBeCloseTo(8);
-    expect(bounds.min.y).toBeCloseTo(-6);
-    expect(bounds.max.y).toBeCloseTo(-1);
+    expect(getX(bounds.min)).toBeCloseTo(3);
+    expect(getX(bounds.max)).toBeCloseTo(8);
+    expect(getY(bounds.min)).toBeCloseTo(-6);
+    expect(getY(bounds.max)).toBeCloseTo(-1);
   });
 
   test("includes stroke width in computed bounds", () => {
@@ -58,19 +59,19 @@ describe("geometry bounds helpers", () => {
     const shape: RectShape = {
       id: "stroked",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(10) },
+      geometry: { type: "rect", size: v(10, 10) },
       stroke: { type: "brush", color: "#000", size: 4 },
       transform: {
-        translation: new Vec2(),
+        translation: v(0, 0),
         rotation: 0,
-        scale: new Vec2(1),
+        scale: v(1, 1),
       },
       zIndex: "stroked",
     };
     const bounds = getShapeBounds(shape, registry);
-    expect(bounds.min.x).toBe(-5 - 2);
-    expect(bounds.max.x).toBe(5 + 2);
-    expect(bounds.min.y).toBe(-5 - 2);
-    expect(bounds.max.y).toBe(5 + 2);
+    expect(getX(bounds.min)).toBe(-5 - 2);
+    expect(getX(bounds.max)).toBe(5 + 2);
+    expect(getY(bounds.min)).toBe(-5 - 2);
+    expect(getY(bounds.max)).toBe(5 + 2);
   });
 });

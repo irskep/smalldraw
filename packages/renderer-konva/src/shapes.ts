@@ -16,6 +16,10 @@ import {
   clamp,
   degToRad,
   radToDeg,
+  getX,
+  getY,
+  toVec2,
+  toVec2Like,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import Konva from "konva";
@@ -85,13 +89,13 @@ function createContainerForShape(shape: Shape): Konva.Group {
   const group = new Konva.Group({
     id: shape.id,
     name: "smalldraw-shape",
-    x: transform.translation.x,
-    y: transform.translation.y,
+    x: getX(transform.translation),
+    y: getY(transform.translation),
     rotation: radToDeg(transform.rotation),
-    scaleX: transform.scale.x,
-    scaleY: transform.scale.y,
-    offsetX: transform.origin.x,
-    offsetY: transform.origin.y,
+    scaleX: getX(transform.scale),
+    scaleY: getY(transform.scale),
+    offsetX: getX(transform.origin),
+    offsetY: getY(transform.origin),
     listening: false,
     opacity: shape.opacity ?? 1,
   });
@@ -105,10 +109,10 @@ function createRectNode(
   const g = shape.geometry;
   return new Konva.Rect({
     ...buildShapeVisualConfig(shape, geometryRegistry),
-    x: -g.size.x / 2,
-    y: -g.size.y / 2,
-    width: g.size.x,
-    height: g.size.y,
+    x: -getX(g.size) / 2,
+    y: -getY(g.size) / 2,
+    width: getX(g.size),
+    height: getY(g.size),
   });
 }
 
@@ -119,7 +123,11 @@ function createPenNode(
   const stroke = shape.stroke;
   const color = stroke?.color ?? "#000000";
   const size = stroke?.size ?? 4;
-  const strokeResult = createFreehandStroke(shape.geometry.points, {
+  // Normalize through Vec2 to stabilize float precision for stroke generation.
+  const points = shape.geometry.points.map((point) =>
+    toVec2Like(toVec2(point)),
+  );
+  const strokeResult = createFreehandStroke(points, {
     size,
     simulatePressure: !!shape.geometry.pressures,
     smoothing: 0.6,

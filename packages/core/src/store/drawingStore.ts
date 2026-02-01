@@ -1,3 +1,4 @@
+import { change } from "@automerge/automerge";
 import type { Box } from "@smalldraw/geometry";
 import type { ActionContext, UndoableAction } from "../actions";
 import { createDocument, type DrawingDocument } from "../model/document";
@@ -25,6 +26,7 @@ export interface DrawingStoreOptions {
   tools: ToolDefinition[];
   initialSharedSettings?: SharedToolSettings;
   onRenderNeeded?: () => void;
+  onUndoFailure?: (message: string) => void;
   shapeHandlers?: ShapeHandlerRegistry;
 }
 
@@ -66,6 +68,7 @@ export class DrawingStore {
 
   // Callback invoked whenever rendering is needed
   private onRenderNeeded?: () => void;
+  private onUndoFailure?: (message: string) => void;
 
   // Shape handler registry
   private shapeHandlers: ShapeHandlerRegistry;
@@ -76,11 +79,15 @@ export class DrawingStore {
   constructor(options: DrawingStoreOptions) {
     this.shapeHandlers =
       options.shapeHandlers ?? getDefaultShapeHandlerRegistry();
-    this.actionContext = { registry: this.shapeHandlers };
+    this.actionContext = {
+      registry: this.shapeHandlers,
+      change: (doc, update) => change(doc, update),
+    };
     this.document =
       options.document ?? createDocument(undefined, this.shapeHandlers);
     this.undoManager = options.undoManager ?? new UndoManager();
     this.onRenderNeeded = options.onRenderNeeded;
+    this.onUndoFailure = options.onUndoFailure;
     this.sharedSettings = options.initialSharedSettings ?? {
       ...DEFAULT_SHARED_SETTINGS,
     };
@@ -135,8 +142,8 @@ export class DrawingStore {
     }
     runtime = new ToolRuntimeImpl({
       toolId,
-      document: this.document,
-      undoManager: this.undoManager,
+      getDocument: () => this.document,
+      commitAction: (action) => this.mutateDocument(action),
       shapeHandlers: this.shapeHandlers,
       sharedSettings: this.sharedSettings,
       selectionState: this.selectionState,
@@ -198,7 +205,11 @@ export class DrawingStore {
   }
 
   mutateDocument(action: UndoableAction): void {
-    this.undoManager.apply(action, this.document, this.actionContext);
+    this.document = this.undoManager.apply(
+      action,
+      this.document,
+      this.actionContext,
+    );
     this.trackDirtyState(action);
     this.triggerRender();
   }
@@ -351,21 +362,31 @@ export class DrawingStore {
   }
 
   undo(): boolean {
-    const action = this.undoManager.undo(this.document, this.actionContext);
-    if (action) {
-      this.trackDirtyState(action);
+    const outcome = this.undoManager.undo(this.document, this.actionContext);
+    if (outcome.action) {
+      this.document = outcome.doc;
+      this.trackDirtyState(outcome.action);
       this.triggerRender();
       return true;
+    }
+    if (outcome.error) {
+      this.onUndoFailure?.(outcome.error);
+      this.triggerRender();
     }
     return false;
   }
 
   redo(): boolean {
-    const action = this.undoManager.redo(this.document, this.actionContext);
-    if (action) {
-      this.trackDirtyState(action);
+    const outcome = this.undoManager.redo(this.document, this.actionContext);
+    if (outcome.action) {
+      this.document = outcome.doc;
+      this.trackDirtyState(outcome.action);
       this.triggerRender();
       return true;
+    }
+    if (outcome.error) {
+      this.onUndoFailure?.(outcome.error);
+      this.triggerRender();
     }
     return false;
   }

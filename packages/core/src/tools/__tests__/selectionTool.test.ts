@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import {
   type Box,
   BoxOperations,
+  getX,
+  getY,
   type RectGeometry,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
@@ -14,13 +16,38 @@ import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
 import type { HandleBehavior } from "../types";
+import { change } from "@automerge/automerge";
 
 // Union type for all shapes used in tests
 type TestShape = RectShape | PenShape;
 
+const v = (x = 0, y = x): [number, number] => [x, y];
+
 function setupDoc(shapes: TestShape[]) {
   const registry = getDefaultShapeHandlerRegistry();
-  return { doc: createDocument(shapes, registry), registry };
+  const docRef = { current: createDocument(shapes, registry) };
+  return { docRef, registry };
+}
+
+function createRuntime(
+  docRef: { current: ReturnType<typeof createDocument> },
+  registry: ReturnType<typeof getDefaultShapeHandlerRegistry>,
+  options?: { selectionState?: import("../types").SelectionState },
+) {
+  const undoManager = new UndoManager();
+  const runtime = new ToolRuntimeImpl({
+    toolId: "selection",
+    getDocument: () => docRef.current,
+    commitAction: (action) => {
+      docRef.current = undoManager.apply(action, docRef.current, {
+        registry,
+        change: (next, update) => change(next, update),
+      });
+    },
+    shapeHandlers: registry,
+    selectionState: options?.selectionState,
+  });
+  return { runtime, undoManager };
 }
 
 describe("selection tool", () => {
@@ -30,24 +57,18 @@ describe("selection tool", () => {
       type: "rect",
       geometry: {
         type: "rect",
-        size: new Vec2(10, 10),
+        size: v(10, 10),
       },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(0, 0),
+        translation: v(0, 0),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rectShape]);
-    const undoManager = new UndoManager();
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-    });
+    const { docRef, registry } = setupDoc([rectShape]);
+    const { runtime } = createRuntime(docRef, registry);
     const tool = createSelectionTool();
     const payloads: unknown[] = [];
     runtime.onEvent("handles", (payload) => payloads.push(payload));
@@ -63,24 +84,18 @@ describe("selection tool", () => {
       type: "rect",
       geometry: {
         type: "rect",
-        size: new Vec2(10, 10),
+        size: v(10, 10),
       },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(0, 0),
+        translation: v(0, 0),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rectShape]);
-    const undoManager = new UndoManager();
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-    });
+    const { docRef, registry } = setupDoc([rectShape]);
+    const { runtime } = createRuntime(docRef, registry);
     const tool = createSelectionTool();
     const hovers: Array<{
       handleId: string | null;
@@ -122,30 +137,23 @@ describe("selection tool", () => {
       type: "pen",
       geometry: {
         type: "pen",
-        points: [new Vec2(-5, -5), new Vec2(5, 5)],
+        points: [v(-5, -5), v(5, 5)],
       },
       zIndex: "a",
       stroke: { type: "brush", color: "#000", size: 2 },
       interactions: { resizable: true, rotatable: false },
       transform: {
-        translation: new Vec2(5, 5),
+        translation: v(5, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([penShape]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([penShape]);
     const selectionState = {
       ids: new Set<string>(["pen-1"]),
       primaryId: "pen-1",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -153,21 +161,21 @@ describe("selection tool", () => {
     runtime.dispatch("pointerMove", { point: new Vec2(15, 5), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(15, 5), buttons: 0 });
 
-    const moved = document.shapes["pen-1"];
-    expect(moved?.transform?.translation).toEqual(new Vec2(20, 10));
+    const moved = docRef.current.shapes["pen-1"];
+    expect(moved?.transform?.translation).toEqual(v(20, 10));
   });
 
   test("moves all selected shapes when dragging", () => {
     const rect: RectShape = {
       id: "rect-move",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(10, 10) },
+      geometry: { type: "rect", size: v(10, 10) },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(15, 15),
+        translation: v(15, 15),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
     const pen: PenShape = {
@@ -175,29 +183,22 @@ describe("selection tool", () => {
       type: "pen",
       geometry: {
         type: "pen",
-        points: [new Vec2(-5, -5), new Vec2(5, 5)],
+        points: [v(-5, -5), v(5, 5)],
       },
       zIndex: "c",
       interactions: { resizable: true, rotatable: false },
       transform: {
-        translation: new Vec2(35, 10),
+        translation: v(35, 10),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rect, pen]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rect, pen]);
     const selectionState = {
       ids: new Set<string>(["rect-move", "pen-move"]),
       primaryId: "rect-move",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -205,11 +206,11 @@ describe("selection tool", () => {
     runtime.dispatch("pointerMove", { point: new Vec2(20, 20), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(20, 20), buttons: 0 });
 
-    expect(document.shapes["rect-move"]?.transform?.translation).toEqual(
-      new Vec2(20, 20),
+    expect(docRef.current.shapes["rect-move"]?.transform?.translation).toEqual(
+      v(20, 20),
     );
-    expect(document.shapes["pen-move"]?.transform?.translation).toEqual(
-      new Vec2(40, 15),
+    expect(docRef.current.shapes["pen-move"]?.transform?.translation).toEqual(
+      v(40, 15),
     );
   });
 
@@ -217,28 +218,21 @@ describe("selection tool", () => {
     const rect: RectShape = {
       id: "rect-frame",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(10, 10) },
+      geometry: { type: "rect", size: v(10, 10) },
       zIndex: "frame",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(5, 5),
+        translation: v(5, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rect]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rect]);
     const selectionState = {
       ids: new Set<string>(["rect-frame"]),
       primaryId: "rect-frame",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     const frames: Array<Box | null> = [];
     runtime.onEvent("selection-frame", (payload: Box | null) =>
@@ -285,29 +279,22 @@ describe("selection tool", () => {
       type: "rect",
       geometry: {
         type: "rect",
-        size: new Vec2(20, 10),
+        size: v(20, 10),
       },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(10, 5),
+        translation: v(10, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rectShape]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rectShape]);
     const selectionState = {
       ids: new Set<string>(["rect-1"]),
       primaryId: "rect-1",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -327,40 +314,33 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = document.shapes["rect-1"] as RectShape | undefined;
+    const resized = docRef.current.shapes["rect-1"] as RectShape | undefined;
     expect(resized?.geometry).toEqual({
       type: "rect",
-      size: new Vec2(30, 15),
+      size: v(30, 15),
     });
-    expect(resized?.transform?.translation).toEqual(new Vec2(5, 2.5));
+    expect(resized?.transform?.translation).toEqual(v(5, 2.5));
   });
 
   test("resizes rotated rectangle around selection frame", () => {
     const rotatedRect: RectShape = {
       id: "rot-rect",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(20, 10) },
+      geometry: { type: "rect", size: v(20, 10) },
       zIndex: "rot",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(0, 0),
+        translation: v(0, 0),
         rotation: Math.PI / 2,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rotatedRect]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rotatedRect]);
     const selectionState = {
       ids: new Set<string>(["rot-rect"]),
       primaryId: "rot-rect",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -380,8 +360,8 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = document.shapes["rot-rect"] as RectShape | undefined;
-    expect(resized?.transform?.translation).toEqual(new Vec2(-5, -5));
+    const resized = docRef.current.shapes["rot-rect"] as RectShape | undefined;
+    expect(resized?.transform?.translation).toEqual(v(-5, -5));
     const geometry = resized?.geometry;
     expect(geometry?.type).toBe("rect");
     if (geometry?.type !== "rect") {
@@ -408,12 +388,12 @@ describe("selection tool", () => {
       initialBoundsOps.height * selectionScale.y,
     );
     const uniformScale = startDiagonal === 0 ? 1 : endDiagonal / startDiagonal;
-    expect(rectGeometry.size.x).toBeCloseTo(
-      rotatedRect.geometry.size.x * uniformScale,
+    expect(getX(rectGeometry.size)).toBeCloseTo(
+      getX(rotatedRect.geometry.size) * uniformScale,
       6,
     );
-    expect(rectGeometry.size.y).toBeCloseTo(
-      rotatedRect.geometry.size.y * uniformScale,
+    expect(getY(rectGeometry.size)).toBeCloseTo(
+      getY(rotatedRect.geometry.size) * uniformScale,
       6,
     );
   });
@@ -422,28 +402,21 @@ describe("selection tool", () => {
     const rotatedRect: RectShape = {
       id: "rot-rect-scale",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(24, 12) },
+      geometry: { type: "rect", size: v(24, 12) },
       zIndex: "rot-scale",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(0, 0),
+        translation: v(0, 0),
         rotation: Math.PI / 3,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rotatedRect]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rotatedRect]);
     const selectionState = {
       ids: new Set<string>(["rot-rect-scale"]),
       primaryId: "rot-rect-scale",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -455,7 +428,7 @@ describe("selection tool", () => {
     const nextPoint = new Vec2(opposite).sub(targetSize);
 
     runtime.dispatch("pointerDown", {
-      point: bounds.min,
+      point: new Vec2(bounds.min),
       buttons: 1,
       handleId: "top-left",
     });
@@ -470,7 +443,7 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = document.shapes["rot-rect-scale"] as RectShape | undefined;
+    const resized = docRef.current.shapes["rot-rect-scale"] as RectShape | undefined;
     const geometry = resized?.geometry;
     expect(geometry?.type).toBe("rect");
     if (geometry?.type !== "rect") {
@@ -488,12 +461,12 @@ describe("selection tool", () => {
       boundsOps.height * selectionScale.y,
     );
     const uniformScale = startDiagonal === 0 ? 1 : endDiagonal / startDiagonal;
-    expect(rectGeometry.size.x).toBeCloseTo(
-      rotatedRect.geometry.size.x * uniformScale,
+    expect(getX(rectGeometry.size)).toBeCloseTo(
+      getX(rotatedRect.geometry.size) * uniformScale,
       5,
     );
-    expect(rectGeometry.size.y).toBeCloseTo(
-      rotatedRect.geometry.size.y * uniformScale,
+    expect(getY(rectGeometry.size)).toBeCloseTo(
+      getY(rotatedRect.geometry.size) * uniformScale,
       5,
     );
   });
@@ -503,35 +476,28 @@ describe("selection tool", () => {
     const rectShape: RectShape = {
       id: "axis-rect",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(20, 10) },
+      geometry: { type: "rect", size: v(20, 10) },
       zIndex: "axis-rect",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(0, 0),
+        translation: v(0, 0),
         rotation,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rectShape]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rectShape]);
     const selectionState = {
       ids: new Set<string>(["axis-rect"]),
       primaryId: "axis-rect",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
     const bounds = getShapeBounds(rectShape, registry);
     const startPoint = new Vec2(
-      bounds.max.x,
-      (bounds.min.y + bounds.max.y) / 2,
+      getX(bounds.max),
+      (getY(bounds.min) + getY(bounds.max)) / 2,
     );
     const axisX = Vec2.rotate(
       new Vec2(),
@@ -560,45 +526,44 @@ describe("selection tool", () => {
       handleId: "mid-right",
     });
 
-    const resized = document.shapes["axis-rect"] as RectShape | undefined;
+    const resized = docRef.current.shapes["axis-rect"] as RectShape | undefined;
     const geometry = resized?.geometry;
     expect(geometry?.type).toBe("rect");
     if (geometry?.type !== "rect") {
       throw new Error("Expected rectangle geometry");
     }
     const rectGeometry = geometry as RectGeometry;
-    expect(rectGeometry.size.x).toBeCloseTo(30, 6);
-    expect(rectGeometry.size.y).toBeCloseTo(10, 6);
-    expect(resized?.transform?.translation.x).toBeCloseTo(axisX.x * 5, 6);
-    expect(resized?.transform?.translation.y).toBeCloseTo(axisX.y * 5, 6);
+    expect(getX(rectGeometry.size)).toBeCloseTo(30, 6);
+    expect(getY(rectGeometry.size)).toBeCloseTo(10, 6);
+    expect(getX(resized?.transform?.translation ?? [0, 0])).toBeCloseTo(
+      axisX.x * 5,
+      6,
+    );
+    expect(getY(resized?.transform?.translation ?? [0, 0])).toBeCloseTo(
+      axisX.y * 5,
+      6,
+    );
   });
 
   test("axis resize keeps opposite edge fixed on unrotated rectangle", () => {
     const rectShape: RectShape = {
       id: "axis-rect-0",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(10, 10) },
+      geometry: { type: "rect", size: v(10, 10) },
       zIndex: "axis-rect-0",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(0, 0),
+        translation: v(0, 0),
         rotation: 0,
-        scale: new Vec2(2, 1),
+        scale: v(2, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rectShape]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rectShape]);
     const selectionState = {
       ids: new Set<string>(["axis-rect-0"]),
       primaryId: "axis-rect-0",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -618,38 +583,34 @@ describe("selection tool", () => {
       handleId: "mid-right",
     });
 
-    const resized = document.shapes["axis-rect-0"];
+    const resized = docRef.current.shapes["axis-rect-0"];
     const bounds = resized ? getShapeBounds(resized, registry) : null;
-    expect(bounds?.min.x).toBeCloseTo(-10, 6);
-    expect(bounds?.max.x).toBeCloseTo(20, 6);
+    if (!bounds) {
+      throw new Error("Expected bounds");
+    }
+    expect(getX(bounds.min)).toBeCloseTo(-10, 6);
+    expect(getX(bounds.max)).toBeCloseTo(20, 6);
   });
 
   test("axis resize from left handle keeps right edge fixed", () => {
     const rectShape: RectShape = {
       id: "axis-rect-left",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(20, 10) },
+      geometry: { type: "rect", size: v(20, 10) },
       zIndex: "axis-rect-left",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(0, 0),
+        translation: v(0, 0),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rectShape]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rectShape]);
     const selectionState = {
       ids: new Set<string>(["axis-rect-left"]),
       primaryId: "axis-rect-left",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -669,38 +630,34 @@ describe("selection tool", () => {
       handleId: "mid-left",
     });
 
-    const resized = document.shapes["axis-rect-left"];
+    const resized = docRef.current.shapes["axis-rect-left"];
     const bounds = resized ? getShapeBounds(resized, registry) : null;
-    expect(bounds?.min.x).toBeCloseTo(-20, 6);
-    expect(bounds?.max.x).toBeCloseTo(10, 6);
+    if (!bounds) {
+      throw new Error("Expected bounds");
+    }
+    expect(getX(bounds.min)).toBeCloseTo(-20, 6);
+    expect(getX(bounds.max)).toBeCloseTo(10, 6);
   });
 
   test("axis resize from top handle keeps bottom edge fixed", () => {
     const rectShape: RectShape = {
       id: "axis-rect-top",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(12, 10) },
+      geometry: { type: "rect", size: v(12, 10) },
       zIndex: "axis-rect-top",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(0, 0),
+        translation: v(0, 0),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rectShape]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rectShape]);
     const selectionState = {
       ids: new Set<string>(["axis-rect-top"]),
       primaryId: "axis-rect-top",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -720,23 +677,26 @@ describe("selection tool", () => {
       handleId: "mid-top",
     });
 
-    const resized = document.shapes["axis-rect-top"];
+    const resized = docRef.current.shapes["axis-rect-top"];
     const bounds = resized ? getShapeBounds(resized, registry) : null;
-    expect(bounds?.min.y).toBeCloseTo(-15, 6);
-    expect(bounds?.max.y).toBeCloseTo(5, 6);
+    if (!bounds) {
+      throw new Error("Expected bounds");
+    }
+    expect(getY(bounds.min)).toBeCloseTo(-15, 6);
+    expect(getY(bounds.max)).toBeCloseTo(5, 6);
   });
 
   test("non-resizable shapes keep relative position during resize", () => {
     const rect: RectShape = {
       id: "rect-relative",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(10, 10) },
+      geometry: { type: "rect", size: v(10, 10) },
       zIndex: "rect-relative",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(5, 5),
+        translation: v(5, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
     const pen: PenShape = {
@@ -744,29 +704,22 @@ describe("selection tool", () => {
       type: "pen",
       geometry: {
         type: "pen",
-        points: [new Vec2(-5, -5), new Vec2(5, 5)],
+        points: [v(-5, -5), v(5, 5)],
       },
       zIndex: "pen-relative",
       interactions: { resizable: true, rotatable: false },
       transform: {
-        translation: new Vec2(5, 5),
+        translation: v(5, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rect, pen]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rect, pen]);
     const selectionState = {
       ids: new Set<string>(["rect-relative", "pen-relative"]),
       primaryId: "rect-relative",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -786,8 +739,8 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    expect(document.shapes["pen-relative"]?.transform?.translation).toEqual(
-      new Vec2(-5, 0),
+    expect(docRef.current.shapes["pen-relative"]?.transform?.translation).toEqual(
+      v(-5, 0),
     );
   });
 
@@ -797,29 +750,22 @@ describe("selection tool", () => {
       type: "pen",
       geometry: {
         type: "pen",
-        points: [new Vec2(-5, -5), new Vec2(5, 5)],
+        points: [v(-5, -5), v(5, 5)],
       },
       zIndex: "pen-scale",
       interactions: { resizable: true, rotatable: false },
       transform: {
-        translation: new Vec2(10, 10),
+        translation: v(10, 10),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([penShape]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([penShape]);
     const selectionState = {
       ids: new Set<string>(["pen-scale"]),
       primaryId: "pen-scale",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -839,12 +785,12 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = document.shapes["pen-scale"] as PenShape | undefined;
-    expect(resized?.transform?.translation).toEqual(new Vec2(7.5, 7.5));
-    expect(resized?.transform?.scale).toEqual(new Vec2(1.5, 1.5));
+    const resized = docRef.current.shapes["pen-scale"] as PenShape | undefined;
+    expect(resized?.transform?.translation).toEqual(v(7.5, 7.5));
+    expect(resized?.transform?.scale).toEqual(v(1.5, 1.5));
     expect(resized?.geometry).toEqual({
       type: "pen",
-      points: [new Vec2(-5, -5), new Vec2(5, 5)],
+      points: [v(-5, -5), v(5, 5)],
     });
   });
 
@@ -852,40 +798,33 @@ describe("selection tool", () => {
     const left: RectShape = {
       id: "left",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(10, 10) },
+      geometry: { type: "rect", size: v(10, 10) },
       zIndex: "l",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(5, 5),
+        translation: v(5, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
     const right: RectShape = {
       id: "right",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(20, 10) },
+      geometry: { type: "rect", size: v(20, 10) },
       zIndex: "r",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(30, 5),
+        translation: v(30, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([left, right]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([left, right]);
     const selectionState = {
       ids: new Set<string>(["left", "right"]),
       primaryId: "left",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -905,19 +844,19 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    expect(document.shapes.left?.transform?.translation).toEqual(
-      new Vec2(-12.5, 0),
+    expect(docRef.current.shapes.left?.transform?.translation).toEqual(
+      v(-12.5, 0),
     );
-    expect((document.shapes.left as RectShape | undefined)?.geometry).toEqual({
+    expect((docRef.current.shapes.left as RectShape | undefined)?.geometry).toEqual({
       type: "rect",
-      size: new Vec2(15, 20),
+      size: v(15, 20),
     });
-    expect(document.shapes.right?.transform?.translation).toEqual(
-      new Vec2(25, 0),
+    expect(docRef.current.shapes.right?.transform?.translation).toEqual(
+      v(25, 0),
     );
-    expect((document.shapes.right as RectShape | undefined)?.geometry).toEqual({
+    expect((docRef.current.shapes.right as RectShape | undefined)?.geometry).toEqual({
       type: "rect",
-      size: new Vec2(30, 20),
+      size: v(30, 20),
     });
   });
 
@@ -927,29 +866,22 @@ describe("selection tool", () => {
       type: "rect",
       geometry: {
         type: "rect",
-        size: new Vec2(10, 10),
+        size: v(10, 10),
       },
       zIndex: "c",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(5, 5),
+        translation: v(5, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rectShape]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rectShape]);
     const selectionState = {
       ids: new Set<string>(["rect-2"]),
       primaryId: "rect-2",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -972,7 +904,7 @@ describe("selection tool", () => {
       handleId: "rotate",
     });
 
-    const rotated = document.shapes["rect-2"];
+    const rotated = docRef.current.shapes["rect-2"];
     expect(rotated?.transform?.rotation).toBeCloseTo(Math.PI / 2, 3);
   });
 
@@ -980,40 +912,33 @@ describe("selection tool", () => {
     const left: RectShape = {
       id: "left-rot",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(10, 10) },
+      geometry: { type: "rect", size: v(10, 10) },
       zIndex: "x",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(5, 5),
+        translation: v(5, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
     const right: RectShape = {
       id: "right-rot",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(10, 10) },
+      geometry: { type: "rect", size: v(10, 10) },
       zIndex: "y",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(25, 5),
+        translation: v(25, 5),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([left, right]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([left, right]);
     const selectionState = {
       ids: new Set<string>(["left-rot", "right-rot"]),
       primaryId: "left-rot",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
     const tool = createSelectionTool();
     tool.activate(runtime);
 
@@ -1045,11 +970,11 @@ describe("selection tool", () => {
     const expectedAngle = Vec2.angle(startVector, targetVector);
     const cross = Vec2.cross(new Float32Array(3), startVector, targetVector);
     const expectedDelta = expectedAngle * Math.sign(cross[2]);
-    expect(document.shapes["left-rot"]?.transform?.rotation).toBeCloseTo(
+    expect(docRef.current.shapes["left-rot"]?.transform?.rotation).toBeCloseTo(
       expectedDelta,
       3,
     );
-    expect(document.shapes["right-rot"]?.transform?.rotation).toBeCloseTo(
+    expect(docRef.current.shapes["right-rot"]?.transform?.rotation).toBeCloseTo(
       expectedDelta,
       3,
     );
@@ -1059,40 +984,33 @@ describe("selection tool", () => {
     const rect1: RectShape = {
       id: "rect-1",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(50, 50) },
+      geometry: { type: "rect", size: v(50, 50) },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(100, 100),
+        translation: v(100, 100),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
     const rect2: RectShape = {
       id: "rect-2",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(50, 50) },
+      geometry: { type: "rect", size: v(50, 50) },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(200, 100),
+        translation: v(200, 100),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rect1, rect2]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rect1, rect2]);
     const selectionState = {
       ids: new Set<string>(["rect-1", "rect-2"]),
       primaryId: "rect-1",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
 
     const tool = createSelectionTool();
     const frames: Array<Box | null> = [];
@@ -1114,40 +1032,33 @@ describe("selection tool", () => {
     const rect1: RectShape = {
       id: "rect-3",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(50, 50) },
+      geometry: { type: "rect", size: v(50, 50) },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(100, 100),
+        translation: v(100, 100),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
     const rect2: RectShape = {
       id: "rect-4",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(50, 50) },
+      geometry: { type: "rect", size: v(50, 50) },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: new Vec2(200, 100),
+        translation: v(200, 100),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
-    const { doc: document, registry } = setupDoc([rect1, rect2]);
-    const undoManager = new UndoManager();
+    const { docRef, registry } = setupDoc([rect1, rect2]);
     const selectionState = {
       ids: new Set<string>(["rect-3", "rect-4"]),
       primaryId: "rect-3",
     };
-    const runtime = new ToolRuntimeImpl({
-      toolId: "selection",
-      document,
-      undoManager,
-      shapeHandlers: registry,
-      selectionState,
-    });
+    const { runtime } = createRuntime(docRef, registry, { selectionState });
 
     const tool = createSelectionTool();
     const frames: Array<Box | null> = [];

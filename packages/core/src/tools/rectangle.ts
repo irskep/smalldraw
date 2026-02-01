@@ -1,4 +1,4 @@
-import { BoxOperations, type RectGeometry } from "@smalldraw/geometry";
+import { BoxOperations, type RectGeometry, toVec2, toVec2Like } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
 import type { RectShape } from "../model/shapes/rectShape";
@@ -37,7 +37,9 @@ function computeSizeAndCenter(
   const boxOpts = new BoxOperations(bounds);
   return {
     center: boxOpts.center,
-    size: boxOpts.translate(new Vec2(bounds.min).mul(new Vec2(-1))).max,
+    size: toVec2(
+      boxOpts.translate(new Vec2(bounds.min).mul(new Vec2(-1))).max,
+    ),
   };
 }
 
@@ -61,7 +63,7 @@ export function createRectangleTool(
       type: "brush",
       color: override?.color ?? shared.strokeColor,
       size: override?.size ?? shared.strokeWidth,
-      brushId: override?.brushId,
+      ...(override?.brushId ? { brushId: override.brushId } : {}),
     } satisfies StrokeStyle;
   };
 
@@ -112,7 +114,7 @@ export function createRectangleTool(
     );
     const geometry: RectGeometry = {
       type: "rect",
-      size,
+      size: toVec2Like(size),
     };
     runtime.setDraft({
       toolId: runtime.toolId,
@@ -128,8 +130,8 @@ export function createRectangleTool(
         rotatable: true,
       },
       transform: {
-        translation: center,
-        scale: new Vec2(1),
+        translation: toVec2Like(center),
+        scale: toVec2Like(new Vec2(1, 1)),
         rotation: 0,
       },
     });
@@ -155,7 +157,7 @@ export function createRectangleTool(
       type: "rect",
       geometry: {
         type: "rect",
-        size,
+        size: toVec2Like(size),
       },
       stroke: state.draft.stroke,
       fill: state.draft.fill,
@@ -165,8 +167,8 @@ export function createRectangleTool(
         rotatable: true,
       },
       transform: {
-        translation: center,
-        scale: new Vec2(1),
+        translation: toVec2Like(center),
+        scale: toVec2Like(new Vec2(1, 1)),
         rotation: 0,
       },
     };

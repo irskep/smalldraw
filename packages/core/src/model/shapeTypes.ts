@@ -1,6 +1,6 @@
 import { type AnyGeometry, type Box, BoxOperations } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
-import type { CanonicalShapeTransform, Shape } from "./shape";
+import type { AnyShape, CanonicalShapeTransform, Shape } from "./shape";
 
 /**
  * Normalized layout for positioning shapes within selection bounds
@@ -132,6 +132,12 @@ export interface ShapeHandler<T extends AnyGeometry, TResizeData = unknown> {
     axisResize?: (
       operation: AxisResizeOperation<T, TResizeData>,
     ) => AxisResizeResult<T> | null;
+  };
+
+  /** JSON serialization helpers (REQUIRED for save/restore) */
+  serialization?: {
+    toJSON: (shape: Shape & { geometry: T }) => AnyShape;
+    fromJSON: (shape: AnyShape) => Shape & { geometry: T };
   };
 }
 

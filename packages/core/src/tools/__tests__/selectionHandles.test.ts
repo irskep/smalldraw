@@ -15,6 +15,7 @@ const midRightHandle: HandleDescriptor = {
 };
 
 describe("resolveSelectionHandlePoint", () => {
+  const v = (x = 0, y = x): [number, number] => [x, y];
   test("uses shape handler override when provided", () => {
     const registry = new ShapeHandlerRegistry();
     registry.register("custom", {
@@ -32,9 +33,9 @@ describe("resolveSelectionHandlePoint", () => {
       geometry: { type: "custom" },
       zIndex: "z",
       transform: {
-        translation: new Vec2(100, 100),
+        translation: v(100, 100),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
 
@@ -61,9 +62,9 @@ describe("resolveSelectionHandlePoint", () => {
       geometry: { type: "custom" },
       zIndex: "z",
       transform: {
-        translation: new Vec2(100, 100),
+        translation: v(100, 100),
         rotation: 0,
-        scale: new Vec2(1, 1),
+        scale: v(1, 1),
       },
     };
 

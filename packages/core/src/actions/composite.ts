@@ -4,16 +4,20 @@ import type { ActionContext, UndoableAction } from "./types";
 export class CompositeAction implements UndoableAction {
   constructor(private readonly actions: UndoableAction[]) {}
 
-  redo(doc: DrawingDocument, ctx: ActionContext): void {
+  redo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
+    let next = doc;
     for (const action of this.actions) {
-      action.redo(doc, ctx);
+      next = action.redo(next, ctx);
     }
+    return next;
   }
 
-  undo(doc: DrawingDocument, ctx: ActionContext): void {
+  undo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
+    let next = doc;
     for (let i = this.actions.length - 1; i >= 0; i -= 1) {
-      this.actions[i].undo(doc, ctx);
+      next = this.actions[i].undo(next, ctx);
     }
+    return next;
   }
 
   affectedShapeIds(): string[] {

@@ -17,6 +17,8 @@ import {
 import { KonvaReconciler } from "../reconciler";
 import type { Viewport } from "../viewport";
 
+const v = (x = 0, y = x): [number, number] => [x, y];
+
 const baseViewport: Viewport = {
   width: 200,
   height: 200,
@@ -29,12 +31,12 @@ function createTestShape(id: string, x = 50, y = 50): RectShape {
   return {
     id,
     type: "rect",
-    geometry: { type: "rect", size: new Vec2(40, 30) },
+    geometry: { type: "rect", size: v(40, 30) },
     fill: { type: "solid", color: "#ff0000" },
     zIndex: `a-${id}`,
     transform: {
-      translation: new Vec2(x, y),
-      scale: new Vec2(1, 1),
+      translation: v(x, y),
+      scale: v(1, 1),
       rotation: 0,
     },
   };
@@ -91,7 +93,7 @@ describe("KonvaReconciler", () => {
     // Update only shape-1
     shapes[0] = {
       ...shapes[0],
-      transform: { ...shapes[0].transform!, translation: new Vec2(50, 50) },
+      transform: { ...shapes[0].transform!, translation: v(50, 50) },
     };
     reconciler.reconcile(layer, shapes, new Set(["shape-1"]), new Set());
 
@@ -201,7 +203,7 @@ describe("KonvaReconciler", () => {
     // Move shape-1
     shapes[0] = {
       ...shapes[0],
-      transform: { ...shapes[0].transform!, translation: new Vec2(120, 120) },
+      transform: { ...shapes[0].transform!, translation: v(120, 120) },
     };
 
     // Reconcile with only shape-1 dirty

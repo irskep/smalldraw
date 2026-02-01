@@ -10,6 +10,8 @@ import { Vec2 } from "gl-matrix";
 import type { Viewport } from "../index";
 import { expectSnapshot, renderDocumentToImage } from "./snapshotUtils";
 
+const v = (x = 0, y = x): [number, number] => [x, y];
+
 const baseViewport: Viewport = {
   width: 120,
   height: 120,
@@ -41,10 +43,10 @@ describe("renderer snapshots", () => {
         id: "solid-rect",
         type: "rect",
         zIndex: "a",
-        geometry: { type: "rect", size: new Vec2(80, 60) } as RectGeometry,
+        geometry: { type: "rect", size: v(80, 60) } as RectGeometry,
         fill: { type: "solid", color: "#2E7D32" },
         stroke: { type: "brush", color: "#0D47A1", size: 4 },
-        transform: { translation: new Vec2(-15, 0) },
+        transform: { translation: v(-15, 0) },
       },
     ]);
   });
@@ -60,12 +62,12 @@ describe("renderer snapshots", () => {
           geometry: {
             type: "pen",
             points: [
-              new Vec2(-80, -10),
-              new Vec2(-40, -30),
-              new Vec2(-10, -5),
-              new Vec2(20, -35),
-              new Vec2(60, 0),
-              new Vec2(30, 30),
+              v(-80, -10),
+              v(-40, -30),
+              v(-10, -5),
+              v(20, -35),
+              v(60, 0),
+              v(30, 30),
             ],
             pressures: [1, 1, 1, 1, 1, 1],
           } as PenGeometry,
@@ -78,12 +80,12 @@ describe("renderer snapshots", () => {
           geometry: {
             type: "pen",
             points: [
-              new Vec2(-80, 40),
-              new Vec2(-20, 20),
-              new Vec2(0, 50),
-              new Vec2(60, 40),
+              v(-80, 40),
+              v(-20, 20),
+              v(0, 50),
+              v(60, 40),
             ],
-            pressures: undefined,
+            pressures: [1, 1, 1, 1],
           } as PenGeometry,
           stroke: { type: "brush", color: "#1e88e5", size: 4 },
         },
@@ -106,11 +108,11 @@ describe("renderer snapshots", () => {
           id: "rotated-rect",
           type: "rect",
           zIndex: "a",
-          geometry: { type: "rect", size: new Vec2(80, 40) } as RectGeometry,
+          geometry: { type: "rect", size: v(80, 40) } as RectGeometry,
           fill: { type: "solid", color: "#26c6da" },
           stroke: { type: "brush", color: "#00838f", size: 3 },
           transform: {
-            translation: new Vec2(-20, -10),
+            translation: v(-20, -10),
             rotation: Math.PI / 4,
           },
         },

@@ -1,6 +1,13 @@
-import { BoxOperations, type PenGeometry } from "@smalldraw/geometry";
+import {
+  BoxOperations,
+  type PenGeometry,
+  getX,
+  getY,
+  toVec2,
+  toVec2Like,
+} from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
-import type { Shape } from "../shape";
+import type { AnyShape, Shape } from "../shape";
 import { getHitTestBounds } from "./hitTestUtils";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 
@@ -14,7 +21,7 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
       return {
         ...shape.geometry,
         points: shape.geometry.points.map((pt) =>
-          new Vec2(0, 0).add(pt).sub(center),
+          toVec2Like(new Vec2().add(toVec2(pt)).sub(center)),
         ),
       };
     },
@@ -33,23 +40,64 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
       return {
         geometry: {
           type: "pen",
-          points: g.points.map((p) => new Vec2(p)),
+          points: g.points,
           pressures: g.pressures,
         },
       };
     },
     resize({ selectionScale, nextBounds, layout, transform }) {
       const translation = layout
-        ? getPointFromLayout(layout, nextBounds)
+        ? toVec2Like(getPointFromLayout(layout, nextBounds))
         : transform.translation;
       return {
         transform: {
           ...transform,
           translation,
-          scale: new Vec2(transform.scale).mul(selectionScale),
+          scale: toVec2Like(
+            new Vec2(getX(transform.scale), getY(transform.scale)).mul(
+              selectionScale,
+            ),
+          ),
         },
       };
     },
     supportsAxisResize: () => false,
+  },
+  serialization: {
+    toJSON(shape: PenShape) {
+      return {
+        ...shape,
+        geometry: {
+          type: "pen",
+          points: shape.geometry.points,
+          ...(shape.geometry.pressures
+            ? { pressures: shape.geometry.pressures }
+            : {}),
+        },
+        ...(shape.transform
+          ? {
+              transform: shape.transform,
+            }
+          : {}),
+      };
+    },
+    fromJSON(shape: AnyShape) {
+      const penShape = shape as PenShape;
+      return {
+        ...penShape,
+        geometry: {
+          type: "pen",
+          points: penShape.geometry.points,
+          ...(penShape.geometry.pressures
+            ? { pressures: penShape.geometry.pressures }
+            : {}),
+        },
+        ...(penShape.transform
+          ? {
+              transform: penShape.transform,
+            }
+          : {}),
+      };
+    },
   },
 };

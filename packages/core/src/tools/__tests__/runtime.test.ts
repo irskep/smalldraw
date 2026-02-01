@@ -3,6 +3,7 @@ import type { PenGeometry } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
+import type { DrawingDocumentData } from "../../model/document";
 import { canonicalizeShape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { RectShape } from "../../model/shapes/rectShape";
@@ -10,6 +11,7 @@ import { UndoManager } from "../../undo";
 import { getZIndexBetween } from "../../zindex";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SelectionState, SharedToolSettings } from "../types";
+import { change } from "@automerge/automerge";
 
 interface RuntimeOverrides {
   options?: Record<string, unknown>;
@@ -20,13 +22,22 @@ interface RuntimeOverrides {
 
 function createRuntime(overrides?: RuntimeOverrides) {
   const registry = getDefaultShapeHandlerRegistry();
-  const document = createDocument(undefined, registry);
+  let document = createDocument(undefined, registry);
   const undoManager = new UndoManager();
   const draftChanges: Array<unknown> = [];
+  const ctx = {
+    registry,
+    change: (
+      next: typeof document,
+      update: (draft: DrawingDocumentData) => void,
+    ) => change(next, update),
+  };
   const runtime = new ToolRuntimeImpl({
     toolId: "pen",
-    document,
-    undoManager,
+    getDocument: () => document,
+    commitAction: (action) => {
+      document = undoManager.apply(action, document, ctx);
+    },
     shapeHandlers: registry,
     options: overrides?.options,
     onDraftChange: (draft) => draftChanges.push(draft),
@@ -34,10 +45,11 @@ function createRuntime(overrides?: RuntimeOverrides) {
     selectionState: overrides?.selectionState,
     toolStates: overrides?.toolStates,
   });
-  return { runtime, document, undoManager, draftChanges };
+  return { runtime, getDocument: () => document, undoManager, draftChanges };
 }
 
 describe("ToolRuntimeImpl", () => {
+  const v = (x = 0, y = x): [number, number] => [x, y];
   test("registers event handlers and disposers", () => {
     const { runtime } = createRuntime();
     let count = 0;
@@ -55,7 +67,7 @@ describe("ToolRuntimeImpl", () => {
 
   test("setDraft stores draft and clearDraft resets it", () => {
     const { runtime, draftChanges } = createRuntime();
-    const geometry: PenGeometry = { type: "pen", points: [new Vec2(0, 0)] };
+    const geometry: PenGeometry = { type: "pen", points: [v(0, 0)] };
     runtime.setDraft({
       toolId: "pen",
       temporary: true,
@@ -71,25 +83,25 @@ describe("ToolRuntimeImpl", () => {
   });
 
   test("commit applies undoable action to the document", () => {
-    const { runtime, document } = createRuntime();
+    const { runtime, getDocument } = createRuntime();
     const registry = getDefaultShapeHandlerRegistry();
     const shape: RectShape = {
       id: "rect-1",
       type: "rect",
       geometry: {
         type: "rect",
-        size: new Vec2(10),
+        size: [10, 10],
       },
       zIndex: "a",
       transform: {
-        translation: new Vec2(0, 0),
-        scale: new Vec2(1, 1),
+        translation: [0, 0],
+        scale: [1, 1],
         rotation: 0,
       },
     };
 
     runtime.commit(new AddShape(shape));
-    expect(document.shapes[shape.id]).toEqual(
+    expect(getDocument().shapes[shape.id]).toEqual(
       canonicalizeShape(shape, registry),
     );
   });
@@ -97,19 +109,19 @@ describe("ToolRuntimeImpl", () => {
   test("getNextZIndex generates keys after top shape", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const zIndex = getZIndexBetween(null, null);
-    const document = createDocument(
+    let document = createDocument(
       [
         {
           id: "shape-1",
           type: "rect",
           geometry: {
             type: "rect",
-            size: new Vec2(10),
+            size: [10, 10],
           },
           zIndex,
           transform: {
-            translation: new Vec2(0, 0),
-            scale: new Vec2(1, 1),
+            translation: [0, 0],
+            scale: [1, 1],
             rotation: 0,
           },
         } as RectShape,
@@ -119,8 +131,13 @@ describe("ToolRuntimeImpl", () => {
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({
       toolId: "pen",
-      document,
-      undoManager,
+      getDocument: () => document,
+      commitAction: (action) => {
+        document = undoManager.apply(action, document, {
+          registry,
+          change: (next, update) => change(next, update),
+        });
+      },
       shapeHandlers: registry,
     });
     const next = runtime.getNextZIndex();

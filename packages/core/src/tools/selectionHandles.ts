@@ -1,4 +1,4 @@
-import { type Box, BoxOperations } from "@smalldraw/geometry";
+import { type Box, BoxOperations, toVec2 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import {
   buildTransformMatrix,
@@ -50,7 +50,7 @@ export function resolveSelectionHandlePoint(
     }
   }
   const boundsOps = new BoxOperations(bounds);
-  return new Vec2(bounds.min).add(
+  return new Vec2().add(toVec2(bounds.min)).add(
     boundsOps.size.mul(new Vec2(handle.position.u, handle.position.v)),
   );
 }

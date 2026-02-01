@@ -4,8 +4,8 @@ import {
   resolveSelectionHandlePoint,
   type ShapeHandlerRegistry,
 } from "@smalldraw/core";
-import { type Box, BoxOperations } from "@smalldraw/geometry";
-import { Vec2 } from "gl-matrix";
+import { type Box, BoxOperations, getX, getY } from "@smalldraw/geometry";
+import { Vec2, type Vec2Like } from "gl-matrix";
 import { el } from "redom";
 
 const HANDLE_SIZE = 8;
@@ -93,8 +93,8 @@ export class SelectionOverlay {
     // Only update style properties (no DOM structure change)
     const boundsOps = new BoxOperations(bounds);
     Object.assign(this.frameEl.style, {
-      left: `${bounds.min.x}px`,
-      top: `${bounds.min.y}px`,
+      left: `${getX(bounds.min)}px`,
+      top: `${getY(bounds.min)}px`,
       width: `${boundsOps.width}px`,
       height: `${boundsOps.height}px`,
     });
@@ -167,7 +167,7 @@ export class SelectionOverlay {
    */
   private updateHandlePosition(
     handleEl: HTMLDivElement,
-    point: { x: number; y: number },
+    point: Vec2Like,
     axisHandle: boolean,
     axis: string | null,
     rotation: number,
@@ -185,8 +185,10 @@ export class SelectionOverlay {
           : rotation + Math.PI / 2
         : null;
 
-    const left = axisHandle ? `${point.x}px` : `${point.x - size.width / 2}px`;
-    const top = axisHandle ? `${point.y}px` : `${point.y - size.height / 2}px`;
+    const x = getX(point);
+    const y = getY(point);
+    const left = axisHandle ? `${x}px` : `${x - size.width / 2}px`;
+    const top = axisHandle ? `${y}px` : `${y - size.height / 2}px`;
     const transform =
       axisHandle && axisRotation !== null
         ? `translate(-50%, -50%) rotate(${(axisRotation * 180) / Math.PI}deg)`

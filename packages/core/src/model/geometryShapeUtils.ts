@@ -1,4 +1,11 @@
-import { type Box, BoxOperations } from "@smalldraw/geometry";
+import {
+  type Box,
+  BoxOperations,
+  getX,
+  getY,
+  toVec2,
+  toVec2Like,
+} from "@smalldraw/geometry";
 import { Mat2d, Vec2 } from "gl-matrix";
 import type {
   AnyShape,
@@ -36,11 +43,14 @@ export function buildTransformMatrix(
 ): Mat2d {
   const normalized = normalizeShapeTransform(transform ?? undefined);
   const { translation, rotation, scale, origin } = normalized;
-  const translationMatrix = Mat2d.fromTranslation(new Mat2d(), translation);
-  const originMatrix = Mat2d.fromTranslation(new Mat2d(), origin);
+  const translationMatrix = Mat2d.fromTranslation(
+    new Mat2d(),
+    toVec2(translation),
+  );
+  const originMatrix = Mat2d.fromTranslation(new Mat2d(), toVec2(origin));
   const rotationMatrix = Mat2d.fromRotation(new Mat2d(), rotation);
-  const scaleMatrix = Mat2d.fromScaling(new Mat2d(), scale);
-  const negativeOrigin = new Vec2(-origin.x, -origin.y);
+  const scaleMatrix = Mat2d.fromScaling(new Mat2d(), toVec2(scale));
+  const negativeOrigin = new Vec2(-getX(origin), -getY(origin));
   const inverseOriginMatrix = Mat2d.fromTranslation(
     new Mat2d(),
     negativeOrigin,
@@ -65,10 +75,10 @@ export function getShapeBounds(
   const geometryBounds = getGeometryLocalBounds(shape, registry);
   const corners: Vec2[] = geometryBounds
     ? [
-        new Vec2(geometryBounds.min.x, geometryBounds.min.y),
-        new Vec2(geometryBounds.max.x, geometryBounds.min.y),
-        new Vec2(geometryBounds.max.x, geometryBounds.max.y),
-        new Vec2(geometryBounds.min.x, geometryBounds.max.y),
+        new Vec2(getX(geometryBounds.min), getY(geometryBounds.min)),
+        new Vec2(getX(geometryBounds.max), getY(geometryBounds.min)),
+        new Vec2(getX(geometryBounds.max), getY(geometryBounds.max)),
+        new Vec2(getX(geometryBounds.min), getY(geometryBounds.max)),
       ]
     : [new Vec2()];
   const baseBounds = BoxOperations.fromPointArray(
@@ -78,7 +88,10 @@ export function getShapeBounds(
   );
   if (!baseBounds) {
     const { translation } = transform;
-    return { min: translation, max: translation };
+    return {
+      min: toVec2Like(translation),
+      max: toVec2Like(translation),
+    };
   }
   return applyStrokePadding(baseBounds, shape);
 }
@@ -90,7 +103,7 @@ function applyStrokePadding(bounds: Box, shape: Shape): Box {
   }
   const padding = strokeWidth / 2;
   return {
-    min: new Vec2(bounds.min.sub(new Vec2(padding))),
-    max: new Vec2(bounds.max.add(new Vec2(padding))),
+    min: new Vec2().add(toVec2(bounds.min)).sub(new Vec2(padding)),
+    max: new Vec2().add(toVec2(bounds.max)).add(new Vec2(padding)),
   };
 }

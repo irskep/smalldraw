@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import type { AnyGeometry, PenGeometry } from "@smalldraw/geometry";
-import { Vec2 } from "gl-matrix";
 import { type ActionContext, AddShape, UpdateShapeGeometry } from "../actions";
 import { createDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
+import { change } from "@automerge/automerge";
 
 function createShape(id: string, geometry: unknown): AnyShape {
   const registry = getDefaultShapeHandlerRegistry();
@@ -18,8 +18,8 @@ function createShape(id: string, geometry: unknown): AnyShape {
       geometry,
       zIndex: id,
       transform: {
-        translation: { x: 0, y: 0 },
-        scale: { x: 1, y: 1 },
+        translation: [0, 0],
+        scale: [1, 1],
         rotation: 0,
       },
     } as AnyShape,
@@ -35,52 +35,61 @@ function canonicalGeometry(shape: AnyShape, geometry: AnyGeometry): AnyShape {
 describe("Geometry actions", () => {
   test("pen geometry can be added and updated", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([], registry);
+    let doc = createDocument([], registry);
     const undo = new UndoManager();
-    const ctx: ActionContext = { registry };
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
     const pen = createShape("pen", {
       type: "pen",
       points: [
-        { x: 0, y: 0 },
-        { x: 10, y: 10 },
+        [0, 0],
+        [10, 10],
       ],
     });
 
-    undo.apply(new AddShape(pen), doc, ctx);
-    expect(doc.shapes[pen.id].geometry).toEqual(pen.geometry);
+    doc = undo.apply(new AddShape(pen), doc, ctx);
+    expect(doc.shapes[pen.id].geometry).toMatchObject(pen.geometry);
 
     const updatedGeometry: PenGeometry = {
       type: "pen",
-      points: [new Vec2(5), new Vec2(15), new Vec2(20, 0)],
-      pressures: undefined,
+      points: [
+        [5, 5],
+        [15, 15],
+        [20, 0],
+      ],
     };
-    undo.apply(new UpdateShapeGeometry(pen.id, updatedGeometry), doc, ctx);
-    expect(doc.shapes[pen.id].geometry).toEqual(
+    doc = undo.apply(new UpdateShapeGeometry(pen.id, updatedGeometry), doc, ctx);
+    expect(doc.shapes[pen.id].geometry).toMatchObject(
       canonicalGeometry(pen, updatedGeometry).geometry,
     );
-    undo.undo(doc, ctx);
-    expect(doc.shapes[pen.id].geometry).toEqual(pen.geometry);
+    doc = undo.undo(doc, ctx).doc;
+    expect(doc.shapes[pen.id].geometry).toMatchObject(pen.geometry);
   });
 
   test("rect geometry persists bounds", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([], registry);
+    let doc = createDocument([], registry);
     const undo = new UndoManager();
-    const ctx: ActionContext = { registry };
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
     const rect = createShape("rect", {
       type: "rect",
-      size: { width: 100, height: 40 },
+      size: [100, 40],
     });
-    undo.apply(new AddShape(rect), doc, ctx);
-    expect(doc.shapes[rect.id].geometry).toEqual(rect.geometry);
+    doc = undo.apply(new AddShape(rect), doc, ctx);
+    expect(doc.shapes[rect.id].geometry).toMatchObject(rect.geometry);
 
     const next = {
       type: "rect",
-      size: { width: 50, height: 50 },
+      size: [50, 50],
     };
-    undo.apply(new UpdateShapeGeometry(rect.id, next), doc, ctx);
-    expect(doc.shapes[rect.id].geometry).toEqual(next);
-    undo.undo(doc, ctx);
-    expect(doc.shapes[rect.id].geometry).toEqual(rect.geometry);
+    doc = undo.apply(new UpdateShapeGeometry(rect.id, next), doc, ctx);
+    expect(doc.shapes[rect.id].geometry).toMatchObject(next);
+    doc = undo.undo(doc, ctx).doc;
+    expect(doc.shapes[rect.id].geometry).toMatchObject(rect.geometry);
   });
 });

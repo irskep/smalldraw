@@ -7,41 +7,47 @@ import { UndoManager } from "../../undo";
 import { createRectangleTool } from "../rectangle";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
+import { change } from "@automerge/automerge";
 
 function setup(params?: { sharedSettings?: SharedToolSettings }) {
   const registry = getDefaultShapeHandlerRegistry();
-  const document = createDocument(undefined, registry);
+  let document = createDocument(undefined, registry);
   const undoManager = new UndoManager();
   const runtime = new ToolRuntimeImpl({
     toolId: "rect",
-    document,
-    undoManager,
+    getDocument: () => document,
+    commitAction: (action) => {
+      document = undoManager.apply(action, document, {
+        registry,
+        change: (next, update) => change(next, update),
+      });
+    },
     shapeHandlers: registry,
     sharedSettings: params?.sharedSettings,
   });
   const tool = createRectangleTool();
   tool.activate(runtime);
-  return { runtime, document, tool };
+  return { runtime, getDocument: () => document, tool };
 }
 
 describe("rectangle tool", () => {
   test("creates rectangle geometry from pointer drag", () => {
-    const { runtime, document } = setup();
+    const { runtime, getDocument } = setup();
     runtime.dispatch("pointerDown", { point: new Vec2(10, 10), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(30, 40), buttons: 1 });
 
     const draft = runtime.getDraft() as RectShape | null;
     expect(draft?.geometry).toEqual({
       type: "rect",
-      size: new Vec2(20, 30),
+      size: [20, 30],
     });
 
     runtime.dispatch("pointerUp", { point: new Vec2(30, 40), buttons: 0 });
-    expect(Object.values(document.shapes)).toHaveLength(1);
-    const shape = Object.values(document.shapes)[0] as RectShape;
+    expect(Object.values(getDocument().shapes)).toHaveLength(1);
+    const shape = Object.values(getDocument().shapes)[0] as RectShape;
     expect(draft).toBeDefined();
     expect(shape.geometry).toEqual(draft!.geometry);
-    expect(shape.transform?.translation).toEqual(new Vec2(20, 25));
+    expect(shape.transform?.translation).toEqual([20, 25]);
     expect(shape.interactions?.resizable).toBe(true);
   });
 
@@ -51,12 +57,12 @@ describe("rectangle tool", () => {
       strokeWidth: 4,
       fillColor: "#abcdef",
     };
-    const { runtime, document } = setup({ sharedSettings: shared });
+    const { runtime, getDocument } = setup({ sharedSettings: shared });
     runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(10, 10), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(10, 10), buttons: 0 });
 
-    const shape = Object.values(document.shapes)[0];
+    const shape = Object.values(getDocument().shapes)[0];
     expect(shape.fill?.type).toBe("solid");
     if (shape.fill?.type === "solid") {
       expect(shape.fill.color).toBe("#abcdef");

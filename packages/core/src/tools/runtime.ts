@@ -1,7 +1,6 @@
-import type { ActionContext, UndoableAction } from "../actions";
+import type { UndoableAction } from "../actions";
 import type { DrawingDocument } from "../model/document";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
-import type { UndoManager } from "../undo";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
 import type {
   DraftShape,
@@ -16,8 +15,8 @@ import type {
 
 interface ToolRuntimeConfig<TOptions = unknown> {
   toolId: string;
-  document: DrawingDocument;
-  undoManager: UndoManager;
+  getDocument: () => DrawingDocument;
+  commitAction: (action: UndoableAction) => void;
   shapeHandlers: ShapeHandlerRegistry;
   options?: TOptions;
   onDraftChange?: (drafts: DraftShape[]) => void;
@@ -34,8 +33,8 @@ export const DEFAULT_SHARED_SETTINGS: SharedToolSettings = {
 
 export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   public readonly toolId: string;
-  private readonly document: DrawingDocument;
-  private readonly undoManager: UndoManager;
+  private readonly getDocument: () => DrawingDocument;
+  private readonly commitAction: (action: UndoableAction) => void;
   private readonly shapeHandlers: ShapeHandlerRegistry;
   private readonly options?: TOptions;
   private readonly onDraftChange?: (drafts: DraftShape[]) => void;
@@ -50,8 +49,8 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   constructor(config: ToolRuntimeConfig<TOptions>) {
     this.toolId = config.toolId;
     this.shapeHandlers = config.shapeHandlers;
-    this.document = config.document;
-    this.undoManager = config.undoManager;
+    this.getDocument = config.getDocument;
+    this.commitAction = config.commitAction;
     this.options = config.options;
     this.onDraftChange = config.onDraftChange;
     this.toolStates = config.toolStates ?? new Map();
@@ -134,8 +133,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   }
 
   commit(action: UndoableAction): void {
-    const ctx: ActionContext = { registry: this.shapeHandlers };
-    this.undoManager.apply(action, this.document, ctx);
+    this.commitAction(action);
   }
 
   generateShapeId(prefix = "shape"): string {
@@ -144,7 +142,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   }
 
   getNextZIndex(): string {
-    const ordered = getOrderedShapes(this.document);
+    const ordered = getOrderedShapes(this.getDocument());
     const last = ordered.length ? ordered[ordered.length - 1].zIndex : null;
     return getZIndexBetween(last, null);
   }
@@ -226,7 +224,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   }
 
   getShape(shapeId: string) {
-    return this.document.shapes[shapeId];
+    return this.getDocument().shapes[shapeId];
   }
 
   getShapeHandlers(): ShapeHandlerRegistry {

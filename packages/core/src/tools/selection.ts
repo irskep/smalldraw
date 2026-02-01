@@ -1,4 +1,12 @@
-import { type AnyGeometry, type Box, BoxOperations } from "@smalldraw/geometry";
+import {
+  type AnyGeometry,
+  type Box,
+  BoxOperations,
+  getX,
+  getY,
+  toVec2,
+  toVec2Like,
+} from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import type { UndoableAction } from "../actions";
 import {
@@ -427,11 +435,11 @@ function computeNormalizedLayouts(
     const offsetU =
       boundsBoxOpts.width === 0
         ? 0.5
-        : (center.x - bounds.min.x) / boundsBoxOpts.width;
+        : (center.x - getX(bounds.min)) / boundsBoxOpts.width;
     const offsetV =
       boundsBoxOpts.height === 0
         ? 0.5
-        : (center.y - bounds.min.y) / boundsBoxOpts.height;
+        : (center.y - getY(bounds.min)) / boundsBoxOpts.height;
     layouts.set(shape.id, {
       offsetU,
       offsetV,
@@ -443,20 +451,20 @@ function computeNormalizedLayouts(
 function getHandlePosition(bounds: Box, handleId: string): Vec2 {
   switch (handleId) {
     case "top-left":
-      return new Vec2(bounds.min.x, bounds.min.y);
+      return new Vec2(getX(bounds.min), getY(bounds.min));
     case "top-right":
-      return new Vec2(bounds.max.x, bounds.min.y);
+      return new Vec2(getX(bounds.max), getY(bounds.min));
     case "bottom-left":
-      return new Vec2(bounds.min.x, bounds.max.y);
+      return new Vec2(getX(bounds.min), getY(bounds.max));
     case "bottom-right":
-      return new Vec2(bounds.max.x, bounds.max.y);
+      return new Vec2(getX(bounds.max), getY(bounds.max));
     case "rotate":
       return new Vec2(
-        (bounds.min.x + bounds.max.x) / 2,
-        bounds.min.y - (bounds.max.y - bounds.min.y) * 0.2,
+        (getX(bounds.min) + getX(bounds.max)) / 2,
+        getY(bounds.min) - (getY(bounds.max) - getY(bounds.min)) * 0.2,
       );
     default:
-      return new Vec2(bounds.min.x, bounds.min.y);
+      return new Vec2(getX(bounds.min), getY(bounds.min));
   }
 }
 
@@ -498,10 +506,16 @@ function applyMove(runtime: ToolRuntime, drag: DragState) {
   for (const shapeId of drag.selectionIds) {
     const transform = drag.transforms.get(shapeId);
     if (!transform) continue;
+    const delta: [number, number] = [dx, dy];
+    const out: [number, number] = [0, 0];
+    const translated = Vec2.add(out, transform.translation, delta) as [
+      number,
+      number,
+    ];
     actions.push(
       new UpdateShapeTransform(shapeId, {
         ...transform,
-        translation: new Vec2(transform.translation).add([dx, dy]),
+        translation: translated,
       }),
     );
   }
@@ -575,7 +589,7 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
               actions.push(
                 new UpdateShapeTransform(shapeId, {
                   ...transform,
-                  translation: result.translation,
+                  translation: toVec2Like(result.translation),
                 }),
               );
               continue;
@@ -591,13 +605,13 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
     const fallbackTranslation =
       normalizedTranslation ??
       new Vec2(
-        transform.translation.x + (newBounds.min.x - bounds.min.x),
-        transform.translation.y + (newBounds.min.y - bounds.min.y),
+        getX(transform.translation) + (getX(newBounds.min) - getX(bounds.min)),
+        getY(transform.translation) + (getY(newBounds.min) - getY(bounds.min)),
       );
     actions.push(
       new UpdateShapeTransform(shapeId, {
         ...transform,
-        translation: fallbackTranslation,
+        translation: toVec2Like(fallbackTranslation),
       }),
     );
   }
@@ -623,7 +637,7 @@ function applyAxisResize(runtime: ToolRuntime, drag: DragState) {
     new UpdateShapeGeometry(shapeId, result.geometry),
     new UpdateShapeTransform(shapeId, {
       ...transform,
-      translation: result.translation,
+      translation: toVec2Like(result.translation),
     }),
   ];
   commitActions(runtime, actions);
@@ -674,9 +688,14 @@ function computePreviewShapes(
       case "move": {
         const dx = drag.lastPoint.x - drag.startPoint.x;
         const dy = drag.lastPoint.y - drag.startPoint.y;
+        const delta: [number, number] = [dx, dy];
+        const out: [number, number] = [0, 0];
         previewTransform = {
           ...transform,
-          translation: new Vec2(transform.translation).add([dx, dy]),
+          translation: Vec2.add(out, transform.translation, delta) as [
+            number,
+            number,
+          ],
         };
         break;
       }
@@ -732,7 +751,7 @@ function computePreviewShapes(
                 } else if (result.translation) {
                   previewTransform = {
                     ...transform,
-                    translation: result.translation,
+                    translation: toVec2Like(result.translation),
                   };
                 }
               }
@@ -743,11 +762,12 @@ function computePreviewShapes(
               : undefined;
             previewTransform = {
               ...transform,
-              translation:
+              translation: toVec2Like(
                 normalizedTranslation ??
-                new Vec2(transform.translation).add(
-                  new Vec2(newBounds.min).sub(bounds.min),
-                ),
+                  new Vec2().add(toVec2(transform.translation)).add(
+                    new Vec2(newBounds.min).sub(bounds.min),
+                  ),
+              ),
             };
           }
         }
@@ -765,7 +785,7 @@ function computePreviewShapes(
           previewGeometry = result.geometry;
           previewTransform = {
             ...transform,
-            translation: result.translation,
+            translation: toVec2Like(result.translation),
           };
         }
         break;
@@ -1023,7 +1043,7 @@ function computeAxisResizeBounds(
   };
   const previewTransform: CanonicalShapeTransform = {
     ...transform,
-    translation: result.translation,
+    translation: toVec2Like(result.translation),
   };
   const registry = runtime.getShapeHandlers();
   return getShapeBounds(previewShape, registry, previewTransform);
@@ -1094,8 +1114,8 @@ function createAxisResizeState(
   const side = getAxisHandleSide(handleId);
   if (!side) return null;
   const rotation = transform.rotation;
-  const signX = transform.scale.x === 0 ? 1 : Math.sign(transform.scale.x);
-  const signY = transform.scale.y === 0 ? 1 : Math.sign(transform.scale.y);
+  const signX = getX(transform.scale) === 0 ? 1 : Math.sign(getX(transform.scale));
+  const signY = getY(transform.scale) === 0 ? 1 : Math.sign(getY(transform.scale));
   const baseAxis = axis === "x" ? new Vec2(signX, 0) : new Vec2(0, signY);
   const baseDirection = new Vec2();
   Vec2.rotate(baseDirection, baseAxis, [0, 0], rotation);

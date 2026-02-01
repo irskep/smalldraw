@@ -11,21 +11,41 @@ export class UpdateShapeOpacity implements UndoableAction {
     private readonly nextOpacity: number | undefined,
   ) {}
 
-  redo(doc: DrawingDocument, _ctx: ActionContext): void {
+  redo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       this.previous = shape.opacity;
       this.recorded = true;
     }
-    shape.opacity = this.nextOpacity;
+    return ctx.change(doc, (draft) => {
+      const target = draft.shapes[this.shapeId];
+      if (!target) {
+        throw new Error(`Cannot update opacity for missing shape ${this.shapeId}`);
+      }
+      if (this.nextOpacity === undefined) {
+        delete target.opacity;
+      } else {
+        target.opacity = this.nextOpacity;
+      }
+    });
   }
 
-  undo(doc: DrawingDocument, _ctx: ActionContext): void {
+  undo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     if (!this.recorded) {
       throw new Error(`Cannot undo opacity update for ${this.shapeId}`);
     }
-    const shape = requireShape(doc, this.shapeId);
-    shape.opacity = this.previous;
+    requireShape(doc, this.shapeId);
+    return ctx.change(doc, (draft) => {
+      const target = draft.shapes[this.shapeId];
+      if (!target) {
+        throw new Error(`Cannot undo opacity update for missing shape ${this.shapeId}`);
+      }
+      if (this.previous === undefined) {
+        delete target.opacity;
+      } else {
+        target.opacity = this.previous;
+      }
+    });
   }
 
   affectedShapeIds(): string[] {

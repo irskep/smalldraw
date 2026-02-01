@@ -11,21 +11,34 @@ export class UpdateShapeZIndex implements UndoableAction {
     private readonly nextZIndex: string,
   ) {}
 
-  redo(doc: DrawingDocument, _ctx: ActionContext): void {
+  redo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       this.previous = shape.zIndex;
       this.recorded = true;
     }
-    shape.zIndex = this.nextZIndex;
+    return ctx.change(doc, (draft) => {
+      const target = draft.shapes[this.shapeId];
+      if (!target) {
+        throw new Error(`Cannot update z-index for missing shape ${this.shapeId}`);
+      }
+      target.zIndex = this.nextZIndex;
+    });
   }
 
-  undo(doc: DrawingDocument, _ctx: ActionContext): void {
+  undo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     if (!this.recorded || this.previous === undefined) {
       throw new Error(`Cannot undo z-index update for ${this.shapeId}`);
     }
-    const shape = requireShape(doc, this.shapeId);
-    shape.zIndex = this.previous;
+    requireShape(doc, this.shapeId);
+    const previous = this.previous;
+    return ctx.change(doc, (draft) => {
+      const target = draft.shapes[this.shapeId];
+      if (!target) {
+        throw new Error(`Cannot undo z-index update for missing shape ${this.shapeId}`);
+      }
+      target.zIndex = previous;
+    });
   }
 
   affectedShapeIds(): string[] {

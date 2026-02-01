@@ -1,4 +1,5 @@
-import type { Vec2 } from "@smalldraw/geometry";
+import type { Vec2Like } from "@smalldraw/geometry";
+import { getX, getY } from "@smalldraw/geometry";
 import type { StrokeOptions as FreehandStrokeOptions } from "perfect-freehand";
 import getStroke from "perfect-freehand";
 
@@ -11,13 +12,16 @@ export interface StrokePolygonResult {
 }
 
 export function createFreehandStroke(
-  points: Vec2[],
+  points: Vec2Like[],
   options?: StrokePathOptions,
 ): StrokePolygonResult | null {
   if (!points.length) {
     return null;
   }
-  const outline = getStroke(points, options ?? {});
+  const outline = getStroke(
+    points.map((point) => [getX(point), getY(point)]),
+    options ?? {},
+  );
   if (!outline.length) {
     return createDotStroke(points[0], options);
   }
@@ -51,15 +55,15 @@ export function outlineToPath(outline: number[][]): string {
 }
 
 function createDotStroke(
-  point: Vec2,
+  point: Vec2Like,
   options?: StrokePathOptions,
 ): StrokePolygonResult {
   const radius = Math.max(1, (options?.size ?? 1) / 2);
   const outline: number[][] = [
-    [point.x - radius, point.y - radius],
-    [point.x + radius, point.y - radius],
-    [point.x + radius, point.y + radius],
-    [point.x - radius, point.y + radius],
+    [getX(point) - radius, getY(point) - radius],
+    [getX(point) + radius, getY(point) - radius],
+    [getX(point) + radius, getY(point) + radius],
+    [getX(point) - radius, getY(point) + radius],
   ];
   const flatPoints = flattenOutline(outline);
   return {

@@ -9,16 +9,18 @@ import {
 } from "../actions";
 import { DrawingStore } from "../store/drawingStore";
 
+const v = (x = 0, y = x): [number, number] => [x, y];
+
 function createTestShape(id: string) {
   return {
     id,
     type: "rect" as const,
-    geometry: { type: "rect" as const, size: { width: 100, height: 50 } },
+    geometry: { type: "rect" as const, size: v(100, 50) },
     fill: { type: "solid" as const, color: "#ff0000" },
     zIndex: "a0",
     transform: {
-      translation: new Vec2(),
-      scale: new Vec2(1),
+      translation: v(0, 0),
+      scale: v(1, 1),
       rotation: 0,
     },
   };
@@ -37,16 +39,16 @@ describe("Dirty tracking", () => {
 
   test("affectedShapeIds returns shape ID for UpdateShapeTransform", () => {
     const action = new UpdateShapeTransform("test-1", {
-      translation: new Vec2(100),
+      translation: v(100),
     });
     expect(action.affectedShapeIds()).toEqual(["test-1"]);
   });
 
   test("affectedShapeIds returns union for CompositeAction", () => {
     const action = new CompositeAction([
-      new UpdateShapeTransform("shape-1", { translation: new Vec2() }),
-      new UpdateShapeTransform("shape-2", { translation: new Vec2() }),
-      new UpdateShapeTransform("shape-1", { translation: new Vec2(10) }),
+      new UpdateShapeTransform("shape-1", { translation: v(0) }),
+      new UpdateShapeTransform("shape-2", { translation: v(0) }),
+      new UpdateShapeTransform("shape-1", { translation: v(10) }),
     ]);
     const ids = action.affectedShapeIds();
     expect(ids.length).toBe(2);
@@ -117,7 +119,7 @@ describe("Dirty tracking", () => {
     store.mutateDocument(new AddShape(createTestShape("shape-2")));
     store.mutateDocument(
       new UpdateShapeTransform("shape-1", {
-        translation: new Vec2(50),
+        translation: v(50),
       }),
     );
 
@@ -205,7 +207,7 @@ describe("Ordered shapes caching", () => {
     const ordered1 = store.getOrderedShapes();
     store.mutateDocument(
       new UpdateShapeTransform("shape-1", {
-        translation: new Vec2(100),
+        translation: v(100),
       }),
     );
     const ordered2 = store.getOrderedShapes();

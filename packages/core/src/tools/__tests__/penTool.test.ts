@@ -7,6 +7,7 @@ import { UndoManager } from "../../undo";
 import { createPenTool } from "../pen";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
+import { change } from "@automerge/automerge";
 
 describe("pen tool integration with runtime", () => {
   function setup(params?: {
@@ -14,26 +15,31 @@ describe("pen tool integration with runtime", () => {
     sharedSettings?: SharedToolSettings;
   }) {
     const registry = getDefaultShapeHandlerRegistry();
-    const document = createDocument(undefined, registry);
+    let document = createDocument(undefined, registry);
     const undoManager = new UndoManager();
     const runtimeOptions = params?.runtimeStrokeColor
       ? { stroke: { type: "brush", color: params.runtimeStrokeColor, size: 5 } }
       : undefined;
     const runtime = new ToolRuntimeImpl({
       toolId: "pen",
-      document,
-      undoManager,
+      getDocument: () => document,
+      commitAction: (action) => {
+        document = undoManager.apply(action, document, {
+          registry,
+          change: (next, update) => change(next, update),
+        });
+      },
       shapeHandlers: registry,
       options: runtimeOptions,
       sharedSettings: params?.sharedSettings,
     });
     const tool = createPenTool();
     const deactivate = tool.activate(runtime);
-    return { runtime, document, undoManager, tool, deactivate };
+    return { runtime, getDocument: () => document, undoManager, tool, deactivate };
   }
 
   test("collects pointer events into draft stroke and commits at pointer up", () => {
-    const { runtime, document } = setup();
+    const { runtime, getDocument } = setup();
 
     runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(10, 10), buttons: 1 });
@@ -41,13 +47,17 @@ describe("pen tool integration with runtime", () => {
 
     expect((runtime.getDraft() as PenShape | null)?.geometry).toEqual({
       type: "pen",
-      points: [new Vec2(-10, -5), new Vec2(0, 5), new Vec2(10, 0)],
+      points: [
+        [-10, -5],
+        [0, 5],
+        [10, 0],
+      ],
     });
 
     runtime.dispatch("pointerUp", { point: new Vec2(20, 5), buttons: 0 });
 
     expect(runtime.getDraft()).toBeNull();
-    const shapeEntries = Object.entries(document.shapes) as [
+    const shapeEntries = Object.entries(getDocument().shapes) as [
       string,
       PenShape,
     ][];
@@ -55,19 +65,23 @@ describe("pen tool integration with runtime", () => {
     const [, shape] = shapeEntries[0];
     expect(shape.geometry).toEqual({
       type: "pen",
-      points: [new Vec2(-10, -5), new Vec2(0, 5), new Vec2(10, 0)],
+      points: [
+        [-10, -5],
+        [0, 5],
+        [10, 0],
+      ],
     });
-    expect(shape.transform?.translation).toEqual(new Vec2(10, 5));
+    expect(shape.transform?.translation).toEqual([10, 5]);
   });
 
   test("uses runtime stroke options when provided", () => {
-    const { runtime, document } = setup({ runtimeStrokeColor: "#ff00ff" });
+    const { runtime, getDocument } = setup({ runtimeStrokeColor: "#ff00ff" });
 
     runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(5, 5), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(5, 5), buttons: 0 });
 
-    const shapeEntries = Object.values(document.shapes);
+    const shapeEntries = Object.values(getDocument().shapes);
     expect(shapeEntries).toHaveLength(1);
     expect(shapeEntries[0].stroke?.color).toBe("#ff00ff");
   });
@@ -78,19 +92,19 @@ describe("pen tool integration with runtime", () => {
       strokeWidth: 7,
       fillColor: "#ffffff",
     };
-    const { runtime, document } = setup({ sharedSettings: shared });
+    const { runtime, getDocument } = setup({ sharedSettings: shared });
     runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(2, 2), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(2, 2), buttons: 0 });
 
-    const shape = Object.values(document.shapes)[0];
+    const shape = Object.values(getDocument().shapes)[0];
     expect(shape.stroke?.color).toBe("#00ff00");
     expect(shape.stroke?.size).toBe(7);
     expect(runtime.getSharedSettings().strokeWidth).toBe(7);
   });
 
   test("deactivation clears drafts and prevents further commits", () => {
-    const { runtime, document, deactivate } = setup();
+    const { runtime, getDocument, deactivate } = setup();
 
     runtime.dispatch("pointerDown", { point: new Vec2(1, 1), buttons: 1 });
     expect(runtime.getDraft()).not.toBeNull();
@@ -100,6 +114,6 @@ describe("pen tool integration with runtime", () => {
 
     runtime.dispatch("pointerMove", { point: new Vec2(2, 2), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(2, 2), buttons: 0 });
-    expect(Object.values(document.shapes)).toHaveLength(0);
+    expect(Object.values(getDocument().shapes)).toHaveLength(0);
   });
 });

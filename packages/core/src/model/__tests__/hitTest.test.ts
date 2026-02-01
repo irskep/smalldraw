@@ -5,16 +5,17 @@ import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
 import type { RectShape } from "../shapes/rectShape";
 
 describe("hit testing", () => {
+  const v = (x = 0, y = x): [number, number] => [x, y];
   test("rotated rect ignores points outside the rotated shape", () => {
     const registry = getDefaultShapeHandlerRegistry();
     const shape: RectShape = {
       id: "rot-rect",
       type: "rect",
-      geometry: { type: "rect", size: new Vec2(10, 10) },
+      geometry: { type: "rect", size: v(10, 10) },
       transform: {
-        translation: new Vec2(),
+        translation: v(0, 0),
         rotation: Math.PI / 4,
-        scale: new Vec2(1),
+        scale: v(1, 1),
       },
       zIndex: "rot-rect",
     };

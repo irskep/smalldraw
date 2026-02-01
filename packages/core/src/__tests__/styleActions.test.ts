@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import type { RectShape } from "@smalldraw/core";
-import { Vec2 } from "gl-matrix";
 import {
   type ActionContext,
   AddShape,
@@ -14,6 +13,7 @@ import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import type { Fill, StrokeStyle } from "../model/style";
 import { UndoManager } from "../undo";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
+import { change } from "@automerge/automerge";
 
 function baseShape(id: string): RectShape {
   return {
@@ -22,7 +22,7 @@ function baseShape(id: string): RectShape {
     zIndex: id,
     geometry: {
       type: "rect",
-      size: new Vec2(10),
+      size: [10, 10],
     },
     fill: { type: "solid", color: "#000000" },
     stroke: { type: "brush", color: "#ffffff", size: 2 },
@@ -32,11 +32,14 @@ function baseShape(id: string): RectShape {
 describe("Fill and stroke actions", () => {
   test("fill can switch between solid and gradient and undo restores original", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([], registry);
+    let doc = createDocument([], registry);
     const undo = new UndoManager();
-    const ctx: ActionContext = { registry };
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
     const shape = baseShape("fill-test");
-    undo.apply(new AddShape(shape), doc, ctx);
+    doc = undo.apply(new AddShape(shape), doc, ctx);
 
     const gradientFill: Fill = {
       type: "gradient",
@@ -47,23 +50,29 @@ describe("Fill and stroke actions", () => {
       angle: 45,
     };
 
-    undo.apply(new UpdateShapeFill(shape.id, gradientFill), doc, ctx);
-    expect(doc.shapes[shape.id]?.fill).toEqual(gradientFill);
+    doc = undo.apply(new UpdateShapeFill(shape.id, gradientFill), doc, ctx);
+    expect(doc.shapes[shape.id]?.fill).toBeDefined();
+    expect(doc.shapes[shape.id]!.fill).toMatchObject(gradientFill);
 
-    undo.undo(doc, ctx);
-    expect(doc.shapes[shape.id]?.fill).toEqual(shape.fill);
+    doc = undo.undo(doc, ctx).doc;
+    expect(doc.shapes[shape.id]?.fill).toBeDefined();
+    expect(doc.shapes[shape.id]!.fill).toMatchObject(shape.fill!);
 
-    undo.redo(doc, ctx);
-    expect(doc.shapes[shape.id]?.fill).toEqual(gradientFill);
+    doc = undo.redo(doc, ctx).doc;
+    expect(doc.shapes[shape.id]?.fill).toBeDefined();
+    expect(doc.shapes[shape.id]!.fill).toMatchObject(gradientFill);
   });
 
   test("stroke updates can remove or replace the style", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([], registry);
+    let doc = createDocument([], registry);
     const undo = new UndoManager();
-    const ctx: ActionContext = { registry };
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
     const shape = baseShape("stroke-test");
-    undo.apply(new AddShape(shape), doc, ctx);
+    doc = undo.apply(new AddShape(shape), doc, ctx);
 
     const newStroke: StrokeStyle = {
       type: "brush",
@@ -72,41 +81,47 @@ describe("Fill and stroke actions", () => {
       brushId: "marker",
     };
 
-    undo.apply(new UpdateShapeStroke(shape.id, newStroke), doc, ctx);
-    expect(doc.shapes[shape.id]?.stroke).toEqual(newStroke);
+    doc = undo.apply(new UpdateShapeStroke(shape.id, newStroke), doc, ctx);
+    expect(doc.shapes[shape.id]?.stroke).toBeDefined();
+    expect(doc.shapes[shape.id]!.stroke).toMatchObject(newStroke);
 
-    undo.apply(new UpdateShapeStroke(shape.id, undefined), doc, ctx);
+    doc = undo.apply(new UpdateShapeStroke(shape.id, undefined), doc, ctx);
     expect(doc.shapes[shape.id]?.stroke).toBeUndefined();
 
-    undo.undo(doc, ctx);
-    expect(doc.shapes[shape.id]?.stroke).toEqual(newStroke);
-    undo.undo(doc, ctx);
-    expect(doc.shapes[shape.id]?.stroke).toEqual(shape.stroke);
+    doc = undo.undo(doc, ctx).doc;
+    expect(doc.shapes[shape.id]?.stroke).toBeDefined();
+    expect(doc.shapes[shape.id]!.stroke).toMatchObject(newStroke);
+    doc = undo.undo(doc, ctx).doc;
+    expect(doc.shapes[shape.id]?.stroke).toBeDefined();
+    expect(doc.shapes[shape.id]!.stroke).toMatchObject(shape.stroke!);
   });
 });
 
 describe("Z-index actions", () => {
   test("shapes reorder through z-index updates and helper sorts correctly", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([], registry);
+    let doc = createDocument([], registry);
     const undo = new UndoManager();
-    const ctx: ActionContext = { registry };
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
     const back = baseShape("a");
     const front = baseShape("b");
     back.zIndex = getZIndexBetween(null, null);
     front.zIndex = getZIndexBetween(back.zIndex, null);
 
-    undo.apply(new AddShape(back), doc, ctx);
-    undo.apply(new AddShape(front), doc, ctx);
+    doc = undo.apply(new AddShape(back), doc, ctx);
+    doc = undo.apply(new AddShape(front), doc, ctx);
     expect(getOrderedShapes(doc).map((shape) => shape.id)).toEqual(["a", "b"]);
 
     const newZ = getZIndexBetween(front.zIndex, null);
-    undo.apply(new UpdateShapeZIndex(back.id, newZ), doc, ctx);
+    doc = undo.apply(new UpdateShapeZIndex(back.id, newZ), doc, ctx);
 
     const ordered = getOrderedShapes(doc).map((shape) => shape.id);
     expect(ordered[ordered.length - 1]).toBe("a");
 
-    undo.undo(doc, ctx);
+    doc = undo.undo(doc, ctx).doc;
     expect(getOrderedShapes(doc).map((shape) => shape.id)).toEqual(["a", "b"]);
   });
 });
@@ -114,24 +129,27 @@ describe("Z-index actions", () => {
 describe("Opacity actions", () => {
   test("opacity updates support undo/redo and clearing the value", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([], registry);
+    let doc = createDocument([], registry);
     const undo = new UndoManager();
-    const ctx: ActionContext = { registry };
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
     const shape = baseShape("opacity");
     shape.opacity = 0.8;
-    undo.apply(new AddShape(shape), doc, ctx);
+    doc = undo.apply(new AddShape(shape), doc, ctx);
 
-    undo.apply(new UpdateShapeOpacity(shape.id, 0.5), doc, ctx);
+    doc = undo.apply(new UpdateShapeOpacity(shape.id, 0.5), doc, ctx);
     expect(doc.shapes[shape.id]?.opacity).toBe(0.5);
 
-    undo.apply(new UpdateShapeOpacity(shape.id, undefined), doc, ctx);
+    doc = undo.apply(new UpdateShapeOpacity(shape.id, undefined), doc, ctx);
     expect(doc.shapes[shape.id]?.opacity).toBeUndefined();
 
-    undo.undo(doc, ctx);
+    doc = undo.undo(doc, ctx).doc;
     expect(doc.shapes[shape.id]?.opacity).toBe(0.5);
-    undo.undo(doc, ctx);
+    doc = undo.undo(doc, ctx).doc;
     expect(doc.shapes[shape.id]?.opacity).toBe(0.8);
-    undo.redo(doc, ctx);
+    doc = undo.redo(doc, ctx).doc;
     expect(doc.shapes[shape.id]?.opacity).toBe(0.5);
   });
 });

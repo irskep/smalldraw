@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { RectGeometry } from "@smalldraw/geometry";
+import { toVec2Like } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
@@ -11,6 +12,8 @@ import { createSelectionTool as createSelectionDefinition } from "../../tools/se
 import type { ToolDefinition } from "../../tools/types";
 import { DrawingStore } from "../drawingStore";
 
+const v = (x = 0, y = x): [number, number] => [x, y];
+
 function createDraftTool(): ToolDefinition {
   return {
     id: "draft-tool",
@@ -19,7 +22,7 @@ function createDraftTool(): ToolDefinition {
       runtime.on("pointerDown", (event) => {
         const geometry: RectGeometry = {
           type: "rect",
-          size: new Vec2(10, 10),
+          size: v(10, 10),
         };
         runtime.setDraft({
           toolId: runtime.toolId,
@@ -30,8 +33,8 @@ function createDraftTool(): ToolDefinition {
           zIndex: runtime.getNextZIndex(),
           fill: { type: "solid", color: "#ff0000" },
           transform: {
-            translation: event.point,
-            scale: new Vec2(1, 1),
+            translation: toVec2Like(event.point),
+            scale: v(1, 1),
             rotation: 0,
           },
         });
@@ -104,9 +107,9 @@ describe("DrawingStore", () => {
     expect(shapes).toHaveLength(1);
     expect(shapes[0].geometry).toEqual({
       type: "pen",
-      points: [new Vec2(-2.5, -2.5), new Vec2(2.5, 2.5)],
+      points: [v(-2.5, -2.5), v(2.5, 2.5)],
     });
-    expect(shapes[0].transform?.translation).toEqual(new Vec2(2.5, 2.5));
+    expect(shapes[0].transform?.translation).toEqual(v(2.5, 2.5));
   });
 
   test("store aggregates drafts from multiple tools", () => {
@@ -119,7 +122,7 @@ describe("DrawingStore", () => {
     expect(store.getDrafts()).toHaveLength(1);
     expect(store.getDrafts()[0].geometry as RectGeometry).toEqual({
       type: "rect",
-      size: new Vec2(10, 10),
+      size: v(10, 10),
     });
 
     store.activateTool("pen");
@@ -183,13 +186,13 @@ describe("DrawingStore", () => {
         {
           id: "rect-frame",
           type: "rect",
-          geometry: { type: "rect", size: new Vec2(10, 10) },
+          geometry: { type: "rect", size: v(10, 10) },
           zIndex: "frame",
           interactions: { resizable: true, rotatable: true },
           transform: {
-            translation: new Vec2(5, 5),
+            translation: v(5, 5),
             rotation: 0,
-            scale: new Vec2(1, 1),
+            scale: v(1, 1),
           },
         } as RectShape,
       ],
@@ -217,13 +220,13 @@ describe("DrawingStore", () => {
         {
           id: "rect",
           type: "rect",
-          geometry: { type: "rect", size: new Vec2(10, 10) },
+          geometry: { type: "rect", size: v(10, 10) },
           zIndex: "a",
           interactions: { resizable: true, rotatable: true },
           transform: {
-            translation: new Vec2(0, 0),
+            translation: v(0, 0),
             rotation: 0,
-            scale: new Vec2(1, 1),
+            scale: v(1, 1),
           },
         } as RectShape,
       ],

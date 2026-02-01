@@ -1,6 +1,12 @@
 import type { ActionContext, UndoableAction } from "./actions";
 import type { DrawingDocument } from "./model/document";
 
+export interface UndoOutcome {
+  doc: DrawingDocument;
+  action: UndoableAction | null;
+  error?: string;
+}
+
 export class UndoManager {
   private undoStack: UndoableAction[] = [];
   private redoStack: UndoableAction[] = [];
@@ -9,30 +15,49 @@ export class UndoManager {
     action: UndoableAction,
     doc: DrawingDocument,
     ctx: ActionContext,
-  ): void {
-    action.redo(doc, ctx);
+  ): DrawingDocument {
+    const nextDoc = action.redo(doc, ctx);
     this.undoStack.push(action);
     this.redoStack = [];
+    return nextDoc;
   }
 
-  undo(doc: DrawingDocument, ctx: ActionContext): UndoableAction | null {
+  undo(doc: DrawingDocument, ctx: ActionContext): UndoOutcome {
     const action = this.undoStack.pop();
     if (!action) {
-      return null;
+      return { doc, action: null };
     }
-    action.undo(doc, ctx);
-    this.redoStack.push(action);
-    return action;
+    try {
+      const nextDoc = action.undo(doc, ctx);
+      this.redoStack.push(action);
+      return { doc: nextDoc, action };
+    } catch (error) {
+      this.undoStack.push(action);
+      return {
+        doc,
+        action: null,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
-  redo(doc: DrawingDocument, ctx: ActionContext): UndoableAction | null {
+  redo(doc: DrawingDocument, ctx: ActionContext): UndoOutcome {
     const action = this.redoStack.pop();
     if (!action) {
-      return null;
+      return { doc, action: null };
     }
-    action.redo(doc, ctx);
-    this.undoStack.push(action);
-    return action;
+    try {
+      const nextDoc = action.redo(doc, ctx);
+      this.undoStack.push(action);
+      return { doc: nextDoc, action };
+    } catch (error) {
+      this.redoStack.push(action);
+      return {
+        doc,
+        action: null,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   canUndo(): boolean {

@@ -1,71 +1,80 @@
 import { describe, expect, test } from "bun:test";
-import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { type ActionContext, CompositeAction, UpdateShapeTransform } from "..";
+import { change } from "@automerge/automerge";
 
 describe("UpdateShapeTransform action", () => {
+  const v = (x = 0, y = x): [number, number] => [x, y];
   const baseShape: RectShape = {
     id: "shape-1",
     type: "rect",
-    geometry: { type: "rect", size: new Vec2(10) },
+    geometry: { type: "rect", size: v(10) },
     zIndex: "a",
     transform: {
-      translation: new Vec2(),
+      translation: v(0),
       rotation: 0,
-      scale: new Vec2(1),
-      origin: new Vec2(),
+      scale: v(1),
+      origin: v(0),
     },
   };
 
   test("applies and undoes a single transform change", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([baseShape], registry);
+    let doc = createDocument([baseShape], registry);
     const undo = new UndoManager();
-    const ctx: ActionContext = { registry };
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
     const action = new UpdateShapeTransform("shape-1", {
-      translation: new Vec2(5, -3),
+      translation: v(5, -3),
       rotation: Math.PI / 4,
-      scale: new Vec2(2, 0.5),
+      scale: v(2, 0.5),
     });
 
-    undo.apply(action, doc, ctx);
-    expect(doc.shapes["shape-1"]?.transform).toEqual({
-      translation: new Vec2(5, -3),
+    doc = undo.apply(action, doc, ctx);
+    expect(doc.shapes["shape-1"]?.transform).toMatchObject({
+      translation: v(5, -3),
       rotation: Math.PI / 4,
-      scale: new Vec2(2, 0.5),
+      scale: v(2, 0.5),
     });
 
-    undo.undo(doc, ctx);
-    expect(doc.shapes["shape-1"]?.transform).toEqual(baseShape.transform);
+    doc = undo.undo(doc, ctx).doc;
+    expect(doc.shapes["shape-1"]?.transform).toBeDefined();
+    expect(doc.shapes["shape-1"]!.transform).toMatchObject(baseShape.transform!);
   });
 
   test("composite action batches multiple transform updates", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const doc = createDocument([baseShape], registry);
+    let doc = createDocument([baseShape], registry);
     const undo = new UndoManager();
-    const ctx: ActionContext = { registry };
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
     const move = new UpdateShapeTransform("shape-1", {
-      translation: new Vec2(10, 0),
+      translation: v(10, 0),
       rotation: 0,
-      scale: new Vec2(1),
+      scale: v(1),
     });
     const rotate = new UpdateShapeTransform("shape-1", {
-      translation: new Vec2(10, 0),
+      translation: v(10, 0),
       rotation: Math.PI / 2,
-      scale: new Vec2(1),
+      scale: v(1),
     });
 
-    undo.apply(new CompositeAction([move, rotate]), doc, ctx);
-    expect(doc.shapes["shape-1"]?.transform).toEqual({
-      translation: new Vec2(10, 0),
+    doc = undo.apply(new CompositeAction([move, rotate]), doc, ctx);
+    expect(doc.shapes["shape-1"]?.transform).toMatchObject({
+      translation: v(10, 0),
       rotation: Math.PI / 2,
-      scale: new Vec2(1),
+      scale: v(1),
     });
 
-    undo.undo(doc, ctx);
-    expect(doc.shapes["shape-1"]?.transform).toEqual(baseShape.transform);
+    doc = undo.undo(doc, ctx).doc;
+    expect(doc.shapes["shape-1"]?.transform).toBeDefined();
+    expect(doc.shapes["shape-1"]!.transform).toMatchObject(baseShape.transform!);
   });
 });
