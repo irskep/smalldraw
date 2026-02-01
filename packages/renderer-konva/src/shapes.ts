@@ -119,7 +119,7 @@ function createRectNode(
 function createPenNode(
   shape: PenShape,
   _geometryRegistry?: ShapeHandlerRegistry,
-): Konva.Line | null {
+): Konva.Path | null {
   const stroke = shape.stroke;
   const color = stroke?.color ?? "#000000";
   const size = stroke?.size ?? 4;
@@ -137,9 +137,8 @@ function createPenNode(
   if (!strokeResult) {
     return null;
   }
-  return new Konva.Line({
-    points: strokeResult.flatPoints,
-    closed: true,
+  return new Konva.Path({
+    data: strokeResult.path,
     fill: color,
     listening: false,
   });
