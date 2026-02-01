@@ -1,4 +1,9 @@
-import { DrawingApp } from "@smalldraw/ui-vanillajs";
+import type { DrawingApp } from "@smalldraw/ui-vanillajs";
+import {
+  initializeBase64Wasm,
+  isWasmInitialized,
+} from "@automerge/automerge/slim";
+import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64.js";
 
 const container = document.getElementById("app");
 if (!container) {
@@ -7,8 +12,12 @@ if (!container) {
 
 let app: DrawingApp | null = null;
 
-function mount() {
+async function mount() {
   if (!container) return;
+  if (!isWasmInitialized()) {
+    await initializeBase64Wasm(automergeWasmBase64);
+  }
+  const { DrawingApp } = await import("@smalldraw/ui-vanillajs");
   container.innerHTML = "";
   app = new DrawingApp({
     container,
@@ -22,9 +31,9 @@ function mount() {
 const resetButton = document.getElementById("reset");
 resetButton?.addEventListener("click", () => {
   app?.destroy();
-  mount();
+  void mount();
 });
 
-mount();
+void mount();
 
 import.meta.hot.accept();

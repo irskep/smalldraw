@@ -7,7 +7,7 @@ import { UndoManager } from "../../undo";
 import { createRectangleTool } from "../rectangle";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
-import { change } from "@automerge/automerge";
+import { change } from "@automerge/automerge/slim";
 
 function setup(params?: { sharedSettings?: SharedToolSettings }) {
   const registry = getDefaultShapeHandlerRegistry();

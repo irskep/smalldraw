@@ -13,7 +13,7 @@ import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import type { Fill, StrokeStyle } from "../model/style";
 import { UndoManager } from "../undo";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
-import { change } from "@automerge/automerge";
+import { change } from "@automerge/automerge/slim";
 
 function baseShape(id: string): RectShape {
   return {

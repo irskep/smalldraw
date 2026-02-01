@@ -7,7 +7,7 @@ import { UndoManager } from "../../undo";
 import { createPenTool } from "../pen";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
-import { change } from "@automerge/automerge";
+import { change } from "@automerge/automerge/slim";
 
 describe("pen tool integration with runtime", () => {
   function setup(params?: {

@@ -5,7 +5,7 @@ import { createDocument } from "../model/document";
 import { canonicalizeShape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
-import { change } from "@automerge/automerge";
+import { change } from "@automerge/automerge/slim";
 
 const rectangle: RectShape = {
   id: "rect-1",

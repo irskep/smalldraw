@@ -1,5 +1,5 @@
 import type { DrawingDocument, DrawingDocumentData } from "../model/document";
-import { change, init } from "@automerge/automerge";
+import { change, init } from "@automerge/automerge/slim";
 import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";

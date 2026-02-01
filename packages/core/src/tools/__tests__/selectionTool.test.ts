@@ -16,7 +16,7 @@ import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
 import type { HandleBehavior } from "../types";
-import { change } from "@automerge/automerge";
+import { change } from "@automerge/automerge/slim";
 
 // Union type for all shapes used in tests
 type TestShape = RectShape | PenShape;

@@ -3,17 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "dev": "bunx vite",
-    "preview": "vite preview",
+    "build": "rm -rf dist && mkdir -p dist && bun build src/main.ts --outdir dist --target=browser && cp src/index.html dist/index.html && cp src/styles.css dist/styles.css",
+    "dev": "bun ./src/index.html --watch",
     "ts:check": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@smalldraw/ui-vanillajs": "workspace:*"
-  },
-  "devDependencies": {
-    "vite": "^5.4.21",
-    "vite-plugin-top-level-await": "^1.5.0",
-    "vite-plugin-wasm": "^3.5.0"
   }
 }

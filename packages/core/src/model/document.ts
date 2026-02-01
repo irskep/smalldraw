@@ -1,4 +1,4 @@
-import { change, init, type Doc } from "@automerge/automerge";
+import { change, init, type Doc } from "@automerge/automerge/slim";
 import type { AnyShape } from "./shape";
 import { canonicalizeShape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";

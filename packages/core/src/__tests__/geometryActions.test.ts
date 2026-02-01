@@ -6,7 +6,7 @@ import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
-import { change } from "@automerge/automerge";
+import { change } from "@automerge/automerge/slim";
 
 function createShape(id: string, geometry: unknown): AnyShape {
   const registry = getDefaultShapeHandlerRegistry();

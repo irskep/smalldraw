@@ -11,7 +11,7 @@ import { UndoManager } from "../../undo";
 import { getZIndexBetween } from "../../zindex";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SelectionState, SharedToolSettings } from "../types";
-import { change } from "@automerge/automerge";
+import { change } from "@automerge/automerge/slim";
 
 interface RuntimeOverrides {
   options?: Record<string, unknown>;

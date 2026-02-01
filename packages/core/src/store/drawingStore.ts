@@ -1,4 +1,4 @@
-import { change } from "@automerge/automerge";
+import { change } from "@automerge/automerge/slim";
 import type { Box } from "@smalldraw/geometry";
 import type { ActionContext, UndoableAction } from "../actions";
 import { createDocument, type DrawingDocument } from "../model/document";

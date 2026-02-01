@@ -4,7 +4,7 @@ import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { type ActionContext, CompositeAction, UpdateShapeTransform } from "..";
-import { change } from "@automerge/automerge";
+import { change } from "@automerge/automerge/slim";
 
 describe("UpdateShapeTransform action", () => {
   const v = (x = 0, y = x): [number, number] => [x, y];
