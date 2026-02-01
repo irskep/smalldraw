@@ -1,7 +1,7 @@
 import { BoxOperations, type RectGeometry } from "@smalldraw/geometry";
 import { Mat2d, Vec2 } from "gl-matrix";
-import type { Shape } from "../shape";
 import { buildTransformMatrix } from "../geometryShapeUtils";
+import type { Shape } from "../shape";
 import { normalizeShapeTransform } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 
