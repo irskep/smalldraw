@@ -3,7 +3,7 @@ import {
   type DrawingDocument,
   type DrawingStore,
   getOrderedShapes,
-  getShapeBounds,
+  hitTestShape,
   resolveSelectionHandlePoint,
 } from "@smalldraw/core";
 import { BoxOperations, distance, type Vec2 } from "@smalldraw/geometry";
@@ -98,8 +98,7 @@ export function hitTestShapes(
   const registry = store.getShapeHandlers();
   for (let i = ordered.length - 1; i >= 0; i -= 1) {
     const shape = ordered[i];
-    const bounds = getShapeBounds(shape, registry);
-    if (new BoxOperations(bounds).containsPoint(point)) {
+    if (hitTestShape(shape, point, registry)) {
       return shape;
     }
   }

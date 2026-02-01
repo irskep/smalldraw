@@ -1,6 +1,8 @@
 import { BoxOperations, type RectGeometry } from "@smalldraw/geometry";
-import { Vec2 } from "gl-matrix";
+import { Mat2d, Vec2 } from "gl-matrix";
 import type { Shape } from "../shape";
+import { buildTransformMatrix } from "../geometryShapeUtils";
+import { normalizeShapeTransform } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 
 export type RectShape = Shape & { geometry: RectGeometry };
@@ -14,6 +16,26 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
         new Vec2().sub(g.size).div(new Vec2(2)),
         new Vec2().add(g.size).div(new Vec2(2)),
       );
+    },
+  },
+  shape: {
+    hitTest(shape: RectShape, point: Vec2) {
+      const transform = normalizeShapeTransform(shape.transform);
+      const matrix = buildTransformMatrix(transform);
+      const inverse = Mat2d.invert(new Mat2d(), matrix);
+      if (!inverse) {
+        return false;
+      }
+      const localPoint = Vec2.transformMat2d(
+        new Vec2(),
+        point,
+        inverse,
+      ) as Vec2;
+      const halfSize = new Vec2(shape.geometry.size).div(new Vec2(2));
+      const padding = (shape.stroke?.size ?? 0) / 2;
+      const min = new Vec2(-halfSize.x - padding, -halfSize.y - padding);
+      const max = new Vec2(halfSize.x + padding, halfSize.y + padding);
+      return new BoxOperations({ min, max }).containsPoint(localPoint);
     },
   },
   selection: {

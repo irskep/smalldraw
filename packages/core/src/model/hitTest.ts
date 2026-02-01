@@ -1,11 +1,10 @@
-import { BoxOperations, type Vec2 } from "@smalldraw/geometry";
-import { getShapeBounds } from "./geometryShapeUtils";
+import type { Vec2 } from "@smalldraw/geometry";
 import type { AnyShape, Shape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
 /**
  * Test if a world-space point hits a shape
- * Falls back to AABB test if no specific hit test is provided
+ * Requires a shape-specific hit test implementation
  */
 export function hitTestShape(
   shape: AnyShape,
@@ -13,15 +12,10 @@ export function hitTestShape(
   registry: ShapeHandlerRegistry,
 ): boolean {
   const ops = registry.get(shape.type)?.shape;
-
-  // Use specific hit test if available
-  if (ops?.hitTest) {
-    return ops.hitTest(shape, point);
+  if (!ops?.hitTest) {
+    return false;
   }
-
-  // Fallback to AABB test
-  const bounds = getShapeBounds(shape, registry);
-  return new BoxOperations(bounds).containsPoint(point);
+  return ops.hitTest(shape, point);
 }
 
 /**

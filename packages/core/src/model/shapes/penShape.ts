@@ -1,6 +1,7 @@
 import { BoxOperations, type PenGeometry } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import type { Shape } from "../shape";
+import { getHitTestBounds } from "./hitTestUtils";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 
 export type PenShape = Shape & { geometry: PenGeometry };
@@ -16,6 +17,13 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
           new Vec2(0, 0).add(pt).sub(center),
         ),
       };
+    },
+  },
+  shape: {
+    hitTest(shape: PenShape, point: Vec2) {
+      const localBounds = BoxOperations.fromPointArray(shape.geometry.points);
+      const bounds = getHitTestBounds(shape, localBounds);
+      return new BoxOperations(bounds).containsPoint(point);
     },
   },
   selection: {
