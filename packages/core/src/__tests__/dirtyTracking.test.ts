@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { makePoint } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import {
   AddShape,
   CompositeAction,
@@ -17,8 +17,8 @@ function createTestShape(id: string) {
     fill: { type: "solid" as const, color: "#ff0000" },
     zIndex: "a0",
     transform: {
-      translation: makePoint(),
-      scale: makePoint(1),
+      translation: new Vec2(),
+      scale: new Vec2(1),
       rotation: 0,
     },
   };
@@ -37,16 +37,16 @@ describe("Dirty tracking", () => {
 
   test("affectedShapeIds returns shape ID for UpdateShapeTransform", () => {
     const action = new UpdateShapeTransform("test-1", {
-      translation: makePoint(100),
+      translation: new Vec2(100),
     });
     expect(action.affectedShapeIds()).toEqual(["test-1"]);
   });
 
   test("affectedShapeIds returns union for CompositeAction", () => {
     const action = new CompositeAction([
-      new UpdateShapeTransform("shape-1", { translation: makePoint() }),
-      new UpdateShapeTransform("shape-2", { translation: makePoint() }),
-      new UpdateShapeTransform("shape-1", { translation: makePoint(10) }),
+      new UpdateShapeTransform("shape-1", { translation: new Vec2() }),
+      new UpdateShapeTransform("shape-2", { translation: new Vec2() }),
+      new UpdateShapeTransform("shape-1", { translation: new Vec2(10) }),
     ]);
     const ids = action.affectedShapeIds();
     expect(ids.length).toBe(2);
@@ -117,7 +117,7 @@ describe("Dirty tracking", () => {
     store.mutateDocument(new AddShape(createTestShape("shape-2")));
     store.mutateDocument(
       new UpdateShapeTransform("shape-1", {
-        translation: makePoint(50),
+        translation: new Vec2(50),
       }),
     );
 
@@ -205,7 +205,7 @@ describe("Ordered shapes caching", () => {
     const ordered1 = store.getOrderedShapes();
     store.mutateDocument(
       new UpdateShapeTransform("shape-1", {
-        translation: makePoint(100),
+        translation: new Vec2(100),
       }),
     );
     const ordered2 = store.getOrderedShapes();

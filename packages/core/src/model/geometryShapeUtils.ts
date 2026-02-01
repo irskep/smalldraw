@@ -1,10 +1,5 @@
+import { type Box, BoxOperations } from "@smalldraw/geometry";
 import { Mat2d, Vec2 } from "gl-matrix";
-import {
-  type Box,
-  BoxOperations,
-  makePoint,
-  type Point,
-} from "@smalldraw/geometry";
 import type {
   AnyShape,
   CanonicalShapeTransform,
@@ -26,11 +21,14 @@ export function getGeometryLocalBounds(
 }
 
 export function applyTransformToPoint(
-  point: Point,
+  point: Vec2,
   transform?: ShapeTransform | CanonicalShapeTransform | null,
-): Point {
-  const matrix = buildTransformMatrix(transform);
-  return Vec2.transformMat2d(makePoint(), point, matrix);
+): Vec2 {
+  return Vec2.transformMat2d(
+    new Vec2(),
+    point,
+    buildTransformMatrix(transform),
+  ) as Vec2;
 }
 
 export function buildTransformMatrix(
@@ -42,8 +40,11 @@ export function buildTransformMatrix(
   const originMatrix = Mat2d.fromTranslation(new Mat2d(), origin);
   const rotationMatrix = Mat2d.fromRotation(new Mat2d(), rotation);
   const scaleMatrix = Mat2d.fromScaling(new Mat2d(), scale);
-  const negativeOrigin = makePoint(-origin.x, -origin.y);
-  const inverseOriginMatrix = Mat2d.fromTranslation(new Mat2d(), negativeOrigin);
+  const negativeOrigin = new Vec2(-origin.x, -origin.y);
+  const inverseOriginMatrix = Mat2d.fromTranslation(
+    new Mat2d(),
+    negativeOrigin,
+  );
   const matrix = new Mat2d();
   Mat2d.multiply(matrix, translationMatrix, originMatrix);
   Mat2d.multiply(matrix, matrix, rotationMatrix);
@@ -62,17 +63,17 @@ export function getShapeBounds(
   );
   const matrix = buildTransformMatrix(transform);
   const geometryBounds = getGeometryLocalBounds(shape, registry);
-  const corners: Point[] = geometryBounds
+  const corners: Vec2[] = geometryBounds
     ? [
-        makePoint(geometryBounds.min.x, geometryBounds.min.y),
-        makePoint(geometryBounds.max.x, geometryBounds.min.y),
-        makePoint(geometryBounds.max.x, geometryBounds.max.y),
-        makePoint(geometryBounds.min.x, geometryBounds.max.y),
+        new Vec2(geometryBounds.min.x, geometryBounds.min.y),
+        new Vec2(geometryBounds.max.x, geometryBounds.min.y),
+        new Vec2(geometryBounds.max.x, geometryBounds.max.y),
+        new Vec2(geometryBounds.min.x, geometryBounds.max.y),
       ]
-    : [makePoint()];
+    : [new Vec2()];
   const baseBounds = BoxOperations.fromPointArray(
-    corners.map((corner) =>
-      Vec2.transformMat2d(makePoint(), corner, matrix),
+    corners.map(
+      (corner) => Vec2.transformMat2d(new Vec2(), corner, matrix) as Vec2,
     ),
   );
   if (!baseBounds) {
@@ -89,7 +90,7 @@ function applyStrokePadding(bounds: Box, shape: Shape): Box {
   }
   const padding = strokeWidth / 2;
   return {
-    min: makePoint(bounds.min.sub(makePoint(padding))),
-    max: makePoint(bounds.max.add(makePoint(padding))),
+    min: new Vec2(bounds.min.sub(new Vec2(padding))),
+    max: new Vec2(bounds.max.add(new Vec2(padding))),
   };
 }

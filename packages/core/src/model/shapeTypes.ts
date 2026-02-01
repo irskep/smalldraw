@@ -1,10 +1,5 @@
-import {
-  type AnyGeometry,
-  type Box,
-  BoxOperations,
-  makePoint,
-  type Point,
-} from "@smalldraw/geometry";
+import { type AnyGeometry, type Box, BoxOperations } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import type { CanonicalShapeTransform, Shape } from "./shape";
 
 /**
@@ -20,7 +15,7 @@ export interface NormalizedLayout {
  */
 export interface ResizeResult<TGeometry extends AnyGeometry> {
   geometry?: TGeometry;
-  translation?: Point;
+  translation?: Vec2;
   transform?: CanonicalShapeTransform;
 }
 
@@ -48,7 +43,7 @@ export interface ResizeOperation<
   transform: CanonicalShapeTransform;
   initialBounds: Box;
   nextBounds: Box;
-  selectionScale: Point;
+  selectionScale: Vec2;
   layout?: NormalizedLayout;
 }
 
@@ -81,7 +76,7 @@ export interface ShapeHandler<T extends AnyGeometry, TResizeData = unknown> {
     getBounds: (shape: Shape & { geometry: T }) => Box | null;
 
     /** Canonicalize geometry (convert world coords to local) */
-    canonicalize?: (shape: Shape & { geometry: T }, center: Point) => T;
+    canonicalize?: (shape: Shape & { geometry: T }, center: Vec2) => T;
 
     /** Validate geometry data */
     validate?: (geometry: Shape & { geometry: T }) => boolean;
@@ -93,7 +88,7 @@ export interface ShapeHandler<T extends AnyGeometry, TResizeData = unknown> {
      * Test if a world-space point is inside the shape.
      * Returns true if the point hits the shape (considering fill, stroke, transform).
      */
-    hitTest?: (shape: Shape & { geometry: T }, point: Point) => boolean;
+    hitTest?: (shape: Shape & { geometry: T }, point: Vec2) => boolean;
   };
 
   /** Selection and resize operations (OPTIONAL) */
@@ -124,7 +119,7 @@ export interface ShapeHandler<T extends AnyGeometry, TResizeData = unknown> {
       shape: Shape & { geometry: T },
       axis: "x" | "y",
       direction: -1 | 1,
-    ) => Point | null;
+    ) => Vec2 | null;
 
     /** Get the world-space extent of the shape along its local axis */
     getAxisExtent?: (
@@ -143,11 +138,11 @@ export interface ShapeHandler<T extends AnyGeometry, TResizeData = unknown> {
 export function getPointFromLayout(
   layout: NormalizedLayout,
   bounds: Box,
-): Point {
+): Vec2 {
   const b = new BoxOperations(bounds);
   const width = b.width;
   const height = b.height;
-  return makePoint(
+  return new Vec2(
     b.minX + width * layout.offsetU,
     b.minY + height * layout.offsetV,
   );

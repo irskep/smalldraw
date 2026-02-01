@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { RectShape } from "@smalldraw/core";
-import { makePoint } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import {
   type ActionContext,
   AddShape,
@@ -22,7 +22,7 @@ function baseShape(id: string): RectShape {
     zIndex: id,
     geometry: {
       type: "rect",
-      size: makePoint(10),
+      size: new Vec2(10),
     },
     fill: { type: "solid", color: "#000000" },
     stroke: { type: "brush", color: "#ffffff", size: 2 },

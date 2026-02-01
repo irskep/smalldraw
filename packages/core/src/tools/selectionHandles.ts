@@ -1,10 +1,5 @@
+import { type Box, BoxOperations } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
-import {
-  type Box,
-  BoxOperations,
-  makePoint,
-  type Point,
-} from "@smalldraw/geometry";
 import {
   buildTransformMatrix,
   getGeometryLocalBounds,
@@ -32,7 +27,7 @@ export function resolveSelectionHandlePoint(
   handle: HandleDescriptor,
   shape: AnyShape | undefined,
   registry: ShapeHandlerRegistry,
-): Point {
+): Vec2 {
   if (shape && handle.behavior.type === "resize-axis") {
     const axis = handle.behavior.axis;
     const direction = getAxisDirection(handle);
@@ -47,15 +42,15 @@ export function resolveSelectionHandlePoint(
           axis === "x" ? localBoundsOps.width / 2 : localBoundsOps.height / 2;
         const local =
           axis === "x"
-            ? makePoint(direction * half, 0)
-            : makePoint(0, direction * half);
+            ? new Vec2(direction * half, 0)
+            : new Vec2(0, direction * half);
         const matrix = buildTransformMatrix(shape.transform);
-        return Vec2.transformMat2d(makePoint(), local, matrix);
+        return Vec2.transformMat2d(new Vec2(), local, matrix) as Vec2;
       }
     }
   }
   const boundsOps = new BoxOperations(bounds);
-  return makePoint(bounds.min).add(
-    boundsOps.size.mul(makePoint(handle.position.u, handle.position.v)),
+  return new Vec2(bounds.min).add(
+    boundsOps.size.mul(new Vec2(handle.position.u, handle.position.v)),
   );
 }

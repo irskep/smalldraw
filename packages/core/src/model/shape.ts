@@ -1,17 +1,13 @@
-import {
-  type AnyGeometry,
-  BoxOperations,
-  makePoint,
-  type Point,
-} from "@smalldraw/geometry";
+import { type AnyGeometry, BoxOperations } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 import type { Fill, StrokeStyle } from "./style";
 
 export interface CanonicalShapeTransform {
-  translation: Point;
+  translation: Vec2;
   rotation: number;
-  scale: Point;
-  origin: Point;
+  scale: Vec2;
+  origin: Vec2;
 }
 
 export interface ShapeInteractions {
@@ -25,10 +21,10 @@ export interface ShapeTransform {
    * mix coordinate origins (e.g. top-left) because selection/rotation math assumes this
    * pivot when computing bounds.
    */
-  translation: Point;
+  translation: Vec2;
   rotation?: number;
-  scale?: Point;
-  origin?: Point;
+  scale?: Vec2;
+  origin?: Vec2;
 }
 
 export interface Shape {
@@ -48,10 +44,10 @@ export function normalizeShapeTransform(
   transform?: ShapeTransform | CanonicalShapeTransform | null,
 ): CanonicalShapeTransform {
   return {
-    translation: transform?.translation ?? makePoint(),
+    translation: transform?.translation ?? new Vec2(),
     rotation: transform?.rotation ?? 0,
-    scale: transform?.scale ?? makePoint(1, 1),
-    origin: transform?.origin ?? makePoint(),
+    scale: transform?.scale ?? new Vec2(1, 1),
+    origin: transform?.origin ?? new Vec2(),
   };
 }
 
@@ -77,7 +73,7 @@ export function canonicalizeShape(
     geometry: ops.canonicalize(shape, center) as AnyGeometry,
     transform: {
       ...transform,
-      translation: makePoint(transform.translation).add(center),
+      translation: new Vec2(transform.translation).add(center),
     },
   };
 }

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { AnyGeometry, Shape } from "@smalldraw/core";
-import { makePoint } from "@smalldraw/geometry";
 import { Canvas, Image } from "canvas";
+import { Vec2 } from "gl-matrix";
 import { Window } from "happy-dom";
 
 import { DrawingApp } from "../components/DrawingApp.js";
@@ -152,13 +152,13 @@ describe("DrawingApp", () => {
     (doc.shapes[shapeId] as any) = {
       id: shapeId,
       type: "rect",
-      geometry: { type: "rect", size: makePoint(40, 20) },
+      geometry: { type: "rect", size: new Vec2(40, 20) },
       zIndex: "z",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: makePoint(150, 150),
+        translation: new Vec2(150, 150),
         rotation: Math.PI / 4,
-        scale: makePoint(1),
+        scale: new Vec2(1),
       },
     };
     app.store.activateTool("selection");
@@ -245,25 +245,25 @@ describe("DrawingApp", () => {
     (doc.shapes["rect-1"] as any) = {
       id: "rect-1",
       type: "rect",
-      geometry: { type: "rect", size: makePoint(50, 50) },
+      geometry: { type: "rect", size: new Vec2(50, 50) },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: makePoint(100, 100),
+        translation: new Vec2(100, 100),
         rotation: 0,
-        scale: makePoint(1),
+        scale: new Vec2(1),
       },
     };
     (doc.shapes["rect-2"] as any) = {
       id: "rect-2",
       type: "rect",
-      geometry: { type: "rect", size: makePoint(50, 50) },
+      geometry: { type: "rect", size: new Vec2(50, 50) },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: makePoint(200, 100),
+        translation: new Vec2(200, 100),
         rotation: 0,
-        scale: makePoint(1),
+        scale: new Vec2(1),
       },
     };
 

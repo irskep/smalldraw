@@ -1,9 +1,5 @@
-import {
-  BoxOperations,
-  makePoint,
-  type PenGeometry,
-  type Point,
-} from "@smalldraw/geometry";
+import { BoxOperations, type PenGeometry } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
 import type { PenShape } from "../model/shapes/penShape";
 import type { StrokeStyle } from "../model/style";
@@ -63,7 +59,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
 
   const beginDrawing = (
     runtime: ToolRuntime,
-    point: Point,
+    point: Vec2,
     pressure?: number,
   ) => {
     const state = ensureState(runtime);
@@ -87,7 +83,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
 
   const appendPoint = (
     runtime: ToolRuntime,
-    point: Point,
+    point: Vec2,
     pressure?: number,
   ) => {
     const state = runtimeState.get(runtime);
@@ -197,7 +193,7 @@ const createStrokeShape = (draft: StrokeDraftState): PenShape | undefined => {
   const boxOps = new BoxOperations(bounds);
   const center = boxOps.center;
   const localPoints = draft.geometry.points.map((pt) =>
-    makePoint(pt).sub(center),
+    new Vec2(pt).sub(center),
   );
   const shape: PenShape = {
     id: draft.id,
@@ -215,7 +211,7 @@ const createStrokeShape = (draft: StrokeDraftState): PenShape | undefined => {
     },
     transform: {
       translation: center,
-      scale: makePoint(1),
+      scale: new Vec2(1),
       rotation: 0,
     },
   };

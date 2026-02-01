@@ -1,8 +1,5 @@
-import {
-  BoxOperations,
-  makePoint,
-  type PenGeometry,
-} from "@smalldraw/geometry";
+import { BoxOperations, type PenGeometry } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import type { Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 
@@ -16,7 +13,7 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
       return {
         ...shape.geometry,
         points: shape.geometry.points.map((pt) =>
-          makePoint(0, 0).add(pt).sub(center),
+          new Vec2(0, 0).add(pt).sub(center),
         ),
       };
     },
@@ -28,7 +25,7 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
       return {
         geometry: {
           type: "pen",
-          points: g.points.map(makePoint),
+          points: g.points.map((p) => new Vec2(p)),
           pressures: g.pressures,
         },
       };
@@ -41,7 +38,7 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
         transform: {
           ...transform,
           translation,
-          scale: makePoint(transform.scale).mul(selectionScale),
+          scale: new Vec2(transform.scale).mul(selectionScale),
         },
       };
     },

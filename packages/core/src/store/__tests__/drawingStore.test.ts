@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { makePoint, type RectGeometry } from "@smalldraw/geometry";
+import type { RectGeometry } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
@@ -18,7 +19,7 @@ function createDraftTool(): ToolDefinition {
       runtime.on("pointerDown", (event) => {
         const geometry: RectGeometry = {
           type: "rect",
-          size: makePoint(10, 10),
+          size: new Vec2(10, 10),
         };
         runtime.setDraft({
           toolId: runtime.toolId,
@@ -30,7 +31,7 @@ function createDraftTool(): ToolDefinition {
           fill: { type: "solid", color: "#ff0000" },
           transform: {
             translation: event.point,
-            scale: makePoint(1, 1),
+            scale: new Vec2(1, 1),
             rotation: 0,
           },
         });
@@ -95,17 +96,17 @@ describe("DrawingStore", () => {
   test("activating pen tool and dispatching pointer events commits shapes", () => {
     const store = new DrawingStore({ tools: [createPenTool()] });
     store.activateTool("pen");
-    store.dispatch("pointerDown", { point: makePoint(0, 0), buttons: 1 });
-    store.dispatch("pointerMove", { point: makePoint(5, 5), buttons: 1 });
-    store.dispatch("pointerUp", { point: makePoint(5, 5), buttons: 0 });
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    store.dispatch("pointerMove", { point: new Vec2(5, 5), buttons: 1 });
+    store.dispatch("pointerUp", { point: new Vec2(5, 5), buttons: 0 });
 
     const shapes = Object.values(store.getDocument().shapes) as PenShape[];
     expect(shapes).toHaveLength(1);
     expect(shapes[0].geometry).toEqual({
       type: "pen",
-      points: [makePoint(-2.5, -2.5), makePoint(2.5, 2.5)],
+      points: [new Vec2(-2.5, -2.5), new Vec2(2.5, 2.5)],
     });
-    expect(shapes[0].transform?.translation).toEqual(makePoint(2.5, 2.5));
+    expect(shapes[0].transform?.translation).toEqual(new Vec2(2.5, 2.5));
   });
 
   test("store aggregates drafts from multiple tools", () => {
@@ -113,12 +114,12 @@ describe("DrawingStore", () => {
       tools: [createDraftTool(), createPenTool()],
     });
     store.activateTool("draft-tool");
-    store.dispatch("pointerDown", { point: makePoint(10, 10), buttons: 1 });
+    store.dispatch("pointerDown", { point: new Vec2(10, 10), buttons: 1 });
 
     expect(store.getDrafts()).toHaveLength(1);
     expect(store.getDrafts()[0].geometry as RectGeometry).toEqual({
       type: "rect",
-      size: makePoint(10, 10),
+      size: new Vec2(10, 10),
     });
 
     store.activateTool("pen");
@@ -134,10 +135,10 @@ describe("DrawingStore", () => {
       ],
     });
     store.activateTool("settings-updater");
-    store.dispatch("pointerDown", { point: makePoint(0, 0), buttons: 1 });
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
 
     store.activateTool("settings-reader");
-    store.dispatch("pointerDown", { point: makePoint(1, 1), buttons: 1 });
+    store.dispatch("pointerDown", { point: new Vec2(1, 1), buttons: 1 });
     expect(record.width).toBe(9);
   });
 
@@ -147,7 +148,7 @@ describe("DrawingStore", () => {
       tools: [createSelectionSetterTool(record)],
     });
     store.activateTool("selection-tool");
-    store.dispatch("pointerDown", { point: makePoint(0, 0), buttons: 1 });
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     expect(record.selectionSize).toBe(2);
   });
 
@@ -156,14 +157,14 @@ describe("DrawingStore", () => {
       tools: [createPenTool(), createRectangleTool()],
     });
     store.activateTool("pen");
-    store.dispatch("pointerDown", { point: makePoint(0, 0), buttons: 1 });
-    store.dispatch("pointerMove", { point: makePoint(5, 5), buttons: 1 });
-    store.dispatch("pointerUp", { point: makePoint(5, 5), buttons: 0 });
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    store.dispatch("pointerMove", { point: new Vec2(5, 5), buttons: 1 });
+    store.dispatch("pointerUp", { point: new Vec2(5, 5), buttons: 0 });
 
     store.activateTool("rect");
-    store.dispatch("pointerDown", { point: makePoint(10, 10), buttons: 1 });
-    store.dispatch("pointerMove", { point: makePoint(20, 25), buttons: 1 });
-    store.dispatch("pointerUp", { point: makePoint(20, 25), buttons: 0 });
+    store.dispatch("pointerDown", { point: new Vec2(10, 10), buttons: 1 });
+    store.dispatch("pointerMove", { point: new Vec2(20, 25), buttons: 1 });
+    store.dispatch("pointerUp", { point: new Vec2(20, 25), buttons: 0 });
 
     const shapes = Object.values(store.getDocument().shapes) as (
       | PenShape
@@ -182,13 +183,13 @@ describe("DrawingStore", () => {
         {
           id: "rect-frame",
           type: "rect",
-          geometry: { type: "rect", size: makePoint(10, 10) },
+          geometry: { type: "rect", size: new Vec2(10, 10) },
           zIndex: "frame",
           interactions: { resizable: true, rotatable: true },
           transform: {
-            translation: makePoint(5, 5),
+            translation: new Vec2(5, 5),
             rotation: 0,
-            scale: makePoint(1, 1),
+            scale: new Vec2(1, 1),
           },
         } as RectShape,
       ],
@@ -201,11 +202,11 @@ describe("DrawingStore", () => {
     store.activateTool("selection");
     expect(store.getSelectionFrame()).toBeNull();
 
-    store.dispatch("pointerDown", { point: makePoint(0, 0), buttons: 1 });
-    store.dispatch("pointerMove", { point: makePoint(5, 5), buttons: 1 });
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    store.dispatch("pointerMove", { point: new Vec2(5, 5), buttons: 1 });
     expect(store.getSelectionFrame()).toEqual({
-      min: makePoint(5, 5),
-      max: makePoint(15, 15),
+      min: new Vec2(5, 5),
+      max: new Vec2(15, 15),
     });
   });
 
@@ -216,13 +217,13 @@ describe("DrawingStore", () => {
         {
           id: "rect",
           type: "rect",
-          geometry: { type: "rect", size: makePoint(10, 10) },
+          geometry: { type: "rect", size: new Vec2(10, 10) },
           zIndex: "a",
           interactions: { resizable: true, rotatable: true },
           transform: {
-            translation: makePoint(0, 0),
+            translation: new Vec2(0, 0),
             rotation: 0,
-            scale: makePoint(1, 1),
+            scale: new Vec2(1, 1),
           },
         } as RectShape,
       ],
@@ -236,7 +237,7 @@ describe("DrawingStore", () => {
     expect(store.getHandles().length).toBeGreaterThan(0);
 
     store.dispatch("pointerMove", {
-      point: makePoint(0, 0),
+      point: new Vec2(0, 0),
       buttons: 0,
       handleId: "top-left",
       shiftKey: true,
@@ -246,7 +247,7 @@ describe("DrawingStore", () => {
       behavior: { type: "resize", proportional: true },
     });
 
-    store.dispatch("pointerMove", { point: makePoint(5, 5), buttons: 0 });
+    store.dispatch("pointerMove", { point: new Vec2(5, 5), buttons: 0 });
     expect(store.getHandleHover()).toEqual({ handleId: null, behavior: null });
 
     store.activateTool("pen");
@@ -274,9 +275,9 @@ describe("DrawingStore", () => {
   test("undo and redo proxies work through store helpers", () => {
     const store = new DrawingStore({ tools: [createRectangleTool()] });
     store.activateTool("rect");
-    store.dispatch("pointerDown", { point: makePoint(0, 0), buttons: 1 });
-    store.dispatch("pointerMove", { point: makePoint(20, 20), buttons: 1 });
-    store.dispatch("pointerUp", { point: makePoint(20, 20), buttons: 0 });
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    store.dispatch("pointerMove", { point: new Vec2(20, 20), buttons: 1 });
+    store.dispatch("pointerUp", { point: new Vec2(20, 20), buttons: 0 });
     expect(Object.values(store.getDocument().shapes)).toHaveLength(1);
     expect(store.canUndo()).toBe(true);
     expect(store.canRedo()).toBe(false);

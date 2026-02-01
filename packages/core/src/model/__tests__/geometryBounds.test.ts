@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { BoxOperations, makePoint } from "@smalldraw/geometry";
+import { BoxOperations } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { getShapeBounds } from "../geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
 import type { PenShape } from "../shapes/penShape";
@@ -11,12 +12,12 @@ describe("geometry bounds helpers", () => {
     const shape: RectShape = {
       id: "rect",
       type: "rect",
-      geometry: { type: "rect", size: makePoint(20, 10) },
+      geometry: { type: "rect", size: new Vec2(20, 10) },
       interactions: { resizable: true, rotatable: true },
       transform: {
-        translation: makePoint(),
+        translation: new Vec2(),
         rotation: Math.PI / 2,
-        scale: makePoint(1),
+        scale: new Vec2(1),
       },
       zIndex: "rect",
     };
@@ -36,12 +37,12 @@ describe("geometry bounds helpers", () => {
       type: "pen",
       geometry: {
         type: "pen",
-        points: [makePoint(-2, -1), makePoint(3, 4)],
+        points: [new Vec2(-2, -1), new Vec2(3, 4)],
       },
       transform: {
-        translation: makePoint(5, -5),
+        translation: new Vec2(5, -5),
         rotation: 0,
-        scale: makePoint(1),
+        scale: new Vec2(1),
       },
       zIndex: "pen",
     };
@@ -57,12 +58,12 @@ describe("geometry bounds helpers", () => {
     const shape: RectShape = {
       id: "stroked",
       type: "rect",
-      geometry: { type: "rect", size: makePoint(10) },
+      geometry: { type: "rect", size: new Vec2(10) },
       stroke: { type: "brush", color: "#000", size: 4 },
       transform: {
-        translation: makePoint(),
+        translation: new Vec2(),
         rotation: 0,
-        scale: makePoint(1),
+        scale: new Vec2(1),
       },
       zIndex: "stroked",
     };

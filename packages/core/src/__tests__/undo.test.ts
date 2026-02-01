@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { RectShape } from "@smalldraw/core";
-import { makePoint } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { type ActionContext, AddShape, DeleteShape } from "../actions";
 import { createDocument } from "../model/document";
 import { canonicalizeShape } from "../model/shape";
@@ -12,13 +12,13 @@ const rectangle: RectShape = {
   type: "rect",
   geometry: {
     type: "rect",
-    size: makePoint(100, 50),
+    size: new Vec2(100, 50),
   },
   fill: { type: "solid", color: "#ff0000" },
   zIndex: "a0",
   transform: {
-    translation: makePoint(),
-    scale: makePoint(1, 1),
+    translation: new Vec2(),
+    scale: new Vec2(1, 1),
     rotation: 0,
   },
 };

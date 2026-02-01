@@ -1,4 +1,5 @@
-import type { Box, Point } from "@smalldraw/geometry";
+import type { Box } from "@smalldraw/geometry";
+import type { Vec2 } from "gl-matrix";
 import type { UndoableAction } from "../actions";
 import type { AnyShape } from "../model/shape";
 
@@ -10,7 +11,7 @@ export type ToolEventName =
   | "hover";
 
 export interface ToolPointerEvent {
-  point: Point;
+  point: Vec2;
   buttons: number;
   pressure?: number;
   shiftKey?: boolean;

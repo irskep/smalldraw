@@ -1,6 +1,5 @@
 import { Vec2 } from "gl-matrix";
-import { makePoint } from "./makePoint";
-import type { Box, Point } from "./types";
+import type { Box } from "./types";
 import { allValuesAreFinite } from "./util";
 
 export class BoxOperations {
@@ -10,14 +9,14 @@ export class BoxOperations {
     this.box = box;
   }
 
-  static fromPointPair(a: Point, b: Point): Box {
+  static fromPointPair(a: Vec2, b: Vec2): Box {
     return {
-      min: makePoint(Math.min(a.x, b.x), Math.min(a.y, b.y)),
-      max: makePoint(Math.max(a.x, b.x), Math.max(a.y, b.y)),
+      min: new Vec2(Math.min(a.x, b.x), Math.min(a.y, b.y)),
+      max: new Vec2(Math.max(a.x, b.x), Math.max(a.y, b.y)),
     };
   }
 
-  static fromPointArray(points: Point[]): Box | null {
+  static fromPointArray(points: Vec2[]): Box | null {
     if (!points.length) return null;
     let minX = Infinity;
     let minY = Infinity;
@@ -34,8 +33,8 @@ export class BoxOperations {
       return null;
     }
     return {
-      min: makePoint(minX, minY),
-      max: makePoint(maxX, maxY),
+      min: new Vec2(minX, minY),
+      max: new Vec2(maxX, maxY),
     };
   }
 
@@ -44,26 +43,26 @@ export class BoxOperations {
     return BoxOperations.fromPointArray([a.min, a.max, b.min, b.max])!;
   }
 
-  static fromCenterAndSize(center: Point, size: Point): Box {
-    const halfSize = makePoint(size).div([2, 2]);
+  static fromCenterAndSize(center: Vec2, size: Vec2): Box {
+    const halfSize = new Vec2(size).div([2, 2]);
     return {
-      min: makePoint(center).sub(halfSize),
-      max: makePoint(center).add(halfSize),
+      min: new Vec2(center).sub(halfSize),
+      max: new Vec2(center).add(halfSize),
     };
   }
 
-  static fromMinAndSize(min: Point, size: Point): Box {
+  static fromMinAndSize(min: Vec2, size: Vec2): Box {
     return {
       min,
-      max: makePoint(min).add(size),
+      max: new Vec2(min).add(size),
     };
   }
 
-  get size(): Point {
+  get size(): Vec2 {
     return Vec2.subtract(new Vec2(), this.box.max, this.box.min) as Vec2;
   }
 
-  get center(): Point {
+  get center(): Vec2 {
     return Vec2.scaleAndAdd(new Vec2(), this.box.min, this.size, 0.5) as Vec2;
   }
 
@@ -87,7 +86,7 @@ export class BoxOperations {
     return this.box.max[1];
   }
 
-  containsPoint(point: Point): boolean {
+  containsPoint(point: Vec2): boolean {
     return (
       point.x >= this.minX &&
       point.x <= this.maxX &&
@@ -96,7 +95,7 @@ export class BoxOperations {
     );
   }
 
-  translate(point: Point): Box {
+  translate(point: Vec2): Box {
     return {
       min: new Vec2().add(this.box.min).add(point),
       max: new Vec2().add(this.box.max).add(point),

@@ -1,11 +1,11 @@
-import type { Point } from "@smalldraw/geometry";
+import type { Vec2 } from "@smalldraw/geometry";
 import type { Layer } from "konva/lib/Layer.js";
 import type { Stage } from "konva/lib/Stage.js";
 
 export interface Viewport {
   width: number;
   height: number;
-  center: Point;
+  center: Vec2;
   scale: number;
   backgroundColor?: string;
 }

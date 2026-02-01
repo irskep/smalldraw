@@ -1,12 +1,12 @@
 import type { ToolPointerEvent } from "@smalldraw/core";
-import { makePoint, type Point } from "@smalldraw/geometry";
+import { Vec2 } from "@smalldraw/geometry";
 
 /**
  * Build a ToolPointerEvent from a native PointerEvent.
  */
 export function buildToolEvent(
   event: PointerEvent,
-  point: Point,
+  point: Vec2,
   buttonsOverride?: number,
 ): ToolPointerEvent {
   return {
@@ -25,7 +25,7 @@ export function buildToolEvent(
 export function getPointerPoint(
   event: PointerEvent,
   overlay: HTMLElement,
-): Point {
+): Vec2 {
   const rect = overlay.getBoundingClientRect();
-  return makePoint(event.clientX, event.clientY).sub([rect.left, rect.top]);
+  return new Vec2(event.clientX, event.clientY).sub([rect.left, rect.top]);
 }

@@ -1,21 +1,21 @@
-import type { Point } from "@smalldraw/geometry";
+import type { Vec2 } from "gl-matrix";
 import type { ToolEventHandler, ToolRuntime } from "./types";
 
 export interface DragCallbacks<TState> {
   onStart: (
-    point: Point,
+    point: Vec2,
     event: PointerDragEvent,
     runtime: ToolRuntime,
   ) => TState | null;
   onMove?: (
     state: TState,
-    point: Point,
+    point: Vec2,
     event: PointerDragEvent,
     runtime: ToolRuntime,
   ) => void;
   onEnd?: (
     state: TState,
-    point: Point,
+    point: Vec2,
     event: PointerDragEvent,
     runtime: ToolRuntime,
   ) => void;

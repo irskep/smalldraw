@@ -4,7 +4,8 @@ import {
   resolveSelectionHandlePoint,
   type ShapeHandlerRegistry,
 } from "@smalldraw/core";
-import { type Box, BoxOperations, makePoint } from "@smalldraw/geometry";
+import { type Box, BoxOperations } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { el } from "redom";
 
 const HANDLE_SIZE = 8;
@@ -113,7 +114,7 @@ export class SelectionOverlay {
     const point =
       registry && shape
         ? resolveSelectionHandlePoint(bounds, handle, shape, registry)
-        : makePoint(bounds.min).add(
+        : new Vec2(bounds.min).add(
             boundsOps.size.mul([handle.position.u, handle.position.v]),
           );
     const axisHandle = handle.behavior?.type === "resize-axis";

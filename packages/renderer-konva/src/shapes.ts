@@ -15,28 +15,15 @@ import {
   BoxOperations,
   clamp,
   degToRad,
-  makePoint,
   radToDeg,
 } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import Konva from "konva";
 import type { PenShape } from "packages/core/src/model/shapes/penShape.js";
 import type { RectShape } from "packages/core/src/model/shapes/rectShape.js";
 import { createFreehandStroke } from "./stroke.js";
 
 type RenderableNode = Konva.Shape | Konva.Group;
-
-function makeKonvaRectFromBox(
-  box: Box,
-  extra?: Partial<Konva.ShapeConfig>,
-): Konva.Rect {
-  return new Konva.Rect({
-    ...(extra ?? {}),
-    x: box.min.x,
-    y: box.min.y,
-    width: box.max.x - box.min.x,
-    height: box.max.y - box.min.y,
-  });
-}
 
 export type ShapeRenderer = (
   shape: Shape,
@@ -209,7 +196,7 @@ function createLinearGradientConfig(
 ) {
   const boundsOps = new BoxOperations(bounds);
   const angle = degToRad(fill.angle);
-  const halfSize = makePoint(boundsOps.size).div([2, 2]);
+  const halfSize = new Vec2(boundsOps.size).div([2, 2]);
   const start = {
     x: -Math.cos(angle) * halfSize.x,
     y: -Math.sin(angle) * halfSize.y,

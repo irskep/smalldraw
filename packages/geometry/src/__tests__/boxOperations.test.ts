@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { Vec2 } from "gl-matrix";
 import { BoxOperations } from "../BoxOperations";
-import { makePoint } from "../makePoint";
 
 function expectPoint(point: { x: number; y: number }, x: number, y: number) {
   expect(point.x).toBeCloseTo(x, 6);
@@ -9,8 +9,8 @@ function expectPoint(point: { x: number; y: number }, x: number, y: number) {
 
 describe("BoxOperations", () => {
   test("fromPointPair creates min/max points", () => {
-    const a = makePoint(5, -2);
-    const b = makePoint(-1, 3);
+    const a = new Vec2(5, -2);
+    const b = new Vec2(-1, 3);
 
     const box = BoxOperations.fromPointPair(a, b);
 
@@ -23,7 +23,7 @@ describe("BoxOperations", () => {
   });
 
   test("fromPointArray finds bounds for a set of points", () => {
-    const points = [makePoint(1, 1), makePoint(-3, 4), makePoint(2, -2)];
+    const points = [new Vec2(1, 1), new Vec2(-3, 4), new Vec2(2, -2)];
 
     const box = BoxOperations.fromPointArray(points);
 
@@ -33,11 +33,8 @@ describe("BoxOperations", () => {
   });
 
   test("fromBoxPair merges two boxes", () => {
-    const left = BoxOperations.fromPointPair(makePoint(0, 0), makePoint(2, 1));
-    const right = BoxOperations.fromPointPair(
-      makePoint(1, -3),
-      makePoint(4, 2),
-    );
+    const left = BoxOperations.fromPointPair(new Vec2(0, 0), new Vec2(2, 1));
+    const right = BoxOperations.fromPointPair(new Vec2(1, -3), new Vec2(4, 2));
 
     const merged = BoxOperations.fromBoxPair(left, right);
 
@@ -46,7 +43,7 @@ describe("BoxOperations", () => {
   });
 
   test("size and center derive from min/max", () => {
-    const box = BoxOperations.fromPointPair(makePoint(2, 1), makePoint(6, 5));
+    const box = BoxOperations.fromPointPair(new Vec2(2, 1), new Vec2(6, 5));
     const ops = new BoxOperations(box);
 
     expectPoint(ops.size, 4, 4);
@@ -58,19 +55,19 @@ describe("BoxOperations", () => {
   });
 
   test("containsPoint is inclusive of edges", () => {
-    const box = BoxOperations.fromPointPair(makePoint(0, 0), makePoint(2, 2));
+    const box = BoxOperations.fromPointPair(new Vec2(0, 0), new Vec2(2, 2));
     const ops = new BoxOperations(box);
 
-    expect(ops.containsPoint(makePoint(0, 0))).toBe(true);
-    expect(ops.containsPoint(makePoint(2, 2))).toBe(true);
-    expect(ops.containsPoint(makePoint(3, 1))).toBe(false);
+    expect(ops.containsPoint(new Vec2(0, 0))).toBe(true);
+    expect(ops.containsPoint(new Vec2(2, 2))).toBe(true);
+    expect(ops.containsPoint(new Vec2(3, 1))).toBe(false);
   });
 
   test("translate offsets min and max points", () => {
-    const box = BoxOperations.fromPointPair(makePoint(-1, 2), makePoint(3, 5));
+    const box = BoxOperations.fromPointPair(new Vec2(-1, 2), new Vec2(3, 5));
     const ops = new BoxOperations(box);
 
-    const translated = ops.translate(makePoint(2, -3));
+    const translated = ops.translate(new Vec2(2, -3));
 
     expectPoint(translated.min, 1, -1);
     expectPoint(translated.max, 5, 2);

@@ -6,7 +6,7 @@ import {
   type DirtyState,
   getDefaultShapeHandlerRegistry,
 } from "@smalldraw/core";
-import { makePoint } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import type { RectShape } from "packages/core/src/model/shapes/rectShape";
 import {
   createStage,
@@ -20,7 +20,7 @@ import type { Viewport } from "../viewport";
 const baseViewport: Viewport = {
   width: 200,
   height: 200,
-  center: makePoint(100, 100),
+  center: new Vec2(100, 100),
   scale: 1,
   backgroundColor: "#ffffff",
 };
@@ -29,12 +29,12 @@ function createTestShape(id: string, x = 50, y = 50): RectShape {
   return {
     id,
     type: "rect",
-    geometry: { type: "rect", size: makePoint(40, 30) },
+    geometry: { type: "rect", size: new Vec2(40, 30) },
     fill: { type: "solid", color: "#ff0000" },
     zIndex: `a-${id}`,
     transform: {
-      translation: makePoint(x, y),
-      scale: makePoint(1, 1),
+      translation: new Vec2(x, y),
+      scale: new Vec2(1, 1),
       rotation: 0,
     },
   };
@@ -91,7 +91,7 @@ describe("KonvaReconciler", () => {
     // Update only shape-1
     shapes[0] = {
       ...shapes[0],
-      transform: { ...shapes[0].transform!, translation: makePoint(50, 50) },
+      transform: { ...shapes[0].transform!, translation: new Vec2(50, 50) },
     };
     reconciler.reconcile(layer, shapes, new Set(["shape-1"]), new Set());
 
@@ -201,7 +201,7 @@ describe("KonvaReconciler", () => {
     // Move shape-1
     shapes[0] = {
       ...shapes[0],
-      transform: { ...shapes[0].transform!, translation: makePoint(120, 120) },
+      transform: { ...shapes[0].transform!, translation: new Vec2(120, 120) },
     };
 
     // Reconcile with only shape-1 dirty

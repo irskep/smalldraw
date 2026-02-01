@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { makePoint } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { RectShape } from "../../model/shapes/rectShape";
@@ -27,21 +27,21 @@ function setup(params?: { sharedSettings?: SharedToolSettings }) {
 describe("rectangle tool", () => {
   test("creates rectangle geometry from pointer drag", () => {
     const { runtime, document } = setup();
-    runtime.dispatch("pointerDown", { point: makePoint(10, 10), buttons: 1 });
-    runtime.dispatch("pointerMove", { point: makePoint(30, 40), buttons: 1 });
+    runtime.dispatch("pointerDown", { point: new Vec2(10, 10), buttons: 1 });
+    runtime.dispatch("pointerMove", { point: new Vec2(30, 40), buttons: 1 });
 
     const draft = runtime.getDraft() as RectShape | null;
     expect(draft?.geometry).toEqual({
       type: "rect",
-      size: makePoint(20, 30),
+      size: new Vec2(20, 30),
     });
 
-    runtime.dispatch("pointerUp", { point: makePoint(30, 40), buttons: 0 });
+    runtime.dispatch("pointerUp", { point: new Vec2(30, 40), buttons: 0 });
     expect(Object.values(document.shapes)).toHaveLength(1);
     const shape = Object.values(document.shapes)[0] as RectShape;
     expect(draft).toBeDefined();
     expect(shape.geometry).toEqual(draft!.geometry);
-    expect(shape.transform?.translation).toEqual(makePoint(20, 25));
+    expect(shape.transform?.translation).toEqual(new Vec2(20, 25));
     expect(shape.interactions?.resizable).toBe(true);
   });
 
@@ -52,9 +52,9 @@ describe("rectangle tool", () => {
       fillColor: "#abcdef",
     };
     const { runtime, document } = setup({ sharedSettings: shared });
-    runtime.dispatch("pointerDown", { point: makePoint(0, 0), buttons: 1 });
-    runtime.dispatch("pointerMove", { point: makePoint(10, 10), buttons: 1 });
-    runtime.dispatch("pointerUp", { point: makePoint(10, 10), buttons: 0 });
+    runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    runtime.dispatch("pointerMove", { point: new Vec2(10, 10), buttons: 1 });
+    runtime.dispatch("pointerUp", { point: new Vec2(10, 10), buttons: 0 });
 
     const shape = Object.values(document.shapes)[0];
     expect(shape.fill?.type).toBe("solid");

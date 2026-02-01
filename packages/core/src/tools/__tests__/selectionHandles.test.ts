@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
-
-import { type AnyGeometry, type Box, makePoint } from "@smalldraw/geometry";
+import type { AnyGeometry, Box } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import type { Shape } from "../../model/shape";
 import { ShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { resolveSelectionHandlePoint } from "../selectionHandles";
 import type { HandleDescriptor } from "../types";
 
-const selectionBounds: Box = { min: makePoint(0), max: makePoint(200, 100) };
+const selectionBounds: Box = { min: new Vec2(0), max: new Vec2(200, 100) };
 
 const midRightHandle: HandleDescriptor = {
   id: "mid-right",
@@ -19,10 +19,10 @@ describe("resolveSelectionHandlePoint", () => {
     const registry = new ShapeHandlerRegistry();
     registry.register("custom", {
       geometry: {
-        getBounds: () => ({ min: makePoint(-10, -5), max: makePoint(10, 5) }),
+        getBounds: () => ({ min: new Vec2(-10, -5), max: new Vec2(10, 5) }),
       },
       selection: {
-        getAxisHandlePoint: () => makePoint(123, 456),
+        getAxisHandlePoint: () => new Vec2(123, 456),
       },
     });
 
@@ -32,9 +32,9 @@ describe("resolveSelectionHandlePoint", () => {
       geometry: { type: "custom" },
       zIndex: "z",
       transform: {
-        translation: makePoint(100, 100),
+        translation: new Vec2(100, 100),
         rotation: 0,
-        scale: makePoint(1, 1),
+        scale: new Vec2(1, 1),
       },
     };
 
@@ -44,14 +44,14 @@ describe("resolveSelectionHandlePoint", () => {
       shape,
       registry,
     );
-    expect(point).toEqual(makePoint(123, 456));
+    expect(point).toEqual(new Vec2(123, 456));
   });
 
   test("falls back to geometry local bounds when no override", () => {
     const registry = new ShapeHandlerRegistry();
     registry.register("custom", {
       geometry: {
-        getBounds: () => ({ min: makePoint(-10, -5), max: makePoint(10, 5) }),
+        getBounds: () => ({ min: new Vec2(-10, -5), max: new Vec2(10, 5) }),
       },
     });
 
@@ -61,9 +61,9 @@ describe("resolveSelectionHandlePoint", () => {
       geometry: { type: "custom" },
       zIndex: "z",
       transform: {
-        translation: makePoint(100, 100),
+        translation: new Vec2(100, 100),
         rotation: 0,
-        scale: makePoint(1, 1),
+        scale: new Vec2(1, 1),
       },
     };
 
@@ -73,6 +73,6 @@ describe("resolveSelectionHandlePoint", () => {
       shape,
       registry,
     );
-    expect(point).toEqual(makePoint(110, 100));
+    expect(point).toEqual(new Vec2(110, 100));
   });
 });

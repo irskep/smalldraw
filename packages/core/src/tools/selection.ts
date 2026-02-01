@@ -1,11 +1,5 @@
+import { type AnyGeometry, type Box, BoxOperations } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
-import {
-  type AnyGeometry,
-  type Box,
-  BoxOperations,
-  makePoint,
-  type Point,
-} from "@smalldraw/geometry";
 import type { UndoableAction } from "../actions";
 import {
   CompositeAction,
@@ -15,11 +9,7 @@ import {
 import { getShapeBounds } from "../model/geometryShapeUtils";
 import { hitTestShape } from "../model/hitTest";
 import { computeSelectionBounds } from "../model/selectionBounds";
-import type {
-  AnyShape,
-  CanonicalShapeTransform,
-  Shape,
-} from "../model/shape";
+import type { AnyShape, CanonicalShapeTransform, Shape } from "../model/shape";
 import { normalizeShapeTransform } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
 import { getPointFromLayout, type NormalizedLayout } from "../model/shapeTypes";
@@ -45,8 +35,8 @@ interface SelectionToolState {
 interface AxisResizeState {
   shapeId: string;
   axis: "x" | "y";
-  anchor: Point;
-  direction: Point;
+  anchor: Vec2;
+  direction: Vec2;
   startExtent: number;
   startProjection: number;
 }
@@ -54,13 +44,13 @@ interface AxisResizeState {
 interface DragState {
   mode: "move" | "resize" | "resize-proportional" | "resize-axis" | "rotate";
   selectionIds: string[];
-  startPoint: Point;
-  lastPoint: Point;
+  startPoint: Vec2;
+  lastPoint: Vec2;
   transforms: Map<string, CanonicalShapeTransform>;
   layouts: Map<string, NormalizedLayout>;
   selectionBounds?: Box;
-  oppositeCorner?: Point;
-  center?: Point;
+  oppositeCorner?: Vec2;
+  center?: Vec2;
   axisResize?: AxisResizeState;
   handleId?: string;
   resizeEntries: Map<string, ShapeResizeEntry<AnyGeometry, unknown>>;
@@ -390,7 +380,7 @@ export function createSelectionTool(): ToolDefinition {
           },
           onMove(drag, point, event) {
             drag.lastPoint = point;
-            updateDragMode(runtime, drag, event);
+            updateDragMode(runtime, drag, { ...event, point });
             const frame = computeDragFrame(runtime, drag);
             emitSelectionFrame(runtime, frame ?? drag.selectionBounds);
             runtime.setDrafts(computePreviewShapes(runtime, drag));
@@ -403,7 +393,7 @@ export function createSelectionTool(): ToolDefinition {
             });
           },
           onCancel() {
-            onPointerCancel(runtime)({ point: makePoint(), buttons: 0 });
+            onPointerCancel(runtime)({ point: new Vec2(), buttons: 0 });
           },
         }),
       );
@@ -450,23 +440,23 @@ function computeNormalizedLayouts(
   return layouts;
 }
 
-function getHandlePosition(bounds: Box, handleId: string): Point {
+function getHandlePosition(bounds: Box, handleId: string): Vec2 {
   switch (handleId) {
     case "top-left":
-      return makePoint(bounds.min.x, bounds.min.y);
+      return new Vec2(bounds.min.x, bounds.min.y);
     case "top-right":
-      return makePoint(bounds.max.x, bounds.min.y);
+      return new Vec2(bounds.max.x, bounds.min.y);
     case "bottom-left":
-      return makePoint(bounds.min.x, bounds.max.y);
+      return new Vec2(bounds.min.x, bounds.max.y);
     case "bottom-right":
-      return makePoint(bounds.max.x, bounds.max.y);
+      return new Vec2(bounds.max.x, bounds.max.y);
     case "rotate":
-      return makePoint(
+      return new Vec2(
         (bounds.min.x + bounds.max.x) / 2,
         bounds.min.y - (bounds.max.y - bounds.min.y) * 0.2,
       );
     default:
-      return makePoint(bounds.min.x, bounds.min.y);
+      return new Vec2(bounds.min.x, bounds.min.y);
   }
 }
 
@@ -511,7 +501,7 @@ function applyMove(runtime: ToolRuntime, drag: DragState) {
     actions.push(
       new UpdateShapeTransform(shapeId, {
         ...transform,
-        translation: makePoint(transform.translation).add([dx, dy]),
+        translation: new Vec2(transform.translation).add([dx, dy]),
       }),
     );
   }
@@ -535,7 +525,7 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
   if (newBoundsOps.width === 0 && newBoundsOps.height === 0) {
     return;
   }
-  const selectionScale = makePoint(
+  const selectionScale = new Vec2(
     boundsOps.width === 0 ? 1 : newBoundsOps.width / boundsOps.width,
     boundsOps.height === 0 ? 1 : newBoundsOps.height / boundsOps.height,
   );
@@ -600,7 +590,7 @@ function applyResize(runtime: ToolRuntime, drag: DragState) {
       : undefined;
     const fallbackTranslation =
       normalizedTranslation ??
-      makePoint(
+      new Vec2(
         transform.translation.x + (newBounds.min.x - bounds.min.x),
         transform.translation.y + (newBounds.min.y - bounds.min.y),
       );
@@ -686,7 +676,7 @@ function computePreviewShapes(
         const dy = drag.lastPoint.y - drag.startPoint.y;
         previewTransform = {
           ...transform,
-          translation: makePoint(transform.translation).add([dx, dy]),
+          translation: new Vec2(transform.translation).add([dx, dy]),
         };
         break;
       }
@@ -697,11 +687,15 @@ function computePreviewShapes(
         if (bounds && opposite) {
           const newBounds =
             drag.mode === "resize-proportional"
-              ? computeProportionalResizeBounds(bounds, opposite, drag.lastPoint)
+              ? computeProportionalResizeBounds(
+                  bounds,
+                  opposite,
+                  drag.lastPoint,
+                )
               : BoxOperations.fromPointPair(opposite, drag.lastPoint);
           const newBoundsOps = new BoxOperations(newBounds);
           const boundsOps = new BoxOperations(bounds);
-          const selectionScale = makePoint(
+          const selectionScale = new Vec2(
             boundsOps.width === 0 ? 1 : newBoundsOps.width / boundsOps.width,
             boundsOps.height === 0 ? 1 : newBoundsOps.height / boundsOps.height,
           );
@@ -751,8 +745,8 @@ function computePreviewShapes(
               ...transform,
               translation:
                 normalizedTranslation ??
-                makePoint(transform.translation).add(
-                  makePoint(newBounds.min).sub(bounds.min),
+                new Vec2(transform.translation).add(
+                  new Vec2(newBounds.min).sub(bounds.min),
                 ),
             };
           }
@@ -804,7 +798,7 @@ function getShapeCenter(
   shape: AnyShape,
   transform: CanonicalShapeTransform,
   runtime: ToolRuntime,
-): Point {
+): Vec2 {
   const registry = runtime.getShapeHandlers();
   const bounds = getShapeBounds(shape, registry, transform);
   return new BoxOperations(bounds).center;
@@ -833,7 +827,7 @@ function resolveHandleBehavior(
   event: ToolPointerEvent,
   handleId: string,
 ): HandleBehavior | null {
-  const logState = (resolveHandleBehavior as { _lastLogKey?: string });
+  const logState = resolveHandleBehavior as { _lastLogKey?: string };
   const handle = HANDLE_DESCRIPTORS.find((h) => h.id === handleId);
   if (!handle) {
     const key = `unknown:${handleId}:${event.shiftKey ? 1 : 0}:${
@@ -982,7 +976,7 @@ function computeDragFrame(
     case "move": {
       if (!drag.selectionBounds) return undefined;
       return new BoxOperations(drag.selectionBounds).translate(
-        makePoint(drag.lastPoint).sub(drag.startPoint),
+        new Vec2(drag.lastPoint).sub(drag.startPoint),
       );
     }
     case "resize":
@@ -1039,9 +1033,9 @@ function computeAxisResizeResult(
   drag: DragState,
   shape: Shape,
   transform: CanonicalShapeTransform,
-  point: Point,
+  point: Vec2,
   runtime: ToolRuntime,
-): { geometry: AnyGeometry; translation: Point } | null {
+): { geometry: AnyGeometry; translation: Vec2 } | null {
   const axisResize = drag.axisResize;
   if (!axisResize || axisResize.shapeId !== shape.id) return null;
   const entry = drag.resizeEntries.get(shape.id);
@@ -1068,7 +1062,7 @@ function computeAxisResizeResult(
   const half = newExtent / 2;
   return {
     geometry: result.geometry as AnyGeometry,
-    translation: makePoint(
+    translation: new Vec2(
       anchor.x + direction.x * half,
       anchor.y + direction.y * half,
     ),
@@ -1080,7 +1074,7 @@ function createAxisResizeState(
   drag: DragState,
   axis: "x" | "y",
   handleId: string,
-  startPoint: Point,
+  startPoint: Vec2,
   runtime: ToolRuntime,
 ): AxisResizeState | null {
   if (shapes.length !== 1) return null;
@@ -1102,9 +1096,8 @@ function createAxisResizeState(
   const rotation = transform.rotation;
   const signX = transform.scale.x === 0 ? 1 : Math.sign(transform.scale.x);
   const signY = transform.scale.y === 0 ? 1 : Math.sign(transform.scale.y);
-  const baseAxis =
-    axis === "x" ? makePoint(signX, 0) : makePoint(0, signY);
-  const baseDirection = makePoint();
+  const baseAxis = axis === "x" ? new Vec2(signX, 0) : new Vec2(0, signY);
+  const baseDirection = new Vec2();
   Vec2.rotate(baseDirection, baseAxis, [0, 0], rotation);
   const startExtent = ops.getAxisExtent(
     entry.snapshot.geometry,
@@ -1113,14 +1106,11 @@ function createAxisResizeState(
   );
   const half = startExtent / 2;
   const center = transform.translation;
-  const direction = makePoint();
+  const direction = new Vec2();
   Vec2.scale(direction, baseDirection, side === "positive" ? 1 : -1);
-  const anchor = makePoint();
+  const anchor = new Vec2();
   Vec2.scaleAndAdd(anchor, center, direction, -half);
-  const startDelta = makePoint(
-    startPoint.x - anchor.x,
-    startPoint.y - anchor.y,
-  );
+  const startDelta = new Vec2(startPoint.x - anchor.x, startPoint.y - anchor.y);
   const startProjection = Vec2.dot(startDelta, direction);
   return {
     shapeId: shape.id,
@@ -1174,12 +1164,12 @@ function computeRotatedBounds(
 
 function getRotationDelta(drag: DragState): number {
   if (!drag.center) return 0;
-  const startVector = makePoint(drag.startPoint).sub(drag.center);
-  const currentVector = makePoint(drag.lastPoint).sub(drag.center);
+  const startVector = new Vec2(drag.startPoint).sub(drag.center);
+  const currentVector = new Vec2(drag.lastPoint).sub(drag.center);
   if (startVector.x === 0 && startVector.y === 0) return 0;
   const targetVector =
     currentVector.x === 0 && currentVector.y === 0
-      ? makePoint(1, 0)
+      ? new Vec2(1, 0)
       : currentVector;
   const angle = Vec2.angle(startVector, targetVector);
   if (angle === 0) return 0;
@@ -1202,8 +1192,8 @@ function emitSelectionFrame(runtime: ToolRuntime, bounds?: Box) {
 
 function computeProportionalResizeBounds(
   bounds: Box,
-  opposite: Point,
-  point: Point,
+  opposite: Vec2,
+  point: Vec2,
 ): Box {
   const boundsOps = new BoxOperations(bounds);
   const width = boundsOps.width;
@@ -1233,7 +1223,7 @@ function computeProportionalResizeBounds(
     targetHeight = absDy;
     targetWidth = absDy * ratio;
   }
-  const adjusted = makePoint(
+  const adjusted = new Vec2(
     opposite.x + signX * targetWidth,
     opposite.y + signY * targetHeight,
   );
@@ -1241,12 +1231,12 @@ function computeProportionalResizeBounds(
 }
 
 function resolveSelectionScaleForShape(
-  selectionScale: Point,
+  selectionScale: Vec2,
   selectionBounds: Box | undefined,
-  shape: Shape,
+  shape: AnyShape,
   transform: CanonicalShapeTransform,
   registry: ShapeHandlerRegistry,
-): Point {
+): Vec2 {
   if (
     !selectionBounds ||
     selectionScale.x === selectionScale.y ||
@@ -1268,5 +1258,5 @@ function resolveSelectionScaleForShape(
     height * selectionScale.y,
   );
   const uniform = endDiagonal / startDiagonal;
-  return makePoint(uniform, uniform);
+  return new Vec2(uniform, uniform);
 }

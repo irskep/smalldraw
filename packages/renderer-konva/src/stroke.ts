@@ -1,4 +1,4 @@
-import type { Point } from "@smalldraw/geometry";
+import type { Vec2 } from "@smalldraw/geometry";
 import type { StrokeOptions as FreehandStrokeOptions } from "perfect-freehand";
 import getStroke from "perfect-freehand";
 
@@ -11,7 +11,7 @@ export interface StrokePolygonResult {
 }
 
 export function createFreehandStroke(
-  points: Point[],
+  points: Vec2[],
   options?: StrokePathOptions,
 ): StrokePolygonResult | null {
   if (!points.length) {
@@ -51,7 +51,7 @@ export function outlineToPath(outline: number[][]): string {
 }
 
 function createDotStroke(
-  point: Point,
+  point: Vec2,
   options?: StrokePathOptions,
 ): StrokePolygonResult {
   const radius = Math.max(1, (options?.size ?? 1) / 2);

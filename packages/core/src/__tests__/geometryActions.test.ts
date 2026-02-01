@@ -1,9 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import {
-  type AnyGeometry,
-  makePoint,
-  type PenGeometry,
-} from "@smalldraw/geometry";
+import type { AnyGeometry, PenGeometry } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { type ActionContext, AddShape, UpdateShapeGeometry } from "../actions";
 import { createDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
@@ -54,7 +51,7 @@ describe("Geometry actions", () => {
 
     const updatedGeometry: PenGeometry = {
       type: "pen",
-      points: [makePoint(5), makePoint(15), makePoint(20, 0)],
+      points: [new Vec2(5), new Vec2(15), new Vec2(20, 0)],
       pressures: undefined,
     };
     undo.apply(new UpdateShapeGeometry(pen.id, updatedGeometry), doc, ctx);

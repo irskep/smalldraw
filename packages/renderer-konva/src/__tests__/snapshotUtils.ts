@@ -1,8 +1,8 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { DrawingDocument, ShapeHandlerRegistry } from "@smalldraw/core";
-import { promises as fs } from "fs";
 import looksSame from "looks-same";
-import path from "path";
-import { fileURLToPath } from "url";
 import {
   createStage,
   type RenderDocumentOptions,

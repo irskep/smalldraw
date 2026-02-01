@@ -1,4 +1,4 @@
-import { BoxOperations, type Point } from "@smalldraw/geometry";
+import { BoxOperations, type Vec2 } from "@smalldraw/geometry";
 import { getShapeBounds } from "./geometryShapeUtils";
 import type { AnyShape, Shape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
@@ -9,7 +9,7 @@ import type { ShapeHandlerRegistry } from "./shapeHandlers";
  */
 export function hitTestShape(
   shape: AnyShape,
-  point: Point,
+  point: Vec2,
   registry: ShapeHandlerRegistry,
 ): boolean {
   const ops = registry.get(shape.type)?.shape;
@@ -29,7 +29,7 @@ export function hitTestShape(
  */
 export function hitTestShapes(
   shapes: AnyShape[],
-  point: Point,
+  point: Vec2,
   registry: ShapeHandlerRegistry,
 ): Shape | null {
   for (let i = shapes.length - 1; i >= 0; i--) {

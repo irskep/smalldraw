@@ -6,13 +6,13 @@ import {
   type ToolDefinition,
   type ToolPointerEvent,
 } from "@smalldraw/core";
-import { makePoint, type Point } from "@smalldraw/geometry";
 import {
   createStage,
   KonvaReconciler,
   reconcileDocument,
   type Viewport,
 } from "@smalldraw/renderer-konva";
+import { Vec2 } from "gl-matrix";
 import { el, mount } from "redom";
 import { updateCursor } from "../utils/cursorHelpers.js";
 import { computeSelectionBounds } from "../utils/geometryHelpers.js";
@@ -68,7 +68,7 @@ export class DrawingApp {
     up: (event: PointerEvent) => void;
     cancel: (event: PointerEvent) => void;
   };
-  private lastPointerPoint: Point | null = null;
+  private lastPointerPoint: Vec2 | null = null;
   private lastPointerButtons = 0;
   private readonly modifierHandler: (event: KeyboardEvent) => void;
 
@@ -158,7 +158,7 @@ export class DrawingApp {
       width,
       height,
       scale: 1,
-      center: makePoint(width / 2, height / 2),
+      center: new Vec2(width / 2, height / 2),
       backgroundColor: options.backgroundColor ?? "#ffffff",
     };
     this.stage = createStage({ container: this.stageContainer, width, height });
@@ -338,7 +338,7 @@ export class DrawingApp {
     this.store.dispatch("pointerMove", payload);
   }
 
-  private updateSelectionForPoint(point: Point, additive: boolean): void {
+  private updateSelectionForPoint(point: Vec2, additive: boolean): void {
     const selection = this.store.getSelection();
     console.log("[updateSelectionForPoint] START", {
       point,
@@ -391,7 +391,7 @@ export class DrawingApp {
   resize(nextWidth: number, nextHeight: number): void {
     this.viewport.width = nextWidth;
     this.viewport.height = nextHeight;
-    this.viewport.center = makePoint(nextWidth / 2, nextHeight / 2);
+    this.viewport.center = new Vec2(nextWidth / 2, nextHeight / 2);
     this.stage.width(nextWidth);
     this.stage.height(nextHeight);
     this.canvasWrapper.style.width = `${nextWidth}px`;

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { makePoint, type PenGeometry } from "@smalldraw/geometry";
+import type { PenGeometry } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
 import { canonicalizeShape } from "../../model/shape";
@@ -44,17 +45,17 @@ describe("ToolRuntimeImpl", () => {
       count += 1;
     });
 
-    runtime.dispatch("pointerDown", { point: makePoint(0, 0), buttons: 1 });
+    runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     expect(count).toBe(1);
 
     disposer();
-    runtime.dispatch("pointerDown", { point: makePoint(1, 1), buttons: 1 });
+    runtime.dispatch("pointerDown", { point: new Vec2(1, 1), buttons: 1 });
     expect(count).toBe(1);
   });
 
   test("setDraft stores draft and clearDraft resets it", () => {
     const { runtime, draftChanges } = createRuntime();
-    const geometry: PenGeometry = { type: "pen", points: [makePoint(0, 0)] };
+    const geometry: PenGeometry = { type: "pen", points: [new Vec2(0, 0)] };
     runtime.setDraft({
       toolId: "pen",
       temporary: true,
@@ -77,12 +78,12 @@ describe("ToolRuntimeImpl", () => {
       type: "rect",
       geometry: {
         type: "rect",
-        size: makePoint(10),
+        size: new Vec2(10),
       },
       zIndex: "a",
       transform: {
-        translation: makePoint(0, 0),
-        scale: makePoint(1, 1),
+        translation: new Vec2(0, 0),
+        scale: new Vec2(1, 1),
         rotation: 0,
       },
     };
@@ -103,12 +104,12 @@ describe("ToolRuntimeImpl", () => {
           type: "rect",
           geometry: {
             type: "rect",
-            size: makePoint(10),
+            size: new Vec2(10),
           },
           zIndex,
           transform: {
-            translation: makePoint(0, 0),
-            scale: makePoint(1, 1),
+            translation: new Vec2(0, 0),
+            scale: new Vec2(1, 1),
             rotation: 0,
           },
         } as RectShape,

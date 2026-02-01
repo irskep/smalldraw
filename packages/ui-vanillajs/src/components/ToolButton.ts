@@ -1,4 +1,4 @@
-import { el, type RedomElement } from "redom";
+import { el } from "redom";
 
 /**
  * Individual tool button component.

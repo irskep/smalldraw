@@ -5,18 +5,15 @@ import {
   createDocument,
   getDefaultShapeHandlerRegistry,
 } from "@smalldraw/core";
-import {
-  makePoint,
-  type PenGeometry,
-  type RectGeometry,
-} from "@smalldraw/geometry";
+import type { PenGeometry, RectGeometry } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import type { Viewport } from "../index";
 import { expectSnapshot, renderDocumentToImage } from "./snapshotUtils";
 
 const baseViewport: Viewport = {
   width: 120,
   height: 120,
-  center: makePoint(0),
+  center: new Vec2(0),
   scale: 1,
   backgroundColor: "#ffffff",
 };
@@ -44,10 +41,10 @@ describe("renderer snapshots", () => {
         id: "solid-rect",
         type: "rect",
         zIndex: "a",
-        geometry: { type: "rect", size: makePoint(80, 60) } as RectGeometry,
+        geometry: { type: "rect", size: new Vec2(80, 60) } as RectGeometry,
         fill: { type: "solid", color: "#2E7D32" },
         stroke: { type: "brush", color: "#0D47A1", size: 4 },
-        transform: { translation: makePoint(-15, 0) },
+        transform: { translation: new Vec2(-15, 0) },
       },
     ]);
   });
@@ -63,12 +60,12 @@ describe("renderer snapshots", () => {
           geometry: {
             type: "pen",
             points: [
-              makePoint(-80, -10),
-              makePoint(-40, -30),
-              makePoint(-10, -5),
-              makePoint(20, -35),
-              makePoint(60, 0),
-              makePoint(30, 30),
+              new Vec2(-80, -10),
+              new Vec2(-40, -30),
+              new Vec2(-10, -5),
+              new Vec2(20, -35),
+              new Vec2(60, 0),
+              new Vec2(30, 30),
             ],
             pressures: [1, 1, 1, 1, 1, 1],
           } as PenGeometry,
@@ -81,10 +78,10 @@ describe("renderer snapshots", () => {
           geometry: {
             type: "pen",
             points: [
-              makePoint(-80, 40),
-              makePoint(-20, 20),
-              makePoint(0, 50),
-              makePoint(60, 40),
+              new Vec2(-80, 40),
+              new Vec2(-20, 20),
+              new Vec2(0, 50),
+              new Vec2(60, 40),
             ],
             pressures: undefined,
           } as PenGeometry,
@@ -94,7 +91,7 @@ describe("renderer snapshots", () => {
       {
         width: 260,
         height: 180,
-        center: makePoint(0, 0),
+        center: new Vec2(0, 0),
         scale: 1,
         backgroundColor: "#ffffff",
       },
@@ -109,11 +106,11 @@ describe("renderer snapshots", () => {
           id: "rotated-rect",
           type: "rect",
           zIndex: "a",
-          geometry: { type: "rect", size: makePoint(80, 40) } as RectGeometry,
+          geometry: { type: "rect", size: new Vec2(80, 40) } as RectGeometry,
           fill: { type: "solid", color: "#26c6da" },
           stroke: { type: "brush", color: "#00838f", size: 3 },
           transform: {
-            translation: makePoint(-20, -10),
+            translation: new Vec2(-20, -10),
             rotation: Math.PI / 4,
           },
         },
@@ -121,7 +118,7 @@ describe("renderer snapshots", () => {
       {
         width: 240,
         height: 200,
-        center: makePoint(0, 0),
+        center: new Vec2(0, 0),
         scale: 1,
         backgroundColor: "#ffffff",
       },

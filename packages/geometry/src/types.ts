@@ -2,11 +2,9 @@ import type { Vec2 } from "gl-matrix";
 
 // Basics
 
-export type Point = Vec2;
-
 export interface Box {
-  min: Point;
-  max: Point;
+  min: Vec2;
+  max: Vec2;
 }
 
 // Geometries
@@ -17,11 +15,11 @@ export interface AnyGeometry {
 
 export interface PenGeometry {
   type: "pen";
-  points: Point[];
+  points: Vec2[];
   pressures?: number[]; // same length as points
 }
 
 export interface RectGeometry {
   type: "rect";
-  size: Point;
+  size: Vec2;
 }

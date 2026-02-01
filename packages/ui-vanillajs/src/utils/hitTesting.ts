@@ -5,9 +5,8 @@ import {
   getOrderedShapes,
   getShapeBounds,
   resolveSelectionHandlePoint,
-  type Shape,
 } from "@smalldraw/core";
-import { BoxOperations, distance, type Point } from "@smalldraw/geometry";
+import { BoxOperations, distance, type Vec2 } from "@smalldraw/geometry";
 import { computeSelectionBounds } from "./geometryHelpers.js";
 
 const HANDLE_SIZE = 8;
@@ -51,7 +50,7 @@ export function canShowAxisHandles(store: DrawingStore): boolean {
  * Hit test against selection handles.
  */
 export function hitTestHandles(
-  point: Point,
+  point: Vec2,
   store: DrawingStore,
 ): string | undefined {
   const bounds = store.getSelectionFrame() ?? computeSelectionBounds(store);
@@ -91,7 +90,7 @@ export function hitTestHandles(
  * Hit test against shapes (top-down order).
  */
 export function hitTestShapes(
-  point: Point,
+  point: Vec2,
   store: DrawingStore,
 ): AnyShape | null {
   const doc = store.getDocument();
@@ -111,7 +110,7 @@ export function hitTestShapes(
  * Check if a point is within the selection bounds.
  */
 export function isPointInSelectionBounds(
-  point: Point,
+  point: Vec2,
   store: DrawingStore,
 ): boolean {
   const bounds = computeSelectionBounds(store);

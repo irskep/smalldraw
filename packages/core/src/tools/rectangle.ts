@@ -1,9 +1,5 @@
-import {
-  BoxOperations,
-  makePoint,
-  type Point,
-  type RectGeometry,
-} from "@smalldraw/geometry";
+import { BoxOperations, type RectGeometry } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
 import type { RectShape } from "../model/shapes/rectShape";
 import type { Fill, StrokeStyle } from "../model/style";
@@ -13,8 +9,8 @@ import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 
 interface RectDraftState {
   id: string;
-  start: Point;
-  current: Point;
+  start: Vec2;
+  current: Vec2;
   pressures?: number[];
   stroke: StrokeStyle;
   fill: Fill;
@@ -34,14 +30,14 @@ export interface RectangleToolOptions {
 }
 
 function computeSizeAndCenter(
-  start: Point,
-  current: Point,
-): { center: Point; size: Point } {
+  start: Vec2,
+  current: Vec2,
+): { center: Vec2; size: Vec2 } {
   const bounds = BoxOperations.fromPointPair(start, current);
   const boxOpts = new BoxOperations(bounds);
   return {
     center: boxOpts.center,
-    size: boxOpts.translate(makePoint(bounds.min).mul(makePoint(-1))).max,
+    size: boxOpts.translate(new Vec2(bounds.min).mul(new Vec2(-1))).max,
   };
 }
 
@@ -80,7 +76,7 @@ export function createRectangleTool(
     );
   };
 
-  const beginRect = (runtime: ToolRuntime, point: Point, pressure?: number) => {
+  const beginRect = (runtime: ToolRuntime, point: Vec2, pressure?: number) => {
     const state = ensureState(runtime);
     const draft: RectDraftState = {
       id: runtime.generateShapeId("rect-draft"),
@@ -97,7 +93,7 @@ export function createRectangleTool(
 
   const updatePoint = (
     runtime: ToolRuntime,
-    point: Point,
+    point: Vec2,
     pressure?: number,
   ) => {
     const state = runtimeState.get(runtime);
@@ -133,7 +129,7 @@ export function createRectangleTool(
       },
       transform: {
         translation: center,
-        scale: makePoint(1),
+        scale: new Vec2(1),
         rotation: 0,
       },
     });
@@ -170,7 +166,7 @@ export function createRectangleTool(
       },
       transform: {
         translation: center,
-        scale: makePoint(1),
+        scale: new Vec2(1),
         rotation: 0,
       },
     };

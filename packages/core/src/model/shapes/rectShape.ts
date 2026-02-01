@@ -1,9 +1,5 @@
-import {
-  BoxOperations,
-  makePoint,
-  type Point,
-  type RectGeometry,
-} from "@smalldraw/geometry";
+import { BoxOperations, type RectGeometry } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import type { Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 
@@ -15,8 +11,8 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
     getBounds(shape: RectShape) {
       const g = shape.geometry;
       return BoxOperations.fromPointPair(
-        makePoint().sub(g.size).div(makePoint(2)),
-        makePoint().add(g.size).div(makePoint(2)),
+        new Vec2().sub(g.size).div(new Vec2(2)),
+        new Vec2().add(g.size).div(new Vec2(2)),
       );
     },
   },
@@ -26,21 +22,16 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
       return {
         geometry: {
           type: "rect",
-          size: makePoint(shape.geometry.size),
+          size: new Vec2(shape.geometry.size),
         },
       };
     },
-    resize({
-      snapshotGeometry,
-      selectionScale,
-      nextBounds,
-      layout,
-    }) {
+    resize({ snapshotGeometry, selectionScale, nextBounds, layout }) {
       if (!layout) return null;
       const g = snapshotGeometry as RectGeometry;
       const geometry: RectGeometry = {
         type: "rect",
-        size: makePoint(g.size).mul(selectionScale),
+        size: new Vec2(g.size).mul(selectionScale),
       };
       const translation = getPointFromLayout(layout, nextBounds);
       return { geometry, translation };
@@ -68,7 +59,7 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
       return {
         geometry: {
           type: "rect" as const,
-          size: makePoint(width, height),
+          size: new Vec2(width, height),
         },
       };
     },
