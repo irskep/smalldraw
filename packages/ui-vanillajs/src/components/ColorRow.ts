@@ -1,5 +1,5 @@
 import { el } from "redom";
-import { ColorSwatch } from "./ColorSwatch.js";
+import { ColorSwatch } from "./ColorSwatch";
 
 /**
  * Row of color swatches with a label.

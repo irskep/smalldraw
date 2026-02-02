@@ -1,13 +1,14 @@
 import { describe, expect, test } from "bun:test";
+import { change } from "@automerge/automerge/slim";
 import { Vec2 } from "gl-matrix";
+import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { RectShape } from "../../model/shapes/rectShape";
+import type { RectGeometry, RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { createRectangleTool } from "../rectangle";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
-import { change } from "@automerge/automerge/slim";
 
 function setup(params?: { sharedSettings?: SharedToolSettings }) {
   const registry = getDefaultShapeHandlerRegistry();
@@ -69,5 +70,30 @@ describe("rectangle tool", () => {
     }
     expect(shape.stroke?.color).toBe("#111111");
     expect(shape.stroke?.size).toBe(4);
+  });
+
+  test("does not reuse an existing shape id", () => {
+    const { runtime, getDocument } = setup();
+    const existingShapeId = "rect-1";
+    runtime.commit(
+      new AddShape({
+        id: existingShapeId,
+        type: "rect",
+        geometry: { type: "rect", size: [10, 10] } as RectGeometry,
+        fill: { type: "solid", color: "#ffffff" },
+        zIndex: "a0",
+        transform: { translation: [0, 0], scale: [1, 1], rotation: 0 },
+      }),
+    );
+
+    runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    runtime.dispatch("pointerMove", { point: new Vec2(10, 10), buttons: 1 });
+    runtime.dispatch("pointerUp", { point: new Vec2(10, 10), buttons: 0 });
+
+    const shapes = Object.values(getDocument().shapes);
+    expect(shapes).toHaveLength(2);
+    const ids = new Set(shapes.map((shape) => shape.id));
+    expect(ids.has(existingShapeId)).toBe(true);
+    expect(ids.size).toBe(2);
   });
 });

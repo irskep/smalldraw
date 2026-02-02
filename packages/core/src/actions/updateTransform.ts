@@ -16,14 +16,18 @@ export class UpdateShapeTransform implements UndoableAction {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
       // Clone tuple arrays so undo snapshots don't retain Automerge-backed references.
-      this.previous = shape.transform ? cloneTransform(shape.transform) : undefined;
+      this.previous = shape.transform
+        ? cloneTransform(shape.transform)
+        : undefined;
       this.recorded = true;
     }
     const nextTransform = cloneTransform(this.nextTransform);
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot update transform for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot update transform for missing shape ${this.shapeId}`,
+        );
       }
       target.transform = nextTransform;
     });
@@ -38,7 +42,9 @@ export class UpdateShapeTransform implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot undo transform update for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot undo transform update for missing shape ${this.shapeId}`,
+        );
       }
       if (!previousTransform) {
         delete target.transform;

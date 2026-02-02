@@ -4,16 +4,15 @@ import type {
   ShapeTransform,
 } from "@smalldraw/core";
 import { normalizeShapeTransform } from "@smalldraw/core";
-import { radToDeg } from "@smalldraw/geometry";
-import { getX, getY } from "@smalldraw/geometry";
+import { getX, getY, radToDeg } from "@smalldraw/geometry";
 import type Konva from "konva";
-import type { Layer } from "konva/lib/Layer.js";
+import type { Layer } from "konva/lib/Layer";
 
 import {
   defaultShapeRendererRegistry,
   renderShapeNode,
   type ShapeRendererRegistry,
-} from "./shapes.js";
+} from "./shapes";
 
 /**
  * Maintains a map of shape ID → Konva node and performs incremental updates

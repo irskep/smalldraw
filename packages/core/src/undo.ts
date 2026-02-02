@@ -11,6 +11,29 @@ export class UndoManager {
   private undoStack: UndoableAction[] = [];
   private redoStack: UndoableAction[] = [];
 
+  record(action: UndoableAction): void {
+    this.undoStack.push(action);
+    this.redoStack = [];
+  }
+
+  takeUndo(): UndoableAction | null {
+    const action = this.undoStack.pop();
+    if (!action) {
+      return null;
+    }
+    this.redoStack.push(action);
+    return action;
+  }
+
+  takeRedo(): UndoableAction | null {
+    const action = this.redoStack.pop();
+    if (!action) {
+      return null;
+    }
+    this.undoStack.push(action);
+    return action;
+  }
+
   apply(
     action: UndoableAction,
     doc: DrawingDocument,

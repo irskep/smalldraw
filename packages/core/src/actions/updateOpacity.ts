@@ -20,7 +20,9 @@ export class UpdateShapeOpacity implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot update opacity for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot update opacity for missing shape ${this.shapeId}`,
+        );
       }
       if (this.nextOpacity === undefined) {
         delete target.opacity;
@@ -38,7 +40,9 @@ export class UpdateShapeOpacity implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot undo opacity update for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot undo opacity update for missing shape ${this.shapeId}`,
+        );
       }
       if (this.previous === undefined) {
         delete target.opacity;

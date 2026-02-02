@@ -21,7 +21,9 @@ export class UpdateShapeStroke implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot update stroke for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot update stroke for missing shape ${this.shapeId}`,
+        );
       }
       if (this.nextStroke === undefined) {
         delete target.stroke;
@@ -39,7 +41,9 @@ export class UpdateShapeStroke implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot undo stroke update for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot undo stroke update for missing shape ${this.shapeId}`,
+        );
       }
       if (this.previous === undefined) {
         delete target.stroke;

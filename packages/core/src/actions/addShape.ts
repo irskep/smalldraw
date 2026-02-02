@@ -16,7 +16,7 @@ export class AddShape implements UndoableAction {
     if (!this.canonicalShape) {
       this.canonicalShape = canonicalizeShape(this.inputShape, ctx.registry);
     }
-    const safeShape = stripUndefined(this.canonicalShape!);
+    const safeShape = stripUndefined(this.canonicalShape);
     return ctx.change(doc, (draft) => {
       draft.shapes[safeShape.id] = safeShape;
     });

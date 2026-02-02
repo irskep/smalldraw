@@ -13,14 +13,3 @@ export interface Box {
 export interface AnyGeometry {
   type: string;
 }
-
-export interface PenGeometry {
-  type: "pen";
-  points: Vec2Tuple[];
-  pressures?: number[]; // same length as points
-}
-
-export interface RectGeometry {
-  type: "rect";
-  size: Vec2Tuple;
-}

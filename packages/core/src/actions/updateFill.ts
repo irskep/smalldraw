@@ -39,7 +39,9 @@ export class UpdateShapeFill implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot undo fill update for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot undo fill update for missing shape ${this.shapeId}`,
+        );
       }
       if (this.previous === undefined) {
         delete target.fill;

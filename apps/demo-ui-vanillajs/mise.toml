@@ -3,3 +3,6 @@ run = "bun run ts:check"
 
 [tasks.lint]
 run = "bunx biome lint --write"
+
+[tasks.test]
+run = "bun run test"

@@ -20,7 +20,9 @@ export class UpdateShapeZIndex implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot update z-index for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot update z-index for missing shape ${this.shapeId}`,
+        );
       }
       target.zIndex = this.nextZIndex;
     });
@@ -35,7 +37,9 @@ export class UpdateShapeZIndex implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot undo z-index update for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot undo z-index update for missing shape ${this.shapeId}`,
+        );
       }
       target.zIndex = previous;
     });

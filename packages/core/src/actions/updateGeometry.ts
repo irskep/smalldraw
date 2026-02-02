@@ -34,7 +34,9 @@ export class UpdateShapeGeometry implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot update geometry for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot update geometry for missing shape ${this.shapeId}`,
+        );
       }
       target.geometry = safeGeometry;
       if (safeTransform) {
@@ -57,7 +59,9 @@ export class UpdateShapeGeometry implements UndoableAction {
     return ctx.change(doc, (draft) => {
       const target = draft.shapes[this.shapeId];
       if (!target) {
-        throw new Error(`Cannot undo geometry update for missing shape ${this.shapeId}`);
+        throw new Error(
+          `Cannot undo geometry update for missing shape ${this.shapeId}`,
+        );
       }
       target.geometry = previousGeometry;
       if (previousTransform) {

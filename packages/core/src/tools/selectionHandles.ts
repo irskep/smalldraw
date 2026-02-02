@@ -50,7 +50,7 @@ export function resolveSelectionHandlePoint(
     }
   }
   const boundsOps = new BoxOperations(bounds);
-  return new Vec2().add(toVec2(bounds.min)).add(
-    boundsOps.size.mul(new Vec2(handle.position.u, handle.position.v)),
-  );
+  return new Vec2()
+    .add(toVec2(bounds.min))
+    .add(boundsOps.size.mul(new Vec2(handle.position.u, handle.position.v)));
 }

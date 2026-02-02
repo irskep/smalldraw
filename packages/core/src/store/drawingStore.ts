@@ -26,6 +26,9 @@ export interface DrawingStoreOptions {
   tools: ToolDefinition[];
   initialSharedSettings?: SharedToolSettings;
   onRenderNeeded?: () => void;
+  onDocumentChanged?: (doc: DrawingDocument) => void;
+  onAction?: (event: DrawingStoreActionEvent) => void;
+  actionDispatcher?: (event: DrawingStoreActionEvent) => void;
   onUndoFailure?: (message: string) => void;
   shapeHandlers?: ShapeHandlerRegistry;
 }
@@ -36,6 +39,14 @@ export interface DirtyState {
   dirty: Set<string>;
   /** Shape IDs that were deleted and no longer exist. */
   deleted: Set<string>;
+}
+
+export type DrawingStoreActionType = "apply" | "undo" | "redo";
+
+export interface DrawingStoreActionEvent {
+  type: DrawingStoreActionType;
+  action: UndoableAction;
+  doc: DrawingDocument;
 }
 
 export class DrawingStore {
@@ -68,6 +79,9 @@ export class DrawingStore {
 
   // Callback invoked whenever rendering is needed
   private onRenderNeeded?: () => void;
+  private onDocumentChanged?: (doc: DrawingDocument) => void;
+  private onAction?: (event: DrawingStoreActionEvent) => void;
+  private actionDispatcher?: (event: DrawingStoreActionEvent) => void;
   private onUndoFailure?: (message: string) => void;
 
   // Shape handler registry
@@ -87,6 +101,9 @@ export class DrawingStore {
       options.document ?? createDocument(undefined, this.shapeHandlers);
     this.undoManager = options.undoManager ?? new UndoManager();
     this.onRenderNeeded = options.onRenderNeeded;
+    this.onDocumentChanged = options.onDocumentChanged;
+    this.onAction = options.onAction;
+    this.actionDispatcher = options.actionDispatcher;
     this.onUndoFailure = options.onUndoFailure;
     this.sharedSettings = options.initialSharedSettings ?? {
       ...DEFAULT_SHARED_SETTINGS,
@@ -204,13 +221,48 @@ export class DrawingStore {
     this.onRenderNeeded?.();
   }
 
+  setOnRenderNeeded(callback?: () => void): void {
+    this.onRenderNeeded = callback;
+  }
+
+  setOnDocumentChanged(callback?: (doc: DrawingDocument) => void): void {
+    this.onDocumentChanged = callback;
+  }
+
+  setOnAction(callback?: (event: DrawingStoreActionEvent) => void): void {
+    this.onAction = callback;
+  }
+
+  applyAction(action: UndoableAction): void {
+    this.mutateDocument(action);
+  }
+
+  applyDocument(nextDoc: DrawingDocument): void {
+    const prevDoc = this.document;
+    this.document = nextDoc;
+    this.orderedCache = null;
+    this.dirtyShapeIds = new Set(Object.keys(nextDoc.shapes));
+    this.deletedShapeIds = new Set(
+      Object.keys(prevDoc.shapes).filter((id) => !(id in nextDoc.shapes)),
+    );
+    this.onDocumentChanged?.(this.document);
+    this.triggerRender();
+  }
+
   mutateDocument(action: UndoableAction): void {
+    if (this.actionDispatcher) {
+      this.undoManager.record(action);
+      this.actionDispatcher({ type: "apply", action, doc: this.document });
+      return;
+    }
     this.document = this.undoManager.apply(
       action,
       this.document,
       this.actionContext,
     );
     this.trackDirtyState(action);
+    this.onAction?.({ type: "apply", action, doc: this.document });
+    this.onDocumentChanged?.(this.document);
     this.triggerRender();
   }
 
@@ -362,10 +414,24 @@ export class DrawingStore {
   }
 
   undo(): boolean {
+    if (this.actionDispatcher) {
+      const action = this.undoManager.takeUndo();
+      if (!action) {
+        return false;
+      }
+      this.actionDispatcher({ type: "undo", action, doc: this.document });
+      return true;
+    }
     const outcome = this.undoManager.undo(this.document, this.actionContext);
     if (outcome.action) {
       this.document = outcome.doc;
       this.trackDirtyState(outcome.action);
+      this.onAction?.({
+        type: "undo",
+        action: outcome.action,
+        doc: this.document,
+      });
+      this.onDocumentChanged?.(this.document);
       this.triggerRender();
       return true;
     }
@@ -377,10 +443,24 @@ export class DrawingStore {
   }
 
   redo(): boolean {
+    if (this.actionDispatcher) {
+      const action = this.undoManager.takeRedo();
+      if (!action) {
+        return false;
+      }
+      this.actionDispatcher({ type: "redo", action, doc: this.document });
+      return true;
+    }
     const outcome = this.undoManager.redo(this.document, this.actionContext);
     if (outcome.action) {
       this.document = outcome.doc;
       this.trackDirtyState(outcome.action);
+      this.onAction?.({
+        type: "redo",
+        action: outcome.action,
+        doc: this.document,
+      });
+      this.onDocumentChanged?.(this.document);
       this.triggerRender();
       return true;
     }

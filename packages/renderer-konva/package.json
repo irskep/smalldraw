@@ -9,8 +9,8 @@
     "build": "tsup src/index.ts --dts --format esm",
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "echo 'No lint script yet'",
-    "test": "bun test",
-    "test:update": "UPDATE_SNAPSHOTS=1 bun test"
+    "test": "bun test --preload ./src/__tests__/setup.ts",
+    "test:update": "UPDATE_SNAPSHOTS=1 bun test --preload ./src/__tests__/setup.ts"
   },
   "dependencies": {
     "@smalldraw/core": "workspace:*",

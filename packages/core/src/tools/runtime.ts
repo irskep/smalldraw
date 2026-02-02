@@ -2,6 +2,7 @@ import type { UndoableAction } from "../actions";
 import type { DrawingDocument } from "../model/document";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
+import { nanoid } from "nanoid";
 import type {
   DraftShape,
   SelectionState,
@@ -44,7 +45,6 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   private handlers = new Map<ToolEventName, Set<ToolEventHandler>>();
   private eventListeners = new Map<string, Set<(payload: unknown) => void>>();
   private drafts: DraftShape[] = [];
-  private idCounter = 0;
 
   constructor(config: ToolRuntimeConfig<TOptions>) {
     this.toolId = config.toolId;
@@ -137,8 +137,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   }
 
   generateShapeId(prefix = "shape"): string {
-    this.idCounter += 1;
-    return `${prefix}-${this.idCounter}`;
+    return `${prefix}-${nanoid()}`;
   }
 
   getNextZIndex(): string {

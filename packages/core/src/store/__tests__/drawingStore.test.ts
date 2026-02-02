@@ -1,15 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import type { RectGeometry } from "@smalldraw/geometry";
+import { change } from "@automerge/automerge/slim";
 import { toVec2Like } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+import type { ActionContext } from "../../actions";
+import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
-import type { RectShape } from "../../model/shapes/rectShape";
+import type { RectGeometry, RectShape } from "../../model/shapes/rectShape";
 import { createPenTool } from "../../tools/pen";
 import { createRectangleTool } from "../../tools/rectangle";
 import { createSelectionTool as createSelectionDefinition } from "../../tools/selection";
 import type { ToolDefinition } from "../../tools/types";
+import { getZIndexBetween } from "../../zindex";
 import { DrawingStore } from "../drawingStore";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
@@ -289,5 +292,55 @@ describe("DrawingStore", () => {
     expect(store.canRedo()).toBe(true);
     store.redo();
     expect(Object.values(store.getDocument().shapes)).toHaveLength(1);
+  });
+
+  test("actionDispatcher updates preserve existing shapes", () => {
+    const registry = getDefaultShapeHandlerRegistry();
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
+    const makeRect = (id: string, zIndex: string): RectShape => ({
+      id,
+      type: "rect",
+      geometry: { type: "rect", size: v(10, 10) },
+      fill: { type: "solid", color: "#ffffff" },
+      zIndex,
+      transform: { translation: v(0, 0), scale: v(1, 1), rotation: 0 },
+    });
+    let externalDoc = createDocument(undefined, registry);
+    const firstZ = getZIndexBetween(null, null);
+    const secondZ = getZIndexBetween(firstZ, null);
+    externalDoc = new AddShape(makeRect("rect-1", firstZ)).redo(
+      externalDoc,
+      ctx,
+    );
+    externalDoc = new AddShape(makeRect("rect-2", secondZ)).redo(
+      externalDoc,
+      ctx,
+    );
+
+    const store = new DrawingStore({
+      tools: [createRectangleTool()],
+      document: externalDoc,
+      actionDispatcher: (event) => {
+        if (event.type === "undo") {
+          externalDoc = event.action.undo(externalDoc, ctx);
+        } else {
+          externalDoc = event.action.redo(externalDoc, ctx);
+        }
+        store.applyDocument(externalDoc);
+      },
+    });
+
+    store.activateTool("rect");
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    store.dispatch("pointerMove", { point: new Vec2(10, 10), buttons: 1 });
+    store.dispatch("pointerUp", { point: new Vec2(10, 10), buttons: 0 });
+
+    const shapes = store.getDocument().shapes;
+    expect(Object.keys(shapes)).toHaveLength(3);
+    expect(shapes["rect-1"]).toBeDefined();
+    expect(shapes["rect-2"]).toBeDefined();
   });
 });

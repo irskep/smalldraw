@@ -1,12 +1,7 @@
-import {
-  BoxOperations,
-  type PenGeometry,
-  toVec2,
-  toVec2Like,
-} from "@smalldraw/geometry";
+import { BoxOperations, toVec2, toVec2Like } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
-import type { PenShape } from "../model/shapes/penShape";
+import type { PenGeometry, PenShape } from "../model/shapes/penShape";
 import type { StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { attachPointerHandlers } from "./pointerHandlers";
@@ -58,7 +53,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       type: "brush",
       color: override?.color ?? shared.strokeColor ?? fallbackStroke.color,
       size: override?.size ?? shared.strokeWidth ?? fallbackStroke.size,
-      ...(override?.brushId ?? fallbackStroke.brushId
+      ...((override?.brushId ?? fallbackStroke.brushId)
         ? { brushId: override?.brushId ?? fallbackStroke.brushId }
         : {}),
     } satisfies StrokeStyle;

@@ -1,22 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import {
-  type Box,
-  BoxOperations,
-  getX,
-  getY,
-  type RectGeometry,
-} from "@smalldraw/geometry";
+import { change } from "@automerge/automerge/slim";
+import { type Box, BoxOperations, getX, getY } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getShapeBounds } from "../../model/geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
-import type { RectShape } from "../../model/shapes/rectShape";
+import type { RectGeometry, RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
 import type { HandleBehavior } from "../types";
-import { change } from "@automerge/automerge/slim";
 
 // Union type for all shapes used in tests
 type TestShape = RectShape | PenShape;
@@ -443,7 +437,9 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = docRef.current.shapes["rot-rect-scale"] as RectShape | undefined;
+    const resized = docRef.current.shapes["rot-rect-scale"] as
+      | RectShape
+      | undefined;
     const geometry = resized?.geometry;
     expect(geometry?.type).toBe("rect");
     if (geometry?.type !== "rect") {
@@ -739,9 +735,9 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    expect(docRef.current.shapes["pen-relative"]?.transform?.translation).toEqual(
-      v(-5, 0),
-    );
+    expect(
+      docRef.current.shapes["pen-relative"]?.transform?.translation,
+    ).toEqual(v(-5, 0));
   });
 
   test("resizes pen stroke updates transform scale", () => {
@@ -847,14 +843,18 @@ describe("selection tool", () => {
     expect(docRef.current.shapes.left?.transform?.translation).toEqual(
       v(-12.5, 0),
     );
-    expect((docRef.current.shapes.left as RectShape | undefined)?.geometry).toEqual({
+    expect(
+      (docRef.current.shapes.left as RectShape | undefined)?.geometry,
+    ).toEqual({
       type: "rect",
       size: v(15, 20),
     });
     expect(docRef.current.shapes.right?.transform?.translation).toEqual(
       v(25, 0),
     );
-    expect((docRef.current.shapes.right as RectShape | undefined)?.geometry).toEqual({
+    expect(
+      (docRef.current.shapes.right as RectShape | undefined)?.geometry,
+    ).toEqual({
       type: "rect",
       size: v(30, 20),
     });

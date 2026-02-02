@@ -6,20 +6,20 @@ import type {
 } from "@smalldraw/core";
 import { getOrderedShapes } from "@smalldraw/core";
 import Konva from "konva";
-import type { Layer } from "konva/lib/Layer.js";
-import type { Stage, StageConfig } from "konva/lib/Stage.js";
+import type { Layer } from "konva/lib/Layer";
+import type { Stage, StageConfig } from "konva/lib/Stage";
 
-import type { KonvaReconciler } from "./reconciler.js";
+import type { KonvaReconciler } from "./reconciler";
 import {
   defaultShapeRendererRegistry,
   renderShapeNode,
   type ShapeRendererRegistry,
-} from "./shapes.js";
+} from "./shapes";
 import {
   applyViewportToStage,
   DEFAULT_BACKGROUND_COLOR,
   type Viewport,
-} from "./viewport.js";
+} from "./viewport";
 
 const DEFAULT_LAYER_ID = "smalldraw-layer";
 

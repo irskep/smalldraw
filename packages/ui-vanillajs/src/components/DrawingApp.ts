@@ -2,6 +2,7 @@ import {
   createPenTool,
   createRectangleTool,
   createSelectionTool,
+  type DrawingDocument,
   DrawingStore,
   type ToolDefinition,
   type ToolPointerEvent,
@@ -14,18 +15,19 @@ import {
 } from "@smalldraw/renderer-konva";
 import { Vec2 } from "gl-matrix";
 import { el, mount } from "redom";
-import { updateCursor } from "../utils/cursorHelpers.js";
-import { computeSelectionBounds } from "../utils/geometryHelpers.js";
+import type { DrawingStoreAdapter } from "../store/storeAdapter";
+import { updateCursor } from "../utils/cursorHelpers";
+import { computeSelectionBounds } from "../utils/geometryHelpers";
 import {
   buildLiveDocument,
   canShowAxisHandles,
   hitTestHandles,
   hitTestShapes,
   isPointInSelectionBounds,
-} from "../utils/hitTesting.js";
-import { buildToolEvent, getPointerPoint } from "../utils/pointerHandlers.js";
-import { SelectionOverlay } from "./SelectionOverlay.js";
-import { Toolbar } from "./Toolbar.js";
+} from "../utils/hitTesting";
+import { buildToolEvent, getPointerPoint } from "../utils/pointerHandlers";
+import { SelectionOverlay } from "./SelectionOverlay";
+import { Toolbar } from "./Toolbar";
 
 const DEFAULT_COLORS = [
   "#000000",
@@ -44,6 +46,7 @@ export interface DrawingAppOptions {
   backgroundColor?: string;
   palette?: string[];
   tools?: ToolDefinition[];
+  storeAdapter?: DrawingStoreAdapter;
 }
 
 /**
@@ -62,6 +65,7 @@ export class DrawingApp {
   private stage: ReturnType<typeof createStage>;
   private reconciler: KonvaReconciler;
   private viewport: Viewport;
+  private storeSubscription?: () => void;
   private pointerHandlers: {
     down: (event: PointerEvent) => void;
     move: (event: PointerEvent) => void;
@@ -89,6 +93,8 @@ export class DrawingApp {
     ];
     const tools = this.ensureSelectionTool(baseTools);
     const availableToolIds = new Set(tools.map((tool) => tool.id));
+    const storeAdapter = options.storeAdapter;
+    const initialDoc = storeAdapter?.getDoc();
 
     // Create root element
     this.el = el("div.smalldraw-app", {
@@ -167,8 +173,18 @@ export class DrawingApp {
     // Create store with render callback
     this.store = new DrawingStore({
       tools,
+      document: initialDoc as DrawingDocument | undefined,
       onRenderNeeded: () => this.renderAll(),
+      actionDispatcher: storeAdapter
+        ? (event) => storeAdapter.applyAction(event)
+        : undefined,
     });
+
+    if (storeAdapter) {
+      this.storeSubscription = storeAdapter.subscribe((doc) => {
+        this.store.applyDocument(doc);
+      });
+    }
 
     // Create toolbar
     this.toolbar = new Toolbar(this.store, palette, tools, availableToolIds);
@@ -401,6 +417,8 @@ export class DrawingApp {
   }
 
   destroy(): void {
+    this.storeSubscription?.();
+    this.storeSubscription = undefined;
     this.overlay.removeEventListener("pointerdown", this.pointerHandlers.down);
     this.overlay.removeEventListener("pointermove", this.pointerHandlers.move);
     this.overlay.removeEventListener("pointerup", this.pointerHandlers.up);

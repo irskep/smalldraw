@@ -1,17 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import type { PenGeometry } from "@smalldraw/geometry";
+import { change } from "@automerge/automerge/slim";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../../actions";
-import { createDocument } from "../../model/document";
 import type { DrawingDocumentData } from "../../model/document";
+import { createDocument } from "../../model/document";
 import { canonicalizeShape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
+import type { PenGeometry } from "../../model/shapes/penShape";
 import type { RectShape } from "../../model/shapes/rectShape";
 import { UndoManager } from "../../undo";
 import { getZIndexBetween } from "../../zindex";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SelectionState, SharedToolSettings } from "../types";
-import { change } from "@automerge/automerge/slim";
 
 interface RuntimeOverrides {
   options?: Record<string, unknown>;

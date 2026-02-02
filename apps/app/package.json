@@ -11,12 +11,12 @@
     "ts:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@automerge/automerge": "^2.2.4",
-    "@automerge/automerge-repo": "^1.2.0",
-    "@automerge/automerge-repo-network-broadcastchannel": "^1.2.0",
-    "@automerge/automerge-repo-network-websocket": "^1.2.0",
-    "@automerge/automerge-repo-react-hooks": "^1.2.0",
-    "@automerge/automerge-repo-storage-indexeddb": "^1.2.0",
+    "@automerge/automerge": "^3.2.3",
+    "@automerge/automerge-repo": "2.5.1",
+    "@automerge/automerge-repo-network-broadcastchannel": "2.5.1",
+    "@automerge/automerge-repo-network-websocket": "2.5.1",
+    "@automerge/automerge-repo-react-hooks": "2.5.1",
+    "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",

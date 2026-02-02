@@ -35,7 +35,13 @@ describe("pen tool integration with runtime", () => {
     });
     const tool = createPenTool();
     const deactivate = tool.activate(runtime);
-    return { runtime, getDocument: () => document, undoManager, tool, deactivate };
+    return {
+      runtime,
+      getDocument: () => document,
+      undoManager,
+      tool,
+      deactivate,
+    };
   }
 
   test("collects pointer events into draft stroke and commits at pointer up", () => {

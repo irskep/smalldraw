@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@automerge/automerge": "^3.2.3",
-    "@automerge/automerge-repo": "^1.2.0",
-    "@automerge/automerge-repo-network-websocket": "^1.2.0",
+    "@automerge/automerge-repo": "2.5.1",
+    "@automerge/automerge-repo-network-websocket": "2.5.1",
     "@serenity-kit/opaque": "^0.8.4",
     "@trpc/client": "^11.8.1",
     "@trpc/react-query": "^11.8.1",

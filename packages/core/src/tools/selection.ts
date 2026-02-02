@@ -764,9 +764,9 @@ function computePreviewShapes(
               ...transform,
               translation: toVec2Like(
                 normalizedTranslation ??
-                  new Vec2().add(toVec2(transform.translation)).add(
-                    new Vec2(newBounds.min).sub(bounds.min),
-                  ),
+                  new Vec2()
+                    .add(toVec2(transform.translation))
+                    .add(new Vec2(newBounds.min).sub(bounds.min)),
               ),
             };
           }
@@ -1114,8 +1114,10 @@ function createAxisResizeState(
   const side = getAxisHandleSide(handleId);
   if (!side) return null;
   const rotation = transform.rotation;
-  const signX = getX(transform.scale) === 0 ? 1 : Math.sign(getX(transform.scale));
-  const signY = getY(transform.scale) === 0 ? 1 : Math.sign(getY(transform.scale));
+  const signX =
+    getX(transform.scale) === 0 ? 1 : Math.sign(getX(transform.scale));
+  const signY =
+    getY(transform.scale) === 0 ? 1 : Math.sign(getY(transform.scale));
   const baseAxis = axis === "x" ? new Vec2(signX, 0) : new Vec2(0, signY);
   const baseDirection = new Vec2();
   Vec2.rotate(baseDirection, baseAxis, [0, 0], rotation);

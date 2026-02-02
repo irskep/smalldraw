@@ -1,6 +1,6 @@
 import type { Vec2 } from "@smalldraw/geometry";
-import type { Layer } from "konva/lib/Layer.js";
-import type { Stage } from "konva/lib/Stage.js";
+import type { Layer } from "konva/lib/Layer";
+import type { Stage } from "konva/lib/Stage";
 
 export interface Viewport {
   width: number;

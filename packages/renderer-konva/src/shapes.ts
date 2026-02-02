@@ -15,17 +15,17 @@ import {
   BoxOperations,
   clamp,
   degToRad,
-  radToDeg,
   getX,
   getY,
+  radToDeg,
   toVec2,
   toVec2Like,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import Konva from "konva";
-import type { PenShape } from "packages/core/src/model/shapes/penShape.js";
-import type { RectShape } from "packages/core/src/model/shapes/rectShape.js";
-import { createFreehandStroke } from "./stroke.js";
+import type { PenShape } from "packages/core/src/model/shapes/penShape";
+import type { RectShape } from "packages/core/src/model/shapes/rectShape";
+import { createFreehandStroke } from "./stroke";
 
 type RenderableNode = Konva.Shape | Konva.Group;
 

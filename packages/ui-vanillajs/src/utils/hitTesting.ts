@@ -7,7 +7,7 @@ import {
   resolveSelectionHandlePoint,
 } from "@smalldraw/core";
 import { BoxOperations, distance, type Vec2 } from "@smalldraw/geometry";
-import { computeSelectionBounds } from "./geometryHelpers.js";
+import { computeSelectionBounds } from "./geometryHelpers";
 
 const HANDLE_SIZE = 8;
 const HANDLE_HIT_PADDING = 6;

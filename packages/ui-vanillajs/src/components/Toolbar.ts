@@ -1,7 +1,7 @@
 import type { DrawingStore, ToolDefinition } from "@smalldraw/core";
 import { el } from "redom";
-import { ColorRow } from "./ColorRow.js";
-import { ToolButton } from "./ToolButton.js";
+import { ColorRow } from "./ColorRow";
+import { ToolButton } from "./ToolButton";
 
 /**
  * Toolbar component that contains tool buttons, color selectors, and undo/redo.

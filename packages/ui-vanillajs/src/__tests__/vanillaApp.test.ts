@@ -4,7 +4,7 @@ import { Canvas, Image } from "canvas";
 import { Vec2 } from "gl-matrix";
 import { Window } from "happy-dom";
 
-import { DrawingApp } from "../components/DrawingApp.js";
+import { DrawingApp } from "../components/DrawingApp";
 
 type ShapeWithGeometry = Shape & { geometry: AnyGeometry };
 

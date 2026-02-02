@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import type { AnyGeometry } from "@smalldraw/geometry";
 import { createDocument } from "../model/document";
-import { getDefaultShapeHandlerRegistry, ShapeHandlerRegistry } from "../model/shapeHandlers";
+import {
+  getDefaultShapeHandlerRegistry,
+  ShapeHandlerRegistry,
+} from "../model/shapeHandlers";
 import { fromJSON, toJSON } from "../automerge/adapter";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
@@ -26,10 +29,7 @@ describe("Automerge JSON adapter", () => {
         type: "pen",
         geometry: {
           type: "pen",
-          points: [
-            v(0, 0),
-            v(10, 5),
-          ],
+          points: [v(0, 0), v(10, 5)],
         },
         zIndex: "a1",
         transform: {

@@ -1,12 +1,12 @@
-import { DocumentMembers } from "@/components/DocumentMembers/DocumentMembers";
-import { Input } from "@/components/ui/input";
-import { getRepo } from "@/utils/automergeRepo";
-import { AutomergeUrl, DocHandle } from "@automerge/automerge-repo";
+import type { AutomergeUrl, DocHandle } from "@automerge/automerge-repo";
 import { RepoContext, useRepo } from "@automerge/automerge-repo-react-hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { getQueryKey } from "@trpc/react-query";
 import { useEffect, useState } from "react";
+import { DocumentMembers } from "@/components/DocumentMembers/DocumentMembers";
+import { Input } from "@/components/ui/input";
+import { getRepo } from "@/utils/automergeRepo";
 import { Checklist } from "../../components/Checklist/Checklist";
 import { trpc } from "../../utils/trpc";
 
@@ -14,24 +14,37 @@ import { trpc } from "../../utils/trpc";
 function useHandleReady<T>(id: AutomergeUrl): DocHandle<T> | undefined {
   const repo = useRepo();
   const [, setReady] = useState(0);
-  const handle = repo.find<T>(id);
+  const [handle, setHandle] = useState<DocHandle<T>>();
 
   useEffect(() => {
-    // Wait for document to be ready and trigger re-render
-    handle.doc().then(() => setReady((v) => v + 1));
+    let cancelled = false;
+    let cleanup: (() => void) | null = null;
+    const currentId = id;
 
-    // Also listen for changes
-    const onUpdate = () => setReady((v) => v + 1);
-    handle.on("change", onUpdate);
-    handle.on("delete", onUpdate);
+    void (async () => {
+      const nextHandle = await repo.find<T>(id);
+      if (cancelled) return;
+      await nextHandle.whenReady();
+      if (cancelled || currentId !== id) return;
+      setHandle(nextHandle);
+      setReady((v) => v + 1);
+
+      const onUpdate = () => setReady((v) => v + 1);
+      nextHandle.on("change", onUpdate);
+      nextHandle.on("delete", onUpdate);
+      cleanup = () => {
+        nextHandle.off("change", onUpdate);
+        nextHandle.off("delete", onUpdate);
+      };
+    })();
 
     return () => {
-      handle.off("change", onUpdate);
-      handle.off("delete", onUpdate);
+      cancelled = true;
+      cleanup?.();
     };
-  }, [handle]);
+  }, [repo, id]);
 
-  return handle.isReady() ? handle : undefined;
+  return handle;
 }
 
 // Inner component that uses custom hook (requires RepoContext)

@@ -44,7 +44,9 @@ describe("UpdateShapeTransform action", () => {
 
     doc = undo.undo(doc, ctx).doc;
     expect(doc.shapes["shape-1"]?.transform).toBeDefined();
-    expect(doc.shapes["shape-1"]!.transform).toMatchObject(baseShape.transform!);
+    expect(doc.shapes["shape-1"]!.transform).toMatchObject(
+      baseShape.transform!,
+    );
   });
 
   test("composite action batches multiple transform updates", () => {
@@ -75,6 +77,8 @@ describe("UpdateShapeTransform action", () => {
 
     doc = undo.undo(doc, ctx).doc;
     expect(doc.shapes["shape-1"]?.transform).toBeDefined();
-    expect(doc.shapes["shape-1"]!.transform).toMatchObject(baseShape.transform!);
+    expect(doc.shapes["shape-1"]!.transform).toMatchObject(
+      baseShape.transform!,
+    );
   });
 });

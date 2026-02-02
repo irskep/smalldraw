@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import { BoxOperations, getX, getY } from "@smalldraw/geometry";
-import { Vec2 } from "gl-matrix";
 import { getShapeBounds } from "../geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
 import type { PenShape } from "../shapes/penShape";

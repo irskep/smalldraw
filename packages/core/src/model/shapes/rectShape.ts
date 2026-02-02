@@ -1,15 +1,20 @@
 import {
   BoxOperations,
-  type RectGeometry,
   getX,
   getY,
   toVec2Like,
+  type Vec2Tuple,
 } from "@smalldraw/geometry";
 import { Mat2d, Vec2 } from "gl-matrix";
 import { buildTransformMatrix } from "../geometryShapeUtils";
 import type { AnyShape, Shape } from "../shape";
 import { normalizeShapeTransform } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
+
+export interface RectGeometry {
+  type: "rect";
+  size: Vec2Tuple;
+}
 
 export type RectShape = Shape & { geometry: RectGeometry };
 

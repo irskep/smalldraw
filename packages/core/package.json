@@ -9,11 +9,12 @@
     "build": "tsup src/index.ts --dts --format esm",
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "echo 'No lint script yet'",
-    "test": "bun test"
+    "test": "bun test --preload ./src/__tests__/setup.ts"
   },
   "dependencies": {
     "@automerge/automerge": "^3.2.3",
     "@smalldraw/geometry": "workspace:",
-    "jittered-fractional-indexing": "^1.0.0"
+    "jittered-fractional-indexing": "^1.0.0",
+    "nanoid": "^5.1.6"
   }
 }

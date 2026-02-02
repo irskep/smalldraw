@@ -1,7 +1,7 @@
-import { BoxOperations, type RectGeometry, toVec2, toVec2Like } from "@smalldraw/geometry";
+import { BoxOperations, toVec2, toVec2Like } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
-import type { RectShape } from "../model/shapes/rectShape";
+import type { RectGeometry, RectShape } from "../model/shapes/rectShape";
 import type { Fill, StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { attachPointerHandlers } from "./pointerHandlers";
@@ -37,9 +37,7 @@ function computeSizeAndCenter(
   const boxOpts = new BoxOperations(bounds);
   return {
     center: boxOpts.center,
-    size: toVec2(
-      boxOpts.translate(new Vec2(bounds.min).mul(new Vec2(-1))).max,
-    ),
+    size: toVec2(boxOpts.translate(new Vec2(bounds.min).mul(new Vec2(-1))).max),
   };
 }
 

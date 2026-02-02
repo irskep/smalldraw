@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import type { AnyGeometry, PenGeometry } from "@smalldraw/geometry";
+import { change } from "@automerge/automerge/slim";
+import type { AnyGeometry } from "@smalldraw/geometry";
 import { type ActionContext, AddShape, UpdateShapeGeometry } from "../actions";
 import { createDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
-import { change } from "@automerge/automerge/slim";
 
 function createShape(id: string, geometry: unknown): AnyShape {
   const registry = getDefaultShapeHandlerRegistry();
@@ -52,7 +52,7 @@ describe("Geometry actions", () => {
     doc = undo.apply(new AddShape(pen), doc, ctx);
     expect(doc.shapes[pen.id].geometry).toMatchObject(pen.geometry);
 
-    const updatedGeometry: PenGeometry = {
+    const updatedGeometry = {
       type: "pen",
       points: [
         [5, 5],
@@ -60,7 +60,11 @@ describe("Geometry actions", () => {
         [20, 0],
       ],
     };
-    doc = undo.apply(new UpdateShapeGeometry(pen.id, updatedGeometry), doc, ctx);
+    doc = undo.apply(
+      new UpdateShapeGeometry(pen.id, updatedGeometry),
+      doc,
+      ctx,
+    );
     expect(doc.shapes[pen.id].geometry).toMatchObject(
       canonicalGeometry(pen, updatedGeometry).geometry,
     );

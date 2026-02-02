@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { Vec2 } from "gl-matrix";
 import {
   AddShape,
   CompositeAction,

@@ -1,15 +1,21 @@
 import {
   BoxOperations,
-  type PenGeometry,
   getX,
   getY,
   toVec2,
   toVec2Like,
+  type Vec2Tuple,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import type { AnyShape, Shape } from "../shape";
-import { getHitTestBounds } from "./hitTestUtils";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
+import { getHitTestBounds } from "./hitTestUtils";
+
+export interface PenGeometry {
+  type: "pen";
+  points: Vec2Tuple[];
+  pressures?: number[]; // same length as points
+}
 
 export type PenShape = Shape & { geometry: PenGeometry };
 

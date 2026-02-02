@@ -4,8 +4,9 @@ import {
   type AnyShape,
   createDocument,
   getDefaultShapeHandlerRegistry,
+  type PenGeometry,
+  type RectGeometry,
 } from "@smalldraw/core";
-import type { PenGeometry, RectGeometry } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import type { Viewport } from "../index";
 import { expectSnapshot, renderDocumentToImage } from "./snapshotUtils";
@@ -79,12 +80,7 @@ describe("renderer snapshots", () => {
           zIndex: "b",
           geometry: {
             type: "pen",
-            points: [
-              v(-80, 40),
-              v(-20, 20),
-              v(0, 50),
-              v(60, 40),
-            ],
+            points: [v(-80, 40), v(-20, 20), v(0, 50), v(60, 40)],
             pressures: [1, 1, 1, 1],
           } as PenGeometry,
           stroke: { type: "brush", color: "#1e88e5", size: 4 },

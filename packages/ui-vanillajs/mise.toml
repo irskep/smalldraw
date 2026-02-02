@@ -1,5 +1,5 @@
 [tasks.test]
-run = "bun test --only-failures"
+run = "bun test --only-failures --preload ./src/__tests__/setup.ts"
 
 [tasks."ts:check"]
 run = "bun run ts:check"

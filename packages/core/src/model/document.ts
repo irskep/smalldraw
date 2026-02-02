@@ -1,4 +1,5 @@
-import { change, init, type Doc } from "@automerge/automerge/slim";
+import { change, type Doc, init } from "@automerge/automerge/slim";
+import type { ActionContext, UndoableAction } from "../actions";
 import type { AnyShape } from "./shape";
 import { canonicalizeShape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
@@ -24,4 +25,17 @@ export function createDocument(
     }
   });
   return doc;
+}
+
+export function applyActionToDoc(
+  doc: DrawingDocument,
+  action: UndoableAction,
+  registry: ShapeHandlerRegistry,
+  changeFn?: ActionContext["change"],
+): DrawingDocument {
+  const ctx: ActionContext = {
+    registry,
+    change: changeFn ?? ((nextDoc, update) => change(nextDoc, update)),
+  };
+  return action.redo(doc, ctx);
 }
