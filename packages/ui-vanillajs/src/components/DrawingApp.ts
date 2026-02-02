@@ -47,6 +47,11 @@ export interface DrawingAppOptions {
   palette?: string[];
   tools?: ToolDefinition[];
   storeAdapter?: DrawingStoreAdapter;
+  scale?: number;
+  /** Initial canvas width in pixels (defaults to width * scale) */
+  initialCanvasWidth?: number;
+  /** Initial canvas height in pixels (defaults to height * scale) */
+  initialCanvasHeight?: number;
 }
 
 /**
@@ -75,6 +80,10 @@ export class DrawingApp {
   private lastPointerPoint: Vec2 | null = null;
   private lastPointerButtons = 0;
   private readonly modifierHandler: (event: KeyboardEvent) => void;
+  private scale = 1;
+  private currentStoreAdapter?: DrawingStoreAdapter;
+  private readonly worldWidth: number;
+  private readonly worldHeight: number;
 
   constructor(options: DrawingAppOptions) {
     if (!options?.container) {
@@ -83,6 +92,11 @@ export class DrawingApp {
 
     const width = options.width ?? 800;
     const height = options.height ?? 600;
+    this.worldWidth = width;
+    this.worldHeight = height;
+    const initialScale = options.scale ?? 1;
+    const canvasWidth = options.initialCanvasWidth ?? width * initialScale;
+    const canvasHeight = options.initialCanvasHeight ?? height * initialScale;
     const palette = (
       options.palette?.length ? options.palette : DEFAULT_COLORS
     ).slice();
@@ -95,6 +109,8 @@ export class DrawingApp {
     const availableToolIds = new Set(tools.map((tool) => tool.id));
     const storeAdapter = options.storeAdapter;
     const initialDoc = storeAdapter?.getDoc();
+    this.currentStoreAdapter = storeAdapter;
+    this.scale = options.scale ?? 1;
 
     // Create root element
     this.el = el("div.smalldraw-app", {
@@ -105,7 +121,7 @@ export class DrawingApp {
         "font-family": "system-ui, sans-serif",
         "font-size": "14px",
         color: "#111111",
-        "max-width": `${width}px`,
+        "max-width": `${canvasWidth}px`,
       },
     }) as HTMLDivElement;
 
@@ -113,8 +129,8 @@ export class DrawingApp {
     this.canvasWrapper = el("div.smalldraw-canvas-wrapper", {
       style: {
         position: "relative",
-        width: `${width}px`,
-        height: `${height}px`,
+        width: `${canvasWidth}px`,
+        height: `${canvasHeight}px`,
         border: "1px solid #d0d0d0",
         background: "#fdfdfd",
       },
@@ -161,13 +177,18 @@ export class DrawingApp {
 
     // Setup viewport and Konva
     this.viewport = {
-      width,
-      height,
-      scale: 1,
+      width: canvasWidth,
+      height: canvasHeight,
+      scale: initialScale,
       center: new Vec2(width / 2, height / 2),
       backgroundColor: options.backgroundColor ?? "#ffffff",
     };
-    this.stage = createStage({ container: this.stageContainer, width, height });
+    this.stage = createStage({
+      container: this.stageContainer,
+      width: canvasWidth,
+      height: canvasHeight,
+    });
+    this.selectionOverlay.setScale(initialScale);
     this.reconciler = new KonvaReconciler();
 
     // Create store with render callback
@@ -262,7 +283,7 @@ export class DrawingApp {
     return {
       down: (event: PointerEvent) => {
         event.preventDefault();
-        const point = getPointerPoint(event, this.overlay);
+        const point = getPointerPoint(event, this.overlay, this.scale);
         const payload = buildToolEvent(event, point);
         this.lastPointerPoint = point;
         this.lastPointerButtons = payload.buttons ?? 0;
@@ -306,7 +327,7 @@ export class DrawingApp {
       },
 
       move: (event: PointerEvent) => {
-        const point = getPointerPoint(event, this.overlay);
+        const point = getPointerPoint(event, this.overlay, this.scale);
         const payload = buildToolEvent(event, point);
         this.lastPointerPoint = point;
         this.lastPointerButtons = payload.buttons ?? 0;
@@ -317,7 +338,7 @@ export class DrawingApp {
       },
 
       up: (event: PointerEvent) => {
-        const point = getPointerPoint(event, this.overlay);
+        const point = getPointerPoint(event, this.overlay, this.scale);
         const payload = buildToolEvent(event, point, 0);
         this.lastPointerPoint = point;
         this.lastPointerButtons = 0;
@@ -331,7 +352,7 @@ export class DrawingApp {
       },
 
       cancel: (event: PointerEvent) => {
-        const point = getPointerPoint(event, this.overlay);
+        const point = getPointerPoint(event, this.overlay, this.scale);
         const payload = buildToolEvent(event, point, 0);
         this.lastPointerPoint = null;
         this.lastPointerButtons = 0;
@@ -407,12 +428,37 @@ export class DrawingApp {
   resize(nextWidth: number, nextHeight: number): void {
     this.viewport.width = nextWidth;
     this.viewport.height = nextHeight;
-    this.viewport.center = new Vec2(nextWidth / 2, nextHeight / 2);
+    // Keep center at world center - don't change it when scaling
+    this.viewport.center = new Vec2(this.worldWidth / 2, this.worldHeight / 2);
     this.stage.width(nextWidth);
     this.stage.height(nextHeight);
     this.canvasWrapper.style.width = `${nextWidth}px`;
     this.canvasWrapper.style.height = `${nextHeight}px`;
     this.el.style.maxWidth = `${nextWidth}px`;
+    this.renderAll();
+  }
+
+  setScale(scale: number): void {
+    this.scale = scale;
+    this.viewport.scale = scale;
+    this.selectionOverlay.setScale(scale);
+    this.renderAll();
+  }
+
+  resetWithAdapter(storeAdapter: DrawingStoreAdapter): void {
+    this.storeSubscription?.();
+    this.storeSubscription = undefined;
+    this.currentStoreAdapter = storeAdapter;
+
+    const doc = storeAdapter.getDoc();
+    this.store.applyDocument(doc);
+    this.store.clearSelection();
+    this.store.setActionDispatcher((event) => storeAdapter.applyAction(event));
+
+    this.storeSubscription = storeAdapter.subscribe((newDoc) => {
+      this.store.applyDocument(newDoc);
+    });
+
     this.renderAll();
   }
 

@@ -5,6 +5,8 @@ import { Vec2 } from "gl-matrix";
 import { Window } from "happy-dom";
 
 import { DrawingApp } from "../components/DrawingApp";
+import { SelectionOverlay } from "../components/SelectionOverlay";
+import { getPointerPoint } from "../utils/pointerHandlers";
 
 type ShapeWithGeometry = Shape & { geometry: AnyGeometry };
 
@@ -303,5 +305,212 @@ describe("DrawingApp", () => {
     expect(frameEl).toBeNull();
 
     app.destroy();
+  });
+
+  test("setScale updates scale and triggers render", () => {
+    const { container } = setupDom();
+    const app = new DrawingApp({ container, width: 300, height: 200 });
+
+    // setScale should be callable without error
+    app.setScale(2);
+    app.setScale(0.5);
+
+    app.destroy();
+  });
+
+  test("draws rectangle at correct world coordinates when scaled", () => {
+    const { container } = setupDom();
+    const app = new DrawingApp({ container, width: 300, height: 200 });
+    const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
+    rectBtn?.click();
+
+    const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;
+    stubOverlayRect(overlay, 600, 400); // Screen size is 2x world size
+
+    // Set scale to 2 (screen is 2x larger than world)
+    app.setScale(2);
+
+    // Draw at screen coordinates (100, 100) to (200, 200)
+    // With scale=2, world coordinates should be (50, 50) to (100, 100)
+    dispatchPointer(overlay, "pointerdown", 100, 100, 1);
+    dispatchPointer(overlay, "pointermove", 200, 200, 1);
+    dispatchPointer(overlay, "pointerup", 200, 200, 0);
+
+    const shapes = Object.values(
+      app.store.getDocument().shapes,
+    ) as ShapeWithGeometry[];
+    expect(shapes).toHaveLength(1);
+
+    const shape = shapes[0]!;
+    expect(shape.geometry.type).toBe("rect");
+    // The rect should be 50x50 in world units (100/2 = 50)
+    const geom = shape.geometry as { type: "rect"; size: [number, number] };
+    expect(geom.size[0]).toBeCloseTo(50, 1);
+    expect(geom.size[1]).toBeCloseTo(50, 1);
+
+    app.destroy();
+  });
+});
+
+describe("getPointerPoint", () => {
+  test("returns correct position without scale", () => {
+    const { document } = setupDom();
+    const overlay = document.createElement("div") as unknown as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        left: 10,
+        top: 20,
+        width: 300,
+        height: 200,
+      }) as DOMRect;
+
+    const event = {
+      clientX: 110,
+      clientY: 120,
+    } as PointerEvent;
+
+    const point = getPointerPoint(event, overlay);
+    expect(point[0]).toBeCloseTo(100, 5);
+    expect(point[1]).toBeCloseTo(100, 5);
+  });
+
+  test("converts screen to world coordinates with scale", () => {
+    const { document } = setupDom();
+    const overlay = document.createElement("div") as unknown as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        left: 0,
+        top: 0,
+        width: 600,
+        height: 400,
+      }) as DOMRect;
+
+    const event = {
+      clientX: 200,
+      clientY: 100,
+    } as PointerEvent;
+
+    // With scale=2, screen (200, 100) becomes world (100, 50)
+    const point = getPointerPoint(event, overlay, 2);
+    expect(point[0]).toBeCloseTo(100, 5);
+    expect(point[1]).toBeCloseTo(50, 5);
+  });
+
+  test("handles fractional scale values", () => {
+    const { document } = setupDom();
+    const overlay = document.createElement("div") as unknown as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        left: 0,
+        top: 0,
+        width: 150,
+        height: 100,
+      }) as DOMRect;
+
+    const event = {
+      clientX: 75,
+      clientY: 50,
+    } as PointerEvent;
+
+    // With scale=0.5, screen (75, 50) becomes world (150, 100)
+    const point = getPointerPoint(event, overlay, 0.5);
+    expect(point[0]).toBeCloseTo(150, 5);
+    expect(point[1]).toBeCloseTo(100, 5);
+  });
+});
+
+describe("SelectionOverlay", () => {
+  test("setScale updates internal scale", () => {
+    const { document } = setupDom();
+    const container = document.createElement("div") as unknown as HTMLElement;
+    const overlay = new SelectionOverlay(container);
+
+    // Should not throw
+    overlay.setScale(2);
+    overlay.setScale(0.5);
+  });
+
+  test("setScale updates viewport.scale for Konva rendering", () => {
+    const { container } = setupDom();
+    const app = new DrawingApp({ container, width: 300, height: 200 });
+
+    // Initial viewport scale should be 1
+    const initialViewport = (app as any).viewport;
+    expect(initialViewport.scale).toBe(1);
+
+    // After setScale, viewport.scale should be updated
+    app.setScale(2);
+    expect(initialViewport.scale).toBe(2);
+
+    // World center should remain fixed at original world dimensions
+    expect(initialViewport.center[0]).toBe(150); // 300/2
+    expect(initialViewport.center[1]).toBe(100); // 200/2
+
+    app.destroy();
+  });
+
+  test("resize updates viewport dimensions but keeps world center fixed", () => {
+    const { container } = setupDom();
+    const app = new DrawingApp({ container, width: 300, height: 200 });
+
+    const viewport = (app as any).viewport;
+
+    // Resize to scaled dimensions (simulating 2x scale)
+    app.resize(600, 400);
+    app.setScale(2);
+
+    // Viewport dimensions should be the scaled canvas size
+    expect(viewport.width).toBe(600);
+    expect(viewport.height).toBe(400);
+
+    // But center should remain at world center, not scaled center
+    expect(viewport.center[0]).toBe(150); // worldWidth/2 = 300/2
+    expect(viewport.center[1]).toBe(100); // worldHeight/2 = 200/2
+
+    app.destroy();
+  });
+
+  test("scales selection frame position and size", () => {
+    const { document } = setupDom();
+    const container = document.createElement("div") as unknown as HTMLElement;
+    const overlay = new SelectionOverlay(container);
+
+    overlay.setScale(2);
+    overlay.update(
+      { min: new Vec2(10, 20), max: new Vec2(110, 120) },
+      [],
+      undefined,
+      undefined,
+    );
+
+    const frameEl = container.querySelector(
+      ".smalldraw-selection-frame",
+    ) as HTMLElement;
+    expect(frameEl).not.toBeNull();
+    // World (10, 20) * scale 2 = screen (20, 40)
+    expect(frameEl.style.left).toBe("20px");
+    expect(frameEl.style.top).toBe("40px");
+    // World size 100x100 * scale 2 = screen 200x200
+    expect(frameEl.style.width).toBe("200px");
+    expect(frameEl.style.height).toBe("200px");
+  });
+
+  test("clears overlay elements", () => {
+    const { document } = setupDom();
+    const container = document.createElement("div") as unknown as HTMLElement;
+    const overlay = new SelectionOverlay(container);
+
+    overlay.update(
+      { min: new Vec2(0, 0), max: new Vec2(100, 100) },
+      [],
+      undefined,
+      undefined,
+    );
+    expect(
+      container.querySelector(".smalldraw-selection-frame"),
+    ).not.toBeNull();
+
+    overlay.clear();
+    expect(container.querySelector(".smalldraw-selection-frame")).toBeNull();
   });
 });

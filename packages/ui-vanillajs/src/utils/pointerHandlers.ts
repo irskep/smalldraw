@@ -21,11 +21,15 @@ export function buildToolEvent(
 
 /**
  * Get the pointer position relative to an overlay element.
+ * If scale is provided, converts from screen to world coordinates.
  */
 export function getPointerPoint(
   event: PointerEvent,
   overlay: HTMLElement,
+  scale = 1,
 ): Vec2 {
   const rect = overlay.getBoundingClientRect();
-  return new Vec2(event.clientX, event.clientY).sub([rect.left, rect.top]);
+  return new Vec2(event.clientX, event.clientY)
+    .sub([rect.left, rect.top])
+    .div([scale, scale]);
 }

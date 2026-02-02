@@ -239,6 +239,12 @@ export class DrawingStore {
     this.onAction = callback;
   }
 
+  setActionDispatcher(
+    dispatcher?: (event: DrawingStoreActionEvent) => void,
+  ): void {
+    this.actionDispatcher = dispatcher;
+  }
+
   applyAction(action: UndoableAction): void {
     this.mutateDocument(action);
   }

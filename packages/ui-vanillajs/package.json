@@ -12,6 +12,10 @@
     "test": "bun test --preload ./src/__tests__/setup.ts"
   },
   "dependencies": {
+    "@automerge/automerge": "^3.2.3",
+    "@automerge/automerge-repo": "2.5.1",
+    "@automerge/automerge-repo-network-broadcastchannel": "2.5.1",
+    "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
     "@smalldraw/core": "workspace:*",
     "@smalldraw/renderer-konva": "workspace:*",
     "redom": "^3.27.1"

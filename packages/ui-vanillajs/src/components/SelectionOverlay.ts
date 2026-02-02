@@ -19,9 +19,14 @@ export class SelectionOverlay {
   el: HTMLElement;
   private frameEl: HTMLDivElement | null = null;
   private handleEls = new Map<string, HTMLDivElement>();
+  private scale = 1;
 
   constructor(container: HTMLElement) {
     this.el = container;
+  }
+
+  setScale(scale: number): void {
+    this.scale = scale;
   }
 
   /**
@@ -92,11 +97,19 @@ export class SelectionOverlay {
 
     // Only update style properties (no DOM structure change)
     const boundsOps = new BoxOperations(bounds);
+    const scaledMin = new Vec2(getX(bounds.min), getY(bounds.min)).mul([
+      this.scale,
+      this.scale,
+    ]);
+    const scaledSize = new Vec2(boundsOps.width, boundsOps.height).mul([
+      this.scale,
+      this.scale,
+    ]);
     Object.assign(this.frameEl.style, {
-      left: `${getX(bounds.min)}px`,
-      top: `${getY(bounds.min)}px`,
-      width: `${boundsOps.width}px`,
-      height: `${boundsOps.height}px`,
+      left: `${getX(scaledMin)}px`,
+      top: `${getY(scaledMin)}px`,
+      width: `${getX(scaledSize)}px`,
+      height: `${getY(scaledSize)}px`,
     });
   }
 
@@ -185,8 +198,12 @@ export class SelectionOverlay {
           : rotation + Math.PI / 2
         : null;
 
-    const x = getX(point);
-    const y = getY(point);
+    const scaledPoint = new Vec2(getX(point), getY(point)).mul([
+      this.scale,
+      this.scale,
+    ]);
+    const x = getX(scaledPoint);
+    const y = getY(scaledPoint);
     const left = axisHandle ? `${x}px` : `${x - size.width / 2}px`;
     const top = axisHandle ? `${y}px` : `${y - size.height / 2}px`;
     const transform =
