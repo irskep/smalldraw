@@ -4,6 +4,7 @@ import {
   createSelectionTool,
   type DrawingDocument,
   DrawingStore,
+  type DrawingStoreAdapter,
   type ToolDefinition,
   type ToolPointerEvent,
 } from "@smalldraw/core";
@@ -15,7 +16,6 @@ import {
 } from "@smalldraw/renderer-konva";
 import { Vec2 } from "gl-matrix";
 import { el, mount } from "redom";
-import type { DrawingStoreAdapter } from "../store/storeAdapter";
 import { updateCursor } from "../utils/cursorHelpers";
 import { computeSelectionBounds } from "../utils/geometryHelpers";
 import {

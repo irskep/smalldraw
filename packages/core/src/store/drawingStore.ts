@@ -49,6 +49,12 @@ export interface DrawingStoreActionEvent {
   doc: DrawingDocument;
 }
 
+export interface DrawingStoreAdapter {
+  getDoc: () => DrawingDocument;
+  applyAction: (event: DrawingStoreActionEvent) => void;
+  subscribe: (listener: (doc: DrawingDocument) => void) => () => void;
+}
+
 export class DrawingStore {
   private document: DrawingDocument;
   private undoManager: UndoManager;

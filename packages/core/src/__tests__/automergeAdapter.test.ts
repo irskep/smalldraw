@@ -5,7 +5,7 @@ import {
   getDefaultShapeHandlerRegistry,
   ShapeHandlerRegistry,
 } from "../model/shapeHandlers";
-import { fromJSON, toJSON } from "../automerge/adapter";
+import { fromJSON, toJSON } from "../automerge/serialization";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
