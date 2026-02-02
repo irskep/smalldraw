@@ -6,15 +6,15 @@
 
 # Function: getShapeBounds()
 
-> **getShapeBounds**(`shape`, `registry`, `transformOverride?`): [`Bounds`](../interfaces/Bounds.md)
+> **getShapeBounds**(`shape`, `registry`, `transformOverride?`): `Box`
 
-Defined in: [model/geometryBounds.ts:58](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometryBounds.ts#L58)
+Defined in: [core/src/model/geometryShapeUtils.ts:66](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/geometryShapeUtils.ts#L66)
 
 ## Parameters
 
 ### shape
 
-[`Shape`](../interfaces/Shape.md)
+[`AnyShape`](../type-aliases/AnyShape.md)
 
 ### registry
 
@@ -26,4 +26,4 @@ Defined in: [model/geometryBounds.ts:58](https://github.com/irskep/smalldraw/blo
 
 ## Returns
 
-[`Bounds`](../interfaces/Bounds.md)
+`Box`

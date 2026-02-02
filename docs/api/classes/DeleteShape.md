@@ -6,7 +6,7 @@
 
 # Class: DeleteShape
 
-Defined in: [actions/deleteShape.ts:5](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/deleteShape.ts#L5)
+Defined in: [core/src/actions/deleteShape.ts:6](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/deleteShape.ts#L6)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/deleteShape.ts:5](https://github.com/irskep/smalldraw/blob/
 
 > **new DeleteShape**(`shapeId`): `DeleteShape`
 
-Defined in: [actions/deleteShape.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/deleteShape.ts#L8)
+Defined in: [core/src/actions/deleteShape.ts:9](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/deleteShape.ts#L9)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [actions/deleteShape.ts:8](https://github.com/irskep/smalldraw/blob/
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/deleteShape.ts:26](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/deleteShape.ts#L26)
+Defined in: [core/src/actions/deleteShape.ts:33](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/deleteShape.ts#L33)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -54,7 +54,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/deleteShape.ts:30](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/deleteShape.ts#L30)
+Defined in: [core/src/actions/deleteShape.ts:37](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/deleteShape.ts#L37)
 
 #### Returns
 
@@ -68,15 +68,15 @@ Defined in: [actions/deleteShape.ts:30](https://github.com/irskep/smalldraw/blob
 
 ### redo()
 
-> **redo**(`doc`, `ctx`): `void`
+> **redo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/deleteShape.ts:10](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/deleteShape.ts#L10)
+Defined in: [core/src/actions/deleteShape.ts:11](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/deleteShape.ts#L11)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -84,7 +84,7 @@ Defined in: [actions/deleteShape.ts:10](https://github.com/irskep/smalldraw/blob
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 
@@ -94,15 +94,15 @@ Defined in: [actions/deleteShape.ts:10](https://github.com/irskep/smalldraw/blob
 
 ### undo()
 
-> **undo**(`doc`, `ctx`): `void`
+> **undo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/deleteShape.ts:17](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/deleteShape.ts#L17)
+Defined in: [core/src/actions/deleteShape.ts:21](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/deleteShape.ts#L21)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -110,7 +110,7 @@ Defined in: [actions/deleteShape.ts:17](https://github.com/irskep/smalldraw/blob
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 

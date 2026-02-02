@@ -6,11 +6,7 @@
 
 # Interface: Shape
 
-Defined in: [model/shape.ts:30](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L30)
-
-## Extended by
-
-- [`DraftShape`](DraftShape.md)
+Defined in: [core/src/model/shape.ts:40](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L40)
 
 ## Properties
 
@@ -18,15 +14,7 @@ Defined in: [model/shape.ts:30](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **fill**: [`Fill`](../type-aliases/Fill.md)
 
-Defined in: [model/shape.ts:33](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L33)
-
-***
-
-### geometry
-
-> **geometry**: [`Geometry`](../type-aliases/Geometry.md)
-
-Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L32)
+Defined in: [core/src/model/shape.ts:43](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L43)
 
 ***
 
@@ -34,7 +22,7 @@ Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **id**: `string`
 
-Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L31)
+Defined in: [core/src/model/shape.ts:41](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L41)
 
 ***
 
@@ -42,7 +30,7 @@ Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **interactions**: [`ShapeInteractions`](ShapeInteractions.md)
 
-Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L37)
+Defined in: [core/src/model/shape.ts:47](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L47)
 
 ***
 
@@ -50,7 +38,7 @@ Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **opacity**: `number`
 
-Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L35)
+Defined in: [core/src/model/shape.ts:45](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L45)
 
 ***
 
@@ -58,7 +46,7 @@ Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **stroke**: [`BrushStyle`](BrushStyle.md)
 
-Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L34)
+Defined in: [core/src/model/shape.ts:44](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L44)
 
 ***
 
@@ -66,7 +54,15 @@ Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **transform**: [`ShapeTransform`](ShapeTransform.md)
 
-Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L38)
+Defined in: [core/src/model/shape.ts:48](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L48)
+
+***
+
+### type
+
+> **type**: `string`
+
+Defined in: [core/src/model/shape.ts:42](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L42)
 
 ***
 
@@ -74,4 +70,4 @@ Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **zIndex**: `string`
 
-Defined in: [model/shape.ts:36](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L36)
+Defined in: [core/src/model/shape.ts:46](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L46)

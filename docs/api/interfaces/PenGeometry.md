@@ -6,23 +6,23 @@
 
 # Interface: PenGeometry
 
-Defined in: [model/geometry.ts:3](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometry.ts#L3)
+Defined in: [core/src/model/shapes/penShape.ts:14](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shapes/penShape.ts#L14)
 
 ## Properties
 
 ### points
 
-> **points**: [`Point`](Point.md)[]
+> **points**: `Vec2Tuple`[]
 
-Defined in: [model/geometry.ts:5](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometry.ts#L5)
+Defined in: [core/src/model/shapes/penShape.ts:16](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shapes/penShape.ts#L16)
 
 ***
 
-### simulatePressure?
+### pressures?
 
-> `optional` **simulatePressure**: `boolean`
+> `optional` **pressures**: `number`[]
 
-Defined in: [model/geometry.ts:6](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometry.ts#L6)
+Defined in: [core/src/model/shapes/penShape.ts:17](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shapes/penShape.ts#L17)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [model/geometry.ts:6](https://github.com/irskep/smalldraw/blob/d4a91
 
 > **type**: `"pen"`
 
-Defined in: [model/geometry.ts:4](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometry.ts#L4)
+Defined in: [core/src/model/shapes/penShape.ts:15](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shapes/penShape.ts#L15)

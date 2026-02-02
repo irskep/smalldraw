@@ -8,7 +8,7 @@
 
 > **hitTestShapes**(`shapes`, `point`, `registry`): [`Shape`](../interfaces/Shape.md) \| `null`
 
-Defined in: [model/hitTest.ts:35](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/hitTest.ts#L35)
+Defined in: [core/src/model/hitTest.ts:24](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/hitTest.ts#L24)
 
 Find the topmost shape at a point (back-to-front z-order)
 
@@ -16,11 +16,11 @@ Find the topmost shape at a point (back-to-front z-order)
 
 ### shapes
 
-[`Shape`](../interfaces/Shape.md)[]
+[`AnyShape`](../type-aliases/AnyShape.md)[]
 
 ### point
 
-[`Point`](../interfaces/Point.md)
+`Vec2`
 
 ### registry
 

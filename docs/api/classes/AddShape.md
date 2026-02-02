@@ -6,7 +6,7 @@
 
 # Class: AddShape
 
-Defined in: [actions/addShape.ts:6](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/addShape.ts#L6)
+Defined in: [core/src/actions/addShape.ts:7](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/addShape.ts#L7)
 
 ## Implements
 
@@ -18,13 +18,13 @@ Defined in: [actions/addShape.ts:6](https://github.com/irskep/smalldraw/blob/d4a
 
 > **new AddShape**(`shape`): `AddShape`
 
-Defined in: [actions/addShape.ts:10](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/addShape.ts#L10)
+Defined in: [core/src/actions/addShape.ts:11](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/addShape.ts#L11)
 
 #### Parameters
 
 ##### shape
 
-[`Shape`](../interfaces/Shape.md)
+[`AnyShape`](../type-aliases/AnyShape.md)
 
 #### Returns
 
@@ -36,7 +36,7 @@ Defined in: [actions/addShape.ts:10](https://github.com/irskep/smalldraw/blob/d4
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/addShape.ts:28](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/addShape.ts#L28)
+Defined in: [core/src/actions/addShape.ts:35](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/addShape.ts#L35)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -54,7 +54,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/addShape.ts:32](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/addShape.ts#L32)
+Defined in: [core/src/actions/addShape.ts:39](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/addShape.ts#L39)
 
 #### Returns
 
@@ -68,15 +68,15 @@ Defined in: [actions/addShape.ts:32](https://github.com/irskep/smalldraw/blob/d4
 
 ### redo()
 
-> **redo**(`doc`, `ctx`): `void`
+> **redo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/addShape.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/addShape.ts#L14)
+Defined in: [core/src/actions/addShape.ts:15](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/addShape.ts#L15)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -84,7 +84,7 @@ Defined in: [actions/addShape.ts:14](https://github.com/irskep/smalldraw/blob/d4
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 
@@ -94,15 +94,15 @@ Defined in: [actions/addShape.ts:14](https://github.com/irskep/smalldraw/blob/d4
 
 ### undo()
 
-> **undo**(`doc`, `ctx`): `void`
+> **undo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/addShape.ts:21](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/addShape.ts#L21)
+Defined in: [core/src/actions/addShape.ts:25](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/addShape.ts#L25)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -110,7 +110,7 @@ Defined in: [actions/addShape.ts:21](https://github.com/irskep/smalldraw/blob/d4
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 

@@ -8,4 +8,4 @@
 
 > **Fill** = [`SolidFill`](../interfaces/SolidFill.md) \| [`GradientFill`](../interfaces/GradientFill.md)
 
-Defined in: [model/style.ts:18](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L18)
+Defined in: [core/src/model/style.ts:18](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L18)

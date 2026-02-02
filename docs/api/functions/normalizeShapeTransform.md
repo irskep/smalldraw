@@ -8,7 +8,7 @@
 
 > **normalizeShapeTransform**(`transform?`): [`CanonicalShapeTransform`](../interfaces/CanonicalShapeTransform.md)
 
-Defined in: [model/shape.ts:41](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L41)
+Defined in: [core/src/model/shape.ts:53](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L53)
 
 ## Parameters
 

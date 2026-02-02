@@ -6,7 +6,7 @@
 
 # Interface: ToolPointerEvent
 
-Defined in: [tools/types.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L14)
+Defined in: [core/src/tools/types.ts:13](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L13)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [tools/types.ts:14](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **altKey**: `boolean`
 
-Defined in: [tools/types.ts:19](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L19)
+Defined in: [core/src/tools/types.ts:18](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L18)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [tools/types.ts:19](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **buttons**: `number`
 
-Defined in: [tools/types.ts:16](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L16)
+Defined in: [core/src/tools/types.ts:15](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L15)
 
 ***
 
@@ -30,15 +30,15 @@ Defined in: [tools/types.ts:16](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **handleId**: `string`
 
-Defined in: [tools/types.ts:20](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L20)
+Defined in: [core/src/tools/types.ts:19](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L19)
 
 ***
 
 ### point
 
-> **point**: [`Point`](Point.md)
+> **point**: `Vec2`
 
-Defined in: [tools/types.ts:15](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L15)
+Defined in: [core/src/tools/types.ts:14](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L14)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [tools/types.ts:15](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **pressure**: `number`
 
-Defined in: [tools/types.ts:17](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L17)
+Defined in: [core/src/tools/types.ts:16](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L16)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [tools/types.ts:17](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **shiftKey**: `boolean`
 
-Defined in: [tools/types.ts:18](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L18)
+Defined in: [core/src/tools/types.ts:17](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L17)

@@ -8,4 +8,4 @@
 
 > **HandleBehavior** = \{ `type`: `"move"`; \} \| \{ `type`: `"rotate"`; \} \| \{ `proportional?`: `boolean`; `type`: `"resize"`; \} \| \{ `axis`: `"x"` \| `"y"`; `type`: `"resize-axis"`; \}
 
-Defined in: [tools/types.ts:94](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L94)
+Defined in: [core/src/tools/types.ts:93](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L93)

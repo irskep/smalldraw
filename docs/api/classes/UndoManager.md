@@ -6,7 +6,7 @@
 
 # Class: UndoManager
 
-Defined in: [undo.ts:4](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/undo.ts#L4)
+Defined in: [core/src/undo.ts:10](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L10)
 
 ## Constructors
 
@@ -22,9 +22,9 @@ Defined in: [undo.ts:4](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c
 
 ### apply()
 
-> **apply**(`action`, `doc`, `ctx`): `void`
+> **apply**(`action`, `doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [undo.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/undo.ts#L8)
+Defined in: [core/src/undo.ts:37](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L37)
 
 #### Parameters
 
@@ -34,7 +34,7 @@ Defined in: [undo.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -42,7 +42,7 @@ Defined in: [undo.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [undo.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c
 
 > **canRedo**(): `boolean`
 
-Defined in: [undo.ts:38](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/undo.ts#L38)
+Defined in: [core/src/undo.ts:90](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L90)
 
 #### Returns
 
@@ -62,7 +62,7 @@ Defined in: [undo.ts:38](https://github.com/irskep/smalldraw/blob/d4a91538316dd6
 
 > **canUndo**(): `boolean`
 
-Defined in: [undo.ts:34](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/undo.ts#L34)
+Defined in: [core/src/undo.ts:86](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L86)
 
 #### Returns
 
@@ -74,7 +74,25 @@ Defined in: [undo.ts:34](https://github.com/irskep/smalldraw/blob/d4a91538316dd6
 
 > **clear**(): `void`
 
-Defined in: [undo.ts:42](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/undo.ts#L42)
+Defined in: [core/src/undo.ts:94](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L94)
+
+#### Returns
+
+`void`
+
+***
+
+### record()
+
+> **record**(`action`): `void`
+
+Defined in: [core/src/undo.ts:14](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L14)
+
+#### Parameters
+
+##### action
+
+[`UndoableAction`](../interfaces/UndoableAction.md)
 
 #### Returns
 
@@ -84,19 +102,43 @@ Defined in: [undo.ts:42](https://github.com/irskep/smalldraw/blob/d4a91538316dd6
 
 ### redo()
 
-> **redo**(`doc`, `ctx`): [`UndoableAction`](../interfaces/UndoableAction.md) \| `null`
+> **redo**(`doc`, `ctx`): [`UndoOutcome`](../interfaces/UndoOutcome.md)
 
-Defined in: [undo.ts:24](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/undo.ts#L24)
+Defined in: [core/src/undo.ts:67](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L67)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
 [`ActionContext`](../interfaces/ActionContext.md)
+
+#### Returns
+
+[`UndoOutcome`](../interfaces/UndoOutcome.md)
+
+***
+
+### takeRedo()
+
+> **takeRedo**(): [`UndoableAction`](../interfaces/UndoableAction.md) \| `null`
+
+Defined in: [core/src/undo.ts:28](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L28)
+
+#### Returns
+
+[`UndoableAction`](../interfaces/UndoableAction.md) \| `null`
+
+***
+
+### takeUndo()
+
+> **takeUndo**(): [`UndoableAction`](../interfaces/UndoableAction.md) \| `null`
+
+Defined in: [core/src/undo.ts:19](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L19)
 
 #### Returns
 
@@ -106,15 +148,15 @@ Defined in: [undo.ts:24](https://github.com/irskep/smalldraw/blob/d4a91538316dd6
 
 ### undo()
 
-> **undo**(`doc`, `ctx`): [`UndoableAction`](../interfaces/UndoableAction.md) \| `null`
+> **undo**(`doc`, `ctx`): [`UndoOutcome`](../interfaces/UndoOutcome.md)
 
-Defined in: [undo.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/undo.ts#L14)
+Defined in: [core/src/undo.ts:48](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/undo.ts#L48)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -122,4 +164,4 @@ Defined in: [undo.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6
 
 #### Returns
 
-[`UndoableAction`](../interfaces/UndoableAction.md) \| `null`
+[`UndoOutcome`](../interfaces/UndoOutcome.md)

@@ -6,7 +6,7 @@
 
 # Interface: PenToolOptions
 
-Defined in: [tools/pen.ts:25](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/pen.ts#L25)
+Defined in: [core/src/tools/pen.ts:26](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/pen.ts#L26)
 
 ## Properties
 
@@ -14,4 +14,4 @@ Defined in: [tools/pen.ts:25](https://github.com/irskep/smalldraw/blob/d4a915383
 
 > `optional` **stroke**: [`BrushStyle`](BrushStyle.md)
 
-Defined in: [tools/pen.ts:26](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/pen.ts#L26)
+Defined in: [core/src/tools/pen.ts:27](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/pen.ts#L27)

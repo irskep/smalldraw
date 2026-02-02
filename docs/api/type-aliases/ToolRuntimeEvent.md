@@ -6,9 +6,9 @@
 
 # Type Alias: ToolRuntimeEvent\<TPayload\>
 
-> **ToolRuntimeEvent**\<`TPayload`\> = \{ `payload`: [`HandleDescriptor`](../interfaces/HandleDescriptor.md)[]; `type`: `"handles"`; \} \| \{ `payload`: \{ `behavior`: [`HandleBehavior`](HandleBehavior.md) \| `null`; `handleId`: `string` \| `null`; \}; `type`: `"handle-hover"`; \} \| \{ `payload`: [`Bounds`](../interfaces/Bounds.md) \| `null`; `type`: `"selection-frame"`; \} \| \{ `payload`: `TPayload`; `type`: `"custom"`; \}
+> **ToolRuntimeEvent**\<`TPayload`\> = \{ `payload`: [`HandleDescriptor`](../interfaces/HandleDescriptor.md)[]; `type`: `"handles"`; \} \| \{ `payload`: \{ `behavior`: [`HandleBehavior`](HandleBehavior.md) \| `null`; `handleId`: `string` \| `null`; \}; `type`: `"handle-hover"`; \} \| \{ `payload`: `Box` \| `null`; `type`: `"selection-frame"`; \} \| \{ `payload`: `TPayload`; `type`: `"custom"`; \}
 
-Defined in: [tools/types.ts:100](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L100)
+Defined in: [core/src/tools/types.ts:99](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L99)
 
 ## Type Parameters
 

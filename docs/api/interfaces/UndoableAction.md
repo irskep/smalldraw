@@ -6,7 +6,7 @@
 
 # Interface: UndoableAction
 
-Defined in: [actions/types.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/types.ts#L8)
+Defined in: [core/src/actions/types.ts:12](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/types.ts#L12)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [actions/types.ts:8](https://github.com/irskep/smalldraw/blob/d4a915
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/types.ts:12](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/types.ts#L12)
+Defined in: [core/src/actions/types.ts:16](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/types.ts#L16)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -28,7 +28,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/types.ts:13](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/types.ts#L13)
+Defined in: [core/src/actions/types.ts:17](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/types.ts#L17)
 
 #### Returns
 
@@ -38,15 +38,15 @@ Defined in: [actions/types.ts:13](https://github.com/irskep/smalldraw/blob/d4a91
 
 ### redo()
 
-> **redo**(`doc`, `ctx`): `void`
+> **redo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/types.ts:9](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/types.ts#L9)
+Defined in: [core/src/actions/types.ts:13](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/types.ts#L13)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -54,21 +54,21 @@ Defined in: [actions/types.ts:9](https://github.com/irskep/smalldraw/blob/d4a915
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ***
 
 ### undo()
 
-> **undo**(`doc`, `ctx`): `void`
+> **undo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/types.ts:10](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/types.ts#L10)
+Defined in: [core/src/actions/types.ts:14](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/types.ts#L14)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -76,4 +76,4 @@ Defined in: [actions/types.ts:10](https://github.com/irskep/smalldraw/blob/d4a91
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)

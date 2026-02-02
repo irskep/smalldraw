@@ -6,7 +6,7 @@
 
 # Interface: DirtyState
 
-Defined in: [store/drawingStore.ts:32](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L32)
+Defined in: [core/src/store/drawingStore.ts:37](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/store/drawingStore.ts#L37)
 
 Result of consuming dirty state for incremental rendering.
 
@@ -16,7 +16,7 @@ Result of consuming dirty state for incremental rendering.
 
 > **deleted**: `Set`\<`string`\>
 
-Defined in: [store/drawingStore.ts:36](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L36)
+Defined in: [core/src/store/drawingStore.ts:41](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/store/drawingStore.ts#L41)
 
 Shape IDs that were deleted and no longer exist.
 
@@ -26,6 +26,6 @@ Shape IDs that were deleted and no longer exist.
 
 > **dirty**: `Set`\<`string`\>
 
-Defined in: [store/drawingStore.ts:34](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/store/drawingStore.ts#L34)
+Defined in: [core/src/store/drawingStore.ts:39](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/store/drawingStore.ts#L39)
 
 Shape IDs that were modified and still exist.

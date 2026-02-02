@@ -8,13 +8,13 @@
 
 > **getTopZIndex**(`doc`): `string`
 
-Defined in: [zindex.ts:13](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/zindex.ts#L13)
+Defined in: [core/src/zindex.ts:13](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/zindex.ts#L13)
 
 ## Parameters
 
 ### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ## Returns
 

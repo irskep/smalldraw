@@ -6,7 +6,7 @@
 
 # Interface: ToolRuntime
 
-Defined in: [tools/types.ts:41](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L41)
+Defined in: [core/src/tools/types.ts:40](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L40)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [tools/types.ts:41](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **toolId**: `string`
 
-Defined in: [tools/types.ts:42](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L42)
+Defined in: [core/src/tools/types.ts:41](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L41)
 
 ## Methods
 
@@ -22,7 +22,7 @@ Defined in: [tools/types.ts:42](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **clearDraft**(): `void`
 
-Defined in: [tools/types.ts:50](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L50)
+Defined in: [core/src/tools/types.ts:49](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L49)
 
 Forcefully clear any draft state for this tool.
 
@@ -36,7 +36,7 @@ Forcefully clear any draft state for this tool.
 
 > **clearSelection**(): `void`
 
-Defined in: [tools/types.ts:74](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L74)
+Defined in: [core/src/tools/types.ts:73](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L73)
 
 #### Returns
 
@@ -48,7 +48,7 @@ Defined in: [tools/types.ts:74](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **clearToolState**(): `void`
 
-Defined in: [tools/types.ts:69](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L69)
+Defined in: [core/src/tools/types.ts:68](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L68)
 
 #### Returns
 
@@ -60,7 +60,7 @@ Defined in: [tools/types.ts:69](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **commit**(`action`): `void`
 
-Defined in: [tools/types.ts:52](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L52)
+Defined in: [core/src/tools/types.ts:51](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L51)
 
 Queue an undoable action to mutate the document.
 
@@ -80,7 +80,7 @@ Queue an undoable action to mutate the document.
 
 > **emit**\<`TPayload`\>(`event`): `void`
 
-Defined in: [tools/types.ts:83](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L83)
+Defined in: [core/src/tools/types.ts:82](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L82)
 
 #### Type Parameters
 
@@ -104,7 +104,7 @@ Defined in: [tools/types.ts:83](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **generateShapeId**(`prefix?`): `string`
 
-Defined in: [tools/types.ts:54](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L54)
+Defined in: [core/src/tools/types.ts:53](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L53)
 
 Helpers for generating ids and z-index keys.
 
@@ -124,7 +124,7 @@ Helpers for generating ids and z-index keys.
 
 > **getNextZIndex**(): `string`
 
-Defined in: [tools/types.ts:55](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L55)
+Defined in: [core/src/tools/types.ts:54](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L54)
 
 #### Returns
 
@@ -136,7 +136,7 @@ Defined in: [tools/types.ts:55](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **getOptions**\<`TOptions`\>(): `TOptions` \| `undefined`
 
-Defined in: [tools/types.ts:57](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L57)
+Defined in: [core/src/tools/types.ts:56](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L56)
 
 Access tool configuration or settings passed in by the host application.
 
@@ -156,7 +156,7 @@ Access tool configuration or settings passed in by the host application.
 
 > **getSelection**(): [`SelectionState`](SelectionState.md)
 
-Defined in: [tools/types.ts:71](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L71)
+Defined in: [core/src/tools/types.ts:70](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L70)
 
 Selection helpers
 
@@ -168,9 +168,9 @@ Selection helpers
 
 ### getShape()
 
-> **getShape**(`shapeId`): [`Shape`](Shape.md) \| `undefined`
+> **getShape**(`shapeId`): [`AnyShape`](../type-aliases/AnyShape.md) \| `undefined`
 
-Defined in: [tools/types.ts:76](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L76)
+Defined in: [core/src/tools/types.ts:75](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L75)
 
 #### Parameters
 
@@ -180,7 +180,7 @@ Defined in: [tools/types.ts:76](https://github.com/irskep/smalldraw/blob/d4a9153
 
 #### Returns
 
-[`Shape`](Shape.md) \| `undefined`
+[`AnyShape`](../type-aliases/AnyShape.md) \| `undefined`
 
 ***
 
@@ -188,7 +188,7 @@ Defined in: [tools/types.ts:76](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **getShapeHandlers**(): [`ShapeHandlerRegistry`](../classes/ShapeHandlerRegistry.md)
 
-Defined in: [tools/types.ts:78](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L78)
+Defined in: [core/src/tools/types.ts:77](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L77)
 
 Get the shape handler registry for this drawing session
 
@@ -202,7 +202,7 @@ Get the shape handler registry for this drawing session
 
 > **getSharedSettings**\<`TSettings`\>(): `TSettings`
 
-Defined in: [tools/types.ts:59](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L59)
+Defined in: [core/src/tools/types.ts:58](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L58)
 
 Access shared drawing settings (stroke color/width, fill color, etc.).
 
@@ -222,7 +222,7 @@ Access shared drawing settings (stroke color/width, fill color, etc.).
 
 > **getToolState**\<`TState`\>(): `TState` \| `undefined`
 
-Defined in: [tools/types.ts:64](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L64)
+Defined in: [core/src/tools/types.ts:63](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L63)
 
 Access tool-specific state persisted across activations.
 
@@ -242,7 +242,7 @@ Access tool-specific state persisted across activations.
 
 > **isSelected**(`id`): `boolean`
 
-Defined in: [tools/types.ts:75](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L75)
+Defined in: [core/src/tools/types.ts:74](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L74)
 
 #### Parameters
 
@@ -260,7 +260,7 @@ Defined in: [tools/types.ts:75](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **on**(`event`, `handler`): () => `void`
 
-Defined in: [tools/types.ts:44](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L44)
+Defined in: [core/src/tools/types.ts:43](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L43)
 
 Register an event handler. Returns a disposer to detach the handler.
 
@@ -288,7 +288,7 @@ Register an event handler. Returns a disposer to detach the handler.
 
 > **onEvent**\<`TPayload`\>(`type`, `listener`): () => `void`
 
-Defined in: [tools/types.ts:79](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L79)
+Defined in: [core/src/tools/types.ts:78](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L78)
 
 #### Type Parameters
 
@@ -320,7 +320,7 @@ Defined in: [tools/types.ts:79](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **setDraft**(`shape`): `void`
 
-Defined in: [tools/types.ts:46](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L46)
+Defined in: [core/src/tools/types.ts:45](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L45)
 
 Replace or clear the draft shape for this tool.
 
@@ -340,7 +340,7 @@ Replace or clear the draft shape for this tool.
 
 > **setDrafts**(`shapes`): `void`
 
-Defined in: [tools/types.ts:48](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L48)
+Defined in: [core/src/tools/types.ts:47](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L47)
 
 Replace or clear multiple draft shapes for this tool.
 
@@ -360,7 +360,7 @@ Replace or clear multiple draft shapes for this tool.
 
 > **setSelection**(`ids`, `primaryId?`): `void`
 
-Defined in: [tools/types.ts:72](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L72)
+Defined in: [core/src/tools/types.ts:71](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L71)
 
 #### Parameters
 
@@ -382,7 +382,7 @@ Defined in: [tools/types.ts:72](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **setToolState**\<`TState`\>(`state`): `void`
 
-Defined in: [tools/types.ts:65](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L65)
+Defined in: [core/src/tools/types.ts:64](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L64)
 
 #### Type Parameters
 
@@ -406,7 +406,7 @@ Defined in: [tools/types.ts:65](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **toggleSelection**(`id`): `void`
 
-Defined in: [tools/types.ts:73](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L73)
+Defined in: [core/src/tools/types.ts:72](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L72)
 
 #### Parameters
 
@@ -424,7 +424,7 @@ Defined in: [tools/types.ts:73](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **updateSharedSettings**\<`TSettings`\>(`updater`): `void`
 
-Defined in: [tools/types.ts:60](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L60)
+Defined in: [core/src/tools/types.ts:59](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L59)
 
 #### Type Parameters
 
@@ -448,7 +448,7 @@ Defined in: [tools/types.ts:60](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **updateToolState**\<`TState`\>(`updater`): `void`
 
-Defined in: [tools/types.ts:66](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L66)
+Defined in: [core/src/tools/types.ts:65](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L65)
 
 #### Type Parameters
 

@@ -6,7 +6,7 @@
 
 # Interface: SolidFill
 
-Defined in: [model/style.ts:7](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L7)
+Defined in: [core/src/model/style.ts:7](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L7)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/style.ts:7](https://github.com/irskep/smalldraw/blob/d4a91538
 
 > **color**: `string`
 
-Defined in: [model/style.ts:9](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L9)
+Defined in: [core/src/model/style.ts:9](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L9)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [model/style.ts:9](https://github.com/irskep/smalldraw/blob/d4a91538
 
 > **type**: `"solid"`
 
-Defined in: [model/style.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L8)
+Defined in: [core/src/model/style.ts:8](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L8)

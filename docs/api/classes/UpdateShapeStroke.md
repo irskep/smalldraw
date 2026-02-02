@@ -6,7 +6,7 @@
 
 # Class: UpdateShapeStroke
 
-Defined in: [actions/updateStroke.ts:6](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateStroke.ts#L6)
+Defined in: [core/src/actions/updateStroke.ts:6](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateStroke.ts#L6)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/updateStroke.ts:6](https://github.com/irskep/smalldraw/blob
 
 > **new UpdateShapeStroke**(`shapeId`, `nextStroke`): `UpdateShapeStroke`
 
-Defined in: [actions/updateStroke.ts:10](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateStroke.ts#L10)
+Defined in: [core/src/actions/updateStroke.ts:10](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateStroke.ts#L10)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [actions/updateStroke.ts:10](https://github.com/irskep/smalldraw/blo
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/updateStroke.ts:32](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateStroke.ts#L32)
+Defined in: [core/src/actions/updateStroke.ts:56](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateStroke.ts#L56)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -58,7 +58,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/updateStroke.ts:36](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateStroke.ts#L36)
+Defined in: [core/src/actions/updateStroke.ts:60](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateStroke.ts#L60)
 
 #### Returns
 
@@ -72,15 +72,15 @@ Defined in: [actions/updateStroke.ts:36](https://github.com/irskep/smalldraw/blo
 
 ### redo()
 
-> **redo**(`doc`, `ctx`): `void`
+> **redo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/updateStroke.ts:15](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateStroke.ts#L15)
+Defined in: [core/src/actions/updateStroke.ts:15](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateStroke.ts#L15)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -88,7 +88,7 @@ Defined in: [actions/updateStroke.ts:15](https://github.com/irskep/smalldraw/blo
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 
@@ -98,15 +98,15 @@ Defined in: [actions/updateStroke.ts:15](https://github.com/irskep/smalldraw/blo
 
 ### undo()
 
-> **undo**(`doc`, `ctx`): `void`
+> **undo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/updateStroke.ts:24](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateStroke.ts#L24)
+Defined in: [core/src/actions/updateStroke.ts:36](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateStroke.ts#L36)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -114,7 +114,7 @@ Defined in: [actions/updateStroke.ts:24](https://github.com/irskep/smalldraw/blo
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 

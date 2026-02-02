@@ -6,16 +6,16 @@
 
 # Function: getOrderedShapes()
 
-> **getOrderedShapes**(`doc`): [`Shape`](../interfaces/Shape.md)[]
+> **getOrderedShapes**(`doc`): [`AnyShape`](../type-aliases/AnyShape.md)[]
 
-Defined in: [zindex.ts:6](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/zindex.ts#L6)
+Defined in: [core/src/zindex.ts:6](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/zindex.ts#L6)
 
 ## Parameters
 
 ### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ## Returns
 
-[`Shape`](../interfaces/Shape.md)[]
+[`AnyShape`](../type-aliases/AnyShape.md)[]

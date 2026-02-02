@@ -8,7 +8,7 @@
 
 > **createPenTool**(`options?`): [`ToolDefinition`](../interfaces/ToolDefinition.md)
 
-Defined in: [tools/pen.ts:29](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/pen.ts#L29)
+Defined in: [core/src/tools/pen.ts:30](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/pen.ts#L30)
 
 ## Parameters
 

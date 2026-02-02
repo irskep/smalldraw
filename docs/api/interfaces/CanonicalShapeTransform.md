@@ -6,23 +6,15 @@
 
 # Interface: CanonicalShapeTransform
 
-Defined in: [model/shape.ts:6](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L6)
+Defined in: [core/src/model/shape.ts:13](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L13)
 
 ## Properties
 
 ### origin
 
-> **origin**: `object`
+> **origin**: `Vec2Tuple`
 
-Defined in: [model/shape.ts:10](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L10)
-
-#### x
-
-> **x**: `number`
-
-#### y
-
-> **y**: `number`
+Defined in: [core/src/model/shape.ts:17](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L17)
 
 ***
 
@@ -30,36 +22,20 @@ Defined in: [model/shape.ts:10](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **rotation**: `number`
 
-Defined in: [model/shape.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L8)
+Defined in: [core/src/model/shape.ts:15](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L15)
 
 ***
 
 ### scale
 
-> **scale**: `object`
+> **scale**: `Vec2Tuple`
 
-Defined in: [model/shape.ts:9](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L9)
-
-#### x
-
-> **x**: `number`
-
-#### y
-
-> **y**: `number`
+Defined in: [core/src/model/shape.ts:16](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L16)
 
 ***
 
 ### translation
 
-> **translation**: `object`
+> **translation**: `Vec2Tuple`
 
-Defined in: [model/shape.ts:7](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L7)
-
-#### x
-
-> **x**: `number`
-
-#### y
-
-> **y**: `number`
+Defined in: [core/src/model/shape.ts:14](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L14)

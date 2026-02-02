@@ -6,7 +6,7 @@
 
 # Interface: GradientStop
 
-Defined in: [model/style.ts:1](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L1)
+Defined in: [core/src/model/style.ts:1](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L1)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/style.ts:1](https://github.com/irskep/smalldraw/blob/d4a91538
 
 > **color**: `string`
 
-Defined in: [model/style.ts:3](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L3)
+Defined in: [core/src/model/style.ts:3](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L3)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/style.ts:3](https://github.com/irskep/smalldraw/blob/d4a91538
 
 > **offset**: `number`
 
-Defined in: [model/style.ts:2](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L2)
+Defined in: [core/src/model/style.ts:2](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L2)
 
 ***
 
@@ -30,4 +30,4 @@ Defined in: [model/style.ts:2](https://github.com/irskep/smalldraw/blob/d4a91538
 
 > `optional` **opacity**: `number`
 
-Defined in: [model/style.ts:4](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L4)
+Defined in: [core/src/model/style.ts:4](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L4)

@@ -6,7 +6,7 @@
 
 # Interface: DragCallbacks\<TState\>
 
-Defined in: [tools/pointerDrag.ts:4](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/pointerDrag.ts#L4)
+Defined in: [core/src/tools/pointerDrag.ts:4](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/pointerDrag.ts#L4)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [tools/pointerDrag.ts:4](https://github.com/irskep/smalldraw/blob/d4
 
 > `optional` **onCancel**: (`state`, `runtime`) => `void`
 
-Defined in: [tools/pointerDrag.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/pointerDrag.ts#L8)
+Defined in: [core/src/tools/pointerDrag.ts:22](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/pointerDrag.ts#L22)
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [tools/pointerDrag.ts:8](https://github.com/irskep/smalldraw/blob/d4
 
 > `optional` **onEnd**: (`state`, `point`, `event`, `runtime`) => `void`
 
-Defined in: [tools/pointerDrag.ts:7](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/pointerDrag.ts#L7)
+Defined in: [core/src/tools/pointerDrag.ts:16](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/pointerDrag.ts#L16)
 
 #### Parameters
 
@@ -52,7 +52,7 @@ Defined in: [tools/pointerDrag.ts:7](https://github.com/irskep/smalldraw/blob/d4
 
 ##### point
 
-[`Point`](Point.md)
+`Vec2`
 
 ##### event
 
@@ -72,7 +72,7 @@ Defined in: [tools/pointerDrag.ts:7](https://github.com/irskep/smalldraw/blob/d4
 
 > `optional` **onMove**: (`state`, `point`, `event`, `runtime`) => `void`
 
-Defined in: [tools/pointerDrag.ts:6](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/pointerDrag.ts#L6)
+Defined in: [core/src/tools/pointerDrag.ts:10](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/pointerDrag.ts#L10)
 
 #### Parameters
 
@@ -82,7 +82,7 @@ Defined in: [tools/pointerDrag.ts:6](https://github.com/irskep/smalldraw/blob/d4
 
 ##### point
 
-[`Point`](Point.md)
+`Vec2`
 
 ##### event
 
@@ -102,13 +102,13 @@ Defined in: [tools/pointerDrag.ts:6](https://github.com/irskep/smalldraw/blob/d4
 
 > **onStart**: (`point`, `event`, `runtime`) => `TState` \| `null`
 
-Defined in: [tools/pointerDrag.ts:5](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/pointerDrag.ts#L5)
+Defined in: [core/src/tools/pointerDrag.ts:5](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/pointerDrag.ts#L5)
 
 #### Parameters
 
 ##### point
 
-[`Point`](Point.md)
+`Vec2`
 
 ##### event
 

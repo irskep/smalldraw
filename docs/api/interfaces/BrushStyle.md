@@ -6,7 +6,7 @@
 
 # Interface: BrushStyle
 
-Defined in: [model/style.ts:20](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L20)
+Defined in: [core/src/model/style.ts:20](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L20)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [model/style.ts:20](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **brushId**: `string`
 
-Defined in: [model/style.ts:24](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L24)
+Defined in: [core/src/model/style.ts:24](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L24)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [model/style.ts:24](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **color**: `string`
 
-Defined in: [model/style.ts:22](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L22)
+Defined in: [core/src/model/style.ts:22](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L22)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [model/style.ts:22](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **size**: `number`
 
-Defined in: [model/style.ts:23](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L23)
+Defined in: [core/src/model/style.ts:23](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L23)
 
 ***
 
@@ -38,4 +38,4 @@ Defined in: [model/style.ts:23](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **type**: `"brush"`
 
-Defined in: [model/style.ts:21](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/style.ts#L21)
+Defined in: [core/src/model/style.ts:21](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/style.ts#L21)

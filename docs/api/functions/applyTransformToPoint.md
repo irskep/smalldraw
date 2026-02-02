@@ -6,15 +6,15 @@
 
 # Function: applyTransformToPoint()
 
-> **applyTransformToPoint**(`point`, `transform?`): [`Point`](../interfaces/Point.md)
+> **applyTransformToPoint**(`point`, `transform?`): `Vec2`
 
-Defined in: [model/geometryBounds.ts:32](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/geometryBounds.ts#L32)
+Defined in: [core/src/model/geometryShapeUtils.ts:30](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/geometryShapeUtils.ts#L30)
 
 ## Parameters
 
 ### point
 
-[`Point`](../interfaces/Point.md)
+`Vec2`
 
 ### transform?
 
@@ -22,4 +22,4 @@ Defined in: [model/geometryBounds.ts:32](https://github.com/irskep/smalldraw/blo
 
 ## Returns
 
-[`Point`](../interfaces/Point.md)
+`Vec2`

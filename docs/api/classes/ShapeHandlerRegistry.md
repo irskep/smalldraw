@@ -6,7 +6,7 @@
 
 # Class: ShapeHandlerRegistry
 
-Defined in: [model/shapeHandlers.ts:101](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shapeHandlers.ts#L101)
+Defined in: [core/src/model/shapeHandlers.ts:6](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shapeHandlers.ts#L6)
 
 ## Constructors
 
@@ -24,7 +24,7 @@ Defined in: [model/shapeHandlers.ts:101](https://github.com/irskep/smalldraw/blo
 
 > **clone**(): `ShapeHandlerRegistry`
 
-Defined in: [model/shapeHandlers.ts:131](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shapeHandlers.ts#L131)
+Defined in: [core/src/model/shapeHandlers.ts:26](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shapeHandlers.ts#L26)
 
 #### Returns
 
@@ -34,29 +34,19 @@ Defined in: [model/shapeHandlers.ts:131](https://github.com/irskep/smalldraw/blo
 
 ### get()
 
-> **get**(`type`): [`ShapeHandler`](../interfaces/ShapeHandler.md)\<[`Geometry`](../type-aliases/Geometry.md), `unknown`\> \| `undefined`
+> **get**\<`T`, `TResizeData`\>(`type`): `ShapeHandler`\<`T`, `TResizeData`\> \| `undefined`
 
-Defined in: [model/shapeHandlers.ts:108](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shapeHandlers.ts#L108)
+Defined in: [core/src/model/shapeHandlers.ts:16](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shapeHandlers.ts#L16)
 
-#### Parameters
+#### Type Parameters
 
-##### type
+##### T
 
-`string`
+`T` *extends* [`AnyGeometry`](../interfaces/AnyGeometry.md)
 
-#### Returns
+##### TResizeData
 
-[`ShapeHandler`](../interfaces/ShapeHandler.md)\<[`Geometry`](../type-aliases/Geometry.md), `unknown`\> \| `undefined`
-
-***
-
-### getGeometryOps()
-
-> **getGeometryOps**(`type`): [`GeometryOperations`](../interfaces/GeometryOperations.md)\<[`Geometry`](../type-aliases/Geometry.md)\> \| `undefined`
-
-Defined in: [model/shapeHandlers.ts:117](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shapeHandlers.ts#L117)
-
-Convenience: get geometry operations
+`TResizeData`
 
 #### Parameters
 
@@ -66,47 +56,7 @@ Convenience: get geometry operations
 
 #### Returns
 
-[`GeometryOperations`](../interfaces/GeometryOperations.md)\<[`Geometry`](../type-aliases/Geometry.md)\> \| `undefined`
-
-***
-
-### getSelectionOps()
-
-> **getSelectionOps**(`type`): [`SelectionOperations`](../interfaces/SelectionOperations.md)\<[`Geometry`](../type-aliases/Geometry.md), `unknown`\> \| `undefined`
-
-Defined in: [model/shapeHandlers.ts:127](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shapeHandlers.ts#L127)
-
-Convenience: get selection operations
-
-#### Parameters
-
-##### type
-
-`string`
-
-#### Returns
-
-[`SelectionOperations`](../interfaces/SelectionOperations.md)\<[`Geometry`](../type-aliases/Geometry.md), `unknown`\> \| `undefined`
-
-***
-
-### getShapeOps()
-
-> **getShapeOps**(`type`): [`ShapeOperations`](../interfaces/ShapeOperations.md)\<[`Geometry`](../type-aliases/Geometry.md)\> \| `undefined`
-
-Defined in: [model/shapeHandlers.ts:122](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shapeHandlers.ts#L122)
-
-Convenience: get shape operations
-
-#### Parameters
-
-##### type
-
-`string`
-
-#### Returns
-
-[`ShapeOperations`](../interfaces/ShapeOperations.md)\<[`Geometry`](../type-aliases/Geometry.md)\> \| `undefined`
+`ShapeHandler`\<`T`, `TResizeData`\> \| `undefined`
 
 ***
 
@@ -114,7 +64,7 @@ Convenience: get shape operations
 
 > **has**(`type`): `boolean`
 
-Defined in: [model/shapeHandlers.ts:112](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shapeHandlers.ts#L112)
+Defined in: [core/src/model/shapeHandlers.ts:22](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shapeHandlers.ts#L22)
 
 #### Parameters
 
@@ -130,15 +80,19 @@ Defined in: [model/shapeHandlers.ts:112](https://github.com/irskep/smalldraw/blo
 
 ### register()
 
-> **register**\<`T`\>(`type`, `handler`): `void`
+> **register**\<`T`, `TResizeData`\>(`type`, `handler`): `void`
 
-Defined in: [model/shapeHandlers.ts:104](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shapeHandlers.ts#L104)
+Defined in: [core/src/model/shapeHandlers.ts:9](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shapeHandlers.ts#L9)
 
 #### Type Parameters
 
 ##### T
 
-`T` *extends* [`Geometry`](../type-aliases/Geometry.md)
+`T` *extends* [`AnyGeometry`](../interfaces/AnyGeometry.md)
+
+##### TResizeData
+
+`TResizeData`
 
 #### Parameters
 
@@ -148,7 +102,7 @@ Defined in: [model/shapeHandlers.ts:104](https://github.com/irskep/smalldraw/blo
 
 ##### handler
 
-[`ShapeHandler`](../interfaces/ShapeHandler.md)\<`T`\>
+`ShapeHandler`\<`T`, `TResizeData`\>
 
 #### Returns
 

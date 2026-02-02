@@ -6,11 +6,11 @@
 
 # Interface: DraftShape
 
-Defined in: [tools/types.ts:25](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L25)
+Defined in: [core/src/tools/types.ts:24](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L24)
 
 ## Extends
 
-- [`Shape`](Shape.md)
+- [`AnyShape`](../type-aliases/AnyShape.md)
 
 ## Properties
 
@@ -18,23 +18,23 @@ Defined in: [tools/types.ts:25](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **fill**: [`Fill`](../type-aliases/Fill.md)
 
-Defined in: [model/shape.ts:33](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L33)
+Defined in: [core/src/model/shape.ts:43](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L43)
 
 #### Inherited from
 
-[`Shape`](Shape.md).[`fill`](Shape.md#fill)
+`AnyShape.fill`
 
 ***
 
 ### geometry
 
-> **geometry**: [`Geometry`](../type-aliases/Geometry.md)
+> **geometry**: [`AnyGeometry`](AnyGeometry.md)
 
-Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L32)
+Defined in: [core/src/model/shape.ts:51](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L51)
 
 #### Inherited from
 
-[`Shape`](Shape.md).[`geometry`](Shape.md#geometry)
+`AnyShape.geometry`
 
 ***
 
@@ -42,11 +42,11 @@ Defined in: [model/shape.ts:32](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **id**: `string`
 
-Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L31)
+Defined in: [core/src/model/shape.ts:41](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L41)
 
 #### Inherited from
 
-[`Shape`](Shape.md).[`id`](Shape.md#id)
+`AnyShape.id`
 
 ***
 
@@ -54,11 +54,11 @@ Defined in: [model/shape.ts:31](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **interactions**: [`ShapeInteractions`](ShapeInteractions.md)
 
-Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L37)
+Defined in: [core/src/model/shape.ts:47](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L47)
 
 #### Inherited from
 
-[`Shape`](Shape.md).[`interactions`](Shape.md#interactions)
+`AnyShape.interactions`
 
 ***
 
@@ -66,11 +66,11 @@ Defined in: [model/shape.ts:37](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **opacity**: `number`
 
-Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L35)
+Defined in: [core/src/model/shape.ts:45](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L45)
 
 #### Inherited from
 
-[`Shape`](Shape.md).[`opacity`](Shape.md#opacity)
+`AnyShape.opacity`
 
 ***
 
@@ -78,11 +78,11 @@ Defined in: [model/shape.ts:35](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **stroke**: [`BrushStyle`](BrushStyle.md)
 
-Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L34)
+Defined in: [core/src/model/shape.ts:44](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L44)
 
 #### Inherited from
 
-[`Shape`](Shape.md).[`stroke`](Shape.md#stroke)
+`AnyShape.stroke`
 
 ***
 
@@ -90,7 +90,7 @@ Defined in: [model/shape.ts:34](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **temporary**: `true`
 
-Defined in: [tools/types.ts:27](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L27)
+Defined in: [core/src/tools/types.ts:26](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L26)
 
 ***
 
@@ -98,7 +98,7 @@ Defined in: [tools/types.ts:27](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **toolId**: `string`
 
-Defined in: [tools/types.ts:26](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L26)
+Defined in: [core/src/tools/types.ts:25](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L25)
 
 ***
 
@@ -106,11 +106,23 @@ Defined in: [tools/types.ts:26](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > `optional` **transform**: [`ShapeTransform`](ShapeTransform.md)
 
-Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L38)
+Defined in: [core/src/model/shape.ts:48](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L48)
 
 #### Inherited from
 
-[`Shape`](Shape.md).[`transform`](Shape.md#transform)
+`AnyShape.transform`
+
+***
+
+### type
+
+> **type**: `string`
+
+Defined in: [core/src/model/shape.ts:42](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L42)
+
+#### Inherited from
+
+`AnyShape.type`
 
 ***
 
@@ -118,8 +130,8 @@ Defined in: [model/shape.ts:38](https://github.com/irskep/smalldraw/blob/d4a9153
 
 > **zIndex**: `string`
 
-Defined in: [model/shape.ts:36](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/shape.ts#L36)
+Defined in: [core/src/model/shape.ts:46](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/shape.ts#L46)
 
 #### Inherited from
 
-[`Shape`](Shape.md).[`zIndex`](Shape.md#zindex)
+`AnyShape.zIndex`

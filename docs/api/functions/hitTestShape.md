@@ -8,20 +8,20 @@
 
 > **hitTestShape**(`shape`, `point`, `registry`): `boolean`
 
-Defined in: [model/hitTest.ts:10](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/hitTest.ts#L10)
+Defined in: [core/src/model/hitTest.ts:9](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/hitTest.ts#L9)
 
 Test if a world-space point hits a shape
-Falls back to AABB test if no specific hit test is provided
+Requires a shape-specific hit test implementation
 
 ## Parameters
 
 ### shape
 
-[`Shape`](../interfaces/Shape.md)
+[`AnyShape`](../type-aliases/AnyShape.md)
 
 ### point
 
-[`Point`](../interfaces/Point.md)
+`Vec2`
 
 ### registry
 

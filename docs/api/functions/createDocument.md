@@ -6,15 +6,15 @@
 
 # Function: createDocument()
 
-> **createDocument**(`initialShapes`, `registry`): [`DrawingDocument`](../interfaces/DrawingDocument.md)
+> **createDocument**(`initialShapes`, `registry`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [model/document.ts:9](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/model/document.ts#L9)
+Defined in: [core/src/model/document.ts:13](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/model/document.ts#L13)
 
 ## Parameters
 
 ### initialShapes
 
-[`Shape`](../interfaces/Shape.md)[] | `undefined`
+[`AnyShape`](../type-aliases/AnyShape.md)[] | `undefined`
 
 ### registry
 
@@ -22,4 +22,4 @@ Defined in: [model/document.ts:9](https://github.com/irskep/smalldraw/blob/d4a91
 
 ## Returns
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)

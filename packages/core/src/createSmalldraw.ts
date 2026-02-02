@@ -23,10 +23,7 @@ export interface SmalldrawCoreOptions {
 }
 
 export interface SmalldrawCore {
-  repo: Repo;
-  handle: DocHandle<DrawingDocumentData>;
-  registry: ShapeHandlerRegistry;
-  storeAdapter: DrawingStoreAdapter;
+  readonly storeAdapter: DrawingStoreAdapter;
   reset(): Promise<DrawingStoreAdapter>;
   destroy(): void;
 }
@@ -103,11 +100,6 @@ export async function createSmalldraw(
   });
 
   return {
-    repo,
-    registry,
-    get handle() {
-      return handle;
-    },
     get storeAdapter() {
       return storeAdapter;
     },

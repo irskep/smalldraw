@@ -6,7 +6,7 @@
 
 # Class: UpdateShapeZIndex
 
-Defined in: [actions/updateZIndex.ts:5](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateZIndex.ts#L5)
+Defined in: [core/src/actions/updateZIndex.ts:5](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateZIndex.ts#L5)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/updateZIndex.ts:5](https://github.com/irskep/smalldraw/blob
 
 > **new UpdateShapeZIndex**(`shapeId`, `nextZIndex`): `UpdateShapeZIndex`
 
-Defined in: [actions/updateZIndex.ts:9](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateZIndex.ts#L9)
+Defined in: [core/src/actions/updateZIndex.ts:9](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateZIndex.ts#L9)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [actions/updateZIndex.ts:9](https://github.com/irskep/smalldraw/blob
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/updateZIndex.ts:31](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateZIndex.ts#L31)
+Defined in: [core/src/actions/updateZIndex.ts:48](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateZIndex.ts#L48)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -58,7 +58,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/updateZIndex.ts:35](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateZIndex.ts#L35)
+Defined in: [core/src/actions/updateZIndex.ts:52](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateZIndex.ts#L52)
 
 #### Returns
 
@@ -72,15 +72,15 @@ Defined in: [actions/updateZIndex.ts:35](https://github.com/irskep/smalldraw/blo
 
 ### redo()
 
-> **redo**(`doc`, `ctx`): `void`
+> **redo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/updateZIndex.ts:14](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateZIndex.ts#L14)
+Defined in: [core/src/actions/updateZIndex.ts:14](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateZIndex.ts#L14)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -88,7 +88,7 @@ Defined in: [actions/updateZIndex.ts:14](https://github.com/irskep/smalldraw/blo
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 
@@ -98,15 +98,15 @@ Defined in: [actions/updateZIndex.ts:14](https://github.com/irskep/smalldraw/blo
 
 ### undo()
 
-> **undo**(`doc`, `ctx`): `void`
+> **undo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/updateZIndex.ts:23](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateZIndex.ts#L23)
+Defined in: [core/src/actions/updateZIndex.ts:31](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateZIndex.ts#L31)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -114,7 +114,7 @@ Defined in: [actions/updateZIndex.ts:23](https://github.com/irskep/smalldraw/blo
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 

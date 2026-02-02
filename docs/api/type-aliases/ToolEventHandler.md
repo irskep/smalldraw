@@ -8,7 +8,7 @@
 
 > **ToolEventHandler** = (`event`) => `void`
 
-Defined in: [tools/types.ts:23](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/tools/types.ts#L23)
+Defined in: [core/src/tools/types.ts:22](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/tools/types.ts#L22)
 
 ## Parameters
 

@@ -6,7 +6,7 @@
 
 # Class: UpdateShapeGeometry
 
-Defined in: [actions/updateGeometry.ts:8](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L8)
+Defined in: [core/src/actions/updateGeometry.ts:8](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateGeometry.ts#L8)
 
 ## Implements
 
@@ -18,7 +18,7 @@ Defined in: [actions/updateGeometry.ts:8](https://github.com/irskep/smalldraw/bl
 
 > **new UpdateShapeGeometry**(`shapeId`, `newGeometry`): `UpdateShapeGeometry`
 
-Defined in: [actions/updateGeometry.ts:12](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L12)
+Defined in: [core/src/actions/updateGeometry.ts:12](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateGeometry.ts#L12)
 
 #### Parameters
 
@@ -28,7 +28,7 @@ Defined in: [actions/updateGeometry.ts:12](https://github.com/irskep/smalldraw/b
 
 ##### newGeometry
 
-[`Geometry`](../type-aliases/Geometry.md)
+[`AnyGeometry`](../interfaces/AnyGeometry.md)
 
 #### Returns
 
@@ -40,7 +40,7 @@ Defined in: [actions/updateGeometry.ts:12](https://github.com/irskep/smalldraw/b
 
 > **affectedShapeIds**(): `string`[]
 
-Defined in: [actions/updateGeometry.ts:40](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L40)
+Defined in: [core/src/actions/updateGeometry.ts:75](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateGeometry.ts#L75)
 
 Returns IDs of shapes affected by this action for dirty tracking.
 
@@ -58,7 +58,7 @@ Returns IDs of shapes affected by this action for dirty tracking.
 
 > **affectsZOrder**(): `boolean`
 
-Defined in: [actions/updateGeometry.ts:44](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L44)
+Defined in: [core/src/actions/updateGeometry.ts:79](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateGeometry.ts#L79)
 
 #### Returns
 
@@ -72,15 +72,15 @@ Defined in: [actions/updateGeometry.ts:44](https://github.com/irskep/smalldraw/b
 
 ### redo()
 
-> **redo**(`doc`, `ctx`): `void`
+> **redo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/updateGeometry.ts:17](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L17)
+Defined in: [core/src/actions/updateGeometry.ts:17](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateGeometry.ts#L17)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -88,7 +88,7 @@ Defined in: [actions/updateGeometry.ts:17](https://github.com/irskep/smalldraw/b
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 
@@ -98,15 +98,15 @@ Defined in: [actions/updateGeometry.ts:17](https://github.com/irskep/smalldraw/b
 
 ### undo()
 
-> **undo**(`doc`, `ctx`): `void`
+> **undo**(`doc`, `ctx`): [`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
-Defined in: [actions/updateGeometry.ts:29](https://github.com/irskep/smalldraw/blob/d4a91538316dd6c96f0ce5dae0a231159f44b256/packages/core/src/actions/updateGeometry.ts#L29)
+Defined in: [core/src/actions/updateGeometry.ts:50](https://github.com/irskep/smalldraw/blob/6027fb7e88386372b184bb46a9927de463b21725/packages/core/src/actions/updateGeometry.ts#L50)
 
 #### Parameters
 
 ##### doc
 
-[`DrawingDocument`](../interfaces/DrawingDocument.md)
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 ##### ctx
 
@@ -114,7 +114,7 @@ Defined in: [actions/updateGeometry.ts:29](https://github.com/irskep/smalldraw/b
 
 #### Returns
 
-`void`
+[`DrawingDocument`](../type-aliases/DrawingDocument.md)
 
 #### Implementation of
 
