@@ -1,9 +1,13 @@
-import { createSmalldrawApp, type SmalldrawApp } from "@smalldraw/ui-vanillajs";
+import { createSmalldraw } from "@smalldraw/core";
+import {
+  createSmalldrawVanillaUI,
+  type SmalldrawVanillaUI,
+} from "@smalldraw/ui-vanillajs";
 
 async function main(
-  previousApp?: SmalldrawApp,
-): Promise<SmalldrawApp | undefined> {
-  previousApp?.destroy();
+  previousUI?: SmalldrawVanillaUI,
+): Promise<SmalldrawVanillaUI | undefined> {
+  previousUI?.destroy();
 
   const container = document.getElementById("app");
   if (!container) {
@@ -11,30 +15,32 @@ async function main(
     return undefined;
   }
 
-  const app = await createSmalldrawApp({
+  const core = await createSmalldraw({
+    persistence: { storageKey: "smalldraw-demo-doc-url", mode: "reuse" },
+    debug: true,
+  });
+
+  const ui = createSmalldrawVanillaUI({
+    core,
     container,
     width: 960,
     height: 600,
     backgroundColor: "#ffffff",
-    persistence: {
-      storageKey: "smalldraw-demo-doc-url",
-      mode: "reuse",
-    },
-    debug: true,
   });
 
-  (window as unknown as { smalldrawApp?: SmalldrawApp }).smalldrawApp = app;
+  (window as unknown as { smalldrawApp?: SmalldrawVanillaUI }).smalldrawApp =
+    ui;
 
   document.getElementById("reset")?.addEventListener("click", async () => {
-    await app.reset();
+    await ui.reset();
   });
 
-  return app;
+  return ui;
 }
 
 if (import.meta.hot) {
-  main(import.meta.hot.data.app as SmalldrawApp | undefined).then((app) => {
-    import.meta.hot.data.app = app;
+  main(import.meta.hot.data.ui as SmalldrawVanillaUI | undefined).then((ui) => {
+    import.meta.hot.data.ui = ui;
   });
   import.meta.hot.accept();
 } else {

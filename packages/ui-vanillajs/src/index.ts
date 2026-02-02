@@ -5,7 +5,7 @@ export { SelectionOverlay } from "./components/SelectionOverlay";
 export { ToolButton } from "./components/ToolButton";
 export { Toolbar } from "./components/Toolbar";
 export {
-  createSmalldrawApp,
-  type SmalldrawApp,
-  type SmalldrawAppOptions,
-} from "./createSmalldrawApp";
+  createSmalldrawVanillaUI,
+  type SmalldrawVanillaUI,
+  type SmalldrawVanillaUIOptions,
+} from "./createSmalldrawVanillaUI";
