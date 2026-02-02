@@ -79,8 +79,7 @@ run = """
 bun x typedoc \
   --tsconfig packages/core/tsconfig.typedoc.json \
   --entryPoints packages/core/src/index.ts \
-  --plugin typedoc-plugin-markdown \
-  --out docs/api
+  --out docs/.vuepress/public/api
 """
 
 [tasks."docs:dev"]
