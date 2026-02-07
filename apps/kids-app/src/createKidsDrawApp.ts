@@ -1,6 +1,8 @@
 import {
+  ClearCanvas,
   DrawingStore,
   createSmalldraw,
+  getTopZIndex,
   type SmalldrawCore,
   type ToolPointerEvent,
   createEraserTool,
@@ -34,6 +36,14 @@ export interface KidsDrawApp {
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 600;
+const KIDS_DRAW_STROKE_WIDTH_MULTIPLIER = 3;
+const nowMs = (): number =>
+  typeof performance !== "undefined" ? performance.now() : Date.now();
+
+type RafRenderState =
+  | "idle"
+  | "modelRequested"
+  | "anticipatory";
 
 export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
@@ -100,6 +110,13 @@ export async function createKidsDrawApp(
     "aria-label": "Redo",
     "data-action": "redo",
   }) as HTMLButtonElement;
+  const clearButton = el("button", {
+    type: "button",
+    textContent: "Clear",
+    title: "Clear canvas",
+    "aria-label": "Clear canvas",
+    "data-action": "clear",
+  }) as HTMLButtonElement;
   const colorInput = el("input", {
     type: "color",
     "data-setting": "color",
@@ -158,6 +175,7 @@ export async function createKidsDrawApp(
   mount(toolbar, eraserButton);
   mount(toolbar, undoButton);
   mount(toolbar, redoButton);
+  mount(toolbar, clearButton);
   mount(toolbar, colorInput);
   mount(toolbar, sizeInput);
   mount(canvasFrame, tileLayer);
@@ -173,20 +191,72 @@ export async function createKidsDrawApp(
     actionDispatcher: (event) => core.storeAdapter.applyAction(event),
   });
   store.activateTool("pen");
+  const setToolButtonSelected = (
+    button: HTMLButtonElement,
+    selected: boolean,
+  ): void => {
+    button.style.border = selected ? "2px solid #111827" : "1px solid #9ca3af";
+    button.style.background = selected ? "#93c5fd" : "#ffffff";
+    button.style.fontWeight = selected ? "700" : "400";
+  };
   const syncToolButtons = () => {
     const active = store.getActiveToolId();
-    penButton.setAttribute("aria-pressed", active === "pen" ? "true" : "false");
-    eraserButton.setAttribute(
-      "aria-pressed",
-      active === "eraser" ? "true" : "false",
-    );
+    const penSelected = active === "pen";
+    const eraserSelected = active === "eraser";
+    penButton.setAttribute("aria-pressed", penSelected ? "true" : "false");
+    eraserButton.setAttribute("aria-pressed", eraserSelected ? "true" : "false");
+    setToolButtonSelected(penButton, penSelected);
+    setToolButtonSelected(eraserButton, eraserSelected);
     undoButton.disabled = !store.canUndo();
     redoButton.disabled = !store.canRedo();
   };
   const shared = store.getSharedSettings();
+  const defaultStrokeWidth = Math.max(
+    1,
+    Math.round(shared.strokeWidth * KIDS_DRAW_STROKE_WIDTH_MULTIPLIER),
+  );
+  store.updateSharedSettings({ strokeWidth: defaultStrokeWidth });
+  let clearCounter = 0;
+  let pointerIsDown = false;
+  let drawingPerfStartMs: number | null = null;
+  let drawingPerfFrameCount = 0;
+  let rafRenderState: RafRenderState = "idle";
+  let rafHandle: number | null = null;
+  const beginDrawingPerf = (): void => {
+    drawingPerfStartMs = nowMs();
+    drawingPerfFrameCount = 0;
+  };
+  const recordDrawingFrame = (): void => {
+    if (!pointerIsDown || drawingPerfStartMs === null) return;
+    drawingPerfFrameCount += 1;
+  };
+  const endDrawingPerf = (): void => {
+    if (drawingPerfStartMs === null) return;
+    const durationMs = Math.max(1, nowMs() - drawingPerfStartMs);
+    const fps = (drawingPerfFrameCount * 1000) / durationMs;
+    console.log(
+      `[kids-draw] stroke avg fps: ${fps.toFixed(1)} (${drawingPerfFrameCount} frames / ${durationMs.toFixed(1)}ms)`,
+    );
+    drawingPerfStartMs = null;
+    drawingPerfFrameCount = 0;
+  };
   colorInput.value = shared.strokeColor;
-  sizeInput.value = `${shared.strokeWidth}`;
+  sizeInput.value = `${defaultStrokeWidth}`;
   syncToolButtons();
+
+  const scheduleAnimationFrame = (callback: FrameRequestCallback): number => {
+    if (typeof requestAnimationFrame === "function") {
+      return requestAnimationFrame(callback);
+    }
+    return setTimeout(() => callback(nowMs()), 16) as unknown as number;
+  };
+  const cancelAnimationFrameHandle = (handle: number): void => {
+    if (typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(handle);
+      return;
+    }
+    clearTimeout(handle);
+  };
 
   const tileRenderer = new TileRenderer(store, createDomTileProvider(tileLayer), {
     backgroundColor,
@@ -219,15 +289,45 @@ export async function createKidsDrawApp(
   });
 
   const sessionWithSnapshot = new RasterSession(store, tileRenderer, hotLayer);
-  store.setOnRenderNeeded(() => {
+  const renderPass = (): void => {
+    recordDrawingFrame();
     syncToolButtons();
     sessionWithSnapshot.render();
+  };
+  const ensureRafScheduled = (): void => {
+    if (rafHandle !== null) return;
+    rafHandle = scheduleAnimationFrame(() => {
+      rafHandle = null;
+      if (rafRenderState === "idle") {
+        return;
+      }
+      if (rafRenderState === "modelRequested") {
+        renderPass();
+        rafRenderState = "anticipatory";
+        ensureRafScheduled();
+        return;
+      }
+      rafRenderState = "idle";
+    });
+  };
+  const requestRenderFromModel = (): void => {
+    if (rafRenderState === "idle") {
+      rafRenderState = "modelRequested";
+      ensureRafScheduled();
+      return;
+    }
+    if (rafRenderState === "anticipatory") {
+      rafRenderState = "modelRequested";
+    }
+  };
+  store.setOnRenderNeeded(() => {
+    requestRenderFromModel();
   });
   const unsubscribe = core.storeAdapter.subscribe((doc) => {
     store.applyDocument(doc);
     syncToolButtons();
   });
-  sessionWithSnapshot.render();
+  requestRenderFromModel();
   const initialShapes = Object.values(store.getDocument().shapes);
   if (initialShapes.length) {
     for (const shape of initialShapes) {
@@ -251,6 +351,19 @@ export async function createKidsDrawApp(
   });
   redoButton.addEventListener("click", () => {
     store.redo();
+    syncToolButtons();
+  });
+  clearButton.addEventListener("click", () => {
+    const clearShapeId = `clear-${Date.now()}-${clearCounter++}`;
+    store.applyAction(
+      new ClearCanvas({
+        id: clearShapeId,
+        type: "clear",
+        zIndex: getTopZIndex(store.getDocument()),
+        geometry: { type: "clear" },
+        style: {},
+      }),
+    );
     syncToolButtons();
   });
   colorInput.addEventListener("input", () => {
@@ -286,10 +399,10 @@ export async function createKidsDrawApp(
       altKey: event.altKey,
     };
   };
-  let pointerIsDown = false;
   const onPointerDown = (event: PointerEvent) => {
     event.preventDefault();
     pointerIsDown = true;
+    beginDrawingPerf();
     overlay.setPointerCapture?.(event.pointerId);
     store.dispatch("pointerDown", toPayload(event));
     syncToolButtons();
@@ -301,12 +414,14 @@ export async function createKidsDrawApp(
   const onPointerUp = (event: PointerEvent) => {
     store.dispatch("pointerUp", toPayload(event, 0));
     pointerIsDown = false;
+    endDrawingPerf();
     overlay.releasePointerCapture?.(event.pointerId);
     syncToolButtons();
   };
   const onPointerCancel = (event: PointerEvent) => {
     store.dispatch("pointerCancel", toPayload(event, 0));
     pointerIsDown = false;
+    endDrawingPerf();
     syncToolButtons();
   };
   overlay.addEventListener("pointerdown", onPointerDown);
@@ -323,6 +438,10 @@ export async function createKidsDrawApp(
     destroy() {
       store.setOnRenderNeeded(undefined);
       unsubscribe();
+      if (rafHandle !== null) {
+        cancelAnimationFrameHandle(rafHandle);
+        rafHandle = null;
+      }
       overlay.removeEventListener("pointerdown", onPointerDown);
       overlay.removeEventListener("pointermove", onPointerMove);
       overlay.removeEventListener("pointerup", onPointerUp);

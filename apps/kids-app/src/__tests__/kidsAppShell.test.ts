@@ -149,9 +149,13 @@ describe("kids-app shell", () => {
     const undoButton = container.querySelector(
       'button[data-action="undo"]',
     ) as HTMLButtonElement | null;
+    const clearButton = container.querySelector(
+      'button[data-action="clear"]',
+    ) as HTMLButtonElement | null;
     expect(colorInput).not.toBeNull();
     expect(sizeInput).not.toBeNull();
     expect(undoButton).not.toBeNull();
+    expect(clearButton).not.toBeNull();
     expect(undoButton!.disabled).toBeTrue();
 
     colorInput!.value = "#ff0000";
@@ -163,6 +167,7 @@ describe("kids-app shell", () => {
     dispatchPointer(overlay, "pointermove", 180, 180, 1);
     dispatchPointer(overlay, "pointerup", 180, 180, 0);
     expect(undoButton!.disabled).toBeFalse();
+    clearButton!.click();
 
     const eraserButton = container.querySelector(
       'button[data-tool="eraser"]',
@@ -174,12 +179,14 @@ describe("kids-app shell", () => {
     dispatchPointer(overlay, "pointerup", 220, 220, 0);
 
     const shapes = Object.values(app.store.getDocument().shapes);
-    expect(shapes).toHaveLength(2);
+    expect(shapes).toHaveLength(3);
 
     const penShape = shapes.find((shape) => shape.id.startsWith("pen-"));
     const eraserShape = shapes.find((shape) => shape.id.startsWith("eraser-"));
+    const clearShape = shapes.find((shape) => shape.type === "clear");
     expect(penShape).toBeDefined();
     expect(eraserShape).toBeDefined();
+    expect(clearShape).toBeDefined();
 
     const penStroke = penShape?.style.stroke;
     expect(penStroke?.color?.toLowerCase()).toBe("#ff0000");

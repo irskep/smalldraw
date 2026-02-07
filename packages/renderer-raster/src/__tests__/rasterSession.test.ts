@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { createCanvas } from "canvas";
-import { DrawingStore, createEraserTool, createPenTool } from "@smalldraw/core";
+import {
+  ClearCanvas,
+  DrawingStore,
+  createEraserTool,
+  createPenTool,
+} from "@smalldraw/core";
 import { Vec2 } from "gl-matrix";
 import { HotLayer, RasterSession, TILE_SIZE, TileRenderer } from "../index";
 
@@ -165,5 +170,58 @@ describe("RasterSession", () => {
 
     expect(store.getDrafts()).toHaveLength(0);
     expect(pixelAt(hotCtx, 10, 10)[3]).toBe(0);
+  });
+
+  test("clear canvas triggers full visible tile rebake", async () => {
+    const store = new DrawingStore({ tools: [] });
+    const bakeCalls: string[] = [];
+    const tileCanvases = new Map<string, ReturnType<typeof createCanvas>>();
+    const provider = {
+      getTileCanvas: (coord: { x: number; y: number }) => {
+        const key = `${coord.x},${coord.y}`;
+        const existing = tileCanvases.get(key);
+        if (existing) return existing;
+        const canvas = createCanvas(TILE_SIZE, TILE_SIZE);
+        tileCanvases.set(key, canvas);
+        return canvas;
+      },
+    };
+    const renderer = new TileRenderer(store, provider, {
+      baker: {
+        bakeTile: async (coord) => {
+          bakeCalls.push(`${coord.x},${coord.y}`);
+        },
+      },
+    });
+    const hotCanvas = createCanvas(TILE_SIZE * 2, TILE_SIZE * 2);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    hotLayer.setViewport({
+      width: TILE_SIZE * 2,
+      height: TILE_SIZE * 2,
+      center: new Vec2(TILE_SIZE, TILE_SIZE),
+      scale: 1,
+    });
+    renderer.updateViewport({
+      min: [0, 0],
+      max: [TILE_SIZE * 2, TILE_SIZE * 2],
+    });
+
+    const session = new RasterSession(store, renderer, hotLayer);
+    store.setOnRenderNeeded(() => session.render());
+
+    store.applyAction(
+      new ClearCanvas({
+        id: "clear-1",
+        type: "clear",
+        zIndex: "a",
+        geometry: { type: "clear" },
+        style: {},
+      }),
+    );
+    await session.flushBakes();
+
+    expect(new Set(bakeCalls)).toEqual(
+      new Set(["0,0", "1,0", "0,1", "1,1"]),
+    );
   });
 });

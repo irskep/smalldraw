@@ -2,6 +2,7 @@ import { change } from "@automerge/automerge/slim";
 import type { Box } from "@smalldraw/geometry";
 import type { ActionContext, UndoableAction } from "../actions";
 import { createDocument, type DrawingDocument } from "../model/document";
+import { filterShapesAfterClear } from "../model/clear";
 import type { Shape } from "../model/shape";
 import {
   getDefaultShapeHandlerRegistry,
@@ -340,6 +341,7 @@ export class DrawingStore {
       if (a.zIndex === b.zIndex) return 0;
       return a.zIndex < b.zIndex ? -1 : 1;
     });
+    const filteredShapes = filterShapesAfterClear(orderedShapes) as Shape[];
 
     // Get dirty state and mark drafts as dirty
     const dirtyState = this.consumeDirtyState();
@@ -347,7 +349,7 @@ export class DrawingStore {
       dirtyState.dirty.add(draft.id);
     }
 
-    return { shapes: orderedShapes, dirtyState };
+    return { shapes: filteredShapes, dirtyState };
   }
 
   getDocument(): DrawingDocument {
@@ -360,10 +362,11 @@ export class DrawingStore {
    */
   getOrderedShapes(): Shape[] {
     if (!this.orderedCache) {
-      this.orderedCache = Object.values(this.document.shapes).sort((a, b) => {
+      const ordered = Object.values(this.document.shapes).sort((a, b) => {
         if (a.zIndex === b.zIndex) return 0;
         return a.zIndex < b.zIndex ? -1 : 1;
       });
+      this.orderedCache = filterShapesAfterClear(ordered) as Shape[];
     }
     return this.orderedCache;
   }

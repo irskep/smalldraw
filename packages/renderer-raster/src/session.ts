@@ -18,6 +18,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   private hasBackdropSnapshot = false;
   private captureInFlight: Promise<void> | null = null;
   private skipBackdropUntilStrokeEnd = false;
+  private knownClearShapeIds = new Set<string>();
   private bakeQueue: Promise<void> = Promise.resolve();
 
   constructor(
@@ -33,6 +34,8 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   }
 
   render(): void {
+    const docShapes = this.store.getDocument().shapes;
+    const previousClearShapeIds = new Set(this.knownClearShapeIds);
     const drafts = this.store.getDrafts();
     const hasEraserDraft = drafts.some(isEraserDraft);
     if (hasEraserDraft) {
@@ -60,7 +63,14 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     }
     this.hotLayer.renderDrafts(drafts);
     const { dirtyState } = this.store.getRenderState();
+    if (this.hasClearMutation(dirtyState, docShapes, previousClearShapeIds)) {
+      this.updateKnownClearShapeIds(docShapes);
+      this.tileRenderer.scheduleBakeForClear();
+      this.enqueueBake();
+      return;
+    }
     const touchedShapeIds = this.captureTouchedTiles(dirtyState);
+    this.updateKnownClearShapeIds(docShapes);
     if (!touchedShapeIds.size) return;
     this.tileRenderer.scheduleBakeForShapes(touchedShapeIds);
     this.enqueueBake();
@@ -110,6 +120,35 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     }
     this.hotLayer.setBackdrop(snapshot ?? null);
     this.hasBackdropSnapshot = true;
+  }
+
+  private updateKnownClearShapeIds(
+    shapes: Record<string, { type: string }>,
+  ): void {
+    this.knownClearShapeIds.clear();
+    for (const [shapeId, shape] of Object.entries(shapes)) {
+      if (shape.type === "clear") {
+        this.knownClearShapeIds.add(shapeId);
+      }
+    }
+  }
+
+  private hasClearMutation(
+    dirtyState: DirtyState,
+    shapes: Record<string, { type: string }>,
+    previousClearShapeIds: Set<string>,
+  ): boolean {
+    for (const shapeId of dirtyState.dirty) {
+      if (shapes[shapeId]?.type === "clear") {
+        return true;
+      }
+    }
+    for (const shapeId of dirtyState.deleted) {
+      if (previousClearShapeIds.has(shapeId)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
