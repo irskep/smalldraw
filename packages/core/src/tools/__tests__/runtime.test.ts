@@ -103,9 +103,10 @@ describe("ToolRuntimeImpl", () => {
     };
 
     runtime.commit(new AddShape(shape));
-    expect(getDocument().shapes[shape.id]).toEqual(
+    expect(getDocument().shapes[shape.id]).toMatchObject(
       canonicalizeShape(shape, registry),
     );
+    expect(getDocument().shapes[shape.id]?.temporalOrder).toBe(0);
   });
 
   test("getNextZIndex generates keys after top shape", () => {

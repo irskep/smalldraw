@@ -50,6 +50,9 @@ describe("rectangle tool", () => {
     expect(shape.geometry).toEqual(draft!.geometry);
     expect(shape.transform?.translation).toEqual([20, 25]);
     expect(shape.interactions?.resizable).toBe(true);
+    expect(shape.layerId).toBe("default");
+    expect(shape.temporalOrder).toBe(0);
+    expect(shape.style.stroke?.compositeOp).toBe("source-over");
   });
 
   test("uses shared fill color by default", () => {

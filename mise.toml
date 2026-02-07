@@ -74,6 +74,9 @@ run = ["mise run '//packages/...:test' > /dev/null", "mise run '//apps/...:test'
 # Run all test tasks across the monorepo using wildcard pattern
 run = ["mise run '//packages/...:test'", "mise run '//apps/...:test'"]
 
+[tasks."validate:all"]
+run = ["mise run lint:all", "mise run ts:check:all", "mise run test:all"]
+
 [tasks."docs:typedoc"]
 run = """
 bun x typedoc \

@@ -73,7 +73,10 @@ describe("Automerge repo adapter", () => {
     }
 
     const repo = new Repo();
-    const handle = repo.create<DrawingDocumentData>({ shapes: {} });
+    const handle = repo.create<DrawingDocumentData>({
+      shapes: {},
+      temporalOrderCounter: 0,
+    });
     await handle.whenReady();
 
     const adapter = createStoreAdapter(handle);

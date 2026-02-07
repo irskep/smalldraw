@@ -34,6 +34,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       type: "brush",
       color: "#000000",
       size: 2,
+      compositeOp: "source-over",
     } as const);
 
   const ensureState = (runtime: ToolRuntime): ActivePenState => {
@@ -56,6 +57,8 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       ...((override?.brushId ?? fallbackStroke.brushId)
         ? { brushId: override?.brushId ?? fallbackStroke.brushId }
         : {}),
+      compositeOp:
+        override?.compositeOp ?? fallbackStroke.compositeOp ?? "source-over",
     } satisfies StrokeStyle;
   };
 
@@ -209,6 +212,8 @@ const createStrokeShape = (draft: StrokeDraftState): PenShape | undefined => {
       stroke: draft.stroke,
     },
     zIndex: draft.zIndex,
+    layerId: "default",
+    temporalOrder: 0,
     interactions: {
       resizable: true,
       rotatable: false,

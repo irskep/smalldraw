@@ -38,7 +38,8 @@ describe("Undo stack interactions for rectangle shapes", () => {
     const addAction = new AddShape(rectangle);
 
     doc = undo.apply(addAction, doc, ctx);
-    expect(doc.shapes[rectangle.id]).toEqual(canonicalRectangle);
+    expect(doc.shapes[rectangle.id]).toMatchObject(canonicalRectangle);
+    expect(doc.shapes[rectangle.id]?.temporalOrder).toBe(0);
     expect(undo.canUndo()).toBe(true);
     expect(undo.canRedo()).toBe(false);
 
@@ -51,7 +52,8 @@ describe("Undo stack interactions for rectangle shapes", () => {
     const redoOutcome = undo.redo(doc, ctx);
     doc = redoOutcome.doc;
     expect(redoOutcome.action).toBeTruthy();
-    expect(doc.shapes[rectangle.id]).toEqual(canonicalRectangle);
+    expect(doc.shapes[rectangle.id]).toMatchObject(canonicalRectangle);
+    expect(doc.shapes[rectangle.id]?.temporalOrder).toBe(1);
   });
 
   test("DeleteShape action restores removed rectangle on undo", () => {

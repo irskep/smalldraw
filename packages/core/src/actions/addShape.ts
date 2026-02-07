@@ -18,7 +18,12 @@ export class AddShape implements UndoableAction {
     }
     const safeShape = stripUndefined(this.canonicalShape);
     return ctx.change(doc, (draft) => {
-      draft.shapes[safeShape.id] = safeShape;
+      const nextTemporalOrder = draft.temporalOrderCounter ?? 0;
+      draft.temporalOrderCounter = nextTemporalOrder + 1;
+      draft.shapes[safeShape.id] = {
+        ...safeShape,
+        temporalOrder: nextTemporalOrder,
+      };
     });
   }
 

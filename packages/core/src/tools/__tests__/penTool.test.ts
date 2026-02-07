@@ -78,6 +78,9 @@ describe("pen tool integration with runtime", () => {
       ],
     });
     expect(shape.transform?.translation).toEqual([10, 5]);
+    expect(shape.layerId).toBe("default");
+    expect(shape.temporalOrder).toBe(0);
+    expect(shape.style.stroke?.compositeOp).toBe("source-over");
   });
 
   test("uses runtime stroke options when provided", () => {

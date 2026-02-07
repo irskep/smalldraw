@@ -47,7 +47,10 @@ async function getOrCreateHandle(
   debug: boolean,
 ): Promise<DocHandle<DrawingDocumentData>> {
   if (mode === "always-new") {
-    const handle = repo.create<DrawingDocumentData>({ shapes: {} });
+    const handle = repo.create<DrawingDocumentData>({
+      shapes: {},
+      temporalOrderCounter: 0,
+    });
     if (debug) {
       console.debug("[createSmalldraw] created new doc (always-new):", handle.url);
     }
@@ -63,7 +66,10 @@ async function getOrCreateHandle(
     return await repo.find<DrawingDocumentData>(storedUrl as AutomergeUrl);
   }
 
-  const handle = repo.create<DrawingDocumentData>({ shapes: {} });
+  const handle = repo.create<DrawingDocumentData>({
+    shapes: {},
+    temporalOrderCounter: 0,
+  });
   localStorage.setItem(storageKey, handle.url);
   if (debug) {
     console.debug("[createSmalldraw] created new doc:", handle.url);

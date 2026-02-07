@@ -6,6 +6,7 @@ import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
 
 export interface DrawingDocumentJSON {
   shapes: Record<string, AnyShape>;
+  temporalOrderCounter?: number;
 }
 
 export function toJSON(
@@ -21,7 +22,7 @@ export function toJSON(
     const serialized = handler.serialization.toJSON(shape);
     shapes[serialized.id] = serialized;
   }
-  return { shapes };
+  return { shapes, temporalOrderCounter: doc.temporalOrderCounter };
 }
 
 export function fromJSON(
@@ -31,6 +32,7 @@ export function fromJSON(
   let doc = init<DrawingDocumentData>();
   doc = change(doc, (draft) => {
     draft.shapes = {};
+    draft.temporalOrderCounter = json.temporalOrderCounter ?? 0;
     for (const shape of Object.values(json.shapes)) {
       const handler = registry.get(shape.type);
       if (!handler?.serialization?.fromJSON) {

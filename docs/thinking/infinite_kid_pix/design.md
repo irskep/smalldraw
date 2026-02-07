@@ -10,6 +10,8 @@ The authoritative state is a shared shape model designed for long‑term correct
 
 The rendering system is split into a hot layer and a tile cache. The hot layer is a local canvas that receives active input and is updated on every pointer move. It is screen‑space and intentionally ephemeral. The tile cache is a grid of world‑space tiles at a fixed size of 1024 by 1024, created only when visible. The hot layer gives instantaneous feedback; the tile cache provides stability and bounded memory as the canvas grows.
 
+This design doc is authoritative for the kid‑pix tile system. If other documents describe different tile sizes or caching details, follow this doc.
+
 Committed shapes are baked into tiles asynchronously, after input ends. This keeps the input loop light while still ensuring the world is updated promptly. It also allows later tools to operate on stable tiles rather than on live stroke data. We intentionally avoid live remote drafts for now. When a remote shape arrives, it is committed to the document and then baked into tiles just like a local shape, which keeps the system consistent and predictable.
 
 ### Tile cache and invalidation

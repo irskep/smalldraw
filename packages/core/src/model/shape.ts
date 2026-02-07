@@ -42,6 +42,8 @@ export interface Shape {
   type: string;
   style: ShapeStyle;
   zIndex: string;
+  layerId?: string;
+  temporalOrder?: number;
   interactions?: ShapeInteractions;
   transform?: ShapeTransform;
 }

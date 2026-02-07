@@ -22,6 +22,7 @@ export interface BrushStyle {
   color: string;
   size: number;
   brushId?: string;
+  compositeOp?: "source-over" | "destination-out";
 }
 
 export type StrokeStyle = BrushStyle;

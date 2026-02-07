@@ -62,6 +62,7 @@ export function createRectangleTool(
       color: override?.color ?? shared.strokeColor,
       size: override?.size ?? shared.strokeWidth,
       ...(override?.brushId ? { brushId: override.brushId } : {}),
+      compositeOp: override?.compositeOp ?? "source-over",
     } satisfies StrokeStyle;
   };
 
@@ -125,6 +126,8 @@ export function createRectangleTool(
         fill: state.draft.fill,
       },
       zIndex: state.draft.zIndex,
+      layerId: "default",
+      temporalOrder: 0,
       interactions: {
         resizable: true,
         rotatable: true,
@@ -164,6 +167,8 @@ export function createRectangleTool(
         fill: state.draft.fill,
       },
       zIndex: state.draft.zIndex,
+      layerId: "default",
+      temporalOrder: 0,
       interactions: {
         resizable: true,
         rotatable: true,

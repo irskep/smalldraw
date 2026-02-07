@@ -45,6 +45,7 @@ describe("Automerge JSON adapter", () => {
     const json = toJSON(doc, registry);
     const restored = fromJSON(json, registry);
     expect(toJSON(restored, registry)).toEqual(json);
+    expect(restored.temporalOrderCounter).toBe(doc.temporalOrderCounter);
   });
 
   test("throws if serializer is missing", () => {
