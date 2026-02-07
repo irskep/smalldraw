@@ -1,4 +1,4 @@
-import type { DrawingStore, ToolDefinition } from "@smalldraw/core";
+import type { DrawingStore } from "@smalldraw/core";
 import { el } from "redom";
 import { ColorRow } from "./ColorRow";
 import { ToolButton } from "./ToolButton";
@@ -17,7 +17,6 @@ export class Toolbar {
   constructor(
     store: DrawingStore,
     palette: string[],
-    tools: ToolDefinition[],
     availableToolIds: Set<string>,
   ) {
     this.el = el("div.smalldraw-toolbar", {

@@ -1,8 +1,8 @@
 [tasks.test]
-run = "bun test --only-failures --preload ./src/__tests__/setup.ts"
+run = "bun run test"
 
 [tasks."ts:check"]
 run = "bun run ts:check"
 
 [tasks.lint]
-run = "bunx biome lint --write"
+run = "bun run lint"

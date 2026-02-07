@@ -81,7 +81,6 @@ export class DrawingApp {
   private lastPointerButtons = 0;
   private readonly modifierHandler: (event: KeyboardEvent) => void;
   private scale = 1;
-  private currentStoreAdapter?: DrawingStoreAdapter;
   private readonly worldWidth: number;
   private readonly worldHeight: number;
 
@@ -109,7 +108,6 @@ export class DrawingApp {
     const availableToolIds = new Set(tools.map((tool) => tool.id));
     const storeAdapter = options.storeAdapter;
     const initialDoc = storeAdapter?.getDoc();
-    this.currentStoreAdapter = storeAdapter;
     this.scale = options.scale ?? 1;
 
     // Create root element
@@ -208,7 +206,7 @@ export class DrawingApp {
     }
 
     // Create toolbar
-    this.toolbar = new Toolbar(this.store, palette, tools, availableToolIds);
+    this.toolbar = new Toolbar(this.store, palette, availableToolIds);
 
     // Assemble DOM structure
     this.el.appendChild(this.toolbar.el);
@@ -448,7 +446,6 @@ export class DrawingApp {
   resetWithAdapter(storeAdapter: DrawingStoreAdapter): void {
     this.storeSubscription?.();
     this.storeSubscription = undefined;
-    this.currentStoreAdapter = storeAdapter;
 
     const doc = storeAdapter.getDoc();
     this.store.applyDocument(doc);
