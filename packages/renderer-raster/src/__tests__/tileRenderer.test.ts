@@ -291,4 +291,34 @@ describe("TileRenderer", () => {
 
     expect(applyEvents).toEqual([]);
   });
+
+  test("scheduleBakeForClear invalidates all visible tiles", async () => {
+    const store = new DrawingStore({ tools: [] });
+    const baked: string[] = [];
+    const snapshotStore = createInMemorySnapshotStore<string>();
+    snapshotStore.setSnapshot("0,0", "snap-a");
+    snapshotStore.setSnapshot("1,0", "snap-b");
+    const provider = {
+      getTileCanvas: (coord: { x: number; y: number }) => ({ coord }),
+    };
+    const renderer = new TileRenderer(store, provider, {
+      snapshotStore,
+      baker: {
+        bakeTile: async (coord) => {
+          baked.push(`${coord.x},${coord.y}`);
+        },
+      },
+    });
+
+    renderer.updateViewport({
+      min: [0, 0],
+      max: [TILE_SIZE * 2, TILE_SIZE],
+    });
+    renderer.scheduleBakeForClear();
+    await renderer.bakePendingTiles();
+
+    expect(baked.sort()).toEqual(["0,0", "1,0"]);
+    expect(snapshotStore.getSnapshot("0,0")).toBeUndefined();
+    expect(snapshotStore.getSnapshot("1,0")).toBeUndefined();
+  });
 });

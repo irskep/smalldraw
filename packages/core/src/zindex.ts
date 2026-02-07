@@ -2,12 +2,14 @@ import { generateKeyBetween } from "jittered-fractional-indexing";
 
 import type { DrawingDocument } from "./model/document";
 import type { AnyShape } from "./model/shape";
+import { filterShapesAfterClear } from "./model/clear";
 
 export function getOrderedShapes(doc: DrawingDocument): AnyShape[] {
-  return Object.values(doc.shapes).sort((a, b) => {
+  const ordered = Object.values(doc.shapes).sort((a, b) => {
     if (a.zIndex === b.zIndex) return 0;
     return a.zIndex < b.zIndex ? -1 : 1;
   });
+  return filterShapesAfterClear(ordered) as AnyShape[];
 }
 
 export function getTopZIndex(doc: DrawingDocument): string {

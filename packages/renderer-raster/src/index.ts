@@ -72,6 +72,7 @@ export class TileRenderer<
   private touchedTilesByShape = new Map<string, Set<string>>();
   private lastTilesByShape = new Map<string, Set<string>>();
   private pendingBakeTiles = new Set<string>();
+  private invalidateAll = false;
 
   constructor(
     coreStore: DrawingStore,
@@ -181,6 +182,12 @@ export class TileRenderer<
     }
   }
 
+  scheduleBakeForClear(): void {
+    this.invalidateAll = true;
+    this.pendingBakeTiles.clear();
+    this.snapshotStore.clearSnapshots?.();
+  }
+
   getPendingBakeTiles(): TileCoord[] {
     const tiles: TileCoord[] = [];
     for (const key of this.pendingBakeTiles) {
@@ -191,6 +198,17 @@ export class TileRenderer<
 
   async bakePendingTiles(): Promise<void> {
     if (!this.baker) return;
+    if (this.invalidateAll) {
+      for (const entry of this.visibleTiles.values()) {
+        await this.baker.bakeTile(entry.coord, entry.canvas);
+        if (this.snapshotAdapter) {
+          const snapshot = this.snapshotAdapter.captureSnapshot(entry.canvas);
+          this.snapshotStore.setSnapshot(tileKey(entry.coord), snapshot);
+        }
+      }
+      this.invalidateAll = false;
+      return;
+    }
     for (const key of this.pendingBakeTiles) {
       const entry = this.visibleTiles.get(key);
       if (!entry) continue;
@@ -212,7 +230,12 @@ export class TileRenderer<
         const canvas = this.tileProvider.getTileCanvas(coord);
         this.visibleTiles.set(key, { coord, canvas });
         const snapshot = this.snapshotStore.getSnapshot(key);
-        if (snapshot && this.snapshotAdapter && !this.pendingBakeTiles.has(key)) {
+        if (
+          snapshot &&
+          this.snapshotAdapter &&
+          !this.pendingBakeTiles.has(key) &&
+          !this.invalidateAll
+        ) {
           this.snapshotAdapter.applySnapshot(canvas, snapshot);
         }
       }

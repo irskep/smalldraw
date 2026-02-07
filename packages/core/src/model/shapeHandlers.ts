@@ -1,4 +1,5 @@
 import type { AnyGeometry } from "@smalldraw/geometry";
+import { ClearShapeHandler } from "./shapes/clearShape";
 import { PenShapeHandler } from "./shapes/penShape";
 import { RectShapeHandler } from "./shapes/rectShape";
 import type { ShapeHandler } from "./shapeTypes";
@@ -37,6 +38,7 @@ const defaultRegistry = new ShapeHandlerRegistry();
 
 defaultRegistry.register("pen", PenShapeHandler);
 defaultRegistry.register("rect", RectShapeHandler);
+defaultRegistry.register("clear", ClearShapeHandler);
 
 // Lazy singleton
 let _defaultInstance: ShapeHandlerRegistry | null = null;

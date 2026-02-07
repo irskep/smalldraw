@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { AnyGeometry, Shape } from "@smalldraw/core";
+import { getOrderedShapes } from "@smalldraw/core";
 import { Canvas, Image } from "canvas";
 import { Vec2 } from "gl-matrix";
 import { Window } from "happy-dom";
@@ -143,6 +144,28 @@ describe("DrawingApp", () => {
     );
     undoBtn?.click();
     expect(Object.values(app.store.getDocument().shapes)).toHaveLength(0);
+    app.destroy();
+  });
+
+  test("clears shapes via toolbar clear button", () => {
+    const { container } = setupDom();
+    const app = new DrawingApp({ container, width: 320, height: 240 });
+    const rectBtn = qs<HTMLButtonElement>(container, '[data-tool="rect"]');
+    rectBtn?.click();
+    const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;
+    stubOverlayRect(overlay, 320, 240);
+    dispatchPointer(overlay, "pointerdown", 40, 40, 1);
+    dispatchPointer(overlay, "pointermove", 140, 120, 1);
+    dispatchPointer(overlay, "pointerup", 140, 120, 0);
+
+    const clearBtn = qs<HTMLButtonElement>(
+      container,
+      'button[data-action="clear"]',
+    );
+    clearBtn?.click();
+
+    const visible = getOrderedShapes(app.store.getDocument());
+    expect(visible).toHaveLength(0);
     app.destroy();
   });
 

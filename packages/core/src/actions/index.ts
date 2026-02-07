@@ -1,4 +1,5 @@
 export * from "./addShape";
+export * from "./clearCanvas";
 export * from "./composite";
 export * from "./deleteShape";
 export * from "./types";

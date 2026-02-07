@@ -1,4 +1,5 @@
 import type { DrawingStore } from "@smalldraw/core";
+import { ClearCanvas, getTopZIndex } from "@smalldraw/core";
 import { el } from "redom";
 import { ColorRow } from "./ColorRow";
 import { ToolButton } from "./ToolButton";
@@ -13,6 +14,8 @@ export class Toolbar {
   private fillColorRow: ColorRow;
   private undoButton: HTMLButtonElement;
   private redoButton: HTMLButtonElement;
+  private clearButton: HTMLButtonElement;
+  private clearCounter = 0;
 
   constructor(
     store: DrawingStore,
@@ -83,6 +86,15 @@ export class Toolbar {
     this.redoButton.textContent = "Redo";
     this.redoButton.dataset.action = "redo";
     this.el.appendChild(this.redoButton);
+
+    // Create clear button
+    this.clearButton = el("button", {
+      type: "button",
+      onclick: () => this.clearCanvas(store),
+    }) as HTMLButtonElement;
+    this.clearButton.textContent = "Clear";
+    this.clearButton.dataset.action = "clear";
+    this.el.appendChild(this.clearButton);
   }
 
   update(store: DrawingStore): void {
@@ -108,5 +120,17 @@ export class Toolbar {
     }
     this.strokeColorRow.unmount();
     this.fillColorRow.unmount();
+  }
+
+  private clearCanvas(store: DrawingStore): void {
+    const id = `clear-${Date.now()}-${this.clearCounter++}`;
+    const clearShape = {
+      id,
+      type: "clear",
+      zIndex: getTopZIndex(store.getDocument()),
+      geometry: { type: "clear" as const },
+      style: {},
+    };
+    store.applyAction(new ClearCanvas(clearShape));
   }
 }

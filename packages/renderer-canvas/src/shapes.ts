@@ -49,6 +49,10 @@ export function renderShape(
 ): void {
   const renderer = registry.get(shape.type);
   if (!renderer) {
+    if (shape.type === "clear") {
+      // We avoid shape-specific special cases, but clear is uniquely non-renderable by design.
+      return;
+    }
     console.warn(`No renderer for geometry type: ${shape.type}`);
     return;
   }

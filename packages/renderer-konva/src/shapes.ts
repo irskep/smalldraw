@@ -69,6 +69,10 @@ export function renderShapeNode(
 ): Konva.Group | null {
   const renderer = registry.get(shape.type);
   if (!renderer) {
+    if (shape.type === "clear") {
+      // We avoid shape-specific special cases, but clear is uniquely non-renderable by design.
+      return null;
+    }
     console.warn(`No renderer for geometry type: ${shape.type}`);
     return null;
   }
