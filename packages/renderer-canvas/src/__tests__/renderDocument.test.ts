@@ -1,0 +1,24 @@
+import { describe, expect, test } from "bun:test";
+import { createCanvas } from "canvas";
+import { createDocument, getDefaultShapeHandlerRegistry } from "@smalldraw/core";
+import { renderDocument } from "../index";
+
+function pixelAt(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+): [number, number, number, number] {
+  const data = ctx.getImageData(x, y, 1, 1).data;
+  return [data[0], data[1], data[2], data[3]];
+}
+
+describe("renderDocument", () => {
+  test("fills background when provided", () => {
+    const canvas = createCanvas(20, 20);
+    const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    const registry = getDefaultShapeHandlerRegistry();
+    const document = createDocument(undefined, registry);
+    renderDocument(ctx, document, { background: "#ff0000" });
+    expect(pixelAt(ctx, 10, 10)).toEqual([255, 0, 0, 255]);
+  });
+});

@@ -1,5 +1,5 @@
 {
-  "name": "@smalldraw/renderer-konva",
+  "name": "@smalldraw/renderer-canvas-tiles",
   "version": "0.0.0",
   "private": false,
   "type": "module",
@@ -9,13 +9,12 @@
     "build": "tsup src/index.ts --dts --format esm",
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "bunx biome lint --write",
-    "test": "bun test --preload ./src/__tests__/setup.ts",
-    "test:update": "UPDATE_SNAPSHOTS=1 bun test --preload ./src/__tests__/setup.ts"
+    "test": "bun test --preload ./src/__tests__/setup.ts"
   },
   "dependencies": {
     "@smalldraw/core": "workspace:*",
-    "konva": "^9.3.14",
-    "perfect-freehand": "^1.2.1"
+    "@smalldraw/geometry": "workspace:*",
+    "@smalldraw/renderer-canvas": "workspace:*"
   },
   "devDependencies": {
     "@smalldraw/testing": "workspace:*",

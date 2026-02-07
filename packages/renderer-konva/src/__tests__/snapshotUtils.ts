@@ -1,8 +1,8 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import type { DrawingDocument, ShapeHandlerRegistry } from "@smalldraw/core";
-import looksSame from "looks-same";
+import {
+  expectSnapshot as expectSnapshotBase,
+  resolveSnapshotDir,
+} from "@smalldraw/testing";
 import {
   createStage,
   type RenderDocumentOptions,
@@ -10,10 +10,7 @@ import {
   type Viewport,
 } from "../index";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const SNAPSHOT_DIR = path.resolve(__dirname, "../../__snapshots__");
-const SHOULD_UPDATE_SNAPSHOTS = process.env.UPDATE_SNAPSHOTS === "1";
+const SNAPSHOT_DIR = resolveSnapshotDir(import.meta.url);
 
 export async function renderDocumentToImage(
   document: DrawingDocument,
@@ -39,83 +36,9 @@ export async function expectSnapshot(
   snapshotName: string,
   tolerance = 2,
 ): Promise<void> {
-  await fs.mkdir(SNAPSHOT_DIR, { recursive: true });
-  const snapshotPath = path.resolve(SNAPSHOT_DIR, `${snapshotName}.png`);
-  let expected: Buffer;
-  try {
-    expected = await fs.readFile(snapshotPath);
-  } catch (error: any) {
-    if (error?.code === "ENOENT") {
-      await fs.writeFile(snapshotPath, buffer);
-      if (SHOULD_UPDATE_SNAPSHOTS) {
-        return;
-      }
-      throw new Error(
-        `Snapshot '${snapshotName}' did not exist. A new baseline was created at ${path.relative(
-          process.cwd(),
-          snapshotPath,
-        )}. Verify it manually and rerun tests (or run with UPDATE_SNAPSHOTS=1 to accept automatically).`,
-      );
-    }
-    throw error;
-  }
-  const match = await compareImages(buffer, expected, tolerance);
-  if (match) {
-    return;
-  }
-  if (SHOULD_UPDATE_SNAPSHOTS) {
-    await fs.writeFile(snapshotPath, buffer);
-    return;
-  }
-  const diffPath = path.resolve(SNAPSHOT_DIR, `${snapshotName}.diff.png`);
-  await createDiff(buffer, expected, diffPath, tolerance);
-  throw new Error(
-    `Snapshot mismatch for '${snapshotName}'. See diff at ${path.relative(
-      process.cwd(),
-      diffPath,
-    )}.` +
-      ` Run UPDATE_SNAPSHOTS=1 bun --filter @smalldraw/renderer-konva test to accept changes.`,
-  );
-}
-
-function compareImages(
-  actual: Buffer,
-  expected: Buffer,
-  tolerance: number,
-): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    looksSame(actual, expected, { tolerance }, (err, result) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(Boolean(result?.equal));
-    });
-  });
-}
-
-function createDiff(
-  actual: Buffer,
-  expected: Buffer,
-  diffPath: string,
-  tolerance: number,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    looksSame.createDiff(
-      {
-        reference: expected,
-        current: actual,
-        diff: diffPath,
-        highlightColor: "#ff00ff",
-        tolerance,
-      },
-      (err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve();
-      },
-    );
+  return expectSnapshotBase(buffer, snapshotName, {
+    snapshotDir: SNAPSHOT_DIR,
+    testCommand: "bun --filter @smalldraw/renderer-konva test",
+    tolerance,
   });
 }
