@@ -11,9 +11,9 @@ acceptance_criteria:
   - Tile create/destroy callbacks fire deterministically as viewport changes.
   - Unit tests validate coverage for pan and boundary crossings.
   - All tests/typecheck/lint pass:
-    - bun --filter @smalldraw/renderer-canvas-tiles test
-    - bun --filter @smalldraw/renderer-canvas-tiles ts:check
-    - bun --filter @smalldraw/renderer-canvas-tiles lint
+    - bun --filter @smalldraw/renderer-raster test
+    - bun --filter @smalldraw/renderer-raster ts:check
+    - bun --filter @smalldraw/renderer-raster lint
   - mise run validate:all
 notes:
   - Keep the calculation framework-agnostic and UI-independent.

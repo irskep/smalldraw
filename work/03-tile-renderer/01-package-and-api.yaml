@@ -14,9 +14,9 @@ acceptance_criteria:
     - dispose()
   - Tile size is explicitly decided and documented in this package.
   - All tests/typecheck/lint pass:
-    - bun --filter @smalldraw/renderer-canvas-tiles test
-    - bun --filter @smalldraw/renderer-canvas-tiles ts:check
-    - bun --filter @smalldraw/renderer-canvas-tiles lint
+    - bun --filter @smalldraw/renderer-raster test
+    - bun --filter @smalldraw/renderer-raster ts:check
+    - bun --filter @smalldraw/renderer-raster lint
   - mise run validate:all
 notes:
   - The tile provider should accept pre-existing canvas elements.

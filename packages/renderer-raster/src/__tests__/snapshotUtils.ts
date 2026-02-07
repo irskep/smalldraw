@@ -12,7 +12,7 @@ export async function expectSnapshot(
 ): Promise<void> {
   return expectSnapshotBase(buffer, snapshotName, {
     snapshotDir: SNAPSHOT_DIR,
-    testCommand: "bun --filter @smalldraw/renderer-canvas-tiles test",
+    testCommand: "bun --filter @smalldraw/renderer-raster test",
     tolerance,
   });
 }

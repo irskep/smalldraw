@@ -12,11 +12,11 @@ acceptance_criteria:
   - Hot layer is cleared on commit/cancel.
   - Tests validate draft rendering lifecycle.
   - All tests/typecheck/lint pass:
-    - bun --filter @smalldraw/renderer-canvas-tiles test
+    - bun --filter @smalldraw/renderer-raster test
     - bun --filter @smalldraw/core test
-    - bun --filter @smalldraw/renderer-canvas-tiles ts:check
+    - bun --filter @smalldraw/renderer-raster ts:check
     - bun --filter @smalldraw/core ts:check
-    - bun --filter @smalldraw/renderer-canvas-tiles lint
+    - bun --filter @smalldraw/renderer-raster lint
     - bun --filter @smalldraw/core lint
   - mise run validate:all
 notes:

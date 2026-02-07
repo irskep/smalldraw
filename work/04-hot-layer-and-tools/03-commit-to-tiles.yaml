@@ -12,11 +12,11 @@ acceptance_criteria:
   - Drafts are cleared on commit and tiles display baked results.
   - Tests cover a full draw cycle (draft -> commit -> tile update).
   - All tests/typecheck/lint pass:
-    - bun --filter @smalldraw/renderer-canvas-tiles test
+    - bun --filter @smalldraw/renderer-raster test
     - bun --filter @smalldraw/core test
-    - bun --filter @smalldraw/renderer-canvas-tiles ts:check
+    - bun --filter @smalldraw/renderer-raster ts:check
     - bun --filter @smalldraw/core ts:check
-    - bun --filter @smalldraw/renderer-canvas-tiles lint
+    - bun --filter @smalldraw/renderer-raster lint
     - bun --filter @smalldraw/core lint
   - mise run validate:all
 notes:
