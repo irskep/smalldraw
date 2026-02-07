@@ -1,5 +1,5 @@
 id: hot-layer-rendering
-status: planned
+status: complete
 summary: Implement the hot layer for live pen/eraser drawing.
 context:
   - The hot layer provides immediate feedback while the tile cache remains stable.

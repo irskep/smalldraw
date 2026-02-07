@@ -242,3 +242,5 @@ export { createDomTileProvider, type DomTileProviderOptions } from "./dom";
 export { TILE_SIZE } from "./constants";
 export { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";
 export { createInMemorySnapshotStore } from "./snapshots";
+export { HotLayer, type HotLayerOptions } from "./hotLayer";
+export { type Viewport, applyViewportToContext } from "./viewport";
