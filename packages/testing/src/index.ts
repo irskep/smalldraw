@@ -76,6 +76,9 @@ export function imagesMatch(
   expected: Buffer,
   tolerance = 2,
 ): Promise<boolean> {
+  if (actual === expected) {
+    return Promise.resolve(true);
+  }
   return new Promise((resolve, reject) => {
     looksSame(actual, expected, { tolerance }, (err, result) => {
       if (err) {
