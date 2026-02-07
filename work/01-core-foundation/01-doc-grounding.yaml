@@ -1,11 +1,11 @@
 id: doc-grounding
 status: complete
-summary: Align the implementation plan to the Infinite Kid Pix design doc and lock scope boundaries.
+summary: Align the implementation plan to the Kids Draw design doc and lock scope boundaries.
 context:
   - This anchors all subsequent tasks to the design spec so tile caching, hot layer, and commit flows are consistent from day one.
   - Avoids drift from ad‑hoc assumptions during implementation.
 prerequisites:
-  - Read docs/thinking/infinite_kid_pix/design.md
+  - Read docs/thinking/kids_draw/design.md
 acceptance_criteria:
   - A short checklist of agreed design decisions is added to the work/ directory for reference.
   - All tests/typecheck/lint pass:

@@ -348,5 +348,52 @@ describe("DrawingStore", () => {
     expect(Object.keys(shapes)).toHaveLength(3);
     expect(shapes["rect-1"]).toBeDefined();
     expect(shapes["rect-2"]).toBeDefined();
+    expect(store.canUndo()).toBe(true);
+  });
+
+  test("actionDispatcher mode triggers render updates for history changes", () => {
+    const registry = getDefaultShapeHandlerRegistry();
+    const ctx: ActionContext = {
+      registry,
+      change: (next, update) => change(next, update),
+    };
+    let externalDoc = createDocument(undefined, registry);
+    let renderCount = 0;
+
+    const store = new DrawingStore({
+      tools: [createRectangleTool()],
+      document: externalDoc,
+      onRenderNeeded: () => {
+        renderCount += 1;
+      },
+      actionDispatcher: (event) => {
+        if (event.type === "undo") {
+          externalDoc = event.action.undo(externalDoc, ctx);
+        } else {
+          externalDoc = event.action.redo(externalDoc, ctx);
+        }
+        store.applyDocument(externalDoc);
+      },
+    });
+
+    const zIndex = getZIndexBetween(null, null);
+    store.applyAction(
+      new AddShape({
+        id: "shape-1",
+        type: "rect",
+        geometry: { type: "rect", size: v(10, 10) },
+        style: { fill: { type: "solid", color: "#fff" } },
+        zIndex,
+        transform: { translation: v(0, 0), scale: v(1, 1), rotation: 0 },
+      } as RectShape),
+    );
+    expect(store.canUndo()).toBe(true);
+
+    store.undo();
+    expect(store.canRedo()).toBe(true);
+
+    store.redo();
+    expect(store.canUndo()).toBe(true);
+    expect(renderCount).toBeGreaterThan(0);
   });
 });

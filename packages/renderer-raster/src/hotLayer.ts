@@ -14,6 +14,8 @@ export class HotLayer {
   private readonly geometryHandlerRegistry?: ShapeHandlerRegistry;
   private readonly backgroundColor?: string;
   private viewport: Viewport | null = null;
+  private backdropImage: CanvasImageSource | null = null;
+  private backdropBackgroundColor: string | null = null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -41,10 +43,22 @@ export class HotLayer {
   renderDrafts(drafts: DraftShape[] | AnyShape[]): void {
     const shapes = normalizeDraftShapes(drafts);
     this.clear();
+    if (this.backdropImage) {
+      this.ctx.save();
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      this.ctx.drawImage(
+        this.backdropImage,
+        0,
+        0,
+        this.canvas.width,
+        this.canvas.height,
+      );
+      this.ctx.restore();
+    }
     if (!shapes.length) {
       return;
     }
-    if (this.backgroundColor) {
+    if (!this.backdropImage && this.backgroundColor) {
       this.ctx.save();
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
       this.ctx.fillStyle = this.backgroundColor;
@@ -66,6 +80,21 @@ export class HotLayer {
   clear(): void {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  setBackdrop(
+    image: CanvasImageSource | null,
+    backgroundColor?: string,
+  ): void {
+    this.backdropImage = image;
+    this.backdropBackgroundColor = image ? (backgroundColor ?? null) : null;
+    const canvasWithOptionalStyle = this.canvas as unknown as {
+      style?: { backgroundColor: string };
+    };
+    if (canvasWithOptionalStyle.style) {
+      canvasWithOptionalStyle.style.backgroundColor =
+        this.backdropBackgroundColor ?? "";
+    }
   }
 }
 

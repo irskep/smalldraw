@@ -1,5 +1,5 @@
 id: commit-to-tiles
-status: planned
+status: complete
 summary: On pen/eraser commit, invalidate affected tiles and bake asynchronously.
 context:
   - This is the handoff between the hot layer and the tile cache.

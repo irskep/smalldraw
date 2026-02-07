@@ -87,6 +87,20 @@
         "vuepress": "^2.0.0-rc.26",
       },
     },
+    "apps/kids-app": {
+      "name": "kids-app",
+      "dependencies": {
+        "@smalldraw/core": "workspace:*",
+        "@smalldraw/geometry": "workspace:*",
+        "@smalldraw/renderer-raster": "workspace:*",
+        "redom": "^3.27.1",
+      },
+      "devDependencies": {
+        "@automerge/automerge": "^3.2.3",
+        "@types/redom": "^3.2.4",
+        "happy-dom": "^14.10.1",
+      },
+    },
     "apps/server": {
       "name": "server",
       "dependencies": {
@@ -125,6 +139,10 @@
         "@smalldraw/geometry": "workspace:",
         "jittered-fractional-indexing": "^1.0.0",
         "nanoid": "^5.1.6",
+        "perfect-freehand": "^1.2.1",
+      },
+      "devDependencies": {
+        "@smalldraw/testing": "workspace:*",
       },
     },
     "packages/geometry": {
@@ -135,16 +153,46 @@
         "gl-matrix": "^4.0.0-beta.2",
       },
     },
+    "packages/renderer-canvas": {
+      "name": "@smalldraw/renderer-canvas",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smalldraw/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@smalldraw/testing": "workspace:*",
+        "canvas": "^3.1.0",
+      },
+    },
     "packages/renderer-konva": {
       "name": "@smalldraw/renderer-konva",
       "version": "0.0.0",
       "dependencies": {
         "@smalldraw/core": "workspace:*",
         "konva": "^9.3.14",
-        "perfect-freehand": "^1.2.1",
       },
       "devDependencies": {
+        "@smalldraw/testing": "workspace:*",
         "canvas": "^3.1.0",
+      },
+    },
+    "packages/renderer-raster": {
+      "name": "@smalldraw/renderer-raster",
+      "version": "0.0.0",
+      "dependencies": {
+        "@smalldraw/core": "workspace:*",
+        "@smalldraw/geometry": "workspace:*",
+        "@smalldraw/renderer-canvas": "workspace:*",
+      },
+      "devDependencies": {
+        "@smalldraw/testing": "workspace:*",
+        "canvas": "^3.1.0",
+      },
+    },
+    "packages/testing": {
+      "name": "@smalldraw/testing",
+      "version": "0.0.0",
+      "dependencies": {
         "looks-same": "^7.0.0",
       },
     },
@@ -609,7 +657,13 @@
 
     "@smalldraw/geometry": ["@smalldraw/geometry@workspace:packages/geometry"],
 
+    "@smalldraw/renderer-canvas": ["@smalldraw/renderer-canvas@workspace:packages/renderer-canvas"],
+
     "@smalldraw/renderer-konva": ["@smalldraw/renderer-konva@workspace:packages/renderer-konva"],
+
+    "@smalldraw/renderer-raster": ["@smalldraw/renderer-raster@workspace:packages/renderer-raster"],
+
+    "@smalldraw/testing": ["@smalldraw/testing@workspace:packages/testing"],
 
     "@smalldraw/ui-vanillajs": ["@smalldraw/ui-vanillajs@workspace:packages/ui-vanillajs"],
 
@@ -1546,6 +1600,8 @@
     "keyv": ["keyv@4.5.4", "", { "dependencies": { "json-buffer": "3.0.1" } }, "sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw=="],
 
     "khroma": ["khroma@2.1.0", "", {}, "sha512-Ls993zuzfayK269Svk9hzpeGUKob/sIgZzyHYdjQoAdQetRKpOLj+k/QQQ/6Qi0Yz65mlROrfd+Ev+1+7dz9Kw=="],
+
+    "kids-app": ["kids-app@workspace:apps/kids-app"],
 
     "kind-of": ["kind-of@6.0.3", "", {}, "sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw=="],
 

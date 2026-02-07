@@ -265,6 +265,7 @@ export class DrawingStore {
     if (this.actionDispatcher) {
       this.undoManager.record(action);
       this.actionDispatcher({ type: "apply", action, doc: this.document });
+      this.triggerRender();
       return;
     }
     this.document = this.undoManager.apply(
@@ -432,6 +433,7 @@ export class DrawingStore {
         return false;
       }
       this.actionDispatcher({ type: "undo", action, doc: this.document });
+      this.triggerRender();
       return true;
     }
     const outcome = this.undoManager.undo(this.document, this.actionContext);
@@ -461,6 +463,7 @@ export class DrawingStore {
         return false;
       }
       this.actionDispatcher({ type: "redo", action, doc: this.document });
+      this.triggerRender();
       return true;
     }
     const outcome = this.undoManager.redo(this.document, this.actionContext);

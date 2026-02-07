@@ -1,5 +1,5 @@
 id: kids-app-demo-docs
-status: planned
+status: complete
 summary: Provide a simple demo entry and short usage notes.
 context:
   - A clear demo path ensures validation without tooling confusion.

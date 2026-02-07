@@ -1,0 +1,38 @@
+import { Window } from "happy-dom";
+import {
+  initializeBase64Wasm,
+  isWasmInitialized,
+} from "@automerge/automerge/slim";
+import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64";
+
+if (!isWasmInitialized()) {
+  await initializeBase64Wasm(automergeWasmBase64);
+}
+
+const windowInstance = new Window();
+const { document } = windowInstance;
+
+(globalThis as any).window = windowInstance;
+(globalThis as any).document = document;
+(globalThis as any).HTMLElement = windowInstance.HTMLElement;
+(globalThis as any).HTMLCanvasElement = windowInstance.HTMLCanvasElement;
+(globalThis as any).SVGElement = windowInstance.SVGElement;
+(globalThis as any).navigator = windowInstance.navigator;
+(globalThis as any).PointerEvent =
+  (windowInstance as any).PointerEvent ?? windowInstance.MouseEvent;
+
+const contextStub: Partial<CanvasRenderingContext2D> = {
+  canvas: {} as HTMLCanvasElement,
+  setTransform: () => {},
+  clearRect: () => {},
+  save: () => {},
+  restore: () => {},
+  fillRect: () => {},
+};
+
+(
+  windowInstance.HTMLCanvasElement.prototype as unknown as {
+    getContext: HTMLCanvasElement["getContext"];
+  }
+).getContext = (() => contextStub as CanvasRenderingContext2D) as
+  unknown as HTMLCanvasElement["getContext"];

@@ -1,5 +1,5 @@
 id: kids-app-input-settings
-status: planned
+status: complete
 summary: Wire pointer input and add minimal pen/eraser settings.
 context:
   - Kids app needs a simple, direct interaction loop with fast feedback.

@@ -1,0 +1,194 @@
+import { describe, expect, test } from "bun:test";
+import {
+  applyActionToDoc,
+  createDocument,
+  getDefaultShapeHandlerRegistry,
+  type ActionContext,
+  type DrawingDocument,
+  type DrawingDocumentData,
+  type DrawingStoreActionEvent,
+  type SmalldrawCore,
+} from "@smalldraw/core";
+import { createKidsDrawApp } from "../createKidsDrawApp";
+
+function dispatchPointer(
+  overlay: HTMLElement,
+  type: "pointerdown" | "pointermove" | "pointerup" | "pointercancel",
+  x: number,
+  y: number,
+  buttons = 1,
+): void {
+  const event = new PointerEvent(type, {
+    bubbles: true,
+    clientX: x,
+    clientY: y,
+    buttons,
+    pointerId: 1,
+  });
+  overlay.dispatchEvent(event);
+}
+
+function dispatchInput(element: HTMLElement): void {
+  const EventCtor = (window as unknown as { Event: typeof Event }).Event;
+  element.dispatchEvent(new EventCtor("input", { bubbles: true }));
+}
+
+function createMockCore(): SmalldrawCore {
+  const registry = getDefaultShapeHandlerRegistry();
+  let doc = createDocument(undefined, registry);
+  const listeners = new Set<(doc: DrawingDocument) => void>();
+
+  const change: ActionContext["change"] = (nextDoc, update) => {
+    update(nextDoc as DrawingDocumentData);
+    return nextDoc;
+  };
+  const actionContext: ActionContext = { registry, change };
+
+  const storeAdapter = {
+    getDoc: () => doc,
+    applyAction: (event: DrawingStoreActionEvent) => {
+      if (event.type === "undo") {
+        doc = event.action.undo(doc, actionContext);
+      } else {
+        doc = applyActionToDoc(doc, event.action, registry, change);
+      }
+      for (const listener of listeners) {
+        listener(doc);
+      }
+    },
+    subscribe: (listener: (nextDoc: DrawingDocument) => void) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+
+  return {
+    storeAdapter,
+    async reset() {
+      doc = createDocument(undefined, registry);
+      for (const listener of listeners) {
+        listener(doc);
+      }
+      return storeAdapter;
+    },
+    destroy() {},
+  };
+}
+
+describe("kids-app shell", () => {
+  test("mounts and unmounts cleanly with tile and hot layers", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore(),
+    });
+
+    const root = container.querySelector(".kids-draw-app") as HTMLElement | null;
+    expect(root).not.toBeNull();
+    expect(root?.style.width).toBe("640px");
+    const frame = container.querySelector(".kids-draw-frame") as HTMLElement | null;
+    expect(frame).not.toBeNull();
+    expect(frame?.style.height).toBe("480px");
+
+    const hotCanvas = container.querySelector(
+      "canvas.kids-draw-hot",
+    ) as HTMLCanvasElement | null;
+    expect(hotCanvas).not.toBeNull();
+    expect(hotCanvas?.width).toBe(640);
+    expect(hotCanvas?.height).toBe(480);
+
+    const tileCanvas = container.querySelector(
+      ".kids-draw-tiles canvas",
+    ) as HTMLCanvasElement | null;
+    expect(tileCanvas).not.toBeNull();
+    expect(tileCanvas?.width).toBeGreaterThan(0);
+    expect(tileCanvas?.height).toBeGreaterThan(0);
+
+    app.destroy();
+    expect(container.querySelector(".kids-draw-app")).toBeNull();
+  });
+
+  test("smoke flow: pointer input creates pen/eraser strokes and settings update", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore(),
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    const colorInput = container.querySelector(
+      'input[data-setting="color"]',
+    ) as HTMLInputElement | null;
+    const sizeInput = container.querySelector(
+      'input[data-setting="size"]',
+    ) as HTMLInputElement | null;
+    const undoButton = container.querySelector(
+      'button[data-action="undo"]',
+    ) as HTMLButtonElement | null;
+    expect(colorInput).not.toBeNull();
+    expect(sizeInput).not.toBeNull();
+    expect(undoButton).not.toBeNull();
+    expect(undoButton!.disabled).toBeTrue();
+
+    colorInput!.value = "#ff0000";
+    dispatchInput(colorInput!);
+    sizeInput!.value = "14";
+    dispatchInput(sizeInput!);
+
+    dispatchPointer(overlay, "pointerdown", 60, 60, 1);
+    dispatchPointer(overlay, "pointermove", 180, 180, 1);
+    dispatchPointer(overlay, "pointerup", 180, 180, 0);
+    expect(undoButton!.disabled).toBeFalse();
+
+    const eraserButton = container.querySelector(
+      'button[data-tool="eraser"]',
+    ) as HTMLButtonElement | null;
+    expect(eraserButton).not.toBeNull();
+    eraserButton!.click();
+    dispatchPointer(overlay, "pointerdown", 100, 100, 1);
+    dispatchPointer(overlay, "pointermove", 220, 220, 1);
+    dispatchPointer(overlay, "pointerup", 220, 220, 0);
+
+    const shapes = Object.values(app.store.getDocument().shapes);
+    expect(shapes).toHaveLength(2);
+
+    const penShape = shapes.find((shape) => shape.id.startsWith("pen-"));
+    const eraserShape = shapes.find((shape) => shape.id.startsWith("eraser-"));
+    expect(penShape).toBeDefined();
+    expect(eraserShape).toBeDefined();
+
+    const penStroke = penShape?.style.stroke;
+    expect(penStroke?.color?.toLowerCase()).toBe("#ff0000");
+    expect(penStroke?.size).toBe(14);
+
+    const eraserStroke = eraserShape?.style.stroke;
+    expect(eraserStroke?.compositeOp).toBe("destination-out");
+    expect(eraserStroke?.size).toBe(14);
+
+    app.destroy();
+  });
+});

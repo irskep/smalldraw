@@ -31,6 +31,10 @@ export interface TileRendererOptions<
   baker?: TileBaker<TCanvas>;
   snapshotAdapter?: TileSnapshotAdapter<TCanvas, TSnapshot>;
   snapshotStore?: TileSnapshotStore<TSnapshot>;
+  createViewportSnapshotCanvas?: (
+    width: number,
+    height: number,
+  ) => HTMLCanvasElement;
 }
 
 export interface TileRenderState {
@@ -67,6 +71,10 @@ export class TileRenderer<
   private snapshotAdapter?: TileSnapshotAdapter<TCanvas, TSnapshot>;
   private snapshotStore: TileSnapshotStore<TSnapshot>;
   private backgroundColor?: string;
+  private createViewportSnapshotCanvas?: (
+    width: number,
+    height: number,
+  ) => HTMLCanvasElement;
   private viewport: Box | null = null;
   private unsubscribe?: () => void;
   private visibleTiles = new Map<string, { coord: TileCoord; canvas: TCanvas }>();
@@ -91,6 +99,7 @@ export class TileRenderer<
     this.snapshotAdapter = options.snapshotAdapter;
     this.snapshotStore =
       options.snapshotStore ?? createInMemorySnapshotStore<TSnapshot>();
+    this.createViewportSnapshotCanvas = options.createViewportSnapshotCanvas;
   }
 
   updateViewport(bounds: Box): void {
@@ -231,6 +240,37 @@ export class TileRenderer<
     this.pendingBakeTiles.clear();
   }
 
+  async captureViewportSnapshot(): Promise<CanvasImageSource | null> {
+    if (!this.viewport) {
+      return null;
+    }
+    await this.bakePendingTiles();
+    const width = Math.max(1, Math.ceil(this.viewport.max[0] - this.viewport.min[0]));
+    const height = Math.max(1, Math.ceil(this.viewport.max[1] - this.viewport.min[1]));
+    const snapshotCanvas = this.createViewportSnapshotCanvas?.(width, height);
+    const fallbackCanvas =
+      snapshotCanvas ?? createDomSnapshotCanvas(width, height);
+    if (!fallbackCanvas) {
+      return null;
+    }
+    const ctx = fallbackCanvas.getContext("2d");
+    if (!ctx) {
+      return null;
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    if (this.backgroundColor) {
+      ctx.fillStyle = this.backgroundColor;
+      ctx.fillRect(0, 0, width, height);
+    }
+    for (const tile of this.visibleTiles.values()) {
+      const x = tile.coord.x * this.tileSize - this.viewport.min[0];
+      const y = tile.coord.y * this.tileSize - this.viewport.min[1];
+      ctx.drawImage(tile.canvas as unknown as CanvasImageSource, x, y);
+    }
+    return fallbackCanvas;
+  }
+
   private syncVisibleTiles(nextVisible: TileCoord[]): void {
     const nextKeys = new Set<string>();
     for (const coord of nextVisible) {
@@ -264,6 +304,22 @@ export class TileRenderer<
   }
 }
 
+function createDomSnapshotCanvas(
+  width: number,
+  height: number,
+): HTMLCanvasElement | OffscreenCanvas | null {
+  if (typeof OffscreenCanvas !== "undefined") {
+    return new OffscreenCanvas(width, height);
+  }
+  if (typeof document === "undefined") {
+    return null;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+}
+
 export type {
   TileBaker,
   TileCoord,
@@ -277,3 +333,4 @@ export { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";
 export { createInMemorySnapshotStore } from "./snapshots";
 export { HotLayer, type HotLayerOptions } from "./hotLayer";
 export { type Viewport, applyViewportToContext } from "./viewport";
+export { RasterSession, type RasterSessionOptions } from "./session";

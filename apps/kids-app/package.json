@@ -1,0 +1,24 @@
+{
+  "name": "kids-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "rm -rf dist && mkdir -p dist && bun build src/main.ts --outdir dist --target=browser && cp src/index.html dist/index.html",
+    "dev": "bun ./src/index.html --watch",
+    "serve": "bunx serve dist",
+    "test": "bun test --preload ./src/__tests__/setup.ts",
+    "lint": "bunx biome lint --write",
+    "ts:check": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@smalldraw/core": "workspace:*",
+    "@smalldraw/geometry": "workspace:*",
+    "@smalldraw/renderer-raster": "workspace:*",
+    "redom": "^3.27.1"
+  },
+  "devDependencies": {
+    "@automerge/automerge": "^3.2.3",
+    "@types/redom": "^3.2.4",
+    "happy-dom": "^14.10.1"
+  }
+}

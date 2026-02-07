@@ -1,5 +1,5 @@
 id: kids-app-shell
-status: planned
+status: complete
 summary: Create a minimal kids app shell that mounts the tile renderer and hot layer.
 context:
   - This is the end-user entry point and validates the integration of core + renderers.

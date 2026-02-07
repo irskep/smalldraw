@@ -51,6 +51,10 @@ run = "bunx serve dist"
 dir = "apps/demo-ui-vanillajs"
 run = "bun run dev"
 
+[tasks."kids-app:dev"]
+dir = "apps/kids-app"
+run = "bun run dev"
+
 [tasks."db:push:prod"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/prod.db" }
 run = "bunx drizzle-kit push"
