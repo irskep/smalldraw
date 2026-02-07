@@ -1,0 +1,21 @@
+id: core-model-extensions
+status: planned
+summary: Extend core shape data to support raster pen/eraser semantics and tile invalidation metadata.
+context:
+  - The design calls for brush and eraser as pen shapes differentiated by composite op.
+  - Tile invalidation depends on per-shape touched-tiles sets and temporal ordering at commit time.
+prerequisites:
+  - docs/thinking/infinite_kid_pix/design.md
+  - work/01-core-foundation/01-doc-grounding.yaml
+acceptance_criteria:
+  - Core shape types include compositeOp support on stroke style with defaults.
+  - Shapes carry layerId and temporalOrder (commit-assigned) in the core data model.
+  - Local-only touched-tiles tracking exists outside the CRDT/document.
+  - Existing tools still compile and tests pass.
+  - All tests/typecheck/lint pass:
+    - bun --filter @smalldraw/core test
+    - bun --filter @smalldraw/core ts:check
+    - bun --filter @smalldraw/core lint
+notes:
+  - Backward compatibility is not required.
+  - Do not move tools yet; just keep them working.

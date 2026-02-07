@@ -1,0 +1,18 @@
+id: renderer-canvas-document
+status: planned
+summary: Add document-level rendering helpers for ordered shapes and bounds.
+context:
+  - The tile renderer needs a clean document-level API to render subsets of shapes into tiles.
+  - Keeping this logic in renderer-canvas prevents duplication across UIs.
+prerequisites:
+  - work/02-renderer-canvas/02-shape-renderers.yaml
+acceptance_criteria:
+  - Document render function supports ordered shape rendering into a context.
+  - APIs support rendering a provided list of shapes (tile-local subset).
+  - Snapshot tests cover z-order and compositeOp stacking.
+  - All tests/typecheck/lint pass:
+    - bun --filter @smalldraw/renderer-canvas test
+    - bun --filter @smalldraw/renderer-canvas ts:check
+    - bun --filter @smalldraw/renderer-canvas lint
+notes:
+  - Keep renderer-canvas shape-agnostic where possible.

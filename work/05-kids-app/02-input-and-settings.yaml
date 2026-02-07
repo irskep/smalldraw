@@ -1,0 +1,18 @@
+id: kids-app-input-settings
+status: planned
+summary: Wire pointer input and add minimal pen/eraser settings.
+context:
+  - Kids app needs a simple, direct interaction loop with fast feedback.
+  - Only essential controls: color and size, no selection/transform UI.
+prerequisites:
+  - work/05-kids-app/01-app-shell.yaml
+acceptance_criteria:
+  - Pointer input creates pen and eraser strokes.
+  - Color and size controls update tool settings.
+  - A simple smoke test verifies drawing flow.
+  - All tests/typecheck/lint pass:
+    - bun --filter kids-app test
+    - bun --filter kids-app ts:check
+    - bun --filter kids-app lint
+notes:
+  - Keep zoom locked to 1x for MVP.

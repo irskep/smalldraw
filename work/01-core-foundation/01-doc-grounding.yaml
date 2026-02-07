@@ -1,0 +1,17 @@
+id: doc-grounding
+status: planned
+summary: Align the implementation plan to the Infinite Kid Pix design doc and lock scope boundaries.
+context:
+  - This anchors all subsequent tasks to the design spec so tile caching, hot layer, and commit flows are consistent from day one.
+  - Avoids drift from ad‑hoc assumptions during implementation.
+prerequisites:
+  - Read docs/thinking/infinite_kid_pix/design.md
+acceptance_criteria:
+  - A short checklist of agreed design decisions is added to the work/ directory for reference.
+  - All tests/typecheck/lint pass:
+    - mise run test:all
+    - mise run ts:check:all
+    - mise run lint:all
+notes:
+  - Checklist should include tile size, hot-layer behavior, and per-shape touched-tiles invalidation approach.
+  - No code changes required in this task.

@@ -1,0 +1,22 @@
+id: cross-package-smoke
+status: planned
+summary: Add cross-package smoke tests for core + renderer-canvas + tile renderer integration.
+context:
+  - These are the first integrated checks that mimic real rendering flows.
+  - They catch API drift between packages early.
+prerequisites:
+  - work/06-compat-and-regression/01-ui-vanillajs-compat.yaml
+acceptance_criteria:
+  - A small integration test renders a document through renderer-canvas and tile renderer APIs.
+  - Tests are stable and deterministic.
+  - All tests/typecheck/lint pass:
+    - bun --filter @smalldraw/renderer-canvas test
+    - bun --filter @smalldraw/renderer-canvas-tiles test
+    - bun --filter @smalldraw/core test
+    - bun --filter @smalldraw/renderer-canvas ts:check
+    - bun --filter @smalldraw/renderer-canvas-tiles ts:check
+    - bun --filter @smalldraw/core ts:check
+    - bun --filter @smalldraw/renderer-canvas lint
+    - bun --filter @smalldraw/renderer-canvas-tiles lint
+notes:
+  - Keep the smoke test minimal to avoid flakiness.

@@ -1,0 +1,16 @@
+id: full-verification
+status: planned
+summary: Run the full verification matrix and document the expected commands.
+context:
+  - This is the final gate before considering the MVP complete.
+  - Ensures all packages remain healthy and the new app is stable.
+prerequisites:
+  - work/06-compat-and-regression/02-cross-package-smoke.yaml
+acceptance_criteria:
+  - The verification commands are documented in work/.
+  - All tests/typecheck/lint pass:
+    - mise run test:all
+    - mise run ts:check:all
+    - mise run lint:all
+notes:
+  - This task is documentation + verification only.

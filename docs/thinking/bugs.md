@@ -1,0 +1,1 @@
+The bounding box for pen shapes is not big enough after going through perfect-freehand.

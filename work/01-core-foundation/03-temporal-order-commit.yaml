@@ -1,0 +1,19 @@
+id: temporal-order-commit
+status: planned
+summary: Assign temporalOrder on shape commit and validate undo/redo behavior.
+context:
+  - Tile cache invalidation relies on stable commit order separate from z-index.
+  - The design treats temporalOrder as commit time only, not rendering order.
+prerequisites:
+  - docs/thinking/infinite_kid_pix/design.md
+  - work/01-core-foundation/02-core-model-extensions.yaml
+acceptance_criteria:
+  - temporalOrder is assigned at commit time (max + 1) and persisted in document state.
+  - Undo/redo re-commits shapes with a new temporalOrder (max + 1) when they are re-added.
+  - Tests cover concurrent commit ordering expectations.
+  - All tests/typecheck/lint pass:
+    - bun --filter @smalldraw/core test
+    - bun --filter @smalldraw/core ts:check
+    - bun --filter @smalldraw/core lint
+notes:
+  - Use core actions/UndoManager as the integration point, not UI code.

@@ -1,0 +1,18 @@
+id: tile-visibility-lifecycle
+status: planned
+summary: Implement visible-tile calculation and lifecycle management.
+context:
+  - The design depends on creating/destroying tile canvases as the viewport moves.
+  - This must be deterministic for predictable caching and memory behavior.
+prerequisites:
+  - work/03-tile-renderer/01-package-and-api.yaml
+acceptance_criteria:
+  - Visible tile positions computed from viewport bounds and tile size.
+  - Tile create/destroy callbacks fire deterministically as viewport changes.
+  - Unit tests validate coverage for pan and boundary crossings.
+  - All tests/typecheck/lint pass:
+    - bun --filter @smalldraw/renderer-canvas-tiles test
+    - bun --filter @smalldraw/renderer-canvas-tiles ts:check
+    - bun --filter @smalldraw/renderer-canvas-tiles lint
+notes:
+  - Keep the calculation framework-agnostic and UI-independent.

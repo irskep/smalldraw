@@ -1,0 +1,18 @@
+id: renderer-canvas-shapes
+status: planned
+summary: Implement canvas rendering for core shapes needed by the kids app.
+context:
+  - The hot layer and tiles need a deterministic renderer for pen/rect (and minimal set for MVP).
+  - Rendering should honor compositeOp for eraser semantics.
+prerequisites:
+  - work/02-renderer-canvas/01-package-scaffold.yaml
+acceptance_criteria:
+  - Pen and rect shapes render correctly to a provided CanvasRenderingContext2D.
+  - Stroke compositeOp is applied per shape.
+  - Snapshot tests cover single shape and multi-shape ordering.
+  - All tests/typecheck/lint pass:
+    - bun --filter @smalldraw/renderer-canvas test
+    - bun --filter @smalldraw/renderer-canvas ts:check
+    - bun --filter @smalldraw/renderer-canvas lint
+notes:
+  - Use gl-matrix Vec2 methods for vector math.

@@ -1,0 +1,17 @@
+id: kids-app-shell
+status: planned
+summary: Create a minimal kids app shell that mounts the tile renderer and hot layer.
+context:
+  - This is the end-user entry point and validates the integration of core + renderers.
+  - The app is intentionally minimal: pen, eraser, and basic settings only.
+prerequisites:
+  - work/04-hot-layer-and-tools/03-commit-to-tiles.yaml
+acceptance_criteria:
+  - App mounts/unmounts cleanly in a DOM element.
+  - Hot layer and tile canvases are visible and sized correctly.
+  - All tests/typecheck/lint pass:
+    - bun --filter kids-app test
+    - bun --filter kids-app ts:check
+    - bun --filter kids-app lint
+notes:
+  - Use vanilla JS; no framework required.

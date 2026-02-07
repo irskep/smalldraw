@@ -1,0 +1,18 @@
+id: tile-cache-snapshots
+status: planned
+summary: Add local-only tile cache snapshots for fast reuse within a session.
+context:
+  - The design calls for a tile cache derived from the document, not synchronized.
+  - Snapshot reuse reduces recompute cost after invalidation.
+prerequisites:
+  - work/03-tile-renderer/03-invalidation-and-bake.yaml
+acceptance_criteria:
+  - Cached tile bitmaps are reused when valid within a session.
+  - Cache invalidation is deterministic and limited to affected tiles.
+  - Tests cover cache hit/miss behavior for simple shape sequences.
+  - All tests/typecheck/lint pass:
+    - bun --filter @smalldraw/renderer-canvas-tiles test
+    - bun --filter @smalldraw/renderer-canvas-tiles ts:check
+    - bun --filter @smalldraw/renderer-canvas-tiles lint
+notes:
+  - Persistent storage is out of scope; local-only is sufficient.

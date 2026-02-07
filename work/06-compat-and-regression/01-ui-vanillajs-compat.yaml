@@ -1,0 +1,21 @@
+id: ui-vanillajs-compat
+status: planned
+summary: Ensure ui-vanillajs and its demo continue to work with new core/renderers.
+context:
+  - Existing users rely on ui-vanillajs; regressions are not acceptable.
+  - This task adds explicit guardrails before releasing new features.
+prerequisites:
+  - work/02-renderer-canvas/03-document-rendering.yaml
+  - work/03-tile-renderer/04-tile-cache-snapshots.yaml
+  - work/04-hot-layer-and-tools/03-commit-to-tiles.yaml
+acceptance_criteria:
+  - ui-vanillajs tests pass.
+  - demo-ui-vanillajs builds and runs.
+  - All tests/typecheck/lint pass:
+    - bun --filter @smalldraw/ui-vanillajs test
+    - bun --filter demo-ui-vanillajs test
+    - bun --filter @smalldraw/ui-vanillajs ts:check
+    - bun --filter demo-ui-vanillajs ts:check
+    - bun --filter @smalldraw/ui-vanillajs lint
+notes:
+  - No UI behavior changes required; this is a regression check.
