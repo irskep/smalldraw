@@ -14,7 +14,6 @@ import {
 
 export interface RenderDocumentOptions {
   clear?: boolean;
-  background?: string;
   registry?: ShapeRendererRegistry;
   geometryHandlerRegistry?: ShapeHandlerRegistry;
 }
@@ -33,17 +32,11 @@ export function renderOrderedShapes(
   shapes: Shape[],
   options: RenderDocumentOptions = {},
 ): void {
-  const { clear = true, background } = options;
+  const { clear = true } = options;
   const width = ctx.canvas.width;
   const height = ctx.canvas.height;
   if (clear) {
     ctx.clearRect(0, 0, width, height);
-  }
-  if (background) {
-    ctx.save();
-    ctx.fillStyle = background;
-    ctx.fillRect(0, 0, width, height);
-    ctx.restore();
   }
   const registry = options.registry ?? defaultShapeRendererRegistry;
   const geometryRegistry = options.geometryHandlerRegistry;

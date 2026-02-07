@@ -1,31 +1,24 @@
 import { describe, expect, test } from "bun:test";
+import { change } from "@automerge/automerge/slim";
 import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
-import { createPenTool } from "../pen";
+import { createEraserTool } from "../eraser";
 import { ToolRuntimeImpl } from "../runtime";
-import type { SharedToolSettings } from "../types";
-import { change } from "@automerge/automerge/slim";
 import {
   expectPointsClose,
   getWorldPointsFromShape,
 } from "@smalldraw/testing";
 
-describe("pen tool integration with runtime", () => {
-  function setup(params?: {
-    runtimeStrokeColor?: string;
-    sharedSettings?: SharedToolSettings;
-  }) {
+describe("eraser tool integration with runtime", () => {
+  function setup() {
     const registry = getDefaultShapeHandlerRegistry();
     let document = createDocument(undefined, registry);
     const undoManager = new UndoManager();
-    const runtimeOptions = params?.runtimeStrokeColor
-      ? { stroke: { type: "brush", color: params.runtimeStrokeColor, size: 5 } }
-      : undefined;
     const runtime = new ToolRuntimeImpl({
-      toolId: "pen",
+      toolId: "eraser",
       getDocument: () => document,
       commitAction: (action) => {
         document = undoManager.apply(action, document, {
@@ -34,18 +27,10 @@ describe("pen tool integration with runtime", () => {
         });
       },
       shapeHandlers: registry,
-      options: runtimeOptions,
-      sharedSettings: params?.sharedSettings,
     });
-    const tool = createPenTool();
+    const tool = createEraserTool();
     const deactivate = tool.activate(runtime);
-    return {
-      runtime,
-      getDocument: () => document,
-      undoManager,
-      tool,
-      deactivate,
-    };
+    return { runtime, getDocument: () => document, deactivate };
   }
 
   test("collects pointer events into draft stroke and commits at pointer up", () => {
@@ -79,13 +64,10 @@ describe("pen tool integration with runtime", () => {
       [10, 10],
       [20, 5],
     ]);
-    expect(shape.layerId).toBe("default");
-    expect(shape.temporalOrder).toBe(0);
-    expect(shape.style.stroke?.compositeOp).toBe("source-over");
   });
 
-  test("uses runtime stroke options when provided", () => {
-    const { runtime, getDocument } = setup({ runtimeStrokeColor: "#ff00ff" });
+  test("uses destination-out compositeOp for eraser strokes", () => {
+    const { runtime, getDocument } = setup();
 
     runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(5, 5), buttons: 1 });
@@ -93,24 +75,7 @@ describe("pen tool integration with runtime", () => {
 
     const shapeEntries = Object.values(getDocument().shapes);
     expect(shapeEntries).toHaveLength(1);
-    expect(shapeEntries[0].style.stroke?.color).toBe("#ff00ff");
-  });
-
-  test("falls back to shared settings for stroke defaults", () => {
-    const shared: SharedToolSettings = {
-      strokeColor: "#00ff00",
-      strokeWidth: 7,
-      fillColor: "#ffffff",
-    };
-    const { runtime, getDocument } = setup({ sharedSettings: shared });
-    runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
-    runtime.dispatch("pointerMove", { point: new Vec2(2, 2), buttons: 1 });
-    runtime.dispatch("pointerUp", { point: new Vec2(2, 2), buttons: 0 });
-
-    const shape = Object.values(getDocument().shapes)[0];
-    expect(shape.style.stroke?.color).toBe("#00ff00");
-    expect(shape.style.stroke?.size).toBe(7);
-    expect(runtime.getSharedSettings().strokeWidth).toBe(7);
+    expect(shapeEntries[0].style.stroke?.compositeOp).toBe("destination-out");
   });
 
   test("deactivation clears drafts and prevents further commits", () => {

@@ -6,13 +6,13 @@ import { applyViewportToContext } from "./viewport";
 
 export interface HotLayerOptions {
   geometryHandlerRegistry?: ShapeHandlerRegistry;
-  background?: string;
+  backgroundColor?: string;
 }
 
 export class HotLayer {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly geometryHandlerRegistry?: ShapeHandlerRegistry;
-  private readonly background?: string;
+  private readonly backgroundColor?: string;
   private viewport: Viewport | null = null;
 
   constructor(
@@ -25,7 +25,7 @@ export class HotLayer {
     }
     this.ctx = ctx as CanvasRenderingContext2D;
     this.geometryHandlerRegistry = options.geometryHandlerRegistry;
-    this.background = options.background;
+    this.backgroundColor = options.backgroundColor;
   }
 
   setViewport(viewport: Viewport): void {
@@ -44,10 +44,10 @@ export class HotLayer {
     if (!shapes.length) {
       return;
     }
-    if (this.background) {
+    if (this.backgroundColor) {
       this.ctx.save();
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-      this.ctx.fillStyle = this.background;
+      this.ctx.fillStyle = this.backgroundColor;
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.ctx.restore();
     }

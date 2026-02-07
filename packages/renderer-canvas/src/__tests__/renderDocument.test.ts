@@ -13,12 +13,12 @@ function pixelAt(
 }
 
 describe("renderDocument", () => {
-  test("fills background when provided", () => {
+  test("leaves canvas transparent by default", () => {
     const canvas = createCanvas(20, 20);
     const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
     const registry = getDefaultShapeHandlerRegistry();
     const document = createDocument(undefined, registry);
-    renderDocument(ctx, document, { background: "#ff0000" });
-    expect(pixelAt(ctx, 10, 10)).toEqual([255, 0, 0, 255]);
+    renderDocument(ctx, document);
+    expect(pixelAt(ctx, 10, 10)).toEqual([0, 0, 0, 0]);
   });
 });

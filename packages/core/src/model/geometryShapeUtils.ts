@@ -10,7 +10,6 @@ import { Mat2d, Vec2 } from "gl-matrix";
 import type {
   AnyShape,
   CanonicalShapeTransform,
-  Shape,
   ShapeTransform,
 } from "./shape";
 import { normalizeShapeTransform } from "./shape";
@@ -93,17 +92,8 @@ export function getShapeBounds(
       max: toVec2Like(translation),
     };
   }
-  return applyStrokePadding(baseBounds, shape);
-}
-
-function applyStrokePadding(bounds: Box, shape: Shape): Box {
-  const strokeWidth = shape.style.stroke?.size ?? 0;
-  if (!strokeWidth) {
-    return bounds;
-  }
-  const padding = strokeWidth / 2;
-  return {
-    min: new Vec2().add(toVec2(bounds.min)).sub(new Vec2(padding)),
-    max: new Vec2().add(toVec2(bounds.max)).add(new Vec2(padding)),
+  return baseBounds ?? {
+    min: toVec2Like(transform.translation),
+    max: toVec2Like(transform.translation),
   };
 }

@@ -12,11 +12,22 @@ export async function renderDocumentToImage(
   document: DrawingDocument,
   width: number,
   height: number,
-  options?: RenderDocumentOptions,
+  options?: RenderDocumentOptions & { background?: string },
 ): Promise<Buffer> {
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
-  renderDocument(ctx as unknown as CanvasRenderingContext2D, document, options);
+  const background = options?.background;
+  if (background) {
+    const renderCtx = ctx as unknown as CanvasRenderingContext2D;
+    renderCtx.fillStyle = background;
+    renderCtx.fillRect(0, 0, width, height);
+  }
+  const { background: _bg, ...renderOptions } = options ?? {};
+  renderDocument(
+    ctx as unknown as CanvasRenderingContext2D,
+    document,
+    renderOptions,
+  );
   return canvas.toBuffer("image/png");
 }
 

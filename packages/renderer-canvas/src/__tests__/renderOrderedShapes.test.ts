@@ -39,11 +39,15 @@ describe("renderOrderedShapes", () => {
 
     const canvasA = createCanvas(20, 20);
     const ctxA = canvasA.getContext("2d") as unknown as CanvasRenderingContext2D;
-    renderOrderedShapes(ctxA, [red, blue], { background: "#ffffff" });
+    ctxA.fillStyle = "#ffffff";
+    ctxA.fillRect(0, 0, 20, 20);
+    renderOrderedShapes(ctxA, [red, blue]);
 
     const canvasB = createCanvas(20, 20);
     const ctxB = canvasB.getContext("2d") as unknown as CanvasRenderingContext2D;
-    renderOrderedShapes(ctxB, [blue, red], { background: "#ffffff" });
+    ctxB.fillStyle = "#ffffff";
+    ctxB.fillRect(0, 0, 20, 20);
+    renderOrderedShapes(ctxB, [blue, red]);
 
     expect(pixelAt(ctxA, 10, 10)).toEqual([21, 101, 192, 255]);
     expect(pixelAt(ctxB, 10, 10)).toEqual([198, 40, 40, 255]);

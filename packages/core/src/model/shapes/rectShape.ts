@@ -23,10 +23,11 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
   geometry: {
     getBounds(shape: RectShape) {
       const g = shape.geometry;
-      return BoxOperations.fromPointPair(
-        new Vec2(-getX(g.size), -getY(g.size)).div(new Vec2(2)),
-        new Vec2(getX(g.size), getY(g.size)).div(new Vec2(2)),
-      );
+      const halfSize = new Vec2(getX(g.size), getY(g.size)).div(new Vec2(2));
+      const padding = (shape.style?.stroke?.size ?? 0) / 2;
+      const min = new Vec2(-halfSize.x, -halfSize.y).sub(new Vec2(padding));
+      const max = new Vec2(halfSize.x, halfSize.y).add(new Vec2(padding));
+      return BoxOperations.fromPointPair(min, max);
     },
   },
   shape: {

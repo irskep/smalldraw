@@ -9,6 +9,7 @@ import {
 import { Vec2 } from "gl-matrix";
 import type { AnyShape, Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
+import { getPenStrokeBounds } from "../penStroke";
 import { getHitTestBounds } from "./hitTestUtils";
 
 export interface PenGeometry {
@@ -22,6 +23,7 @@ export type PenShape = Shape & { geometry: PenGeometry };
 export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
   geometry: {
     getBounds: (shape: PenShape) =>
+      getPenStrokeBounds(shape) ??
       BoxOperations.fromPointArray(shape.geometry.points),
     canonicalize(shape: PenShape, center) {
       return {
@@ -34,7 +36,9 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
   },
   shape: {
     hitTest(shape: PenShape, point: Vec2) {
-      const localBounds = BoxOperations.fromPointArray(shape.geometry.points);
+      const localBounds =
+        getPenStrokeBounds(shape) ??
+        BoxOperations.fromPointArray(shape.geometry.points);
       const bounds = getHitTestBounds(shape, localBounds);
       return new BoxOperations(bounds).containsPoint(point);
     },

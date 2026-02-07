@@ -8,6 +8,7 @@ import type {
 } from "@smalldraw/core";
 import {
   getGeometryLocalBounds,
+  getPenStrokeOutline,
   normalizeShapeTransform,
 } from "@smalldraw/core";
 import {
@@ -25,7 +26,7 @@ import { Vec2 } from "gl-matrix";
 import Konva from "konva";
 import type { PenShape } from "packages/core/src/model/shapes/penShape";
 import type { RectShape } from "packages/core/src/model/shapes/rectShape";
-import { createFreehandStroke } from "./stroke";
+import { outlineToPath } from "./stroke";
 
 type RenderableNode = Konva.Shape | Konva.Group;
 
@@ -126,23 +127,22 @@ function createPenNode(
 ): Konva.Path | null {
   const stroke = shape.style.stroke;
   const color = stroke?.color ?? "#000000";
-  const size = stroke?.size ?? 4;
   // Normalize through Vec2 to stabilize float precision for stroke generation.
   const points = shape.geometry.points.map((point) =>
     toVec2Like(toVec2(point)),
   );
-  const strokeResult = createFreehandStroke(points, {
-    size,
-    simulatePressure: !!shape.geometry.pressures,
-    smoothing: 0.6,
-    streamline: 0.4,
-    thinning: 0.6,
+  const outline = getPenStrokeOutline({
+    ...shape,
+    geometry: {
+      ...shape.geometry,
+      points,
+    },
   });
-  if (!strokeResult) {
+  if (!outline.length) {
     return null;
   }
   return new Konva.Path({
-    data: strokeResult.path,
+    data: outlineToPath(outline),
     fill: color,
     listening: false,
   });

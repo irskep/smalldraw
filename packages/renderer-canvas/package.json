@@ -12,8 +12,7 @@
     "test": "bun test --preload ./src/__tests__/setup.ts"
   },
   "dependencies": {
-    "@smalldraw/core": "workspace:*",
-    "perfect-freehand": "^1.2.1"
+    "@smalldraw/core": "workspace:*"
   },
   "devDependencies": {
     "@smalldraw/testing": "workspace:*",

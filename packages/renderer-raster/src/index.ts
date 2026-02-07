@@ -27,6 +27,7 @@ export interface TileRendererOptions<
 > {
   shapeHandlers?: ShapeHandlerRegistry;
   tileSize?: number;
+  backgroundColor?: string;
   baker?: TileBaker<TCanvas>;
   snapshotAdapter?: TileSnapshotAdapter<TCanvas, TSnapshot>;
   snapshotStore?: TileSnapshotStore<TSnapshot>;
@@ -65,6 +66,7 @@ export class TileRenderer<
   private baker?: TileBaker<TCanvas>;
   private snapshotAdapter?: TileSnapshotAdapter<TCanvas, TSnapshot>;
   private snapshotStore: TileSnapshotStore<TSnapshot>;
+  private backgroundColor?: string;
   private viewport: Box | null = null;
   private unsubscribe?: () => void;
   private visibleTiles = new Map<string, { coord: TileCoord; canvas: TCanvas }>();
@@ -84,6 +86,7 @@ export class TileRenderer<
     this.shapeHandlers =
       options.shapeHandlers ?? this.coreStore.getShapeHandlers();
     this.tileSize = options.tileSize ?? TILE_SIZE;
+    this.backgroundColor = options.backgroundColor;
     this.baker = options.baker;
     this.snapshotAdapter = options.snapshotAdapter;
     this.snapshotStore =
@@ -120,6 +123,13 @@ export class TileRenderer<
   }
 
   renderShapes(ctx: CanvasRenderingContext2D, shapes: Shape[]): void {
+    if (this.backgroundColor) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = this.backgroundColor;
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.restore();
+    }
     renderOrderedShapes(ctx, shapes, {
       geometryHandlerRegistry: this.shapeHandlers,
     });

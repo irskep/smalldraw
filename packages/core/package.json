@@ -18,6 +18,10 @@
     "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
     "@smalldraw/geometry": "workspace:",
     "jittered-fractional-indexing": "^1.0.0",
-    "nanoid": "^5.1.6"
+    "nanoid": "^5.1.6",
+    "perfect-freehand": "^1.2.1"
+  },
+  "devDependencies": {
+    "@smalldraw/testing": "workspace:*"
   }
 }

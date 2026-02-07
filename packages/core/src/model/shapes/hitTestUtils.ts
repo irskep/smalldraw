@@ -3,7 +3,6 @@ import {
   type Box,
   getX,
   getY,
-  toVec2,
   toVec2Like,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
@@ -30,17 +29,5 @@ export function getHitTestBounds(shape: Shape, localBounds: Box | null): Box {
     min: toVec2Like(transform.translation),
     max: toVec2Like(transform.translation),
   };
-  return applyStrokePadding(resolvedBounds, shape);
-}
-
-function applyStrokePadding(bounds: Box, shape: Shape): Box {
-  const strokeWidth = shape.style.stroke?.size ?? 0;
-  if (!strokeWidth) {
-    return bounds;
-  }
-  const padding = strokeWidth / 2;
-  return {
-    min: new Vec2().add(toVec2(bounds.min)).sub(new Vec2(padding)),
-    max: new Vec2().add(toVec2(bounds.max)).add(new Vec2(padding)),
-  };
+  return resolvedBounds;
 }

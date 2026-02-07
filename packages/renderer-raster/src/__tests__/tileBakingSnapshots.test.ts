@@ -8,7 +8,6 @@ import {
   type RectGeometry,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
-import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import { expectSnapshot } from "./snapshotUtils";
 import { TILE_SIZE, TileRenderer, tileKey } from "../index";
 
@@ -41,19 +40,15 @@ function createTileRenderer(shapesRef: { shapes: AnyShape[] }) {
   };
   const renderer = new TileRenderer<TileCanvas>(store, provider, {
     shapeHandlers: registry,
+    backgroundColor: "#ffffff",
     baker: {
       bakeTile: async (coord, canvas) => {
         const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.save();
         ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
-        renderOrderedShapes(ctx, shapesRef.shapes, {
-          clear: false,
-          geometryHandlerRegistry: registry,
-        });
+        renderer.renderShapes(ctx, shapesRef.shapes);
         ctx.restore();
       },
     },
@@ -199,6 +194,55 @@ describe("tile baking snapshots", () => {
       canvases,
       { x: 0, y: 0 },
       "tile-composite-stack",
+    );
+  });
+
+  test("bakes eraser strokes into tiles", async () => {
+    const shapesRef = {
+      shapes: [
+        {
+          id: "rect-1",
+          type: "rect",
+          zIndex: "a",
+          geometry: { type: "rect", size: v(220, 160) } as RectGeometry,
+          transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
+          style: {
+            fill: solidFill("#1976d2"),
+            stroke: { type: "brush", color: "#0d47a1", size: 6 },
+          },
+        } as AnyShape,
+        {
+          id: "eraser-1",
+          type: "pen",
+          zIndex: "b",
+          geometry: {
+            type: "pen",
+            points: [v(-90, -50), v(-20, 0), v(40, -20), v(90, 50)],
+            pressures: [1, 1, 1, 1],
+          } as PenGeometry,
+          transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
+          style: {
+            stroke: {
+              type: "brush",
+              color: "#ffffff",
+              size: 22,
+              compositeOp: "destination-out",
+            },
+          },
+        } as AnyShape,
+      ],
+    };
+    const { renderer, canvases } = createTileRenderer(shapesRef);
+    renderer.updateViewport(createViewport(1));
+    for (const shape of shapesRef.shapes) {
+      renderer.updateTouchedTilesForShape(shape);
+    }
+    renderer.scheduleBakeForShapes(["rect-1", "eraser-1"]);
+    await bakeAndSnapshot(
+      renderer,
+      canvases,
+      { x: 0, y: 0 },
+      "tile-eraser-stroke",
     );
   });
 });

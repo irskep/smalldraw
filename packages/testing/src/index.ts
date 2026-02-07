@@ -136,3 +136,5 @@ function isNodeErrorWithCode(
     typeof (error as { code?: unknown }).code === "string"
   );
 }
+
+export * from "./geometry";

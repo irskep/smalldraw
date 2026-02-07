@@ -148,4 +148,42 @@ describe("renderer-canvas snapshots", () => {
       200,
     );
   });
+
+  test("eraser stroke punches through filled shape", async () => {
+    await expectDocumentSnapshot(
+      "canvas-eraser-stroke",
+      [
+        {
+          id: "rect-base",
+          type: "rect",
+          zIndex: "a",
+          geometry: { type: "rect", size: v(180, 120) } as RectGeometry,
+          style: {
+            fill: { type: "solid", color: "#1976d2" },
+            stroke: { type: "brush", color: "#0d47a1", size: 6 },
+          },
+        },
+        {
+          id: "eraser-stroke",
+          type: "pen",
+          zIndex: "b",
+          geometry: {
+            type: "pen",
+            points: [v(-70, -40), v(-10, 0), v(40, -20), v(70, 40)],
+            pressures: [1, 1, 1, 1],
+          } as PenGeometry,
+          style: {
+            stroke: {
+              type: "brush",
+              color: "#ffffff",
+              size: 20,
+              compositeOp: "destination-out",
+            },
+          },
+        },
+      ],
+      260,
+      200,
+    );
+  });
 });

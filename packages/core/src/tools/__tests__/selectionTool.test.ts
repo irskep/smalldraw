@@ -11,6 +11,7 @@ import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
 import type { HandleBehavior } from "../types";
+import { getWorldPointsFromShape } from "@smalldraw/testing";
 
 type TestShapeInput =
   | (Omit<RectShape, "style"> & { style?: RectShape["style"] })
@@ -158,12 +159,22 @@ describe("selection tool", () => {
     const tool = createSelectionTool();
     tool.activate(runtime);
 
+    const before = docRef.current.shapes["pen-1"] as PenShape;
+    const beforeWorld = getWorldPointsFromShape(before);
+
     runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(15, 5), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(15, 5), buttons: 0 });
 
     const moved = docRef.current.shapes["pen-1"];
-    expect(moved?.transform?.translation).toEqual(v(20, 10));
+    const afterWorld = getWorldPointsFromShape(moved as PenShape);
+    expect(afterWorld).toHaveLength(beforeWorld.length);
+    for (let i = 0; i < beforeWorld.length; i += 1) {
+      const beforePoint = beforeWorld[i]!;
+      const afterPoint = afterWorld[i]!;
+      expect(afterPoint[0]).toBeCloseTo(beforePoint[0] + 15, 3);
+      expect(afterPoint[1]).toBeCloseTo(beforePoint[1] + 5, 3);
+    }
   });
 
   test("moves all selected shapes when dragging", () => {
@@ -203,6 +214,9 @@ describe("selection tool", () => {
     const tool = createSelectionTool();
     tool.activate(runtime);
 
+    const beforePen = docRef.current.shapes["pen-move"] as PenShape;
+    const beforeWorld = getWorldPointsFromShape(beforePen);
+
     runtime.dispatch("pointerDown", { point: new Vec2(15, 15), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(20, 20), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(20, 20), buttons: 0 });
@@ -210,9 +224,15 @@ describe("selection tool", () => {
     expect(docRef.current.shapes["rect-move"]?.transform?.translation).toEqual(
       v(20, 20),
     );
-    expect(docRef.current.shapes["pen-move"]?.transform?.translation).toEqual(
-      v(40, 15),
-    );
+    const movedPen = docRef.current.shapes["pen-move"] as PenShape;
+    const afterWorld = getWorldPointsFromShape(movedPen);
+    expect(afterWorld).toHaveLength(beforeWorld.length);
+    for (let i = 0; i < beforeWorld.length; i += 1) {
+      const beforePoint = beforeWorld[i]!;
+      const afterPoint = afterWorld[i]!;
+      expect(afterPoint[0]).toBeCloseTo(beforePoint[0] + 5, 3);
+      expect(afterPoint[1]).toBeCloseTo(beforePoint[1] + 5, 3);
+    }
   });
 
   test("emits selection frame updates during move and resize", () => {

@@ -14,6 +14,7 @@ import { createSelectionTool as createSelectionDefinition } from "../../tools/se
 import type { ToolDefinition } from "../../tools/types";
 import { getZIndexBetween } from "../../zindex";
 import { DrawingStore } from "../drawingStore";
+import { getWorldPointsFromShape } from "@smalldraw/testing";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
@@ -108,11 +109,14 @@ describe("DrawingStore", () => {
 
     const shapes = Object.values(store.getDocument().shapes) as PenShape[];
     expect(shapes).toHaveLength(1);
-    expect(shapes[0].geometry).toEqual({
-      type: "pen",
-      points: [v(-2.5, -2.5), v(2.5, 2.5)],
-    });
-    expect(shapes[0].transform?.translation).toEqual(v(2.5, 2.5));
+    const shape = shapes[0];
+    expect(shape.geometry.type).toBe("pen");
+    const worldPoints = getWorldPointsFromShape(shape);
+    expect(worldPoints).toHaveLength(2);
+    expect(worldPoints[0]?.[0]).toBeCloseTo(0, 3);
+    expect(worldPoints[0]?.[1]).toBeCloseTo(0, 3);
+    expect(worldPoints[1]?.[0]).toBeCloseTo(5, 3);
+    expect(worldPoints[1]?.[1]).toBeCloseTo(5, 3);
   });
 
   test("store aggregates drafts from multiple tools", () => {

@@ -1,5 +1,5 @@
 id: eraser-tool
-status: planned
+status: complete
 summary: Add an eraser tool that emits pen geometry with destination-out compositeOp.
 context:
   - The design treats eraser as a pen stroke with compositeOp destination-out.

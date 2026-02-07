@@ -16,11 +16,6 @@ export {
   defaultShapeRendererRegistry,
   renderShapeNode,
 } from "./shapes";
-export type { StrokePathOptions, StrokePolygonResult } from "./stroke";
-export {
-  createFreehandStroke,
-  flattenOutline,
-  outlineToPath,
-} from "./stroke";
+export { outlineToPath } from "./stroke";
 export type { Viewport } from "./viewport";
 export { applyViewportToStage, DEFAULT_BACKGROUND_COLOR } from "./viewport";
