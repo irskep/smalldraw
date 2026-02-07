@@ -1,5 +1,5 @@
 id: tile-visibility-lifecycle
-status: planned
+status: complete
 summary: Implement visible-tile calculation and lifecycle management.
 context:
   - The design depends on creating/destroying tile canvases as the viewport moves.
@@ -14,5 +14,6 @@ acceptance_criteria:
     - bun --filter @smalldraw/renderer-canvas-tiles test
     - bun --filter @smalldraw/renderer-canvas-tiles ts:check
     - bun --filter @smalldraw/renderer-canvas-tiles lint
+  - mise run validate:all
 notes:
   - Keep the calculation framework-agnostic and UI-independent.

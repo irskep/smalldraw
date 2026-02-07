@@ -1,5 +1,5 @@
 id: renderer-canvas-shapes
-status: planned
+status: complete
 summary: Implement canvas rendering for core shapes needed by the kids app.
 context:
   - The hot layer and tiles need a deterministic renderer for pen/rect (and minimal set for MVP).
@@ -14,5 +14,6 @@ acceptance_criteria:
     - bun --filter @smalldraw/renderer-canvas test
     - bun --filter @smalldraw/renderer-canvas ts:check
     - bun --filter @smalldraw/renderer-canvas lint
+  - mise run validate:all
 notes:
   - Use gl-matrix Vec2 methods for vector math.

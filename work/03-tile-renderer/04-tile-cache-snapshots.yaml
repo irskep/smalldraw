@@ -1,5 +1,5 @@
 id: tile-cache-snapshots
-status: planned
+status: complete
 summary: Add local-only tile cache snapshots for fast reuse within a session.
 context:
   - The design calls for a tile cache derived from the document, not synchronized.
@@ -14,5 +14,6 @@ acceptance_criteria:
     - bun --filter @smalldraw/renderer-canvas-tiles test
     - bun --filter @smalldraw/renderer-canvas-tiles ts:check
     - bun --filter @smalldraw/renderer-canvas-tiles lint
+  - mise run validate:all
 notes:
   - Persistent storage is out of scope; local-only is sufficient.

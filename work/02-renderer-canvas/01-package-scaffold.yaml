@@ -1,5 +1,5 @@
 id: renderer-canvas-scaffold
-status: planned
+status: complete
 summary: Create packages/renderer-canvas with a minimal API and test harness.
 context:
   - The design requires direct CanvasRenderingContext2D rendering without Konva.
@@ -15,6 +15,7 @@ acceptance_criteria:
     - bun --filter @smalldraw/renderer-canvas test
     - bun --filter @smalldraw/renderer-canvas ts:check
     - bun --filter @smalldraw/renderer-canvas lint
+  - mise run validate:all
 notes:
   - Rendering accepts a pre-existing canvas context.
   - Keep APIs minimal and UI-agnostic.

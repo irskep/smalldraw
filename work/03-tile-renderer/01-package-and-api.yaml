@@ -1,5 +1,5 @@
 id: tile-renderer-package
-status: planned
+status: complete
 summary: Create a frameworkless tile-renderer package and finalize tile size.
 context:
   - The design requires a hot layer plus a world-space tile cache with local invalidation.
@@ -17,5 +17,6 @@ acceptance_criteria:
     - bun --filter @smalldraw/renderer-canvas-tiles test
     - bun --filter @smalldraw/renderer-canvas-tiles ts:check
     - bun --filter @smalldraw/renderer-canvas-tiles lint
+  - mise run validate:all
 notes:
   - The tile provider should accept pre-existing canvas elements.

@@ -18,5 +18,6 @@ acceptance_criteria:
     - bun --filter @smalldraw/core ts:check
     - bun --filter @smalldraw/renderer-canvas lint
     - bun --filter @smalldraw/renderer-canvas-tiles lint
+  - mise run validate:all
 notes:
   - Keep the smoke test minimal to avoid flakiness.

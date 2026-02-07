@@ -17,5 +17,6 @@ acceptance_criteria:
     - bun --filter @smalldraw/ui-vanillajs ts:check
     - bun --filter demo-ui-vanillajs ts:check
     - bun --filter @smalldraw/ui-vanillajs lint
+  - mise run validate:all
 notes:
   - No UI behavior changes required; this is a regression check.

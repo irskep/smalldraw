@@ -18,5 +18,6 @@ acceptance_criteria:
     - bun --filter @smalldraw/core ts:check
     - bun --filter @smalldraw/renderer-canvas-tiles lint
     - bun --filter @smalldraw/core lint
+  - mise run validate:all
 notes:
   - Keep the API frameworkless.

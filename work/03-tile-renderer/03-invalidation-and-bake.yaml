@@ -1,5 +1,5 @@
 id: tile-invalidation-bake
-status: planned
+status: complete
 summary: Implement touched-tiles invalidation and async tile baking pipeline.
 context:
   - The design uses local per-shape touched-tiles to ensure tiles are rebuilt when shapes move.
@@ -7,12 +7,13 @@ context:
 prerequisites:
   - work/03-tile-renderer/02-visibility-and-lifecycle.yaml
 acceptance_criteria:
-  - Shapes track touched tiles since last successful bake (local only).
+  - Tile renderer tracks touched tiles since last successful bake (local only).
   - On commit, affected visible tiles are scheduled to rebuild.
   - Tests cover shapes moving across tiles and leaving stale tiles behind.
   - All tests/typecheck/lint pass:
     - bun --filter @smalldraw/renderer-canvas-tiles test
     - bun --filter @smalldraw/renderer-canvas-tiles ts:check
     - bun --filter @smalldraw/renderer-canvas-tiles lint
+  - mise run validate:all
 notes:
   - Baking uses renderer-canvas document helpers.

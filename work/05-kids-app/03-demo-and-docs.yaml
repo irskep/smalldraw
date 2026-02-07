@@ -13,5 +13,6 @@ acceptance_criteria:
     - bun --filter kids-app test
     - bun --filter kids-app ts:check
     - bun --filter kids-app lint
+  - mise run validate:all
 notes:
   - Keep docs minimal and focused on running the demo.

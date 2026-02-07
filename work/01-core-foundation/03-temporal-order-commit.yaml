@@ -1,5 +1,5 @@
 id: temporal-order-commit
-status: planned
+status: complete
 summary: Assign temporalOrder on shape commit and validate undo/redo behavior.
 context:
   - Tile cache invalidation relies on stable commit order separate from z-index.
@@ -15,5 +15,6 @@ acceptance_criteria:
     - bun --filter @smalldraw/core test
     - bun --filter @smalldraw/core ts:check
     - bun --filter @smalldraw/core lint
+  - mise run validate:all
 notes:
   - Use core actions/UndoManager as the integration point, not UI code.

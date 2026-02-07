@@ -14,5 +14,6 @@ acceptance_criteria:
     - bun --filter @smalldraw/core test
     - bun --filter @smalldraw/core ts:check
     - bun --filter @smalldraw/core lint
+  - mise run validate:all
 notes:
   - Do not remove selection or other tools.

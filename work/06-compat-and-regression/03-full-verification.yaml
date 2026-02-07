@@ -12,5 +12,6 @@ acceptance_criteria:
     - mise run test:all
     - mise run ts:check:all
     - mise run lint:all
+  - mise run validate:all
 notes:
   - This task is documentation + verification only.
