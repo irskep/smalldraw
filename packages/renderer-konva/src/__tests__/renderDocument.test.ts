@@ -45,8 +45,10 @@ describe("renderer snapshots", () => {
         type: "rect",
         zIndex: "a",
         geometry: { type: "rect", size: v(80, 60) } as RectGeometry,
-        fill: { type: "solid", color: "#2E7D32" },
-        stroke: { type: "brush", color: "#0D47A1", size: 4 },
+        style: {
+          fill: { type: "solid", color: "#2E7D32" },
+          stroke: { type: "brush", color: "#0D47A1", size: 4 },
+        },
         transform: { translation: v(-15, 0) },
       },
     ]);
@@ -72,7 +74,7 @@ describe("renderer snapshots", () => {
             ],
             pressures: [1, 1, 1, 1, 1, 1],
           } as PenGeometry,
-          stroke: { type: "brush", color: "#e65100", size: 10 },
+          style: { stroke: { type: "brush", color: "#e65100", size: 10 } },
         },
         {
           id: "polyline-stroke",
@@ -83,7 +85,7 @@ describe("renderer snapshots", () => {
             points: [v(-80, 40), v(-20, 20), v(0, 50), v(60, 40)],
             pressures: [1, 1, 1, 1],
           } as PenGeometry,
-          stroke: { type: "brush", color: "#1e88e5", size: 4 },
+          style: { stroke: { type: "brush", color: "#1e88e5", size: 4 } },
         },
       ],
       {
@@ -105,8 +107,10 @@ describe("renderer snapshots", () => {
           type: "rect",
           zIndex: "a",
           geometry: { type: "rect", size: v(80, 40) } as RectGeometry,
-          fill: { type: "solid", color: "#26c6da" },
-          stroke: { type: "brush", color: "#00838f", size: 3 },
+          style: {
+            fill: { type: "solid", color: "#26c6da" },
+            stroke: { type: "brush", color: "#00838f", size: 3 },
+          },
           transform: {
             translation: v(-20, -10),
             rotation: Math.PI / 4,

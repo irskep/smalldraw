@@ -32,7 +32,7 @@ function createTestShape(id: string, x = 50, y = 50): RectShape {
     id,
     type: "rect",
     geometry: { type: "rect", size: v(40, 30) },
-    fill: { type: "solid", color: "#ff0000" },
+    style: { fill: { type: "solid", color: "#ff0000" } },
     zIndex: `a-${id}`,
     transform: {
       translation: v(x, y),

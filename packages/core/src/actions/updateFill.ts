@@ -15,7 +15,9 @@ export class UpdateShapeFill implements UndoableAction {
   redo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
-      this.previous = shape.fill ? stripUndefined(shape.fill) : undefined;
+      this.previous = shape.style.fill
+        ? stripUndefined(shape.style.fill)
+        : undefined;
       this.recorded = true;
     }
     return ctx.change(doc, (draft) => {
@@ -24,9 +26,9 @@ export class UpdateShapeFill implements UndoableAction {
         throw new Error(`Cannot update fill for missing shape ${this.shapeId}`);
       }
       if (this.nextFill === undefined) {
-        delete target.fill;
+        delete target.style.fill;
       } else {
-        target.fill = stripUndefined(this.nextFill);
+        target.style.fill = stripUndefined(this.nextFill);
       }
     });
   }
@@ -44,9 +46,9 @@ export class UpdateShapeFill implements UndoableAction {
         );
       }
       if (this.previous === undefined) {
-        delete target.fill;
+        delete target.style.fill;
       } else {
-        target.fill = this.previous;
+        target.style.fill = this.previous;
       }
     });
   }

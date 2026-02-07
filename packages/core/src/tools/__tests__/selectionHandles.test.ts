@@ -31,6 +31,7 @@ describe("resolveSelectionHandlePoint", () => {
       id: "shape-1",
       type: "custom",
       geometry: { type: "custom" },
+      style: {},
       zIndex: "z",
       transform: {
         translation: v(100, 100),
@@ -60,6 +61,7 @@ describe("resolveSelectionHandlePoint", () => {
       id: "shape-2",
       type: "custom",
       geometry: { type: "custom" },
+      style: {},
       zIndex: "z",
       transform: {
         translation: v(100, 100),

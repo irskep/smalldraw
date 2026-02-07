@@ -11,7 +11,6 @@ import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-index
 import { createAutomergeStoreAdapter } from "./automerge/storeAdapter";
 import type { DrawingDocumentData } from "./model/document";
 import { getDefaultShapeHandlerRegistry } from "./model/shapeHandlers";
-import type { ShapeHandlerRegistry } from "./model/shapeHandlers";
 import type { DrawingStoreAdapter } from "./store/drawingStore";
 
 export interface SmalldrawCoreOptions {

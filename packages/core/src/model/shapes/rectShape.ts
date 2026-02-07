@@ -46,7 +46,7 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
         getX(shape.geometry.size),
         getY(shape.geometry.size),
       ).div(new Vec2(2));
-      const padding = (shape.stroke?.size ?? 0) / 2;
+      const padding = (shape.style.stroke?.size ?? 0) / 2;
       const min = new Vec2(-halfSize.x - padding, -halfSize.y - padding);
       const max = new Vec2(halfSize.x + padding, halfSize.y + padding);
       return new BoxOperations({ min, max }).containsPoint(localPoint);

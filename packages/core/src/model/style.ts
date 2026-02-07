@@ -25,3 +25,9 @@ export interface BrushStyle {
 }
 
 export type StrokeStyle = BrushStyle;
+
+export interface ShapeStyle {
+  fill?: Fill;
+  stroke?: StrokeStyle;
+  opacity?: number;
+}

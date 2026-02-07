@@ -12,6 +12,7 @@ describe("UpdateShapeTransform action", () => {
     id: "shape-1",
     type: "rect",
     geometry: { type: "rect", size: v(10) },
+    style: {},
     zIndex: "a",
     transform: {
       translation: v(0),

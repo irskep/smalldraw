@@ -8,7 +8,7 @@ import {
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
-import type { Fill, StrokeStyle } from "./style";
+import type { ShapeStyle } from "./style";
 
 export interface CanonicalShapeTransform {
   translation: Vec2Tuple;
@@ -40,9 +40,7 @@ export interface ShapeTransform {
 export interface Shape {
   id: string;
   type: string;
-  fill?: Fill;
-  stroke?: StrokeStyle;
-  opacity?: number;
+  style: ShapeStyle;
   zIndex: string;
   interactions?: ShapeInteractions;
   transform?: ShapeTransform;

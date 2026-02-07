@@ -34,7 +34,7 @@ function createDraftTool(): ToolDefinition {
           type: "rect",
           geometry,
           zIndex: runtime.getNextZIndex(),
-          fill: { type: "solid", color: "#ff0000" },
+          style: { fill: { type: "solid", color: "#ff0000" } },
           transform: {
             translation: toVec2Like(event.point),
             scale: v(1, 1),
@@ -190,6 +190,7 @@ describe("DrawingStore", () => {
           id: "rect-frame",
           type: "rect",
           geometry: { type: "rect", size: v(10, 10) },
+          style: {},
           zIndex: "frame",
           interactions: { resizable: true, rotatable: true },
           transform: {
@@ -224,6 +225,7 @@ describe("DrawingStore", () => {
           id: "rect",
           type: "rect",
           geometry: { type: "rect", size: v(10, 10) },
+          style: {},
           zIndex: "a",
           interactions: { resizable: true, rotatable: true },
           transform: {
@@ -304,7 +306,7 @@ describe("DrawingStore", () => {
       id,
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
-      fill: { type: "solid", color: "#ffffff" },
+      style: { fill: { type: "solid", color: "#ffffff" } },
       zIndex,
       transform: { translation: v(0, 0), scale: v(1, 1), rotation: 0 },
     });

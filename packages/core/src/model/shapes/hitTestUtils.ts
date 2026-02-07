@@ -34,7 +34,7 @@ export function getHitTestBounds(shape: Shape, localBounds: Box | null): Box {
 }
 
 function applyStrokePadding(bounds: Box, shape: Shape): Box {
-  const strokeWidth = shape.stroke?.size ?? 0;
+  const strokeWidth = shape.style.stroke?.size ?? 0;
   if (!strokeWidth) {
     return bounds;
   }

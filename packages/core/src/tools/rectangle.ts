@@ -120,8 +120,10 @@ export function createRectangleTool(
       id: state.draft.id,
       type: "rect",
       geometry,
-      stroke: state.draft.stroke,
-      fill: state.draft.fill,
+      style: {
+        stroke: state.draft.stroke,
+        fill: state.draft.fill,
+      },
       zIndex: state.draft.zIndex,
       interactions: {
         resizable: true,
@@ -157,8 +159,10 @@ export function createRectangleTool(
         type: "rect",
         size: toVec2Like(size),
       },
-      stroke: state.draft.stroke,
-      fill: state.draft.fill,
+      style: {
+        stroke: state.draft.stroke,
+        fill: state.draft.fill,
+      },
       zIndex: state.draft.zIndex,
       interactions: {
         resizable: true,

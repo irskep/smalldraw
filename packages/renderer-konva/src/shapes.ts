@@ -97,7 +97,7 @@ function createContainerForShape(shape: Shape): Konva.Group {
     offsetX: getX(transform.origin),
     offsetY: getY(transform.origin),
     listening: false,
-    opacity: shape.opacity ?? 1,
+    opacity: shape.style.opacity ?? 1,
   });
   return group;
 }
@@ -120,7 +120,7 @@ function createPenNode(
   shape: PenShape,
   _geometryRegistry?: ShapeHandlerRegistry,
 ): Konva.Path | null {
-  const stroke = shape.stroke;
+  const stroke = shape.style.stroke;
   const color = stroke?.color ?? "#000000";
   const size = stroke?.size ?? 4;
   // Normalize through Vec2 to stabilize float precision for stroke generation.
@@ -151,7 +151,7 @@ function buildShapeVisualConfig(
   const config: Konva.ShapeConfig = {
     listening: false,
   };
-  applyStrokeConfig(config, shape.stroke);
+  applyStrokeConfig(config, shape.style.stroke);
   applyFillConfig(config, shape, geometryRegistry);
   return config;
 }
@@ -174,7 +174,7 @@ function applyFillConfig(
   shape: AnyShape,
   geometryRegistry?: ShapeHandlerRegistry,
 ): void {
-  const fill = shape.fill;
+  const fill = shape.style.fill;
   if (!fill) {
     return;
   }

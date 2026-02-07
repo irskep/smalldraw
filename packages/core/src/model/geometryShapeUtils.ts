@@ -97,7 +97,7 @@ export function getShapeBounds(
 }
 
 function applyStrokePadding(bounds: Box, shape: Shape): Box {
-  const strokeWidth = shape.stroke?.size ?? 0;
+  const strokeWidth = shape.style.stroke?.size ?? 0;
   if (!strokeWidth) {
     return bounds;
   }

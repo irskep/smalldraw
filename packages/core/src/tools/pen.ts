@@ -205,7 +205,9 @@ const createStrokeShape = (draft: StrokeDraftState): PenShape | undefined => {
       points: localPoints,
       ...(draft.geometry.pressures && { pressures: draft.geometry.pressures }),
     },
-    stroke: draft.stroke,
+    style: {
+      stroke: draft.stroke,
+    },
     zIndex: draft.zIndex,
     interactions: {
       resizable: true,

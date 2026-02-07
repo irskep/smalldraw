@@ -64,12 +64,12 @@ describe("rectangle tool", () => {
     runtime.dispatch("pointerUp", { point: new Vec2(10, 10), buttons: 0 });
 
     const shape = Object.values(getDocument().shapes)[0];
-    expect(shape.fill?.type).toBe("solid");
-    if (shape.fill?.type === "solid") {
-      expect(shape.fill.color).toBe("#abcdef");
+    expect(shape.style.fill?.type).toBe("solid");
+    if (shape.style.fill?.type === "solid") {
+      expect(shape.style.fill.color).toBe("#abcdef");
     }
-    expect(shape.stroke?.color).toBe("#111111");
-    expect(shape.stroke?.size).toBe(4);
+    expect(shape.style.stroke?.color).toBe("#111111");
+    expect(shape.style.stroke?.size).toBe(4);
   });
 
   test("does not reuse an existing shape id", () => {
@@ -80,7 +80,7 @@ describe("rectangle tool", () => {
         id: existingShapeId,
         type: "rect",
         geometry: { type: "rect", size: [10, 10] } as RectGeometry,
-        fill: { type: "solid", color: "#ffffff" },
+        style: { fill: { type: "solid", color: "#ffffff" } },
         zIndex: "a0",
         transform: { translation: [0, 0], scale: [1, 1], rotation: 0 },
       }),

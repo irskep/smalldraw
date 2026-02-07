@@ -24,8 +24,10 @@ function baseShape(id: string): RectShape {
       type: "rect",
       size: [10, 10],
     },
-    fill: { type: "solid", color: "#000000" },
-    stroke: { type: "brush", color: "#ffffff", size: 2 },
+    style: {
+      fill: { type: "solid", color: "#000000" },
+      stroke: { type: "brush", color: "#ffffff", size: 2 },
+    },
   };
 }
 
@@ -51,16 +53,16 @@ describe("Fill and stroke actions", () => {
     };
 
     doc = undo.apply(new UpdateShapeFill(shape.id, gradientFill), doc, ctx);
-    expect(doc.shapes[shape.id]?.fill).toBeDefined();
-    expect(doc.shapes[shape.id]!.fill).toMatchObject(gradientFill);
+    expect(doc.shapes[shape.id]?.style.fill).toBeDefined();
+    expect(doc.shapes[shape.id]!.style.fill).toMatchObject(gradientFill);
 
     doc = undo.undo(doc, ctx).doc;
-    expect(doc.shapes[shape.id]?.fill).toBeDefined();
-    expect(doc.shapes[shape.id]!.fill).toMatchObject(shape.fill!);
+    expect(doc.shapes[shape.id]?.style.fill).toBeDefined();
+    expect(doc.shapes[shape.id]!.style.fill).toMatchObject(shape.style.fill!);
 
     doc = undo.redo(doc, ctx).doc;
-    expect(doc.shapes[shape.id]?.fill).toBeDefined();
-    expect(doc.shapes[shape.id]!.fill).toMatchObject(gradientFill);
+    expect(doc.shapes[shape.id]?.style.fill).toBeDefined();
+    expect(doc.shapes[shape.id]!.style.fill).toMatchObject(gradientFill);
   });
 
   test("stroke updates can remove or replace the style", () => {
@@ -82,18 +84,18 @@ describe("Fill and stroke actions", () => {
     };
 
     doc = undo.apply(new UpdateShapeStroke(shape.id, newStroke), doc, ctx);
-    expect(doc.shapes[shape.id]?.stroke).toBeDefined();
-    expect(doc.shapes[shape.id]!.stroke).toMatchObject(newStroke);
+    expect(doc.shapes[shape.id]?.style.stroke).toBeDefined();
+    expect(doc.shapes[shape.id]!.style.stroke).toMatchObject(newStroke);
 
     doc = undo.apply(new UpdateShapeStroke(shape.id, undefined), doc, ctx);
-    expect(doc.shapes[shape.id]?.stroke).toBeUndefined();
+    expect(doc.shapes[shape.id]?.style.stroke).toBeUndefined();
 
     doc = undo.undo(doc, ctx).doc;
-    expect(doc.shapes[shape.id]?.stroke).toBeDefined();
-    expect(doc.shapes[shape.id]!.stroke).toMatchObject(newStroke);
+    expect(doc.shapes[shape.id]?.style.stroke).toBeDefined();
+    expect(doc.shapes[shape.id]!.style.stroke).toMatchObject(newStroke);
     doc = undo.undo(doc, ctx).doc;
-    expect(doc.shapes[shape.id]?.stroke).toBeDefined();
-    expect(doc.shapes[shape.id]!.stroke).toMatchObject(shape.stroke!);
+    expect(doc.shapes[shape.id]?.style.stroke).toBeDefined();
+    expect(doc.shapes[shape.id]!.style.stroke).toMatchObject(shape.style.stroke!);
   });
 });
 
@@ -136,20 +138,20 @@ describe("Opacity actions", () => {
       change: (next, update) => change(next, update),
     };
     const shape = baseShape("opacity");
-    shape.opacity = 0.8;
+    shape.style.opacity = 0.8;
     doc = undo.apply(new AddShape(shape), doc, ctx);
 
     doc = undo.apply(new UpdateShapeOpacity(shape.id, 0.5), doc, ctx);
-    expect(doc.shapes[shape.id]?.opacity).toBe(0.5);
+    expect(doc.shapes[shape.id]?.style.opacity).toBe(0.5);
 
     doc = undo.apply(new UpdateShapeOpacity(shape.id, undefined), doc, ctx);
-    expect(doc.shapes[shape.id]?.opacity).toBeUndefined();
+    expect(doc.shapes[shape.id]?.style.opacity).toBeUndefined();
 
     doc = undo.undo(doc, ctx).doc;
-    expect(doc.shapes[shape.id]?.opacity).toBe(0.5);
+    expect(doc.shapes[shape.id]?.style.opacity).toBe(0.5);
     doc = undo.undo(doc, ctx).doc;
-    expect(doc.shapes[shape.id]?.opacity).toBe(0.8);
+    expect(doc.shapes[shape.id]?.style.opacity).toBe(0.8);
     doc = undo.redo(doc, ctx).doc;
-    expect(doc.shapes[shape.id]?.opacity).toBe(0.5);
+    expect(doc.shapes[shape.id]?.style.opacity).toBe(0.5);
   });
 });

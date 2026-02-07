@@ -14,7 +14,7 @@ const rectangle: RectShape = {
     type: "rect",
     size: [100, 50],
   },
-  fill: { type: "solid", color: "#ff0000" },
+  style: { fill: { type: "solid", color: "#ff0000" } },
   zIndex: "a0",
   transform: {
     translation: [0, 0],

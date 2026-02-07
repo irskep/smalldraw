@@ -13,6 +13,7 @@ describe("geometry bounds helpers", () => {
       id: "rect",
       type: "rect",
       geometry: { type: "rect", size: v(20, 10) },
+      style: {},
       interactions: { resizable: true, rotatable: true },
       transform: {
         translation: v(0, 0),
@@ -39,6 +40,7 @@ describe("geometry bounds helpers", () => {
         type: "pen",
         points: [v(-2, -1), v(3, 4)],
       },
+      style: {},
       transform: {
         translation: v(5, -5),
         rotation: 0,
@@ -59,7 +61,7 @@ describe("geometry bounds helpers", () => {
       id: "stroked",
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
-      stroke: { type: "brush", color: "#000", size: 4 },
+      style: { stroke: { type: "brush", color: "#000", size: 4 } },
       transform: {
         translation: v(0, 0),
         rotation: 0,

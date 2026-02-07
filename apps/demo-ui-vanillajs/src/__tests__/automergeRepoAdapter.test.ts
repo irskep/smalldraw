@@ -24,7 +24,7 @@ function createTestShape(id: string) {
     id,
     type: "rect" as const,
     geometry: { type: "rect" as const, size: v(100, 50) },
-    fill: { type: "solid" as const, color: "#ff0000" },
+    style: { fill: { type: "solid" as const, color: "#ff0000" } },
     zIndex: "a0",
     transform: {
       translation: v(0, 0),

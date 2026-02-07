@@ -74,6 +74,7 @@ describe("ToolRuntimeImpl", () => {
       id: "draft-1",
       type: "pen",
       geometry,
+      style: {},
       zIndex: "a",
     });
     expect(runtime.getDraft()?.id).toBe("draft-1");
@@ -92,6 +93,7 @@ describe("ToolRuntimeImpl", () => {
         type: "rect",
         size: [10, 10],
       },
+      style: {},
       zIndex: "a",
       transform: {
         translation: [0, 0],
@@ -118,6 +120,7 @@ describe("ToolRuntimeImpl", () => {
             type: "rect",
             size: [10, 10],
           },
+          style: {},
           zIndex,
           transform: {
             translation: [0, 0],

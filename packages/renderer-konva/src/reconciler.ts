@@ -138,7 +138,7 @@ export class KonvaReconciler {
     this.applyTransform(group, shape.transform);
 
     // Update opacity
-    group.opacity(shape.opacity ?? 1);
+    group.opacity(shape.style.opacity ?? 1);
 
     // For simplicity, rebuild geometry children
     // A more sophisticated approach could diff geometry properties

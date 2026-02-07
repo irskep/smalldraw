@@ -89,7 +89,7 @@ describe("pen tool integration with runtime", () => {
 
     const shapeEntries = Object.values(getDocument().shapes);
     expect(shapeEntries).toHaveLength(1);
-    expect(shapeEntries[0].stroke?.color).toBe("#ff00ff");
+    expect(shapeEntries[0].style.stroke?.color).toBe("#ff00ff");
   });
 
   test("falls back to shared settings for stroke defaults", () => {
@@ -104,8 +104,8 @@ describe("pen tool integration with runtime", () => {
     runtime.dispatch("pointerUp", { point: new Vec2(2, 2), buttons: 0 });
 
     const shape = Object.values(getDocument().shapes)[0];
-    expect(shape.stroke?.color).toBe("#00ff00");
-    expect(shape.stroke?.size).toBe(7);
+    expect(shape.style.stroke?.color).toBe("#00ff00");
+    expect(shape.style.stroke?.size).toBe(7);
     expect(runtime.getSharedSettings().strokeWidth).toBe(7);
   });
 

@@ -17,6 +17,7 @@ describe("Automerge JSON adapter", () => {
         id: "rect-1",
         type: "rect",
         geometry: { type: "rect", size: v(10, 20) },
+        style: {},
         zIndex: "a0",
         transform: {
           translation: v(5, 5),
@@ -31,6 +32,7 @@ describe("Automerge JSON adapter", () => {
           type: "pen",
           points: [v(0, 0), v(10, 5)],
         },
+        style: {},
         zIndex: "a1",
         transform: {
           translation: v(2, 3),
@@ -58,6 +60,7 @@ describe("Automerge JSON adapter", () => {
           id: "custom-1",
           type: "custom",
           geometry: { type: "custom" } as AnyGeometry,
+          style: {},
           zIndex: "a0",
           transform: {
             translation: v(0, 0),

@@ -14,7 +14,7 @@ export class UpdateShapeOpacity implements UndoableAction {
   redo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
-      this.previous = shape.opacity;
+      this.previous = shape.style.opacity;
       this.recorded = true;
     }
     return ctx.change(doc, (draft) => {
@@ -25,9 +25,9 @@ export class UpdateShapeOpacity implements UndoableAction {
         );
       }
       if (this.nextOpacity === undefined) {
-        delete target.opacity;
+        delete target.style.opacity;
       } else {
-        target.opacity = this.nextOpacity;
+        target.style.opacity = this.nextOpacity;
       }
     });
   }
@@ -45,9 +45,9 @@ export class UpdateShapeOpacity implements UndoableAction {
         );
       }
       if (this.previous === undefined) {
-        delete target.opacity;
+        delete target.style.opacity;
       } else {
-        target.opacity = this.previous;
+        target.style.opacity = this.previous;
       }
     });
   }

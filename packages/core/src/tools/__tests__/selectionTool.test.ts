@@ -12,14 +12,21 @@ import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
 import type { HandleBehavior } from "../types";
 
-// Union type for all shapes used in tests
+type TestShapeInput =
+  | (Omit<RectShape, "style"> & { style?: RectShape["style"] })
+  | (Omit<PenShape, "style"> & { style?: PenShape["style"] });
+
 type TestShape = RectShape | PenShape;
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
-function setupDoc(shapes: TestShape[]) {
+function setupDoc(shapes: TestShapeInput[]) {
   const registry = getDefaultShapeHandlerRegistry();
-  const docRef = { current: createDocument(shapes, registry) };
+  const withStyle = (shape: TestShapeInput): TestShape => ({
+    ...shape,
+    style: shape.style ?? {},
+  });
+  const docRef = { current: createDocument(shapes.map(withStyle), registry) };
   return { docRef, registry };
 }
 
@@ -46,7 +53,7 @@ function createRuntime(
 
 describe("selection tool", () => {
   test("emits handle descriptors on activation", () => {
-    const rectShape: RectShape = {
+    const rectShape: TestShapeInput = {
       id: "rect-handle",
       type: "rect",
       geometry: {
@@ -73,7 +80,7 @@ describe("selection tool", () => {
   });
 
   test("hover events describe handle behavior with modifiers", () => {
-    const rectShape: RectShape = {
+    const rectShape: TestShapeInput = {
       id: "rect-hover",
       type: "rect",
       geometry: {
@@ -126,7 +133,7 @@ describe("selection tool", () => {
   });
 
   test("moves selected pen shape by dragging", () => {
-    const penShape: PenShape = {
+    const penShape: TestShapeInput = {
       id: "pen-1",
       type: "pen",
       geometry: {
@@ -134,7 +141,7 @@ describe("selection tool", () => {
         points: [v(-5, -5), v(5, 5)],
       },
       zIndex: "a",
-      stroke: { type: "brush", color: "#000", size: 2 },
+      style: { stroke: { type: "brush", color: "#000", size: 2 } },
       interactions: { resizable: true, rotatable: false },
       transform: {
         translation: v(5, 5),
@@ -160,7 +167,7 @@ describe("selection tool", () => {
   });
 
   test("moves all selected shapes when dragging", () => {
-    const rect: RectShape = {
+    const rect: TestShapeInput = {
       id: "rect-move",
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
@@ -172,7 +179,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const pen: PenShape = {
+    const pen: TestShapeInput = {
       id: "pen-move",
       type: "pen",
       geometry: {
@@ -209,7 +216,7 @@ describe("selection tool", () => {
   });
 
   test("emits selection frame updates during move and resize", () => {
-    const rect: RectShape = {
+    const rect: TestShapeInput = {
       id: "rect-frame",
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
@@ -268,7 +275,7 @@ describe("selection tool", () => {
   });
 
   test("resizes rectangle using corner handle", () => {
-    const rectShape: RectShape = {
+    const rectShape: TestShapeInput = {
       id: "rect-1",
       type: "rect",
       geometry: {
@@ -321,6 +328,7 @@ describe("selection tool", () => {
       id: "rot-rect",
       type: "rect",
       geometry: { type: "rect", size: v(20, 10) },
+      style: {},
       zIndex: "rot",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -397,6 +405,7 @@ describe("selection tool", () => {
       id: "rot-rect-scale",
       type: "rect",
       geometry: { type: "rect", size: v(24, 12) },
+      style: {},
       zIndex: "rot-scale",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -473,6 +482,7 @@ describe("selection tool", () => {
       id: "axis-rect",
       type: "rect",
       geometry: { type: "rect", size: v(20, 10) },
+      style: {},
       zIndex: "axis-rect",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -542,7 +552,7 @@ describe("selection tool", () => {
   });
 
   test("axis resize keeps opposite edge fixed on unrotated rectangle", () => {
-    const rectShape: RectShape = {
+    const rectShape: TestShapeInput = {
       id: "axis-rect-0",
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
@@ -589,7 +599,7 @@ describe("selection tool", () => {
   });
 
   test("axis resize from left handle keeps right edge fixed", () => {
-    const rectShape: RectShape = {
+    const rectShape: TestShapeInput = {
       id: "axis-rect-left",
       type: "rect",
       geometry: { type: "rect", size: v(20, 10) },
@@ -636,7 +646,7 @@ describe("selection tool", () => {
   });
 
   test("axis resize from top handle keeps bottom edge fixed", () => {
-    const rectShape: RectShape = {
+    const rectShape: TestShapeInput = {
       id: "axis-rect-top",
       type: "rect",
       geometry: { type: "rect", size: v(12, 10) },
@@ -683,7 +693,7 @@ describe("selection tool", () => {
   });
 
   test("non-resizable shapes keep relative position during resize", () => {
-    const rect: RectShape = {
+    const rect: TestShapeInput = {
       id: "rect-relative",
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
@@ -695,7 +705,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const pen: PenShape = {
+    const pen: TestShapeInput = {
       id: "pen-relative",
       type: "pen",
       geometry: {
@@ -741,7 +751,7 @@ describe("selection tool", () => {
   });
 
   test("resizes pen stroke updates transform scale", () => {
-    const penShape: PenShape = {
+    const penShape: TestShapeInput = {
       id: "pen-scale",
       type: "pen",
       geometry: {
@@ -791,7 +801,7 @@ describe("selection tool", () => {
   });
 
   test("resizes multiple rectangles as a group", () => {
-    const left: RectShape = {
+    const left: TestShapeInput = {
       id: "left",
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
@@ -803,7 +813,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const right: RectShape = {
+    const right: TestShapeInput = {
       id: "right",
       type: "rect",
       geometry: { type: "rect", size: v(20, 10) },
@@ -861,7 +871,7 @@ describe("selection tool", () => {
   });
 
   test("rotates rectangle using rotation handle", () => {
-    const rectShape: RectShape = {
+    const rectShape: TestShapeInput = {
       id: "rect-2",
       type: "rect",
       geometry: {
@@ -909,7 +919,7 @@ describe("selection tool", () => {
   });
 
   test("rotates all selected rotatable shapes", () => {
-    const left: RectShape = {
+    const left: TestShapeInput = {
       id: "left-rot",
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
@@ -921,7 +931,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const right: RectShape = {
+    const right: TestShapeInput = {
       id: "right-rot",
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
@@ -981,7 +991,7 @@ describe("selection tool", () => {
   });
 
   test("clears selection frame when clicking outside selected shapes", () => {
-    const rect1: RectShape = {
+    const rect1: TestShapeInput = {
       id: "rect-1",
       type: "rect",
       geometry: { type: "rect", size: v(50, 50) },
@@ -993,7 +1003,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const rect2: RectShape = {
+    const rect2: TestShapeInput = {
       id: "rect-2",
       type: "rect",
       geometry: { type: "rect", size: v(50, 50) },
@@ -1029,7 +1039,7 @@ describe("selection tool", () => {
   });
 
   test("keeps selection frame when clicking inside multi-select bounding box", () => {
-    const rect1: RectShape = {
+    const rect1: TestShapeInput = {
       id: "rect-3",
       type: "rect",
       geometry: { type: "rect", size: v(50, 50) },
@@ -1041,7 +1051,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const rect2: RectShape = {
+    const rect2: TestShapeInput = {
       id: "rect-4",
       type: "rect",
       geometry: { type: "rect", size: v(50, 50) },

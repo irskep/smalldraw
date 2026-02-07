@@ -15,7 +15,9 @@ export class UpdateShapeStroke implements UndoableAction {
   redo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     const shape = requireShape(doc, this.shapeId);
     if (!this.recorded) {
-      this.previous = shape.stroke ? stripUndefined(shape.stroke) : undefined;
+      this.previous = shape.style.stroke
+        ? stripUndefined(shape.style.stroke)
+        : undefined;
       this.recorded = true;
     }
     return ctx.change(doc, (draft) => {
@@ -26,9 +28,9 @@ export class UpdateShapeStroke implements UndoableAction {
         );
       }
       if (this.nextStroke === undefined) {
-        delete target.stroke;
+        delete target.style.stroke;
       } else {
-        target.stroke = stripUndefined(this.nextStroke);
+        target.style.stroke = stripUndefined(this.nextStroke);
       }
     });
   }
@@ -46,9 +48,9 @@ export class UpdateShapeStroke implements UndoableAction {
         );
       }
       if (this.previous === undefined) {
-        delete target.stroke;
+        delete target.style.stroke;
       } else {
-        target.stroke = this.previous;
+        target.style.stroke = this.previous;
       }
     });
   }

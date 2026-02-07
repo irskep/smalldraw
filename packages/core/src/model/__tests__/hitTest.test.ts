@@ -12,6 +12,7 @@ describe("hit testing", () => {
       id: "rot-rect",
       type: "rect",
       geometry: { type: "rect", size: v(10, 10) },
+      style: {},
       transform: {
         translation: v(0, 0),
         rotation: Math.PI / 4,
