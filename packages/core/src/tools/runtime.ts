@@ -127,6 +127,10 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
     return this.drafts[0] ?? null;
   }
 
+  getDrafts(): DraftShape[] {
+    return this.drafts;
+  }
+
   clearDraft(): void {
     this.drafts = [];
     this.onDraftChange?.([]);

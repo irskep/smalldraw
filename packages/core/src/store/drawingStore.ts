@@ -60,7 +60,6 @@ export class DrawingStore {
   private document: DrawingDocument;
   private undoManager: UndoManager;
   private tools = new Map<string, ToolDefinition>();
-  private runtimeDrafts = new Map<string, DraftShape[]>();
   private sharedSettings: SharedToolSettings;
   private selectionState: SelectionState = { ids: new Set<string>() };
   private toolStates = new Map<string, unknown>();
@@ -137,11 +136,21 @@ export class DrawingStore {
     if (!this.activeToolId) return;
     const runtime = this.runtimes.get(this.activeToolId);
     runtime?.dispatch(event, payload);
-    this.triggerRender();
   }
 
   getDrafts(): DraftShape[] {
-    return Array.from(this.runtimeDrafts.values()).flat();
+    if (this.activeToolId) {
+      const activeRuntime = this.runtimes.get(this.activeToolId);
+      if (activeRuntime) {
+        const drafts = activeRuntime.getDrafts();
+        if (drafts.length) {
+          return drafts;
+        }
+      }
+    }
+    return Array.from(this.runtimes.values()).flatMap((runtime) =>
+      runtime.getDrafts(),
+    );
   }
 
   getHandles(): HandleDescriptor[] {
@@ -172,8 +181,7 @@ export class DrawingStore {
       sharedSettings: this.sharedSettings,
       selectionState: this.selectionState,
       toolStates: this.toolStates,
-      onDraftChange: (drafts) => {
-        this.runtimeDrafts.set(toolId, drafts);
+      onDraftChange: () => {
         this.triggerRender();
       },
     });
@@ -217,7 +225,6 @@ export class DrawingStore {
     // Note: Don't call runtime.dispose() here - we cache runtimes and their
     // DrawingStore event listeners should persist across tool switches.
     runtime?.clearDraft();
-    this.runtimeDrafts.set(currentId, []);
     this.handles = [];
     this.handleHover = { handleId: null, behavior: null };
     this.selectionFrame = null;

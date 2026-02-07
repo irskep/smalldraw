@@ -20,6 +20,12 @@ import type {
 } from "./types";
 import { createInMemorySnapshotStore } from "./snapshots";
 import { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";
+import {
+  perfAddCounter,
+  perfAddTimingMs,
+  perfFlagEnabled,
+  perfNowMs,
+} from "./perfDebug";
 
 export interface TileRendererOptions<
   TCanvas = HTMLCanvasElement,
@@ -202,6 +208,7 @@ export class TileRenderer<
   }
 
   scheduleBakeForClear(): void {
+    perfAddCounter("tileRenderer.scheduleBakeForClear.calls");
     this.invalidateAll = true;
     this.pendingBakeTiles.clear();
     this.snapshotStore.clearSnapshots?.();
@@ -216,8 +223,19 @@ export class TileRenderer<
   }
 
   async bakePendingTiles(): Promise<void> {
+    const bakeStartMs = perfNowMs();
+    perfAddCounter("tileRenderer.bakePendingTiles.calls");
+    if (perfFlagEnabled("skipTileBakeExecution")) {
+      perfAddCounter("tileRenderer.bakePendingTiles.skipped");
+      return;
+    }
     if (!this.baker) return;
     if (this.invalidateAll) {
+      perfAddCounter("tileRenderer.bakePendingTiles.fullInvalidationRuns");
+      perfAddCounter(
+        "tileRenderer.bakePendingTiles.tilesBaked",
+        this.visibleTiles.size,
+      );
       for (const entry of this.visibleTiles.values()) {
         await this.baker.bakeTile(entry.coord, entry.canvas);
         if (this.snapshotAdapter) {
@@ -226,8 +244,13 @@ export class TileRenderer<
         }
       }
       this.invalidateAll = false;
+      perfAddTimingMs("tileRenderer.bakePendingTiles.ms", perfNowMs() - bakeStartMs);
       return;
     }
+    perfAddCounter(
+      "tileRenderer.bakePendingTiles.tilesBaked",
+      this.pendingBakeTiles.size,
+    );
     for (const key of this.pendingBakeTiles) {
       const entry = this.visibleTiles.get(key);
       if (!entry) continue;
@@ -238,9 +261,16 @@ export class TileRenderer<
       }
     }
     this.pendingBakeTiles.clear();
+    perfAddTimingMs("tileRenderer.bakePendingTiles.ms", perfNowMs() - bakeStartMs);
   }
 
   async captureViewportSnapshot(): Promise<CanvasImageSource | null> {
+    const captureStartMs = perfNowMs();
+    perfAddCounter("tileRenderer.captureViewportSnapshot.calls");
+    if (perfFlagEnabled("skipSnapshotCapture")) {
+      perfAddCounter("tileRenderer.captureViewportSnapshot.skipped");
+      return null;
+    }
     if (!this.viewport) {
       return null;
     }
@@ -268,6 +298,10 @@ export class TileRenderer<
       const y = tile.coord.y * this.tileSize - this.viewport.min[1];
       ctx.drawImage(tile.canvas as unknown as CanvasImageSource, x, y);
     }
+    perfAddTimingMs(
+      "tileRenderer.captureViewportSnapshot.ms",
+      perfNowMs() - captureStartMs,
+    );
     return fallbackCanvas;
   }
 

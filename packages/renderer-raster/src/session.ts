@@ -1,6 +1,12 @@
 import type { DirtyState, DrawingStore } from "@smalldraw/core";
 import type { HotLayer } from "./hotLayer";
 import type { TileRenderer } from "./index";
+import {
+  perfAddCounter,
+  perfAddTimingMs,
+  perfFlagEnabled,
+  perfNowMs,
+} from "./perfDebug";
 
 export interface RasterSessionOptions {
   onBakeError?: (error: unknown) => void;
@@ -34,6 +40,12 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   }
 
   render(): void {
+    const renderStartMs = perfNowMs();
+    perfAddCounter("session.render.calls");
+    if (perfFlagEnabled("skipSessionRender")) {
+      perfAddCounter("session.render.skipped");
+      return;
+    }
     const docShapes = this.store.getDocument().shapes;
     const previousClearShapeIds = new Set(this.knownClearShapeIds);
     const drafts = this.store.getDrafts();
@@ -53,7 +65,10 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
             this.render();
           });
       }
-      if (!this.hasBackdropSnapshot && !this.skipBackdropUntilStrokeEnd) return;
+      if (!this.hasBackdropSnapshot && !this.skipBackdropUntilStrokeEnd) {
+        perfAddTimingMs("session.render.ms", perfNowMs() - renderStartMs);
+        return;
+      }
     } else if (this.hasBackdropSnapshot) {
       this.hotLayer.setBackdrop(null);
       this.hasBackdropSnapshot = false;
@@ -61,19 +76,45 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     } else {
       this.skipBackdropUntilStrokeEnd = false;
     }
-    this.hotLayer.renderDrafts(drafts);
+    if (!perfFlagEnabled("skipHotLayerRender")) {
+      const hotStartMs = perfNowMs();
+      this.hotLayer.renderDrafts(drafts);
+      perfAddTimingMs("session.hotLayer.renderDrafts.ms", perfNowMs() - hotStartMs);
+    } else {
+      perfAddCounter("session.hotLayer.skipped");
+    }
+    const renderStateStartMs = perfNowMs();
     const { dirtyState } = this.store.getRenderState();
+    perfAddTimingMs(
+      "session.store.getRenderState.ms",
+      perfNowMs() - renderStateStartMs,
+    );
     if (this.hasClearMutation(dirtyState, docShapes, previousClearShapeIds)) {
       this.updateKnownClearShapeIds(docShapes);
-      this.tileRenderer.scheduleBakeForClear();
-      this.enqueueBake();
+      if (!perfFlagEnabled("skipTileBakeScheduling")) {
+        this.tileRenderer.scheduleBakeForClear();
+        this.enqueueBake();
+      } else {
+        perfAddCounter("session.tileBakeScheduling.skipped");
+      }
+      perfAddTimingMs("session.render.ms", perfNowMs() - renderStartMs);
       return;
     }
+    const touchStartMs = perfNowMs();
     const touchedShapeIds = this.captureTouchedTiles(dirtyState);
+    perfAddTimingMs("session.captureTouchedTiles.ms", perfNowMs() - touchStartMs);
     this.updateKnownClearShapeIds(docShapes);
-    if (!touchedShapeIds.size) return;
-    this.tileRenderer.scheduleBakeForShapes(touchedShapeIds);
-    this.enqueueBake();
+    if (!touchedShapeIds.size) {
+      perfAddTimingMs("session.render.ms", perfNowMs() - renderStartMs);
+      return;
+    }
+    if (!perfFlagEnabled("skipTileBakeScheduling")) {
+      this.tileRenderer.scheduleBakeForShapes(touchedShapeIds);
+      this.enqueueBake();
+    } else {
+      perfAddCounter("session.tileBakeScheduling.skipped");
+    }
+    perfAddTimingMs("session.render.ms", perfNowMs() - renderStartMs);
   }
 
   async flushBakes(): Promise<void> {
@@ -101,6 +142,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   private enqueueBake(): void {
     this.bakeQueue = this.bakeQueue
       .then(async () => {
+        perfAddCounter("session.bakeQueue.flushes");
         await this.tileRenderer.bakePendingTiles();
       })
       .catch((error: unknown) => {
@@ -109,8 +151,18 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   }
 
   private async captureBackdropSnapshot(): Promise<void> {
+    if (perfFlagEnabled("skipSnapshotCapture")) {
+      perfAddCounter("session.captureBackdropSnapshot.skipped");
+      return;
+    }
+    const captureStartMs = perfNowMs();
     await this.flushBakes();
     const snapshot = await this.tileRenderer.captureViewportSnapshot();
+    perfAddCounter("session.captureBackdropSnapshot.calls");
+    perfAddTimingMs(
+      "session.captureBackdropSnapshot.ms",
+      perfNowMs() - captureStartMs,
+    );
     if (!this.store.getDrafts().some(isEraserDraft)) {
       return;
     }
