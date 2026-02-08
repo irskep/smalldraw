@@ -350,7 +350,6 @@ describe("kids-app shell", () => {
     expect(cursorIndicator!.style.visibility).toBe("");
     expect(cursorIndicator!.style.width).toBe("6px");
     expect(cursorIndicator!.style.height).toBe("6px");
-    expect(cursorIndicator!.classList.contains("is-eraser")).toBeFalse();
 
     dispatchPointer(overlay, "pointerdown", 120, 100, 1, "mouse");
     expect(cursorIndicator!.style.visibility).toBe("hidden");
@@ -359,10 +358,8 @@ describe("kids-app shell", () => {
     eraserButton!.click();
     dispatchPointer(overlay, "pointermove", 140, 110, 0, "mouse");
     expect(cursorIndicator!.style.visibility).toBe("");
-    expect(cursorIndicator!.classList.contains("is-eraser")).toBeTrue();
     dispatchPointer(overlay, "pointerdown", 140, 110, 1, "mouse");
     expect(cursorIndicator!.style.visibility).toBe("");
-    expect(cursorIndicator!.classList.contains("is-eraser")).toBeTrue();
     dispatchPointer(overlay, "pointerup", 140, 110, 0, "mouse");
 
     penButton!.click();

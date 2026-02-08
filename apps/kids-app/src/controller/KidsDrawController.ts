@@ -6,13 +6,14 @@ import {
   type SmalldrawCore,
 } from "@smalldraw/core";
 import { FilePlus, Trash2, type IconNode } from "lucide";
-import { Vec2 } from "@smalldraw/geometry";
+import type { Vec2 } from "@smalldraw/geometry";
 import {
   applyResponsiveLayout,
   normalizePixelRatio,
 } from "../layout/responsiveLayout";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
+import { createCursorOverlayController } from "./createCursorOverlayController";
 import {
   setNewDrawingPending,
   setToolbarStrokeUi,
@@ -88,12 +89,16 @@ export function createKidsDrawController(options: {
   let displayScale = 1;
   let displayWidth = getSize().width;
   let displayHeight = getSize().height;
-  let mouseHoverPoint: [number, number] | null = null;
   let tilePixelRatio = normalizePixelRatio(
     (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
   );
   let currentRenderIdentity = "";
   let unsubscribeCoreAdapter: (() => void) | null = null;
+  const cursorOverlay = createCursorOverlayController({
+    store,
+    stage,
+    getSize,
+  });
 
   const debugLifecycle = (...args: unknown[]): void => {
     if (
@@ -130,32 +135,9 @@ export function createKidsDrawController(options: {
     disposers.push(() => target.removeEventListener(type, listener));
   }
 
-  const updateCursorIndicator = (): void => {
-    const indicator = stage.cursorIndicator;
-    const activeToolId = store.getActiveToolId();
-    const isPenTool = activeToolId === "pen";
-    const isEraserTool = activeToolId === "eraser";
-    if ((!isPenTool && !isEraserTool) || !mouseHoverPoint) {
-      indicator.style.visibility = "hidden";
-      indicator.classList.remove("is-eraser");
-      return;
-    }
-    if (isPenTool && pointerIsDown) {
-      indicator.style.visibility = "hidden";
-      indicator.classList.remove("is-eraser");
-      return;
-    }
-    const strokeWidth = Math.max(2, store.getSharedSettings().strokeWidth);
-    indicator.style.transform = `translate3d(${mouseHoverPoint[0]}px, ${mouseHoverPoint[1]}px, 0) translate(-50%, -50%)`;
-    indicator.style.width = `${strokeWidth}px`;
-    indicator.style.height = `${strokeWidth}px`;
-    indicator.classList.toggle("is-eraser", isEraserTool);
-    indicator.style.visibility = "";
-  };
-
   const syncToolbarUi = (): void => {
     syncToolbarUiFromDrawingStore(store);
-    updateCursorIndicator();
+    cursorOverlay.sync();
   };
 
   const getRenderIdentity = (): string => {
@@ -296,6 +278,7 @@ export function createKidsDrawController(options: {
       updateRenderIdentity();
       scheduleResizeBake();
     }
+    cursorOverlay.refreshMetrics();
   };
 
   const scheduleResponsiveLayout = (): void => {
@@ -309,13 +292,7 @@ export function createKidsDrawController(options: {
   };
 
   const toPoint = (event: PointerEvent): Vec2 => {
-    const size = getSize();
-    const rect = stage.overlay.getBoundingClientRect();
-    const widthScale = rect.width > 0 ? size.width / rect.width : 1;
-    const heightScale = rect.height > 0 ? size.height / rect.height : 1;
-    return new Vec2(event.clientX, event.clientY)
-      .sub([rect.left, rect.top])
-      .mul([widthScale, heightScale]);
+    return cursorOverlay.toPoint(event);
   };
 
   const getPointerMoveSamples = (
@@ -417,11 +394,9 @@ export function createKidsDrawController(options: {
 
   const onPointerDown = (event: PointerEvent) => {
     event.preventDefault();
+    cursorOverlay.handlePointerDown(event);
     pointerIsDown = true;
-    if (event.pointerType !== "mouse") {
-      mouseHoverPoint = null;
-      updateCursorIndicator();
-    }
+    cursorOverlay.setDrawingActive(pointerIsDown);
     drawingPerfFrameCount = 0;
     perfSession.begin();
     store.dispatch("pointerDown", {
@@ -432,14 +407,7 @@ export function createKidsDrawController(options: {
     syncToolbarUi();
   };
   const onPointerMove = (event: PointerEventWithCoalesced) => {
-    if (event.pointerType === "mouse") {
-      const hoverPoint = toPoint(event);
-      mouseHoverPoint = [hoverPoint[0], hoverPoint[1]];
-      updateCursorIndicator();
-    } else if (mouseHoverPoint) {
-      mouseHoverPoint = null;
-      updateCursorIndicator();
-    }
+    cursorOverlay.handlePointerMove(event);
     const { samples, usedCoalesced } = getPointerMoveSamples(event);
     const pointerSamples = samples.map((sample) => ({
       point: toPoint(sample),
@@ -451,19 +419,20 @@ export function createKidsDrawController(options: {
     perfSession.onPointerMoveSamples(pointerSamples.length, usedCoalesced);
     store.dispatchBatch("pointerMove", pointerSamples);
   };
+
+  const onPointerRawUpdate = (event: PointerEvent): void => {
+    cursorOverlay.handlePointerRawUpdate(event);
+  };
   const endPointerSession = (
     event: PointerEvent,
     type: "pointerUp" | "pointerCancel",
   ) => {
     store.dispatch(type, { point: toPoint(event), buttons: event.buttons });
     pointerIsDown = false;
+    cursorOverlay.setDrawingActive(pointerIsDown);
     perfSession.end(drawingPerfFrameCount);
     if (type === "pointerUp") {
       stage.overlay.releasePointerCapture?.(event.pointerId);
-    }
-    if (event.pointerType !== "mouse" && mouseHoverPoint) {
-      mouseHoverPoint = null;
-      updateCursorIndicator();
     }
     syncToolbarUi();
   };
@@ -550,6 +519,12 @@ export function createKidsDrawController(options: {
   }
   listen(stage.overlay, "pointerdown", onPointerDown);
   listen(stage.overlay, "pointermove", onPointerMove);
+  listen(stage.overlay, "pointerrawupdate", (event) => {
+    onPointerRawUpdate(event as PointerEvent);
+  });
+  listen(stage.overlay, "pointerenter", (event) => {
+    cursorOverlay.handlePointerEnter(event as PointerEvent);
+  });
   listen(stage.overlay, "pointerup", (event) => {
     endPointerSession(event, "pointerUp");
   });
@@ -557,8 +532,7 @@ export function createKidsDrawController(options: {
     endPointerSession(event, "pointerCancel");
   });
   listen(stage.overlay, "pointerleave", (event) => {
-    mouseHoverPoint = null;
-    updateCursorIndicator();
+    cursorOverlay.handlePointerLeave();
     endPointerSession(event, "pointerCancel");
   });
 
