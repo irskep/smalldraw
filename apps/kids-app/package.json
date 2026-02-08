@@ -6,7 +6,7 @@
     "build": "rm -rf dist && mkdir -p dist && bun build src/main.ts --outdir dist --target=browser && cp src/index.html dist/index.html",
     "dev": "bun ./src/index.html --watch",
     "serve": "bunx serve dist",
-    "test": "bun test --preload ./src/__tests__/setup.ts",
+    "test": "bun test --preload ./src/__tests__/setup.ts --timeout 4000",
     "lint": "bunx biome lint --write",
     "ts:check": "tsc -p tsconfig.json --noEmit"
   },

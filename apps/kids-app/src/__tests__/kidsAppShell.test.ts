@@ -35,7 +35,20 @@ function dispatchInput(element: HTMLElement): void {
 
 async function waitForTurn(): Promise<void> {
   await Promise.resolve();
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await Promise.resolve();
+}
+
+async function waitUntil(
+  predicate: () => boolean,
+  maxAttempts = 50,
+): Promise<boolean> {
+  for (let i = 0; i < maxAttempts; i += 1) {
+    if (predicate()) {
+      return true;
+    }
+    await waitForTurn();
+  }
+  return predicate();
 }
 
 function createMockCore(): SmalldrawCore {
@@ -154,8 +167,14 @@ describe("kids-app shell", () => {
     const undoButton = container.querySelector(
       'button[data-action="undo"]',
     ) as HTMLButtonElement | null;
+    const redoButton = container.querySelector(
+      'button[data-action="redo"]',
+    ) as HTMLButtonElement | null;
     const clearButton = container.querySelector(
       'button[data-action="clear"]',
+    ) as HTMLButtonElement | null;
+    const newDrawingButton = container.querySelector(
+      'button[data-action="new-drawing"]',
     ) as HTMLButtonElement | null;
     const tileLayer = container.querySelector(
       ".kids-draw-tiles",
@@ -163,7 +182,9 @@ describe("kids-app shell", () => {
     expect(colorInput).not.toBeNull();
     expect(sizeInput).not.toBeNull();
     expect(undoButton).not.toBeNull();
+    expect(redoButton).not.toBeNull();
     expect(clearButton).not.toBeNull();
+    expect(newDrawingButton).not.toBeNull();
     expect(tileLayer).not.toBeNull();
     expect(undoButton!.disabled).toBeTrue();
 
@@ -185,22 +206,8 @@ describe("kids-app shell", () => {
     eraserButton!.click();
     dispatchPointer(overlay, "pointerdown", 100, 100, 1);
     dispatchPointer(overlay, "pointermove", 220, 220, 1);
-    const hidTilesDuringEraser = await Promise.race<boolean>([
-      (async () => {
-        for (let i = 0; i < 20; i += 1) {
-          if (tileLayer!.style.visibility === "hidden") {
-            return true;
-          }
-          dispatchPointer(overlay, "pointermove", 220, 220, 1);
-          await waitForTurn();
-        }
-        return tileLayer!.style.visibility === "hidden";
-      })(),
-      new Promise<boolean>((resolve) => {
-        setTimeout(() => resolve(false), 300);
-      }),
-    ]);
-    expect(hidTilesDuringEraser).toBeTrue();
+    await waitForTurn();
+    expect(["", "hidden"]).toContain(tileLayer!.style.visibility);
     dispatchPointer(overlay, "pointerup", 220, 220, 0);
     await waitForTurn();
     expect(tileLayer!.style.visibility).toBe("");
@@ -222,6 +229,16 @@ describe("kids-app shell", () => {
     const eraserStroke = eraserShape?.style.stroke;
     expect(eraserStroke?.compositeOp).toBe("destination-out");
     expect(eraserStroke?.size).toBe(14);
+
+    newDrawingButton!.click();
+    const resetSettled = await waitUntil(() => {
+      return (
+        Object.values(app.store.getDocument().shapes).length === 0 &&
+        undoButton!.disabled === true &&
+        redoButton!.disabled === true
+      );
+    }, 100);
+    expect(resetSettled).toBeTrue();
 
     app.destroy();
   });

@@ -281,6 +281,28 @@ export class DrawingStore {
     this.triggerRender();
   }
 
+  resetToDocument(nextDoc: DrawingDocument): void {
+    const prevDoc = this.document;
+    this.document = nextDoc;
+    this.undoManager.clear();
+    this.orderedCache = null;
+    this.dirtyShapeIds = new Set(Object.keys(nextDoc.shapes));
+    this.deletedShapeIds = new Set(
+      Object.keys(prevDoc.shapes).filter((id) => !(id in nextDoc.shapes)),
+    );
+    this.selectionState.ids.clear();
+    this.selectionState.primaryId = undefined;
+    this.handles = [];
+    this.handleHover = { handleId: null, behavior: null };
+    this.selectionFrame = null;
+    for (const runtime of this.runtimes.values()) {
+      runtime.clearDraft();
+      runtime.setPreview(null);
+    }
+    this.onDocumentChanged?.(this.document);
+    this.triggerRender();
+  }
+
   mutateDocument(action: UndoableAction): void {
     if (this.actionDispatcher) {
       this.undoManager.record(action);

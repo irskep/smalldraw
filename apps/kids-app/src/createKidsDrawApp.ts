@@ -192,6 +192,13 @@ export async function createKidsDrawApp(
     "aria-label": "Clear canvas",
     "data-action": "clear",
   }) as HTMLButtonElement;
+  const newDrawingButton = el("button", {
+    type: "button",
+    textContent: "New",
+    title: "New drawing",
+    "aria-label": "New drawing",
+    "data-action": "new-drawing",
+  }) as HTMLButtonElement;
   const colorInput = el("input", {
     type: "color",
     "data-setting": "color",
@@ -283,6 +290,7 @@ export async function createKidsDrawApp(
   mount(toolbar, undoButton);
   mount(toolbar, redoButton);
   mount(toolbar, clearButton);
+  mount(toolbar, newDrawingButton);
   mount(toolbar, colorInput);
   mount(toolbar, sizeInput);
   mount(sceneRoot, tileLayer);
@@ -413,6 +421,14 @@ export async function createKidsDrawApp(
   let currentRenderIdentity = "";
   let layoutRafHandle: number | null = null;
   let debouncedResizeBakeHandle: ReturnType<typeof setTimeout> | null = null;
+  let destroyed = false;
+  let newDrawingRequestId = 0;
+  const debugLifecycle = (...args: unknown[]): void => {
+    if (!(globalThis as { __kidsDrawDebugLifecycle?: boolean }).__kidsDrawDebugLifecycle) {
+      return;
+    }
+    console.debug("[kids-draw:lifecycle]", ...args);
+  };
   const getRenderIdentity = (): string =>
     [
       "kids-draw",
@@ -450,8 +466,14 @@ export async function createKidsDrawApp(
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();
-        ctx.setTransform(tileScaleX, 0, 0, tileScaleY, 0, 0);
-        ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
+        ctx.setTransform(
+          tileScaleX,
+          0,
+          0,
+          tileScaleY,
+          -coord.x * TILE_SIZE * tileScaleX,
+          -coord.y * TILE_SIZE * tileScaleY,
+        );
         tileRenderer.renderShapes(ctx, store.getOrderedShapes());
         ctx.restore();
       },
@@ -533,10 +555,15 @@ export async function createKidsDrawApp(
     drawingPerfModelInvalidations += 1;
     requestRenderFromModel();
   });
-  const unsubscribe = core.storeAdapter.subscribe((doc) => {
-    store.applyDocument(doc);
-    syncToolButtons();
-  });
+  let unsubscribeCoreAdapter: (() => void) | null = null;
+  const subscribeToCoreAdapter = () => {
+    unsubscribeCoreAdapter?.();
+    unsubscribeCoreAdapter = core.storeAdapter.subscribe((doc) => {
+      store.applyDocument(doc);
+      syncToolButtons();
+    });
+  };
+  subscribeToCoreAdapter();
   requestRenderFromModel();
   const initialShapes = Object.values(store.getDocument().shapes);
   if (initialShapes.length) {
@@ -636,23 +663,23 @@ export async function createKidsDrawApp(
   window.addEventListener("resize", onWindowResize);
   window.visualViewport?.addEventListener("resize", onWindowResize);
 
-  penButton.addEventListener("click", () => {
+  const onPenClick = () => {
     store.activateTool("pen");
     syncToolButtons();
-  });
-  eraserButton.addEventListener("click", () => {
+  };
+  const onEraserClick = () => {
     store.activateTool("eraser");
     syncToolButtons();
-  });
-  undoButton.addEventListener("click", () => {
+  };
+  const onUndoClick = () => {
     store.undo();
     syncToolButtons();
-  });
-  redoButton.addEventListener("click", () => {
+  };
+  const onRedoClick = () => {
     store.redo();
     syncToolButtons();
-  });
-  clearButton.addEventListener("click", () => {
+  };
+  const onClearClick = () => {
     const clearShapeId = `clear-${Date.now()}-${clearCounter++}`;
     store.applyAction(
       new ClearCanvas({
@@ -664,13 +691,53 @@ export async function createKidsDrawApp(
       }),
     );
     syncToolButtons();
-  });
-  colorInput.addEventListener("input", () => {
+  };
+  const onNewDrawingClick = async () => {
+    const requestId = ++newDrawingRequestId;
+    debugLifecycle("new-drawing:start", { requestId, destroyed });
+    newDrawingButton.disabled = true;
+    try {
+      const adapter = await core.reset();
+      debugLifecycle("new-drawing:reset-resolved", { requestId, destroyed });
+      if (destroyed || requestId !== newDrawingRequestId) {
+        debugLifecycle("new-drawing:aborted-after-reset", {
+          requestId,
+          currentRequestId: newDrawingRequestId,
+          destroyed,
+        });
+        return;
+      }
+      store.resetToDocument(adapter.getDoc());
+      subscribeToCoreAdapter();
+      tileRenderer.scheduleBakeForClear();
+      void tileRenderer.bakePendingTiles();
+      requestRenderFromModel();
+      syncToolButtons();
+    } finally {
+      if (!destroyed && requestId === newDrawingRequestId) {
+        newDrawingButton.disabled = false;
+      }
+      debugLifecycle("new-drawing:done", {
+        requestId,
+        currentRequestId: newDrawingRequestId,
+        destroyed,
+      });
+    }
+  };
+  const onColorInput = () => {
     store.updateSharedSettings({ strokeColor: colorInput.value });
-  });
-  sizeInput.addEventListener("input", () => {
+  };
+  const onSizeInput = () => {
     store.updateSharedSettings({ strokeWidth: Number(sizeInput.value) });
-  });
+  };
+  penButton.addEventListener("click", onPenClick);
+  eraserButton.addEventListener("click", onEraserClick);
+  undoButton.addEventListener("click", onUndoClick);
+  redoButton.addEventListener("click", onRedoClick);
+  clearButton.addEventListener("click", onClearClick);
+  newDrawingButton.addEventListener("click", onNewDrawingClick);
+  colorInput.addEventListener("input", onColorInput);
+  sizeInput.addEventListener("input", onSizeInput);
 
   const toPoint = (event: PointerEvent): Vec2 => {
     const rect = overlay.getBoundingClientRect();
@@ -719,8 +786,12 @@ export async function createKidsDrawApp(
     overlay,
     core,
     destroy() {
+      destroyed = true;
+      newDrawingRequestId += 1;
+      debugLifecycle("destroy", { requestId: newDrawingRequestId });
       store.setOnRenderNeeded(undefined);
-      unsubscribe();
+      unsubscribeCoreAdapter?.();
+      unsubscribeCoreAdapter = null;
       window.removeEventListener("resize", onWindowResize);
       window.visualViewport?.removeEventListener("resize", onWindowResize);
       if (layoutRafHandle !== null) {
@@ -740,6 +811,14 @@ export async function createKidsDrawApp(
       overlay.removeEventListener("pointerup", onPointerUp);
       overlay.removeEventListener("pointercancel", onPointerCancel);
       overlay.removeEventListener("pointerleave", onPointerCancel);
+      penButton.removeEventListener("click", onPenClick);
+      eraserButton.removeEventListener("click", onEraserClick);
+      undoButton.removeEventListener("click", onUndoClick);
+      redoButton.removeEventListener("click", onRedoClick);
+      clearButton.removeEventListener("click", onClearClick);
+      newDrawingButton.removeEventListener("click", onNewDrawingClick);
+      colorInput.removeEventListener("input", onColorInput);
+      sizeInput.removeEventListener("input", onSizeInput);
       tileRenderer.dispose();
       layerController.setMode("tiles");
       hotLayer.clear();

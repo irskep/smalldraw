@@ -425,4 +425,22 @@ describe("DrawingStore", () => {
     expect(store.canUndo()).toBe(true);
     expect(renderCount).toBeGreaterThan(0);
   });
+
+  test("resetToDocument replaces document and clears undo/redo history", () => {
+    const store = new DrawingStore({ tools: [createRectangleTool()] });
+    store.activateTool("rect");
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    store.dispatch("pointerMove", { point: new Vec2(10, 10), buttons: 1 });
+    store.dispatch("pointerUp", { point: new Vec2(10, 10), buttons: 0 });
+
+    expect(store.canUndo()).toBe(true);
+    expect(Object.keys(store.getDocument().shapes)).toHaveLength(1);
+
+    const freshDoc = createDocument(undefined, getDefaultShapeHandlerRegistry());
+    store.resetToDocument(freshDoc);
+
+    expect(Object.keys(store.getDocument().shapes)).toHaveLength(0);
+    expect(store.canUndo()).toBe(false);
+    expect(store.canRedo()).toBe(false);
+  });
 });
