@@ -48,6 +48,12 @@ export class SquareIconButtonElement extends HTMLElement {
         transform: scale(0.96);
       }
 
+      button:hover:not(:disabled),
+      :host(:hover) button:not(:disabled) {
+        transform: translateY(-3px) scale(1.01);
+        box-shadow: var(--sq-shadow-selected, var(--kd-shadow-button-active));
+      }
+
       :host(.is-selected) button {
         background: var(--sq-bg-selected, var(--kd-surface-button-selected));
         color: var(--sq-color-selected, var(--kd-text-strong));

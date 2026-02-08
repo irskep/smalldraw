@@ -8,13 +8,14 @@
   color-scheme: light;
   --kd-font-family: var(--font-sans);
 
-  --kd-surface-app: var(--gray-1);
-  --kd-surface-viewport: var(--gray-2);
+  --kd-surface-app: var(--gray-3);
+  --kd-surface-viewport: var(--gray-1);
   --kd-surface-canvas: var(--gray-0);
-  --kd-surface-toolbar: var(--blue-1);
-  --kd-surface-button: var(--gray-0);
-  --kd-surface-button-selected: var(--blue-3);
-  --kd-surface-input: var(--gray-0);
+  --kd-surface-toolbar: var(--yellow-2);
+  --kd-surface-toolbar-panel: var(--yellow-3);
+  --kd-surface-button: var(--yellow-1);
+  --kd-surface-button-selected: var(--amber-5);
+  --kd-surface-input: var(--yellow-1);
 
   --kd-text-default: var(--gray-8);
   --kd-text-strong: var(--gray-10);
@@ -97,11 +98,28 @@ body {
   transform: scale(0.96);
 }
 
+.kids-draw-toolbar button:hover:not(:disabled),
+.kids-draw-tool-selector button:hover:not(:disabled),
+.kids-draw-action-panel button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--kd-shadow-button-active);
+}
+
+kids-square-icon-button.kids-draw-tool-button,
+kids-square-icon-button.kids-draw-action-button {
+  transition: transform 120ms var(--ease-out-3);
+}
+
+kids-square-icon-button.kids-draw-tool-button:hover:not([disabled]),
+kids-square-icon-button.kids-draw-action-button:hover:not([disabled]) {
+  transform: translateY(-2px) scale(1.01);
+}
+
 .kids-draw-toolbar-panel {
   display: grid;
   gap: var(--kd-space-1);
   padding: var(--kd-space-1);
-  background: var(--kd-surface-toolbar);
+  background: var(--kd-surface-toolbar-panel);
   border-radius: var(--kd-radius-md);
   box-shadow: var(--kd-shadow-toolbar);
 }
@@ -234,7 +252,7 @@ body {
   align-content: center;
   gap: var(--kd-space-1);
   padding: var(--kd-space-1);
-  background: var(--kd-surface-toolbar);
+  background: var(--kd-surface-toolbar-panel);
   border-radius: var(--kd-radius-md);
   box-shadow: var(--kd-shadow-toolbar);
 }
@@ -246,7 +264,7 @@ body {
   align-content: center;
   gap: var(--kd-space-1);
   padding: var(--kd-space-1);
-  background: var(--kd-surface-toolbar);
+  background: var(--kd-surface-toolbar-panel);
   border-radius: var(--kd-radius-md);
   box-shadow: var(--kd-shadow-toolbar);
 }
