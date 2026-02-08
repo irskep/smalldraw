@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { DrawingStore, type RectGeometry } from "@smalldraw/core";
+import { createCanvas } from "canvas";
+import { DrawingStore, type AnyShape, type RectGeometry } from "@smalldraw/core";
+import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import type { Box } from "@smalldraw/geometry";
 import {
   TILE_SIZE,
@@ -320,5 +322,282 @@ describe("TileRenderer", () => {
     expect(baked.sort()).toEqual(["0,0", "1,0"]);
     expect(snapshotStore.getSnapshot("0,0")).toBeUndefined();
     expect(snapshotStore.getSnapshot("1,0")).toBeUndefined();
+  });
+
+  test("captureViewportSnapshot is resolution independent for hi-DPI tile canvases", async () => {
+    const store = new DrawingStore({ tools: [] });
+    const backingScale = 2;
+    const provider = {
+      getTileCanvas: () =>
+        createCanvas(TILE_SIZE * backingScale, TILE_SIZE * backingScale) as unknown as HTMLCanvasElement,
+    };
+    const renderer = new TileRenderer(store, provider, {
+      createViewportSnapshotCanvas: (width, height) =>
+        createCanvas(width, height) as unknown as HTMLCanvasElement,
+      baker: {
+        bakeTile: (coord, canvas) => {
+          const ctx = (canvas as unknown as ReturnType<typeof createCanvas>).getContext("2d");
+          const tileScaleX = canvas.width / TILE_SIZE;
+          const tileScaleY = canvas.height / TILE_SIZE;
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.setTransform(tileScaleX, 0, 0, tileScaleY, 0, 0);
+          ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
+          ctx.fillStyle = "#000000";
+          ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+          ctx.fillStyle = "#ff0000";
+          ctx.fillRect(TILE_SIZE / 2, 0, TILE_SIZE / 2, TILE_SIZE);
+        },
+      },
+    });
+
+    renderer.updateViewport({
+      min: [0, 0],
+      max: [TILE_SIZE, TILE_SIZE],
+    });
+    renderer.scheduleBakeForClear();
+    const snapshot = await renderer.captureViewportSnapshot();
+    expect(snapshot).not.toBeNull();
+
+    const snapshotCanvas = snapshot as unknown as ReturnType<typeof createCanvas>;
+    const ctx = snapshotCanvas.getContext("2d");
+    const leftPixel = ctx.getImageData(TILE_SIZE / 4, TILE_SIZE / 2, 1, 1).data;
+    const rightPixel = ctx.getImageData((TILE_SIZE * 3) / 4, TILE_SIZE / 2, 1, 1).data;
+
+    expect(leftPixel[0]).toBe(0);
+    expect(leftPixel[1]).toBe(0);
+    expect(leftPixel[2]).toBe(0);
+    expect(rightPixel[0]).toBe(255);
+    expect(rightPixel[1]).toBe(0);
+    expect(rightPixel[2]).toBe(0);
+  });
+
+  test("stitching matches across 1x and 2x backing stores for rect + pen + eraser", async () => {
+    const worldWidth = TILE_SIZE;
+    const worldHeight = TILE_SIZE;
+    const samples: Array<[number, number]> = [
+      [32, 32],
+      [96, 96],
+      [160, 96],
+      [96, 160],
+      [196, 196],
+    ];
+    const scene = [
+      {
+        id: "rect-1",
+        type: "rect",
+        zIndex: "a",
+        geometry: { type: "rect", size: [220, 220] as [number, number] },
+        transform: { translation: [128, 128] as [number, number] },
+        style: { fill: { type: "solid", color: "#0ea5e9" as const } },
+      },
+      {
+        id: "pen-1",
+        type: "pen",
+        zIndex: "b",
+        geometry: {
+          type: "pen",
+          points: [
+            [-80, -20],
+            [-20, 10],
+            [20, -10],
+            [80, 20],
+          ] as [number, number][],
+        },
+        transform: { translation: [128, 128] as [number, number] },
+        style: { stroke: { type: "brush", color: "#111827", size: 28 } },
+      },
+      {
+        id: "eraser-1",
+        type: "pen",
+        zIndex: "c",
+        geometry: {
+          type: "pen",
+          points: [
+            [-70, 0],
+            [0, 0],
+            [70, 0],
+          ] as [number, number][],
+        },
+        transform: { translation: [128, 128] as [number, number] },
+        style: {
+          stroke: {
+            type: "brush",
+            color: "#ffffff",
+            size: 22,
+            compositeOp: "destination-out",
+          },
+        },
+      },
+    ] as unknown as AnyShape[];
+
+    const captureAtScale = async (backingScale: number) => {
+      const store = new DrawingStore({ tools: [] });
+      const provider = {
+        getTileCanvas: () =>
+          createCanvas(
+            TILE_SIZE * backingScale,
+            TILE_SIZE * backingScale,
+          ) as unknown as HTMLCanvasElement,
+      };
+      const renderer = new TileRenderer(store, provider, {
+        backgroundColor: "#ffffff",
+        createViewportSnapshotCanvas: (width, height) =>
+          createCanvas(width, height) as unknown as HTMLCanvasElement,
+        baker: {
+          bakeTile: (coord, canvas) => {
+            const ctx =
+              (canvas as unknown as ReturnType<typeof createCanvas>).getContext(
+                "2d",
+              );
+            const tileScaleX = canvas.width / TILE_SIZE;
+            const tileScaleY = canvas.height / TILE_SIZE;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.setTransform(tileScaleX, 0, 0, tileScaleY, 0, 0);
+            ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
+            renderOrderedShapes(ctx as unknown as CanvasRenderingContext2D, scene);
+            ctx.restore();
+          },
+        },
+      });
+      renderer.updateViewport({
+        min: [0, 0],
+        max: [worldWidth, worldHeight],
+      });
+      renderer.scheduleBakeForClear();
+      const snapshot = await renderer.captureViewportSnapshot();
+      expect(snapshot).not.toBeNull();
+      return snapshot as unknown as ReturnType<typeof createCanvas>;
+    };
+
+    const oneX = await captureAtScale(1);
+    const twoX = await captureAtScale(2);
+    const oneCtx = oneX.getContext("2d");
+    const twoCtx = twoX.getContext("2d");
+
+    for (const [x, y] of samples) {
+      const onePixel = oneCtx.getImageData(x, y, 1, 1).data;
+      const twoPixel = twoCtx.getImageData(x, y, 1, 1).data;
+      expect(Array.from(twoPixel)).toEqual(Array.from(onePixel));
+    }
+  });
+
+  test("1x snapshot matches downscaled 2x snapshot for same operations", async () => {
+    const worldWidth = TILE_SIZE;
+    const worldHeight = TILE_SIZE;
+    const scene = [
+      {
+        id: "rect-bg",
+        type: "rect",
+        zIndex: "a",
+        geometry: { type: "rect", size: [220, 220] as [number, number] },
+        transform: { translation: [128, 128] as [number, number] },
+        style: { fill: { type: "solid", color: "#fde047" } },
+      },
+      {
+        id: "pen-accent",
+        type: "pen",
+        zIndex: "b",
+        geometry: {
+          type: "pen",
+          points: [
+            [-80, -40],
+            [-20, 20],
+            [20, -10],
+            [90, 40],
+          ] as [number, number][],
+        },
+        transform: { translation: [128, 128] as [number, number] },
+        style: {
+          stroke: { type: "brush", color: "#1f2937", size: 20 },
+        },
+      },
+      {
+        id: "eraser-cut",
+        type: "pen",
+        zIndex: "c",
+        geometry: {
+          type: "pen",
+          points: [
+            [-60, 0],
+            [0, 0],
+            [60, 0],
+          ] as [number, number][],
+        },
+        transform: { translation: [128, 128] as [number, number] },
+        style: {
+          stroke: {
+            type: "brush",
+            color: "#ffffff",
+            size: 16,
+            compositeOp: "destination-out",
+          },
+        },
+      },
+    ] as unknown as AnyShape[];
+
+    const captureSnapshot = async (backingScale: number) => {
+      const store = new DrawingStore({ tools: [] });
+      const provider = {
+        getTileCanvas: () =>
+          createCanvas(
+            TILE_SIZE * backingScale,
+            TILE_SIZE * backingScale,
+          ) as unknown as HTMLCanvasElement,
+      };
+      const renderer = new TileRenderer(store, provider, {
+        backgroundColor: "#ffffff",
+        createViewportSnapshotCanvas: (w, h) =>
+          createCanvas(w, h) as unknown as HTMLCanvasElement,
+        baker: {
+          bakeTile: (coord, canvas) => {
+            const ctx =
+              (canvas as unknown as ReturnType<typeof createCanvas>).getContext(
+                "2d",
+              );
+            const tileScaleX = canvas.width / TILE_SIZE;
+            const tileScaleY = canvas.height / TILE_SIZE;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.setTransform(tileScaleX, 0, 0, tileScaleY, 0, 0);
+            ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
+            renderOrderedShapes(ctx as unknown as CanvasRenderingContext2D, scene);
+            ctx.restore();
+          },
+        },
+      });
+      renderer.updateViewport({
+        min: [0, 0],
+        max: [worldWidth, worldHeight],
+      });
+      renderer.scheduleBakeForClear();
+      const snapshot = await renderer.captureViewportSnapshot();
+      expect(snapshot).not.toBeNull();
+      return snapshot as unknown as ReturnType<typeof createCanvas>;
+    };
+
+    const oneX = await captureSnapshot(1);
+    const twoX = await captureSnapshot(2);
+    const downscaledTwoX = createCanvas(worldWidth, worldHeight);
+    const downscaledCtx = downscaledTwoX.getContext("2d");
+    downscaledCtx.imageSmoothingEnabled = true;
+    downscaledCtx.clearRect(0, 0, worldWidth, worldHeight);
+    downscaledCtx.drawImage(twoX, 0, 0, worldWidth, worldHeight);
+
+    const oneCtx = oneX.getContext("2d");
+    const tolerance = 8;
+    for (let y = 0; y < worldHeight; y += 8) {
+      for (let x = 0; x < worldWidth; x += 8) {
+        const onePixel = oneCtx.getImageData(x, y, 1, 1).data;
+        const downscaledPixel = downscaledCtx.getImageData(x, y, 1, 1).data;
+        for (let c = 0; c < 4; c += 1) {
+          const delta = Math.abs(onePixel[c] - downscaledPixel[c]);
+          expect(delta).toBeLessThanOrEqual(tolerance);
+        }
+      }
+    }
   });
 });

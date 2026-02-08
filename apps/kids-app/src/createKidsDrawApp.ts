@@ -2,7 +2,7 @@ import {
   AddShape,
   ClearCanvas,
   DrawingStore,
-  getPenStrokeOutline,
+  getShapeBounds,
   createSmalldraw,
   getTopZIndex,
   getZIndexBetween,
@@ -10,7 +10,8 @@ import {
   createEraserTool,
   createPenTool,
 } from "@smalldraw/core";
-import { Vec2 } from "@smalldraw/geometry";
+import { BoxOperations, getX, getY, type Box, Vec2 } from "@smalldraw/geometry";
+import { renderShape } from "@smalldraw/renderer-canvas";
 import {
   HotLayer,
   RasterSession,
@@ -39,8 +40,24 @@ export interface KidsDrawApp {
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 600;
 const KIDS_DRAW_STROKE_WIDTH_MULTIPLIER = 3;
+const DESKTOP_INSET_X = 24;
+const MOBILE_INSET_Y = 16;
+const MOBILE_PORTRAIT_BREAKPOINT = 700;
+const RESIZE_BAKE_DEBOUNCE_MS = 120;
 const nowMs = (): number =>
   typeof performance !== "undefined" ? performance.now() : Date.now();
+
+const safeAreaInset = (
+  side: "top" | "right" | "bottom" | "left",
+  fallbackPx: number,
+): string => `max(${fallbackPx}px, env(safe-area-inset-${side}))`;
+
+const normalizePixelRatio = (value: number | undefined): number => {
+  if (!value || !Number.isFinite(value) || value <= 0) {
+    return 1;
+  }
+  return value;
+};
 
 interface KidsDrawPerfConfig {
   skipSessionRender?: boolean;
@@ -116,6 +133,7 @@ interface LiveStrokeState {
   };
   points: Array<[number, number]>;
   renderedPointCount: number;
+  lastBounds: Box | null;
   backdrop: HTMLCanvasElement | null;
   rafId: number | null;
 }
@@ -143,9 +161,10 @@ export async function createKidsDrawApp(
       display: "flex",
       "flex-direction": "column",
       gap: "8px",
-      width: `${width}px`,
+      width: "100%",
+      height: "100%",
       "font-family": "system-ui, sans-serif",
-      padding: "8px",
+      "box-sizing": "border-box",
       border: "2px solid #1f2937",
       background: "#f3f4f6",
     },
@@ -213,6 +232,35 @@ export async function createKidsDrawApp(
       overflow: "hidden",
       background: backgroundColor,
       border: "2px solid #0f766e",
+      "box-sizing": "border-box",
+      "flex-shrink": "0",
+    },
+  }) as HTMLDivElement;
+
+  const viewportHost = el("div.kids-draw-viewport", {
+    style: {
+      position: "relative",
+      flex: "1 1 auto",
+      "min-height": "0",
+      display: "flex",
+      "align-items": "center",
+      "justify-content": "center",
+      overflow: "hidden",
+      border: "1px dashed #0891b2",
+      background: "#e5e7eb",
+      "box-sizing": "border-box",
+    },
+  }) as HTMLDivElement;
+
+  const sceneRoot = el("div.kids-draw-scene", {
+    style: {
+      position: "absolute",
+      left: "0",
+      top: "0",
+      width: `${width}px`,
+      height: `${height}px`,
+      transform: "scale(1)",
+      "transform-origin": "top left",
     },
   }) as HTMLDivElement;
 
@@ -230,6 +278,9 @@ export async function createKidsDrawApp(
     style: {
       position: "absolute",
       inset: "0",
+      width: `${width}px`,
+      height: `${height}px`,
+      display: "block",
       "pointer-events": "none",
       outline: "1px dashed #ef4444",
       "outline-offset": "-1px",
@@ -254,11 +305,13 @@ export async function createKidsDrawApp(
   mount(toolbar, clearButton);
   mount(toolbar, colorInput);
   mount(toolbar, sizeInput);
-  mount(canvasFrame, tileLayer);
-  mount(canvasFrame, hotCanvas);
-  mount(canvasFrame, overlay);
+  mount(sceneRoot, tileLayer);
+  mount(sceneRoot, hotCanvas);
+  mount(sceneRoot, overlay);
+  mount(canvasFrame, sceneRoot);
   mount(element, toolbar);
-  mount(element, canvasFrame);
+  mount(element, viewportHost);
+  mount(viewportHost, canvasFrame);
   mount(options.container, element);
 
   const store = new DrawingStore({
@@ -371,22 +424,62 @@ export async function createKidsDrawApp(
     }
     clearTimeout(handle);
   };
+  let displayScale = 1;
+  let displayWidth = width;
+  let displayHeight = height;
+  let tilePixelRatio = normalizePixelRatio(
+    (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
+  );
+  let currentRenderIdentity = "";
+  let layoutRafHandle: number | null = null;
+  let debouncedResizeBakeHandle: ReturnType<typeof setTimeout> | null = null;
+  let hotCanvasPixelRatio = tilePixelRatio;
+  const getRenderIdentity = (): string =>
+    [
+      "kids-draw",
+      `w:${width}`,
+      `h:${height}`,
+      `tile:${TILE_SIZE}`,
+      `dpr:${tilePixelRatio.toFixed(3)}`,
+      `bg:${backgroundColor}`,
+    ].join("|");
 
-  const tileRenderer = new TileRenderer(store, createDomTileProvider(tileLayer), {
+  const tileProvider = createDomTileProvider(tileLayer, {
+    getPixelRatio: () => tilePixelRatio,
+    getTileIdentity: () => currentRenderIdentity,
+  });
+
+  const tileRenderer = new TileRenderer(store, tileProvider, {
     backgroundColor,
+    renderIdentity: "kids-draw-init",
     baker: {
       bakeTile: async (coord, canvas) => {
+        const expectedTilePixels = Math.max(
+          1,
+          Math.round(TILE_SIZE * tilePixelRatio),
+        );
+        if (canvas.width !== expectedTilePixels) {
+          canvas.width = expectedTilePixels;
+        }
+        if (canvas.height !== expectedTilePixels) {
+          canvas.height = expectedTilePixels;
+        }
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
+        const tileScaleX = canvas.width / TILE_SIZE;
+        const tileScaleY = canvas.height / TILE_SIZE;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();
+        ctx.setTransform(tileScaleX, 0, 0, tileScaleY, 0, 0);
         ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
         tileRenderer.renderShapes(ctx, store.getOrderedShapes());
         ctx.restore();
       },
     },
   });
+  currentRenderIdentity = getRenderIdentity();
+  tileRenderer.setRenderIdentity(currentRenderIdentity);
   tileRenderer.updateViewport({
     min: [0, 0],
     max: [width, height],
@@ -407,22 +500,37 @@ export async function createKidsDrawApp(
   if (!hotCtx) {
     throw new Error("kids-app hot canvas requires a 2D context");
   }
+  const applyHotCanvasPixelRatio = (pixelRatio: number): void => {
+    hotCanvasPixelRatio = pixelRatio;
+    const nextWidth = Math.max(1, Math.round(width * pixelRatio));
+    const nextHeight = Math.max(1, Math.round(height * pixelRatio));
+    if (hotCanvas.width !== nextWidth) {
+      hotCanvas.width = nextWidth;
+    }
+    if (hotCanvas.height !== nextHeight) {
+      hotCanvas.height = nextHeight;
+    }
+    hotCtx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    hotCtx.clearRect(0, 0, width, height);
+  };
   let liveStrokeState: LiveStrokeState | null = null;
   let liveStrokeCounter = 0;
   const clearHotCanvas = () => {
     hotCtx.setTransform(1, 0, 0, 1, 0, 0);
     hotCtx.clearRect(0, 0, hotCanvas.width, hotCanvas.height);
+    hotCtx.setTransform(hotCanvasPixelRatio, 0, 0, hotCanvasPixelRatio, 0, 0);
   };
   const captureTileLayerSnapshot = (): HTMLCanvasElement => {
     const snapshot = document.createElement("canvas");
-    snapshot.width = width;
-    snapshot.height = height;
+    snapshot.width = Math.max(1, Math.round(width * hotCanvasPixelRatio));
+    snapshot.height = Math.max(1, Math.round(height * hotCanvasPixelRatio));
     const ctx = snapshot.getContext("2d");
     if (!ctx) {
       return snapshot;
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, snapshot.width, snapshot.height);
+    ctx.setTransform(hotCanvasPixelRatio, 0, 0, hotCanvasPixelRatio, 0, 0);
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, width, height);
     const tileCanvases = tileLayer.querySelectorAll("canvas");
@@ -430,7 +538,7 @@ export async function createKidsDrawApp(
       const left = Number.parseFloat(tileCanvas.style.left || "0") || 0;
       const top = Number.parseFloat(tileCanvas.style.top || "0") || 0;
       if (typeof (ctx as CanvasRenderingContext2D).drawImage === "function") {
-        ctx.drawImage(tileCanvas, left, top);
+        ctx.drawImage(tileCanvas, left, top, TILE_SIZE, TILE_SIZE);
       }
     }
     return snapshot;
@@ -475,62 +583,78 @@ export async function createKidsDrawApp(
       },
     };
   };
-  const renderLiveStroke = (state: LiveStrokeState): void => {
-    clearHotCanvas();
-    if (state.backdrop) {
-      hotCtx.drawImage(state.backdrop, 0, 0);
+  const clampBoundsToViewport = (bounds: Box): Box => {
+    return {
+      min: [Math.max(0, getX(bounds.min)), Math.max(0, getY(bounds.min))],
+      max: [Math.min(width, getX(bounds.max)), Math.min(height, getY(bounds.max))],
+    };
+  };
+  const expandBounds = (bounds: Box, padding: number): Box => {
+    return {
+      min: [getX(bounds.min) - padding, getY(bounds.min) - padding],
+      max: [getX(bounds.max) + padding, getY(bounds.max) + padding],
+    };
+  };
+  const drawLiveStrokeRegion = (
+    state: LiveStrokeState,
+    shape: ReturnType<typeof createStrokeShapeFromPoints>,
+    region: Box,
+  ): void => {
+    if (!shape) return;
+    const x = getX(region.min);
+    const y = getY(region.min);
+    const w = Math.max(0, getX(region.max) - x);
+    const h = Math.max(0, getY(region.max) - y);
+    if (w <= 0 || h <= 0) {
+      return;
     }
+    hotCtx.save();
+    hotCtx.setTransform(hotCanvasPixelRatio, 0, 0, hotCanvasPixelRatio, 0, 0);
+    hotCtx.beginPath();
+    hotCtx.rect(x, y, w, h);
+    hotCtx.clip();
+    hotCtx.clearRect(x, y, w, h);
+    if (state.backdrop) {
+      const sourceX = x * hotCanvasPixelRatio;
+      const sourceY = y * hotCanvasPixelRatio;
+      const sourceW = w * hotCanvasPixelRatio;
+      const sourceH = h * hotCanvasPixelRatio;
+      hotCtx.drawImage(
+        state.backdrop,
+        sourceX,
+        sourceY,
+        sourceW,
+        sourceH,
+        x,
+        y,
+        w,
+        h,
+      );
+    }
+    renderShape(
+      hotCtx,
+      shape,
+      undefined,
+      store.getShapeHandlers(),
+    );
+    hotCtx.restore();
+  };
+  const renderLiveStroke = (state: LiveStrokeState): void => {
     const shape = createStrokeShapeFromPoints(state);
     if (!shape) {
       return;
     }
-    const outline = getPenStrokeOutline(shape);
-    if (!outline.length) {
-      return;
-    }
-    const [first, ...rest] = outline;
-    if (!first) {
-      return;
-    }
-    const drawableCtx = hotCtx as unknown as {
-      save?: () => void;
-      restore?: () => void;
-      translate?: (x: number, y: number) => void;
-      beginPath?: () => void;
-      moveTo?: (x: number, y: number) => void;
-      lineTo?: (x: number, y: number) => void;
-      closePath?: () => void;
-      fill?: () => void;
-      globalCompositeOperation?: string;
-      fillStyle?: string | CanvasGradient | CanvasPattern;
-    };
-    if (
-      typeof drawableCtx.save !== "function" ||
-      typeof drawableCtx.restore !== "function" ||
-      typeof drawableCtx.translate !== "function" ||
-      typeof drawableCtx.beginPath !== "function" ||
-      typeof drawableCtx.moveTo !== "function" ||
-      typeof drawableCtx.lineTo !== "function" ||
-      typeof drawableCtx.closePath !== "function" ||
-      typeof drawableCtx.fill !== "function"
-    ) {
-      return;
-    }
-    drawableCtx.save();
-    drawableCtx.translate(
-      shape.transform.translation[0],
-      shape.transform.translation[1],
+    const rawBounds = getShapeBounds(shape, store.getShapeHandlers());
+    const paddedBounds = clampBoundsToViewport(
+      expandBounds(rawBounds, Math.max(2, state.stroke.size)),
     );
-    drawableCtx.globalCompositeOperation = state.stroke.compositeOp;
-    drawableCtx.fillStyle = state.stroke.color;
-    drawableCtx.beginPath();
-    drawableCtx.moveTo(first[0], first[1]);
-    for (const [x, y] of rest) {
-      drawableCtx.lineTo(x, y);
-    }
-    drawableCtx.closePath();
-    drawableCtx.fill();
-    drawableCtx.restore();
+    const dirtyBounds = state.lastBounds
+      ? clampBoundsToViewport(
+          BoxOperations.fromBoxPair(state.lastBounds, paddedBounds),
+        )
+      : paddedBounds;
+    drawLiveStrokeRegion(state, shape, dirtyBounds);
+    state.lastBounds = paddedBounds;
   };
   const pumpLiveStroke = () => {
     const state = liveStrokeState;
@@ -583,15 +707,22 @@ export async function createKidsDrawApp(
     clearHotCanvas();
     if (backdrop) {
       const drawableCtx = hotCtx as unknown as {
-        drawImage?: (image: CanvasImageSource, x: number, y: number) => void;
+        drawImage?: (
+          image: CanvasImageSource,
+          x: number,
+          y: number,
+          width: number,
+          height: number,
+        ) => void;
       };
-      drawableCtx.drawImage?.(backdrop, 0, 0);
+      drawableCtx.drawImage?.(backdrop, 0, 0, width, height);
     }
     const state: LiveStrokeState = {
       tool,
       stroke,
       points: [toPointTuple(point)],
       renderedPointCount: 0,
+      lastBounds: null,
       backdrop,
       rafId: null,
     };
@@ -678,6 +809,95 @@ export async function createKidsDrawApp(
     void tileRenderer.bakePendingTiles();
   }
 
+  const computeInsets = (): { x: number; y: number } => {
+    const viewportWidth =
+      typeof window !== "undefined" && typeof window.innerWidth === "number"
+        ? window.innerWidth
+        : width;
+    const viewportHeight =
+      typeof window !== "undefined" && typeof window.innerHeight === "number"
+        ? window.innerHeight
+        : height;
+    const portrait = viewportHeight > viewportWidth;
+    const isNarrowPortrait =
+      portrait && viewportWidth <= MOBILE_PORTRAIT_BREAKPOINT;
+    return {
+      x: isNarrowPortrait ? 0 : DESKTOP_INSET_X,
+      y: MOBILE_INSET_Y,
+    };
+  };
+
+  const scheduleResizeBake = (): void => {
+    if (debouncedResizeBakeHandle !== null) {
+      clearTimeout(debouncedResizeBakeHandle);
+    }
+    debouncedResizeBakeHandle = setTimeout(() => {
+      debouncedResizeBakeHandle = null;
+      tileRenderer.scheduleBakeForClear();
+      void tileRenderer.bakePendingTiles();
+      requestRenderFromModel();
+    }, RESIZE_BAKE_DEBOUNCE_MS);
+  };
+
+  const applyResponsiveLayout = (): void => {
+    const hostRect = viewportHost.getBoundingClientRect();
+    if (hostRect.width <= 0 || hostRect.height <= 0) {
+      return;
+    }
+    const insets = computeInsets();
+    viewportHost.style.paddingTop = safeAreaInset("top", insets.y);
+    viewportHost.style.paddingRight = safeAreaInset("right", insets.x);
+    viewportHost.style.paddingBottom = safeAreaInset("bottom", insets.y);
+    viewportHost.style.paddingLeft = safeAreaInset("left", insets.x);
+
+    const availableWidth = Math.max(1, hostRect.width - insets.x * 2);
+    const availableHeight = Math.max(1, hostRect.height - insets.y * 2);
+    const nextScale = Math.min(1, availableWidth / width, availableHeight / height);
+
+    if (nextScale !== displayScale) {
+      displayScale = nextScale;
+      displayWidth = Math.max(1, Math.round(width * displayScale));
+      displayHeight = Math.max(1, Math.round(height * displayScale));
+      canvasFrame.style.width = `${displayWidth}px`;
+      canvasFrame.style.height = `${displayHeight}px`;
+      sceneRoot.style.transform = `scale(${displayScale})`;
+    }
+
+    const nextPixelRatio = normalizePixelRatio(
+      (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
+    );
+    if (nextPixelRatio !== tilePixelRatio) {
+      tilePixelRatio = nextPixelRatio;
+      applyHotCanvasPixelRatio(tilePixelRatio);
+      const nextIdentity = getRenderIdentity();
+      if (nextIdentity !== currentRenderIdentity) {
+        currentRenderIdentity = nextIdentity;
+        tileRenderer.setRenderIdentity(currentRenderIdentity);
+      }
+      scheduleResizeBake();
+    }
+  };
+
+  const scheduleResponsiveLayout = (): void => {
+    if (layoutRafHandle !== null) {
+      return;
+    }
+    layoutRafHandle = scheduleAnimationFrame(() => {
+      layoutRafHandle = null;
+      applyResponsiveLayout();
+    });
+  };
+
+  applyHotCanvasPixelRatio(tilePixelRatio);
+  applyResponsiveLayout();
+  scheduleResizeBake();
+
+  const onWindowResize = () => {
+    scheduleResponsiveLayout();
+  };
+  window.addEventListener("resize", onWindowResize);
+  window.visualViewport?.addEventListener("resize", onWindowResize);
+
   penButton.addEventListener("click", () => {
     store.activateTool("pen");
     syncToolButtons();
@@ -716,9 +936,11 @@ export async function createKidsDrawApp(
 
   const toPoint = (event: PointerEvent): Vec2 => {
     const rect = overlay.getBoundingClientRect();
+    const widthScale = rect.width > 0 ? width / rect.width : 1;
+    const heightScale = rect.height > 0 ? height / rect.height : 1;
     return new Vec2(event.clientX, event.clientY)
       .sub([rect.left, rect.top])
-      .div([1, 1]);
+      .mul([widthScale, heightScale]);
   };
   const onPointerDown = (event: PointerEvent) => {
     event.preventDefault();
@@ -733,7 +955,6 @@ export async function createKidsDrawApp(
   };
   const onPointerMove = (event: PointerEvent) => {
     appendLiveStrokePoint(toPoint(event));
-    syncToolButtons();
   };
   const onPointerUp = (event: PointerEvent) => {
     appendLiveStrokePoint(toPoint(event));
@@ -763,12 +984,22 @@ export async function createKidsDrawApp(
     destroy() {
       store.setOnRenderNeeded(undefined);
       unsubscribe();
+      window.removeEventListener("resize", onWindowResize);
+      window.visualViewport?.removeEventListener("resize", onWindowResize);
       const strokeStateAtDestroy = liveStrokeState;
       if (strokeStateAtDestroy && strokeStateAtDestroy.rafId !== null) {
         cancelAnimationFrameHandle(strokeStateAtDestroy.rafId);
       }
       tileLayer.style.visibility = "";
       liveStrokeState = null;
+      if (layoutRafHandle !== null) {
+        cancelAnimationFrameHandle(layoutRafHandle);
+        layoutRafHandle = null;
+      }
+      if (debouncedResizeBakeHandle !== null) {
+        clearTimeout(debouncedResizeBakeHandle);
+        debouncedResizeBakeHandle = null;
+      }
       if (rafHandle !== null) {
         cancelAnimationFrameHandle(rafHandle);
         rafHandle = null;

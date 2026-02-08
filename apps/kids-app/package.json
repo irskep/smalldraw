@@ -13,6 +13,7 @@
   "dependencies": {
     "@smalldraw/core": "workspace:*",
     "@smalldraw/geometry": "workspace:*",
+    "@smalldraw/renderer-canvas": "workspace:*",
     "@smalldraw/renderer-raster": "workspace:*",
     "redom": "^3.27.1"
   },

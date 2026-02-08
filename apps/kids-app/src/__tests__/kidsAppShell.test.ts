@@ -91,7 +91,7 @@ describe("kids-app shell", () => {
 
     const root = container.querySelector(".kids-draw-app") as HTMLElement | null;
     expect(root).not.toBeNull();
-    expect(root?.style.width).toBe("640px");
+    expect(root?.style.width).toBe("100%");
     const frame = container.querySelector(".kids-draw-frame") as HTMLElement | null;
     expect(frame).not.toBeNull();
     expect(frame?.style.height).toBe("480px");

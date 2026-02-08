@@ -41,6 +41,7 @@ export interface TileRendererOptions<
     width: number,
     height: number,
   ) => HTMLCanvasElement;
+  renderIdentity?: string;
 }
 
 export interface TileRenderState {
@@ -81,6 +82,7 @@ export class TileRenderer<
     width: number,
     height: number,
   ) => HTMLCanvasElement;
+  private renderIdentity: string;
   private viewport: Box | null = null;
   private unsubscribe?: () => void;
   private visibleTiles = new Map<string, { coord: TileCoord; canvas: TCanvas }>();
@@ -106,6 +108,7 @@ export class TileRenderer<
     this.snapshotStore =
       options.snapshotStore ?? createInMemorySnapshotStore<TSnapshot>();
     this.createViewportSnapshotCanvas = options.createViewportSnapshotCanvas;
+    this.renderIdentity = options.renderIdentity ?? "";
   }
 
   updateViewport(bounds: Box): void {
@@ -129,6 +132,23 @@ export class TileRenderer<
 
   getRenderState(): TileRenderState {
     return this.coreStore.getRenderState();
+  }
+
+  setRenderIdentity(identity: string): void {
+    if (!identity || identity === this.renderIdentity) {
+      return;
+    }
+    this.renderIdentity = identity;
+    this.snapshotStore.clearSnapshots?.();
+    this.pendingBakeTiles.clear();
+    this.invalidateAll = true;
+    this.releaseAllVisibleTiles();
+    if (this.viewport) {
+      const nextVisible = getVisibleTileCoords(this.viewport, this.tileSize);
+      this.syncVisibleTiles(nextVisible);
+    } else {
+      this.visibleOrder = [];
+    }
   }
 
   getShapeBounds(
@@ -196,7 +216,7 @@ export class TileRenderer<
     if (!touched) return;
     for (const key of touched) {
       this.pendingBakeTiles.add(key);
-      this.snapshotStore.deleteSnapshot(key);
+      this.snapshotStore.deleteSnapshot(this.snapshotKeyForCoordKey(key));
     }
     this.touchedTilesByShape.set(shapeId, new Set());
   }
@@ -240,7 +260,10 @@ export class TileRenderer<
         await this.baker.bakeTile(entry.coord, entry.canvas);
         if (this.snapshotAdapter) {
           const snapshot = this.snapshotAdapter.captureSnapshot(entry.canvas);
-          this.snapshotStore.setSnapshot(tileKey(entry.coord), snapshot);
+          this.snapshotStore.setSnapshot(
+            this.snapshotKeyForCoord(entry.coord),
+            snapshot,
+          );
         }
       }
       this.invalidateAll = false;
@@ -257,7 +280,10 @@ export class TileRenderer<
       await this.baker.bakeTile(entry.coord, entry.canvas);
       if (this.snapshotAdapter) {
         const snapshot = this.snapshotAdapter.captureSnapshot(entry.canvas);
-        this.snapshotStore.setSnapshot(key, snapshot);
+        this.snapshotStore.setSnapshot(
+          this.snapshotKeyForCoordKey(key),
+          snapshot,
+        );
       }
     }
     this.pendingBakeTiles.clear();
@@ -296,7 +322,13 @@ export class TileRenderer<
     for (const tile of this.visibleTiles.values()) {
       const x = tile.coord.x * this.tileSize - this.viewport.min[0];
       const y = tile.coord.y * this.tileSize - this.viewport.min[1];
-      ctx.drawImage(tile.canvas as unknown as CanvasImageSource, x, y);
+      ctx.drawImage(
+        tile.canvas as unknown as CanvasImageSource,
+        x,
+        y,
+        this.tileSize,
+        this.tileSize,
+      );
     }
     perfAddTimingMs(
       "tileRenderer.captureViewportSnapshot.ms",
@@ -313,7 +345,9 @@ export class TileRenderer<
       if (!this.visibleTiles.has(key)) {
         const canvas = this.tileProvider.getTileCanvas(coord);
         this.visibleTiles.set(key, { coord, canvas });
-        const snapshot = this.snapshotStore.getSnapshot(key);
+        const snapshot = this.snapshotStore.getSnapshot(
+          this.snapshotKeyForCoord(coord),
+        );
         if (
           snapshot &&
           this.snapshotAdapter &&
@@ -335,6 +369,28 @@ export class TileRenderer<
     }
 
     this.visibleOrder = nextVisible;
+  }
+
+  private releaseAllVisibleTiles(): void {
+    for (const entry of this.visibleTiles.values()) {
+      this.tileProvider.releaseTileCanvas?.(entry.coord, entry.canvas);
+    }
+    this.visibleTiles.clear();
+  }
+
+  private snapshotKeyForCoord(coord: TileCoord): string {
+    const base = tileKey(coord);
+    if (!this.renderIdentity) {
+      return base;
+    }
+    return `${this.renderIdentity}|${base}`;
+  }
+
+  private snapshotKeyForCoordKey(coordKey: string): string {
+    if (!this.renderIdentity) {
+      return coordKey;
+    }
+    return `${this.renderIdentity}|${coordKey}`;
   }
 }
 
