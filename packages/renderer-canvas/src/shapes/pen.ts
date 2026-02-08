@@ -2,10 +2,7 @@ import { toVec2, toVec2Like } from "@smalldraw/geometry";
 import type { PenShape, Shape } from "@smalldraw/core";
 import { getPenStrokeOutline } from "@smalldraw/core";
 
-export function renderPen(
-  ctx: CanvasRenderingContext2D,
-  shape: Shape,
-): void {
+export function renderPen(ctx: CanvasRenderingContext2D, shape: Shape): void {
   if (shape.type !== "pen") {
     return;
   }

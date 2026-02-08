@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { createCanvas } from "canvas";
-import { DrawingStore, type AnyShape, type RectGeometry } from "@smalldraw/core";
+import {
+  DrawingStore,
+  type AnyShape,
+  type RectGeometry,
+} from "@smalldraw/core";
 import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import type { Box } from "@smalldraw/geometry";
 import {
@@ -77,11 +81,7 @@ describe("TileRenderer", () => {
       max: [TILE_SIZE * 2, TILE_SIZE],
     });
 
-    expect(events).toEqual([
-      "create:0,0",
-      "create:1,0",
-      "release:0,0",
-    ]);
+    expect(events).toEqual(["create:0,0", "create:1,0", "release:0,0"]);
   });
 
   test("tracks touched tiles and schedules bake after commit", async () => {
@@ -107,10 +107,7 @@ describe("TileRenderer", () => {
     renderer.markShapeTouched("shape-1", { x: 1, y: 0 });
     renderer.scheduleBakeForShape("shape-1");
 
-    expect(renderer.getPendingBakeTiles().map(tileKey)).toEqual([
-      "0,0",
-      "1,0",
-    ]);
+    expect(renderer.getPendingBakeTiles().map(tileKey)).toEqual(["0,0", "1,0"]);
 
     await renderer.bakePendingTiles();
     expect(events).toEqual(["bake:0,0", "bake:1,0"]);
@@ -152,10 +149,7 @@ describe("TileRenderer", () => {
       style: { fill: { type: "solid", color: "#000" } },
     });
     renderer.scheduleBakeForShape("shape-1");
-    expect(renderer.getPendingBakeTiles().map(tileKey)).toEqual([
-      "0,0",
-      "1,0",
-    ]);
+    expect(renderer.getPendingBakeTiles().map(tileKey)).toEqual(["0,0", "1,0"]);
   });
 
   test("reuses cached snapshots until invalidated", async () => {
@@ -209,10 +203,7 @@ describe("TileRenderer", () => {
       min: [0, 0],
       max: [TILE_SIZE, TILE_SIZE],
     });
-    expect(applyEvents).toEqual([
-      "apply:0,0:snap:0,0",
-      "apply:0,0:snap:0,0",
-    ]);
+    expect(applyEvents).toEqual(["apply:0,0:snap:0,0", "apply:0,0:snap:0,0"]);
   });
 
   test("scheduleBakeForShapes invalidates cached snapshots", () => {
@@ -329,14 +320,19 @@ describe("TileRenderer", () => {
     const backingScale = 2;
     const provider = {
       getTileCanvas: () =>
-        createCanvas(TILE_SIZE * backingScale, TILE_SIZE * backingScale) as unknown as HTMLCanvasElement,
+        createCanvas(
+          TILE_SIZE * backingScale,
+          TILE_SIZE * backingScale,
+        ) as unknown as HTMLCanvasElement,
     };
     const renderer = new TileRenderer(store, provider, {
       createViewportSnapshotCanvas: (width, height) =>
         createCanvas(width, height) as unknown as HTMLCanvasElement,
       baker: {
         bakeTile: (coord, canvas) => {
-          const ctx = (canvas as unknown as ReturnType<typeof createCanvas>).getContext("2d");
+          const ctx = (
+            canvas as unknown as ReturnType<typeof createCanvas>
+          ).getContext("2d");
           const tileScaleX = canvas.width / TILE_SIZE;
           const tileScaleY = canvas.height / TILE_SIZE;
           ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -359,10 +355,17 @@ describe("TileRenderer", () => {
     const snapshot = await renderer.captureViewportSnapshot();
     expect(snapshot).not.toBeNull();
 
-    const snapshotCanvas = snapshot as unknown as ReturnType<typeof createCanvas>;
+    const snapshotCanvas = snapshot as unknown as ReturnType<
+      typeof createCanvas
+    >;
     const ctx = snapshotCanvas.getContext("2d");
     const leftPixel = ctx.getImageData(TILE_SIZE / 4, TILE_SIZE / 2, 1, 1).data;
-    const rightPixel = ctx.getImageData((TILE_SIZE * 3) / 4, TILE_SIZE / 2, 1, 1).data;
+    const rightPixel = ctx.getImageData(
+      (TILE_SIZE * 3) / 4,
+      TILE_SIZE / 2,
+      1,
+      1,
+    ).data;
 
     expect(leftPixel[0]).toBe(0);
     expect(leftPixel[1]).toBe(0);
@@ -446,10 +449,9 @@ describe("TileRenderer", () => {
           createCanvas(width, height) as unknown as HTMLCanvasElement,
         baker: {
           bakeTile: (coord, canvas) => {
-            const ctx =
-              (canvas as unknown as ReturnType<typeof createCanvas>).getContext(
-                "2d",
-              );
+            const ctx = (
+              canvas as unknown as ReturnType<typeof createCanvas>
+            ).getContext("2d");
             const tileScaleX = canvas.width / TILE_SIZE;
             const tileScaleY = canvas.height / TILE_SIZE;
             ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -457,7 +459,10 @@ describe("TileRenderer", () => {
             ctx.save();
             ctx.setTransform(tileScaleX, 0, 0, tileScaleY, 0, 0);
             ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
-            renderOrderedShapes(ctx as unknown as CanvasRenderingContext2D, scene);
+            renderOrderedShapes(
+              ctx as unknown as CanvasRenderingContext2D,
+              scene,
+            );
             ctx.restore();
           },
         },
@@ -553,10 +558,9 @@ describe("TileRenderer", () => {
           createCanvas(w, h) as unknown as HTMLCanvasElement,
         baker: {
           bakeTile: (coord, canvas) => {
-            const ctx =
-              (canvas as unknown as ReturnType<typeof createCanvas>).getContext(
-                "2d",
-              );
+            const ctx = (
+              canvas as unknown as ReturnType<typeof createCanvas>
+            ).getContext("2d");
             const tileScaleX = canvas.width / TILE_SIZE;
             const tileScaleY = canvas.height / TILE_SIZE;
             ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -564,7 +568,10 @@ describe("TileRenderer", () => {
             ctx.save();
             ctx.setTransform(tileScaleX, 0, 0, tileScaleY, 0, 0);
             ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
-            renderOrderedShapes(ctx as unknown as CanvasRenderingContext2D, scene);
+            renderOrderedShapes(
+              ctx as unknown as CanvasRenderingContext2D,
+              scene,
+            );
             ctx.restore();
           },
         },

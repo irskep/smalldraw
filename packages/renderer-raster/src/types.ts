@@ -16,7 +16,10 @@ export interface TileBaker<TCanvas = HTMLCanvasElement> {
   bakeTile: (coord: TileCoord, canvas: TCanvas) => Promise<void> | void;
 }
 
-export interface TileSnapshotAdapter<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
+export interface TileSnapshotAdapter<
+  TCanvas = HTMLCanvasElement,
+  TSnapshot = unknown,
+> {
   captureSnapshot: (canvas: TCanvas) => TSnapshot;
   applySnapshot: (canvas: TCanvas, snapshot: TSnapshot) => void;
 }

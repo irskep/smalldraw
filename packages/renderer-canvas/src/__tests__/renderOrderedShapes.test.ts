@@ -38,13 +38,17 @@ describe("renderOrderedShapes", () => {
     const blue = rectShape("blue", "#1565c0", 10);
 
     const canvasA = createCanvas(20, 20);
-    const ctxA = canvasA.getContext("2d") as unknown as CanvasRenderingContext2D;
+    const ctxA = canvasA.getContext(
+      "2d",
+    ) as unknown as CanvasRenderingContext2D;
     ctxA.fillStyle = "#ffffff";
     ctxA.fillRect(0, 0, 20, 20);
     renderOrderedShapes(ctxA, [red, blue]);
 
     const canvasB = createCanvas(20, 20);
-    const ctxB = canvasB.getContext("2d") as unknown as CanvasRenderingContext2D;
+    const ctxB = canvasB.getContext(
+      "2d",
+    ) as unknown as CanvasRenderingContext2D;
     ctxB.fillStyle = "#ffffff";
     ctxB.fillRect(0, 0, 20, 20);
     renderOrderedShapes(ctxB, [blue, red]);

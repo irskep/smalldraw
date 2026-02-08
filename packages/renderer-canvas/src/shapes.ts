@@ -17,7 +17,9 @@ function createDefaultShapeRendererRegistry(): ShapeRendererRegistry {
   registry.set("rect", (ctx, shape, _geometryRegistry) =>
     renderRect(
       ctx,
-      shape as AnyShape & { geometry: { type: "rect"; size: [number, number] } },
+      shape as AnyShape & {
+        geometry: { type: "rect"; size: [number, number] };
+      },
     ),
   );
   registry.set("pen", (ctx, shape) =>

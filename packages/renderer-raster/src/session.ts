@@ -101,7 +101,10 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
       });
       this.forceFullHotRenderOnce = false;
       this.layerController?.setMode(hasDrafts ? "hot" : "tiles");
-      perfAddTimingMs("session.hotLayer.renderDrafts.ms", perfNowMs() - hotStartMs);
+      perfAddTimingMs(
+        "session.hotLayer.renderDrafts.ms",
+        perfNowMs() - hotStartMs,
+      );
     } else {
       perfAddCounter("session.hotLayer.skipped");
     }
@@ -124,7 +127,10 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     }
     const touchStartMs = perfNowMs();
     const touchedShapeIds = this.captureTouchedTiles(dirtyState);
-    perfAddTimingMs("session.captureTouchedTiles.ms", perfNowMs() - touchStartMs);
+    perfAddTimingMs(
+      "session.captureTouchedTiles.ms",
+      perfNowMs() - touchStartMs,
+    );
     this.updateKnownClearShapeIds(docShapes);
     if (!touchedShapeIds.size) {
       perfAddTimingMs("session.render.ms", perfNowMs() - renderStartMs);

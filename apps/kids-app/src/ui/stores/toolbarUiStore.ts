@@ -36,7 +36,10 @@ export function syncToolbarUiFromDrawingStore(store: DrawingStore): void {
   $toolbarUi.set(next);
 }
 
-export function setToolbarStrokeUi(strokeColor: string, strokeWidth: number): void {
+export function setToolbarStrokeUi(
+  strokeColor: string,
+  strokeWidth: number,
+): void {
   const current = $toolbarUi.get();
   const next: ToolbarUiState = {
     ...current,

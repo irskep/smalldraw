@@ -1,6 +1,8 @@
 import type { TileSnapshotStore } from "./types";
 
-export function createInMemorySnapshotStore<TSnapshot>(): TileSnapshotStore<TSnapshot> {
+export function createInMemorySnapshotStore<
+  TSnapshot,
+>(): TileSnapshotStore<TSnapshot> {
   const snapshots = new Map<string, TSnapshot>();
   return {
     getSnapshot: (key) => snapshots.get(key),

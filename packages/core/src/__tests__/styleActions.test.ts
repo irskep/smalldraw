@@ -95,7 +95,9 @@ describe("Fill and stroke actions", () => {
     expect(doc.shapes[shape.id]!.style.stroke).toMatchObject(newStroke);
     doc = undo.undo(doc, ctx).doc;
     expect(doc.shapes[shape.id]?.style.stroke).toBeDefined();
-    expect(doc.shapes[shape.id]!.style.stroke).toMatchObject(shape.style.stroke!);
+    expect(doc.shapes[shape.id]!.style.stroke).toMatchObject(
+      shape.style.stroke!,
+    );
   });
 });
 

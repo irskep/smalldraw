@@ -67,8 +67,18 @@ function createDotStroke(
   const center = toVec2(point);
   return [
     toVec2Like(new Vec2().add(center).sub(delta)),
-    toVec2Like(new Vec2().add(center).sub(delta).add(new Vec2(2 * radius, 0))),
+    toVec2Like(
+      new Vec2()
+        .add(center)
+        .sub(delta)
+        .add(new Vec2(2 * radius, 0)),
+    ),
     toVec2Like(new Vec2().add(center).add(delta)),
-    toVec2Like(new Vec2().add(center).add(delta).sub(new Vec2(2 * radius, 0))),
+    toVec2Like(
+      new Vec2()
+        .add(center)
+        .add(delta)
+        .sub(new Vec2(2 * radius, 0)),
+    ),
   ];
 }

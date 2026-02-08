@@ -48,7 +48,11 @@ export class HotLayer {
     const shapes = normalizeDraftShapes(drafts);
     const dirtyBounds =
       options.dirtyBounds && this.viewport
-        ? worldBoundsToBackingRect(options.dirtyBounds, this.viewport, this.canvas)
+        ? worldBoundsToBackingRect(
+            options.dirtyBounds,
+            this.viewport,
+            this.canvas,
+          )
         : null;
     if (dirtyBounds) {
       this.clearRect(dirtyBounds);
@@ -69,8 +73,12 @@ export class HotLayer {
             ])
           : new Vec2(1, 1);
         const dirty = new BoxOperations(dirtyBounds);
-        const dirtySourceMin = new Vec2(dirty.minX, dirty.minY).mul(sourceScale);
-        const dirtySourceSize = new Vec2(dirty.width, dirty.height).mul(sourceScale);
+        const dirtySourceMin = new Vec2(dirty.minX, dirty.minY).mul(
+          sourceScale,
+        );
+        const dirtySourceSize = new Vec2(dirty.width, dirty.height).mul(
+          sourceScale,
+        );
         this.ctx.drawImage(
           this.backdropImage,
           getX(dirtySourceMin),
@@ -92,7 +100,10 @@ export class HotLayer {
         );
       }
       this.ctx.restore();
-      perfAddTimingMs("hotLayer.backdropBlit.ms", perfNowMs() - backdropStartMs);
+      perfAddTimingMs(
+        "hotLayer.backdropBlit.ms",
+        perfNowMs() - backdropStartMs,
+      );
     }
     if (!shapes.length) {
       return;
@@ -146,10 +157,7 @@ export class HotLayer {
     this.ctx.clearRect(dirty.minX, dirty.minY, dirty.width, dirty.height);
   }
 
-  setBackdrop(
-    image: CanvasImageSource | null,
-    backgroundColor?: string,
-  ): void {
+  setBackdrop(image: CanvasImageSource | null, backgroundColor?: string): void {
     this.backdropImage = image;
     this.backdropBackgroundColor = image ? (backgroundColor ?? null) : null;
     const canvasWithOptionalStyle = this.canvas as unknown as {
@@ -162,9 +170,7 @@ export class HotLayer {
   }
 }
 
-function normalizeDraftShapes(
-  drafts: DraftShape[] | AnyShape[],
-): AnyShape[] {
+function normalizeDraftShapes(drafts: DraftShape[] | AnyShape[]): AnyShape[] {
   return drafts.map((shape) => {
     if ("temporary" in shape && "toolId" in shape) {
       const { temporary: _temp, toolId: _tool, ...rest } = shape;
@@ -187,7 +193,9 @@ function setWorldToBackingTransform(
   canvas: HTMLCanvasElement,
 ): void {
   const metrics = getWorldToBackingMetrics(viewport, canvas);
-  const worldScale = new Vec2(viewport.scale, viewport.scale).mul(metrics.scale);
+  const worldScale = new Vec2(viewport.scale, viewport.scale).mul(
+    metrics.scale,
+  );
   const worldTranslate = new Vec2(metrics.translate).mul(metrics.scale);
   ctx.setTransform(
     getX(worldScale),
@@ -213,7 +221,10 @@ function worldBoundsToBackingRect(
     .mul([viewport.scale, viewport.scale])
     .add(metrics.translate)
     .mul(metrics.scale);
-  const projectedBounds = BoxOperations.fromPointPair(projectedMin, projectedMax);
+  const projectedBounds = BoxOperations.fromPointPair(
+    projectedMin,
+    projectedMax,
+  );
   const clippedMin = new Vec2();
   Vec2.max(clippedMin, projectedBounds.min, [0, 0]);
   Vec2.floor(clippedMin, clippedMin);
@@ -240,7 +251,10 @@ function getWorldToBackingMetrics(
   scale: Vec2;
   translate: Vec2;
 } {
-  const scale = new Vec2(canvas.width / viewport.width, canvas.height / viewport.height);
+  const scale = new Vec2(
+    canvas.width / viewport.width,
+    canvas.height / viewport.height,
+  );
   const translate = new Vec2(viewport.width / 2, viewport.height / 2).sub(
     new Vec2(getX(viewport.center), getY(viewport.center)).mul([
       viewport.scale,
@@ -252,7 +266,6 @@ function getWorldToBackingMetrics(
     translate,
   };
 }
-
 
 function getImageSourceSize(
   image: CanvasImageSource,

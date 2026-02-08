@@ -58,7 +58,6 @@ function createPen(id: string, translation: [number, number]): AnyShape {
   };
 }
 
-
 async function renderTileFromDoc(
   doc: DrawingDocument,
   tileX = 0,
@@ -102,7 +101,9 @@ async function bakeTileFromDoc(
     shapeHandlers: registry,
     baker: {
       bakeTile: async (coord, canvas) => {
-        const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+        const ctx = canvas.getContext(
+          "2d",
+        ) as unknown as CanvasRenderingContext2D;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);

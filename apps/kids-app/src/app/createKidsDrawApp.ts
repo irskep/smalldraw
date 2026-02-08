@@ -24,7 +24,8 @@ const KIDS_DRAW_STROKE_WIDTH_MULTIPLIER = 3;
 export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
 ): Promise<KidsDrawApp> {
-  const hasExplicitSize = options.width !== undefined || options.height !== undefined;
+  const hasExplicitSize =
+    options.width !== undefined || options.height !== undefined;
   const getExplicitSize = (): DrawingDocumentSize => ({
     width: options.width ?? DEFAULT_WIDTH,
     height: options.height ?? DEFAULT_HEIGHT,

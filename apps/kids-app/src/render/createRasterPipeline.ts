@@ -1,4 +1,4 @@
-import { type AnyShape, type DrawingStore } from "@smalldraw/core";
+import type { AnyShape, DrawingStore } from "@smalldraw/core";
 import { BoxOperations, Vec2 } from "@smalldraw/geometry";
 import {
   HotLayer,
@@ -84,7 +84,10 @@ export function createRasterPipeline(options: {
   const hotLayer = new HotLayer(stage.hotCanvas, {
     backgroundColor: undefined,
   });
-  const layerController = createDomLayerController(stage.tileLayer, stage.hotCanvas);
+  const layerController = createDomLayerController(
+    stage.tileLayer,
+    stage.hotCanvas,
+  );
   hotLayer.setViewport({
     width,
     height,

@@ -7,8 +7,10 @@ import {
   type DrawingDocument,
   type DrawingDocumentData,
   type DrawingStoreActionEvent,
+  type PenShape,
   type SmalldrawCore,
 } from "@smalldraw/core";
+import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { createKidsDrawApp } from "../createKidsDrawApp";
 
 function dispatchPointer(
@@ -33,6 +35,41 @@ function dispatchInput(element: HTMLElement): void {
   element.dispatchEvent(new EventCtor("input", { bubbles: true }));
 }
 
+function dispatchPointerMoveWithCoalesced(
+  overlay: HTMLElement,
+  x: number,
+  y: number,
+  coalescedPoints: Array<{ x: number; y: number }> = [],
+  buttons = 1,
+): void {
+  const event = new PointerEvent("pointermove", {
+    bubbles: true,
+    clientX: x,
+    clientY: y,
+    buttons,
+    pointerId: 1,
+  }) as PointerEvent & {
+    getCoalescedEvents?: () => PointerEvent[];
+  };
+  if (coalescedPoints.length > 0) {
+    Object.defineProperty(event, "getCoalescedEvents", {
+      configurable: true,
+      value: () =>
+        coalescedPoints.map(
+          (point) =>
+            new PointerEvent("pointermove", {
+              bubbles: true,
+              clientX: point.x,
+              clientY: point.y,
+              buttons,
+              pointerId: 1,
+            }),
+        ),
+    });
+  }
+  overlay.dispatchEvent(event);
+}
+
 async function waitForTurn(): Promise<void> {
   await Promise.resolve();
   await Promise.resolve();
@@ -51,7 +88,9 @@ async function waitUntil(
   return predicate();
 }
 
-function createMockCore(initialSize = { width: 960, height: 600 }): SmalldrawCore {
+function createMockCore(
+  initialSize = { width: 960, height: 600 },
+): SmalldrawCore {
   const registry = getDefaultShapeHandlerRegistry();
   let doc = createDocument(undefined, registry, initialSize);
   const listeners = new Set<(doc: DrawingDocument) => void>();
@@ -122,9 +161,13 @@ describe("kids-app shell", () => {
       core: createMockCore({ width: 640, height: 480 }),
     });
 
-    const root = container.querySelector(".kids-draw-app") as HTMLElement | null;
+    const root = container.querySelector(
+      ".kids-draw-app",
+    ) as HTMLElement | null;
     expect(root).not.toBeNull();
-    const frame = container.querySelector(".kids-draw-frame") as HTMLElement | null;
+    const frame = container.querySelector(
+      ".kids-draw-frame",
+    ) as HTMLElement | null;
     expect(frame).not.toBeNull();
     expect(frame?.style.height).toBe("480px");
 
@@ -363,5 +406,93 @@ describe("kids-app shell", () => {
     await new Promise((resolve) => setTimeout(resolve, 60));
 
     expect(container.querySelector(".kids-draw-app")).toBeNull();
+  });
+
+  test("pointer move uses coalesced samples when available and falls back otherwise", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    dispatchPointer(overlay, "pointerdown", 50, 50, 1);
+    dispatchPointerMoveWithCoalesced(
+      overlay,
+      130,
+      130,
+      [
+        { x: 70, y: 70 },
+        { x: 90, y: 90 },
+        { x: 90, y: 90 },
+        { x: 120, y: 120 },
+      ],
+      1,
+    );
+    dispatchPointer(overlay, "pointerup", 120, 120, 0);
+
+    const shapesAfterCoalesced = Object.values(app.store.getDocument().shapes);
+    expect(shapesAfterCoalesced).toHaveLength(1);
+    const firstStrokePoints = getWorldPointsFromShape(
+      shapesAfterCoalesced[0] as PenShape,
+    );
+    expect(firstStrokePoints).toEqual([
+      [50, 50],
+      [70, 70],
+      [90, 90],
+      [120, 120],
+    ]);
+
+    const firstSummary = (globalThis as Record<string, unknown>)
+      .__kidsDrawPerf as
+      | {
+          lastStrokeSummary?: {
+            pointerMoveEvents: number;
+            pointerSamples: number;
+            coalescedEvents: number;
+          };
+        }
+      | undefined;
+    expect(firstSummary?.lastStrokeSummary?.pointerMoveEvents).toBe(1);
+    expect(firstSummary?.lastStrokeSummary?.pointerSamples).toBe(3);
+    expect(firstSummary?.lastStrokeSummary?.coalescedEvents).toBe(1);
+
+    dispatchPointer(overlay, "pointerdown", 10, 10, 1);
+    dispatchPointer(overlay, "pointermove", 30, 20, 1);
+    dispatchPointer(overlay, "pointerup", 30, 20, 0);
+
+    const secondSummary = (globalThis as Record<string, unknown>)
+      .__kidsDrawPerf as
+      | {
+          lastStrokeSummary?: {
+            pointerMoveEvents: number;
+            pointerSamples: number;
+            coalescedEvents: number;
+          };
+        }
+      | undefined;
+    expect(secondSummary?.lastStrokeSummary?.pointerMoveEvents).toBe(1);
+    expect(secondSummary?.lastStrokeSummary?.pointerSamples).toBe(1);
+    expect(secondSummary?.lastStrokeSummary?.coalescedEvents).toBe(0);
+
+    app.destroy();
   });
 });

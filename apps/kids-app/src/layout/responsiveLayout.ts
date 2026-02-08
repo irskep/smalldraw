@@ -17,10 +17,10 @@ export function normalizePixelRatio(value: number | undefined): number {
   return value;
 }
 
-export function resolvePageSize(fallback: {
+export function resolvePageSize(fallback: { width: number; height: number }): {
   width: number;
   height: number;
-}): { width: number; height: number } {
+} {
   if (typeof window === "undefined") {
     return fallback;
   }
@@ -86,7 +86,11 @@ export function applyResponsiveLayout(params: {
 
   const availableWidth = Math.max(1, hostRect.width - insets.x * 2);
   const availableHeight = Math.max(1, hostRect.height - insets.y * 2);
-  const nextScale = Math.min(1, availableWidth / width, availableHeight / height);
+  const nextScale = Math.min(
+    1,
+    availableWidth / width,
+    availableHeight / height,
+  );
 
   let nextDisplayScale = displayScale;
   let nextDisplayWidth = displayWidth;

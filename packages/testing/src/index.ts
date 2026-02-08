@@ -25,7 +25,8 @@ export async function expectSnapshot(
   options: SnapshotOptions = {},
 ): Promise<void> {
   const snapshotDir =
-    options.snapshotDir ?? resolveSnapshotDir(import.meta.url, "../../__snapshots__");
+    options.snapshotDir ??
+    resolveSnapshotDir(import.meta.url, "../../__snapshots__");
   const updateEnvVar = options.updateEnvVar ?? "UPDATE_SNAPSHOTS";
   const tolerance = options.tolerance ?? 2;
   const shouldUpdate = process.env[updateEnvVar] === "1";
@@ -126,9 +127,7 @@ function formatUpdateMessage(
   return ` Run ${updateEnvVar}=1 ${testCommand} to accept changes.`;
 }
 
-function isNodeErrorWithCode(
-  error: unknown,
-): error is NodeJS.ErrnoException {
+function isNodeErrorWithCode(error: unknown): error is NodeJS.ErrnoException {
   return (
     typeof error === "object" &&
     error !== null &&

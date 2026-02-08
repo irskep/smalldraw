@@ -43,7 +43,9 @@ function createTileRenderer(shapesRef: { shapes: AnyShape[] }) {
     backgroundColor: "#ffffff",
     baker: {
       bakeTile: async (coord, canvas) => {
-        const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+        const ctx = canvas.getContext(
+          "2d",
+        ) as unknown as CanvasRenderingContext2D;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();

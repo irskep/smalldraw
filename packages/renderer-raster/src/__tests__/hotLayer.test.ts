@@ -33,10 +33,10 @@ function draftRect(
   };
 }
 
-const box = (
-  min: [number, number],
-  max: [number, number],
-): Box => ({ min, max });
+const box = (min: [number, number], max: [number, number]): Box => ({
+  min,
+  max,
+});
 
 describe("HotLayer", () => {
   test("renders drafts in screen space and clears on request", () => {

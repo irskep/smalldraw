@@ -42,7 +42,9 @@ describe("RasterSession", () => {
       baker: {
         bakeTile: async (coord, canvas) => {
           bakeCalls.push(`${coord.x},${coord.y}`);
-          const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+          const ctx = canvas.getContext(
+            "2d",
+          ) as unknown as CanvasRenderingContext2D;
           ctx.setTransform(1, 0, 0, 1, 0, 0);
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.save();
@@ -78,7 +80,9 @@ describe("RasterSession", () => {
       buttons: 1,
     });
 
-    const hotCtx = hotCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    const hotCtx = hotCanvas.getContext(
+      "2d",
+    ) as unknown as CanvasRenderingContext2D;
     expect(store.getDrafts().length).toBeGreaterThan(0);
     for (let i = 0; i < 10 && pixelAt(hotCtx, 110, 110)[3] === 0; i += 1) {
       await Promise.resolve();
@@ -101,7 +105,9 @@ describe("RasterSession", () => {
     if (!tileCanvas) {
       throw new Error("Expected baked tile 0,0");
     }
-    const tileCtx = tileCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    const tileCtx = tileCanvas.getContext(
+      "2d",
+    ) as unknown as CanvasRenderingContext2D;
     expect(pixelAt(tileCtx, 110, 110)[3]).toBeGreaterThan(0);
   });
 
@@ -123,7 +129,9 @@ describe("RasterSession", () => {
     const renderer = new TileRenderer(store, provider, {
       baker: {
         bakeTile: async (coord, canvas) => {
-          const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+          const ctx = canvas.getContext(
+            "2d",
+          ) as unknown as CanvasRenderingContext2D;
           ctx.setTransform(1, 0, 0, 1, 0, 0);
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.save();
@@ -150,7 +158,9 @@ describe("RasterSession", () => {
     renderer.captureViewportSnapshot = async () => {
       captureCalls += 1;
       const snapshot = createCanvas(TILE_SIZE, TILE_SIZE);
-      const ctx = snapshot.getContext("2d") as unknown as CanvasRenderingContext2D;
+      const ctx = snapshot.getContext(
+        "2d",
+      ) as unknown as CanvasRenderingContext2D;
       ctx.fillStyle = "#0000ff";
       ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
       return snapshot as unknown as CanvasImageSource;
@@ -174,7 +184,9 @@ describe("RasterSession", () => {
       buttons: 1,
     });
 
-    const hotCtx = hotCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    const hotCtx = hotCanvas.getContext(
+      "2d",
+    ) as unknown as CanvasRenderingContext2D;
     for (let i = 0; i < 10 && pixelAt(hotCtx, 40, 40)[3] === 0; i += 1) {
       await Promise.resolve();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -211,7 +223,9 @@ describe("RasterSession", () => {
     renderer.captureViewportSnapshot = async () => {
       captureCalls += 1;
       const snapshot = createCanvas(TILE_SIZE, TILE_SIZE);
-      const ctx = snapshot.getContext("2d") as unknown as CanvasRenderingContext2D;
+      const ctx = snapshot.getContext(
+        "2d",
+      ) as unknown as CanvasRenderingContext2D;
       ctx.fillStyle = "#ff0000";
       ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
       return snapshot as unknown as CanvasImageSource;
@@ -245,7 +259,9 @@ describe("RasterSession", () => {
       buttons: 1,
     });
 
-    const hotCtx = hotCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    const hotCtx = hotCanvas.getContext(
+      "2d",
+    ) as unknown as CanvasRenderingContext2D;
     for (let i = 0; i < 10 && pixelAt(hotCtx, 10, 10)[3] === 0; i += 1) {
       await Promise.resolve();
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -313,9 +329,7 @@ describe("RasterSession", () => {
     );
     await session.flushBakes();
 
-    expect(new Set(bakeCalls)).toEqual(
-      new Set(["0,0", "1,0", "0,1", "1,1"]),
-    );
+    expect(new Set(bakeCalls)).toEqual(new Set(["0,0", "1,0", "0,1", "1,1"]));
   });
 
   test("passes tool preview dirty bounds into hot-layer render", () => {
@@ -353,11 +367,12 @@ describe("RasterSession", () => {
 
     const dirtyBoundsCalls: Array<unknown> = [];
     const originalRenderDrafts = hotLayer.renderDrafts.bind(hotLayer);
-    (hotLayer as unknown as { renderDrafts: typeof hotLayer.renderDrafts }).renderDrafts =
-      (drafts, options) => {
-        dirtyBoundsCalls.push(options?.dirtyBounds ?? null);
-        return originalRenderDrafts(drafts, options);
-      };
+    (
+      hotLayer as unknown as { renderDrafts: typeof hotLayer.renderDrafts }
+    ).renderDrafts = (drafts, options) => {
+      dirtyBoundsCalls.push(options?.dirtyBounds ?? null);
+      return originalRenderDrafts(drafts, options);
+    };
 
     store.setOnRenderNeeded(() => session.render());
     store.activateTool("preview");
@@ -370,9 +385,10 @@ describe("RasterSession", () => {
       buttons: 1,
     });
 
-    const lastDirtyBounds = dirtyBoundsCalls[dirtyBoundsCalls.length - 1] as
-      | { min: [number, number]; max: [number, number] }
-      | null;
+    const lastDirtyBounds = dirtyBoundsCalls[dirtyBoundsCalls.length - 1] as {
+      min: [number, number];
+      max: [number, number];
+    } | null;
     expect(lastDirtyBounds).not.toBeNull();
     expect(lastDirtyBounds!.max[0]).toBeGreaterThan(lastDirtyBounds!.min[0]);
     expect(lastDirtyBounds!.max[1]).toBeGreaterThan(lastDirtyBounds!.min[1]);

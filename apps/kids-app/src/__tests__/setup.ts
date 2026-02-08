@@ -34,5 +34,5 @@ const contextStub: Partial<CanvasRenderingContext2D> = {
   windowInstance.HTMLCanvasElement.prototype as unknown as {
     getContext: HTMLCanvasElement["getContext"];
   }
-).getContext = (() => contextStub as CanvasRenderingContext2D) as
-  unknown as HTMLCanvasElement["getContext"];
+).getContext = (() =>
+  contextStub as CanvasRenderingContext2D) as unknown as HTMLCanvasElement["getContext"];

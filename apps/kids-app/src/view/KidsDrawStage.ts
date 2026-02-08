@@ -31,13 +31,18 @@ export function createKidsDrawStage(options: {
 
   const tileLayer = el("div.kids-draw-layer.kids-draw-tiles") as HTMLDivElement;
 
-  const hotCanvas = el("canvas.kids-draw-layer.kids-draw-hot") as HTMLCanvasElement;
+  const hotCanvas = el(
+    "canvas.kids-draw-layer.kids-draw-hot",
+  ) as HTMLCanvasElement;
 
   const dirtyRectOverlay = DEBUG_SHOW_DIRTY_RECT_LAYER
     ? document.createElementNS("http://www.w3.org/2000/svg", "svg")
     : null;
   if (dirtyRectOverlay) {
-    dirtyRectOverlay.setAttribute("class", "kids-draw-layer kids-draw-dirty-rect");
+    dirtyRectOverlay.setAttribute(
+      "class",
+      "kids-draw-layer kids-draw-dirty-rect",
+    );
     dirtyRectOverlay.style.visibility = "hidden";
   }
 
@@ -67,7 +72,10 @@ export function createKidsDrawStage(options: {
       dirtyRectOverlay.style.height = `${nextHeight}px`;
       dirtyRectOverlay.setAttribute("width", `${nextWidth}`);
       dirtyRectOverlay.setAttribute("height", `${nextHeight}`);
-      dirtyRectOverlay.setAttribute("viewBox", `0 0 ${nextWidth} ${nextHeight}`);
+      dirtyRectOverlay.setAttribute(
+        "viewBox",
+        `0 0 ${nextWidth} ${nextHeight}`,
+      );
     }
   };
 

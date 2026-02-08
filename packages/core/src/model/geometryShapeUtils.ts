@@ -92,8 +92,10 @@ export function getShapeBounds(
       max: toVec2Like(translation),
     };
   }
-  return baseBounds ?? {
-    min: toVec2Like(transform.translation),
-    max: toVec2Like(transform.translation),
-  };
+  return (
+    baseBounds ?? {
+      min: toVec2Like(transform.translation),
+      max: toVec2Like(transform.translation),
+    }
+  );
 }

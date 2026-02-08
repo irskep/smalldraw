@@ -42,7 +42,10 @@ export function fromJSON(
   let doc = init<DrawingDocumentData>();
   doc = change(doc, (draft) => {
     draft.size = {
-      width: Math.max(1, Math.round(json.size?.width ?? DEFAULT_DOCUMENT_SIZE.width)),
+      width: Math.max(
+        1,
+        Math.round(json.size?.width ?? DEFAULT_DOCUMENT_SIZE.width),
+      ),
       height: Math.max(
         1,
         Math.round(json.size?.height ?? DEFAULT_DOCUMENT_SIZE.height),

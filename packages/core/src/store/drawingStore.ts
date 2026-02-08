@@ -90,6 +90,8 @@ export class DrawingStore {
   private onAction?: (event: DrawingStoreActionEvent) => void;
   private actionDispatcher?: (event: DrawingStoreActionEvent) => void;
   private onUndoFailure?: (message: string) => void;
+  private renderBatchDepth = 0;
+  private renderQueuedDuringBatch = false;
 
   // Shape handler registry
   private shapeHandlers: ShapeHandlerRegistry;
@@ -137,6 +139,17 @@ export class DrawingStore {
     if (!this.activeToolId) return;
     const runtime = this.runtimes.get(this.activeToolId);
     runtime?.dispatch(event, payload);
+  }
+
+  dispatchBatch(event: ToolEventName, payloads: ToolPointerEvent[]): void {
+    if (!this.activeToolId || payloads.length === 0) return;
+    const runtime = this.runtimes.get(this.activeToolId);
+    if (!runtime) return;
+    this.runWithBatchedRender(() => {
+      for (const payload of payloads) {
+        runtime.dispatch(event, payload);
+      }
+    });
   }
 
   getDrafts(): DraftShape[] {
@@ -244,7 +257,24 @@ export class DrawingStore {
   }
 
   private triggerRender(): void {
+    if (this.renderBatchDepth > 0) {
+      this.renderQueuedDuringBatch = true;
+      return;
+    }
     this.onRenderNeeded?.();
+  }
+
+  private runWithBatchedRender(task: () => void): void {
+    this.renderBatchDepth += 1;
+    try {
+      task();
+    } finally {
+      this.renderBatchDepth -= 1;
+      if (this.renderBatchDepth === 0 && this.renderQueuedDuringBatch) {
+        this.renderQueuedDuringBatch = false;
+        this.onRenderNeeded?.();
+      }
+    }
   }
 
   setOnRenderNeeded(callback?: () => void): void {

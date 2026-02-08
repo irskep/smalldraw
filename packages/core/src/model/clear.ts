@@ -1,8 +1,6 @@
 import type { Shape } from "./shape";
 
-export function getLatestClearTemporalOrder(
-  shapes: Shape[],
-): number | null {
+export function getLatestClearTemporalOrder(shapes: Shape[]): number | null {
   let latest: number | null = null;
   for (const shape of shapes) {
     if (shape.type !== "clear") continue;

@@ -28,7 +28,9 @@ export interface SmalldrawCoreOptions {
 
 export interface SmalldrawCore {
   readonly storeAdapter: DrawingStoreAdapter;
-  reset(options?: { documentSize?: DrawingDocumentSize }): Promise<DrawingStoreAdapter>;
+  reset(options?: {
+    documentSize?: DrawingDocumentSize;
+  }): Promise<DrawingStoreAdapter>;
   destroy(): void;
 }
 
@@ -57,7 +59,10 @@ async function getOrCreateHandle(
       createEmptyDrawingDocumentData(documentSize),
     );
     if (debug) {
-      console.debug("[createSmalldraw] created new doc (always-new):", handle.url);
+      console.debug(
+        "[createSmalldraw] created new doc (always-new):",
+        handle.url,
+      );
     }
     return handle;
   }
@@ -84,8 +89,11 @@ async function getOrCreateHandle(
 export async function createSmalldraw(
   options: SmalldrawCoreOptions = {},
 ): Promise<SmalldrawCore> {
-  const { persistence, documentSize = DEFAULT_DOCUMENT_SIZE, debug = false } =
-    options;
+  const {
+    persistence,
+    documentSize = DEFAULT_DOCUMENT_SIZE,
+    debug = false,
+  } = options;
 
   await initAutomerge();
 

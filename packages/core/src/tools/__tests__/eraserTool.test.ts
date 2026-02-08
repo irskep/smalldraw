@@ -7,10 +7,7 @@ import type { PenShape } from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
 import { createEraserTool } from "../eraser";
 import { ToolRuntimeImpl } from "../runtime";
-import {
-  expectPointsClose,
-  getWorldPointsFromShape,
-} from "@smalldraw/testing";
+import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
 import { BoxOperations } from "@smalldraw/geometry";
 
 describe("eraser tool integration with runtime", () => {

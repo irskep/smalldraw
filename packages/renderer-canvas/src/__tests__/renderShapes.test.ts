@@ -22,8 +22,7 @@ async function expectDocumentSnapshot(
       ...shape,
       transform: {
         ...shape.transform,
-        translation:
-          shape.transform?.translation ?? v(width / 2, height / 2),
+        translation: shape.transform?.translation ?? v(width / 2, height / 2),
       },
     })),
     registry,

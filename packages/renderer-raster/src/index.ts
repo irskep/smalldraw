@@ -67,10 +67,7 @@ export function bind(
   };
 }
 
-export class TileRenderer<
-  TCanvas = HTMLCanvasElement,
-  TSnapshot = unknown,
-> {
+export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   private coreStore: DrawingStore;
   private tileProvider: TileProvider<TCanvas>;
   private shapeHandlers: ShapeHandlerRegistry;
@@ -86,7 +83,10 @@ export class TileRenderer<
   private renderIdentity: string;
   private viewport: Box | null = null;
   private unsubscribe?: () => void;
-  private visibleTiles = new Map<string, { coord: TileCoord; canvas: TCanvas }>();
+  private visibleTiles = new Map<
+    string,
+    { coord: TileCoord; canvas: TCanvas }
+  >();
   private visibleOrder: TileCoord[] = [];
   private touchedTilesByShape = new Map<string, Set<string>>();
   private lastTilesByShape = new Map<string, Set<string>>();
@@ -268,7 +268,10 @@ export class TileRenderer<
         }
       }
       this.invalidateAll = false;
-      perfAddTimingMs("tileRenderer.bakePendingTiles.ms", perfNowMs() - bakeStartMs);
+      perfAddTimingMs(
+        "tileRenderer.bakePendingTiles.ms",
+        perfNowMs() - bakeStartMs,
+      );
       return;
     }
     perfAddCounter(
@@ -288,7 +291,10 @@ export class TileRenderer<
       }
     }
     this.pendingBakeTiles.clear();
-    perfAddTimingMs("tileRenderer.bakePendingTiles.ms", perfNowMs() - bakeStartMs);
+    perfAddTimingMs(
+      "tileRenderer.bakePendingTiles.ms",
+      perfNowMs() - bakeStartMs,
+    );
   }
 
   getTilePixelRatio(): number {
@@ -306,21 +312,14 @@ export class TileRenderer<
       return null;
     }
     await this.bakePendingTiles();
-    const snapshotScale =
-      Number.isFinite(scale) && scale > 0 ? scale : 1;
+    const snapshotScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
     const viewportMin = new Vec2(this.viewport.min);
     const viewportMax = new Vec2(this.viewport.max);
     const scaledViewportSize = new Vec2(viewportMax)
       .sub(viewportMin)
       .mul([snapshotScale, snapshotScale]);
-    const width = Math.max(
-      1,
-      Math.ceil(getX(scaledViewportSize)),
-    );
-    const height = Math.max(
-      1,
-      Math.ceil(getY(scaledViewportSize)),
-    );
+    const width = Math.max(1, Math.ceil(getX(scaledViewportSize)));
+    const height = Math.max(1, Math.ceil(getY(scaledViewportSize)));
     const snapshotCanvas = this.createViewportSnapshotCanvas?.(width, height);
     const fallbackCanvas =
       snapshotCanvas ?? createDomSnapshotCanvas(width, height);
@@ -396,10 +395,7 @@ export class TileRenderer<
 
     for (const [key, entry] of this.visibleTiles) {
       if (nextKeys.has(key)) continue;
-      this.tileProvider.releaseTileCanvas?.(
-        entry.coord,
-        entry.canvas,
-      );
+      this.tileProvider.releaseTileCanvas?.(entry.coord, entry.canvas);
       this.visibleTiles.delete(key);
     }
 

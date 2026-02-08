@@ -39,7 +39,10 @@ export function createDocument(
       for (const shape of initialShapes) {
         const canonical = canonicalizeShape(shape, registry);
         if (typeof canonical.temporalOrder === "number") {
-          maxTemporalOrder = Math.max(maxTemporalOrder, canonical.temporalOrder);
+          maxTemporalOrder = Math.max(
+            maxTemporalOrder,
+            canonical.temporalOrder,
+          );
         }
         draft.shapes[canonical.id] = canonical;
       }

@@ -29,7 +29,10 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
   const element = el("div.kids-draw-toolbar") as HTMLDivElement;
 
   const penButton = createButton({ textContent: "Pen", "data-tool": "pen" });
-  const eraserButton = createButton({ textContent: "Eraser", "data-tool": "eraser" });
+  const eraserButton = createButton({
+    textContent: "Eraser",
+    "data-tool": "eraser",
+  });
   const undoButton = createButton({
     textContent: "↩️",
     title: "Undo",
@@ -83,7 +86,10 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     const penSelected = state.activeToolId === "pen";
     const eraserSelected = state.activeToolId === "eraser";
     penButton.setAttribute("aria-pressed", penSelected ? "true" : "false");
-    eraserButton.setAttribute("aria-pressed", eraserSelected ? "true" : "false");
+    eraserButton.setAttribute(
+      "aria-pressed",
+      eraserSelected ? "true" : "false",
+    );
     setToolButtonSelected(penButton, penSelected);
     setToolButtonSelected(eraserButton, eraserSelected);
     undoButton.disabled = !state.canUndo;

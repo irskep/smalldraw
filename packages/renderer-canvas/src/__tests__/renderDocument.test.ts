@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { createCanvas } from "canvas";
-import { createDocument, getDefaultShapeHandlerRegistry } from "@smalldraw/core";
+import {
+  createDocument,
+  getDefaultShapeHandlerRegistry,
+} from "@smalldraw/core";
 import { renderDocument } from "../index";
 
 function pixelAt(

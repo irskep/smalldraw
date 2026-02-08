@@ -21,8 +21,12 @@ import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 
 const RESIZE_BAKE_DEBOUNCE_MS = 120;
+const MAX_POINTER_SAMPLES_PER_EVENT = 64;
 
 type RafRenderState = "idle" | "modelRequested" | "anticipatory";
+type PointerEventWithCoalesced = PointerEvent & {
+  getCoalescedEvents?: () => PointerEvent[];
+};
 
 export interface KidsDrawController {
   destroy(): void;
@@ -79,7 +83,10 @@ export function createKidsDrawController(options: {
   let unsubscribeCoreAdapter: (() => void) | null = null;
 
   const debugLifecycle = (...args: unknown[]): void => {
-    if (!(globalThis as { __kidsDrawDebugLifecycle?: boolean }).__kidsDrawDebugLifecycle) {
+    if (
+      !(globalThis as { __kidsDrawDebugLifecycle?: boolean })
+        .__kidsDrawDebugLifecycle
+    ) {
       return;
     }
     console.debug("[kids-draw:lifecycle]", ...args);
@@ -274,6 +281,37 @@ export function createKidsDrawController(options: {
       .mul([widthScale, heightScale]);
   };
 
+  const getPointerMoveSamples = (
+    event: PointerEventWithCoalesced,
+  ): { samples: PointerEvent[]; usedCoalesced: boolean } => {
+    const coalesced = event.getCoalescedEvents?.();
+    const rawSamples =
+      coalesced && coalesced.length > 0 ? coalesced : [event as PointerEvent];
+    const cappedSamples =
+      rawSamples.length > MAX_POINTER_SAMPLES_PER_EVENT
+        ? rawSamples.slice(rawSamples.length - MAX_POINTER_SAMPLES_PER_EVENT)
+        : rawSamples;
+    const samples: PointerEvent[] = [];
+    for (const sample of cappedSamples) {
+      const previous = samples[samples.length - 1];
+      if (
+        previous &&
+        previous.clientX === sample.clientX &&
+        previous.clientY === sample.clientY
+      ) {
+        continue;
+      }
+      samples.push(sample);
+    }
+    if (samples.length === 0) {
+      samples.push(event);
+    }
+    return {
+      samples,
+      usedCoalesced: Boolean(coalesced && coalesced.length > 0),
+    };
+  };
+
   const subscribeToCoreAdapter = () => {
     unsubscribeCoreAdapter?.();
     unsubscribeCoreAdapter = core.storeAdapter.subscribe((doc) => {
@@ -333,14 +371,29 @@ export function createKidsDrawController(options: {
     pointerIsDown = true;
     drawingPerfFrameCount = 0;
     perfSession.begin();
-    store.dispatch("pointerDown", { point: toPoint(event), buttons: event.buttons });
+    store.dispatch("pointerDown", {
+      point: toPoint(event),
+      buttons: event.buttons,
+    });
     stage.overlay.setPointerCapture?.(event.pointerId);
     syncToolbarUi();
   };
-  const onPointerMove = (event: PointerEvent) => {
-    store.dispatch("pointerMove", { point: toPoint(event), buttons: event.buttons });
+  const onPointerMove = (event: PointerEventWithCoalesced) => {
+    const { samples, usedCoalesced } = getPointerMoveSamples(event);
+    const pointerSamples = samples.map((sample) => ({
+      point: toPoint(sample),
+      buttons: sample.buttons,
+      pressure: sample.pressure,
+      shiftKey: sample.shiftKey,
+      altKey: sample.altKey,
+    }));
+    perfSession.onPointerMoveSamples(pointerSamples.length, usedCoalesced);
+    store.dispatchBatch("pointerMove", pointerSamples);
   };
-  const endPointerSession = (event: PointerEvent, type: "pointerUp" | "pointerCancel") => {
+  const endPointerSession = (
+    event: PointerEvent,
+    type: "pointerUp" | "pointerCancel",
+  ) => {
     store.dispatch(type, { point: toPoint(event), buttons: event.buttons });
     pointerIsDown = false;
     perfSession.end(drawingPerfFrameCount);
@@ -358,10 +411,26 @@ export function createKidsDrawController(options: {
   if (window.visualViewport) {
     listen(window.visualViewport, "resize", onWindowResize);
   }
-  listen(toolbar.penButton, "click", runAndSync(() => store.activateTool("pen")));
-  listen(toolbar.eraserButton, "click", runAndSync(() => store.activateTool("eraser")));
-  listen(toolbar.undoButton, "click", runAndSync(() => store.undo()));
-  listen(toolbar.redoButton, "click", runAndSync(() => store.redo()));
+  listen(
+    toolbar.penButton,
+    "click",
+    runAndSync(() => store.activateTool("pen")),
+  );
+  listen(
+    toolbar.eraserButton,
+    "click",
+    runAndSync(() => store.activateTool("eraser")),
+  );
+  listen(
+    toolbar.undoButton,
+    "click",
+    runAndSync(() => store.undo()),
+  );
+  listen(
+    toolbar.redoButton,
+    "click",
+    runAndSync(() => store.redo()),
+  );
   listen(
     toolbar.clearButton,
     "click",
@@ -383,11 +452,19 @@ export function createKidsDrawController(options: {
   });
   listen(toolbar.colorInput, "input", () => {
     store.updateSharedSettings({ strokeColor: toolbar.colorInput.value });
-    setToolbarStrokeUi(toolbar.colorInput.value, Number(toolbar.sizeInput.value));
+    setToolbarStrokeUi(
+      toolbar.colorInput.value,
+      Number(toolbar.sizeInput.value),
+    );
   });
   listen(toolbar.sizeInput, "input", () => {
-    store.updateSharedSettings({ strokeWidth: Number(toolbar.sizeInput.value) });
-    setToolbarStrokeUi(toolbar.colorInput.value, Number(toolbar.sizeInput.value));
+    store.updateSharedSettings({
+      strokeWidth: Number(toolbar.sizeInput.value),
+    });
+    setToolbarStrokeUi(
+      toolbar.colorInput.value,
+      Number(toolbar.sizeInput.value),
+    );
   });
   listen(stage.overlay, "pointerdown", onPointerDown);
   listen(stage.overlay, "pointermove", onPointerMove);

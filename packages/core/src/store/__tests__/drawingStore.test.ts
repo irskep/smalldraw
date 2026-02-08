@@ -87,9 +87,10 @@ function createSelectionSetterTool(record: {
   };
 }
 
-function createPreviewTool(
-  preview: { min: [number, number]; max: [number, number] },
-): ToolDefinition {
+function createPreviewTool(preview: {
+  min: [number, number];
+  max: [number, number];
+}): ToolDefinition {
   return {
     id: "preview-tool",
     label: "Preview Tool",
@@ -117,6 +118,19 @@ function createRuntimeSelectionTool(selectionIds: string[]): ToolDefinition {
 }
 
 describe("DrawingStore", () => {
+  const expectPointListClose = (
+    actual: Array<[number, number]>,
+    expected: Array<[number, number]>,
+  ) => {
+    expect(actual).toHaveLength(expected.length);
+    for (let index = 0; index < expected.length; index += 1) {
+      const actualPoint = actual[index];
+      const expectedPoint = expected[index];
+      expect(actualPoint?.[0]).toBeCloseTo(expectedPoint[0], 4);
+      expect(actualPoint?.[1]).toBeCloseTo(expectedPoint[1], 4);
+    }
+  };
+
   test("activating pen tool and dispatching pointer events commits shapes", () => {
     const store = new DrawingStore({ tools: [createPenTool()] });
     store.activateTool("pen");
@@ -293,7 +307,10 @@ describe("DrawingStore", () => {
 
   test("store exposes active tool preview and clears on switch", () => {
     const store = new DrawingStore({
-      tools: [createPreviewTool({ min: v(1, 2), max: v(3, 4) }), createPenTool()],
+      tools: [
+        createPreviewTool({ min: v(1, 2), max: v(3, 4) }),
+        createPenTool(),
+      ],
     });
     store.activateTool("preview-tool");
     expect(store.getPreview()).toEqual({
@@ -436,11 +453,80 @@ describe("DrawingStore", () => {
     expect(store.canUndo()).toBe(true);
     expect(Object.keys(store.getDocument().shapes)).toHaveLength(1);
 
-    const freshDoc = createDocument(undefined, getDefaultShapeHandlerRegistry());
+    const freshDoc = createDocument(
+      undefined,
+      getDefaultShapeHandlerRegistry(),
+    );
     store.resetToDocument(freshDoc);
 
     expect(Object.keys(store.getDocument().shapes)).toHaveLength(0);
     expect(store.canUndo()).toBe(false);
     expect(store.canRedo()).toBe(false);
+  });
+
+  test("batched pointer move dispatch matches sequential stroke geometry", () => {
+    const sequentialStore = new DrawingStore({ tools: [createPenTool()] });
+    sequentialStore.activateTool("pen");
+    sequentialStore.dispatch("pointerDown", {
+      point: new Vec2(0, 0),
+      buttons: 1,
+    });
+    sequentialStore.dispatch("pointerMove", {
+      point: new Vec2(5, 4),
+      buttons: 1,
+    });
+    sequentialStore.dispatch("pointerMove", {
+      point: new Vec2(12, 10),
+      buttons: 1,
+    });
+    sequentialStore.dispatch("pointerMove", {
+      point: new Vec2(20, 17),
+      buttons: 1,
+    });
+    sequentialStore.dispatch("pointerUp", {
+      point: new Vec2(20, 17),
+      buttons: 0,
+    });
+
+    const batchedStore = new DrawingStore({ tools: [createPenTool()] });
+    batchedStore.activateTool("pen");
+    batchedStore.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    batchedStore.dispatchBatch("pointerMove", [
+      { point: new Vec2(5, 4), buttons: 1 },
+      { point: new Vec2(12, 10), buttons: 1 },
+      { point: new Vec2(20, 17), buttons: 1 },
+    ]);
+    batchedStore.dispatch("pointerUp", { point: new Vec2(20, 17), buttons: 0 });
+
+    const sequentialShape = Object.values(
+      sequentialStore.getDocument().shapes,
+    )[0] as PenShape;
+    const batchedShape = Object.values(
+      batchedStore.getDocument().shapes,
+    )[0] as PenShape;
+    expectPointListClose(
+      getWorldPointsFromShape(batchedShape),
+      getWorldPointsFromShape(sequentialShape),
+    );
+  });
+
+  test("batched pointer move dispatch preserves sample order", () => {
+    const store = new DrawingStore({ tools: [createPenTool()] });
+    store.activateTool("pen");
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    store.dispatchBatch("pointerMove", [
+      { point: new Vec2(10, 0), buttons: 1 },
+      { point: new Vec2(20, 5), buttons: 1 },
+      { point: new Vec2(30, 15), buttons: 1 },
+    ]);
+    store.dispatch("pointerUp", { point: new Vec2(30, 15), buttons: 0 });
+
+    const shape = Object.values(store.getDocument().shapes)[0] as PenShape;
+    expectPointListClose(getWorldPointsFromShape(shape), [
+      [0, 0],
+      [10, 0],
+      [20, 5],
+      [30, 15],
+    ]);
   });
 });

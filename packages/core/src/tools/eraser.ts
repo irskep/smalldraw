@@ -70,7 +70,9 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
         ? { brushId: override?.brushId ?? fallbackStroke.brushId }
         : {}),
       compositeOp:
-        override?.compositeOp ?? fallbackStroke.compositeOp ?? "destination-out",
+        override?.compositeOp ??
+        fallbackStroke.compositeOp ??
+        "destination-out",
     } satisfies StrokeStyle;
   };
 

@@ -11,9 +11,7 @@ type ShapeWithPoints = {
   };
 };
 
-export function getWorldPointsFromShape(
-  shape: ShapeWithPoints,
-): Vec2Tuple[] {
+export function getWorldPointsFromShape(shape: ShapeWithPoints): Vec2Tuple[] {
   const translation = shape.transform?.translation ?? [0, 0];
   return shape.geometry.points.map(([x, y]) => [
     x + translation[0],

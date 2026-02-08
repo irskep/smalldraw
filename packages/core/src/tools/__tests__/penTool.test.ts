@@ -8,10 +8,7 @@ import { createPenTool } from "../pen";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
 import { change } from "@automerge/automerge/slim";
-import {
-  expectPointsClose,
-  getWorldPointsFromShape,
-} from "@smalldraw/testing";
+import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
 import { BoxOperations } from "@smalldraw/geometry";
 
 describe("pen tool integration with runtime", () => {
