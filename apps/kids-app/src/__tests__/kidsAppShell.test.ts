@@ -22,12 +22,14 @@ function dispatchPointer(
   x: number,
   y: number,
   buttons = 1,
+  pointerType = "mouse",
 ): void {
   const event = new PointerEvent(type, {
     bubbles: true,
     clientX: x,
     clientY: y,
     buttons,
+    pointerType,
     pointerId: 1,
   });
   overlay.dispatchEvent(event);
@@ -180,9 +182,14 @@ describe("kids-app shell", () => {
     const tileCanvas = container.querySelector(
       ".kids-draw-tiles canvas",
     ) as HTMLCanvasElement | null;
+    const defaultColorSwatch = container.querySelector(
+      'button[data-setting="color"][data-color="#000000"]',
+    ) as HTMLButtonElement | null;
     expect(tileCanvas).not.toBeNull();
     expect(tileCanvas?.width).toBeGreaterThan(0);
     expect(tileCanvas?.height).toBeGreaterThan(0);
+    expect(defaultColorSwatch).not.toBeNull();
+    expect(defaultColorSwatch?.classList.contains("is-selected")).toBeTrue();
 
     app.destroy();
     expect(container.querySelector(".kids-draw-app")).toBeNull();
@@ -294,6 +301,76 @@ describe("kids-app shell", () => {
       );
     }, 100);
     expect(resetSettled).toBeTrue();
+
+    app.destroy();
+  });
+
+  test("cursor indicator hides for pen while drawing and remains subtle for eraser", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    const cursorIndicator = container.querySelector(
+      ".kids-draw-cursor-indicator",
+    ) as HTMLDivElement | null;
+    const penButton = container.querySelector(
+      '[data-tool="pen"]',
+    ) as HTMLElement | null;
+    const eraserButton = container.querySelector(
+      '[data-tool="eraser"]',
+    ) as HTMLElement | null;
+    expect(cursorIndicator).not.toBeNull();
+    expect(penButton).not.toBeNull();
+    expect(eraserButton).not.toBeNull();
+    expect(cursorIndicator!.style.visibility).toBe("hidden");
+
+    dispatchPointer(overlay, "pointermove", 120, 100, 0, "mouse");
+    expect(cursorIndicator!.style.visibility).toBe("");
+    expect(cursorIndicator!.style.width).toBe("6px");
+    expect(cursorIndicator!.style.height).toBe("6px");
+    expect(cursorIndicator!.classList.contains("is-eraser")).toBeFalse();
+
+    dispatchPointer(overlay, "pointerdown", 120, 100, 1, "mouse");
+    expect(cursorIndicator!.style.visibility).toBe("hidden");
+    dispatchPointer(overlay, "pointerup", 120, 100, 0, "mouse");
+
+    eraserButton!.click();
+    dispatchPointer(overlay, "pointermove", 140, 110, 0, "mouse");
+    expect(cursorIndicator!.style.visibility).toBe("");
+    expect(cursorIndicator!.classList.contains("is-eraser")).toBeTrue();
+    dispatchPointer(overlay, "pointerdown", 140, 110, 1, "mouse");
+    expect(cursorIndicator!.style.visibility).toBe("");
+    expect(cursorIndicator!.classList.contains("is-eraser")).toBeTrue();
+    dispatchPointer(overlay, "pointerup", 140, 110, 0, "mouse");
+
+    penButton!.click();
+    dispatchPointer(overlay, "pointermove", 160, 120, 0, "touch");
+    expect(cursorIndicator!.style.visibility).toBe("hidden");
+
+    dispatchPointer(overlay, "pointermove", 180, 130, 0, "mouse");
+    expect(cursorIndicator!.style.visibility).toBe("");
 
     app.destroy();
   });

@@ -14,6 +14,7 @@ export interface KidsDrawStage {
   readonly tileLayer: HTMLDivElement;
   readonly hotCanvas: HTMLCanvasElement;
   readonly overlay: HTMLDivElement;
+  readonly cursorIndicator: HTMLDivElement;
   readonly dirtyRectOverlay: SVGSVGElement | null;
   readonly dirtyRectShape: SVGRectElement | null;
   setSceneDimensions(width: number, height: number): void;
@@ -76,6 +77,8 @@ export function createKidsDrawStage(options: {
   }
 
   const overlay = el("div.kids-draw-layer.kids-draw-overlay") as HTMLDivElement;
+  const cursorIndicator = el("div.kids-draw-cursor-indicator") as HTMLDivElement;
+  cursorIndicator.style.visibility = "hidden";
 
   const setSceneDimensions = (nextWidth: number, nextHeight: number): void => {
     canvasFrame.style.width = `${nextWidth}px`;
@@ -103,6 +106,7 @@ export function createKidsDrawStage(options: {
     mount(sceneRoot, dirtyRectOverlay);
   }
   mount(sceneRoot, overlay);
+  mount(sceneRoot, cursorIndicator);
   mount(canvasFrame, sceneRoot);
   mount(insetUi, insetTopSlot);
   mount(insetUi, insetRightSlot);
@@ -123,6 +127,7 @@ export function createKidsDrawStage(options: {
     tileLayer,
     hotCanvas,
     overlay,
+    cursorIndicator,
     dirtyRectOverlay,
     dirtyRectShape,
     setSceneDimensions,

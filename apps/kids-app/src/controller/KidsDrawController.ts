@@ -88,6 +88,7 @@ export function createKidsDrawController(options: {
   let displayScale = 1;
   let displayWidth = getSize().width;
   let displayHeight = getSize().height;
+  let mouseHoverPoint: [number, number] | null = null;
   let tilePixelRatio = normalizePixelRatio(
     (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
   );
@@ -129,8 +130,32 @@ export function createKidsDrawController(options: {
     disposers.push(() => target.removeEventListener(type, listener));
   }
 
+  const updateCursorIndicator = (): void => {
+    const indicator = stage.cursorIndicator;
+    const activeToolId = store.getActiveToolId();
+    const isPenTool = activeToolId === "pen";
+    const isEraserTool = activeToolId === "eraser";
+    if ((!isPenTool && !isEraserTool) || !mouseHoverPoint) {
+      indicator.style.visibility = "hidden";
+      indicator.classList.remove("is-eraser");
+      return;
+    }
+    if (isPenTool && pointerIsDown) {
+      indicator.style.visibility = "hidden";
+      indicator.classList.remove("is-eraser");
+      return;
+    }
+    const strokeWidth = Math.max(2, store.getSharedSettings().strokeWidth);
+    indicator.style.transform = `translate3d(${mouseHoverPoint[0]}px, ${mouseHoverPoint[1]}px, 0) translate(-50%, -50%)`;
+    indicator.style.width = `${strokeWidth}px`;
+    indicator.style.height = `${strokeWidth}px`;
+    indicator.classList.toggle("is-eraser", isEraserTool);
+    indicator.style.visibility = "";
+  };
+
   const syncToolbarUi = (): void => {
     syncToolbarUiFromDrawingStore(store);
+    updateCursorIndicator();
   };
 
   const getRenderIdentity = (): string => {
@@ -393,6 +418,10 @@ export function createKidsDrawController(options: {
   const onPointerDown = (event: PointerEvent) => {
     event.preventDefault();
     pointerIsDown = true;
+    if (event.pointerType !== "mouse") {
+      mouseHoverPoint = null;
+      updateCursorIndicator();
+    }
     drawingPerfFrameCount = 0;
     perfSession.begin();
     store.dispatch("pointerDown", {
@@ -403,6 +432,14 @@ export function createKidsDrawController(options: {
     syncToolbarUi();
   };
   const onPointerMove = (event: PointerEventWithCoalesced) => {
+    if (event.pointerType === "mouse") {
+      const hoverPoint = toPoint(event);
+      mouseHoverPoint = [hoverPoint[0], hoverPoint[1]];
+      updateCursorIndicator();
+    } else if (mouseHoverPoint) {
+      mouseHoverPoint = null;
+      updateCursorIndicator();
+    }
     const { samples, usedCoalesced } = getPointerMoveSamples(event);
     const pointerSamples = samples.map((sample) => ({
       point: toPoint(sample),
@@ -423,6 +460,10 @@ export function createKidsDrawController(options: {
     perfSession.end(drawingPerfFrameCount);
     if (type === "pointerUp") {
       stage.overlay.releasePointerCapture?.(event.pointerId);
+    }
+    if (event.pointerType !== "mouse" && mouseHoverPoint) {
+      mouseHoverPoint = null;
+      updateCursorIndicator();
     }
     syncToolbarUi();
   };
@@ -516,6 +557,8 @@ export function createKidsDrawController(options: {
     endPointerSession(event, "pointerCancel");
   });
   listen(stage.overlay, "pointerleave", (event) => {
+    mouseHoverPoint = null;
+    updateCursorIndicator();
     endPointerSession(event, "pointerCancel");
   });
 

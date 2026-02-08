@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { createCanvas } from "canvas";
 import {
+  AddShape,
+  type AnyShape,
   ClearCanvas,
   DrawingStore,
   type ToolDefinition,
@@ -330,6 +332,67 @@ describe("RasterSession", () => {
     await session.flushBakes();
 
     expect(new Set(bakeCalls)).toEqual(new Set(["0,0", "1,0", "0,1", "1,1"]));
+  });
+
+  test("undoing first committed shape rebakes tiles back to empty", async () => {
+    const store = new DrawingStore({ tools: [] });
+    const tileCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
+    const provider = {
+      getTileCanvas: () => tileCanvas,
+    };
+    const renderer = new TileRenderer(store, provider, {
+      backgroundColor: "#ffffff",
+      baker: {
+        bakeTile: async (coord, canvas) => {
+          const ctx = canvas.getContext(
+            "2d",
+          ) as unknown as CanvasRenderingContext2D;
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.save();
+          ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
+          renderer.renderShapes(ctx, store.getOrderedShapes());
+          ctx.restore();
+        },
+      },
+    });
+    const hotCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    hotLayer.setViewport({
+      width: TILE_SIZE,
+      height: TILE_SIZE,
+      center: new Vec2(TILE_SIZE / 2, TILE_SIZE / 2),
+      scale: 1,
+    });
+    renderer.updateViewport({
+      min: [0, 0],
+      max: [TILE_SIZE, TILE_SIZE],
+    });
+    const session = new RasterSession(store, renderer, hotLayer);
+    store.setOnRenderNeeded(() => session.render());
+
+    store.applyAction(
+      new AddShape({
+        id: "rect-1",
+        type: "rect",
+        zIndex: "a",
+        geometry: { type: "rect", size: [80, 80] },
+        transform: { translation: [64, 64] },
+        style: { fill: { type: "solid", color: "#ff0000" } },
+      } as AnyShape),
+    );
+    await session.flushBakes();
+
+    const tileCtx = tileCanvas.getContext(
+      "2d",
+    ) as unknown as CanvasRenderingContext2D;
+    expect(pixelAt(tileCtx, 64, 64)).toEqual([255, 0, 0, 255]);
+
+    store.undo();
+    await session.flushBakes();
+
+    expect(Object.values(store.getDocument().shapes)).toHaveLength(0);
+    expect(pixelAt(tileCtx, 64, 64)).not.toEqual([255, 0, 0, 255]);
   });
 
   test("passes tool preview dirty bounds into hot-layer render", () => {

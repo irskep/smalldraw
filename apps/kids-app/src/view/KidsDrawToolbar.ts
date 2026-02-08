@@ -31,7 +31,7 @@ export interface KidsDrawToolbar {
 }
 
 const COLOR_SWATCHES = [
-  { value: "#111827", label: "Midnight" },
+  { value: "#000000", label: "Black" },
   { value: "#ffffff", label: "White" },
   { value: "#ff4d6d", label: "Strawberry" },
   { value: "#ff8a00", label: "Orange Pop" },

@@ -214,8 +214,22 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
 
   scheduleBakeForShape(shapeId: string): void {
     const touched = this.touchedTilesByShape.get(shapeId);
-    if (!touched) return;
-    for (const key of touched) {
+    const previous = this.lastTilesByShape.get(shapeId);
+    const keysToBake = new Set<string>();
+    if (touched) {
+      for (const key of touched) {
+        keysToBake.add(key);
+      }
+    }
+    if ((!touched || touched.size === 0) && previous) {
+      for (const key of previous) {
+        keysToBake.add(key);
+      }
+    }
+    if (keysToBake.size === 0) {
+      return;
+    }
+    for (const key of keysToBake) {
       this.pendingBakeTiles.add(key);
       this.snapshotStore.deleteSnapshot(this.snapshotKeyForCoordKey(key));
     }
