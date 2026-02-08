@@ -12,38 +12,39 @@ body {
 
 .kids-draw-app {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
   width: 100%;
   height: 100%;
   font-family: system-ui, sans-serif;
   box-sizing: border-box;
-  border: 2px solid #1f2937;
   background: #f3f4f6;
 }
 
 .kids-draw-toolbar {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 6px;
-  border: 1px dashed #2563eb;
   background: #dbeafe;
+  pointer-events: auto;
 }
 
 .kids-draw-toolbar button {
-  border: 1px solid #9ca3af;
   background: #ffffff;
   font-weight: 400;
 }
 
 .kids-draw-toolbar button.is-selected {
-  border: 2px solid #111827;
   background: #93c5fd;
   font-weight: 700;
 }
 
 .kids-draw-viewport {
+  --kids-inset-top: 0px;
+  --kids-inset-right: 0px;
+  --kids-inset-bottom: 0px;
+  --kids-inset-left: 0px;
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
@@ -51,15 +52,60 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px dashed #0891b2;
   background: #e5e7eb;
   box-sizing: border-box;
+}
+
+.kids-draw-inset-ui {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: var(--kids-inset-left) 1fr var(--kids-inset-right);
+  grid-template-rows: var(--kids-inset-top) 1fr var(--kids-inset-bottom);
+  pointer-events: none;
+  z-index: 20;
+}
+
+.kids-draw-inset-slot {
+  display: flex;
+  pointer-events: none;
+}
+
+.kids-draw-inset-slot > * {
+  pointer-events: auto;
+}
+
+.kids-draw-inset-slot-top {
+  grid-column: 2;
+  grid-row: 1;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.kids-draw-inset-slot-right {
+  grid-column: 3;
+  grid-row: 1 / 4;
+  align-items: center;
+  justify-content: center;
+}
+
+.kids-draw-inset-slot-bottom {
+  grid-column: 2;
+  grid-row: 3;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.kids-draw-inset-slot-left {
+  grid-column: 1;
+  grid-row: 1 / 4;
+  align-items: center;
+  justify-content: center;
 }
 
 .kids-draw-frame {
   position: relative;
   overflow: hidden;
-  border: 2px solid #0f766e;
   box-sizing: border-box;
   flex-shrink: 0;
 }
@@ -79,23 +125,17 @@ body {
 
 .kids-draw-tiles {
   overflow: hidden;
-  outline: 1px dashed #f97316;
-  outline-offset: -1px;
   box-sizing: border-box;
 }
 
 .kids-draw-hot {
   display: block;
   pointer-events: none;
-  outline: 1px dashed #ef4444;
-  outline-offset: -1px;
 }
 
 .kids-draw-overlay {
   touch-action: none;
   cursor: crosshair;
-  outline: 1px dashed #7c3aed;
-  outline-offset: -1px;
   box-sizing: border-box;
 }
 

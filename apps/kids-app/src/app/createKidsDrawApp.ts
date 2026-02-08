@@ -65,8 +65,8 @@ export async function createKidsDrawApp(
     backgroundColor,
   });
 
-  mount(element, toolbar.element);
   mount(element, stage.element);
+  mount(stage.insetBottomSlot, toolbar.element);
   mount(options.container, element);
 
   const store = new DrawingStore({

@@ -5,6 +5,10 @@ const DEBUG_SHOW_DIRTY_RECT_LAYER = false;
 export interface KidsDrawStage {
   readonly element: HTMLDivElement;
   readonly viewportHost: HTMLDivElement;
+  readonly insetTopSlot: HTMLDivElement;
+  readonly insetRightSlot: HTMLDivElement;
+  readonly insetBottomSlot: HTMLDivElement;
+  readonly insetLeftSlot: HTMLDivElement;
   readonly canvasFrame: HTMLDivElement;
   readonly sceneRoot: HTMLDivElement;
   readonly tileLayer: HTMLDivElement;
@@ -23,6 +27,19 @@ export function createKidsDrawStage(options: {
   const { width, height, backgroundColor } = options;
 
   const element = el("div.kids-draw-viewport") as HTMLDivElement;
+  const insetUi = el("div.kids-draw-inset-ui") as HTMLDivElement;
+  const insetTopSlot = el(
+    "div.kids-draw-inset-slot.kids-draw-inset-slot-top",
+  ) as HTMLDivElement;
+  const insetRightSlot = el(
+    "div.kids-draw-inset-slot.kids-draw-inset-slot-right",
+  ) as HTMLDivElement;
+  const insetBottomSlot = el(
+    "div.kids-draw-inset-slot.kids-draw-inset-slot-bottom",
+  ) as HTMLDivElement;
+  const insetLeftSlot = el(
+    "div.kids-draw-inset-slot.kids-draw-inset-slot-left",
+  ) as HTMLDivElement;
 
   const canvasFrame = el("div.kids-draw-frame") as HTMLDivElement;
   canvasFrame.style.backgroundColor = backgroundColor;
@@ -87,11 +104,20 @@ export function createKidsDrawStage(options: {
   }
   mount(sceneRoot, overlay);
   mount(canvasFrame, sceneRoot);
+  mount(insetUi, insetTopSlot);
+  mount(insetUi, insetRightSlot);
+  mount(insetUi, insetBottomSlot);
+  mount(insetUi, insetLeftSlot);
   mount(element, canvasFrame);
+  mount(element, insetUi);
 
   return {
     element,
     viewportHost: element,
+    insetTopSlot,
+    insetRightSlot,
+    insetBottomSlot,
+    insetLeftSlot,
     canvasFrame,
     sceneRoot,
     tileLayer,

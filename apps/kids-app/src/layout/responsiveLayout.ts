@@ -30,10 +30,18 @@ const applyViewportPaddingStyles = (
   viewportHost: HTMLDivElement,
   padding: ViewportPadding,
 ): void => {
-  viewportHost.style.paddingTop = safeAreaInset("top", padding.top);
-  viewportHost.style.paddingRight = safeAreaInset("right", padding.right);
-  viewportHost.style.paddingBottom = safeAreaInset("bottom", padding.bottom);
-  viewportHost.style.paddingLeft = safeAreaInset("left", padding.left);
+  const top = safeAreaInset("top", padding.top);
+  const right = safeAreaInset("right", padding.right);
+  const bottom = safeAreaInset("bottom", padding.bottom);
+  const left = safeAreaInset("left", padding.left);
+  viewportHost.style.setProperty("--kids-inset-top", top);
+  viewportHost.style.setProperty("--kids-inset-right", right);
+  viewportHost.style.setProperty("--kids-inset-bottom", bottom);
+  viewportHost.style.setProperty("--kids-inset-left", left);
+  viewportHost.style.paddingTop = top;
+  viewportHost.style.paddingRight = right;
+  viewportHost.style.paddingBottom = bottom;
+  viewportHost.style.paddingLeft = left;
 };
 
 const getAppliedViewportPadding = (
