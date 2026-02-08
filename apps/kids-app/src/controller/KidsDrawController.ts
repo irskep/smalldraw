@@ -485,22 +485,28 @@ export function createKidsDrawController(options: {
   listen(toolbar.newDrawingButton, "click", () => {
     void onNewDrawingClick();
   });
-  listen(toolbar.colorInput, "input", () => {
-    store.updateSharedSettings({ strokeColor: toolbar.colorInput.value });
-    setToolbarStrokeUi(
-      toolbar.colorInput.value,
-      Number(toolbar.sizeInput.value),
-    );
-  });
-  listen(toolbar.sizeInput, "input", () => {
-    store.updateSharedSettings({
-      strokeWidth: Number(toolbar.sizeInput.value),
+  for (const colorButton of toolbar.colorSwatchButtons) {
+    listen(colorButton, "click", () => {
+      const strokeColor = colorButton.dataset.color;
+      if (!strokeColor) {
+        return;
+      }
+      store.updateSharedSettings({ strokeColor });
+      const shared = store.getSharedSettings();
+      setToolbarStrokeUi(shared.strokeColor, shared.strokeWidth);
     });
-    setToolbarStrokeUi(
-      toolbar.colorInput.value,
-      Number(toolbar.sizeInput.value),
-    );
-  });
+  }
+  for (const widthButton of toolbar.strokeWidthButtons) {
+    listen(widthButton, "click", () => {
+      const strokeWidth = Number(widthButton.dataset.size);
+      if (!Number.isFinite(strokeWidth)) {
+        return;
+      }
+      store.updateSharedSettings({ strokeWidth });
+      const shared = store.getSharedSettings();
+      setToolbarStrokeUi(shared.strokeColor, shared.strokeWidth);
+    });
+  }
   listen(stage.overlay, "pointerdown", onPointerDown);
   listen(stage.overlay, "pointermove", onPointerMove);
   listen(stage.overlay, "pointerup", (event) => {

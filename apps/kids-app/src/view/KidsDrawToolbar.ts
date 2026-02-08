@@ -25,10 +25,25 @@ export interface KidsDrawToolbar {
   readonly redoButton: SquareIconButtonElement;
   readonly clearButton: SquareIconButtonElement;
   readonly newDrawingButton: SquareIconButtonElement;
-  readonly colorInput: HTMLInputElement;
-  readonly sizeInput: HTMLInputElement;
+  readonly colorSwatchButtons: HTMLButtonElement[];
+  readonly strokeWidthButtons: HTMLButtonElement[];
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
 }
+
+const COLOR_SWATCHES = [
+  { value: "#111827", label: "Midnight" },
+  { value: "#ffffff", label: "White" },
+  { value: "#ff4d6d", label: "Strawberry" },
+  { value: "#ff8a00", label: "Orange Pop" },
+  { value: "#ffdb4d", label: "Sunshine" },
+  { value: "#63c132", label: "Lime" },
+  { value: "#00b894", label: "Mint" },
+  { value: "#2e86ff", label: "Sky Blue" },
+  { value: "#6c5ce7", label: "Blueberry" },
+  { value: "#ff66c4", label: "Bubblegum" },
+] as const;
+
+const STROKE_WIDTH_OPTIONS = [2, 8, 24, 80, 200] as const;
 
 function createSquareButton(options: {
   className: string;
@@ -51,7 +66,6 @@ function createSquareButton(options: {
 export function createKidsDrawToolbar(): KidsDrawToolbar {
   ensureSquareIconButtonDefined();
 
-  const toolbarControls: HTMLElement[] = [];
   const toolSelectorControls: HTMLElement[] = [];
   const actionPanelControls: HTMLElement[] = [];
 
@@ -137,26 +151,73 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
   });
   actionPanelControls.push(newDrawingButton);
 
-  const colorInput = el("input", {
-    type: "color",
-    "data-setting": "color",
-    className: "kids-draw-toolbar-color",
-  }) as HTMLInputElement;
-  toolbarControls.push(colorInput);
-
-  const sizeInput = el("input", {
-    type: "range",
-    min: "1",
-    max: "64",
-    step: "1",
-    "data-setting": "size",
-    className: "kids-draw-toolbar-size",
-  }) as HTMLInputElement;
-  toolbarControls.push(sizeInput);
-
-  for (const control of toolbarControls) {
-    mount(element, control);
+  const colorSwatchButtons: HTMLButtonElement[] = [];
+  const colorSwatchesElement = el("div.kids-draw-color-swatches", {
+    role: "radiogroup",
+    "aria-label": "Color palette",
+  }) as HTMLDivElement;
+  for (const swatch of COLOR_SWATCHES) {
+    const swatchButton = el("button", {
+      type: "button",
+      className: "kids-draw-color-swatch",
+      title: swatch.label,
+      "aria-label": swatch.label,
+      "aria-pressed": "false",
+      "data-setting": "color",
+      "data-color": swatch.value,
+      style: `--kids-swatch-color:${swatch.value}`,
+    }) as HTMLButtonElement;
+    colorSwatchButtons.push(swatchButton);
+    mount(colorSwatchesElement, swatchButton);
   }
+
+  const minPreviewSize = 2;
+  const maxPreviewSize = 18;
+  const minLog = Math.log(STROKE_WIDTH_OPTIONS[0]);
+  const maxLog = Math.log(STROKE_WIDTH_OPTIONS[STROKE_WIDTH_OPTIONS.length - 1]);
+  const toPreviewSize = (strokeWidth: number): number => {
+    const normalized =
+      (Math.log(strokeWidth) - minLog) / Math.max(1e-6, maxLog - minLog);
+    return minPreviewSize + normalized * (maxPreviewSize - minPreviewSize);
+  };
+
+  const strokeWidthButtons: HTMLButtonElement[] = [];
+  const strokeWidthElement = el("div.kids-draw-stroke-widths", {
+    role: "radiogroup",
+    "aria-label": "Brush size",
+  }) as HTMLDivElement;
+  for (const strokeWidth of STROKE_WIDTH_OPTIONS) {
+    const previewSize = toPreviewSize(strokeWidth);
+    const widthButton = el(
+      "button.kids-draw-stroke-width-button",
+      {
+        type: "button",
+        title: `${strokeWidth}px brush`,
+        "aria-label": `${strokeWidth}px brush`,
+        "aria-pressed": "false",
+        "data-setting": "stroke-width",
+        "data-size": `${strokeWidth}`,
+      },
+      el("span.kids-draw-stroke-width-line", {
+        style: `--kids-stroke-preview-size:${previewSize.toFixed(1)}px`,
+      }),
+    ) as HTMLButtonElement;
+    strokeWidthButtons.push(widthButton);
+    mount(strokeWidthElement, widthButton);
+  }
+
+  const colorPanelElement = el(
+    "div.kids-draw-toolbar-panel.kids-draw-toolbar-colors",
+  ) as HTMLDivElement;
+  mount(colorPanelElement, colorSwatchesElement);
+
+  const strokePanelElement = el(
+    "div.kids-draw-toolbar-panel.kids-draw-toolbar-strokes",
+  ) as HTMLDivElement;
+  mount(strokePanelElement, strokeWidthElement);
+
+  mount(element, colorPanelElement);
+  mount(element, strokePanelElement);
   for (const control of toolSelectorControls) {
     mount(toolSelectorElement, control);
   }
@@ -172,6 +233,7 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
   };
 
   const applyState = (state: ToolbarUiState): void => {
+    const normalizedStateColor = state.strokeColor.toLowerCase();
     const penSelected = state.activeToolId === "pen";
     const eraserSelected = state.activeToolId === "eraser";
     penButton.setAttribute("aria-pressed", penSelected ? "true" : "false");
@@ -181,12 +243,28 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     undoButton.disabled = !state.canUndo;
     redoButton.disabled = !state.canRedo;
     newDrawingButton.disabled = state.newDrawingPending;
-    if (colorInput.value !== state.strokeColor) {
-      colorInput.value = state.strokeColor;
+
+    for (const swatchButton of colorSwatchButtons) {
+      const selected =
+        swatchButton.dataset.color?.toLowerCase() === normalizedStateColor;
+      swatchButton.classList.toggle("is-selected", selected);
+      swatchButton.setAttribute("aria-pressed", selected ? "true" : "false");
     }
-    const strokeWidth = `${Math.max(1, Math.round(state.strokeWidth))}`;
-    if (sizeInput.value !== strokeWidth) {
-      sizeInput.value = strokeWidth;
+
+    let nearestStrokeWidth: number = STROKE_WIDTH_OPTIONS[0];
+    let nearestDelta = Math.abs(state.strokeWidth - nearestStrokeWidth);
+    for (const strokeWidth of STROKE_WIDTH_OPTIONS) {
+      const delta = Math.abs(state.strokeWidth - strokeWidth);
+      if (delta < nearestDelta) {
+        nearestStrokeWidth = strokeWidth;
+        nearestDelta = delta;
+      }
+    }
+    for (const widthButton of strokeWidthButtons) {
+      const width = Number(widthButton.dataset.size);
+      const selected = Number.isFinite(width) && width === nearestStrokeWidth;
+      widthButton.classList.toggle("is-selected", selected);
+      widthButton.setAttribute("aria-pressed", selected ? "true" : "false");
     }
   };
 
@@ -205,8 +283,8 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     redoButton,
     clearButton,
     newDrawingButton,
-    colorInput,
-    sizeInput,
+    colorSwatchButtons,
+    strokeWidthButtons,
     bindUiState,
   };
 }

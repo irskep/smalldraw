@@ -61,10 +61,10 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--kd-space-1);
-  padding: var(--kd-space-1);
-  background: var(--kd-surface-toolbar);
-  border-radius: var(--kd-radius-lg);
-  box-shadow: var(--kd-shadow-toolbar);
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
   pointer-events: auto;
 }
 
@@ -97,15 +97,75 @@ body {
   transform: scale(0.96);
 }
 
-.kids-draw-toolbar input {
-  border: none;
-  border-radius: var(--kd-radius-sm);
-  background: var(--kd-surface-input);
-  box-shadow: var(--kd-shadow-button);
+.kids-draw-toolbar-panel {
+  display: grid;
+  gap: var(--kd-space-1);
+  padding: var(--kd-space-1);
+  background: var(--kd-surface-toolbar);
+  border-radius: var(--kd-radius-md);
+  box-shadow: var(--kd-shadow-toolbar);
 }
 
-.kids-draw-toolbar-size {
-  width: 220px;
+.kids-draw-color-swatches {
+  display: grid;
+  grid-template-columns: repeat(5, 52px);
+  gap: var(--kd-space-1);
+  justify-content: center;
+}
+
+.kids-draw-toolbar .kids-draw-color-swatch {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0;
+  border: 3px solid rgba(0, 0, 0, 0.15);
+  background: var(--kids-swatch-color);
+}
+
+.kids-draw-toolbar .kids-draw-color-swatch.is-selected {
+  transform: translateY(-1px);
+  background: var(--kids-swatch-color);
+  border-color: color-mix(
+    in oklch,
+    var(--kids-swatch-color) 70%,
+    black
+  );
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.95),
+    0 0 0 5px color-mix(in oklch, var(--kids-swatch-color) 45%, black),
+    var(--kd-shadow-button-active);
+}
+
+.kids-draw-stroke-widths {
+  display: grid;
+  grid-template-columns: repeat(5, 52px);
+  gap: var(--kd-space-1);
+  justify-content: center;
+}
+
+.kids-draw-stroke-width-button {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kids-draw-stroke-width-line {
+  width: 30px;
+  height: var(--kids-stroke-preview-size);
+  min-height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.kids-draw-stroke-width-button.is-selected {
+  outline: 3px solid color-mix(in oklch, var(--blue-5) 60%, black);
+  outline-offset: -2px;
 }
 
 .kids-draw-viewport {

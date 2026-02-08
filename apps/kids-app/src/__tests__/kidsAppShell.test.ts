@@ -33,11 +33,6 @@ function dispatchPointer(
   overlay.dispatchEvent(event);
 }
 
-function dispatchInput(element: HTMLElement): void {
-  const EventCtor = (window as unknown as { Event: typeof Event }).Event;
-  element.dispatchEvent(new EventCtor("input", { bubbles: true }));
-}
-
 function dispatchPointerMoveWithCoalesced(
   overlay: HTMLElement,
   x: number,
@@ -220,12 +215,12 @@ describe("kids-app shell", () => {
         },
       }) as DOMRect;
 
-    const colorInput = container.querySelector(
-      'input[data-setting="color"]',
-    ) as HTMLInputElement | null;
-    const sizeInput = container.querySelector(
-      'input[data-setting="size"]',
-    ) as HTMLInputElement | null;
+    const colorSwatch = container.querySelector(
+      'button[data-setting="color"][data-color="#ff4d6d"]',
+    ) as HTMLButtonElement | null;
+    const widthButton = container.querySelector(
+      'button[data-setting="stroke-width"][data-size="24"]',
+    ) as HTMLButtonElement | null;
     const undoButton = container.querySelector(
       '[data-action="undo"]',
     ) as DisableableElement | null;
@@ -241,8 +236,8 @@ describe("kids-app shell", () => {
     const tileLayer = container.querySelector(
       ".kids-draw-tiles",
     ) as HTMLDivElement | null;
-    expect(colorInput).not.toBeNull();
-    expect(sizeInput).not.toBeNull();
+    expect(colorSwatch).not.toBeNull();
+    expect(widthButton).not.toBeNull();
     expect(undoButton).not.toBeNull();
     expect(redoButton).not.toBeNull();
     expect(clearButton).not.toBeNull();
@@ -250,10 +245,8 @@ describe("kids-app shell", () => {
     expect(tileLayer).not.toBeNull();
     expect(undoButton!.disabled).toBeTrue();
 
-    colorInput!.value = "#ff0000";
-    dispatchInput(colorInput!);
-    sizeInput!.value = "14";
-    dispatchInput(sizeInput!);
+    colorSwatch!.click();
+    widthButton!.click();
 
     dispatchPointer(overlay, "pointerdown", 60, 60, 1);
     dispatchPointer(overlay, "pointermove", 180, 180, 1);
@@ -285,12 +278,12 @@ describe("kids-app shell", () => {
     expect(clearShape).toBeDefined();
 
     const penStroke = penShape?.style.stroke;
-    expect(penStroke?.color?.toLowerCase()).toBe("#ff0000");
-    expect(penStroke?.size).toBe(14);
+    expect(penStroke?.color?.toLowerCase()).toBe("#ff4d6d");
+    expect(penStroke?.size).toBe(24);
 
     const eraserStroke = eraserShape?.style.stroke;
     expect(eraserStroke?.compositeOp).toBe("destination-out");
-    expect(eraserStroke?.size).toBe(14);
+    expect(eraserStroke?.size).toBe(24);
 
     newDrawingButton!.click();
     const resetSettled = await waitUntil(() => {
