@@ -96,6 +96,20 @@ function createMockCore(initialSize = { width: 960, height: 600 }): SmalldrawCor
   };
 }
 
+function createDelayedResetCore(
+  delayMs: number,
+  initialSize = { width: 960, height: 600 },
+): SmalldrawCore {
+  const base = createMockCore(initialSize);
+  return {
+    ...base,
+    async reset(options) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return base.reset(options);
+    },
+  };
+}
+
 describe("kids-app shell", () => {
   test("mounts and unmounts cleanly with tile and hot layers", async () => {
     const container = document.createElement("div");
@@ -330,5 +344,25 @@ describe("kids-app shell", () => {
     expect(hotCanvas!.style.height).toBe("333px");
 
     app.destroy();
+  });
+
+  test("destroy during async new drawing reset does not leak effects", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      core: createDelayedResetCore(30),
+    });
+    const newDrawingButton = container.querySelector(
+      'button[data-action="new-drawing"]',
+    ) as HTMLButtonElement | null;
+    expect(newDrawingButton).not.toBeNull();
+
+    newDrawingButton!.click();
+    app.destroy();
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
+    expect(container.querySelector(".kids-draw-app")).toBeNull();
   });
 });

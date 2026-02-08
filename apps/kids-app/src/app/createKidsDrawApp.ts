@@ -1,0 +1,142 @@
+import {
+  DrawingStore,
+  createEraserTool,
+  createPenTool,
+  createSmalldraw,
+  type DrawingDocumentSize,
+} from "@smalldraw/core";
+import { el, mount, unmount } from "redom";
+import { createKidsDrawController } from "../controller/KidsDrawController";
+import { resolvePageSize } from "../layout/responsiveLayout";
+import { createRasterPipeline } from "../render/createRasterPipeline";
+import { createKidsDrawStage } from "../view/KidsDrawStage";
+import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
+import type { KidsDrawApp, KidsDrawAppOptions } from "./types";
+
+const DEFAULT_WIDTH = 960;
+const DEFAULT_HEIGHT = 600;
+const KIDS_DRAW_STROKE_WIDTH_MULTIPLIER = 3;
+
+export async function createKidsDrawApp(
+  options: KidsDrawAppOptions,
+): Promise<KidsDrawApp> {
+  const hasExplicitSize = options.width !== undefined || options.height !== undefined;
+  const getExplicitSize = (): DrawingDocumentSize => ({
+    width: options.width ?? DEFAULT_WIDTH,
+    height: options.height ?? DEFAULT_HEIGHT,
+  });
+  const resolveCurrentPageSize = (): DrawingDocumentSize =>
+    resolvePageSize(getExplicitSize());
+
+  const desiredInitialSize: DrawingDocumentSize = hasExplicitSize
+    ? getExplicitSize()
+    : resolveCurrentPageSize();
+
+  const providedCore = options.core;
+  const core =
+    providedCore ??
+    (await createSmalldraw({
+      persistence: {
+        storageKey: "kids-draw-doc-url",
+        mode: "reuse",
+      },
+      documentSize: desiredInitialSize,
+    }));
+
+  const docSize = core.storeAdapter.getDoc().size;
+  let size = {
+    width: docSize.width,
+    height: docSize.height,
+  };
+
+  const backgroundColor = options.backgroundColor ?? "#ffffff";
+
+  const element = el("div.kids-draw-app", {
+    style: {
+      display: "flex",
+      "flex-direction": "column",
+      gap: "8px",
+      width: "100%",
+      height: "100%",
+      "font-family": "system-ui, sans-serif",
+      "box-sizing": "border-box",
+      border: "2px solid #1f2937",
+      background: "#f3f4f6",
+    },
+  }) as HTMLDivElement;
+
+  const toolbar = createKidsDrawToolbar();
+  const stage = createKidsDrawStage({
+    width: size.width,
+    height: size.height,
+    backgroundColor,
+  });
+
+  mount(element, toolbar.element);
+  mount(element, stage.element);
+  mount(options.container, element);
+
+  const store = new DrawingStore({
+    tools: [createPenTool(), createEraserTool()],
+    document: core.storeAdapter.getDoc(),
+    actionDispatcher: (event) => core.storeAdapter.applyAction(event),
+  });
+  store.activateTool("pen");
+
+  const shared = store.getSharedSettings();
+  const defaultStrokeWidth = Math.max(
+    1,
+    Math.round(shared.strokeWidth * KIDS_DRAW_STROKE_WIDTH_MULTIPLIER),
+  );
+  store.updateSharedSettings({ strokeWidth: defaultStrokeWidth });
+  toolbar.colorInput.value = shared.strokeColor;
+  toolbar.sizeInput.value = `${defaultStrokeWidth}`;
+  toolbar.syncButtons({
+    activeToolId: store.getActiveToolId() ?? "",
+    canUndo: store.canUndo(),
+    canRedo: store.canRedo(),
+  });
+
+  const pipeline = createRasterPipeline({
+    store,
+    stage,
+    width: size.width,
+    height: size.height,
+    backgroundColor,
+    tilePixelRatio:
+      typeof globalThis.devicePixelRatio === "number"
+        ? globalThis.devicePixelRatio
+        : 1,
+    renderIdentity: "kids-draw-init",
+  });
+
+  pipeline.bakeInitialShapes(Object.values(store.getDocument().shapes));
+
+  const controller = createKidsDrawController({
+    store,
+    core,
+    toolbar,
+    stage,
+    pipeline,
+    backgroundColor,
+    hasExplicitSize,
+    providedCore: Boolean(providedCore),
+    resolvePageSize: resolveCurrentPageSize,
+    getExplicitSize,
+    getSize: () => ({ ...size }),
+    setSize: (nextSize) => {
+      size = nextSize;
+    },
+  });
+
+  return {
+    element,
+    store,
+    overlay: stage.overlay,
+    core,
+    destroy() {
+      controller.destroy();
+      unmount(options.container, element);
+    },
+  };
+}
