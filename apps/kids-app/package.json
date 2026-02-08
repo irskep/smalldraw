@@ -14,7 +14,9 @@
     "@smalldraw/core": "workspace:*",
     "@smalldraw/geometry": "workspace:*",
     "@smalldraw/renderer-raster": "workspace:*",
+    "lucide": "^0.563.0",
     "nanostores": "^0.11.4",
+    "open-props": "^1.7.23",
     "redom": "^3.27.1"
   },
   "devDependencies": {

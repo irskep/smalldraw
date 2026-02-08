@@ -1,82 +1,161 @@
-import { el, mount } from "redom";
+import { Eraser, Pen, Redo2, Undo2, type IconNode } from "lucide";
 import type { ReadableAtom } from "nanostores";
+import { el, mount } from "redom";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
+import {
+  ensureSquareIconButtonDefined,
+  SquareIconButtonElement,
+} from "./SquareIconButton";
 
 export interface KidsDrawToolbar {
   readonly element: HTMLDivElement;
-  readonly penButton: HTMLButtonElement;
-  readonly eraserButton: HTMLButtonElement;
-  readonly undoButton: HTMLButtonElement;
-  readonly redoButton: HTMLButtonElement;
-  readonly clearButton: HTMLButtonElement;
-  readonly newDrawingButton: HTMLButtonElement;
+  readonly toolSelectorElement: HTMLDivElement;
+  readonly actionPanelElement: HTMLDivElement;
+  readonly penButton: SquareIconButtonElement;
+  readonly eraserButton: SquareIconButtonElement;
+  readonly undoButton: SquareIconButtonElement;
+  readonly redoButton: SquareIconButtonElement;
+  readonly clearButton: SquareIconButtonElement;
+  readonly newDrawingButton: SquareIconButtonElement;
   readonly colorInput: HTMLInputElement;
   readonly sizeInput: HTMLInputElement;
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
 }
 
+function createSquareButton(options: {
+  className: string;
+  label: string;
+  icon: IconNode;
+  attributes: Record<string, string>;
+}): SquareIconButtonElement {
+  const button = document.createElement(
+    SquareIconButtonElement.tagName,
+  ) as SquareIconButtonElement;
+  button.className = options.className;
+  for (const [name, value] of Object.entries(options.attributes)) {
+    button.setAttribute(name, value);
+  }
+  button.setLabel(options.label);
+  button.setIcon(options.icon);
+  return button;
+}
+
 export function createKidsDrawToolbar(): KidsDrawToolbar {
-  const controls: HTMLElement[] = [];
-  const createButton = (attrs: Record<string, string>): HTMLButtonElement => {
-    const button = el("button", {
-      type: "button",
-      ...attrs,
-    }) as HTMLButtonElement;
-    controls.push(button);
-    return button;
-  };
+  ensureSquareIconButtonDefined();
+
+  const toolbarControls: HTMLElement[] = [];
+  const toolSelectorControls: HTMLElement[] = [];
+  const actionPanelControls: HTMLElement[] = [];
 
   const element = el("div.kids-draw-toolbar") as HTMLDivElement;
+  const toolSelectorElement = el(
+    "div.kids-draw-tool-selector",
+  ) as HTMLDivElement;
+  const actionPanelElement = el(
+    "div.kids-draw-action-panel",
+  ) as HTMLDivElement;
 
-  const penButton = createButton({ textContent: "Pen", "data-tool": "pen" });
-  const eraserButton = createButton({
-    textContent: "Eraser",
-    "data-tool": "eraser",
+  const penButton = createSquareButton({
+    className: "kids-draw-tool-button",
+    label: "Pen",
+    icon: Pen,
+    attributes: {
+      "data-tool": "pen",
+      title: "Pen",
+      "aria-label": "Pen",
+    },
   });
-  const undoButton = createButton({
-    textContent: "↩️",
-    title: "Undo",
-    "aria-label": "Undo",
-    "data-action": "undo",
+  toolSelectorControls.push(penButton);
+
+  const eraserButton = createSquareButton({
+    className: "kids-draw-tool-button",
+    label: "Eraser",
+    icon: Eraser,
+    attributes: {
+      "data-tool": "eraser",
+      title: "Eraser",
+      "aria-label": "Eraser",
+    },
   });
-  const redoButton = createButton({
-    textContent: "↪️",
-    title: "Redo",
-    "aria-label": "Redo",
-    "data-action": "redo",
+  toolSelectorControls.push(eraserButton);
+
+  const undoButton = createSquareButton({
+    className: "kids-draw-action-button kids-draw-action-undo",
+    label: "Undo",
+    icon: Undo2,
+    attributes: {
+      title: "Undo",
+      "aria-label": "Undo",
+      "data-action": "undo",
+    },
   });
-  const clearButton = createButton({
-    textContent: "Clear",
-    title: "Clear canvas",
-    "aria-label": "Clear canvas",
-    "data-action": "clear",
+  actionPanelControls.push(undoButton);
+
+  const redoButton = createSquareButton({
+    className: "kids-draw-action-button kids-draw-action-redo",
+    label: "Redo",
+    icon: Redo2,
+    attributes: {
+      title: "Redo",
+      "aria-label": "Redo",
+      "data-action": "redo",
+    },
   });
-  const newDrawingButton = createButton({
-    textContent: "New",
-    title: "New drawing",
-    "aria-label": "New drawing",
-    "data-action": "new-drawing",
+  actionPanelControls.push(redoButton);
+
+  const clearButton = createSquareButton({
+    className: "kids-draw-action-button kids-draw-action-clear",
+    label: "Clear",
+    icon: Eraser,
+    attributes: {
+      title: "Clear canvas",
+      "aria-label": "Clear canvas",
+      "data-action": "clear",
+    },
   });
+  actionPanelControls.push(clearButton);
+
+  const newDrawingButton = createSquareButton({
+    className: "kids-draw-action-button kids-draw-action-new",
+    label: "New",
+    icon: Pen,
+    attributes: {
+      title: "New drawing",
+      "aria-label": "New drawing",
+      "data-action": "new-drawing",
+    },
+  });
+  actionPanelControls.push(newDrawingButton);
+
   const colorInput = el("input", {
     type: "color",
     "data-setting": "color",
+    className: "kids-draw-toolbar-color",
   }) as HTMLInputElement;
-  controls.push(colorInput);
+  toolbarControls.push(colorInput);
+
   const sizeInput = el("input", {
     type: "range",
     min: "1",
     max: "64",
     step: "1",
     "data-setting": "size",
+    className: "kids-draw-toolbar-size",
   }) as HTMLInputElement;
-  controls.push(sizeInput);
+  toolbarControls.push(sizeInput);
 
-  for (const control of controls) {
+  for (const control of toolbarControls) {
     mount(element, control);
+  }
+  for (const control of toolSelectorControls) {
+    mount(toolSelectorElement, control);
+  }
+  for (const control of actionPanelControls) {
+    mount(actionPanelElement, control);
   }
 
   const setToolButtonSelected = (
-    button: HTMLButtonElement,
+    button: SquareIconButtonElement,
     selected: boolean,
   ): void => {
     button.classList.toggle("is-selected", selected);
@@ -86,10 +165,7 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     const penSelected = state.activeToolId === "pen";
     const eraserSelected = state.activeToolId === "eraser";
     penButton.setAttribute("aria-pressed", penSelected ? "true" : "false");
-    eraserButton.setAttribute(
-      "aria-pressed",
-      eraserSelected ? "true" : "false",
-    );
+    eraserButton.setAttribute("aria-pressed", eraserSelected ? "true" : "false");
     setToolButtonSelected(penButton, penSelected);
     setToolButtonSelected(eraserButton, eraserSelected);
     undoButton.disabled = !state.canUndo;
@@ -111,6 +187,8 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
 
   return {
     element,
+    toolSelectorElement,
+    actionPanelElement,
     penButton,
     eraserButton,
     undoButton,

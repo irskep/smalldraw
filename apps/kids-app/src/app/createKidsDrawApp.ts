@@ -66,6 +66,8 @@ export async function createKidsDrawApp(
   });
 
   mount(element, stage.element);
+  mount(stage.insetLeftSlot, toolbar.toolSelectorElement);
+  mount(stage.insetRightSlot, toolbar.actionPanelElement);
   mount(stage.insetBottomSlot, toolbar.element);
   mount(options.container, element);
 

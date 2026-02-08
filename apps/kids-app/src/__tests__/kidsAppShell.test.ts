@@ -14,6 +14,8 @@ import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { createKidsDrawApp } from "../createKidsDrawApp";
 import { resolvePageSize } from "../layout/responsiveLayout";
 
+type DisableableElement = HTMLElement & { disabled: boolean };
+
 function dispatchPointer(
   overlay: HTMLElement,
   type: "pointerdown" | "pointermove" | "pointerup" | "pointercancel",
@@ -223,17 +225,17 @@ describe("kids-app shell", () => {
       'input[data-setting="size"]',
     ) as HTMLInputElement | null;
     const undoButton = container.querySelector(
-      'button[data-action="undo"]',
-    ) as HTMLButtonElement | null;
+      '[data-action="undo"]',
+    ) as DisableableElement | null;
     const redoButton = container.querySelector(
-      'button[data-action="redo"]',
-    ) as HTMLButtonElement | null;
+      '[data-action="redo"]',
+    ) as DisableableElement | null;
     const clearButton = container.querySelector(
-      'button[data-action="clear"]',
-    ) as HTMLButtonElement | null;
+      '[data-action="clear"]',
+    ) as HTMLElement | null;
     const newDrawingButton = container.querySelector(
-      'button[data-action="new-drawing"]',
-    ) as HTMLButtonElement | null;
+      '[data-action="new-drawing"]',
+    ) as DisableableElement | null;
     const tileLayer = container.querySelector(
       ".kids-draw-tiles",
     ) as HTMLDivElement | null;
@@ -258,8 +260,8 @@ describe("kids-app shell", () => {
     clearButton!.click();
 
     const eraserButton = container.querySelector(
-      'button[data-tool="eraser"]',
-    ) as HTMLButtonElement | null;
+      '[data-tool="eraser"]',
+    ) as HTMLElement | null;
     expect(eraserButton).not.toBeNull();
     eraserButton!.click();
     dispatchPointer(overlay, "pointerdown", 100, 100, 1);
@@ -329,8 +331,8 @@ describe("kids-app shell", () => {
         "canvas.kids-draw-hot",
       ) as HTMLCanvasElement | null;
       const newDrawingButton = container.querySelector(
-        'button[data-action="new-drawing"]',
-      ) as HTMLButtonElement | null;
+        '[data-action="new-drawing"]',
+      ) as HTMLElement | null;
       expect(hotCanvas).not.toBeNull();
       expect(newDrawingButton).not.toBeNull();
       expect(hotCanvas!.style.width).toBe("900px");
@@ -399,8 +401,8 @@ describe("kids-app shell", () => {
       core: createDelayedResetCore(30),
     });
     const newDrawingButton = container.querySelector(
-      'button[data-action="new-drawing"]',
-    ) as HTMLButtonElement | null;
+      '[data-action="new-drawing"]',
+    ) as HTMLElement | null;
     expect(newDrawingButton).not.toBeNull();
 
     newDrawingButton!.click();
