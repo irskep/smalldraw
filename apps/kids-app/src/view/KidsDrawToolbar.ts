@@ -43,7 +43,7 @@ const COLOR_SWATCHES = [
   { value: "#ff66c4", label: "Bubblegum" },
 ] as const;
 
-const STROKE_WIDTH_OPTIONS = [2, 8, 24, 80, 200] as const;
+const STROKE_WIDTH_OPTIONS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
 
 function createSquareButton(options: {
   className: string;

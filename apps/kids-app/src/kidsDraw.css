@@ -153,7 +153,7 @@ kids-square-icon-button.kids-draw-action-button:hover:not([disabled]) {
 
 .kids-draw-stroke-widths {
   display: grid;
-  grid-template-columns: repeat(5, 52px);
+  grid-template-columns: repeat(4, 52px);
   gap: var(--kd-space-1);
   justify-content: center;
 }
