@@ -19,7 +19,17 @@ export function createDomTileProvider(
   const getPixelRatio = options.getPixelRatio ?? (() => 1);
   const getTileIdentity = options.getTileIdentity ?? (() => "default");
 
-  container.style.position = container.style.position || "relative";
+  const inlinePosition = container.style.position;
+  const computedPosition =
+    typeof getComputedStyle === "function"
+      ? getComputedStyle(container).position
+      : "";
+  if (
+    !inlinePosition &&
+    (computedPosition === "" || computedPosition === "static")
+  ) {
+    container.style.position = "relative";
+  }
 
   return {
     getTileCanvas: (coord) => {

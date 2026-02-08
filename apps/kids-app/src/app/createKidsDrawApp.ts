@@ -9,6 +9,10 @@ import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
 import { resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
+import {
+  $toolbarUi,
+  syncToolbarUiFromDrawingStore,
+} from "../ui/stores/toolbarUiStore";
 import { createKidsDrawStage } from "../view/KidsDrawStage";
 import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { KidsDrawApp, KidsDrawAppOptions } from "./types";
@@ -51,19 +55,7 @@ export async function createKidsDrawApp(
 
   const backgroundColor = options.backgroundColor ?? "#ffffff";
 
-  const element = el("div.kids-draw-app", {
-    style: {
-      display: "flex",
-      "flex-direction": "column",
-      gap: "8px",
-      width: "100%",
-      height: "100%",
-      "font-family": "system-ui, sans-serif",
-      "box-sizing": "border-box",
-      border: "2px solid #1f2937",
-      background: "#f3f4f6",
-    },
-  }) as HTMLDivElement;
+  const element = el("div.kids-draw-app") as HTMLDivElement;
 
   const toolbar = createKidsDrawToolbar();
   const stage = createKidsDrawStage({
@@ -89,13 +81,8 @@ export async function createKidsDrawApp(
     Math.round(shared.strokeWidth * KIDS_DRAW_STROKE_WIDTH_MULTIPLIER),
   );
   store.updateSharedSettings({ strokeWidth: defaultStrokeWidth });
-  toolbar.colorInput.value = shared.strokeColor;
-  toolbar.sizeInput.value = `${defaultStrokeWidth}`;
-  toolbar.syncButtons({
-    activeToolId: store.getActiveToolId() ?? "",
-    canUndo: store.canUndo(),
-    canRedo: store.canRedo(),
-  });
+  syncToolbarUiFromDrawingStore(store);
+  const unbindToolbarUi = toolbar.bindUiState($toolbarUi);
 
   const pipeline = createRasterPipeline({
     store,
@@ -136,6 +123,7 @@ export async function createKidsDrawApp(
     core,
     destroy() {
       controller.destroy();
+      unbindToolbarUi();
       unmount(options.container, element);
     },
   };

@@ -1,4 +1,6 @@
 import { el, mount } from "redom";
+import type { ReadableAtom } from "nanostores";
+import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 
 export interface KidsDrawToolbar {
   readonly element: HTMLDivElement;
@@ -10,11 +12,7 @@ export interface KidsDrawToolbar {
   readonly newDrawingButton: HTMLButtonElement;
   readonly colorInput: HTMLInputElement;
   readonly sizeInput: HTMLInputElement;
-  syncButtons(state: {
-    activeToolId: string;
-    canUndo: boolean;
-    canRedo: boolean;
-  }): void;
+  bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
 }
 
 export function createKidsDrawToolbar(): KidsDrawToolbar {
@@ -28,16 +26,7 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     return button;
   };
 
-  const element = el("div.kids-draw-toolbar", {
-    style: {
-      display: "flex",
-      "align-items": "center",
-      gap: "8px",
-      padding: "6px",
-      border: "1px dashed #2563eb",
-      background: "#dbeafe",
-    },
-  }) as HTMLDivElement;
+  const element = el("div.kids-draw-toolbar") as HTMLDivElement;
 
   const penButton = createButton({ textContent: "Pen", "data-tool": "pen" });
   const eraserButton = createButton({ textContent: "Eraser", "data-tool": "eraser" });
@@ -87,16 +76,10 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     button: HTMLButtonElement,
     selected: boolean,
   ): void => {
-    button.style.border = selected ? "2px solid #111827" : "1px solid #9ca3af";
-    button.style.background = selected ? "#93c5fd" : "#ffffff";
-    button.style.fontWeight = selected ? "700" : "400";
+    button.classList.toggle("is-selected", selected);
   };
 
-  const syncButtons = (state: {
-    activeToolId: string;
-    canUndo: boolean;
-    canRedo: boolean;
-  }): void => {
+  const applyState = (state: ToolbarUiState): void => {
     const penSelected = state.activeToolId === "pen";
     const eraserSelected = state.activeToolId === "eraser";
     penButton.setAttribute("aria-pressed", penSelected ? "true" : "false");
@@ -105,6 +88,19 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     setToolButtonSelected(eraserButton, eraserSelected);
     undoButton.disabled = !state.canUndo;
     redoButton.disabled = !state.canRedo;
+    newDrawingButton.disabled = state.newDrawingPending;
+    if (colorInput.value !== state.strokeColor) {
+      colorInput.value = state.strokeColor;
+    }
+    const strokeWidth = `${Math.max(1, Math.round(state.strokeWidth))}`;
+    if (sizeInput.value !== strokeWidth) {
+      sizeInput.value = strokeWidth;
+    }
+  };
+
+  const bindUiState = (state: ReadableAtom<ToolbarUiState>): (() => void) => {
+    applyState(state.get());
+    return state.subscribe(applyState);
   };
 
   return {
@@ -117,6 +113,6 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     newDrawingButton,
     colorInput,
     sizeInput,
-    syncButtons,
+    bindUiState,
   };
 }

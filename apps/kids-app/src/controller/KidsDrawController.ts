@@ -12,6 +12,11 @@ import {
 } from "../layout/responsiveLayout";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
+import {
+  setNewDrawingPending,
+  setToolbarStrokeUi,
+  syncToolbarUiFromDrawingStore,
+} from "../ui/stores/toolbarUiStore";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 
@@ -105,12 +110,8 @@ export function createKidsDrawController(options: {
     disposers.push(() => target.removeEventListener(type, listener));
   }
 
-  const syncToolbarButtons = (): void => {
-    toolbar.syncButtons({
-      activeToolId: store.getActiveToolId() ?? "",
-      canUndo: store.canUndo(),
-      canRedo: store.canRedo(),
-    });
+  const syncToolbarUi = (): void => {
+    syncToolbarUiFromDrawingStore(store);
   };
 
   const getRenderIdentity = (): string => {
@@ -145,7 +146,7 @@ export function createKidsDrawController(options: {
     if (pointerIsDown) {
       drawingPerfFrameCount += 1;
     }
-    syncToolbarButtons();
+    syncToolbarUi();
     pipeline.render();
     pipeline.updateDirtyRectOverlay();
     perfSession.recordRenderPassEnd(startMs);
@@ -277,21 +278,21 @@ export function createKidsDrawController(options: {
     unsubscribeCoreAdapter?.();
     unsubscribeCoreAdapter = core.storeAdapter.subscribe((doc) => {
       store.applyDocument(doc);
-      syncToolbarButtons();
+      syncToolbarUi();
     });
   };
 
   const runAndSync = (fn: () => void): (() => void) => {
     return () => {
       fn();
-      syncToolbarButtons();
+      syncToolbarUi();
     };
   };
 
   const onNewDrawingClick = async () => {
     const requestId = ++newDrawingRequestId;
     debugLifecycle("new-drawing:start", { requestId, destroyed });
-    toolbar.newDrawingButton.disabled = true;
+    setNewDrawingPending(true);
     try {
       const nextDocumentSize = hasExplicitSize
         ? getExplicitSize()
@@ -314,10 +315,10 @@ export function createKidsDrawController(options: {
       pipeline.scheduleBakeForClear();
       pipeline.bakePendingTiles();
       requestRenderFromModel();
-      syncToolbarButtons();
+      syncToolbarUi();
     } finally {
       if (!destroyed && requestId === newDrawingRequestId) {
-        toolbar.newDrawingButton.disabled = false;
+        setNewDrawingPending(false);
       }
       debugLifecycle("new-drawing:done", {
         requestId,
@@ -334,7 +335,7 @@ export function createKidsDrawController(options: {
     perfSession.begin();
     store.dispatch("pointerDown", { point: toPoint(event), buttons: event.buttons });
     stage.overlay.setPointerCapture?.(event.pointerId);
-    syncToolbarButtons();
+    syncToolbarUi();
   };
   const onPointerMove = (event: PointerEvent) => {
     store.dispatch("pointerMove", { point: toPoint(event), buttons: event.buttons });
@@ -346,7 +347,7 @@ export function createKidsDrawController(options: {
     if (type === "pointerUp") {
       stage.overlay.releasePointerCapture?.(event.pointerId);
     }
-    syncToolbarButtons();
+    syncToolbarUi();
   };
 
   const onWindowResize = () => {
@@ -382,9 +383,11 @@ export function createKidsDrawController(options: {
   });
   listen(toolbar.colorInput, "input", () => {
     store.updateSharedSettings({ strokeColor: toolbar.colorInput.value });
+    setToolbarStrokeUi(toolbar.colorInput.value, Number(toolbar.sizeInput.value));
   });
   listen(toolbar.sizeInput, "input", () => {
     store.updateSharedSettings({ strokeWidth: Number(toolbar.sizeInput.value) });
+    setToolbarStrokeUi(toolbar.colorInput.value, Number(toolbar.sizeInput.value));
   });
   listen(stage.overlay, "pointerdown", onPointerDown);
   listen(stage.overlay, "pointermove", onPointerMove);
@@ -403,6 +406,7 @@ export function createKidsDrawController(options: {
     requestRenderFromModel();
   });
 
+  syncToolbarUi();
   subscribeToCoreAdapter();
   updateRenderIdentity();
   applyLayoutAndPixelRatio();
