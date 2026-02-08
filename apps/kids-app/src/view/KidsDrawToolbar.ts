@@ -1,4 +1,12 @@
-import { Eraser, Pen, Redo2, Undo2, type IconNode } from "lucide";
+import {
+  Eraser,
+  FilePlus,
+  Pen,
+  Redo2,
+  Trash2,
+  Undo2,
+  type IconNode,
+} from "lucide";
 import type { ReadableAtom } from "nanostores";
 import { el, mount } from "redom";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
@@ -106,11 +114,12 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
   const clearButton = createSquareButton({
     className: "kids-draw-action-button kids-draw-action-clear",
     label: "Clear",
-    icon: Eraser,
+    icon: Trash2,
     attributes: {
       title: "Clear canvas",
       "aria-label": "Clear canvas",
       "data-action": "clear",
+      layout: "row",
     },
   });
   actionPanelControls.push(clearButton);
@@ -118,11 +127,12 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
   const newDrawingButton = createSquareButton({
     className: "kids-draw-action-button kids-draw-action-new",
     label: "New",
-    icon: Pen,
+    icon: FilePlus,
     attributes: {
       title: "New drawing",
       "aria-label": "New drawing",
       "data-action": "new-drawing",
+      layout: "row",
     },
   });
   actionPanelControls.push(newDrawingButton);

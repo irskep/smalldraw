@@ -64,6 +64,10 @@ export class SquareIconButtonElement extends HTMLElement {
         height: 100%;
       }
 
+      :host([layout="row"]) .content {
+        flex-direction: row;
+      }
+
       .icon {
         width: 24px;
         height: 24px;

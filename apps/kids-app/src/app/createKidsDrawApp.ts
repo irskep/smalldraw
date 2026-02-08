@@ -13,6 +13,10 @@ import {
   $toolbarUi,
   syncToolbarUiFromDrawingStore,
 } from "../ui/stores/toolbarUiStore";
+import {
+  ensureModalDialogDefined,
+  ModalDialogElement,
+} from "../view/ModalDialog";
 import { createKidsDrawStage } from "../view/KidsDrawStage";
 import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { KidsDrawApp, KidsDrawAppOptions } from "./types";
@@ -64,11 +68,16 @@ export async function createKidsDrawApp(
     height: size.height,
     backgroundColor,
   });
+  ensureModalDialogDefined();
+  const modalDialog = document.createElement(
+    ModalDialogElement.tagName,
+  ) as ModalDialogElement;
 
   mount(element, stage.element);
   mount(stage.insetLeftSlot, toolbar.toolSelectorElement);
   mount(stage.insetRightSlot, toolbar.actionPanelElement);
   mount(stage.insetBottomSlot, toolbar.element);
+  mount(element, modalDialog);
   mount(options.container, element);
 
   const store = new DrawingStore({
@@ -117,6 +126,9 @@ export async function createKidsDrawApp(
     setSize: (nextSize) => {
       size = nextSize;
     },
+    confirmDestructiveAction:
+      options.confirmDestructiveAction ??
+      ((dialog) => modalDialog.showConfirm(dialog)),
   });
 
   return {

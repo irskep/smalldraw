@@ -162,6 +162,7 @@ describe("kids-app shell", () => {
       width: 640,
       height: 480,
       core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
     });
 
     const root = container.querySelector(
@@ -201,6 +202,7 @@ describe("kids-app shell", () => {
       width: 640,
       height: 480,
       core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
     });
     const overlay = app.overlay as HTMLElement;
     overlay.getBoundingClientRect = () =>
@@ -325,6 +327,7 @@ describe("kids-app shell", () => {
       app = await createKidsDrawApp({
         container,
         core: createMockCore({ width: 900, height: 620 }),
+        confirmDestructiveAction: async () => true,
       });
 
       const hotCanvas = container.querySelector(
@@ -380,6 +383,7 @@ describe("kids-app shell", () => {
     const app = await createKidsDrawApp({
       container,
       core: createMockCore({ width: 777, height: 333 }),
+      confirmDestructiveAction: async () => true,
     });
 
     const hotCanvas = container.querySelector(
@@ -399,6 +403,7 @@ describe("kids-app shell", () => {
     const app = await createKidsDrawApp({
       container,
       core: createDelayedResetCore(30),
+      confirmDestructiveAction: async () => true,
     });
     const newDrawingButton = container.querySelector(
       '[data-action="new-drawing"]',
@@ -421,6 +426,7 @@ describe("kids-app shell", () => {
       width: 640,
       height: 480,
       core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
     });
     const overlay = app.overlay as HTMLElement;
     overlay.getBoundingClientRect = () =>

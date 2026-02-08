@@ -5,6 +5,7 @@ import {
   getTopZIndex,
   type SmalldrawCore,
 } from "@smalldraw/core";
+import { FilePlus, Trash2, type IconNode } from "lucide";
 import { Vec2 } from "@smalldraw/geometry";
 import {
   applyResponsiveLayout,
@@ -28,6 +29,15 @@ type PointerEventWithCoalesced = PointerEvent & {
   getCoalescedEvents?: () => PointerEvent[];
 };
 
+type ConfirmDialogRequest = {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  cancelLabel?: string;
+  tone?: "default" | "danger";
+  icon?: IconNode;
+};
+
 export interface KidsDrawController {
   destroy(): void;
 }
@@ -45,6 +55,7 @@ export function createKidsDrawController(options: {
   getExplicitSize: () => DrawingDocumentSize;
   getSize: () => { width: number; height: number };
   setSize: (size: { width: number; height: number }) => void;
+  confirmDestructiveAction: (dialog: ConfirmDialogRequest) => Promise<boolean>;
 }): KidsDrawController {
   const {
     store,
@@ -59,6 +70,7 @@ export function createKidsDrawController(options: {
     getExplicitSize,
     getSize,
     setSize,
+    confirmDestructiveAction,
   } = options;
 
   const perfSession = createKidsDrawPerfSession();
@@ -328,6 +340,18 @@ export function createKidsDrawController(options: {
   };
 
   const onNewDrawingClick = async () => {
+    const confirmed = await confirmDestructiveAction({
+      title: "Start a new drawing?",
+      message: "Your current drawing will be replaced by a blank page.",
+      confirmLabel: "Start New",
+      cancelLabel: "Cancel",
+      tone: "danger",
+      icon: FilePlus,
+    });
+    if (!confirmed || destroyed) {
+      return;
+    }
+
     const requestId = ++newDrawingRequestId;
     debugLifecycle("new-drawing:start", { requestId, destroyed });
     setNewDrawingPending(true);
@@ -431,10 +455,20 @@ export function createKidsDrawController(options: {
     "click",
     runAndSync(() => store.redo()),
   );
-  listen(
-    toolbar.clearButton,
-    "click",
-    runAndSync(() => {
+  listen(toolbar.clearButton, "click", () => {
+    void (async () => {
+      const confirmed = await confirmDestructiveAction({
+        title: "Clear drawing?",
+        message: "This removes all strokes from the current drawing.",
+        confirmLabel: "Clear",
+        cancelLabel: "Keep Drawing",
+        tone: "danger",
+        icon: Trash2,
+      });
+      if (!confirmed || destroyed) {
+        return;
+      }
+
       const clearShapeId = `clear-${Date.now()}-${clearCounter++}`;
       store.applyAction(
         new ClearCanvas({
@@ -445,8 +479,9 @@ export function createKidsDrawController(options: {
           style: {},
         }),
       );
-    }),
-  );
+      syncToolbarUi();
+    })();
+  });
   listen(toolbar.newDrawingButton, "click", () => {
     void onNewDrawingClick();
   });
