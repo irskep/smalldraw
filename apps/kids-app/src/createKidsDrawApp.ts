@@ -1,22 +1,19 @@
 import {
-  AddShape,
   ClearCanvas,
   DrawingStore,
-  getShapeBounds,
   createSmalldraw,
   getTopZIndex,
-  getZIndexBetween,
   type SmalldrawCore,
   createEraserTool,
   createPenTool,
 } from "@smalldraw/core";
-import { BoxOperations, getX, getY, type Box, Vec2 } from "@smalldraw/geometry";
-import { renderShape } from "@smalldraw/renderer-canvas";
+import { Vec2 } from "@smalldraw/geometry";
 import {
   HotLayer,
   RasterSession,
   TILE_SIZE,
   TileRenderer,
+  createDomLayerController,
   createDomTileProvider,
 } from "@smalldraw/renderer-raster";
 import { el, mount, unmount } from "redom";
@@ -120,23 +117,6 @@ type RafRenderState =
   | "idle"
   | "modelRequested"
   | "anticipatory";
-
-type LiveTool = "pen" | "eraser";
-
-interface LiveStrokeState {
-  tool: LiveTool;
-  stroke: {
-    type: "brush";
-    color: string;
-    size: number;
-    compositeOp: "source-over" | "destination-out";
-  };
-  points: Array<[number, number]>;
-  renderedPointCount: number;
-  lastBounds: Box | null;
-  backdrop: HTMLCanvasElement | null;
-  rafId: number | null;
-}
 
 export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
@@ -433,7 +413,6 @@ export async function createKidsDrawApp(
   let currentRenderIdentity = "";
   let layoutRafHandle: number | null = null;
   let debouncedResizeBakeHandle: ReturnType<typeof setTimeout> | null = null;
-  let hotCanvasPixelRatio = tilePixelRatio;
   const getRenderIdentity = (): string =>
     [
       "kids-draw",
@@ -488,6 +467,7 @@ export async function createKidsDrawApp(
   const hotLayer = new HotLayer(hotCanvas, {
     backgroundColor: undefined,
   });
+  const layerController = createDomLayerController(tileLayer, hotCanvas);
   hotLayer.setViewport({
     width,
     height,
@@ -495,13 +475,14 @@ export async function createKidsDrawApp(
     scale: 1,
   });
 
-  const sessionWithSnapshot = new RasterSession(store, tileRenderer, hotLayer);
+  const sessionWithSnapshot = new RasterSession(store, tileRenderer, hotLayer, {
+    layerController,
+  });
   const hotCtx = hotCanvas.getContext("2d");
   if (!hotCtx) {
     throw new Error("kids-app hot canvas requires a 2D context");
   }
   const applyHotCanvasPixelRatio = (pixelRatio: number): void => {
-    hotCanvasPixelRatio = pixelRatio;
     const nextWidth = Math.max(1, Math.round(width * pixelRatio));
     const nextHeight = Math.max(1, Math.round(height * pixelRatio));
     if (hotCanvas.width !== nextWidth) {
@@ -510,257 +491,14 @@ export async function createKidsDrawApp(
     if (hotCanvas.height !== nextHeight) {
       hotCanvas.height = nextHeight;
     }
-    hotCtx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    hotCtx.clearRect(0, 0, width, height);
-  };
-  let liveStrokeState: LiveStrokeState | null = null;
-  let liveStrokeCounter = 0;
-  const clearHotCanvas = () => {
     hotCtx.setTransform(1, 0, 0, 1, 0, 0);
     hotCtx.clearRect(0, 0, hotCanvas.width, hotCanvas.height);
-    hotCtx.setTransform(hotCanvasPixelRatio, 0, 0, hotCanvasPixelRatio, 0, 0);
-  };
-  const captureTileLayerSnapshot = (): HTMLCanvasElement => {
-    const snapshot = document.createElement("canvas");
-    snapshot.width = Math.max(1, Math.round(width * hotCanvasPixelRatio));
-    snapshot.height = Math.max(1, Math.round(height * hotCanvasPixelRatio));
-    const ctx = snapshot.getContext("2d");
-    if (!ctx) {
-      return snapshot;
-    }
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, snapshot.width, snapshot.height);
-    ctx.setTransform(hotCanvasPixelRatio, 0, 0, hotCanvasPixelRatio, 0, 0);
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, width, height);
-    const tileCanvases = tileLayer.querySelectorAll("canvas");
-    for (const tileCanvas of tileCanvases) {
-      const left = Number.parseFloat(tileCanvas.style.left || "0") || 0;
-      const top = Number.parseFloat(tileCanvas.style.top || "0") || 0;
-      if (typeof (ctx as CanvasRenderingContext2D).drawImage === "function") {
-        ctx.drawImage(tileCanvas, left, top, TILE_SIZE, TILE_SIZE);
-      }
-    }
-    return snapshot;
-  };
-  const createStrokeShapeFromPoints = (state: LiveStrokeState) => {
-    const points = state.points;
-    const firstPoint = points[0];
-    if (!firstPoint) {
-      return null;
-    }
-    let minX = firstPoint[0];
-    let minY = firstPoint[1];
-    let maxX = firstPoint[0];
-    let maxY = firstPoint[1];
-    for (const [x, y] of points) {
-      if (x < minX) minX = x;
-      if (y < minY) minY = y;
-      if (x > maxX) maxX = x;
-      if (y > maxY) maxY = y;
-    }
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-    const localPoints = points.map(
-      ([x, y]) => [x - centerX, y - centerY] as [number, number],
-    );
-    return {
-      id: "live-stroke",
-      type: "pen" as const,
-      geometry: {
-        type: "pen" as const,
-        points: localPoints,
-      },
-      style: {
-        stroke: state.stroke,
-      },
-      zIndex: "live-stroke",
-      layerId: "default",
-      transform: {
-        translation: [centerX, centerY] as [number, number],
-        scale: [1, 1] as [number, number],
-        rotation: 0,
-      },
-    };
-  };
-  const clampBoundsToViewport = (bounds: Box): Box => {
-    return {
-      min: [Math.max(0, getX(bounds.min)), Math.max(0, getY(bounds.min))],
-      max: [Math.min(width, getX(bounds.max)), Math.min(height, getY(bounds.max))],
-    };
-  };
-  const expandBounds = (bounds: Box, padding: number): Box => {
-    return {
-      min: [getX(bounds.min) - padding, getY(bounds.min) - padding],
-      max: [getX(bounds.max) + padding, getY(bounds.max) + padding],
-    };
-  };
-  const drawLiveStrokeRegion = (
-    state: LiveStrokeState,
-    shape: ReturnType<typeof createStrokeShapeFromPoints>,
-    region: Box,
-  ): void => {
-    if (!shape) return;
-    const x = getX(region.min);
-    const y = getY(region.min);
-    const w = Math.max(0, getX(region.max) - x);
-    const h = Math.max(0, getY(region.max) - y);
-    if (w <= 0 || h <= 0) {
-      return;
-    }
-    hotCtx.save();
-    hotCtx.setTransform(hotCanvasPixelRatio, 0, 0, hotCanvasPixelRatio, 0, 0);
-    hotCtx.beginPath();
-    hotCtx.rect(x, y, w, h);
-    hotCtx.clip();
-    hotCtx.clearRect(x, y, w, h);
-    if (state.backdrop) {
-      const sourceX = x * hotCanvasPixelRatio;
-      const sourceY = y * hotCanvasPixelRatio;
-      const sourceW = w * hotCanvasPixelRatio;
-      const sourceH = h * hotCanvasPixelRatio;
-      hotCtx.drawImage(
-        state.backdrop,
-        sourceX,
-        sourceY,
-        sourceW,
-        sourceH,
-        x,
-        y,
-        w,
-        h,
-      );
-    }
-    renderShape(
-      hotCtx,
-      shape,
-      undefined,
-      store.getShapeHandlers(),
-    );
-    hotCtx.restore();
-  };
-  const renderLiveStroke = (state: LiveStrokeState): void => {
-    const shape = createStrokeShapeFromPoints(state);
-    if (!shape) {
-      return;
-    }
-    const rawBounds = getShapeBounds(shape, store.getShapeHandlers());
-    const paddedBounds = clampBoundsToViewport(
-      expandBounds(rawBounds, Math.max(2, state.stroke.size)),
-    );
-    const dirtyBounds = state.lastBounds
-      ? clampBoundsToViewport(
-          BoxOperations.fromBoxPair(state.lastBounds, paddedBounds),
-        )
-      : paddedBounds;
-    drawLiveStrokeRegion(state, shape, dirtyBounds);
-    state.lastBounds = paddedBounds;
-  };
-  const pumpLiveStroke = () => {
-    const state = liveStrokeState;
-    if (!state) return;
-    if (state.renderedPointCount !== state.points.length) {
-      renderLiveStroke(state);
-      state.renderedPointCount = state.points.length;
-    }
-    recordDrawingFrame();
-    state.rafId = scheduleAnimationFrame(() => {
-      pumpLiveStroke();
-    });
-  };
-  const toPointTuple = (point: Vec2): [number, number] => [point[0], point[1]];
-  const buildCommittedStrokeShape = (state: LiveStrokeState) => {
-    const shape = createStrokeShapeFromPoints(state);
-    if (!shape) {
-      throw new Error("Cannot commit an empty live stroke");
-    }
-    const currentTop = getTopZIndex(store.getDocument());
-    return {
-      id: `${state.tool}-${Date.now()}-${liveStrokeCounter++}`,
-      type: shape.type,
-      geometry: shape.geometry,
-      style: shape.style,
-      zIndex: getZIndexBetween(currentTop, null),
-      layerId: "default",
-      interactions: {
-        resizable: true,
-        rotatable: false,
-      },
-      transform: shape.transform,
-    };
-  };
-  const startLiveStroke = (tool: LiveTool, point: Vec2) => {
-    const sharedSettings = store.getSharedSettings();
-    const stroke = {
-      type: "brush" as const,
-      color: sharedSettings.strokeColor,
-      size: sharedSettings.strokeWidth,
-      compositeOp:
-        tool === "eraser"
-          ? ("destination-out" as const)
-          : ("source-over" as const),
-    };
-    const backdrop = tool === "eraser" ? captureTileLayerSnapshot() : null;
-    if (tool === "eraser") {
-      tileLayer.style.visibility = "hidden";
-    }
-    clearHotCanvas();
-    if (backdrop) {
-      const drawableCtx = hotCtx as unknown as {
-        drawImage?: (
-          image: CanvasImageSource,
-          x: number,
-          y: number,
-          width: number,
-          height: number,
-        ) => void;
-      };
-      drawableCtx.drawImage?.(backdrop, 0, 0, width, height);
-    }
-    const state: LiveStrokeState = {
-      tool,
-      stroke,
-      points: [toPointTuple(point)],
-      renderedPointCount: 0,
-      lastBounds: null,
-      backdrop,
-      rafId: null,
-    };
-    liveStrokeState = state;
-    pumpLiveStroke();
-  };
-  const appendLiveStrokePoint = (point: Vec2) => {
-    if (!liveStrokeState) return;
-    liveStrokeState.points.push(toPointTuple(point));
-  };
-  const finishLiveStroke = () => {
-    const state = liveStrokeState;
-    if (!state) {
-      clearHotCanvas();
-      return;
-    }
-    if (state.rafId !== null) {
-      cancelAnimationFrameHandle(state.rafId);
-      state.rafId = null;
-    }
-    if (state.points.length >= 2) {
-      store.applyAction(new AddShape(buildCommittedStrokeShape(state)));
-    }
-    if (state.tool === "eraser") {
-      tileLayer.style.visibility = "";
-    }
-    liveStrokeState = null;
-    clearHotCanvas();
   };
   const renderPass = (): void => {
     const passStartMs = nowMs();
     drawingPerfRenderPasses += 1;
     recordDrawingFrame();
     syncToolButtons();
-    if (liveStrokeState) {
-      drawingPerfRenderPassMsTotal += nowMs() - passStartMs;
-      return;
-    }
     sessionWithSnapshot.render();
     drawingPerfRenderPassMsTotal += nowMs() - passStartMs;
   };
@@ -946,26 +684,25 @@ export async function createKidsDrawApp(
     event.preventDefault();
     pointerIsDown = true;
     beginDrawingPerf();
-    const tool = store.getActiveToolId();
-    if (tool === "pen" || tool === "eraser") {
-      startLiveStroke(tool, toPoint(event));
-    }
+    store.dispatch("pointerDown", { point: toPoint(event), buttons: event.buttons });
     overlay.setPointerCapture?.(event.pointerId);
     syncToolButtons();
   };
   const onPointerMove = (event: PointerEvent) => {
-    appendLiveStrokePoint(toPoint(event));
+    store.dispatch("pointerMove", { point: toPoint(event), buttons: event.buttons });
   };
   const onPointerUp = (event: PointerEvent) => {
-    appendLiveStrokePoint(toPoint(event));
-    finishLiveStroke();
+    store.dispatch("pointerUp", { point: toPoint(event), buttons: event.buttons });
     pointerIsDown = false;
     endDrawingPerf();
     overlay.releasePointerCapture?.(event.pointerId);
     syncToolButtons();
   };
-  const onPointerCancel = (_event: PointerEvent) => {
-    finishLiveStroke();
+  const onPointerCancel = (event: PointerEvent) => {
+    store.dispatch("pointerCancel", {
+      point: toPoint(event),
+      buttons: event.buttons,
+    });
     pointerIsDown = false;
     endDrawingPerf();
     syncToolButtons();
@@ -986,12 +723,6 @@ export async function createKidsDrawApp(
       unsubscribe();
       window.removeEventListener("resize", onWindowResize);
       window.visualViewport?.removeEventListener("resize", onWindowResize);
-      const strokeStateAtDestroy = liveStrokeState;
-      if (strokeStateAtDestroy && strokeStateAtDestroy.rafId !== null) {
-        cancelAnimationFrameHandle(strokeStateAtDestroy.rafId);
-      }
-      tileLayer.style.visibility = "";
-      liveStrokeState = null;
       if (layoutRafHandle !== null) {
         cancelAnimationFrameHandle(layoutRafHandle);
         layoutRafHandle = null;
@@ -1010,6 +741,7 @@ export async function createKidsDrawApp(
       overlay.removeEventListener("pointercancel", onPointerCancel);
       overlay.removeEventListener("pointerleave", onPointerCancel);
       tileRenderer.dispose();
+      layerController.setMode("tiles");
       hotLayer.clear();
       hotLayer.setBackdrop(null);
       unmount(options.container, element);

@@ -10,6 +10,9 @@ import {
 
 export interface RasterSessionOptions {
   onBakeError?: (error: unknown) => void;
+  layerController?: {
+    setMode: (mode: "tiles" | "hot") => void;
+  };
 }
 
 /**
@@ -21,11 +24,15 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   private readonly hotLayer: HotLayer;
   private readonly store: DrawingStore;
   private readonly onBakeError?: (error: unknown) => void;
+  private readonly layerController?: {
+    setMode: (mode: "tiles" | "hot") => void;
+  };
   private hasBackdropSnapshot = false;
   private captureInFlight: Promise<void> | null = null;
   private skipBackdropUntilStrokeEnd = false;
   private knownClearShapeIds = new Set<string>();
   private bakeQueue: Promise<void> = Promise.resolve();
+  private forceFullHotRenderOnce = false;
 
   constructor(
     store: DrawingStore,
@@ -37,6 +44,8 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     this.tileRenderer = tileRenderer;
     this.hotLayer = hotLayer;
     this.onBakeError = options.onBakeError;
+    this.layerController = options.layerController;
+    this.layerController?.setMode("tiles");
   }
 
   render(): void {
@@ -49,8 +58,13 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     const docShapes = this.store.getDocument().shapes;
     const previousClearShapeIds = new Set(this.knownClearShapeIds);
     const drafts = this.store.getDrafts();
-    const hasEraserDraft = drafts.some(isEraserDraft);
-    if (hasEraserDraft) {
+    const hasDrafts = drafts.length > 0;
+    const preview = this.store.getPreview();
+    const requiresTileBackdrop = hasDrafts;
+    if (!hasDrafts) {
+      this.layerController?.setMode("tiles");
+    }
+    if (requiresTileBackdrop) {
       if (
         !this.hasBackdropSnapshot &&
         !this.captureInFlight &&
@@ -66,6 +80,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
           });
       }
       if (!this.hasBackdropSnapshot && !this.skipBackdropUntilStrokeEnd) {
+        this.layerController?.setMode("tiles");
         perfAddTimingMs("session.render.ms", perfNowMs() - renderStartMs);
         return;
       }
@@ -78,7 +93,14 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     }
     if (!perfFlagEnabled("skipHotLayerRender")) {
       const hotStartMs = perfNowMs();
-      this.hotLayer.renderDrafts(drafts);
+      const dirtyBounds = this.forceFullHotRenderOnce
+        ? null
+        : (preview?.dirtyBounds ?? null);
+      this.hotLayer.renderDrafts(drafts, {
+        dirtyBounds,
+      });
+      this.forceFullHotRenderOnce = false;
+      this.layerController?.setMode(hasDrafts ? "hot" : "tiles");
       perfAddTimingMs("session.hotLayer.renderDrafts.ms", perfNowMs() - hotStartMs);
     } else {
       perfAddCounter("session.hotLayer.skipped");
@@ -157,13 +179,15 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     }
     const captureStartMs = perfNowMs();
     await this.flushBakes();
-    const snapshot = await this.tileRenderer.captureViewportSnapshot();
+    const snapshot = await this.tileRenderer.captureViewportSnapshot(
+      this.tileRenderer.getTilePixelRatio(),
+    );
     perfAddCounter("session.captureBackdropSnapshot.calls");
     perfAddTimingMs(
       "session.captureBackdropSnapshot.ms",
       perfNowMs() - captureStartMs,
     );
-    if (!this.store.getDrafts().some(isEraserDraft)) {
+    if (!this.store.getDrafts().length) {
       return;
     }
     if (!snapshot) {
@@ -172,6 +196,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     }
     this.hotLayer.setBackdrop(snapshot ?? null);
     this.hasBackdropSnapshot = true;
+    this.forceFullHotRenderOnce = true;
   }
 
   private updateKnownClearShapeIds(
@@ -202,8 +227,4 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     }
     return false;
   }
-}
-
-function isEraserDraft(shape: { style?: { stroke?: { compositeOp?: string } } }): boolean {
-  return shape.style?.stroke?.compositeOp === "destination-out";
 }

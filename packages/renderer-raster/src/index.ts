@@ -5,7 +5,8 @@ import type {
   Shape,
   ShapeHandlerRegistry,
 } from "@smalldraw/core";
-import type { Box } from "@smalldraw/geometry";
+import { getX, getY, type Box } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import {
   getOrderedShapesBounds,
   renderOrderedShapes,
@@ -290,7 +291,11 @@ export class TileRenderer<
     perfAddTimingMs("tileRenderer.bakePendingTiles.ms", perfNowMs() - bakeStartMs);
   }
 
-  async captureViewportSnapshot(): Promise<CanvasImageSource | null> {
+  getTilePixelRatio(): number {
+    return this.computeTilePixelRatio();
+  }
+
+  async captureViewportSnapshot(scale = 1): Promise<CanvasImageSource | null> {
     const captureStartMs = perfNowMs();
     perfAddCounter("tileRenderer.captureViewportSnapshot.calls");
     if (perfFlagEnabled("skipSnapshotCapture")) {
@@ -301,8 +306,21 @@ export class TileRenderer<
       return null;
     }
     await this.bakePendingTiles();
-    const width = Math.max(1, Math.ceil(this.viewport.max[0] - this.viewport.min[0]));
-    const height = Math.max(1, Math.ceil(this.viewport.max[1] - this.viewport.min[1]));
+    const snapshotScale =
+      Number.isFinite(scale) && scale > 0 ? scale : 1;
+    const viewportMin = new Vec2(this.viewport.min);
+    const viewportMax = new Vec2(this.viewport.max);
+    const scaledViewportSize = new Vec2(viewportMax)
+      .sub(viewportMin)
+      .mul([snapshotScale, snapshotScale]);
+    const width = Math.max(
+      1,
+      Math.ceil(getX(scaledViewportSize)),
+    );
+    const height = Math.max(
+      1,
+      Math.ceil(getY(scaledViewportSize)),
+    );
     const snapshotCanvas = this.createViewportSnapshotCanvas?.(width, height);
     const fallbackCanvas =
       snapshotCanvas ?? createDomSnapshotCanvas(width, height);
@@ -320,14 +338,31 @@ export class TileRenderer<
       ctx.fillRect(0, 0, width, height);
     }
     for (const tile of this.visibleTiles.values()) {
-      const x = tile.coord.x * this.tileSize - this.viewport.min[0];
-      const y = tile.coord.y * this.tileSize - this.viewport.min[1];
+      const tileOrigin = new Vec2(
+        tile.coord.x * this.tileSize,
+        tile.coord.y * this.tileSize,
+      )
+        .sub(viewportMin)
+        .mul([snapshotScale, snapshotScale]);
+      const destTileSize = this.tileSize * snapshotScale;
+      const source = tile.canvas as unknown as Partial<{
+        width: number;
+        height: number;
+      }>;
+      const sourceWidth =
+        typeof source.width === "number" ? source.width : destTileSize;
+      const sourceHeight =
+        typeof source.height === "number" ? source.height : destTileSize;
       ctx.drawImage(
         tile.canvas as unknown as CanvasImageSource,
-        x,
-        y,
-        this.tileSize,
-        this.tileSize,
+        0,
+        0,
+        sourceWidth,
+        sourceHeight,
+        getX(tileOrigin),
+        getY(tileOrigin),
+        destTileSize,
+        destTileSize,
       );
     }
     perfAddTimingMs(
@@ -378,6 +413,20 @@ export class TileRenderer<
     this.visibleTiles.clear();
   }
 
+  private computeTilePixelRatio(): number {
+    for (const entry of this.visibleTiles.values()) {
+      const canvas = entry.canvas as unknown as Partial<{ width: number }>;
+      if (typeof canvas.width !== "number" || canvas.width <= 0) {
+        continue;
+      }
+      const scale = canvas.width / this.tileSize;
+      if (Number.isFinite(scale) && scale > 0) {
+        return scale;
+      }
+    }
+    return 1;
+  }
+
   private snapshotKeyForCoord(coord: TileCoord): string {
     const base = tileKey(coord);
     if (!this.renderIdentity) {
@@ -417,7 +466,12 @@ export type {
   TileSnapshotAdapter,
   TileSnapshotStore,
 } from "./types";
-export { createDomTileProvider, type DomTileProviderOptions } from "./dom";
+export {
+  createDomLayerController,
+  createDomTileProvider,
+  type DomLayerController,
+  type DomTileProviderOptions,
+} from "./dom";
 export { TILE_SIZE } from "./constants";
 export { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";
 export { createInMemorySnapshotStore } from "./snapshots";

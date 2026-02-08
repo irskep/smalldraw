@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { createCanvas } from "canvas";
 import type { DraftShape, RectGeometry } from "@smalldraw/core";
+import type { Box } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { HotLayer } from "../hotLayer";
 
@@ -31,6 +32,11 @@ function draftRect(
     temporary: true,
   };
 }
+
+const box = (
+  min: [number, number],
+  max: [number, number],
+): Box => ({ min, max });
 
 describe("HotLayer", () => {
   test("renders drafts in screen space and clears on request", () => {
@@ -129,5 +135,59 @@ describe("HotLayer", () => {
 
     const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
     expect(pixelAt(ctx, 100, 100)[3]).toBe(0);
+  });
+
+  test("clips redraw to dirty bounds", () => {
+    const canvas = createCanvas(200, 200);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement);
+    hotLayer.setViewport({
+      width: 200,
+      height: 200,
+      center: new Vec2(0, 0),
+      scale: 1,
+    });
+
+    const left = draftRect("left", [-40, 0], "#ff0000");
+    const right = draftRect("right", [40, 0], "#0000ff");
+    hotLayer.renderDrafts([left, right]);
+
+    const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    const baselineLeft = pixelAt(ctx, 60, 100);
+    const baselineRight = pixelAt(ctx, 140, 100);
+    expect(baselineLeft).toEqual([255, 0, 0, 255]);
+    expect(baselineRight).toEqual([0, 0, 255, 255]);
+
+    hotLayer.renderDrafts([right], {
+      dirtyBounds: box([20, -20], [80, 20]),
+    });
+    expect(pixelAt(ctx, 60, 100)).toEqual(baselineLeft);
+    expect(pixelAt(ctx, 140, 100)).toEqual([0, 0, 255, 255]);
+  });
+
+  test("maps dirty backdrop blits across different source/backing resolutions", () => {
+    const canvas = createCanvas(400, 400);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement);
+    hotLayer.setViewport({
+      width: 200,
+      height: 200,
+      center: new Vec2(100, 100),
+      scale: 1,
+    });
+
+    const backdrop = createCanvas(200, 200);
+    const backdropCtx = backdrop.getContext("2d");
+    backdropCtx.fillStyle = "#ff0000";
+    backdropCtx.fillRect(0, 0, 100, 200);
+    backdropCtx.fillStyle = "#0000ff";
+    backdropCtx.fillRect(100, 0, 100, 200);
+    hotLayer.setBackdrop(backdrop as unknown as CanvasImageSource);
+
+    hotLayer.renderDrafts([], {
+      dirtyBounds: box([100, 0], [200, 200]),
+    });
+
+    const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    expect(pixelAt(ctx, 100, 200)[3]).toBe(0);
+    expect(pixelAt(ctx, 300, 200)).toEqual([0, 0, 255, 255]);
   });
 });

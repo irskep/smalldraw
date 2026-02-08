@@ -33,6 +33,11 @@ function dispatchInput(element: HTMLElement): void {
   element.dispatchEvent(new EventCtor("input", { bubbles: true }));
 }
 
+async function waitForTurn(): Promise<void> {
+  await Promise.resolve();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 function createMockCore(): SmalldrawCore {
   const registry = getDefaultShapeHandlerRegistry();
   let doc = createDocument(undefined, registry);
@@ -152,10 +157,14 @@ describe("kids-app shell", () => {
     const clearButton = container.querySelector(
       'button[data-action="clear"]',
     ) as HTMLButtonElement | null;
+    const tileLayer = container.querySelector(
+      ".kids-draw-tiles",
+    ) as HTMLDivElement | null;
     expect(colorInput).not.toBeNull();
     expect(sizeInput).not.toBeNull();
     expect(undoButton).not.toBeNull();
     expect(clearButton).not.toBeNull();
+    expect(tileLayer).not.toBeNull();
     expect(undoButton!.disabled).toBeTrue();
 
     colorInput!.value = "#ff0000";
@@ -176,7 +185,25 @@ describe("kids-app shell", () => {
     eraserButton!.click();
     dispatchPointer(overlay, "pointerdown", 100, 100, 1);
     dispatchPointer(overlay, "pointermove", 220, 220, 1);
+    const hidTilesDuringEraser = await Promise.race<boolean>([
+      (async () => {
+        for (let i = 0; i < 20; i += 1) {
+          if (tileLayer!.style.visibility === "hidden") {
+            return true;
+          }
+          dispatchPointer(overlay, "pointermove", 220, 220, 1);
+          await waitForTurn();
+        }
+        return tileLayer!.style.visibility === "hidden";
+      })(),
+      new Promise<boolean>((resolve) => {
+        setTimeout(() => resolve(false), 300);
+      }),
+    ]);
+    expect(hidTilesDuringEraser).toBeTrue();
     dispatchPointer(overlay, "pointerup", 220, 220, 0);
+    await waitForTurn();
+    expect(tileLayer!.style.visibility).toBe("");
 
     const shapes = Object.values(app.store.getDocument().shapes);
     expect(shapes).toHaveLength(3);

@@ -87,6 +87,23 @@ function createSelectionSetterTool(record: {
   };
 }
 
+function createPreviewTool(
+  preview: { min: [number, number]; max: [number, number] },
+): ToolDefinition {
+  return {
+    id: "preview-tool",
+    label: "Preview Tool",
+    activate(runtime) {
+      runtime.setPreview({
+        dirtyBounds: { min: preview.min, max: preview.max },
+      });
+      return () => {
+        runtime.setPreview(null);
+      };
+    },
+  };
+}
+
 function createRuntimeSelectionTool(selectionIds: string[]): ToolDefinition {
   const selectionDef = createSelectionDefinition();
   return {
@@ -272,6 +289,18 @@ describe("DrawingStore", () => {
     expect(store.getSharedSettings().strokeWidth).toBe(2);
     store.updateSharedSettings({ strokeWidth: 10 });
     expect(store.getSharedSettings().strokeWidth).toBe(10);
+  });
+
+  test("store exposes active tool preview and clears on switch", () => {
+    const store = new DrawingStore({
+      tools: [createPreviewTool({ min: v(1, 2), max: v(3, 4) }), createPenTool()],
+    });
+    store.activateTool("preview-tool");
+    expect(store.getPreview()).toEqual({
+      dirtyBounds: { min: v(1, 2), max: v(3, 4) },
+    });
+    store.activateTool("pen");
+    expect(store.getPreview()).toBeNull();
   });
 
   test("selection helpers manage ids consistently", () => {

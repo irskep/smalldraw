@@ -53,6 +53,29 @@ export function createDomTileProvider(
   };
 }
 
+export interface DomLayerController {
+  setMode(mode: "tiles" | "hot"): void;
+}
+
+export function createDomLayerController(
+  tileLayer: HTMLElement,
+  hotLayer: HTMLElement,
+): DomLayerController {
+  const apply = (mode: "tiles" | "hot") => {
+    if (mode === "hot") {
+      tileLayer.style.visibility = "hidden";
+      hotLayer.style.visibility = "";
+      return;
+    }
+    tileLayer.style.visibility = "";
+    hotLayer.style.visibility = "hidden";
+  };
+  apply("tiles");
+  return {
+    setMode: apply,
+  };
+}
+
 function tileKey(coord: TileCoord, identity: string): string {
   return `${identity}|${coord.x},${coord.y}`;
 }

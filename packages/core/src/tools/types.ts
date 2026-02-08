@@ -32,6 +32,10 @@ export interface SharedToolSettings {
   fillColor: string;
 }
 
+export interface ToolPreview {
+  dirtyBounds?: Box;
+}
+
 export interface SelectionState {
   ids: Set<string>;
   primaryId?: string;
@@ -47,6 +51,10 @@ export interface ToolRuntime {
   setDrafts(shapes: DraftShape[]): void;
   /** Forcefully clear any draft state for this tool. */
   clearDraft(): void;
+  /** Set or clear tool preview hints for renderer hot paths. */
+  setPreview(preview: ToolPreview | null): void;
+  /** Get the latest preview hints for this tool. */
+  getPreview(): ToolPreview | null;
   /** Queue an undoable action to mutate the document. */
   commit(action: UndoableAction): void;
   /** Helpers for generating ids and z-index keys. */

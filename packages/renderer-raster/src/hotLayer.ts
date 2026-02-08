@@ -1,12 +1,17 @@
 import type { AnyShape, ShapeHandlerRegistry } from "@smalldraw/core";
 import type { DraftShape } from "@smalldraw/core";
+import { BoxOperations, getX, getY, type Box } from "@smalldraw/geometry";
+import { Vec2 } from "gl-matrix";
 import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import type { Viewport } from "./viewport";
-import { applyViewportToContext } from "./viewport";
 
 export interface HotLayerOptions {
   geometryHandlerRegistry?: ShapeHandlerRegistry;
   backgroundColor?: string;
+}
+
+export interface HotLayerRenderOptions {
+  dirtyBounds?: Box | null;
 }
 
 export class HotLayer {
@@ -32,27 +37,56 @@ export class HotLayer {
 
   setViewport(viewport: Viewport): void {
     this.viewport = viewport;
-    if (this.canvas.width !== viewport.width) {
-      this.canvas.width = viewport.width;
-    }
-    if (this.canvas.height !== viewport.height) {
-      this.canvas.height = viewport.height;
-    }
   }
 
-  renderDrafts(drafts: DraftShape[] | AnyShape[]): void {
+  renderDrafts(
+    drafts: DraftShape[] | AnyShape[],
+    options: HotLayerRenderOptions = {},
+  ): void {
     const shapes = normalizeDraftShapes(drafts);
-    this.clear();
+    const dirtyBounds =
+      options.dirtyBounds && this.viewport
+        ? worldBoundsToBackingRect(options.dirtyBounds, this.viewport, this.canvas)
+        : null;
+    if (dirtyBounds) {
+      this.clearRect(dirtyBounds);
+    } else {
+      this.clear();
+    }
     if (this.backdropImage) {
       this.ctx.save();
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-      this.ctx.drawImage(
-        this.backdropImage,
-        0,
-        0,
-        this.canvas.width,
-        this.canvas.height,
-      );
+      if (dirtyBounds) {
+        const sourceSize = getImageSourceSize(this.backdropImage);
+        const sourceScale = sourceSize
+          ? new Vec2(sourceSize.width, sourceSize.height).div([
+              this.canvas.width,
+              this.canvas.height,
+            ])
+          : new Vec2(1, 1);
+        const dirty = new BoxOperations(dirtyBounds);
+        const dirtySourceMin = new Vec2(dirty.minX, dirty.minY).mul(sourceScale);
+        const dirtySourceSize = new Vec2(dirty.width, dirty.height).mul(sourceScale);
+        this.ctx.drawImage(
+          this.backdropImage,
+          getX(dirtySourceMin),
+          getY(dirtySourceMin),
+          getX(dirtySourceSize),
+          getY(dirtySourceSize),
+          dirty.minX,
+          dirty.minY,
+          dirty.width,
+          dirty.height,
+        );
+      } else {
+        this.ctx.drawImage(
+          this.backdropImage,
+          0,
+          0,
+          this.canvas.width,
+          this.canvas.height,
+        );
+      }
       this.ctx.restore();
     }
     if (!shapes.length) {
@@ -61,13 +95,25 @@ export class HotLayer {
     if (!this.backdropImage && this.backgroundColor) {
       this.ctx.save();
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      if (dirtyBounds) {
+        const dirty = new BoxOperations(dirtyBounds);
+        this.ctx.beginPath();
+        this.ctx.rect(dirty.minX, dirty.minY, dirty.width, dirty.height);
+        this.ctx.clip();
+      }
       this.ctx.fillStyle = this.backgroundColor;
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.ctx.restore();
     }
     this.ctx.save();
+    if (dirtyBounds) {
+      const dirty = new BoxOperations(dirtyBounds);
+      this.ctx.beginPath();
+      this.ctx.rect(dirty.minX, dirty.minY, dirty.width, dirty.height);
+      this.ctx.clip();
+    }
     if (this.viewport) {
-      applyViewportToContext(this.ctx, this.viewport);
+      setWorldToBackingTransform(this.ctx, this.viewport, this.canvas);
     }
     const ordered = orderByZIndex(shapes);
     renderOrderedShapes(this.ctx, ordered, {
@@ -80,6 +126,12 @@ export class HotLayer {
   clear(): void {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  private clearRect(bounds: Box): void {
+    const dirty = new BoxOperations(bounds);
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.clearRect(dirty.minX, dirty.minY, dirty.width, dirty.height);
   }
 
   setBackdrop(
@@ -115,4 +167,99 @@ function orderByZIndex(shapes: AnyShape[]): AnyShape[] {
     if (a.zIndex === b.zIndex) return 0;
     return a.zIndex < b.zIndex ? -1 : 1;
   });
+}
+
+function setWorldToBackingTransform(
+  ctx: CanvasRenderingContext2D,
+  viewport: Viewport,
+  canvas: HTMLCanvasElement,
+): void {
+  const metrics = getWorldToBackingMetrics(viewport, canvas);
+  const worldScale = new Vec2(viewport.scale, viewport.scale).mul(metrics.scale);
+  const worldTranslate = new Vec2(metrics.translate).mul(metrics.scale);
+  ctx.setTransform(
+    getX(worldScale),
+    0,
+    0,
+    getY(worldScale),
+    getX(worldTranslate),
+    getY(worldTranslate),
+  );
+}
+
+function worldBoundsToBackingRect(
+  bounds: Box,
+  viewport: Viewport,
+  canvas: HTMLCanvasElement,
+): Box | null {
+  const metrics = getWorldToBackingMetrics(viewport, canvas);
+  const projectedMin = new Vec2(getX(bounds.min), getY(bounds.min))
+    .mul([viewport.scale, viewport.scale])
+    .add(metrics.translate)
+    .mul(metrics.scale);
+  const projectedMax = new Vec2(getX(bounds.max), getY(bounds.max))
+    .mul([viewport.scale, viewport.scale])
+    .add(metrics.translate)
+    .mul(metrics.scale);
+  const projectedBounds = BoxOperations.fromPointPair(projectedMin, projectedMax);
+  const clippedMin = new Vec2();
+  Vec2.max(clippedMin, projectedBounds.min, [0, 0]);
+  Vec2.floor(clippedMin, clippedMin);
+  const clippedMax = new Vec2();
+  Vec2.min(clippedMax, projectedBounds.max, [canvas.width, canvas.height]);
+  Vec2.ceil(clippedMax, clippedMax);
+  const clippedBounds: Box = {
+    min: clippedMin,
+    max: clippedMax,
+  };
+  const clippedOps = new BoxOperations(clippedBounds);
+  const width = clippedOps.width;
+  const height = clippedOps.height;
+  if (width <= 0 || height <= 0) {
+    return null;
+  }
+  return clippedBounds;
+}
+
+function getWorldToBackingMetrics(
+  viewport: Viewport,
+  canvas: HTMLCanvasElement,
+): {
+  scale: Vec2;
+  translate: Vec2;
+} {
+  const scale = new Vec2(canvas.width / viewport.width, canvas.height / viewport.height);
+  const translate = new Vec2(viewport.width / 2, viewport.height / 2).sub(
+    new Vec2(getX(viewport.center), getY(viewport.center)).mul([
+      viewport.scale,
+      viewport.scale,
+    ]),
+  );
+  return {
+    scale,
+    translate,
+  };
+}
+
+
+function getImageSourceSize(
+  image: CanvasImageSource,
+): { width: number; height: number } | null {
+  const source = image as Partial<{
+    width: number;
+    height: number;
+    videoWidth: number;
+    videoHeight: number;
+  }>;
+  const width = source.width ?? source.videoWidth;
+  const height = source.height ?? source.videoHeight;
+  if (
+    typeof width !== "number" ||
+    typeof height !== "number" ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null;
+  }
+  return { width, height };
 }

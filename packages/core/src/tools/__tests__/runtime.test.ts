@@ -25,6 +25,7 @@ function createRuntime(overrides?: RuntimeOverrides) {
   let document = createDocument(undefined, registry);
   const undoManager = new UndoManager();
   const draftChanges: Array<unknown> = [];
+  const previewChanges: Array<unknown> = [];
   const ctx = {
     registry,
     change: (
@@ -41,11 +42,18 @@ function createRuntime(overrides?: RuntimeOverrides) {
     shapeHandlers: registry,
     options: overrides?.options,
     onDraftChange: (draft) => draftChanges.push(draft),
+    onPreviewChange: (preview) => previewChanges.push(preview),
     sharedSettings: overrides?.sharedSettings,
     selectionState: overrides?.selectionState,
     toolStates: overrides?.toolStates,
   });
-  return { runtime, getDocument: () => document, undoManager, draftChanges };
+  return {
+    runtime,
+    getDocument: () => document,
+    undoManager,
+    draftChanges,
+    previewChanges,
+  };
 }
 
 describe("ToolRuntimeImpl", () => {
@@ -81,6 +89,19 @@ describe("ToolRuntimeImpl", () => {
     runtime.clearDraft();
     expect(runtime.getDraft()).toBeNull();
     expect(draftChanges[draftChanges.length - 1]).toEqual([]);
+  });
+
+  test("setPreview stores preview and notifies callback", () => {
+    const { runtime, previewChanges } = createRuntime();
+    runtime.setPreview({
+      dirtyBounds: { min: v(1, 2), max: v(3, 4) },
+    });
+    expect(runtime.getPreview()).toEqual({
+      dirtyBounds: { min: v(1, 2), max: v(3, 4) },
+    });
+    runtime.setPreview(null);
+    expect(runtime.getPreview()).toBeNull();
+    expect(previewChanges[previewChanges.length - 1]).toBeNull();
   });
 
   test("commit applies undoable action to the document", () => {

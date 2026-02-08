@@ -3,6 +3,7 @@ import { createCanvas } from "canvas";
 import {
   ClearCanvas,
   DrawingStore,
+  type ToolDefinition,
   createEraserTool,
   createPenTool,
 } from "@smalldraw/core";
@@ -79,6 +80,10 @@ describe("RasterSession", () => {
 
     const hotCtx = hotCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
     expect(store.getDrafts().length).toBeGreaterThan(0);
+    for (let i = 0; i < 10 && pixelAt(hotCtx, 110, 110)[3] === 0; i += 1) {
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
     expect(pixelAt(hotCtx, 110, 110)[3]).toBeGreaterThan(0);
 
     store.dispatch("pointerUp", {
@@ -98,6 +103,85 @@ describe("RasterSession", () => {
     }
     const tileCtx = tileCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
     expect(pixelAt(tileCtx, 110, 110)[3]).toBeGreaterThan(0);
+  });
+
+  test("pen keeps backdrop visible while drawing on hot layer", async () => {
+    const store = new DrawingStore({
+      tools: [createPenTool()],
+    });
+    const tileCanvases = new Map<string, ReturnType<typeof createCanvas>>();
+    const provider = {
+      getTileCanvas: (coord: { x: number; y: number }) => {
+        const key = `${coord.x},${coord.y}`;
+        const existing = tileCanvases.get(key);
+        if (existing) return existing;
+        const canvas = createCanvas(TILE_SIZE, TILE_SIZE);
+        tileCanvases.set(key, canvas);
+        return canvas;
+      },
+    };
+    const renderer = new TileRenderer(store, provider, {
+      baker: {
+        bakeTile: async (coord, canvas) => {
+          const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.save();
+          ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
+          renderer.renderShapes(ctx, store.getOrderedShapes());
+          ctx.restore();
+        },
+      },
+    });
+    const hotCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    hotLayer.setViewport({
+      width: TILE_SIZE,
+      height: TILE_SIZE,
+      center: new Vec2(TILE_SIZE / 2, TILE_SIZE / 2),
+      scale: 1,
+    });
+    renderer.updateViewport({
+      min: [0, 0],
+      max: [TILE_SIZE, TILE_SIZE],
+    });
+    const layerModes: Array<"tiles" | "hot"> = [];
+    let captureCalls = 0;
+    renderer.captureViewportSnapshot = async () => {
+      captureCalls += 1;
+      const snapshot = createCanvas(TILE_SIZE, TILE_SIZE);
+      const ctx = snapshot.getContext("2d") as unknown as CanvasRenderingContext2D;
+      ctx.fillStyle = "#0000ff";
+      ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+      return snapshot as unknown as CanvasImageSource;
+    };
+    const session = new RasterSession(store, renderer, hotLayer, {
+      layerController: {
+        setMode: (mode) => {
+          layerModes.push(mode);
+        },
+      },
+    });
+    store.setOnRenderNeeded(() => session.render());
+
+    store.activateTool("pen");
+    store.dispatch("pointerDown", {
+      point: new Vec2(120, 120),
+      buttons: 1,
+    });
+    store.dispatch("pointerMove", {
+      point: new Vec2(150, 150),
+      buttons: 1,
+    });
+
+    const hotCtx = hotCanvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    for (let i = 0; i < 10 && pixelAt(hotCtx, 40, 40)[3] === 0; i += 1) {
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    expect(captureCalls).toBe(1);
+    expect(layerModes).toContain("hot");
+    expect(pixelAt(hotCtx, 40, 40)).toEqual([0, 0, 255, 255]);
   });
 
   test("uses snapshot backdrop while erasing and clears after commit", async () => {
@@ -132,7 +216,14 @@ describe("RasterSession", () => {
       ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
       return snapshot as unknown as CanvasImageSource;
     };
-    const session = new RasterSession(store, renderer, hotLayer);
+    const layerModes: Array<"tiles" | "hot"> = [];
+    const session = new RasterSession(store, renderer, hotLayer, {
+      layerController: {
+        setMode: (mode) => {
+          layerModes.push(mode);
+        },
+      },
+    });
 
     renderer.updateViewport({
       min: [0, 0],
@@ -160,6 +251,7 @@ describe("RasterSession", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
     expect(captureCalls).toBe(1);
+    expect(layerModes).toContain("hot");
     expect(pixelAt(hotCtx, 10, 10)).toEqual([255, 0, 0, 255]);
     expect(pixelAt(hotCtx, 110, 110)[3]).toBe(0);
 
@@ -169,6 +261,7 @@ describe("RasterSession", () => {
     });
 
     expect(store.getDrafts()).toHaveLength(0);
+    expect(layerModes[layerModes.length - 1]).toBe("tiles");
     expect(pixelAt(hotCtx, 10, 10)[3]).toBe(0);
   });
 
@@ -223,5 +316,65 @@ describe("RasterSession", () => {
     expect(new Set(bakeCalls)).toEqual(
       new Set(["0,0", "1,0", "0,1", "1,1"]),
     );
+  });
+
+  test("passes tool preview dirty bounds into hot-layer render", () => {
+    const previewTool: ToolDefinition = {
+      id: "preview",
+      label: "Preview",
+      activate(runtime) {
+        runtime.on("pointerDown", () => {
+          runtime.setPreview({
+            dirtyBounds: { min: [10, 10], max: [40, 40] },
+          });
+        });
+        return () => runtime.setPreview(null);
+      },
+    };
+    const store = new DrawingStore({
+      tools: [previewTool],
+    });
+    const renderer = new TileRenderer(store, {
+      getTileCanvas: () => createCanvas(TILE_SIZE, TILE_SIZE),
+    });
+    const hotCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    const session = new RasterSession(store, renderer, hotLayer);
+    hotLayer.setViewport({
+      width: TILE_SIZE,
+      height: TILE_SIZE,
+      center: new Vec2(TILE_SIZE / 2, TILE_SIZE / 2),
+      scale: 1,
+    });
+    renderer.updateViewport({
+      min: [0, 0],
+      max: [TILE_SIZE, TILE_SIZE],
+    });
+
+    const dirtyBoundsCalls: Array<unknown> = [];
+    const originalRenderDrafts = hotLayer.renderDrafts.bind(hotLayer);
+    (hotLayer as unknown as { renderDrafts: typeof hotLayer.renderDrafts }).renderDrafts =
+      (drafts, options) => {
+        dirtyBoundsCalls.push(options?.dirtyBounds ?? null);
+        return originalRenderDrafts(drafts, options);
+      };
+
+    store.setOnRenderNeeded(() => session.render());
+    store.activateTool("preview");
+    store.dispatch("pointerDown", {
+      point: new Vec2(10, 10),
+      buttons: 1,
+    });
+    store.dispatch("pointerMove", {
+      point: new Vec2(40, 40),
+      buttons: 1,
+    });
+
+    const lastDirtyBounds = dirtyBoundsCalls[dirtyBoundsCalls.length - 1] as
+      | { min: [number, number]; max: [number, number] }
+      | null;
+    expect(lastDirtyBounds).not.toBeNull();
+    expect(lastDirtyBounds!.max[0]).toBeGreaterThan(lastDirtyBounds!.min[0]);
+    expect(lastDirtyBounds!.max[1]).toBeGreaterThan(lastDirtyBounds!.min[1]);
   });
 });

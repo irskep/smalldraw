@@ -7,6 +7,7 @@ import type {
   DraftShape,
   SelectionState,
   SharedToolSettings,
+  ToolPreview,
   ToolEventHandler,
   ToolEventName,
   ToolPointerEvent,
@@ -21,6 +22,7 @@ interface ToolRuntimeConfig<TOptions = unknown> {
   shapeHandlers: ShapeHandlerRegistry;
   options?: TOptions;
   onDraftChange?: (drafts: DraftShape[]) => void;
+  onPreviewChange?: (preview: ToolPreview | null) => void;
   sharedSettings?: SharedToolSettings;
   selectionState?: SelectionState;
   toolStates?: Map<string, unknown>;
@@ -39,12 +41,14 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   private readonly shapeHandlers: ShapeHandlerRegistry;
   private readonly options?: TOptions;
   private readonly onDraftChange?: (drafts: DraftShape[]) => void;
+  private readonly onPreviewChange?: (preview: ToolPreview | null) => void;
   private readonly toolStates: Map<string, unknown>;
   private readonly sharedSettings: SharedToolSettings;
   private readonly selectionState: SelectionState;
   private handlers = new Map<ToolEventName, Set<ToolEventHandler>>();
   private eventListeners = new Map<string, Set<(payload: unknown) => void>>();
   private drafts: DraftShape[] = [];
+  private preview: ToolPreview | null = null;
 
   constructor(config: ToolRuntimeConfig<TOptions>) {
     this.toolId = config.toolId;
@@ -53,6 +57,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
     this.commitAction = config.commitAction;
     this.options = config.options;
     this.onDraftChange = config.onDraftChange;
+    this.onPreviewChange = config.onPreviewChange;
     this.toolStates = config.toolStates ?? new Map();
     this.sharedSettings = config.sharedSettings ?? {
       ...DEFAULT_SHARED_SETTINGS,
@@ -134,6 +139,15 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   clearDraft(): void {
     this.drafts = [];
     this.onDraftChange?.([]);
+  }
+
+  setPreview(preview: ToolPreview | null): void {
+    this.preview = preview;
+    this.onPreviewChange?.(preview);
+  }
+
+  getPreview(): ToolPreview | null {
+    return this.preview;
   }
 
   commit(action: UndoableAction): void {
@@ -237,6 +251,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   dispose(): void {
     this.handlers.clear();
     this.clearDraft();
+    this.setPreview(null);
     this.eventListeners.clear();
   }
 }

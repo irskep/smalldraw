@@ -18,6 +18,7 @@ import type {
   ToolDefinition,
   ToolEventName,
   ToolPointerEvent,
+  ToolPreview,
 } from "../tools/types";
 import { UndoManager } from "../undo";
 
@@ -168,6 +169,13 @@ export class DrawingStore {
     return this.selectionFrame;
   }
 
+  getPreview(): ToolPreview | null {
+    if (!this.activeToolId) {
+      return null;
+    }
+    return this.runtimes.get(this.activeToolId)?.getPreview() ?? null;
+  }
+
   private getOrCreateRuntime(toolId: string): ToolRuntimeImpl {
     let runtime = this.runtimes.get(toolId);
     if (runtime) {
@@ -182,6 +190,9 @@ export class DrawingStore {
       selectionState: this.selectionState,
       toolStates: this.toolStates,
       onDraftChange: () => {
+        this.triggerRender();
+      },
+      onPreviewChange: () => {
         this.triggerRender();
       },
     });
@@ -225,6 +236,7 @@ export class DrawingStore {
     // Note: Don't call runtime.dispose() here - we cache runtimes and their
     // DrawingStore event listeners should persist across tool switches.
     runtime?.clearDraft();
+    runtime?.setPreview(null);
     this.handles = [];
     this.handleHover = { handleId: null, behavior: null };
     this.selectionFrame = null;

@@ -1,4 +1,11 @@
-import { BoxOperations, toVec2, toVec2Like } from "@smalldraw/geometry";
+import {
+  BoxOperations,
+  getX,
+  getY,
+  toVec2,
+  toVec2Like,
+  type Box,
+} from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
 import type { PenGeometry, PenShape } from "../model/shapes/penShape";
@@ -11,6 +18,7 @@ const PRIMARY_BUTTON_MASK = 1;
 
 interface ActivePenState {
   drawing: StrokeDraftState | null;
+  lastPreviewBounds: Box | null;
   disposers: DisposerBucket;
 }
 
@@ -40,7 +48,11 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
   const ensureState = (runtime: ToolRuntime): ActivePenState => {
     let state = runtimeState.get(runtime);
     if (!state) {
-      state = { drawing: null, disposers: createDisposerBucket() };
+      state = {
+        drawing: null,
+        lastPreviewBounds: null,
+        disposers: createDisposerBucket(),
+      };
       runtimeState.set(runtime, state);
     }
     return state;
@@ -83,6 +95,7 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
       stroke: resolveStroke(runtime),
       zIndex,
     };
+    state.lastPreviewBounds = null;
     updateDraft(runtime);
   };
 
@@ -109,8 +122,26 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
         toolId: runtime.toolId,
         temporary: true,
       });
+      const nextBounds = getStrokePreviewBounds(
+        state.drawing.geometry.points,
+        state.drawing.stroke.size,
+      );
+      if (!nextBounds) {
+        runtime.setPreview(null);
+        state.lastPreviewBounds = null;
+        return;
+      }
+      const dirtyBounds = state.lastPreviewBounds
+        ? BoxOperations.fromBoxPair(state.lastPreviewBounds, nextBounds)
+        : nextBounds;
+      runtime.setPreview({
+        dirtyBounds,
+      });
+      state.lastPreviewBounds = nextBounds;
     } else {
       runtime.clearDraft();
+      runtime.setPreview(null);
+      state.lastPreviewBounds = null;
     }
   };
 
@@ -118,11 +149,14 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
     const state = runtimeState.get(runtime);
     if (!state?.drawing) {
       runtime.clearDraft();
+      runtime.setPreview(null);
       return;
     }
     if (state.drawing.geometry.points.length < 2) {
       runtime.clearDraft();
+      runtime.setPreview(null);
       state.drawing = null;
+      state.lastPreviewBounds = null;
       return;
     }
     const shape = createStrokeShape(state.drawing);
@@ -131,15 +165,19 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
       runtime.commit(new AddShape(shape));
     }
     runtime.clearDraft();
+    runtime.setPreview(null);
     state.drawing = null;
+    state.lastPreviewBounds = null;
   };
 
   const cancelStroke = (runtime: ToolRuntime) => {
     const state = runtimeState.get(runtime);
     if (state) {
       state.drawing = null;
+      state.lastPreviewBounds = null;
     }
     runtime.clearDraft();
+    runtime.setPreview(null);
   };
 
   const createPointerDownHandler = (runtime: ToolRuntime): ToolEventHandler => {
@@ -177,6 +215,7 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
       const state = ensureState(runtime);
       state.disposers.dispose();
       state.drawing = null;
+      state.lastPreviewBounds = null;
       state.disposers.add(
         attachPointerHandlers(runtime, {
           onPointerDown: createPointerDownHandler(runtime),
@@ -188,10 +227,27 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
       return () => {
         state.disposers.dispose();
         runtime.clearDraft();
+        runtime.setPreview(null);
       };
     },
   };
 }
+
+const getStrokePreviewBounds = (
+  points: Array<[number, number]>,
+  strokeSize: number,
+): Box | null => {
+  const pointBounds = BoxOperations.fromPointArray(points);
+  if (!pointBounds) {
+    return null;
+  }
+  const padding = Math.max(2, strokeSize * 10);
+  return {
+    min: [getX(pointBounds.min) - padding, getY(pointBounds.min) - padding],
+    max: [getX(pointBounds.max) + padding, getY(pointBounds.max) + padding],
+  };
+};
+
 const createStrokeShape = (draft: StrokeDraftState): PenShape | undefined => {
   const bounds = BoxOperations.fromPointArray(draft.geometry.points);
   if (!bounds) return undefined;
