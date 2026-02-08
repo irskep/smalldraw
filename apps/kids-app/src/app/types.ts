@@ -16,9 +16,7 @@ export interface KidsDrawAppOptions {
   height?: number;
   backgroundColor?: string;
   core?: SmalldrawCore;
-  confirmDestructiveAction?: (
-    dialog: ConfirmDialogRequest,
-  ) => Promise<boolean>;
+  confirmDestructiveAction?: (dialog: ConfirmDialogRequest) => Promise<boolean>;
 }
 
 export interface KidsDrawApp {

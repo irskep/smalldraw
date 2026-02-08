@@ -77,7 +77,9 @@ export function createKidsDrawStage(options: {
   }
 
   const overlay = el("div.kids-draw-layer.kids-draw-overlay") as HTMLDivElement;
-  const cursorIndicator = el("div.kids-draw-cursor-indicator") as HTMLDivElement;
+  const cursorIndicator = el(
+    "div.kids-draw-cursor-indicator",
+  ) as HTMLDivElement;
   cursorIndicator.style.visibility = "hidden";
 
   const setSceneDimensions = (nextWidth: number, nextHeight: number): void => {

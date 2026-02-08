@@ -5,7 +5,12 @@ const TAG_NAME = "kids-square-icon-button";
 
 export class SquareIconButtonElement extends HTMLElement {
   static readonly tagName = TAG_NAME;
-  static observedAttributes = ["disabled", "title", "aria-label", "aria-pressed"];
+  static observedAttributes = [
+    "disabled",
+    "title",
+    "aria-label",
+    "aria-pressed",
+  ];
 
   #button: HTMLButtonElement;
   #icon: HTMLSpanElement;

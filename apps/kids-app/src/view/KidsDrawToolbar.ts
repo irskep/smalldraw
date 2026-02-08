@@ -73,9 +73,7 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
   const toolSelectorElement = el(
     "div.kids-draw-tool-selector",
   ) as HTMLDivElement;
-  const actionPanelElement = el(
-    "div.kids-draw-action-panel",
-  ) as HTMLDivElement;
+  const actionPanelElement = el("div.kids-draw-action-panel") as HTMLDivElement;
 
   const penButton = createSquareButton({
     className: "kids-draw-tool-button",
@@ -174,7 +172,9 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
   const minPreviewSize = 2;
   const maxPreviewSize = 18;
   const minLog = Math.log(STROKE_WIDTH_OPTIONS[0]);
-  const maxLog = Math.log(STROKE_WIDTH_OPTIONS[STROKE_WIDTH_OPTIONS.length - 1]);
+  const maxLog = Math.log(
+    STROKE_WIDTH_OPTIONS[STROKE_WIDTH_OPTIONS.length - 1],
+  );
   const toPreviewSize = (strokeWidth: number): number => {
     const normalized =
       (Math.log(strokeWidth) - minLog) / Math.max(1e-6, maxLog - minLog);
@@ -237,7 +237,10 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     const penSelected = state.activeToolId === "pen";
     const eraserSelected = state.activeToolId === "eraser";
     penButton.setAttribute("aria-pressed", penSelected ? "true" : "false");
-    eraserButton.setAttribute("aria-pressed", eraserSelected ? "true" : "false");
+    eraserButton.setAttribute(
+      "aria-pressed",
+      eraserSelected ? "true" : "false",
+    );
     setToolButtonSelected(penButton, penSelected);
     setToolButtonSelected(eraserButton, eraserSelected);
     undoButton.disabled = !state.canUndo;
