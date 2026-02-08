@@ -7,18 +7,4 @@ This is a bun project. NEVER invoke node or npm.
 
 Backward compatibility is NOT a concern. If you add any code for "backward compatibility," REMOVE IT IMMEDIATELY.
 
-DO NOT edit the roadmap. You are not authorized to move the roadmap forward. Assume it has not moved forward until explicitly told. Do not propose we advance the roadmap.
-
-# Vector patterns
-
-DO NOT do pairwise operations like this:
-
-  return new Vec2(
-    (event.clientX - rect.left) / scale,
-    (event.clientY - rect.top) / scale,
-  );
-
-Instead, use gl-matrix's methods:
-
-  return new Vec2(event.clientX, event.clientY).sub([rect.left, rect.top]).div(scale);
-
+Read @design_principles.md
