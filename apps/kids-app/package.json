@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && bun build src/main.ts --outdir dist --target=browser && cp src/index.html dist/index.html && cp src/kidsDraw.css dist/kidsDraw.css",
+    "build": "bun run ./scripts/build.ts",
     "dev": "bun ./src/index.html --watch",
     "serve": "bunx serve dist",
     "test": "bun test --preload ./src/__tests__/setup.ts --timeout 4000",

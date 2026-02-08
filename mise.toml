@@ -31,12 +31,7 @@ run = "bun run dev"
 
 [tasks."prod:build"]
 env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db" }
-run = """
-bun run --cwd apps/app build
-rm -rf apps/server/public
-mkdir -p apps/server/public
-cp -R apps/app/dist/. apps/server/public/
-"""
+run = "bun run ./scripts/prod-build.ts"
 
 [tasks."prod:serve"]
 dir = "apps/server"
