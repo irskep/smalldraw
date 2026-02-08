@@ -1,14 +1,53 @@
 export const MIN_WIDTH = 320;
 export const MIN_HEIGHT = 240;
 export const AUTO_HEIGHT_RESERVED = 80;
-export const DESKTOP_INSET_X = 24;
-export const MOBILE_INSET_Y = 16;
-export const MOBILE_PORTRAIT_BREAKPOINT = 700;
+export const VIEWPORT_PADDING_TOP = 100;
+export const VIEWPORT_PADDING_RIGHT = 200;
+export const VIEWPORT_PADDING_BOTTOM = 100;
+export const VIEWPORT_PADDING_LEFT = 200;
+
+type ViewportPadding = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
 
 const safeAreaInset = (
   side: "top" | "right" | "bottom" | "left",
   fallbackPx: number,
 ): string => `max(${fallbackPx}px, env(safe-area-inset-${side}))`;
+
+const parseCssPixels = (value: string, fallback: number): number => {
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return fallback;
+  }
+  return parsed;
+};
+
+const applyViewportPaddingStyles = (
+  viewportHost: HTMLDivElement,
+  padding: ViewportPadding,
+): void => {
+  viewportHost.style.paddingTop = safeAreaInset("top", padding.top);
+  viewportHost.style.paddingRight = safeAreaInset("right", padding.right);
+  viewportHost.style.paddingBottom = safeAreaInset("bottom", padding.bottom);
+  viewportHost.style.paddingLeft = safeAreaInset("left", padding.left);
+};
+
+const getAppliedViewportPadding = (
+  viewportHost: HTMLDivElement,
+  fallbackPadding: ViewportPadding,
+): ViewportPadding => {
+  const styles = window.getComputedStyle(viewportHost);
+  return {
+    top: parseCssPixels(styles.paddingTop, fallbackPadding.top),
+    right: parseCssPixels(styles.paddingRight, fallbackPadding.right),
+    bottom: parseCssPixels(styles.paddingBottom, fallbackPadding.bottom),
+    left: parseCssPixels(styles.paddingLeft, fallbackPadding.left),
+  };
+};
 
 export function normalizePixelRatio(value: number | undefined): number {
   if (!value || !Number.isFinite(value) || value <= 0) {
@@ -24,11 +63,17 @@ export function resolvePageSize(fallback: { width: number; height: number }): {
   if (typeof window === "undefined") {
     return fallback;
   }
+
+  const horizontalPadding = VIEWPORT_PADDING_LEFT + VIEWPORT_PADDING_RIGHT;
+  const verticalPadding = VIEWPORT_PADDING_TOP + VIEWPORT_PADDING_BOTTOM;
   return {
-    width: Math.max(MIN_WIDTH, Math.round(window.innerWidth)),
+    width: Math.max(
+      MIN_WIDTH,
+      Math.round(window.innerWidth - horizontalPadding),
+    ),
     height: Math.max(
       MIN_HEIGHT,
-      Math.round(window.innerHeight - AUTO_HEIGHT_RESERVED),
+      Math.round(window.innerHeight - AUTO_HEIGHT_RESERVED - verticalPadding),
     ),
   };
 }
@@ -63,29 +108,24 @@ export function applyResponsiveLayout(params: {
     return { displayScale, displayWidth, displayHeight };
   }
 
-  const viewportWidth =
-    typeof window !== "undefined" && typeof window.innerWidth === "number"
-      ? window.innerWidth
-      : width;
-  const viewportHeight =
-    typeof window !== "undefined" && typeof window.innerHeight === "number"
-      ? window.innerHeight
-      : height;
-  const portrait = viewportHeight > viewportWidth;
-  const isNarrowPortrait =
-    portrait && viewportWidth <= MOBILE_PORTRAIT_BREAKPOINT;
-  const insets = {
-    x: isNarrowPortrait ? 0 : DESKTOP_INSET_X,
-    y: MOBILE_INSET_Y,
+  const basePadding: ViewportPadding = {
+    top: VIEWPORT_PADDING_TOP,
+    right: VIEWPORT_PADDING_RIGHT,
+    bottom: VIEWPORT_PADDING_BOTTOM,
+    left: VIEWPORT_PADDING_LEFT,
   };
 
-  viewportHost.style.paddingTop = safeAreaInset("top", insets.y);
-  viewportHost.style.paddingRight = safeAreaInset("right", insets.x);
-  viewportHost.style.paddingBottom = safeAreaInset("bottom", insets.y);
-  viewportHost.style.paddingLeft = safeAreaInset("left", insets.x);
+  applyViewportPaddingStyles(viewportHost, basePadding);
+  const appliedPadding = getAppliedViewportPadding(viewportHost, basePadding);
 
-  const availableWidth = Math.max(1, hostRect.width - insets.x * 2);
-  const availableHeight = Math.max(1, hostRect.height - insets.y * 2);
+  const availableWidth = Math.max(
+    1,
+    viewportHost.clientWidth - appliedPadding.left - appliedPadding.right,
+  );
+  const availableHeight = Math.max(
+    1,
+    viewportHost.clientHeight - appliedPadding.top - appliedPadding.bottom,
+  );
   const nextScale = Math.min(
     1,
     availableWidth / width,

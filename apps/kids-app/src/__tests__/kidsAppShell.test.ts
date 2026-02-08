@@ -12,6 +12,7 @@ import {
 } from "@smalldraw/core";
 import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { createKidsDrawApp } from "../createKidsDrawApp";
+import { resolvePageSize } from "../layout/responsiveLayout";
 
 function dispatchPointer(
   overlay: HTMLElement,
@@ -345,12 +346,13 @@ describe("kids-app shell", () => {
         writable: true,
         value: 800,
       });
+      const expectedSize = resolvePageSize({ width: 0, height: 0 });
 
       newDrawingButton!.click();
       const resized = await waitUntil(() => {
         return (
-          hotCanvas!.style.width === "500px" &&
-          hotCanvas!.style.height === "720px"
+          hotCanvas!.style.width === `${expectedSize.width}px` &&
+          hotCanvas!.style.height === `${expectedSize.height}px`
         );
       }, 100);
       expect(resized).toBeTrue();
