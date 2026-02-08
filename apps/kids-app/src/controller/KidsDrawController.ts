@@ -10,6 +10,10 @@ import type { Vec2 } from "@smalldraw/geometry";
 import {
   applyResponsiveLayout,
   normalizePixelRatio,
+  VIEWPORT_PADDING_BOTTOM,
+  VIEWPORT_PADDING_LEFT,
+  VIEWPORT_PADDING_RIGHT,
+  VIEWPORT_PADDING_TOP,
 } from "../layout/responsiveLayout";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
@@ -227,6 +231,21 @@ export function createKidsDrawController(options: {
     }
   };
 
+  const getViewportPadding = (): {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  } => {
+    const toolbarHeight = Math.ceil(toolbar.element.getBoundingClientRect().height);
+    return {
+      top: Math.max(VIEWPORT_PADDING_TOP, toolbarHeight + 4),
+      right: VIEWPORT_PADDING_RIGHT,
+      bottom: VIEWPORT_PADDING_BOTTOM,
+      left: VIEWPORT_PADDING_LEFT,
+    };
+  };
+
   const applyCanvasSize = (nextWidth: number, nextHeight: number): void => {
     const size = getSize();
     if (size.width === nextWidth && size.height === nextHeight) {
@@ -245,6 +264,7 @@ export function createKidsDrawController(options: {
       displayScale,
       displayWidth,
       displayHeight,
+      padding: getViewportPadding(),
     });
     displayScale = updated.displayScale;
     displayWidth = updated.displayWidth;
@@ -264,6 +284,7 @@ export function createKidsDrawController(options: {
       displayScale,
       displayWidth,
       displayHeight,
+      padding: getViewportPadding(),
     });
     displayScale = updated.displayScale;
     displayWidth = updated.displayWidth;
