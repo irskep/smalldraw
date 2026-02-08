@@ -9,7 +9,11 @@ import { BroadcastChannelNetworkAdapter } from "@automerge/automerge-repo-networ
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 
 import { createAutomergeStoreAdapter } from "./automerge/storeAdapter";
-import type { DrawingDocumentData } from "./model/document";
+import {
+  DEFAULT_DOCUMENT_SIZE,
+  type DrawingDocumentData,
+  type DrawingDocumentSize,
+} from "./model/document";
 import { getDefaultShapeHandlerRegistry } from "./model/shapeHandlers";
 import type { DrawingStoreAdapter } from "./store/drawingStore";
 
@@ -18,12 +22,13 @@ export interface SmalldrawCoreOptions {
     storageKey: string;
     mode: "reuse" | "always-new";
   };
+  documentSize?: DrawingDocumentSize;
   debug?: boolean;
 }
 
 export interface SmalldrawCore {
   readonly storeAdapter: DrawingStoreAdapter;
-  reset(): Promise<DrawingStoreAdapter>;
+  reset(options?: { documentSize?: DrawingDocumentSize }): Promise<DrawingStoreAdapter>;
   destroy(): void;
 }
 
@@ -44,13 +49,13 @@ async function getOrCreateHandle(
   repo: Repo,
   storageKey: string,
   mode: "reuse" | "always-new",
+  documentSize: DrawingDocumentSize,
   debug: boolean,
 ): Promise<DocHandle<DrawingDocumentData>> {
   if (mode === "always-new") {
-    const handle = repo.create<DrawingDocumentData>({
-      shapes: {},
-      temporalOrderCounter: 0,
-    });
+    const handle = repo.create<DrawingDocumentData>(
+      createEmptyDrawingDocumentData(documentSize),
+    );
     if (debug) {
       console.debug("[createSmalldraw] created new doc (always-new):", handle.url);
     }
@@ -66,10 +71,9 @@ async function getOrCreateHandle(
     return await repo.find<DrawingDocumentData>(storedUrl as AutomergeUrl);
   }
 
-  const handle = repo.create<DrawingDocumentData>({
-    shapes: {},
-    temporalOrderCounter: 0,
-  });
+  const handle = repo.create<DrawingDocumentData>(
+    createEmptyDrawingDocumentData(documentSize),
+  );
   localStorage.setItem(storageKey, handle.url);
   if (debug) {
     console.debug("[createSmalldraw] created new doc:", handle.url);
@@ -80,7 +84,8 @@ async function getOrCreateHandle(
 export async function createSmalldraw(
   options: SmalldrawCoreOptions = {},
 ): Promise<SmalldrawCore> {
-  const { persistence, debug = false } = options;
+  const { persistence, documentSize = DEFAULT_DOCUMENT_SIZE, debug = false } =
+    options;
 
   await initAutomerge();
 
@@ -90,7 +95,13 @@ export async function createSmalldraw(
   const storageKey = persistence?.storageKey ?? "smalldraw-doc-url";
   const mode = persistence?.mode ?? "reuse";
 
-  let handle = await getOrCreateHandle(repo, storageKey, mode, debug);
+  let handle = await getOrCreateHandle(
+    repo,
+    storageKey,
+    mode,
+    documentSize,
+    debug,
+  );
   await handle.whenReady();
 
   if (debug) {
@@ -108,9 +119,16 @@ export async function createSmalldraw(
     get storeAdapter() {
       return storeAdapter;
     },
-    async reset() {
+    async reset(resetOptions) {
+      const nextDocumentSize = resetOptions?.documentSize ?? documentSize;
       localStorage.removeItem(storageKey);
-      handle = await getOrCreateHandle(repo, storageKey, "always-new", debug);
+      handle = await getOrCreateHandle(
+        repo,
+        storageKey,
+        "always-new",
+        nextDocumentSize,
+        debug,
+      );
       await handle.whenReady();
       storeAdapter = createAutomergeStoreAdapter({
         handle,
@@ -122,5 +140,18 @@ export async function createSmalldraw(
     destroy() {
       // Reserved for future teardown (e.g. closing adapters).
     },
+  };
+}
+
+function createEmptyDrawingDocumentData(
+  size: DrawingDocumentSize,
+): DrawingDocumentData {
+  return {
+    size: {
+      width: Math.max(1, Math.round(size.width)),
+      height: Math.max(1, Math.round(size.height)),
+    },
+    shapes: {},
+    temporalOrderCounter: 0,
   };
 }

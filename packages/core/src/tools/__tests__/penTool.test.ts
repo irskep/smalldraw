@@ -12,6 +12,7 @@ import {
   expectPointsClose,
   getWorldPointsFromShape,
 } from "@smalldraw/testing";
+import { BoxOperations } from "@smalldraw/geometry";
 
 describe("pen tool integration with runtime", () => {
   function setup(params?: {
@@ -125,5 +126,26 @@ describe("pen tool integration with runtime", () => {
     runtime.dispatch("pointerMove", { point: new Vec2(2, 2), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(2, 2), buttons: 0 });
     expect(Object.values(getDocument().shapes)).toHaveLength(0);
+  });
+
+  test("keeps preview dirty bounds local to the recent stroke segment", () => {
+    const { runtime } = setup({
+      sharedSettings: {
+        strokeColor: "#000000",
+        strokeWidth: 4,
+        fillColor: "#ffffff",
+      },
+    });
+
+    runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    for (let x = 10; x <= 300; x += 10) {
+      runtime.dispatch("pointerMove", { point: new Vec2(x, 0), buttons: 1 });
+    }
+
+    const preview = runtime.getPreview();
+    expect(preview).not.toBeNull();
+    expect(preview?.dirtyBounds).toBeDefined();
+    const dirtyOps = new BoxOperations(preview!.dirtyBounds!);
+    expect(dirtyOps.width).toBeLessThan(220);
   });
 });

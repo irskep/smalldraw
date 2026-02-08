@@ -51,9 +51,9 @@ async function waitUntil(
   return predicate();
 }
 
-function createMockCore(): SmalldrawCore {
+function createMockCore(initialSize = { width: 960, height: 600 }): SmalldrawCore {
   const registry = getDefaultShapeHandlerRegistry();
-  let doc = createDocument(undefined, registry);
+  let doc = createDocument(undefined, registry, initialSize);
   const listeners = new Set<(doc: DrawingDocument) => void>();
 
   const change: ActionContext["change"] = (nextDoc, update) => {
@@ -84,8 +84,9 @@ function createMockCore(): SmalldrawCore {
 
   return {
     storeAdapter,
-    async reset() {
-      doc = createDocument(undefined, registry);
+    async reset(options) {
+      const nextSize = options?.documentSize ?? doc.size;
+      doc = createDocument(undefined, registry, nextSize);
       for (const listener of listeners) {
         listener(doc);
       }
@@ -104,7 +105,7 @@ describe("kids-app shell", () => {
       container,
       width: 640,
       height: 480,
-      core: createMockCore(),
+      core: createMockCore({ width: 640, height: 480 }),
     });
 
     const root = container.querySelector(".kids-draw-app") as HTMLElement | null;
@@ -140,7 +141,7 @@ describe("kids-app shell", () => {
       container,
       width: 640,
       height: 480,
-      core: createMockCore(),
+      core: createMockCore({ width: 640, height: 480 }),
     });
     const overlay = app.overlay as HTMLElement;
     overlay.getBoundingClientRect = () =>
@@ -239,6 +240,94 @@ describe("kids-app shell", () => {
       );
     }, 100);
     expect(resetSettled).toBeTrue();
+
+    app.destroy();
+  });
+
+  test("new drawing re-resolves logical size from page size when size is implicit", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const originalInnerWidth = window.innerWidth;
+    const originalInnerHeight = window.innerHeight;
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      writable: true,
+      value: 900,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      writable: true,
+      value: 700,
+    });
+
+    let app: Awaited<ReturnType<typeof createKidsDrawApp>> | null = null;
+    try {
+      app = await createKidsDrawApp({
+        container,
+        core: createMockCore({ width: 900, height: 620 }),
+      });
+
+      const hotCanvas = container.querySelector(
+        "canvas.kids-draw-hot",
+      ) as HTMLCanvasElement | null;
+      const newDrawingButton = container.querySelector(
+        'button[data-action="new-drawing"]',
+      ) as HTMLButtonElement | null;
+      expect(hotCanvas).not.toBeNull();
+      expect(newDrawingButton).not.toBeNull();
+      expect(hotCanvas!.style.width).toBe("900px");
+      expect(hotCanvas!.style.height).toBe("620px");
+
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        writable: true,
+        value: 500,
+      });
+      Object.defineProperty(window, "innerHeight", {
+        configurable: true,
+        writable: true,
+        value: 800,
+      });
+
+      newDrawingButton!.click();
+      const resized = await waitUntil(() => {
+        return (
+          hotCanvas!.style.width === "500px" &&
+          hotCanvas!.style.height === "720px"
+        );
+      }, 100);
+      expect(resized).toBeTrue();
+    } finally {
+      app?.destroy();
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        writable: true,
+        value: originalInnerWidth,
+      });
+      Object.defineProperty(window, "innerHeight", {
+        configurable: true,
+        writable: true,
+        value: originalInnerHeight,
+      });
+    }
+  });
+
+  test("uses persisted document size on load", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      core: createMockCore({ width: 777, height: 333 }),
+    });
+
+    const hotCanvas = container.querySelector(
+      "canvas.kids-draw-hot",
+    ) as HTMLCanvasElement | null;
+    expect(hotCanvas).not.toBeNull();
+    expect(hotCanvas!.style.width).toBe("777px");
+    expect(hotCanvas!.style.height).toBe("333px");
 
     app.destroy();
   });

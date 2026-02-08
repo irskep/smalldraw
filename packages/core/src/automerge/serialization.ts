@@ -1,10 +1,16 @@
-import type { DrawingDocument, DrawingDocumentData } from "../model/document";
+import type {
+  DrawingDocument,
+  DrawingDocumentData,
+  DrawingDocumentSize,
+} from "../model/document";
+import { DEFAULT_DOCUMENT_SIZE } from "../model/document";
 import { change, init } from "@automerge/automerge/slim";
 import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
 
 export interface DrawingDocumentJSON {
+  size: DrawingDocumentSize;
   shapes: Record<string, AnyShape>;
   temporalOrderCounter?: number;
 }
@@ -22,7 +28,11 @@ export function toJSON(
     const serialized = handler.serialization.toJSON(shape);
     shapes[serialized.id] = serialized;
   }
-  return { shapes, temporalOrderCounter: doc.temporalOrderCounter };
+  return {
+    size: doc.size,
+    shapes,
+    temporalOrderCounter: doc.temporalOrderCounter,
+  };
 }
 
 export function fromJSON(
@@ -31,6 +41,13 @@ export function fromJSON(
 ): DrawingDocument {
   let doc = init<DrawingDocumentData>();
   doc = change(doc, (draft) => {
+    draft.size = {
+      width: Math.max(1, Math.round(json.size?.width ?? DEFAULT_DOCUMENT_SIZE.width)),
+      height: Math.max(
+        1,
+        Math.round(json.size?.height ?? DEFAULT_DOCUMENT_SIZE.height),
+      ),
+    };
     draft.shapes = {};
     draft.temporalOrderCounter = json.temporalOrderCounter ?? 0;
     for (const shape of Object.values(json.shapes)) {

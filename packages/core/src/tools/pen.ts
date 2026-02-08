@@ -18,7 +18,7 @@ const PRIMARY_BUTTON_MASK = 1;
 
 interface ActivePenState {
   drawing: StrokeDraftState | null;
-  lastPreviewBounds: Box | null;
+  lastPreviewSegmentBounds: Box | null;
   disposers: DisposerBucket;
 }
 
@@ -50,7 +50,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     if (!state) {
       state = {
         drawing: null,
-        lastPreviewBounds: null,
+        lastPreviewSegmentBounds: null,
         disposers: createDisposerBucket(),
       };
       runtimeState.set(runtime, state);
@@ -95,7 +95,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       stroke: resolveStroke(runtime),
       zIndex,
     };
-    state.lastPreviewBounds = null;
+    state.lastPreviewSegmentBounds = null;
     updateDraft(runtime);
   };
 
@@ -128,20 +128,20 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       );
       if (!nextBounds) {
         runtime.setPreview(null);
-        state.lastPreviewBounds = null;
+        state.lastPreviewSegmentBounds = null;
         return;
       }
-      const dirtyBounds = state.lastPreviewBounds
-        ? BoxOperations.fromBoxPair(state.lastPreviewBounds, nextBounds)
+      const dirtyBounds = state.lastPreviewSegmentBounds
+        ? BoxOperations.fromBoxPair(state.lastPreviewSegmentBounds, nextBounds)
         : nextBounds;
       runtime.setPreview({
         dirtyBounds,
       });
-      state.lastPreviewBounds = nextBounds;
+      state.lastPreviewSegmentBounds = nextBounds;
     } else {
       runtime.clearDraft();
       runtime.setPreview(null);
-      state.lastPreviewBounds = null;
+      state.lastPreviewSegmentBounds = null;
     }
   };
 
@@ -156,7 +156,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       runtime.clearDraft();
       runtime.setPreview(null);
       state.drawing = null;
-      state.lastPreviewBounds = null;
+      state.lastPreviewSegmentBounds = null;
       return;
     }
     const shape = createStrokeShape(state.drawing);
@@ -167,14 +167,14 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
     runtime.clearDraft();
     runtime.setPreview(null);
     state.drawing = null;
-    state.lastPreviewBounds = null;
+    state.lastPreviewSegmentBounds = null;
   };
 
   const cancelStroke = (runtime: ToolRuntime) => {
     const state = runtimeState.get(runtime);
     if (state) {
       state.drawing = null;
-      state.lastPreviewBounds = null;
+      state.lastPreviewSegmentBounds = null;
     }
     runtime.clearDraft();
     runtime.setPreview(null);
@@ -215,7 +215,7 @@ export function createPenTool(options?: PenToolOptions): ToolDefinition {
       const state = ensureState(runtime);
       state.disposers.dispose();
       state.drawing = null;
-      state.lastPreviewBounds = null;
+      state.lastPreviewSegmentBounds = null;
       state.disposers.add(
         attachPointerHandlers(runtime, {
           onPointerDown: createPointerDownHandler(runtime),
@@ -237,7 +237,7 @@ const getStrokePreviewBounds = (
   points: Array<[number, number]>,
   strokeSize: number,
 ): Box | null => {
-  const pointBounds = BoxOperations.fromPointArray(points);
+  const pointBounds = BoxOperations.fromPointArray(points.slice(-6));
   if (!pointBounds) {
     return null;
   }

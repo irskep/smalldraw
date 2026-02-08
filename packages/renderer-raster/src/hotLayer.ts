@@ -4,6 +4,7 @@ import { BoxOperations, getX, getY, type Box } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import type { Viewport } from "./viewport";
+import { perfAddTimingMs, perfNowMs } from "./perfDebug";
 
 export interface HotLayerOptions {
   geometryHandlerRegistry?: ShapeHandlerRegistry;
@@ -43,6 +44,7 @@ export class HotLayer {
     drafts: DraftShape[] | AnyShape[],
     options: HotLayerRenderOptions = {},
   ): void {
+    const stepStartMs = perfNowMs();
     const shapes = normalizeDraftShapes(drafts);
     const dirtyBounds =
       options.dirtyBounds && this.viewport
@@ -53,7 +55,9 @@ export class HotLayer {
     } else {
       this.clear();
     }
+    perfAddTimingMs("hotLayer.clear.ms", perfNowMs() - stepStartMs);
     if (this.backdropImage) {
+      const backdropStartMs = perfNowMs();
       this.ctx.save();
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
       if (dirtyBounds) {
@@ -88,11 +92,13 @@ export class HotLayer {
         );
       }
       this.ctx.restore();
+      perfAddTimingMs("hotLayer.backdropBlit.ms", perfNowMs() - backdropStartMs);
     }
     if (!shapes.length) {
       return;
     }
     if (!this.backdropImage && this.backgroundColor) {
+      const backgroundFillStartMs = perfNowMs();
       this.ctx.save();
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
       if (dirtyBounds) {
@@ -104,7 +110,12 @@ export class HotLayer {
       this.ctx.fillStyle = this.backgroundColor;
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.ctx.restore();
+      perfAddTimingMs(
+        "hotLayer.backgroundFill.ms",
+        perfNowMs() - backgroundFillStartMs,
+      );
     }
+    const draftPaintStartMs = perfNowMs();
     this.ctx.save();
     if (dirtyBounds) {
       const dirty = new BoxOperations(dirtyBounds);
@@ -121,6 +132,7 @@ export class HotLayer {
       geometryHandlerRegistry: this.geometryHandlerRegistry,
     });
     this.ctx.restore();
+    perfAddTimingMs("hotLayer.draftPaint.ms", perfNowMs() - draftPaintStartMs);
   }
 
   clear(): void {

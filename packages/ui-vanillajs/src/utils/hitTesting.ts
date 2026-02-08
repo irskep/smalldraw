@@ -25,7 +25,11 @@ export function buildLiveDocument(store: DrawingStore): DrawingDocument {
     const { temporary: _temp, toolId: _tool, ...shape } = draft;
     shapes[draft.id] = shape;
   }
-  return { shapes, temporalOrderCounter: base.temporalOrderCounter };
+  return {
+    size: base.size,
+    shapes,
+    temporalOrderCounter: base.temporalOrderCounter,
+  };
 }
 
 /**

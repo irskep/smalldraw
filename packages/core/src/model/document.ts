@@ -4,7 +4,18 @@ import type { AnyShape } from "./shape";
 import { canonicalizeShape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 
+export interface DrawingDocumentSize {
+  width: number;
+  height: number;
+}
+
+export const DEFAULT_DOCUMENT_SIZE: DrawingDocumentSize = {
+  width: 960,
+  height: 600,
+};
+
 export interface DrawingDocumentData {
+  size: DrawingDocumentSize;
   shapes: Record<string, AnyShape>;
   temporalOrderCounter: number;
 }
@@ -14,9 +25,14 @@ export type DrawingDocument = Doc<DrawingDocumentData>;
 export function createDocument(
   initialShapes: AnyShape[] | undefined,
   registry: ShapeHandlerRegistry,
+  size: DrawingDocumentSize = DEFAULT_DOCUMENT_SIZE,
 ): DrawingDocument {
   let doc = init<DrawingDocumentData>();
   doc = change(doc, (draft) => {
+    draft.size = {
+      width: Math.max(1, Math.round(size.width)),
+      height: Math.max(1, Math.round(size.height)),
+    };
     draft.shapes = {};
     let maxTemporalOrder = -1;
     if (initialShapes) {

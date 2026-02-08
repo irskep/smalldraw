@@ -4,10 +4,11 @@ import {
   createSmalldraw,
   getTopZIndex,
   type SmalldrawCore,
+  type DrawingDocumentSize,
   createEraserTool,
   createPenTool,
 } from "@smalldraw/core";
-import { Vec2 } from "@smalldraw/geometry";
+import { BoxOperations, Vec2 } from "@smalldraw/geometry";
 import {
   HotLayer,
   RasterSession,
@@ -36,11 +37,15 @@ export interface KidsDrawApp {
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 600;
+const MIN_WIDTH = 320;
+const MIN_HEIGHT = 240;
+const AUTO_HEIGHT_RESERVED = 80;
 const KIDS_DRAW_STROKE_WIDTH_MULTIPLIER = 3;
 const DESKTOP_INSET_X = 24;
 const MOBILE_INSET_Y = 16;
 const MOBILE_PORTRAIT_BREAKPOINT = 700;
 const RESIZE_BAKE_DEBOUNCE_MS = 120;
+const DEBUG_SHOW_DIRTY_RECT_LAYER = false;
 const nowMs = (): number =>
   typeof performance !== "undefined" ? performance.now() : Date.now();
 
@@ -74,6 +79,10 @@ interface KidsDrawPerfStrokeSummary {
   avgRenderPassMs: number;
   sessionRenderMs: number;
   hotLayerMs: number;
+  hotClearMs: number;
+  hotBackdropBlitMs: number;
+  hotBackgroundFillMs: number;
+  hotDraftPaintMs: number;
   getRenderStateMs: number;
   captureTouchedTilesMs: number;
   bakeMs: number;
@@ -122,6 +131,28 @@ export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
 ): Promise<KidsDrawApp> {
   const perfGlobal = getKidsDrawPerfGlobal();
+  const hasExplicitSize = options.width !== undefined || options.height !== undefined;
+  const resolvePageSize = (): { width: number; height: number } => {
+    if (typeof window === "undefined") {
+      return {
+        width: options.width ?? DEFAULT_WIDTH,
+        height: options.height ?? DEFAULT_HEIGHT,
+      };
+    }
+    return {
+      width: Math.max(MIN_WIDTH, Math.round(window.innerWidth)),
+      height: Math.max(
+        MIN_HEIGHT,
+        Math.round(window.innerHeight - AUTO_HEIGHT_RESERVED),
+      ),
+    };
+  };
+  const desiredInitialSize: DrawingDocumentSize = hasExplicitSize
+    ? {
+        width: options.width ?? DEFAULT_WIDTH,
+        height: options.height ?? DEFAULT_HEIGHT,
+      }
+    : resolvePageSize();
   const providedCore = options.core;
   const core =
     providedCore ??
@@ -130,10 +161,15 @@ export async function createKidsDrawApp(
         storageKey: "kids-draw-doc-url",
         mode: "reuse",
       },
+      documentSize: desiredInitialSize,
     }));
-
-  const width = options.width ?? DEFAULT_WIDTH;
-  const height = options.height ?? DEFAULT_HEIGHT;
+  const docSize = core.storeAdapter.getDoc().size;
+  const initialSize = {
+    width: docSize.width,
+    height: docSize.height,
+  };
+  let width = initialSize.width;
+  let height = initialSize.height;
   const backgroundColor = options.backgroundColor ?? "#ffffff";
 
   const element = el("div.kids-draw-app", {
@@ -273,6 +309,32 @@ export async function createKidsDrawApp(
       "outline-offset": "-1px",
     },
   }) as HTMLCanvasElement;
+  const dirtyRectOverlay = DEBUG_SHOW_DIRTY_RECT_LAYER
+    ? document.createElementNS("http://www.w3.org/2000/svg", "svg")
+    : null;
+  if (dirtyRectOverlay) {
+    dirtyRectOverlay.setAttribute("class", "kids-draw-layer kids-draw-dirty-rect");
+    dirtyRectOverlay.setAttribute("width", `${width}`);
+    dirtyRectOverlay.setAttribute("height", `${height}`);
+    dirtyRectOverlay.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    dirtyRectOverlay.style.position = "absolute";
+    dirtyRectOverlay.style.inset = "0";
+    dirtyRectOverlay.style.width = `${width}px`;
+    dirtyRectOverlay.style.height = `${height}px`;
+    dirtyRectOverlay.style.pointerEvents = "none";
+    dirtyRectOverlay.style.visibility = "hidden";
+  }
+  const dirtyRectShape =
+    dirtyRectOverlay && DEBUG_SHOW_DIRTY_RECT_LAYER
+      ? document.createElementNS("http://www.w3.org/2000/svg", "rect")
+      : null;
+  if (dirtyRectOverlay && dirtyRectShape) {
+    dirtyRectShape.setAttribute("fill", "none");
+    dirtyRectShape.setAttribute("stroke", "#ef4444");
+    dirtyRectShape.setAttribute("stroke-width", "1");
+    dirtyRectShape.setAttribute("stroke-dasharray", "6 4");
+    dirtyRectOverlay.appendChild(dirtyRectShape);
+  }
   const overlay = el("div.kids-draw-layer.kids-draw-overlay", {
     style: {
       position: "absolute",
@@ -295,6 +357,9 @@ export async function createKidsDrawApp(
   mount(toolbar, sizeInput);
   mount(sceneRoot, tileLayer);
   mount(sceneRoot, hotCanvas);
+  if (dirtyRectOverlay) {
+    mount(sceneRoot, dirtyRectOverlay);
+  }
   mount(sceneRoot, overlay);
   mount(canvasFrame, sceneRoot);
   mount(element, toolbar);
@@ -380,6 +445,10 @@ export async function createKidsDrawApp(
       avgRenderPassMs: drawingPerfRenderPassMsTotal / renderPasses,
       sessionRenderMs: readTimingDelta("session.render.ms"),
       hotLayerMs: readTimingDelta("session.hotLayer.renderDrafts.ms"),
+      hotClearMs: readTimingDelta("hotLayer.clear.ms"),
+      hotBackdropBlitMs: readTimingDelta("hotLayer.backdropBlit.ms"),
+      hotBackgroundFillMs: readTimingDelta("hotLayer.backgroundFill.ms"),
+      hotDraftPaintMs: readTimingDelta("hotLayer.draftPaint.ms"),
       getRenderStateMs: readTimingDelta("session.store.getRenderState.ms"),
       captureTouchedTilesMs: readTimingDelta("session.captureTouchedTiles.ms"),
       bakeMs: readTimingDelta("tileRenderer.bakePendingTiles.ms"),
@@ -390,7 +459,7 @@ export async function createKidsDrawApp(
     perfGlobal.lastStrokeSummary = summary;
     perfGlobal.strokeHistory?.push(summary);
     console.log(
-      `[kids-draw] stroke avg fps: ${fps.toFixed(1)} (${drawingPerfFrameCount} frames / ${durationMs.toFixed(1)}ms); model=${summary.modelInvalidations}; raf=${summary.rafFramesExecuted}; renderPass=${summary.renderPasses}; renderMs=${summary.avgRenderPassMs.toFixed(2)}; bakeTiles=${summary.tilesBaked}; bakeMs=${summary.bakeMs.toFixed(1)}; snapshotCalls=${summary.snapshotCalls}`,
+      `[kids-draw] stroke avg fps: ${fps.toFixed(1)} (${drawingPerfFrameCount} frames / ${durationMs.toFixed(1)}ms); model=${summary.modelInvalidations}; raf=${summary.rafFramesExecuted}; renderPass=${summary.renderPasses}; renderMs=${summary.avgRenderPassMs.toFixed(2)}; hot(clear=${summary.hotClearMs.toFixed(2)} blit=${summary.hotBackdropBlitMs.toFixed(2)} fill=${summary.hotBackgroundFillMs.toFixed(2)} paint=${summary.hotDraftPaintMs.toFixed(2)}); bakeTiles=${summary.tilesBaked}; bakeMs=${summary.bakeMs.toFixed(1)}; snapshotCalls=${summary.snapshotCalls}`,
     );
     drawingPerfStartMs = null;
     drawingPerfFrameCount = 0;
@@ -438,6 +507,20 @@ export async function createKidsDrawApp(
       `dpr:${tilePixelRatio.toFixed(3)}`,
       `bg:${backgroundColor}`,
     ].join("|");
+
+  const setSceneDimensions = (nextWidth: number, nextHeight: number): void => {
+    sceneRoot.style.width = `${nextWidth}px`;
+    sceneRoot.style.height = `${nextHeight}px`;
+    hotCanvas.style.width = `${nextWidth}px`;
+    hotCanvas.style.height = `${nextHeight}px`;
+    if (dirtyRectOverlay) {
+      dirtyRectOverlay.style.width = `${nextWidth}px`;
+      dirtyRectOverlay.style.height = `${nextHeight}px`;
+      dirtyRectOverlay.setAttribute("width", `${nextWidth}`);
+      dirtyRectOverlay.setAttribute("height", `${nextHeight}`);
+      dirtyRectOverlay.setAttribute("viewBox", `0 0 ${nextWidth} ${nextHeight}`);
+    }
+  };
 
   const tileProvider = createDomTileProvider(tileLayer, {
     getPixelRatio: () => tilePixelRatio,
@@ -516,12 +599,53 @@ export async function createKidsDrawApp(
     hotCtx.setTransform(1, 0, 0, 1, 0, 0);
     hotCtx.clearRect(0, 0, hotCanvas.width, hotCanvas.height);
   };
+  const applyCanvasSize = (nextWidth: number, nextHeight: number): void => {
+    if (nextWidth === width && nextHeight === height) {
+      return;
+    }
+    width = nextWidth;
+    height = nextHeight;
+    setSceneDimensions(width, height);
+    tileRenderer.updateViewport({
+      min: [0, 0],
+      max: [width, height],
+    });
+    hotLayer.setViewport({
+      width,
+      height,
+      center: new Vec2(width / 2, height / 2),
+      scale: 1,
+    });
+    applyHotCanvasPixelRatio(tilePixelRatio);
+    const nextIdentity = getRenderIdentity();
+    if (nextIdentity !== currentRenderIdentity) {
+      currentRenderIdentity = nextIdentity;
+      tileRenderer.setRenderIdentity(currentRenderIdentity);
+    }
+    applyResponsiveLayout();
+    scheduleResizeBake();
+    requestRenderFromModel();
+  };
   const renderPass = (): void => {
     const passStartMs = nowMs();
     drawingPerfRenderPasses += 1;
     recordDrawingFrame();
     syncToolButtons();
     sessionWithSnapshot.render();
+    if (dirtyRectOverlay && dirtyRectShape) {
+      const preview = store.getPreview();
+      const hasDrafts = store.getDrafts().length > 0;
+      if (!hasDrafts || !preview?.dirtyBounds) {
+        dirtyRectOverlay.style.visibility = "hidden";
+      } else {
+        const dirty = new BoxOperations(preview.dirtyBounds);
+        dirtyRectShape.setAttribute("x", `${dirty.minX}`);
+        dirtyRectShape.setAttribute("y", `${dirty.minY}`);
+        dirtyRectShape.setAttribute("width", `${dirty.width}`);
+        dirtyRectShape.setAttribute("height", `${dirty.height}`);
+        dirtyRectOverlay.style.visibility = "";
+      }
+    }
     drawingPerfRenderPassMsTotal += nowMs() - passStartMs;
   };
   const ensureRafScheduled = (): void => {
@@ -619,13 +743,20 @@ export async function createKidsDrawApp(
     const availableHeight = Math.max(1, hostRect.height - insets.y * 2);
     const nextScale = Math.min(1, availableWidth / width, availableHeight / height);
 
+    const nextDisplayWidth = Math.max(1, Math.round(width * nextScale));
+    const nextDisplayHeight = Math.max(1, Math.round(height * nextScale));
     if (nextScale !== displayScale) {
       displayScale = nextScale;
-      displayWidth = Math.max(1, Math.round(width * displayScale));
-      displayHeight = Math.max(1, Math.round(height * displayScale));
+      sceneRoot.style.transform = `scale(${displayScale})`;
+    }
+    if (
+      nextDisplayWidth !== displayWidth ||
+      nextDisplayHeight !== displayHeight
+    ) {
+      displayWidth = nextDisplayWidth;
+      displayHeight = nextDisplayHeight;
       canvasFrame.style.width = `${displayWidth}px`;
       canvasFrame.style.height = `${displayHeight}px`;
-      sceneRoot.style.transform = `scale(${displayScale})`;
     }
 
     const nextPixelRatio = normalizePixelRatio(
@@ -654,6 +785,7 @@ export async function createKidsDrawApp(
   };
 
   applyHotCanvasPixelRatio(tilePixelRatio);
+  setSceneDimensions(width, height);
   applyResponsiveLayout();
   scheduleResizeBake();
 
@@ -697,7 +829,15 @@ export async function createKidsDrawApp(
     debugLifecycle("new-drawing:start", { requestId, destroyed });
     newDrawingButton.disabled = true;
     try {
-      const adapter = await core.reset();
+      const nextDocumentSize: DrawingDocumentSize = hasExplicitSize
+        ? {
+            width: options.width ?? DEFAULT_WIDTH,
+            height: options.height ?? DEFAULT_HEIGHT,
+          }
+        : resolvePageSize();
+      const adapter = await core.reset({
+        documentSize: nextDocumentSize,
+      });
       debugLifecycle("new-drawing:reset-resolved", { requestId, destroyed });
       if (destroyed || requestId !== newDrawingRequestId) {
         debugLifecycle("new-drawing:aborted-after-reset", {
@@ -708,6 +848,7 @@ export async function createKidsDrawApp(
         return;
       }
       store.resetToDocument(adapter.getDoc());
+      applyCanvasSize(nextDocumentSize.width, nextDocumentSize.height);
       subscribeToCoreAdapter();
       tileRenderer.scheduleBakeForClear();
       void tileRenderer.bakePendingTiles();

@@ -9,6 +9,7 @@ import { Repo } from "@automerge/automerge-repo/slim";
 import {
   AddShape,
   applyActionToDoc,
+  DEFAULT_DOCUMENT_SIZE,
   DrawingStore,
   getDefaultShapeHandlerRegistry,
   type ActionContext,
@@ -74,6 +75,7 @@ describe("Automerge repo adapter", () => {
 
     const repo = new Repo();
     const handle = repo.create<DrawingDocumentData>({
+      size: DEFAULT_DOCUMENT_SIZE,
       shapes: {},
       temporalOrderCounter: 0,
     });
