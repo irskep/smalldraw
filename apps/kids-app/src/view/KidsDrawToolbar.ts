@@ -1,6 +1,7 @@
 import {
   Eraser,
   FilePlus,
+  Highlighter,
   Pen,
   Redo2,
   Trash2,
@@ -20,6 +21,7 @@ export interface KidsDrawToolbar {
   readonly toolSelectorElement: HTMLDivElement;
   readonly actionPanelElement: HTMLDivElement;
   readonly penButton: SquareIconButtonElement;
+  readonly markerButton: SquareIconButtonElement;
   readonly eraserButton: SquareIconButtonElement;
   readonly undoButton: SquareIconButtonElement;
   readonly redoButton: SquareIconButtonElement;
@@ -86,6 +88,18 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     },
   });
   toolSelectorControls.push(penButton);
+
+  const markerButton = createSquareButton({
+    className: "kids-draw-tool-button",
+    label: "Marker",
+    icon: Highlighter,
+    attributes: {
+      "data-tool": "marker",
+      title: "Marker",
+      "aria-label": "Marker",
+    },
+  });
+  toolSelectorControls.push(markerButton);
 
   const eraserButton = createSquareButton({
     className: "kids-draw-tool-button",
@@ -235,13 +249,19 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
   const applyState = (state: ToolbarUiState): void => {
     const normalizedStateColor = state.strokeColor.toLowerCase();
     const penSelected = state.activeToolId === "pen";
+    const markerSelected = state.activeToolId === "marker";
     const eraserSelected = state.activeToolId === "eraser";
     penButton.setAttribute("aria-pressed", penSelected ? "true" : "false");
+    markerButton.setAttribute(
+      "aria-pressed",
+      markerSelected ? "true" : "false",
+    );
     eraserButton.setAttribute(
       "aria-pressed",
       eraserSelected ? "true" : "false",
     );
     setToolButtonSelected(penButton, penSelected);
+    setToolButtonSelected(markerButton, markerSelected);
     setToolButtonSelected(eraserButton, eraserSelected);
     undoButton.disabled = !state.canUndo;
     redoButton.disabled = !state.canRedo;
@@ -281,6 +301,7 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     toolSelectorElement,
     actionPanelElement,
     penButton,
+    markerButton,
     eraserButton,
     undoButton,
     redoButton,

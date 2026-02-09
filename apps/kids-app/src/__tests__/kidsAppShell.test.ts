@@ -264,8 +264,21 @@ describe("kids-app shell", () => {
     const eraserButton = container.querySelector(
       '[data-tool="eraser"]',
     ) as HTMLElement | null;
+    const markerButton = container.querySelector(
+      '[data-tool="marker"]',
+    ) as HTMLElement | null;
+    const penButton = container.querySelector(
+      '[data-tool="pen"]',
+    ) as HTMLElement | null;
     expect(eraserButton).not.toBeNull();
+    expect(markerButton).not.toBeNull();
+    expect(penButton).not.toBeNull();
+    markerButton!.click();
+    expect(app.store.getActiveToolId()).toBe("marker");
+    penButton!.click();
+    expect(app.store.getActiveToolId()).toBe("pen");
     eraserButton!.click();
+    expect(app.store.getActiveToolId()).toBe("eraser");
     dispatchPointer(overlay, "pointerdown", 100, 100, 1);
     dispatchPointer(overlay, "pointermove", 220, 220, 1);
     await waitForTurn();
@@ -484,7 +497,7 @@ describe("kids-app shell", () => {
     expect(container.querySelector(".kids-draw-app")).toBeNull();
   });
 
-  test("pointer move uses coalesced samples when available and falls back otherwise", async () => {
+  test("pointer move samples honor coalesced-events feature flag", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
@@ -531,11 +544,13 @@ describe("kids-app shell", () => {
     const firstStrokePoints = getWorldPointsFromShape(
       shapesAfterCoalesced[0] as PenShape,
     );
-    expect(firstStrokePoints).toEqual([
+    const firstStrokePointsRounded = firstStrokePoints.map(([x, y]) => [
+      Math.round(x),
+      Math.round(y),
+    ]);
+    expect(firstStrokePointsRounded).toEqual([
       [50, 50],
-      [70, 70],
-      [90, 90],
-      [120, 120],
+      [130, 130],
     ]);
 
     const firstSummary = (globalThis as Record<string, unknown>)
@@ -549,8 +564,8 @@ describe("kids-app shell", () => {
         }
       | undefined;
     expect(firstSummary?.lastStrokeSummary?.pointerMoveEvents).toBe(1);
-    expect(firstSummary?.lastStrokeSummary?.pointerSamples).toBe(3);
-    expect(firstSummary?.lastStrokeSummary?.coalescedEvents).toBe(1);
+    expect(firstSummary?.lastStrokeSummary?.pointerSamples).toBe(1);
+    expect(firstSummary?.lastStrokeSummary?.coalescedEvents).toBe(0);
 
     dispatchPointer(overlay, "pointerdown", 10, 10, 1);
     dispatchPointer(overlay, "pointermove", 30, 20, 1);

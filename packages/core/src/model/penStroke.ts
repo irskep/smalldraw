@@ -10,6 +10,7 @@ import {
 import { Vec2 } from "gl-matrix";
 import type { StrokeOptions as FreehandStrokeOptions } from "perfect-freehand";
 import getStroke from "perfect-freehand";
+import { getMarkerStrokeBounds } from "./markerSmoothing";
 import type { PenShape } from "./shapes/penShape";
 
 const DEFAULT_PEN_STROKE_OPTIONS = {
@@ -61,6 +62,9 @@ export function getPenStrokeBounds(
   shape: PenShape,
   renderOptions: PenStrokeRenderOptions = {},
 ): Box | null {
+  if (shape.style?.stroke?.brushId === "marker") {
+    return getMarkerStrokeBounds(shape);
+  }
   const outline = getPenStrokeOutline(shape, renderOptions);
   if (!outline.length) {
     return null;

@@ -1,6 +1,7 @@
 import {
   DrawingStore,
   createEraserTool,
+  createMarkerTool,
   createPenTool,
   createSmalldraw,
   type DrawingDocumentSize,
@@ -81,7 +82,7 @@ export async function createKidsDrawApp(
   mount(options.container, element);
 
   const store = new DrawingStore({
-    tools: [createPenTool(), createEraserTool()],
+    tools: [createPenTool(), createMarkerTool(), createEraserTool()],
     document: core.storeAdapter.getDoc(),
     actionDispatcher: (event) => core.storeAdapter.applyAction(event),
   });

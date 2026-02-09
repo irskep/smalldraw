@@ -28,6 +28,7 @@ import type { KidsDrawStage } from "../view/KidsDrawStage";
 
 const RESIZE_BAKE_DEBOUNCE_MS = 120;
 const MAX_POINTER_SAMPLES_PER_EVENT = 64;
+const ENABLE_COALESCED_POINTER_SAMPLES = false;
 
 type RafRenderState = "idle" | "modelRequested" | "anticipatory";
 type PointerEventWithCoalesced = PointerEvent & {
@@ -321,7 +322,9 @@ export function createKidsDrawController(options: {
   const getPointerMoveSamples = (
     event: PointerEventWithCoalesced,
   ): { samples: PointerEvent[]; usedCoalesced: boolean } => {
-    const coalesced = event.getCoalescedEvents?.();
+    const coalesced = ENABLE_COALESCED_POINTER_SAMPLES
+      ? event.getCoalescedEvents?.()
+      : undefined;
     const rawSamples =
       coalesced && coalesced.length > 0 ? coalesced : [event as PointerEvent];
     const cappedSamples =
@@ -472,6 +475,11 @@ export function createKidsDrawController(options: {
     toolbar.penButton,
     "click",
     runAndSync(() => store.activateTool("pen")),
+  );
+  listen(
+    toolbar.markerButton,
+    "click",
+    runAndSync(() => store.activateTool("marker")),
   );
   listen(
     toolbar.eraserButton,

@@ -1,6 +1,7 @@
 import { toVec2, toVec2Like } from "@smalldraw/geometry";
 import type { PenShape, Shape } from "@smalldraw/core";
 import { getPenStrokeOutline } from "@smalldraw/core";
+import { renderMarkerPath } from "./markerPath";
 import { getSvgPathFromStroke } from "./penPath";
 
 export function renderPen(ctx: CanvasRenderingContext2D, shape: Shape): void {
@@ -12,38 +13,51 @@ export function renderPen(ctx: CanvasRenderingContext2D, shape: Shape): void {
   const penShape = shape as PenShape;
   const stroke = penShape.style.stroke;
   const color = stroke?.color ?? "#000000";
+  const strokeSize = Math.max(1, stroke?.size ?? 1);
   const points = penShape.geometry.points.map((point) =>
     toVec2Like(toVec2(point)),
   );
-  const outline = getPenStrokeOutline({
-    ...penShape,
-    geometry: {
-      ...penShape.geometry,
-      points,
-    },
-  }, { last: !isTemporary });
-  if (!outline.length) {
+  if (!points.length) {
     return;
   }
   ctx.save();
   ctx.globalCompositeOperation = stroke?.compositeOp ?? "source-over";
-  ctx.fillStyle = color;
-  const pathData = getSvgPathFromStroke(outline);
-  if (pathData && typeof Path2D !== "undefined") {
-    ctx.fill(new Path2D(pathData));
+  if (stroke?.brushId === "marker") {
+    ctx.strokeStyle = color;
+    renderMarkerPath(ctx, points, strokeSize);
   } else {
-    ctx.beginPath();
-    const [first, ...rest] = outline;
-    if (!first) {
+    const outline = getPenStrokeOutline(
+      {
+        ...penShape,
+        geometry: {
+          ...penShape.geometry,
+          points,
+        },
+      },
+      { last: !isTemporary },
+    );
+    if (!outline.length) {
       ctx.restore();
       return;
     }
-    ctx.moveTo(first[0], first[1]);
-    for (const [x, y] of rest) {
-      ctx.lineTo(x, y);
+    ctx.fillStyle = color;
+    const pathData = getSvgPathFromStroke(outline);
+    if (pathData && typeof Path2D !== "undefined") {
+      ctx.fill(new Path2D(pathData));
+    } else {
+      ctx.beginPath();
+      const [first, ...rest] = outline;
+      if (!first) {
+        ctx.restore();
+        return;
+      }
+      ctx.moveTo(first[0], first[1]);
+      for (const [x, y] of rest) {
+        ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
     }
-    ctx.closePath();
-    ctx.fill();
   }
   ctx.restore();
 }

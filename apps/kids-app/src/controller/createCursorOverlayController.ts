@@ -40,7 +40,7 @@ export function createCursorOverlayController(options: {
   const sync = (): void => {
     const indicator = stage.cursorIndicator;
     const activeToolId = store.getActiveToolId();
-    const isPenTool = activeToolId === "pen";
+    const isPenTool = activeToolId === "pen" || activeToolId === "marker";
     const isEraserTool = activeToolId === "eraser";
     if ((!isPenTool && !isEraserTool) || !mouseHoverPoint) {
       indicator.style.visibility = "hidden";
