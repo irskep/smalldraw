@@ -25,8 +25,8 @@
   --kd-radius-md: var(--radius-3);
   --kd-radius-lg: var(--radius-4);
 
-  --kd-shadow-toolbar: var(--shadow-2);
-  --kd-shadow-frame: var(--shadow-3);
+  --kd-shadow-toolbar: none;
+  --kd-shadow-frame: none;
   --kd-shadow-button: var(--shadow-2);
   --kd-shadow-button-active: var(--shadow-3);
 
@@ -70,9 +70,7 @@ body {
   pointer-events: auto;
 }
 
-.kids-draw-toolbar button,
-.kids-draw-tool-selector button,
-.kids-draw-action-panel button {
+.kids-draw-toolbar button {
   border: 1px solid color-mix(in oklch, var(--gray-7) 28%, white);
   border-radius: var(--kd-radius-md);
   background: var(--kd-surface-button);
@@ -85,45 +83,38 @@ body {
     background-color 120ms var(--ease-out-3);
 }
 
-.kids-draw-toolbar button.is-selected,
-.kids-draw-tool-selector button.is-selected,
-.kids-draw-action-panel button.is-selected {
+.kids-draw-toolbar button.is-selected {
   background: var(--kd-surface-button-selected);
   color: var(--kd-text-strong);
   box-shadow: var(--kd-shadow-button-active);
   border-color: color-mix(in oklch, var(--blue-6) 60%, black);
 }
 
-.kids-draw-toolbar button:active,
-.kids-draw-tool-selector button:active,
-.kids-draw-action-panel button:active {
+.kids-draw-toolbar button:active {
   transform: scale(0.96);
 }
 
-.kids-draw-toolbar button:hover:not(:disabled),
-.kids-draw-tool-selector button:hover:not(:disabled),
-.kids-draw-action-panel button:hover:not(:disabled) {
+.kids-draw-toolbar button:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: var(--kd-shadow-button-active);
 }
 
-kids-square-icon-button.kids-draw-tool-button,
-kids-square-icon-button.kids-draw-action-button {
-  box-sizing: border-box;
-  border: 1px solid color-mix(in oklch, var(--gray-7) 28%, white);
-  border-radius: var(--kd-radius-md);
-  overflow: hidden;
-  transition: transform 120ms var(--ease-out-3);
+.kids-draw-tool-selector kids-square-icon-button,
+.kids-draw-action-panel kids-square-icon-button {
+  --sq-border-width: 1px;
+  --sq-border: color-mix(in oklch, var(--gray-7) 28%, white);
+  --sq-bg: var(--kd-surface-button);
+  --sq-color: var(--kd-text-default);
+  --sq-shadow: var(--kd-shadow-button);
+  --sq-hover-lift: -2px;
+  --sq-hover-scale: 1.01;
+  --sq-shadow-selected: var(--kd-shadow-button-active);
+  --sq-border-selected: color-mix(in oklch, var(--blue-6) 60%, black);
 }
 
-kids-square-icon-button.kids-draw-tool-button:hover:not([disabled]),
-kids-square-icon-button.kids-draw-action-button:hover:not([disabled]) {
-  transform: translateY(-2px) scale(1.01);
-}
-
-kids-square-icon-button.kids-draw-tool-button.is-selected,
-kids-square-icon-button.kids-draw-action-button.is-selected {
-  border-color: color-mix(in oklch, var(--blue-6) 60%, black);
+.kids-draw-tool-selector kids-square-icon-button {
+  --sq-bg-selected: var(--blue-5);
+  --sq-color-selected: var(--gray-0);
 }
 
 .kids-draw-toolbar-panel {
@@ -281,9 +272,6 @@ kids-square-icon-button.kids-draw-action-button.is-selected {
 }
 
 .kids-draw-tool-button {
-  --sq-bg-selected: var(--blue-5);
-  --sq-color-selected: var(--gray-0);
-  --sq-shadow-selected: var(--shadow-4);
   width: 50px;
   height: 50px;
   min-width: 50px;

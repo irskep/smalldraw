@@ -453,7 +453,10 @@ describe("RasterSession", () => {
 
     // Simulate adapter-timing edge case where state transitions to empty
     // but dirty/deleted IDs are consumed before the next render.
-    const emptyDoc = createDocument(undefined, getDefaultShapeHandlerRegistry());
+    const emptyDoc = createDocument(
+      undefined,
+      getDefaultShapeHandlerRegistry(),
+    );
     store.applyDocument(emptyDoc);
     store.consumeDirtyState();
     session.render();

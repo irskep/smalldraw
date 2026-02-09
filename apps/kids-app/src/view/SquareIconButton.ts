@@ -29,7 +29,9 @@ export class SquareIconButtonElement extends HTMLElement {
       button {
         width: 100%;
         height: 100%;
-        border: none;
+        box-sizing: border-box;
+        border: var(--sq-border-width, 1px) solid
+          var(--sq-border, color-mix(in oklch, var(--gray-7) 28%, white));
         border-radius: var(--sq-radius, var(--kd-radius-md));
         background: var(--sq-bg, var(--kd-surface-button));
         color: var(--sq-color, var(--kd-text-default));
@@ -50,7 +52,8 @@ export class SquareIconButtonElement extends HTMLElement {
 
       button:hover:not(:disabled),
       :host(:hover) button:not(:disabled) {
-        transform: translateY(-3px) scale(1.01);
+        transform: translateY(var(--sq-hover-lift, -2px))
+          scale(var(--sq-hover-scale, 1.01));
         box-shadow: var(--sq-shadow-selected, var(--kd-shadow-button-active));
       }
 
@@ -58,6 +61,10 @@ export class SquareIconButtonElement extends HTMLElement {
         background: var(--sq-bg-selected, var(--kd-surface-button-selected));
         color: var(--sq-color-selected, var(--kd-text-strong));
         box-shadow: var(--sq-shadow-selected, var(--kd-shadow-button-active));
+        border-color: var(
+          --sq-border-selected,
+          color-mix(in oklch, var(--blue-6) 60%, black)
+        );
       }
 
       button:disabled {
@@ -102,12 +109,16 @@ export class SquareIconButtonElement extends HTMLElement {
 
     this.#button = document.createElement("button");
     this.#button.type = "button";
+    this.#button.setAttribute("part", "button");
     const content = document.createElement("span");
     content.className = "content";
+    content.setAttribute("part", "content");
     this.#icon = document.createElement("span");
     this.#icon.className = "icon";
+    this.#icon.setAttribute("part", "icon");
     this.#label = document.createElement("span");
     this.#label.className = "label";
+    this.#label.setAttribute("part", "label");
     content.append(this.#icon, this.#label);
     this.#button.append(content);
     root.append(style, this.#button);

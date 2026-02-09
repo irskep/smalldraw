@@ -237,7 +237,9 @@ export function createKidsDrawController(options: {
     bottom: number;
     left: number;
   } => {
-    const toolbarHeight = Math.ceil(toolbar.element.getBoundingClientRect().height);
+    const toolbarHeight = Math.ceil(
+      toolbar.element.getBoundingClientRect().height,
+    );
     return {
       top: Math.max(VIEWPORT_PADDING_TOP, toolbarHeight + 4),
       right: VIEWPORT_PADDING_RIGHT,
