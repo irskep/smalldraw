@@ -1,16 +1,16 @@
+import { nanoid } from "nanoid";
 import type { UndoableAction } from "../actions";
 import type { DrawingDocument } from "../model/document";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
-import { nanoid } from "nanoid";
 import type {
   DraftShape,
   SelectionState,
   SharedToolSettings,
-  ToolPreview,
   ToolEventHandler,
   ToolEventName,
   ToolPointerEvent,
+  ToolPreview,
   ToolRuntime,
   ToolRuntimeEvent,
 } from "./types";

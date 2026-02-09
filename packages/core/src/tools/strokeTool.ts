@@ -1,10 +1,10 @@
 import {
+  type Box,
   BoxOperations,
   getX,
   getY,
   toVec2,
   toVec2Like,
-  type Box,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
@@ -280,7 +280,9 @@ function createStrokeShape(draft: StrokeDraftState): PenShape | undefined {
     geometry: {
       type: "pen",
       points: localPoints,
-      ...(draft.geometry.pressures ? { pressures: draft.geometry.pressures } : {}),
+      ...(draft.geometry.pressures
+        ? { pressures: draft.geometry.pressures }
+        : {}),
     },
     style: {
       stroke: draft.stroke,

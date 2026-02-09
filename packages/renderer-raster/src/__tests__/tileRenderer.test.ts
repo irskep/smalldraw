@@ -1,17 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import { createCanvas } from "canvas";
 import {
-  DrawingStore,
   type AnyShape,
+  DrawingStore,
   type RectGeometry,
 } from "@smalldraw/core";
-import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import type { Box } from "@smalldraw/geometry";
+import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
+import { createCanvas } from "canvas";
 import {
-  TILE_SIZE,
-  TileRenderer,
   createInMemorySnapshotStore,
   getVisibleTileCoords,
+  TILE_SIZE,
+  TileRenderer,
   tileKey,
 } from "../index";
 

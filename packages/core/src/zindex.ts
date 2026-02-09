@@ -1,8 +1,7 @@
 import { generateKeyBetween } from "jittered-fractional-indexing";
-
+import { filterShapesAfterClear } from "./model/clear";
 import type { DrawingDocument } from "./model/document";
 import type { AnyShape } from "./model/shape";
-import { filterShapesAfterClear } from "./model/clear";
 
 export function getOrderedShapes(doc: DrawingDocument): AnyShape[] {
   const ordered = Object.values(doc.shapes).sort((a, b) => {

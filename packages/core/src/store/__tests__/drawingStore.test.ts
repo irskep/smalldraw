@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
 import { toVec2Like } from "@smalldraw/geometry";
+import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { Vec2 } from "gl-matrix";
 import type { ActionContext } from "../../actions";
 import { AddShape } from "../../actions";
@@ -14,7 +15,6 @@ import { createSelectionTool as createSelectionDefinition } from "../../tools/se
 import type { ToolDefinition } from "../../tools/types";
 import { getZIndexBetween } from "../../zindex";
 import { DrawingStore } from "../drawingStore";
-import { getWorldPointsFromShape } from "@smalldraw/testing";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 

@@ -1,18 +1,12 @@
-import {
-  FilePlus,
-  Redo2,
-  Trash2,
-  Undo2,
-  type IconNode,
-} from "lucide";
+import { FilePlus, type IconNode, Redo2, Trash2, Undo2 } from "lucide";
 import type { ReadableAtom } from "nanostores";
 import { el, mount } from "redom";
+import type { KidsToolConfig } from "../tools/kidsTools";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 import {
   ensureSquareIconButtonDefined,
   SquareIconButtonElement,
 } from "./SquareIconButton";
-import type { KidsToolConfig } from "../tools/kidsTools";
 
 export interface KidsDrawToolbar {
   readonly element: HTMLDivElement;

@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
+import { BoxOperations } from "@smalldraw/geometry";
+import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
 import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
@@ -7,8 +9,6 @@ import type { PenShape } from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
 import { createEraserTool } from "../eraser";
 import { ToolRuntimeImpl } from "../runtime";
-import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
-import { BoxOperations } from "@smalldraw/geometry";
 
 describe("eraser tool integration with runtime", () => {
   function setup() {

@@ -3,8 +3,8 @@ import {
   expectSnapshot as expectSnapshotBase,
   resolveSnapshotDir,
 } from "@smalldraw/testing";
-import { renderDocument, type RenderDocumentOptions } from "../index";
 import { createCanvas } from "canvas";
+import { type RenderDocumentOptions, renderDocument } from "../index";
 
 const SNAPSHOT_DIR = resolveSnapshotDir(import.meta.url);
 

@@ -1,5 +1,5 @@
-import { atom } from "nanostores";
 import type { DrawingStore } from "@smalldraw/core";
+import { atom } from "nanostores";
 
 export interface ToolbarUiState {
   activeToolId: string;

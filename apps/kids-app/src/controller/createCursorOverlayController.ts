@@ -1,7 +1,7 @@
 import type { DrawingStore } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
-import type { KidsDrawStage } from "../view/KidsDrawStage";
 import type { KidsToolCursorMode } from "../tools/kidsTools";
+import type { KidsDrawStage } from "../view/KidsDrawStage";
 
 export interface CursorOverlayController {
   refreshMetrics(): void;

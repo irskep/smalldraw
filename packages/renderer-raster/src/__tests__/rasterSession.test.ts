@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { createCanvas } from "canvas";
 import {
   AddShape,
   type AnyShape,
   ClearCanvas,
   createDocument,
+  createEraserTool,
+  createPenTool,
   DrawingStore,
   getDefaultShapeHandlerRegistry,
   type ToolDefinition,
-  createEraserTool,
-  createPenTool,
 } from "@smalldraw/core";
+import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
 import { HotLayer, RasterSession, TILE_SIZE, TileRenderer } from "../index";
 

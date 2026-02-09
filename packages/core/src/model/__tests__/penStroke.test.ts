@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import type { PenShape } from "../shapes/penShape";
 import {
   getFreehandInputPoints,
   getPenStrokeOptions,
   getPenStrokeOutline,
 } from "../penStroke";
+import type { PenShape } from "../shapes/penShape";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
@@ -110,7 +110,9 @@ describe("penStroke perfect-freehand integration", () => {
     expect(committedOutline.length).toBeGreaterThan(0);
 
     const draftMaxX = Math.max(...draftOutline.map((point) => point[0]));
-    const committedMaxX = Math.max(...committedOutline.map((point) => point[0]));
+    const committedMaxX = Math.max(
+      ...committedOutline.map((point) => point[0]),
+    );
     expect(committedMaxX).toBeGreaterThanOrEqual(draftMaxX);
   });
 });

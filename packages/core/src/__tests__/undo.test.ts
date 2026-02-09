@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import { change } from "@automerge/automerge/slim";
 import type { RectShape } from "@smalldraw/core";
 import { type ActionContext, AddShape, DeleteShape } from "../actions";
 import { createDocument } from "../model/document";
 import { canonicalizeShape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
-import { change } from "@automerge/automerge/slim";
 
 const rectangle: RectShape = {
   id: "rect-1",

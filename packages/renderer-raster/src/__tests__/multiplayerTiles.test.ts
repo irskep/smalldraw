@@ -1,22 +1,22 @@
 import { describe, expect, test } from "bun:test";
-import { createCanvas } from "canvas";
+import { merge } from "@automerge/automerge/slim";
+import type { DrawingDocument } from "@smalldraw/core";
 import {
   AddShape,
+  type AnyShape,
   DeleteShape,
   DrawingStore,
   getDefaultShapeHandlerRegistry,
   getOrderedShapes,
-  type AnyShape,
   type PenGeometry,
   type RectGeometry,
   UpdateShapeTransform,
 } from "@smalldraw/core";
-import type { DrawingDocument } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
-import { merge } from "@automerge/automerge/slim";
 import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
-import { TILE_SIZE, TileRenderer } from "../index";
 import { imagesMatch } from "@smalldraw/testing";
+import { createCanvas } from "canvas";
+import { TILE_SIZE, TileRenderer } from "../index";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 

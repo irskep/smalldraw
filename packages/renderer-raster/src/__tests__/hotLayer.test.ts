@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { createCanvas } from "canvas";
 import type { DraftShape, RectGeometry } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
+import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
 import { HotLayer } from "../hotLayer";
 

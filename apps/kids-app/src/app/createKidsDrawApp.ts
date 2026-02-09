@@ -1,27 +1,24 @@
 import {
-  DrawingStore,
   createSmalldraw,
   type DrawingDocumentSize,
+  DrawingStore,
 } from "@smalldraw/core";
 import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
 import { resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
+import { DEFAULT_KIDS_DRAW_TOOL_ID, KIDS_DRAW_TOOLS } from "../tools/kidsTools";
 import {
   $toolbarUi,
   syncToolbarUiFromDrawingStore,
 } from "../ui/stores/toolbarUiStore";
+import { createKidsDrawStage } from "../view/KidsDrawStage";
+import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
 import {
   ensureModalDialogDefined,
   ModalDialogElement,
 } from "../view/ModalDialog";
-import { createKidsDrawStage } from "../view/KidsDrawStage";
-import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { KidsDrawApp, KidsDrawAppOptions } from "./types";
-import {
-  DEFAULT_KIDS_DRAW_TOOL_ID,
-  KIDS_DRAW_TOOLS,
-} from "../tools/kidsTools";
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 600;

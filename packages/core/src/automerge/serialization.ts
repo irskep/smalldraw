@@ -1,10 +1,10 @@
+import { change, init } from "@automerge/automerge/slim";
 import type {
   DrawingDocument,
   DrawingDocumentData,
   DrawingDocumentSize,
 } from "../model/document";
 import { DEFAULT_DOCUMENT_SIZE } from "../model/document";
-import { change, init } from "@automerge/automerge/slim";
 import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";

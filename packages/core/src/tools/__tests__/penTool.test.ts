@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { change } from "@automerge/automerge/slim";
+import { BoxOperations } from "@smalldraw/geometry";
+import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
 import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
@@ -7,9 +10,6 @@ import { UndoManager } from "../../undo";
 import { createPenTool } from "../pen";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
-import { change } from "@automerge/automerge/slim";
-import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
-import { BoxOperations } from "@smalldraw/geometry";
 
 describe("pen tool integration with runtime", () => {
   function setup(params?: {

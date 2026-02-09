@@ -1,10 +1,13 @@
-import type { AnyShape, ShapeHandlerRegistry } from "@smalldraw/core";
-import type { DraftShape } from "@smalldraw/core";
-import { BoxOperations, getX, getY, type Box } from "@smalldraw/geometry";
-import { Vec2 } from "gl-matrix";
+import type {
+  AnyShape,
+  DraftShape,
+  ShapeHandlerRegistry,
+} from "@smalldraw/core";
+import { type Box, BoxOperations, getX, getY } from "@smalldraw/geometry";
 import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
-import type { Viewport } from "./viewport";
+import { Vec2 } from "gl-matrix";
 import { perfAddTimingMs, perfNowMs } from "./perfDebug";
+import type { Viewport } from "./viewport";
 
 export interface HotLayerOptions {
   geometryHandlerRegistry?: ShapeHandlerRegistry;

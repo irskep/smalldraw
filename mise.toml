@@ -54,9 +54,6 @@ run = "bun run dev"
 env = { _.file = ".env", DATABASE_URL = "./sqlite/prod.db" }
 run = "bunx drizzle-kit push"
 
-[tasks.format]
-run = "bunx biome format --write"
-
 [tasks."ts:check:all"]
 # Run all ts:check tasks across the monorepo using wildcard pattern
 # also lint just so there's one easy command to run

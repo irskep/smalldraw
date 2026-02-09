@@ -1,17 +1,17 @@
 export {
+  type DocumentOrderedShapeBounds,
   getDocumentOrderedShapesBounds,
   getOrderedShapesBounds,
-  renderDocument,
-  renderOrderedShapes,
-  type DocumentOrderedShapeBounds,
   type OrderedShapeBounds,
   type RenderDocumentOptions,
+  renderDocument,
+  renderOrderedShapes,
 } from "./document";
 
 export {
   createShapeRendererRegistry,
   defaultShapeRendererRegistry,
   renderShape,
-  type ShapeRendererRegistry,
   type ShapeRenderer,
+  type ShapeRendererRegistry,
 } from "./shapes";

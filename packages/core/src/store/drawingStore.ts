@@ -1,8 +1,8 @@
 import { change } from "@automerge/automerge/slim";
 import type { Box } from "@smalldraw/geometry";
 import type { ActionContext, UndoableAction } from "../actions";
-import { createDocument, type DrawingDocument } from "../model/document";
 import { filterShapesAfterClear } from "../model/clear";
+import { createDocument, type DrawingDocument } from "../model/document";
 import type { Shape } from "../model/shape";
 import {
   getDefaultShapeHandlerRegistry,

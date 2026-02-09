@@ -1,12 +1,12 @@
 import type { AnyShape, DrawingStore } from "@smalldraw/core";
 import { BoxOperations, Vec2 } from "@smalldraw/geometry";
 import {
+  createDomLayerController,
+  createDomTileProvider,
   HotLayer,
   RasterSession,
   TILE_SIZE,
   TileRenderer,
-  createDomLayerController,
-  createDomTileProvider,
 } from "@smalldraw/renderer-raster";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 

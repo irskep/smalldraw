@@ -1,21 +1,21 @@
 import { describe, expect, test } from "bun:test";
+import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64";
 import {
   initializeBase64Wasm,
   isWasmInitialized,
 } from "@automerge/automerge/slim";
-import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64";
 import type { DocHandle } from "@automerge/automerge-repo";
 import { Repo } from "@automerge/automerge-repo/slim";
 import {
+  type ActionContext,
   AddShape,
   applyActionToDoc,
   DEFAULT_DOCUMENT_SIZE,
-  DrawingStore,
-  getDefaultShapeHandlerRegistry,
-  type ActionContext,
   type DrawingDocument,
   type DrawingDocumentData,
+  DrawingStore,
   type DrawingStoreActionEvent,
+  getDefaultShapeHandlerRegistry,
 } from "@smalldraw/core";
 
 const v = (x = 0, y = x): [number, number] => [x, y];

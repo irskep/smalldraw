@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsup src/index.ts --dts --format esm",
     "ts:check": "tsc -p tsconfig.json --noEmit",
-    "lint": "bunx biome lint --write",
+    "lint": "bunx biome check --write",
     "test": "bun test --preload ./src/__tests__/setup.ts",
     "test:update": "UPDATE_SNAPSHOTS=1 bun test --preload ./src/__tests__/setup.ts"
   },

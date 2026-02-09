@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import {
+  type ActionContext,
   applyActionToDoc,
   createDocument,
-  getDefaultShapeHandlerRegistry,
-  type ActionContext,
   type DrawingDocument,
   type DrawingDocumentData,
   type DrawingStoreActionEvent,
+  getDefaultShapeHandlerRegistry,
   type PenShape,
   type SmalldrawCore,
 } from "@smalldraw/core";

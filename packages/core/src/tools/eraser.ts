@@ -1,6 +1,6 @@
 import type { StrokeStyle } from "../model/style";
-import type { ToolDefinition } from "./types";
 import { createStrokeTool, type StrokeToolOptions } from "./strokeTool";
+import type { ToolDefinition } from "./types";
 
 export interface EraserToolOptions extends StrokeToolOptions {}
 

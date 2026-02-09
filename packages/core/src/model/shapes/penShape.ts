@@ -7,9 +7,9 @@ import {
   type Vec2Tuple,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+import { getPenStrokeBounds } from "../penStroke";
 import type { AnyShape, Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
-import { getPenStrokeBounds } from "../penStroke";
 import { getHitTestBounds } from "./hitTestUtils";
 
 export interface PenGeometry {

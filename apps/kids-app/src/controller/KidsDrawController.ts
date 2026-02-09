@@ -5,8 +5,8 @@ import {
   getTopZIndex,
   type SmalldrawCore,
 } from "@smalldraw/core";
-import { FilePlus, Trash2, type IconNode } from "lucide";
 import type { Vec2 } from "@smalldraw/geometry";
+import { FilePlus, type IconNode, Trash2 } from "lucide";
 import {
   applyResponsiveLayout,
   normalizePixelRatio,
@@ -17,15 +17,15 @@ import {
 } from "../layout/responsiveLayout";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
-import { createCursorOverlayController } from "./createCursorOverlayController";
+import type { KidsToolConfig } from "../tools/kidsTools";
 import {
   setNewDrawingPending,
   setToolbarStrokeUi,
   syncToolbarUiFromDrawingStore,
 } from "../ui/stores/toolbarUiStore";
-import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import type { KidsToolConfig } from "../tools/kidsTools";
+import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
+import { createCursorOverlayController } from "./createCursorOverlayController";
 
 const RESIZE_BAKE_DEBOUNCE_MS = 120;
 const MAX_POINTER_SAMPLES_PER_EVENT = 64;
@@ -478,7 +478,11 @@ export function createKidsDrawController(options: {
     listen(window.visualViewport, "resize", onWindowResize);
   }
   for (const [toolId, button] of toolbar.toolButtons) {
-    listen(button, "click", runAndSync(() => store.activateTool(toolId)));
+    listen(
+      button,
+      "click",
+      runAndSync(() => store.activateTool(toolId)),
+    );
   }
   listen(
     toolbar.undoButton,

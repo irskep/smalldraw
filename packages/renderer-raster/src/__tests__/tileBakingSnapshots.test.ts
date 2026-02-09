@@ -1,5 +1,4 @@
 import { describe, test } from "bun:test";
-import { createCanvas } from "canvas";
 import {
   type AnyShape,
   DrawingStore,
@@ -8,8 +7,9 @@ import {
   type RectGeometry,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
-import { expectSnapshot } from "./snapshotUtils";
+import { createCanvas } from "canvas";
 import { TILE_SIZE, TileRenderer, tileKey } from "../index";
+import { expectSnapshot } from "./snapshotUtils";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 const solidFill = (color: string) => ({ type: "solid" as const, color });

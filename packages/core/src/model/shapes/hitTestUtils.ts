@@ -1,13 +1,13 @@
 import {
-  BoxOperations,
   type Box,
+  BoxOperations,
   getX,
   getY,
   toVec2Like,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { buildTransformMatrix } from "../geometryShapeUtils";
-import { type Shape, normalizeShapeTransform } from "../shape";
+import { normalizeShapeTransform, type Shape } from "../shape";
 
 export function getHitTestBounds(shape: Shape, localBounds: Box | null): Box {
   const transform = normalizeShapeTransform(shape.transform);

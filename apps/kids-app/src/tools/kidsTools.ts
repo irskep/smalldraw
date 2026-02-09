@@ -4,7 +4,7 @@ import {
   createPenTool,
   type ToolDefinition,
 } from "@smalldraw/core";
-import { Eraser, Highlighter, Pen, type IconNode } from "lucide";
+import { Eraser, Highlighter, type IconNode, Pen } from "lucide";
 
 export type KidsToolCursorMode = "hide-while-drawing" | "always-visible";
 

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { createCanvas } from "canvas";
 import type { AnyShape, RectGeometry } from "@smalldraw/core";
+import { createCanvas } from "canvas";
 import { renderOrderedShapes } from "../index";
 
 function pixelAt(

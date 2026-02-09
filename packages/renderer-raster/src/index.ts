@@ -5,13 +5,21 @@ import type {
   Shape,
   ShapeHandlerRegistry,
 } from "@smalldraw/core";
-import { getX, getY, type Box } from "@smalldraw/geometry";
-import { Vec2 } from "gl-matrix";
+import { type Box, getX, getY } from "@smalldraw/geometry";
 import {
   getOrderedShapesBounds,
   renderOrderedShapes,
 } from "@smalldraw/renderer-canvas";
+import { Vec2 } from "gl-matrix";
 import { TILE_SIZE } from "./constants";
+import {
+  perfAddCounter,
+  perfAddTimingMs,
+  perfFlagEnabled,
+  perfNowMs,
+} from "./perfDebug";
+import { createInMemorySnapshotStore } from "./snapshots";
+import { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";
 import type {
   TileBaker,
   TileCoord,
@@ -19,14 +27,6 @@ import type {
   TileSnapshotAdapter,
   TileSnapshotStore,
 } from "./types";
-import { createInMemorySnapshotStore } from "./snapshots";
-import { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";
-import {
-  perfAddCounter,
-  perfAddTimingMs,
-  perfFlagEnabled,
-  perfNowMs,
-} from "./perfDebug";
 
 export interface TileRendererOptions<
   TCanvas = HTMLCanvasElement,
@@ -469,6 +469,17 @@ function createDomSnapshotCanvas(
   return canvas;
 }
 
+export { TILE_SIZE } from "./constants";
+export {
+  createDomLayerController,
+  createDomTileProvider,
+  type DomLayerController,
+  type DomTileProviderOptions,
+} from "./dom";
+export { HotLayer, type HotLayerOptions } from "./hotLayer";
+export { RasterSession, type RasterSessionOptions } from "./session";
+export { createInMemorySnapshotStore } from "./snapshots";
+export { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";
 export type {
   TileBaker,
   TileCoord,
@@ -476,15 +487,4 @@ export type {
   TileSnapshotAdapter,
   TileSnapshotStore,
 } from "./types";
-export {
-  createDomLayerController,
-  createDomTileProvider,
-  type DomLayerController,
-  type DomTileProviderOptions,
-} from "./dom";
-export { TILE_SIZE } from "./constants";
-export { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";
-export { createInMemorySnapshotStore } from "./snapshots";
-export { HotLayer, type HotLayerOptions } from "./hotLayer";
-export { type Viewport, applyViewportToContext } from "./viewport";
-export { RasterSession, type RasterSessionOptions } from "./session";
+export { applyViewportToContext, type Viewport } from "./viewport";

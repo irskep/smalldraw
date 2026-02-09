@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import type { AnyGeometry } from "@smalldraw/geometry";
+import { fromJSON, toJSON } from "../automerge/serialization";
 import { createDocument } from "../model/document";
 import {
   getDefaultShapeHandlerRegistry,
   ShapeHandlerRegistry,
 } from "../model/shapeHandlers";
-import { fromJSON, toJSON } from "../automerge/serialization";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 

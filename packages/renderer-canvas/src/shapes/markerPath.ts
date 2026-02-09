@@ -1,5 +1,5 @@
-import type { Vec2Tuple } from "@smalldraw/geometry";
 import { smoothMarkerPoints } from "@smalldraw/core";
+import type { Vec2Tuple } from "@smalldraw/geometry";
 
 const MARKER_CURVE_TENSION = 1;
 

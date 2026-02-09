@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { ClearCanvas } from "../clearCanvas";
-import { AddShape } from "../addShape";
-import { DrawingStore } from "../../store/drawingStore";
 import type { RectGeometry } from "../../model/shapes/rectShape";
+import { DrawingStore } from "../../store/drawingStore";
 import { getOrderedShapes } from "../../zindex";
+import { AddShape } from "../addShape";
+import { ClearCanvas } from "../clearCanvas";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 

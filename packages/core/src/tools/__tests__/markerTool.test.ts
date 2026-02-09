@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
-import { Vec2 } from "gl-matrix";
 import { BoxOperations } from "@smalldraw/geometry";
 import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
+import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";

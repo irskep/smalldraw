@@ -1,5 +1,5 @@
-import { getX, getY } from "@smalldraw/geometry";
 import type { Box } from "@smalldraw/geometry";
+import { getX, getY } from "@smalldraw/geometry";
 import { TILE_SIZE } from "./constants";
 import type { TileCoord } from "./types";
 

@@ -1,10 +1,10 @@
 import {
   type AnyGeometry,
   BoxOperations,
-  type Vec2Tuple,
-  toVec2Like,
   getX,
   getY,
+  toVec2Like,
+  type Vec2Tuple,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";

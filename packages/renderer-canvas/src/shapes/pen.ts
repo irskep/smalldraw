@@ -1,13 +1,12 @@
-import { toVec2, toVec2Like } from "@smalldraw/geometry";
 import type { PenShape, Shape } from "@smalldraw/core";
+import { toVec2, toVec2Like } from "@smalldraw/geometry";
 import { requirePenBrushRenderer } from "./penBrushRenderers";
 
 export function renderPen(ctx: CanvasRenderingContext2D, shape: Shape): void {
   if (shape.type !== "pen") {
     return;
   }
-  const isTemporary =
-    (shape as { temporary?: boolean }).temporary === true;
+  const isTemporary = (shape as { temporary?: boolean }).temporary === true;
   const penShape = shape as PenShape;
   const stroke = penShape.style.stroke;
   const color = stroke?.color ?? "#000000";

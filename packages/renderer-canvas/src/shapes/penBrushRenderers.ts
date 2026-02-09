@@ -63,7 +63,9 @@ const PEN_BRUSH_RENDERERS = new Map<string, PenBrushRenderer>([
   ],
 ]);
 
-export function requirePenBrushRenderer(brushId: string | undefined): PenBrushRenderer {
+export function requirePenBrushRenderer(
+  brushId: string | undefined,
+): PenBrushRenderer {
   if (!brushId) {
     throw new Error("Pen stroke brushId is required but was missing.");
   }

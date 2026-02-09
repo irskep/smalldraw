@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { change } from "@automerge/automerge/slim";
 import type { RectShape } from "@smalldraw/core";
 import {
   type ActionContext,
@@ -13,7 +14,6 @@ import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import type { Fill, StrokeStyle } from "../model/style";
 import { UndoManager } from "../undo";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
-import { change } from "@automerge/automerge/slim";
 
 function baseShape(id: string): RectShape {
   return {
