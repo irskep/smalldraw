@@ -26,7 +26,9 @@
   --kd-radius-lg: var(--radius-4);
 
   --kd-shadow-toolbar: none;
-  --kd-shadow-frame: none;
+  --kd-shadow-frame:
+    0 2px 8px color-mix(in oklch, var(--gray-9) 18%, transparent),
+    0 0 0 1px color-mix(in oklch, var(--gray-7) 18%, white);
   --kd-shadow-button: var(--shadow-2);
   --kd-shadow-button-active: var(--shadow-3);
 
@@ -70,6 +72,14 @@ body {
   pointer-events: auto;
 }
 
+.kids-draw-toolbar-top {
+  gap: var(--kd-space-1);
+}
+
+.kids-draw-toolbar-bottom {
+  padding-bottom: var(--kd-space-1);
+}
+
 .kids-draw-toolbar button {
   border: 1px solid color-mix(in oklch, var(--gray-7) 28%, white);
   border-radius: var(--kd-radius-md);
@@ -100,7 +110,8 @@ body {
 }
 
 .kids-draw-tool-selector kids-square-icon-button,
-.kids-draw-action-panel kids-square-icon-button {
+.kids-draw-action-panel kids-square-icon-button,
+.kids-draw-family-variants kids-square-icon-button {
   --sq-border-width: 1px;
   --sq-border: color-mix(in oklch, var(--gray-7) 28%, white);
   --sq-bg: var(--kd-surface-button);
@@ -117,6 +128,11 @@ body {
   --sq-color-selected: var(--gray-0);
 }
 
+.kids-draw-family-variants kids-square-icon-button {
+  --sq-bg-selected: var(--blue-5);
+  --sq-color-selected: var(--gray-0);
+}
+
 .kids-draw-toolbar-panel {
   display: grid;
   gap: var(--kd-space-1);
@@ -124,6 +140,34 @@ body {
   background: var(--kd-surface-toolbar-panel);
   border-radius: var(--kd-radius-md);
   box-shadow: var(--kd-shadow-toolbar);
+}
+
+.kids-draw-family-variants {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 50px;
+  gap: var(--kd-space-1);
+  padding: var(--kd-space-1);
+  background: var(--kd-surface-toolbar-panel);
+  border-radius: var(--kd-radius-md);
+  justify-content: center;
+}
+
+.kids-draw-family-variants[hidden] {
+  display: none;
+}
+
+.kids-draw-tool-variant-button {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  min-height: 50px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
 }
 
 .kids-draw-color-swatches {

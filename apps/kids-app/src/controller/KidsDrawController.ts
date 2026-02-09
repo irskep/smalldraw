@@ -17,7 +17,12 @@ import {
 } from "../layout/responsiveLayout";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
-import type { KidsToolConfig } from "../tools/kidsTools";
+import {
+  getDefaultToolIdForFamily,
+  getFamilyIdForTool,
+  type KidsToolConfig,
+  type KidsToolFamilyConfig,
+} from "../tools/kidsTools";
 import {
   setNewDrawingPending,
   setToolbarStrokeUi,
@@ -54,6 +59,7 @@ export function createKidsDrawController(options: {
   core: SmalldrawCore;
   toolbar: KidsDrawToolbar;
   tools: KidsToolConfig[];
+  families: KidsToolFamilyConfig[];
   stage: KidsDrawStage;
   pipeline: RasterPipeline;
   backgroundColor: string;
@@ -70,6 +76,7 @@ export function createKidsDrawController(options: {
     core,
     toolbar,
     tools,
+    families,
     stage,
     pipeline,
     backgroundColor,
@@ -110,6 +117,9 @@ export function createKidsDrawController(options: {
       tools.map((tool) => [tool.id, tool.cursorMode] as const),
     ),
   });
+  const selectedToolIdByFamily = new Map<string, string>(
+    families.map((family) => [family.id, family.defaultToolId] as const),
+  );
 
   const debugLifecycle = (...args: unknown[]): void => {
     if (
@@ -244,13 +254,16 @@ export function createKidsDrawController(options: {
     bottom: number;
     left: number;
   } => {
-    const toolbarHeight = Math.ceil(
-      toolbar.element.getBoundingClientRect().height,
+    const topToolbarHeight = Math.ceil(
+      toolbar.topElement.getBoundingClientRect().height,
+    );
+    const bottomToolbarHeight = Math.ceil(
+      toolbar.bottomElement.getBoundingClientRect().height,
     );
     return {
-      top: Math.max(VIEWPORT_PADDING_TOP, toolbarHeight + 4),
+      top: Math.max(VIEWPORT_PADDING_TOP, topToolbarHeight + 4),
       right: VIEWPORT_PADDING_RIGHT,
-      bottom: VIEWPORT_PADDING_BOTTOM,
+      bottom: Math.max(VIEWPORT_PADDING_BOTTOM, bottomToolbarHeight + 4),
       left: VIEWPORT_PADDING_LEFT,
     };
   };
@@ -373,6 +386,15 @@ export function createKidsDrawController(options: {
     };
   };
 
+  const activateToolAndRemember = (toolId: string): void => {
+    store.activateTool(toolId);
+    const familyId = getFamilyIdForTool(toolId);
+    if (!familyId) {
+      return;
+    }
+    selectedToolIdByFamily.set(familyId, toolId);
+  };
+
   const onNewDrawingClick = async () => {
     const confirmed = await confirmDestructiveAction({
       title: "Start a new drawing?",
@@ -477,11 +499,25 @@ export function createKidsDrawController(options: {
   if (window.visualViewport) {
     listen(window.visualViewport, "resize", onWindowResize);
   }
-  for (const [toolId, button] of toolbar.toolButtons) {
+  for (const [familyId, button] of toolbar.familyButtons) {
     listen(
       button,
       "click",
-      runAndSync(() => store.activateTool(toolId)),
+      runAndSync(() => {
+        const toolId =
+          selectedToolIdByFamily.get(familyId) ??
+          getDefaultToolIdForFamily(familyId);
+        activateToolAndRemember(toolId);
+      }),
+    );
+  }
+  for (const [toolId, button] of toolbar.variantButtons) {
+    listen(
+      button,
+      "click",
+      runAndSync(() => {
+        activateToolAndRemember(toolId);
+      }),
     );
   }
   listen(

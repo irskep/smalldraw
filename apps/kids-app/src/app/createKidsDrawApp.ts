@@ -7,7 +7,12 @@ import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
 import { resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
-import { DEFAULT_KIDS_DRAW_TOOL_ID, KIDS_DRAW_TOOLS } from "../tools/kidsTools";
+import {
+  DEFAULT_KIDS_DRAW_FAMILY_ID,
+  getDefaultToolIdForFamily,
+  KIDS_DRAW_TOOL_FAMILIES,
+  KIDS_DRAW_TOOLS,
+} from "../tools/kidsTools";
 import {
   $toolbarUi,
   syncToolbarUiFromDrawingStore,
@@ -63,6 +68,7 @@ export async function createKidsDrawApp(
 
   const toolbar = createKidsDrawToolbar({
     tools: KIDS_DRAW_TOOLS,
+    families: KIDS_DRAW_TOOL_FAMILIES,
   });
   const stage = createKidsDrawStage({
     width: size.width,
@@ -77,7 +83,8 @@ export async function createKidsDrawApp(
   mount(element, stage.element);
   mount(stage.insetLeftSlot, toolbar.toolSelectorElement);
   mount(stage.insetRightSlot, toolbar.actionPanelElement);
-  mount(stage.insetTopSlot, toolbar.element);
+  mount(stage.insetTopSlot, toolbar.topElement);
+  mount(stage.insetBottomSlot, toolbar.bottomElement);
   mount(element, modalDialog);
   mount(options.container, element);
 
@@ -86,7 +93,7 @@ export async function createKidsDrawApp(
     document: core.storeAdapter.getDoc(),
     actionDispatcher: (event) => core.storeAdapter.applyAction(event),
   });
-  store.activateTool(DEFAULT_KIDS_DRAW_TOOL_ID);
+  store.activateTool(getDefaultToolIdForFamily(DEFAULT_KIDS_DRAW_FAMILY_ID));
 
   const shared = store.getSharedSettings();
   const defaultStrokeWidth = Math.max(
@@ -117,6 +124,7 @@ export async function createKidsDrawApp(
     core,
     toolbar,
     tools: KIDS_DRAW_TOOLS,
+    families: KIDS_DRAW_TOOL_FAMILIES,
     stage,
     pipeline,
     backgroundColor,

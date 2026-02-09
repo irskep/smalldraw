@@ -261,23 +261,23 @@ describe("kids-app shell", () => {
     expect(undoButton!.disabled).toBeFalse();
     clearButton!.click();
 
-    const eraserButton = container.querySelector(
-      '[data-tool="eraser"]',
+    const eraserFamilyButton = container.querySelector(
+      '[data-tool-family="eraser"]',
     ) as HTMLElement | null;
-    const markerButton = container.querySelector(
-      '[data-tool="marker"]',
+    const markerVariantButton = container.querySelector(
+      '[data-tool-variant="marker"]',
     ) as HTMLElement | null;
-    const penButton = container.querySelector(
-      '[data-tool="pen"]',
+    const penVariantButton = container.querySelector(
+      '[data-tool-variant="pen"]',
     ) as HTMLElement | null;
-    expect(eraserButton).not.toBeNull();
-    expect(markerButton).not.toBeNull();
-    expect(penButton).not.toBeNull();
-    markerButton!.click();
+    expect(eraserFamilyButton).not.toBeNull();
+    expect(markerVariantButton).not.toBeNull();
+    expect(penVariantButton).not.toBeNull();
+    markerVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("marker");
-    penButton!.click();
+    penVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("pen");
-    eraserButton!.click();
+    eraserFamilyButton!.click();
     expect(app.store.getActiveToolId()).toBe("eraser");
     dispatchPointer(overlay, "pointerdown", 100, 100, 1);
     dispatchPointer(overlay, "pointermove", 220, 220, 1);
@@ -348,15 +348,19 @@ describe("kids-app shell", () => {
     const cursorIndicator = container.querySelector(
       ".kids-draw-cursor-indicator",
     ) as HTMLDivElement | null;
-    const penButton = container.querySelector(
-      '[data-tool="pen"]',
+    const brushFamilyButton = container.querySelector(
+      '[data-tool-family="brush"]',
     ) as HTMLElement | null;
-    const eraserButton = container.querySelector(
-      '[data-tool="eraser"]',
+    const penVariantButton = container.querySelector(
+      '[data-tool-variant="pen"]',
+    ) as HTMLElement | null;
+    const eraserFamilyButton = container.querySelector(
+      '[data-tool-family="eraser"]',
     ) as HTMLElement | null;
     expect(cursorIndicator).not.toBeNull();
-    expect(penButton).not.toBeNull();
-    expect(eraserButton).not.toBeNull();
+    expect(brushFamilyButton).not.toBeNull();
+    expect(penVariantButton).not.toBeNull();
+    expect(eraserFamilyButton).not.toBeNull();
     expect(cursorIndicator!.style.visibility).toBe("hidden");
 
     dispatchPointer(overlay, "pointermove", 120, 100, 0, "mouse");
@@ -368,14 +372,15 @@ describe("kids-app shell", () => {
     expect(cursorIndicator!.style.visibility).toBe("hidden");
     dispatchPointer(overlay, "pointerup", 120, 100, 0, "mouse");
 
-    eraserButton!.click();
+    eraserFamilyButton!.click();
     dispatchPointer(overlay, "pointermove", 140, 110, 0, "mouse");
     expect(cursorIndicator!.style.visibility).toBe("");
     dispatchPointer(overlay, "pointerdown", 140, 110, 1, "mouse");
     expect(cursorIndicator!.style.visibility).toBe("");
     dispatchPointer(overlay, "pointerup", 140, 110, 0, "mouse");
 
-    penButton!.click();
+    brushFamilyButton!.click();
+    penVariantButton!.click();
     dispatchPointer(overlay, "pointermove", 160, 120, 0, "touch");
     expect(cursorIndicator!.style.visibility).toBe("hidden");
 
