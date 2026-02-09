@@ -1,8 +1,5 @@
 import {
   DrawingStore,
-  createEraserTool,
-  createMarkerTool,
-  createPenTool,
   createSmalldraw,
   type DrawingDocumentSize,
 } from "@smalldraw/core";
@@ -21,6 +18,10 @@ import {
 import { createKidsDrawStage } from "../view/KidsDrawStage";
 import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { KidsDrawApp, KidsDrawAppOptions } from "./types";
+import {
+  DEFAULT_KIDS_DRAW_TOOL_ID,
+  KIDS_DRAW_TOOLS,
+} from "../tools/kidsTools";
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 600;
@@ -63,7 +64,9 @@ export async function createKidsDrawApp(
 
   const element = el("div.kids-draw-app") as HTMLDivElement;
 
-  const toolbar = createKidsDrawToolbar();
+  const toolbar = createKidsDrawToolbar({
+    tools: KIDS_DRAW_TOOLS,
+  });
   const stage = createKidsDrawStage({
     width: size.width,
     height: size.height,
@@ -82,11 +85,11 @@ export async function createKidsDrawApp(
   mount(options.container, element);
 
   const store = new DrawingStore({
-    tools: [createPenTool(), createMarkerTool(), createEraserTool()],
+    tools: KIDS_DRAW_TOOLS.map((tool) => tool.createTool()),
     document: core.storeAdapter.getDoc(),
     actionDispatcher: (event) => core.storeAdapter.applyAction(event),
   });
-  store.activateTool("pen");
+  store.activateTool(DEFAULT_KIDS_DRAW_TOOL_ID);
 
   const shared = store.getSharedSettings();
   const defaultStrokeWidth = Math.max(
@@ -116,6 +119,7 @@ export async function createKidsDrawApp(
     store,
     core,
     toolbar,
+    tools: KIDS_DRAW_TOOLS,
     stage,
     pipeline,
     backgroundColor,

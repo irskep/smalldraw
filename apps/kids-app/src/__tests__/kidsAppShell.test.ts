@@ -550,7 +550,9 @@ describe("kids-app shell", () => {
     ]);
     expect(firstStrokePointsRounded).toEqual([
       [50, 50],
-      [130, 130],
+      [70, 70],
+      [90, 90],
+      [120, 120],
     ]);
 
     const firstSummary = (globalThis as Record<string, unknown>)
@@ -564,8 +566,8 @@ describe("kids-app shell", () => {
         }
       | undefined;
     expect(firstSummary?.lastStrokeSummary?.pointerMoveEvents).toBe(1);
-    expect(firstSummary?.lastStrokeSummary?.pointerSamples).toBe(1);
-    expect(firstSummary?.lastStrokeSummary?.coalescedEvents).toBe(0);
+    expect(firstSummary?.lastStrokeSummary?.pointerSamples).toBe(3);
+    expect(firstSummary?.lastStrokeSummary?.coalescedEvents).toBe(1);
 
     dispatchPointer(overlay, "pointerdown", 10, 10, 1);
     dispatchPointer(overlay, "pointermove", 30, 20, 1);

@@ -1,6 +1,7 @@
 import type { DrawingStore } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
+import type { KidsToolCursorMode } from "../tools/kidsTools";
 
 export interface CursorOverlayController {
   refreshMetrics(): void;
@@ -18,8 +19,9 @@ export function createCursorOverlayController(options: {
   store: DrawingStore;
   stage: KidsDrawStage;
   getSize: () => { width: number; height: number };
+  cursorModeByToolId: ReadonlyMap<string, KidsToolCursorMode>;
 }): CursorOverlayController {
-  const { store, stage, getSize } = options;
+  const { store, stage, getSize, cursorModeByToolId } = options;
 
   let drawingActive = false;
   let mouseHoverPoint: [number, number] | null = null;
@@ -40,13 +42,14 @@ export function createCursorOverlayController(options: {
   const sync = (): void => {
     const indicator = stage.cursorIndicator;
     const activeToolId = store.getActiveToolId();
-    const isPenTool = activeToolId === "pen" || activeToolId === "marker";
-    const isEraserTool = activeToolId === "eraser";
-    if ((!isPenTool && !isEraserTool) || !mouseHoverPoint) {
+    const cursorMode = activeToolId
+      ? cursorModeByToolId.get(activeToolId)
+      : undefined;
+    if (!cursorMode || !mouseHoverPoint) {
       indicator.style.visibility = "hidden";
       return;
     }
-    if (isPenTool && drawingActive) {
+    if (cursorMode === "hide-while-drawing" && drawingActive) {
       indicator.style.visibility = "hidden";
       return;
     }

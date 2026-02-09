@@ -23,10 +23,33 @@ const v = (x = 0, y = x): [number, number] => [x, y];
 
 function setupDoc(shapes: TestShapeInput[]) {
   const registry = getDefaultShapeHandlerRegistry();
-  const withStyle = (shape: TestShapeInput): TestShape => ({
-    ...shape,
-    style: shape.style ?? {},
-  });
+  const withStyle = (shape: TestShapeInput): TestShape => {
+    const baseStyle = shape.style ?? {};
+    if (shape.type !== "pen") {
+      return {
+        ...shape,
+        style: baseStyle,
+      };
+    }
+    const stroke = baseStyle.stroke;
+    return {
+      ...shape,
+      style: {
+        ...baseStyle,
+        stroke: stroke
+          ? {
+              ...stroke,
+              brushId: stroke.brushId ?? "freehand",
+            }
+          : {
+              type: "brush",
+              color: "#000000",
+              size: 0,
+              brushId: "freehand",
+            },
+      },
+    };
+  };
   const docRef = { current: createDocument(shapes.map(withStyle), registry) };
   return { docRef, registry };
 }

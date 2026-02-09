@@ -40,7 +40,14 @@ describe("geometry bounds helpers", () => {
         type: "pen",
         points: [v(-2, -1), v(3, 4)],
       },
-      style: {},
+      style: {
+        stroke: {
+          type: "brush",
+          color: "#000000",
+          size: 0,
+          brushId: "freehand",
+        },
+      },
       transform: {
         translation: v(5, -5),
         rotation: 0,

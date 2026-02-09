@@ -25,10 +25,11 @@ import {
 } from "../ui/stores/toolbarUiStore";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
+import type { KidsToolConfig } from "../tools/kidsTools";
 
 const RESIZE_BAKE_DEBOUNCE_MS = 120;
 const MAX_POINTER_SAMPLES_PER_EVENT = 64;
-const ENABLE_COALESCED_POINTER_SAMPLES = false;
+const ENABLE_COALESCED_POINTER_SAMPLES = true;
 
 type RafRenderState = "idle" | "modelRequested" | "anticipatory";
 type PointerEventWithCoalesced = PointerEvent & {
@@ -52,6 +53,7 @@ export function createKidsDrawController(options: {
   store: DrawingStore;
   core: SmalldrawCore;
   toolbar: KidsDrawToolbar;
+  tools: KidsToolConfig[];
   stage: KidsDrawStage;
   pipeline: RasterPipeline;
   backgroundColor: string;
@@ -67,6 +69,7 @@ export function createKidsDrawController(options: {
     store,
     core,
     toolbar,
+    tools,
     stage,
     pipeline,
     backgroundColor,
@@ -103,6 +106,9 @@ export function createKidsDrawController(options: {
     store,
     stage,
     getSize,
+    cursorModeByToolId: new Map(
+      tools.map((tool) => [tool.id, tool.cursorMode] as const),
+    ),
   });
 
   const debugLifecycle = (...args: unknown[]): void => {
@@ -471,21 +477,9 @@ export function createKidsDrawController(options: {
   if (window.visualViewport) {
     listen(window.visualViewport, "resize", onWindowResize);
   }
-  listen(
-    toolbar.penButton,
-    "click",
-    runAndSync(() => store.activateTool("pen")),
-  );
-  listen(
-    toolbar.markerButton,
-    "click",
-    runAndSync(() => store.activateTool("marker")),
-  );
-  listen(
-    toolbar.eraserButton,
-    "click",
-    runAndSync(() => store.activateTool("eraser")),
-  );
+  for (const [toolId, button] of toolbar.toolButtons) {
+    listen(button, "click", runAndSync(() => store.activateTool(toolId)));
+  }
   listen(
     toolbar.undoButton,
     "click",

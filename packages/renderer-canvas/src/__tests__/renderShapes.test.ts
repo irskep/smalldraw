@@ -72,7 +72,52 @@ describe("renderer-canvas snapshots", () => {
             points: [v(-60, -20), v(-20, 20), v(20, -10), v(60, 30)],
             pressures: [1, 1, 1, 1],
           } as PenGeometry,
-          style: { stroke: { type: "brush", color: "#e65100", size: 10 } },
+          style: {
+            stroke: {
+              type: "brush",
+              color: "#e65100",
+              size: 10,
+              brushId: "freehand",
+            },
+          },
+        },
+      ],
+      240,
+      200,
+    );
+  });
+
+  test("marker brush stroke over rectangle", async () => {
+    await expectDocumentSnapshot(
+      "canvas-marker-over-rect",
+      [
+        {
+          id: "rect-1",
+          type: "rect",
+          zIndex: "a",
+          geometry: { type: "rect", size: v(140, 90) } as RectGeometry,
+          style: {
+            fill: { type: "solid", color: "#f5f5f5" },
+            stroke: { type: "brush", color: "#546e7a", size: 3 },
+          },
+        },
+        {
+          id: "marker-1",
+          type: "pen",
+          zIndex: "b",
+          geometry: {
+            type: "pen",
+            points: [v(-60, -30), v(-25, 8), v(15, -15), v(58, 26)],
+            pressures: [1, 1, 1, 1],
+          } as PenGeometry,
+          style: {
+            stroke: {
+              type: "brush",
+              color: "#2b8cff",
+              size: 14,
+              brushId: "marker",
+            },
+          },
         },
       ],
       240,
@@ -138,6 +183,7 @@ describe("renderer-canvas snapshots", () => {
               type: "brush",
               color: "#ffffff",
               size: 16,
+              brushId: "marker",
               compositeOp: "destination-out",
             },
           },
@@ -176,6 +222,7 @@ describe("renderer-canvas snapshots", () => {
               type: "brush",
               color: "#ffffff",
               size: 20,
+              brushId: "marker",
               compositeOp: "destination-out",
             },
           },

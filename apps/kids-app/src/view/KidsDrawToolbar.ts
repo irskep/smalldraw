@@ -1,8 +1,5 @@
 import {
-  Eraser,
   FilePlus,
-  Highlighter,
-  Pen,
   Redo2,
   Trash2,
   Undo2,
@@ -15,14 +12,13 @@ import {
   ensureSquareIconButtonDefined,
   SquareIconButtonElement,
 } from "./SquareIconButton";
+import type { KidsToolConfig } from "../tools/kidsTools";
 
 export interface KidsDrawToolbar {
   readonly element: HTMLDivElement;
   readonly toolSelectorElement: HTMLDivElement;
   readonly actionPanelElement: HTMLDivElement;
-  readonly penButton: SquareIconButtonElement;
-  readonly markerButton: SquareIconButtonElement;
-  readonly eraserButton: SquareIconButtonElement;
+  readonly toolButtons: Map<string, SquareIconButtonElement>;
   readonly undoButton: SquareIconButtonElement;
   readonly redoButton: SquareIconButtonElement;
   readonly clearButton: SquareIconButtonElement;
@@ -65,8 +61,11 @@ function createSquareButton(options: {
   return button;
 }
 
-export function createKidsDrawToolbar(): KidsDrawToolbar {
+export function createKidsDrawToolbar(options: {
+  tools: KidsToolConfig[];
+}): KidsDrawToolbar {
   ensureSquareIconButtonDefined();
+  const { tools } = options;
 
   const toolSelectorControls: HTMLElement[] = [];
   const actionPanelControls: HTMLElement[] = [];
@@ -77,41 +76,21 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
   ) as HTMLDivElement;
   const actionPanelElement = el("div.kids-draw-action-panel") as HTMLDivElement;
 
-  const penButton = createSquareButton({
-    className: "kids-draw-tool-button",
-    label: "Pen",
-    icon: Pen,
-    attributes: {
-      "data-tool": "pen",
-      title: "Pen",
-      "aria-label": "Pen",
-    },
-  });
-  toolSelectorControls.push(penButton);
-
-  const markerButton = createSquareButton({
-    className: "kids-draw-tool-button",
-    label: "Marker",
-    icon: Highlighter,
-    attributes: {
-      "data-tool": "marker",
-      title: "Marker",
-      "aria-label": "Marker",
-    },
-  });
-  toolSelectorControls.push(markerButton);
-
-  const eraserButton = createSquareButton({
-    className: "kids-draw-tool-button",
-    label: "Eraser",
-    icon: Eraser,
-    attributes: {
-      "data-tool": "eraser",
-      title: "Eraser",
-      "aria-label": "Eraser",
-    },
-  });
-  toolSelectorControls.push(eraserButton);
+  const toolButtons = new Map<string, SquareIconButtonElement>();
+  for (const tool of tools) {
+    const button = createSquareButton({
+      className: "kids-draw-tool-button",
+      label: tool.label,
+      icon: tool.icon,
+      attributes: {
+        "data-tool": tool.id,
+        title: tool.label,
+        "aria-label": tool.label,
+      },
+    });
+    toolButtons.set(tool.id, button);
+    toolSelectorControls.push(button);
+  }
 
   const undoButton = createSquareButton({
     className: "kids-draw-action-button kids-draw-action-undo",
@@ -248,21 +227,11 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
 
   const applyState = (state: ToolbarUiState): void => {
     const normalizedStateColor = state.strokeColor.toLowerCase();
-    const penSelected = state.activeToolId === "pen";
-    const markerSelected = state.activeToolId === "marker";
-    const eraserSelected = state.activeToolId === "eraser";
-    penButton.setAttribute("aria-pressed", penSelected ? "true" : "false");
-    markerButton.setAttribute(
-      "aria-pressed",
-      markerSelected ? "true" : "false",
-    );
-    eraserButton.setAttribute(
-      "aria-pressed",
-      eraserSelected ? "true" : "false",
-    );
-    setToolButtonSelected(penButton, penSelected);
-    setToolButtonSelected(markerButton, markerSelected);
-    setToolButtonSelected(eraserButton, eraserSelected);
+    for (const [toolId, button] of toolButtons) {
+      const selected = state.activeToolId === toolId;
+      button.setAttribute("aria-pressed", selected ? "true" : "false");
+      setToolButtonSelected(button, selected);
+    }
     undoButton.disabled = !state.canUndo;
     redoButton.disabled = !state.canRedo;
     newDrawingButton.disabled = state.newDrawingPending;
@@ -300,9 +269,7 @@ export function createKidsDrawToolbar(): KidsDrawToolbar {
     element,
     toolSelectorElement,
     actionPanelElement,
-    penButton,
-    markerButton,
-    eraserButton,
+    toolButtons,
     undoButton,
     redoButton,
     clearButton,

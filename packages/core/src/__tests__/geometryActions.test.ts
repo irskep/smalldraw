@@ -16,6 +16,17 @@ function createShape(id: string, geometry: unknown): AnyShape {
       id,
       type: shapeType,
       geometry,
+      style:
+        shapeType === "pen"
+          ? {
+              stroke: {
+                type: "brush",
+                color: "#000000",
+                size: 0,
+                brushId: "freehand",
+              },
+            }
+          : {},
       zIndex: id,
       transform: {
         translation: [0, 0],

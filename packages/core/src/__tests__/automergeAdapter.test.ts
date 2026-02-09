@@ -32,7 +32,14 @@ describe("Automerge JSON adapter", () => {
           type: "pen",
           points: [v(0, 0), v(10, 5)],
         },
-        style: {},
+        style: {
+          stroke: {
+            type: "brush",
+            color: "#000000",
+            size: 0,
+            brushId: "freehand",
+          },
+        },
         zIndex: "a1",
         transform: {
           translation: v(2, 3),

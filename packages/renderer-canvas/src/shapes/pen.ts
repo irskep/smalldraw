@@ -1,8 +1,6 @@
 import { toVec2, toVec2Like } from "@smalldraw/geometry";
 import type { PenShape, Shape } from "@smalldraw/core";
-import { getPenStrokeOutline } from "@smalldraw/core";
-import { renderMarkerPath } from "./markerPath";
-import { getSvgPathFromStroke } from "./penPath";
+import { requirePenBrushRenderer } from "./penBrushRenderers";
 
 export function renderPen(ctx: CanvasRenderingContext2D, shape: Shape): void {
   if (shape.type !== "pen") {
@@ -22,42 +20,15 @@ export function renderPen(ctx: CanvasRenderingContext2D, shape: Shape): void {
   }
   ctx.save();
   ctx.globalCompositeOperation = stroke?.compositeOp ?? "source-over";
-  if (stroke?.brushId === "marker") {
-    ctx.strokeStyle = color;
-    renderMarkerPath(ctx, points, strokeSize);
-  } else {
-    const outline = getPenStrokeOutline(
-      {
-        ...penShape,
-        geometry: {
-          ...penShape.geometry,
-          points,
-        },
-      },
-      { last: !isTemporary },
-    );
-    if (!outline.length) {
-      ctx.restore();
-      return;
-    }
-    ctx.fillStyle = color;
-    const pathData = getSvgPathFromStroke(outline);
-    if (pathData && typeof Path2D !== "undefined") {
-      ctx.fill(new Path2D(pathData));
-    } else {
-      ctx.beginPath();
-      const [first, ...rest] = outline;
-      if (!first) {
-        ctx.restore();
-        return;
-      }
-      ctx.moveTo(first[0], first[1]);
-      for (const [x, y] of rest) {
-        ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.fill();
-    }
-  }
+  const brushRenderer = requirePenBrushRenderer(stroke?.brushId);
+  ctx.strokeStyle = color;
+  brushRenderer({
+    ctx,
+    shape: penShape,
+    points,
+    strokeSize,
+    color,
+    isTemporary,
+  });
   ctx.restore();
 }
