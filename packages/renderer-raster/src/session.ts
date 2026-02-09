@@ -33,6 +33,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   private knownClearShapeIds = new Set<string>();
   private bakeQueue: Promise<void> = Promise.resolve();
   private forceFullHotRenderOnce = false;
+  private hadRenderableShapes = false;
 
   constructor(
     store: DrawingStore,
@@ -56,6 +57,11 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
       return;
     }
     const docShapes = this.store.getDocument().shapes;
+    const hadRenderableShapes = this.hadRenderableShapes;
+    const hasRenderableShapes = Object.values(docShapes).some(
+      (shape) => shape.type !== "clear",
+    );
+    this.hadRenderableShapes = hasRenderableShapes;
     const previousClearShapeIds = new Set(this.knownClearShapeIds);
     const drafts = this.store.getDrafts();
     const hasDrafts = drafts.length > 0;
@@ -115,6 +121,17 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
       perfNowMs() - renderStateStartMs,
     );
     if (this.hasClearMutation(dirtyState, docShapes, previousClearShapeIds)) {
+      this.updateKnownClearShapeIds(docShapes);
+      if (!perfFlagEnabled("skipTileBakeScheduling")) {
+        this.tileRenderer.scheduleBakeForClear();
+        this.enqueueBake();
+      } else {
+        perfAddCounter("session.tileBakeScheduling.skipped");
+      }
+      perfAddTimingMs("session.render.ms", perfNowMs() - renderStartMs);
+      return;
+    }
+    if (!hasDrafts && hadRenderableShapes && !hasRenderableShapes) {
       this.updateKnownClearShapeIds(docShapes);
       if (!perfFlagEnabled("skipTileBakeScheduling")) {
         this.tileRenderer.scheduleBakeForClear();
