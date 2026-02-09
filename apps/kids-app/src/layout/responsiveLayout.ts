@@ -2,9 +2,9 @@ export const MIN_WIDTH = 320;
 export const MIN_HEIGHT = 240;
 export const AUTO_HEIGHT_RESERVED = 80;
 export const VIEWPORT_PADDING_TOP = 100;
-export const VIEWPORT_PADDING_RIGHT = 120;
+export const VIEWPORT_PADDING_RIGHT = 140;
 export const VIEWPORT_PADDING_BOTTOM = 100;
-export const VIEWPORT_PADDING_LEFT = 120;
+export const VIEWPORT_PADDING_LEFT = 140;
 
 type ViewportPadding = {
   top: number;
