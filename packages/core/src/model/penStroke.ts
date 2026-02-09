@@ -18,44 +18,82 @@ const DEFAULT_PEN_STROKE_OPTIONS = {
   thinning: 0.6,
 } satisfies Partial<FreehandStrokeOptions>;
 
+export interface PenStrokeRenderOptions {
+  last?: boolean;
+}
+
 export function getPenStrokeOptions(
   shape: PenShape,
+  renderOptions: PenStrokeRenderOptions = {},
 ): FreehandStrokeOptions | null {
   const size = shape.style?.stroke?.size;
   if (!size) {
     return null;
   }
+  const hasPressure = hasAlignedPressureSamples(shape);
   return {
     size,
-    simulatePressure: !!shape.geometry.pressures,
+    simulatePressure: !hasPressure,
+    last: renderOptions.last ?? true,
     ...DEFAULT_PEN_STROKE_OPTIONS,
   };
 }
 
-export function getPenStrokeOutline(shape: PenShape): Vec2Tuple[] {
+export function getPenStrokeOutline(
+  shape: PenShape,
+  renderOptions: PenStrokeRenderOptions = {},
+): Vec2Tuple[] {
   if (!shape.geometry.points.length) {
     return [];
   }
-  const options = getPenStrokeOptions(shape);
+  const options = getPenStrokeOptions(shape, renderOptions);
   if (!options) {
     return [];
   }
-  const outline = getStroke(
-    shape.geometry.points.map((point) => [getX(point), getY(point)]),
-    options,
-  ) as Vec2Tuple[];
+  const outline = getStroke(getFreehandInputPoints(shape), options) as Vec2Tuple[];
   if (!outline.length) {
     return createDotStroke(shape.geometry.points[0], options);
   }
   return outline;
 }
 
-export function getPenStrokeBounds(shape: PenShape): Box | null {
-  const outline = getPenStrokeOutline(shape);
+export function getPenStrokeBounds(
+  shape: PenShape,
+  renderOptions: PenStrokeRenderOptions = {},
+): Box | null {
+  const outline = getPenStrokeOutline(shape, renderOptions);
   if (!outline.length) {
     return null;
   }
   return BoxOperations.fromPointArray(outline);
+}
+
+export function getFreehandInputPoints(shape: PenShape): number[][] {
+  const points = shape.geometry.points;
+  const pressures = getAlignedPressures(shape);
+  if (!pressures) {
+    return points.map((point) => [getX(point), getY(point)]);
+  }
+  return points.map((point, index) => [getX(point), getY(point), pressures[index]]);
+}
+
+function hasAlignedPressureSamples(shape: PenShape): boolean {
+  return getAlignedPressures(shape) !== null;
+}
+
+function getAlignedPressures(shape: PenShape): number[] | null {
+  const { points, pressures } = shape.geometry;
+  if (!pressures || pressures.length !== points.length) {
+    return null;
+  }
+  if (!pressures.every(isPressureSample)) {
+    return null;
+  }
+  return pressures;
+}
+
+function isPressureSample(value: number | undefined): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
 function createDotStroke(

@@ -94,6 +94,32 @@ describe("pen tool integration with runtime", () => {
     expect(shapeEntries[0].style.stroke?.color).toBe("#ff00ff");
   });
 
+  test("preserves explicit zero pressure samples", () => {
+    const { runtime, getDocument } = setup();
+
+    runtime.dispatch("pointerDown", {
+      point: new Vec2(0, 0),
+      buttons: 1,
+      pressure: 0,
+    });
+    runtime.dispatch("pointerMove", {
+      point: new Vec2(5, 5),
+      buttons: 1,
+      pressure: 0.3,
+    });
+    runtime.dispatch("pointerMove", {
+      point: new Vec2(10, 10),
+      buttons: 1,
+      pressure: 0,
+    });
+    runtime.dispatch("pointerUp", { point: new Vec2(10, 10), buttons: 0 });
+
+    const shapeEntries = Object.values(getDocument().shapes);
+    expect(shapeEntries).toHaveLength(1);
+    expect(shapeEntries[0]?.geometry.pressures).toEqual([0, 0.3, 0]);
+    expect(shapeEntries[0]?.geometry.points).toHaveLength(3);
+  });
+
   test("falls back to shared settings for stroke defaults", () => {
     const shared: SharedToolSettings = {
       strokeColor: "#00ff00",

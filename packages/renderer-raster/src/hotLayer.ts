@@ -171,13 +171,7 @@ export class HotLayer {
 }
 
 function normalizeDraftShapes(drafts: DraftShape[] | AnyShape[]): AnyShape[] {
-  return drafts.map((shape) => {
-    if ("temporary" in shape && "toolId" in shape) {
-      const { temporary: _temp, toolId: _tool, ...rest } = shape;
-      return rest;
-    }
-    return shape;
-  });
+  return drafts as AnyShape[];
 }
 
 function orderByZIndex(shapes: AnyShape[]): AnyShape[] {

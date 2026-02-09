@@ -12,6 +12,7 @@ import type { PenGeometry, PenShape } from "../model/shapes/penShape";
 import type { StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { attachPointerHandlers } from "./pointerHandlers";
+import { isPressureSample } from "./pressure";
 import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 
 const PRIMARY_BUTTON_MASK = 1;
@@ -92,7 +93,7 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
       geometry: {
         type: "pen",
         points: [toVec2Like(point)],
-        pressures: pressure ? [pressure] : undefined,
+        pressures: isPressureSample(pressure) ? [pressure] : undefined,
       },
       stroke: resolveStroke(runtime),
       zIndex,
@@ -109,7 +110,7 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
     const state = runtimeState.get(runtime);
     if (!state?.drawing) return;
     state.drawing.geometry.points.push(toVec2Like(point));
-    if (state.drawing.geometry.pressures && pressure)
+    if (state.drawing.geometry.pressures && isPressureSample(pressure))
       state.drawing.geometry.pressures.push(pressure);
     updateDraft(runtime);
   };

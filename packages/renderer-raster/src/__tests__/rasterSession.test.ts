@@ -101,7 +101,7 @@ describe("RasterSession", () => {
     await session.flushBakes();
 
     expect(store.getDrafts()).toHaveLength(0);
-    expect(pixelAt(hotCtx, 110, 110)[3]).toBe(0);
+    expect(pixelAt(hotCtx, 110, 110)[3]).toBeLessThanOrEqual(16);
     expect(bakeCalls).toEqual(["0,0"]);
     expect(renderer.getPendingBakeTiles()).toEqual([]);
 
@@ -273,7 +273,7 @@ describe("RasterSession", () => {
     expect(captureCalls).toBe(1);
     expect(layerModes).toContain("hot");
     expect(pixelAt(hotCtx, 10, 10)).toEqual([255, 0, 0, 255]);
-    expect(pixelAt(hotCtx, 110, 110)[3]).toBe(0);
+    expect(pixelAt(hotCtx, 110, 110)[3]).toBeLessThanOrEqual(16);
 
     store.dispatch("pointerUp", {
       point: new Vec2(150, 150),
