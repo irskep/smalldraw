@@ -73,6 +73,11 @@ export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
   },
 ];
 
+export const KIDS_DRAW_SIDEBAR_ITEMS: ToolbarItem[] = [
+  { kind: "family", familyId: "brush" },
+  { kind: "family", familyId: "eraser" },
+];
+
 export const DEFAULT_KIDS_DRAW_FAMILY_ID =
   KIDS_DRAW_TOOL_FAMILIES[0]?.id ?? "brush";
 

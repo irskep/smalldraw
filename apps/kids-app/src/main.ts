@@ -1,3 +1,5 @@
+import "./main.css";
+
 import { createKidsDrawApp } from "./createKidsDrawApp";
 
 const container = document.getElementById("app");

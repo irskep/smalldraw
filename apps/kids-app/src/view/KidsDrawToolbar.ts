@@ -1,11 +1,17 @@
-import { FilePlus, type IconNode, Redo2, Trash2, Undo2 } from "lucide";
+import "./KidsDrawToolbar.css";
+
+import { FilePlus, Redo2, Trash2, Undo2 } from "lucide";
 import type { ReadableAtom } from "nanostores";
 import { el, mount } from "redom";
-import type { KidsToolConfig, KidsToolFamilyConfig } from "../tools/kidsTools";
+import type {
+  KidsToolConfig,
+  KidsToolFamilyConfig,
+  ToolbarItem,
+} from "../tools/kidsTools";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 import {
-  ensureSquareIconButtonDefined,
-  SquareIconButtonElement,
+  createSquareIconButton,
+  type SquareIconButton,
 } from "./SquareIconButton";
 
 export interface KidsDrawToolbar {
@@ -13,13 +19,14 @@ export interface KidsDrawToolbar {
   readonly bottomElement: HTMLDivElement;
   readonly toolSelectorElement: HTMLDivElement;
   readonly actionPanelElement: HTMLDivElement;
-  readonly familyButtons: Map<string, SquareIconButtonElement>;
-  readonly variantButtons: Map<string, SquareIconButtonElement>;
+  readonly familyButtons: Map<string, SquareIconButton>;
+  readonly directToolButtons: Map<string, SquareIconButton>;
+  readonly variantButtons: Map<string, SquareIconButton>;
   readonly familyVariantToolbars: Map<string, HTMLDivElement>;
-  readonly undoButton: SquareIconButtonElement;
-  readonly redoButton: SquareIconButtonElement;
-  readonly clearButton: SquareIconButtonElement;
-  readonly newDrawingButton: SquareIconButtonElement;
+  readonly undoButton: SquareIconButton;
+  readonly redoButton: SquareIconButton;
+  readonly clearButton: SquareIconButton;
+  readonly newDrawingButton: SquareIconButton;
   readonly colorSwatchButtons: HTMLButtonElement[];
   readonly strokeWidthButtons: HTMLButtonElement[];
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
@@ -40,30 +47,12 @@ const COLOR_SWATCHES = [
 
 const STROKE_WIDTH_OPTIONS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
 
-function createSquareButton(options: {
-  className: string;
-  label: string;
-  icon: IconNode;
-  attributes: Record<string, string>;
-}): SquareIconButtonElement {
-  const button = document.createElement(
-    SquareIconButtonElement.tagName,
-  ) as SquareIconButtonElement;
-  button.className = options.className;
-  for (const [name, value] of Object.entries(options.attributes)) {
-    button.setAttribute(name, value);
-  }
-  button.setLabel(options.label);
-  button.setIcon(options.icon);
-  return button;
-}
-
 export function createKidsDrawToolbar(options: {
   tools: KidsToolConfig[];
   families: KidsToolFamilyConfig[];
+  sidebarItems: ToolbarItem[];
 }): KidsDrawToolbar {
-  ensureSquareIconButtonDefined();
-  const { tools, families } = options;
+  const { tools, families, sidebarItems } = options;
 
   const topElement = el(
     "div.kids-draw-toolbar.kids-draw-toolbar-top",
@@ -84,23 +73,45 @@ export function createKidsDrawToolbar(options: {
     tools.map((tool) => [tool.id, tool.familyId] as const),
   );
 
-  const familyButtons = new Map<string, SquareIconButtonElement>();
-  for (const family of families) {
-    const button = createSquareButton({
+  const familyButtons = new Map<string, SquareIconButton>();
+  const directToolButtons = new Map<string, SquareIconButton>();
+  for (const item of sidebarItems) {
+    if (item.kind === "family") {
+      const family = familyById.get(item.familyId);
+      if (!family) continue;
+      const button = createSquareIconButton({
+        className: "kids-draw-tool-button",
+        label: family.label,
+        icon: family.icon,
+        attributes: {
+          "data-tool-family": family.id,
+          title: family.label,
+          "aria-label": family.label,
+        },
+      });
+      familyButtons.set(family.id, button);
+      mount(toolSelectorElement, button.el);
+      continue;
+    }
+
+    const tool = toolById.get(item.toolId);
+    if (!tool) continue;
+    const button = createSquareIconButton({
       className: "kids-draw-tool-button",
-      label: family.label,
-      icon: family.icon,
+      label: tool.label,
+      icon: tool.icon,
       attributes: {
-        "data-tool-family": family.id,
-        title: family.label,
-        "aria-label": family.label,
+        "data-tool-id": tool.id,
+        "data-tool-family": tool.familyId,
+        title: tool.label,
+        "aria-label": tool.label,
       },
     });
-    familyButtons.set(family.id, button);
-    mount(toolSelectorElement, button);
+    directToolButtons.set(tool.id, button);
+    mount(toolSelectorElement, button.el);
   }
 
-  const variantButtons = new Map<string, SquareIconButtonElement>();
+  const variantButtons = new Map<string, SquareIconButton>();
   const familyVariantToolbars = new Map<string, HTMLDivElement>();
   for (const family of families) {
     const panel = el("div.kids-draw-family-variants", {
@@ -112,7 +123,7 @@ export function createKidsDrawToolbar(options: {
     for (const toolId of family.toolIds) {
       const tool = toolById.get(toolId);
       if (!tool) continue;
-      const variantButton = createSquareButton({
+      const variantButton = createSquareIconButton({
         className: "kids-draw-tool-variant-button",
         label: tool.label,
         icon: tool.icon,
@@ -125,14 +136,14 @@ export function createKidsDrawToolbar(options: {
         },
       });
       variantButtons.set(tool.id, variantButton);
-      mount(panel, variantButton);
+      mount(panel, variantButton.el);
     }
 
     familyVariantToolbars.set(family.id, panel);
     mount(bottomElement, panel);
   }
 
-  const undoButton = createSquareButton({
+  const undoButton = createSquareIconButton({
     className: "kids-draw-action-button kids-draw-action-undo",
     label: "Undo",
     icon: Undo2,
@@ -142,9 +153,9 @@ export function createKidsDrawToolbar(options: {
       "data-action": "undo",
     },
   });
-  mount(actionPanelElement, undoButton);
+  mount(actionPanelElement, undoButton.el);
 
-  const redoButton = createSquareButton({
+  const redoButton = createSquareIconButton({
     className: "kids-draw-action-button kids-draw-action-redo",
     label: "Redo",
     icon: Redo2,
@@ -154,9 +165,9 @@ export function createKidsDrawToolbar(options: {
       "data-action": "redo",
     },
   });
-  mount(actionPanelElement, redoButton);
+  mount(actionPanelElement, redoButton.el);
 
-  const clearButton = createSquareButton({
+  const clearButton = createSquareIconButton({
     className: "kids-draw-action-button kids-draw-action-clear",
     label: "Clear",
     icon: Trash2,
@@ -167,9 +178,9 @@ export function createKidsDrawToolbar(options: {
       layout: "row",
     },
   });
-  mount(actionPanelElement, clearButton);
+  mount(actionPanelElement, clearButton.el);
 
-  const newDrawingButton = createSquareButton({
+  const newDrawingButton = createSquareIconButton({
     className: "kids-draw-action-button kids-draw-action-new",
     label: "New",
     icon: FilePlus,
@@ -180,7 +191,7 @@ export function createKidsDrawToolbar(options: {
       layout: "row",
     },
   });
-  mount(actionPanelElement, newDrawingButton);
+  mount(actionPanelElement, newDrawingButton.el);
 
   const colorSwatchButtons: HTMLButtonElement[] = [];
   const colorSwatchesElement = el("div.kids-draw-color-swatches", {
@@ -253,10 +264,10 @@ export function createKidsDrawToolbar(options: {
   mount(topElement, strokePanelElement);
 
   const setToolButtonSelected = (
-    button: SquareIconButtonElement,
+    button: SquareIconButton,
     selected: boolean,
   ): void => {
-    button.classList.toggle("is-selected", selected);
+    button.setSelected(selected);
   };
 
   const resolveActiveFamilyId = (activeToolId: string): string => {
@@ -276,7 +287,12 @@ export function createKidsDrawToolbar(options: {
 
     for (const [familyId, button] of familyButtons) {
       const selected = familyId === activeFamilyId;
-      button.setAttribute("aria-pressed", selected ? "true" : "false");
+      button.setPressed(selected);
+      setToolButtonSelected(button, selected);
+    }
+    for (const [toolId, button] of directToolButtons) {
+      const selected = toolId === state.activeToolId;
+      button.setPressed(selected);
       setToolButtonSelected(button, selected);
     }
 
@@ -284,16 +300,16 @@ export function createKidsDrawToolbar(options: {
       const tool = toolById.get(toolId);
       const selected =
         tool?.familyId === activeFamilyId && toolId === state.activeToolId;
-      button.classList.toggle("is-selected", selected);
-      button.setAttribute("aria-pressed", selected ? "true" : "false");
+      button.setSelected(selected);
+      button.setPressed(selected);
     }
     for (const [familyId, panel] of familyVariantToolbars) {
       panel.hidden = familyId !== activeFamilyId;
     }
 
-    undoButton.disabled = !state.canUndo;
-    redoButton.disabled = !state.canRedo;
-    newDrawingButton.disabled = state.newDrawingPending;
+    undoButton.setDisabled(!state.canUndo);
+    redoButton.setDisabled(!state.canRedo);
+    newDrawingButton.setDisabled(state.newDrawingPending);
 
     for (const swatchButton of colorSwatchButtons) {
       const selected =
@@ -330,6 +346,7 @@ export function createKidsDrawToolbar(options: {
     toolSelectorElement,
     actionPanelElement,
     familyButtons,
+    directToolButtons,
     variantButtons,
     familyVariantToolbars,
     undoButton,

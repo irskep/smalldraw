@@ -1,0 +1,141 @@
+.kids-modal-dialog-host {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.kids-modal-dialog {
+  border: none;
+  border-radius: var(--kd-radius-md);
+  padding: 0;
+  width: min(460px, calc(100vw - 32px));
+  background: var(--kd-surface-canvas);
+  color: var(--kd-text-default);
+  box-shadow: var(--shadow-6);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+}
+
+.kids-modal-dialog[open] {
+  animation: kids-dialog-in 180ms var(--ease-out-3) forwards;
+}
+
+.kids-modal-dialog.is-closing {
+  animation: kids-dialog-out 140ms var(--ease-in-3) forwards;
+}
+
+.kids-modal-dialog::backdrop {
+  background: rgb(15 23 42 / 45%);
+  animation: kids-dialog-backdrop-in 180ms var(--ease-out-2) forwards;
+}
+
+.kids-modal-dialog.is-closing::backdrop {
+  animation: kids-dialog-backdrop-out 140ms var(--ease-in-2) forwards;
+}
+
+.kids-modal-dialog__shell {
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.kids-modal-dialog__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kids-modal-dialog__icon {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.kids-modal-dialog__icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.kids-modal-dialog__title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.kids-modal-dialog__message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.kids-modal-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.kids-modal-dialog__button {
+  border: none;
+  border-radius: var(--kd-radius-md);
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.kids-modal-dialog__button--cancel {
+  background: var(--gray-2);
+  color: var(--gray-9);
+}
+
+.kids-modal-dialog__button--confirm {
+  background: var(--blue-6);
+  color: white;
+}
+
+.kids-modal-dialog-host[data-tone="danger"]
+  .kids-modal-dialog__button--confirm {
+  background: var(--red-7);
+}
+
+@keyframes kids-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes kids-dialog-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+}
+
+@keyframes kids-dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes kids-dialog-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

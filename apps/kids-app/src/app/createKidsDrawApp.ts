@@ -11,6 +11,7 @@ import {
   DEFAULT_KIDS_DRAW_FAMILY_ID,
   getDefaultToolIdForFamily,
   getFamilyIdForTool,
+  KIDS_DRAW_SIDEBAR_ITEMS,
   KIDS_DRAW_TOOL_FAMILIES,
   KIDS_DRAW_TOOLS,
 } from "../tools/kidsTools";
@@ -20,10 +21,7 @@ import {
 } from "../ui/stores/toolbarUiStore";
 import { createKidsDrawStage } from "../view/KidsDrawStage";
 import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
-import {
-  ensureModalDialogDefined,
-  ModalDialogElement,
-} from "../view/ModalDialog";
+import { createModalDialogView } from "../view/ModalDialog";
 import type { KidsDrawApp, KidsDrawAppOptions } from "./types";
 
 const DEFAULT_WIDTH = 960;
@@ -70,23 +68,21 @@ export async function createKidsDrawApp(
   const toolbar = createKidsDrawToolbar({
     tools: KIDS_DRAW_TOOLS,
     families: KIDS_DRAW_TOOL_FAMILIES,
+    sidebarItems: KIDS_DRAW_SIDEBAR_ITEMS,
   });
   const stage = createKidsDrawStage({
     width: size.width,
     height: size.height,
     backgroundColor,
   });
-  ensureModalDialogDefined();
-  const modalDialog = document.createElement(
-    ModalDialogElement.tagName,
-  ) as ModalDialogElement;
+  const modalDialog = createModalDialogView();
 
   mount(element, stage.element);
   mount(stage.insetLeftSlot, toolbar.toolSelectorElement);
   mount(stage.insetRightSlot, toolbar.actionPanelElement);
   mount(stage.insetTopSlot, toolbar.topElement);
   mount(stage.insetBottomSlot, toolbar.bottomElement);
-  mount(element, modalDialog);
+  mount(element, modalDialog.el);
   mount(options.container, element);
 
   const store = new DrawingStore({
@@ -152,6 +148,7 @@ export async function createKidsDrawApp(
     destroy() {
       controller.destroy();
       unbindToolbarUi();
+      modalDialog.onunmount();
       unmount(options.container, element);
     },
   };

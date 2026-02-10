@@ -1,0 +1,61 @@
+@import "open-props/open-props.min.css";
+@import "open-props/normalize.light.min.css";
+@import "open-props/buttons.light.min.css";
+@import "open-props/animations.min.css";
+@import "open-props/easings.min.css";
+
+:root {
+  color-scheme: light;
+  --kd-font-family: var(--font-sans);
+
+  --kd-surface-app: var(--gray-3);
+  --kd-surface-viewport: var(--gray-1);
+  --kd-surface-canvas: var(--gray-0);
+  --kd-surface-ui-chrome: var(--yellow-0);
+  --kd-surface-toolbar: var(--kd-surface-ui-chrome);
+  --kd-surface-toolbar-panel: var(--kd-surface-ui-chrome);
+  --kd-surface-button: var(--yellow-1);
+  --kd-surface-button-selected: var(--amber-5);
+  --kd-surface-input: var(--yellow-1);
+
+  --kd-text-default: var(--gray-8);
+  --kd-text-strong: var(--gray-10);
+
+  --kd-radius-sm: var(--radius-2);
+  --kd-radius-md: var(--radius-3);
+  --kd-radius-lg: var(--radius-4);
+
+  --kd-shadow-toolbar: none;
+  --kd-shadow-frame:
+    0 2px 8px color-mix(in oklch, var(--gray-9) 18%, transparent),
+    0 0 0 1px color-mix(in oklch, var(--gray-7) 18%, white);
+  --kd-shadow-button: var(--shadow-2);
+  --kd-shadow-button-active: var(--shadow-3);
+
+  --kd-space-1: var(--size-2);
+  --kd-space-2: var(--size-3);
+  --kd-space-3: var(--size-4);
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--kd-surface-app);
+  color: var(--kd-text-default);
+  font-family: var(--kd-font-family);
+}
+
+.kids-draw-app {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  font-family: var(--kd-font-family);
+  box-sizing: border-box;
+  background: var(--kd-surface-app);
+}

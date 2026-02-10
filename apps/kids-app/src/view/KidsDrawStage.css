@@ -1,0 +1,119 @@
+.kids-draw-viewport {
+  --kids-inset-top: 0px;
+  --kids-inset-right: 0px;
+  --kids-inset-bottom: 0px;
+  --kids-inset-left: 0px;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--kd-surface-viewport);
+  box-sizing: border-box;
+}
+
+.kids-draw-inset-ui {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: var(--kids-inset-left) 1fr var(--kids-inset-right);
+  grid-template-rows: var(--kids-inset-top) 1fr var(--kids-inset-bottom);
+  pointer-events: none;
+  z-index: 20;
+}
+
+.kids-draw-inset-slot {
+  display: flex;
+  pointer-events: none;
+}
+
+.kids-draw-inset-slot > * {
+  pointer-events: auto;
+}
+
+.kids-draw-inset-slot-top {
+  grid-column: 2;
+  grid-row: 1;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.kids-draw-inset-slot-right {
+  grid-column: 3;
+  grid-row: 1 / 4;
+  align-items: center;
+  justify-content: center;
+}
+
+.kids-draw-inset-slot-bottom {
+  grid-column: 2;
+  grid-row: 3;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.kids-draw-inset-slot-left {
+  grid-column: 1;
+  grid-row: 1 / 4;
+  align-items: center;
+  justify-content: center;
+}
+
+.kids-draw-frame {
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--kd-shadow-frame);
+  background: var(--kd-surface-canvas);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.kids-draw-scene {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: scale(1);
+  transform-origin: top left;
+}
+
+.kids-draw-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.kids-draw-tiles {
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.kids-draw-hot {
+  display: block;
+  pointer-events: none;
+}
+
+.kids-draw-overlay {
+  touch-action: none;
+  cursor: crosshair;
+  box-sizing: border-box;
+}
+
+.kids-draw-dirty-rect {
+  pointer-events: none;
+}
+.kids-draw-cursor-indicator {
+  --kids-cursor-color: #000000;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in oklch, var(--kids-cursor-color) 70%, black);
+  background: var(--kids-cursor-color);
+  transform: translate(-50%, -50%);
+  will-change: transform;
+  pointer-events: none;
+  z-index: 3;
+}

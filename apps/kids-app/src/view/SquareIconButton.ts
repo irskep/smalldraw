@@ -1,148 +1,36 @@
 import type { IconNode } from "lucide";
+import { el, setChildren } from "redom";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const TAG_NAME = "kids-square-icon-button";
 
-export class SquareIconButtonElement extends HTMLElement {
-  static readonly tagName = TAG_NAME;
-  static observedAttributes = [
-    "disabled",
-    "title",
-    "aria-label",
-    "aria-pressed",
-  ];
-
-  #button: HTMLButtonElement;
-  #icon: HTMLSpanElement;
-  #label: HTMLSpanElement;
+export class SquareIconButton {
+  readonly el: HTMLButtonElement;
+  readonly iconElement: HTMLSpanElement;
+  readonly labelElement: HTMLSpanElement;
 
   constructor() {
-    super();
-
-    const root = this.attachShadow({ mode: "open" });
-    const style = document.createElement("style");
-    style.textContent = `
-      :host {
-        display: inline-block;
-      }
-
-      button {
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
-        border: var(--sq-border-width, 1px) solid
-          var(--sq-border, color-mix(in oklch, var(--gray-7) 28%, white));
-        border-radius: var(--sq-radius, var(--kd-radius-md));
-        background: var(--sq-bg, var(--kd-surface-button));
-        color: var(--sq-color, var(--kd-text-default));
-        font-weight: var(--sq-font-weight, var(--font-weight-5));
-        box-shadow: var(--sq-shadow, var(--kd-shadow-button));
-        padding: 0;
-        transition:
-          transform 120ms var(--ease-out-3),
-          box-shadow 120ms var(--ease-out-3),
-          background-color 120ms var(--ease-out-3),
-          color 120ms var(--ease-out-3);
-        cursor: pointer;
-      }
-
-      button:active {
-        transform: scale(0.96);
-      }
-
-      button:hover:not(:disabled),
-      :host(:hover) button:not(:disabled) {
-        transform: translateY(var(--sq-hover-lift, -2px))
-          scale(var(--sq-hover-scale, 1.01));
-        box-shadow: var(--sq-shadow-selected, var(--kd-shadow-button-active));
-      }
-
-      :host(.is-selected) button {
-        background: var(--sq-bg-selected, var(--kd-surface-button-selected));
-        color: var(--sq-color-selected, var(--kd-text-strong));
-        box-shadow: var(--sq-shadow-selected, var(--kd-shadow-button-active));
-        border-color: var(
-          --sq-border-selected,
-          color-mix(in oklch, var(--blue-6) 60%, black)
-        );
-      }
-
-      button:disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-      }
-
-      .content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        width: 100%;
-        height: 100%;
-      }
-
-      :host([layout="row"]) .content {
-        flex-direction: row;
-      }
-
-      .icon {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        min-height: 24px;
-        flex: 0 0 24px;
-      }
-
-      .icon > svg {
-        width: 100%;
-        height: 100%;
-        display: block;
-      }
-
-      .label {
-        font-size: var(--sq-label-size, 11px);
-        line-height: 1;
-        white-space: nowrap;
-      }
-    `;
-
-    this.#button = document.createElement("button");
-    this.#button.type = "button";
-    this.#button.setAttribute("part", "button");
-    const content = document.createElement("span");
-    content.className = "content";
-    content.setAttribute("part", "content");
-    this.#icon = document.createElement("span");
-    this.#icon.className = "icon";
-    this.#icon.setAttribute("part", "icon");
-    this.#label = document.createElement("span");
-    this.#label.className = "label";
-    this.#label.setAttribute("part", "label");
-    content.append(this.#icon, this.#label);
-    this.#button.append(content);
-    root.append(style, this.#button);
-  }
-
-  connectedCallback(): void {
-    this.#syncFromAttributes();
-  }
-
-  attributeChangedCallback(): void {
-    this.#syncFromAttributes();
-  }
-
-  set disabled(value: boolean) {
-    this.toggleAttribute("disabled", value);
-    this.#button.disabled = value;
-  }
-
-  get disabled(): boolean {
-    return this.hasAttribute("disabled");
+    this.iconElement = el(
+      "span.kids-square-icon-button__icon",
+    ) as HTMLSpanElement;
+    this.labelElement = el(
+      "span.kids-square-icon-button__label",
+    ) as HTMLSpanElement;
+    const content = el(
+      "span.kids-square-icon-button__content",
+      this.iconElement,
+      this.labelElement,
+    );
+    this.el = el(
+      "button.kids-square-icon-button",
+      {
+        type: "button",
+      },
+      content,
+    ) as HTMLButtonElement;
   }
 
   setLabel(label: string): void {
-    this.#label.textContent = label;
+    this.labelElement.textContent = label;
   }
 
   setIcon(iconNode: IconNode): void {
@@ -165,51 +53,50 @@ export class SquareIconButtonElement extends HTMLElement {
       svg.appendChild(node);
     }
 
-    this.#icon.replaceChildren(svg);
+    setChildren(this.iconElement, [svg]);
   }
 
-  click(): void {
-    this.#button.click();
+  setPressed(pressed: boolean): void {
+    this.el.setAttribute("aria-pressed", pressed ? "true" : "false");
   }
 
-  #syncFromAttributes(): void {
-    this.#button.disabled = this.disabled;
+  setSelected(selected: boolean): void {
+    this.el.classList.toggle("is-selected", selected);
+  }
 
-    const title = this.getAttribute("title");
-    if (title !== null) {
-      this.#button.setAttribute("title", title);
-    } else {
-      this.#button.removeAttribute("title");
-    }
+  setDisabled(disabled: boolean): void {
+    this.el.disabled = disabled;
+  }
 
-    const ariaLabel = this.getAttribute("aria-label");
-    if (ariaLabel !== null) {
-      this.#button.setAttribute("aria-label", ariaLabel);
-    } else {
-      this.#button.removeAttribute("aria-label");
+  setLayout(layout: "row" | "column"): void {
+    if (layout === "column") {
+      this.el.removeAttribute("layout");
+      return;
     }
-
-    const ariaPressed = this.getAttribute("aria-pressed");
-    if (ariaPressed !== null) {
-      this.#button.setAttribute("aria-pressed", ariaPressed);
-    } else {
-      this.#button.removeAttribute("aria-pressed");
-    }
+    this.el.setAttribute("layout", layout);
   }
 }
 
-export function ensureSquareIconButtonDefined(): void {
-  const registry =
-    (globalThis as { customElements?: CustomElementRegistry }).customElements ??
-    (
-      globalThis as {
-        window?: { customElements?: CustomElementRegistry };
-      }
-    ).window?.customElements;
-  if (!registry) {
-    return;
+export function createSquareIconButton(options: {
+  className: string;
+  label: string;
+  icon: IconNode;
+  attributes: Record<string, string>;
+}): SquareIconButton {
+  const button = new SquareIconButton();
+  for (const className of options.className.split(/\s+/)) {
+    if (className) {
+      button.el.classList.add(className);
+    }
   }
-  if (!registry.get(TAG_NAME)) {
-    registry.define(TAG_NAME, SquareIconButtonElement);
+  for (const [name, value] of Object.entries(options.attributes)) {
+    if (name === "layout") {
+      button.setLayout(value === "row" ? "row" : "column");
+      continue;
+    }
+    button.el.setAttribute(name, value);
   }
+  button.setLabel(options.label);
+  button.setIcon(options.icon);
+  return button;
 }

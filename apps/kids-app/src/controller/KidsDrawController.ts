@@ -503,7 +503,7 @@ export function createKidsDrawController(options: {
   }
   for (const [familyId, button] of toolbar.familyButtons) {
     listen(
-      button,
+      button.el,
       "click",
       runAndSync(() => {
         const toolId =
@@ -513,9 +513,18 @@ export function createKidsDrawController(options: {
       }),
     );
   }
+  for (const [toolId, button] of toolbar.directToolButtons) {
+    listen(
+      button.el,
+      "click",
+      runAndSync(() => {
+        activateToolAndRemember(toolId);
+      }),
+    );
+  }
   for (const [toolId, button] of toolbar.variantButtons) {
     listen(
-      button,
+      button.el,
       "click",
       runAndSync(() => {
         activateToolAndRemember(toolId);
@@ -523,16 +532,16 @@ export function createKidsDrawController(options: {
     );
   }
   listen(
-    toolbar.undoButton,
+    toolbar.undoButton.el,
     "click",
     runAndSync(() => store.undo()),
   );
   listen(
-    toolbar.redoButton,
+    toolbar.redoButton.el,
     "click",
     runAndSync(() => store.redo()),
   );
-  listen(toolbar.clearButton, "click", () => {
+  listen(toolbar.clearButton.el, "click", () => {
     void (async () => {
       const confirmed = await confirmDestructiveAction({
         title: "Clear drawing?",
@@ -559,7 +568,7 @@ export function createKidsDrawController(options: {
       syncToolbarUi();
     })();
   });
-  listen(toolbar.newDrawingButton, "click", () => {
+  listen(toolbar.newDrawingButton.el, "click", () => {
     void onNewDrawingClick();
   });
   for (const colorButton of toolbar.colorSwatchButtons) {

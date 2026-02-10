@@ -1,3 +1,5 @@
+import "./KidsDrawStage.css";
+
 import { el, mount } from "redom";
 
 const DEBUG_SHOW_DIRTY_RECT_LAYER = false;
