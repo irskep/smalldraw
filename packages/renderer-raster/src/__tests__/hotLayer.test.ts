@@ -28,7 +28,7 @@ function draftRect(
     geometry: { type: "rect", size: v(40, 30) } as RectGeometry,
     transform: { translation },
     style: { fill: { type: "solid", color } },
-    toolId: "pen",
+    toolId: "brush.freehand",
     temporary: true,
   };
 }

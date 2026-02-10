@@ -25,9 +25,13 @@ export interface KidsToolFamilyConfig {
   toolIds: string[];
 }
 
+export type ToolbarItem =
+  | { kind: "family"; familyId: string }
+  | { kind: "tool"; toolId: string };
+
 export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
   {
-    id: "pen",
+    id: "brush.freehand",
     familyId: "brush",
     label: "Pen",
     icon: Pen,
@@ -35,7 +39,7 @@ export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
     createTool: () => createPenTool(),
   },
   {
-    id: "marker",
+    id: "brush.marker",
     familyId: "brush",
     label: "Marker",
     icon: Highlighter,
@@ -43,7 +47,7 @@ export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
     createTool: () => createMarkerTool(),
   },
   {
-    id: "eraser",
+    id: "eraser.basic",
     familyId: "eraser",
     label: "Eraser",
     icon: Eraser,
@@ -57,15 +61,15 @@ export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
     id: "brush",
     label: "Brush",
     icon: Pen,
-    defaultToolId: "pen",
-    toolIds: ["pen", "marker"],
+    defaultToolId: "brush.freehand",
+    toolIds: ["brush.freehand", "brush.marker"],
   },
   {
     id: "eraser",
     label: "Eraser",
     icon: Eraser,
-    defaultToolId: "eraser",
-    toolIds: ["eraser"],
+    defaultToolId: "eraser.basic",
+    toolIds: ["eraser.basic"],
   },
 ];
 
@@ -75,7 +79,7 @@ export const DEFAULT_KIDS_DRAW_FAMILY_ID =
 export function getDefaultToolIdForFamily(familyId: string): string {
   const family = KIDS_DRAW_TOOL_FAMILIES.find((item) => item.id === familyId);
   if (!family) {
-    return KIDS_DRAW_TOOLS[0]?.id ?? "pen";
+    return KIDS_DRAW_TOOLS[0]?.id ?? "brush.freehand";
   }
   return family.defaultToolId;
 }

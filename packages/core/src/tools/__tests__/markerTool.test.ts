@@ -17,7 +17,7 @@ describe("marker tool integration with runtime", () => {
     let document = createDocument(undefined, registry);
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({
-      toolId: "marker",
+      toolId: "brush.marker",
       getDocument: () => document,
       commitAction: (action) => {
         document = undoManager.apply(action, document, {
@@ -47,7 +47,7 @@ describe("marker tool integration with runtime", () => {
     ][];
     expect(shapeEntries).toHaveLength(1);
     const [, shape] = shapeEntries[0];
-    expect(shape.id.startsWith("marker-")).toBeTrue();
+    expect(shape.id.startsWith("brush-marker-")).toBeTrue();
     expect(shape.style.stroke?.brushId).toBe("marker");
     expect(shape.style.stroke?.compositeOp).toBe("source-over");
     expectPointsClose(getWorldPointsFromShape(shape), [

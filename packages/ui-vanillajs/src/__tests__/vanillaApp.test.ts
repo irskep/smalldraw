@@ -208,7 +208,10 @@ describe("DrawingApp", () => {
   test("renders draft shapes during pen tool interaction", () => {
     const { container } = setupDom();
     const app = new DrawingApp({ container, width: 300, height: 200 });
-    const penBtn = qs<HTMLButtonElement>(container, '[data-tool="pen"]');
+    const penBtn = qs<HTMLButtonElement>(
+      container,
+      '[data-tool="brush.freehand"]',
+    );
     penBtn?.click();
 
     const overlay = qs<HTMLElement>(container, ".smalldraw-overlay")!;

@@ -35,7 +35,7 @@ export class Toolbar {
     const toolConfig = [
       { id: "selection", label: "Select" },
       { id: "rect", label: "Rect" },
-      { id: "pen", label: "Pen" },
+      { id: "brush.freehand", label: "Pen" },
     ];
 
     for (const tool of toolConfig) {

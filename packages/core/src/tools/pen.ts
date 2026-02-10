@@ -14,10 +14,10 @@ const PEN_DEFAULT_STROKE: StrokeStyle = {
 
 export function createPenTool(options?: PenToolOptions): ToolDefinition {
   return createStrokeTool({
-    id: "pen",
+    id: "brush.freehand",
     label: "Pen",
-    draftIdPrefix: "pen-draft",
-    shapeIdPrefix: "pen",
+    draftIdPrefix: "brush-freehand-draft",
+    shapeIdPrefix: "brush-freehand",
     fallbackStroke: PEN_DEFAULT_STROKE,
     runtimeOptions: options,
   });

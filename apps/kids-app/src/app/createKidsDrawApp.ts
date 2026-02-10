@@ -10,6 +10,7 @@ import { createRasterPipeline } from "../render/createRasterPipeline";
 import {
   DEFAULT_KIDS_DRAW_FAMILY_ID,
   getDefaultToolIdForFamily,
+  getFamilyIdForTool,
   KIDS_DRAW_TOOL_FAMILIES,
   KIDS_DRAW_TOOLS,
 } from "../tools/kidsTools";
@@ -101,7 +102,9 @@ export async function createKidsDrawApp(
     Math.round(shared.strokeWidth * KIDS_DRAW_STROKE_WIDTH_MULTIPLIER),
   );
   store.updateSharedSettings({ strokeWidth: defaultStrokeWidth });
-  syncToolbarUiFromDrawingStore(store);
+  syncToolbarUiFromDrawingStore(store, {
+    resolveActiveFamilyId: getFamilyIdForTool,
+  });
   const unbindToolbarUi = toolbar.bindUiState($toolbarUi);
 
   const pipeline = createRasterPipeline({

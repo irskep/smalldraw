@@ -269,7 +269,10 @@ export function createKidsDrawToolbar(options: {
 
   const applyState = (state: ToolbarUiState): void => {
     const normalizedStateColor = state.strokeColor.toLowerCase();
-    const activeFamilyId = resolveActiveFamilyId(state.activeToolId);
+    const activeFamilyId =
+      (state.activeFamilyId && familyById.has(state.activeFamilyId)
+        ? state.activeFamilyId
+        : null) ?? resolveActiveFamilyId(state.activeToolId);
 
     for (const [familyId, button] of familyButtons) {
       const selected = familyId === activeFamilyId;

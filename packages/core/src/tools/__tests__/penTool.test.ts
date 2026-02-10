@@ -23,7 +23,7 @@ describe("pen tool integration with runtime", () => {
       ? { stroke: { type: "brush", color: params.runtimeStrokeColor, size: 5 } }
       : undefined;
     const runtime = new ToolRuntimeImpl({
-      toolId: "pen",
+      toolId: "brush.freehand",
       getDocument: () => document,
       commitAction: (action) => {
         document = undoManager.apply(action, document, {

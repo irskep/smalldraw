@@ -53,7 +53,12 @@ function createPen(id: string, translation: [number, number]): AnyShape {
     } as PenGeometry,
     transform: { translation },
     style: {
-      stroke: { type: "brush", color: "#e65100", size: 14 },
+      stroke: {
+        type: "brush",
+        color: "#e65100",
+        size: 14,
+        brushId: "freehand",
+      },
     },
   };
 }

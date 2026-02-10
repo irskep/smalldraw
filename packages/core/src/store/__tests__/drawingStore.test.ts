@@ -133,7 +133,7 @@ describe("DrawingStore", () => {
 
   test("activating pen tool and dispatching pointer events commits shapes", () => {
     const store = new DrawingStore({ tools: [createPenTool()] });
-    store.activateTool("pen");
+    store.activateTool("brush.freehand");
     store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     store.dispatch("pointerMove", { point: new Vec2(5, 5), buttons: 1 });
     store.dispatch("pointerUp", { point: new Vec2(5, 5), buttons: 0 });
@@ -163,7 +163,7 @@ describe("DrawingStore", () => {
       size: v(10, 10),
     });
 
-    store.activateTool("pen");
+    store.activateTool("brush.freehand");
     expect(store.getDrafts()).toEqual([]);
   });
 
@@ -197,7 +197,7 @@ describe("DrawingStore", () => {
     const store = new DrawingStore({
       tools: [createPenTool(), createRectangleTool()],
     });
-    store.activateTool("pen");
+    store.activateTool("brush.freehand");
     store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     store.dispatch("pointerMove", { point: new Vec2(5, 5), buttons: 1 });
     store.dispatch("pointerUp", { point: new Vec2(5, 5), buttons: 0 });
@@ -293,7 +293,7 @@ describe("DrawingStore", () => {
     store.dispatch("pointerMove", { point: new Vec2(5, 5), buttons: 0 });
     expect(store.getHandleHover()).toEqual({ handleId: null, behavior: null });
 
-    store.activateTool("pen");
+    store.activateTool("brush.freehand");
     expect(store.getHandles()).toEqual([]);
     expect(store.getHandleHover()).toEqual({ handleId: null, behavior: null });
   });
@@ -316,7 +316,7 @@ describe("DrawingStore", () => {
     expect(store.getPreview()).toEqual({
       dirtyBounds: { min: v(1, 2), max: v(3, 4) },
     });
-    store.activateTool("pen");
+    store.activateTool("brush.freehand");
     expect(store.getPreview()).toBeNull();
   });
 
@@ -466,7 +466,7 @@ describe("DrawingStore", () => {
 
   test("batched pointer move dispatch matches sequential stroke geometry", () => {
     const sequentialStore = new DrawingStore({ tools: [createPenTool()] });
-    sequentialStore.activateTool("pen");
+    sequentialStore.activateTool("brush.freehand");
     sequentialStore.dispatch("pointerDown", {
       point: new Vec2(0, 0),
       buttons: 1,
@@ -489,7 +489,7 @@ describe("DrawingStore", () => {
     });
 
     const batchedStore = new DrawingStore({ tools: [createPenTool()] });
-    batchedStore.activateTool("pen");
+    batchedStore.activateTool("brush.freehand");
     batchedStore.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     batchedStore.dispatchBatch("pointerMove", [
       { point: new Vec2(5, 4), buttons: 1 },
@@ -512,7 +512,7 @@ describe("DrawingStore", () => {
 
   test("batched pointer move dispatch preserves sample order", () => {
     const store = new DrawingStore({ tools: [createPenTool()] });
-    store.activateTool("pen");
+    store.activateTool("brush.freehand");
     store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
     store.dispatchBatch("pointerMove", [
       { point: new Vec2(10, 0), buttons: 1 },

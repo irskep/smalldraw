@@ -14,10 +14,10 @@ const MARKER_DEFAULT_STROKE: StrokeStyle = {
 
 export function createMarkerTool(options?: MarkerToolOptions): ToolDefinition {
   return createStrokeTool({
-    id: "marker",
+    id: "brush.marker",
     label: "Marker",
-    draftIdPrefix: "marker-draft",
-    shapeIdPrefix: "marker",
+    draftIdPrefix: "brush-marker-draft",
+    shapeIdPrefix: "brush-marker",
     fallbackStroke: MARKER_DEFAULT_STROKE,
     runtimeOptions: options,
   });

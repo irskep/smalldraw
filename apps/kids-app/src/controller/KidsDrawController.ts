@@ -157,7 +157,9 @@ export function createKidsDrawController(options: {
   }
 
   const syncToolbarUi = (): void => {
-    syncToolbarUiFromDrawingStore(store);
+    syncToolbarUiFromDrawingStore(store, {
+      resolveActiveFamilyId: getFamilyIdForTool,
+    });
     cursorOverlay.sync();
   };
 

@@ -3,6 +3,7 @@ import { atom } from "nanostores";
 
 export interface ToolbarUiState {
   activeToolId: string;
+  activeFamilyId: string;
   canUndo: boolean;
   canRedo: boolean;
   strokeColor: string;
@@ -12,6 +13,7 @@ export interface ToolbarUiState {
 
 const DEFAULT_STATE: ToolbarUiState = {
   activeToolId: "",
+  activeFamilyId: "",
   canUndo: false,
   canRedo: false,
   strokeColor: "#000000",
@@ -21,12 +23,21 @@ const DEFAULT_STATE: ToolbarUiState = {
 
 export const $toolbarUi = atom<ToolbarUiState>(DEFAULT_STATE);
 
-export function syncToolbarUiFromDrawingStore(store: DrawingStore): void {
+export function syncToolbarUiFromDrawingStore(
+  store: DrawingStore,
+  options?: {
+    resolveActiveFamilyId?: (activeToolId: string) => string | null;
+  },
+): void {
   const shared = store.getSharedSettings();
   const current = $toolbarUi.get();
+  const activeToolId = store.getActiveToolId() ?? "";
+  const activeFamilyId =
+    options?.resolveActiveFamilyId?.(activeToolId) ?? current.activeFamilyId;
   const next: ToolbarUiState = {
     ...current,
-    activeToolId: store.getActiveToolId() ?? "",
+    activeToolId,
+    activeFamilyId,
     canUndo: store.canUndo(),
     canRedo: store.canRedo(),
     strokeColor: shared.strokeColor,
@@ -59,6 +70,7 @@ export function setNewDrawingPending(newDrawingPending: boolean): void {
 function isEqual(a: ToolbarUiState, b: ToolbarUiState): boolean {
   return (
     a.activeToolId === b.activeToolId &&
+    a.activeFamilyId === b.activeFamilyId &&
     a.canUndo === b.canUndo &&
     a.canRedo === b.canRedo &&
     a.strokeColor === b.strokeColor &&

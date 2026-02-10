@@ -408,7 +408,14 @@ describe("TileRenderer", () => {
           ] as [number, number][],
         },
         transform: { translation: [128, 128] as [number, number] },
-        style: { stroke: { type: "brush", color: "#111827", size: 28 } },
+        style: {
+          stroke: {
+            type: "brush",
+            color: "#111827",
+            size: 28,
+            brushId: "freehand",
+          },
+        },
       },
       {
         id: "eraser-1",
@@ -428,6 +435,7 @@ describe("TileRenderer", () => {
             type: "brush",
             color: "#ffffff",
             size: 22,
+            brushId: "marker",
             compositeOp: "destination-out",
           },
         },
@@ -516,7 +524,12 @@ describe("TileRenderer", () => {
         },
         transform: { translation: [128, 128] as [number, number] },
         style: {
-          stroke: { type: "brush", color: "#1f2937", size: 20 },
+          stroke: {
+            type: "brush",
+            color: "#1f2937",
+            size: 20,
+            brushId: "freehand",
+          },
         },
       },
       {
@@ -537,6 +550,7 @@ describe("TileRenderer", () => {
             type: "brush",
             color: "#ffffff",
             size: 16,
+            brushId: "marker",
             compositeOp: "destination-out",
           },
         },

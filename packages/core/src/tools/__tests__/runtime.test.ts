@@ -34,7 +34,7 @@ function createRuntime(overrides?: RuntimeOverrides) {
     ) => change(next, update),
   };
   const runtime = new ToolRuntimeImpl({
-    toolId: "pen",
+    toolId: "brush.freehand",
     getDocument: () => document,
     commitAction: (action) => {
       document = undoManager.apply(action, document, ctx);
@@ -77,7 +77,7 @@ describe("ToolRuntimeImpl", () => {
     const { runtime, draftChanges } = createRuntime();
     const geometry: PenGeometry = { type: "pen", points: [v(0, 0)] };
     runtime.setDraft({
-      toolId: "pen",
+      toolId: "brush.freehand",
       temporary: true,
       id: "draft-1",
       type: "pen",
@@ -155,7 +155,7 @@ describe("ToolRuntimeImpl", () => {
     );
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({
-      toolId: "pen",
+      toolId: "brush.freehand",
       getDocument: () => document,
       commitAction: (action) => {
         document = undoManager.apply(action, document, {

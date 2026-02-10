@@ -14,10 +14,10 @@ const ERASER_DEFAULT_STROKE: StrokeStyle = {
 
 export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
   return createStrokeTool({
-    id: "eraser",
+    id: "eraser.basic",
     label: "Eraser",
-    draftIdPrefix: "eraser-draft",
-    shapeIdPrefix: "eraser",
+    draftIdPrefix: "eraser-basic-draft",
+    shapeIdPrefix: "eraser-basic",
     fallbackStroke: ERASER_DEFAULT_STROKE,
     runtimeOptions: options,
   });

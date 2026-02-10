@@ -265,20 +265,20 @@ describe("kids-app shell", () => {
       '[data-tool-family="eraser"]',
     ) as HTMLElement | null;
     const markerVariantButton = container.querySelector(
-      '[data-tool-variant="marker"]',
+      '[data-tool-variant="brush.marker"]',
     ) as HTMLElement | null;
     const penVariantButton = container.querySelector(
-      '[data-tool-variant="pen"]',
+      '[data-tool-variant="brush.freehand"]',
     ) as HTMLElement | null;
     expect(eraserFamilyButton).not.toBeNull();
     expect(markerVariantButton).not.toBeNull();
     expect(penVariantButton).not.toBeNull();
     markerVariantButton!.click();
-    expect(app.store.getActiveToolId()).toBe("marker");
+    expect(app.store.getActiveToolId()).toBe("brush.marker");
     penVariantButton!.click();
-    expect(app.store.getActiveToolId()).toBe("pen");
+    expect(app.store.getActiveToolId()).toBe("brush.freehand");
     eraserFamilyButton!.click();
-    expect(app.store.getActiveToolId()).toBe("eraser");
+    expect(app.store.getActiveToolId()).toBe("eraser.basic");
     dispatchPointer(overlay, "pointerdown", 100, 100, 1);
     dispatchPointer(overlay, "pointermove", 220, 220, 1);
     await waitForTurn();
@@ -290,8 +290,12 @@ describe("kids-app shell", () => {
     const shapes = Object.values(app.store.getDocument().shapes);
     expect(shapes).toHaveLength(3);
 
-    const penShape = shapes.find((shape) => shape.id.startsWith("pen-"));
-    const eraserShape = shapes.find((shape) => shape.id.startsWith("eraser-"));
+    const penShape = shapes.find((shape) =>
+      shape.id.startsWith("brush-freehand-"),
+    );
+    const eraserShape = shapes.find((shape) =>
+      shape.id.startsWith("eraser-basic-"),
+    );
     const clearShape = shapes.find((shape) => shape.type === "clear");
     expect(penShape).toBeDefined();
     expect(eraserShape).toBeDefined();
@@ -352,7 +356,7 @@ describe("kids-app shell", () => {
       '[data-tool-family="brush"]',
     ) as HTMLElement | null;
     const penVariantButton = container.querySelector(
-      '[data-tool-variant="pen"]',
+      '[data-tool-variant="brush.freehand"]',
     ) as HTMLElement | null;
     const eraserFamilyButton = container.querySelector(
       '[data-tool-family="eraser"]',

@@ -16,7 +16,7 @@ describe("eraser tool integration with runtime", () => {
     let document = createDocument(undefined, registry);
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({
-      toolId: "eraser",
+      toolId: "eraser.basic",
       getDocument: () => document,
       commitAction: (action) => {
         document = undoManager.apply(action, document, {

@@ -74,7 +74,7 @@ describe("RasterSession", () => {
     });
     store.setOnRenderNeeded(() => session.render());
 
-    store.activateTool("pen");
+    store.activateTool("brush.freehand");
     store.dispatch("pointerDown", {
       point: new Vec2(80, 80),
       buttons: 1,
@@ -178,7 +178,7 @@ describe("RasterSession", () => {
     });
     store.setOnRenderNeeded(() => session.render());
 
-    store.activateTool("pen");
+    store.activateTool("brush.freehand");
     store.dispatch("pointerDown", {
       point: new Vec2(120, 120),
       buttons: 1,
@@ -248,7 +248,7 @@ describe("RasterSession", () => {
       max: [TILE_SIZE, TILE_SIZE],
     });
     store.setOnRenderNeeded(() => session.render());
-    store.activateTool("eraser");
+    store.activateTool("eraser.basic");
 
     store.dispatch("pointerDown", {
       point: new Vec2(80, 80),
