@@ -98,8 +98,9 @@ describe("eraser tool integration with runtime", () => {
 
     const shapeEntries = Object.values(getDocument().shapes);
     expect(shapeEntries).toHaveLength(1);
-    expect(shapeEntries[0]?.geometry.pressures).toEqual([0, 0.3, 0]);
-    expect(shapeEntries[0]?.geometry.points).toHaveLength(3);
+    const shape = shapeEntries[0] as PenShape;
+    expect(shape.geometry.pressures).toEqual([0, 0.3, 0]);
+    expect(shape.geometry.points).toHaveLength(3);
   });
 
   test("deactivation clears drafts and prevents further commits", () => {

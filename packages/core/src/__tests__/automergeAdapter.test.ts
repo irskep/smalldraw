@@ -6,6 +6,8 @@ import {
   getDefaultShapeHandlerRegistry,
   ShapeHandlerRegistry,
 } from "../model/shapeHandlers";
+import type { PenShape } from "../model/shapes/penShape";
+import type { RectShape } from "../model/shapes/rectShape";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
@@ -24,7 +26,7 @@ describe("Automerge JSON adapter", () => {
           scale: v(1, 1),
           rotation: 0,
         },
-      },
+      } satisfies RectShape,
       {
         id: "pen-1",
         type: "pen",
@@ -46,7 +48,7 @@ describe("Automerge JSON adapter", () => {
           scale: v(1, 1),
           rotation: 0,
         },
-      },
+      } satisfies PenShape,
     ];
     const doc = createDocument(shapes, registry);
     const json = toJSON(doc, registry);
