@@ -4,7 +4,7 @@ import { createModalDialogView } from "../view/ModalDialog";
 import { createSquareIconButton } from "../view/SquareIconButton";
 
 describe("view components", () => {
-  test("SquareIconButton reflects selected/pressed/disabled state", () => {
+  test("SquareIconButton reflects selected/disabled state", () => {
     const button = createSquareIconButton({
       className: "kids-draw-tool-button",
       label: "Pen",
@@ -16,7 +16,6 @@ describe("view components", () => {
     });
 
     button.setSelected(true);
-    button.setPressed(true);
     button.setDisabled(true);
 
     expect(button.el.classList.contains("is-selected")).toBeTrue();

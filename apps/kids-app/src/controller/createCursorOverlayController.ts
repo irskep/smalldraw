@@ -57,7 +57,7 @@ export function createCursorOverlayController(options: {
     indicator.style.transform = `translate3d(${mouseHoverPoint[0]}px, ${mouseHoverPoint[1]}px, 0) translate(-50%, -50%)`;
     indicator.style.width = `${Math.max(2, strokeWidth)}px`;
     indicator.style.height = `${Math.max(2, strokeWidth)}px`;
-    indicator.style.setProperty("--kids-cursor-color", strokeColor);
+    indicator.style.setProperty("--kd-cursor-color", strokeColor);
     indicator.style.visibility = "";
   };
 

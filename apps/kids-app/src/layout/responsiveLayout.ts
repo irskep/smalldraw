@@ -34,10 +34,10 @@ const applyViewportPaddingStyles = (
   const right = safeAreaInset("right", padding.right);
   const bottom = safeAreaInset("bottom", padding.bottom);
   const left = safeAreaInset("left", padding.left);
-  viewportHost.style.setProperty("--kids-inset-top", top);
-  viewportHost.style.setProperty("--kids-inset-right", right);
-  viewportHost.style.setProperty("--kids-inset-bottom", bottom);
-  viewportHost.style.setProperty("--kids-inset-left", left);
+  viewportHost.style.setProperty("--kd-inset-top", top);
+  viewportHost.style.setProperty("--kd-inset-right", right);
+  viewportHost.style.setProperty("--kd-inset-bottom", bottom);
+  viewportHost.style.setProperty("--kd-inset-left", left);
   viewportHost.style.paddingTop = top;
   viewportHost.style.paddingRight = right;
   viewportHost.style.paddingBottom = bottom;

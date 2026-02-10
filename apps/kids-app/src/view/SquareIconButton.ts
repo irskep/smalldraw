@@ -56,12 +56,9 @@ export class SquareIconButton {
     setChildren(this.iconElement, [svg]);
   }
 
-  setPressed(pressed: boolean): void {
-    this.el.setAttribute("aria-pressed", pressed ? "true" : "false");
-  }
-
   setSelected(selected: boolean): void {
     this.el.classList.toggle("is-selected", selected);
+    this.el.setAttribute("aria-pressed", selected ? "true" : "false");
   }
 
   setDisabled(disabled: boolean): void {

@@ -61,9 +61,11 @@ export function createKidsDrawToolbar(options: {
     "div.kids-draw-toolbar.kids-draw-toolbar-bottom",
   ) as HTMLDivElement;
   const toolSelectorElement = el(
-    "div.kids-draw-tool-selector",
+    "div.kids-draw-tool-selector.kids-toolbar-grid-panel",
   ) as HTMLDivElement;
-  const actionPanelElement = el("div.kids-draw-action-panel") as HTMLDivElement;
+  const actionPanelElement = el(
+    "div.kids-draw-action-panel.kids-toolbar-grid-panel",
+  ) as HTMLDivElement;
 
   const toolById = new Map(tools.map((tool) => [tool.id, tool] as const));
   const familyById = new Map(
@@ -114,7 +116,7 @@ export function createKidsDrawToolbar(options: {
   const variantButtons = new Map<string, SquareIconButton>();
   const familyVariantToolbars = new Map<string, HTMLDivElement>();
   for (const family of families) {
-    const panel = el("div.kids-draw-family-variants", {
+    const panel = el("div.kids-draw-family-variants.kids-toolbar-grid-panel", {
       role: "radiogroup",
       "aria-label": `${family.label} tools`,
       "data-tool-family-toolbar": family.id,
@@ -132,7 +134,6 @@ export function createKidsDrawToolbar(options: {
           "data-tool-family": tool.familyId,
           title: tool.label,
           "aria-label": tool.label,
-          "aria-pressed": "false",
         },
       });
       variantButtons.set(tool.id, variantButton);
@@ -207,7 +208,7 @@ export function createKidsDrawToolbar(options: {
       "aria-pressed": "false",
       "data-setting": "color",
       "data-color": swatch.value,
-      style: `--kids-swatch-color:${swatch.value}`,
+      style: `--kd-swatch-color:${swatch.value}`,
     }) as HTMLButtonElement;
     colorSwatchButtons.push(swatchButton);
     mount(colorSwatchesElement, swatchButton);
@@ -243,7 +244,7 @@ export function createKidsDrawToolbar(options: {
         "data-size": `${strokeWidth}`,
       },
       el("span.kids-draw-stroke-width-line", {
-        style: `--kids-stroke-preview-size:${previewSize.toFixed(1)}px`,
+        style: `--kd-stroke-preview-size:${previewSize.toFixed(1)}px`,
       }),
     ) as HTMLButtonElement;
     strokeWidthButtons.push(widthButton);
@@ -251,23 +252,24 @@ export function createKidsDrawToolbar(options: {
   }
 
   const colorPanelElement = el(
-    "div.kids-draw-toolbar-panel.kids-draw-toolbar-colors",
+    "div.kids-draw-toolbar-panel.kids-draw-toolbar-colors.kids-toolbar-grid-panel",
   ) as HTMLDivElement;
   mount(colorPanelElement, colorSwatchesElement);
 
   const strokePanelElement = el(
-    "div.kids-draw-toolbar-panel.kids-draw-toolbar-strokes",
+    "div.kids-draw-toolbar-panel.kids-draw-toolbar-strokes.kids-toolbar-grid-panel",
   ) as HTMLDivElement;
   mount(strokePanelElement, strokeWidthElement);
 
   mount(topElement, colorPanelElement);
   mount(topElement, strokePanelElement);
 
-  const setToolButtonSelected = (
-    button: SquareIconButton,
+  const setToggleSelectedState = (
+    button: HTMLButtonElement,
     selected: boolean,
   ): void => {
-    button.setSelected(selected);
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
   };
 
   const resolveActiveFamilyId = (activeToolId: string): string => {
@@ -280,28 +282,25 @@ export function createKidsDrawToolbar(options: {
 
   const applyState = (state: ToolbarUiState): void => {
     const normalizedStateColor = state.strokeColor.toLowerCase();
-    const activeFamilyId =
-      (state.activeFamilyId && familyById.has(state.activeFamilyId)
-        ? state.activeFamilyId
-        : null) ?? resolveActiveFamilyId(state.activeToolId);
+    const activeToolId = toolById.has(state.activeToolId)
+      ? state.activeToolId
+      : (tools[0]?.id ??
+        familyById.get(families[0]?.id ?? "")?.defaultToolId ??
+        "");
+    const activeFamilyId = resolveActiveFamilyId(activeToolId);
 
     for (const [familyId, button] of familyButtons) {
       const selected = familyId === activeFamilyId;
-      button.setPressed(selected);
-      setToolButtonSelected(button, selected);
+      button.setSelected(selected);
     }
     for (const [toolId, button] of directToolButtons) {
-      const selected = toolId === state.activeToolId;
-      button.setPressed(selected);
-      setToolButtonSelected(button, selected);
+      const selected = toolId === activeToolId;
+      button.setSelected(selected);
     }
 
     for (const [toolId, button] of variantButtons) {
-      const tool = toolById.get(toolId);
-      const selected =
-        tool?.familyId === activeFamilyId && toolId === state.activeToolId;
+      const selected = toolId === activeToolId;
       button.setSelected(selected);
-      button.setPressed(selected);
     }
     for (const [familyId, panel] of familyVariantToolbars) {
       panel.hidden = familyId !== activeFamilyId;
@@ -314,8 +313,7 @@ export function createKidsDrawToolbar(options: {
     for (const swatchButton of colorSwatchButtons) {
       const selected =
         swatchButton.dataset.color?.toLowerCase() === normalizedStateColor;
-      swatchButton.classList.toggle("is-selected", selected);
-      swatchButton.setAttribute("aria-pressed", selected ? "true" : "false");
+      setToggleSelectedState(swatchButton, selected);
     }
 
     let nearestStrokeWidth: number = STROKE_WIDTH_OPTIONS[0];
@@ -330,8 +328,7 @@ export function createKidsDrawToolbar(options: {
     for (const widthButton of strokeWidthButtons) {
       const width = Number(widthButton.dataset.size);
       const selected = Number.isFinite(width) && width === nearestStrokeWidth;
-      widthButton.classList.toggle("is-selected", selected);
-      widthButton.setAttribute("aria-pressed", selected ? "true" : "false");
+      setToggleSelectedState(widthButton, selected);
     }
   };
 

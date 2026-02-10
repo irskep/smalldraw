@@ -1,8 +1,8 @@
 .kids-draw-viewport {
-  --kids-inset-top: 0px;
-  --kids-inset-right: 0px;
-  --kids-inset-bottom: 0px;
-  --kids-inset-left: 0px;
+  --kd-inset-top: 0;
+  --kd-inset-right: 0;
+  --kd-inset-bottom: 0;
+  --kd-inset-left: 0;
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
@@ -18,8 +18,8 @@
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: var(--kids-inset-left) 1fr var(--kids-inset-right);
-  grid-template-rows: var(--kids-inset-top) 1fr var(--kids-inset-bottom);
+  grid-template-columns: var(--kd-inset-left) 1fr var(--kd-inset-right);
+  grid-template-rows: var(--kd-inset-top) 1fr var(--kd-inset-bottom);
   pointer-events: none;
   z-index: 20;
 }
@@ -103,15 +103,16 @@
   pointer-events: none;
 }
 .kids-draw-cursor-indicator {
-  --kids-cursor-color: #000000;
+  --kd-cursor-color: #000000;
   position: absolute;
   left: 0;
   top: 0;
-  width: 2px;
-  height: 2px;
-  border-radius: 999px;
-  border: 2px solid color-mix(in oklch, var(--kids-cursor-color) 70%, black);
-  background: var(--kids-cursor-color);
+  width: var(--border-size-2);
+  height: var(--border-size-2);
+  border-radius: var(--radius-round);
+  border: var(--border-size-2) solid
+    color-mix(in oklch, var(--kd-cursor-color) 70%, black);
+  background: var(--kd-cursor-color);
   transform: translate(-50%, -50%);
   will-change: transform;
   pointer-events: none;
