@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { DraftShape, BoxedGeometry } from "@smalldraw/core";
+import type { BoxedGeometry, DraftShape } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
 import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";

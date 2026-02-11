@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { BoxOperations, getX, getY } from "@smalldraw/geometry";
 import { getShapeBounds } from "../geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
-import type { PenShape } from "../shapes/penShape";
 import type { BoxedShape } from "../shapes/boxedShape";
+import { createPenJSONGeometry, type PenShape } from "../shapes/penShape";
 
 describe("geometry bounds helpers", () => {
   const v = (x = 0, y = x): [number, number] => [x, y];
@@ -36,10 +36,7 @@ describe("geometry bounds helpers", () => {
     const shape: PenShape = {
       id: "pen",
       type: "pen",
-      geometry: {
-        type: "pen",
-        points: [v(-2, -1), v(3, 4)],
-      },
+      geometry: createPenJSONGeometry([v(-2, -1), v(3, 4)]),
       style: {
         stroke: {
           type: "brush",

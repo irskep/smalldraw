@@ -88,9 +88,10 @@ export const BoxedShapeHandler: ShapeHandler<BoxedGeometry, unknown> = {
         type: "boxed",
         kind: snapshotGeometry.kind,
         size: toVec2Like(
-          new Vec2(getX(snapshotGeometry.size), getY(snapshotGeometry.size)).mul(
-            selectionScale,
-          ),
+          new Vec2(
+            getX(snapshotGeometry.size),
+            getY(snapshotGeometry.size),
+          ).mul(selectionScale),
         ),
       };
       const translation = getPointFromLayout(layout, nextBounds);

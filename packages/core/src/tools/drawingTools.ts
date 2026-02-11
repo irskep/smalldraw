@@ -1,5 +1,5 @@
 import type { StrokeStyle } from "../model/style";
-import { createBoxedTool, type BoxedToolOptions } from "./boxed";
+import { type BoxedToolOptions, createBoxedTool } from "./boxed";
 import { createStrokeTool, type StrokeToolOptions } from "./strokeTool";
 import type { ToolDefinition } from "./types";
 
@@ -127,7 +127,9 @@ export function createRectangleTool(
 
 export interface EllipseToolOptions extends BoxedToolOptions {}
 
-export function createEllipseTool(options?: EllipseToolOptions): ToolDefinition {
+export function createEllipseTool(
+  options?: EllipseToolOptions,
+): ToolDefinition {
   return createBoxedTool({
     id: "ellipse",
     label: "Ellipse",

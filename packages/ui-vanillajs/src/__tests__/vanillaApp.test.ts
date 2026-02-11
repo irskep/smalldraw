@@ -221,13 +221,13 @@ describe("DrawingApp", () => {
     dispatchPointer(overlay, "pointerdown", 50, 50, 1);
     const draftsAfterDown = app.store.getDrafts() as ShapeWithGeometry[];
     expect(draftsAfterDown.length).toBeGreaterThan(0);
-    expect(draftsAfterDown[0]?.geometry.type).toBe("pen");
+    expect(draftsAfterDown[0]?.geometry.type).toBe("pen-json");
 
     // Move updates draft shape
     dispatchPointer(overlay, "pointermove", 100, 100, 1);
     const draftsAfterMove = app.store.getDrafts() as ShapeWithGeometry[];
     expect(draftsAfterMove.length).toBeGreaterThan(0);
-    expect(draftsAfterMove[0]?.geometry.type).toBe("pen");
+    expect(draftsAfterMove[0]?.geometry.type).toBe("pen-json");
 
     // Complete drawing
     dispatchPointer(overlay, "pointerup", 100, 100, 0);

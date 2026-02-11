@@ -5,7 +5,11 @@ import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
 import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { PenShape } from "../../model/shapes/penShape";
+import {
+  createPenJSONGeometry,
+  getPenGeometryPoints,
+  type PenShape,
+} from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
 import { createPenTool } from "../drawingTools";
 import { ToolRuntimeImpl } from "../runtime";
@@ -53,14 +57,13 @@ describe("pen tool integration with runtime", () => {
     runtime.dispatch("pointerMove", { point: new Vec2(10, 10), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(20, 5), buttons: 1 });
 
-    expect((runtime.getDraft() as PenShape | null)?.geometry).toEqual({
-      type: "pen",
-      points: [
-        [-10, -5],
-        [0, 5],
-        [10, 0],
-      ],
-    });
+    expect((runtime.getDraft() as PenShape | null)?.geometry).toEqual(
+      createPenJSONGeometry([
+        [0, 0],
+        [10, 10],
+        [20, 5],
+      ]),
+    );
 
     runtime.dispatch("pointerUp", { point: new Vec2(20, 5), buttons: 0 });
 
@@ -71,7 +74,7 @@ describe("pen tool integration with runtime", () => {
     ][];
     expect(shapeEntries).toHaveLength(1);
     const [, shape] = shapeEntries[0];
-    expect(shape.geometry.type).toBe("pen");
+    expect(shape.geometry.type).toBe("pen-json");
     expectPointsClose(getWorldPointsFromShape(shape), [
       [0, 0],
       [10, 10],
@@ -128,12 +131,9 @@ describe("pen tool integration with runtime", () => {
     const shapeEntries = Object.values(getDocument().shapes);
     expect(shapeEntries).toHaveLength(1);
     const shape = shapeEntries[0] as PenShape;
-    expect(shape.geometry.type).toBe("pen");
-    if (shape.geometry.type !== "pen") {
-      throw new Error("Expected pen geometry to use point-list format.");
-    }
+    expect(shape.geometry.type).toBe("pen-json");
     expect(shape.geometry.pressures).toEqual([0, 0.3, 0]);
-    expect(shape.geometry.points).toHaveLength(3);
+    expect(getPenGeometryPoints(shape.geometry)).toHaveLength(3);
   });
 
   test("falls back to shared settings for stroke defaults", () => {

@@ -6,8 +6,11 @@ import type { DrawingDocumentData } from "../../model/document";
 import { createDocument } from "../../model/document";
 import { canonicalizeShape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { PenGeometry } from "../../model/shapes/penShape";
 import type { BoxedShape } from "../../model/shapes/boxedShape";
+import {
+  createPenJSONGeometry,
+  type PenGeometry,
+} from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
 import { getZIndexBetween } from "../../zindex";
 import { ToolRuntimeImpl } from "../runtime";
@@ -75,7 +78,7 @@ describe("ToolRuntimeImpl", () => {
 
   test("setDraft stores draft and clearDraft resets it", () => {
     const { runtime, draftChanges } = createRuntime();
-    const geometry: PenGeometry = { type: "pen", points: [v(0, 0)] };
+    const geometry: PenGeometry = createPenJSONGeometry([v(0, 0)]);
     runtime.setDraft({
       toolId: "brush.freehand",
       temporary: true,

@@ -98,8 +98,7 @@ function hasAlignedPressureSamples(shape: PenShape): boolean {
 
 function getAlignedPressures(shape: PenShape): number[] | null {
   const points = getPenGeometryPoints(shape.geometry);
-  const pressures =
-    shape.geometry.type === "pen" ? shape.geometry.pressures : undefined;
+  const pressures = shape.geometry.pressures;
   if (!pressures || pressures.length !== points.length) {
     return null;
   }

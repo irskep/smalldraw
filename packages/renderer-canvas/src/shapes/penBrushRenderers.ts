@@ -1,4 +1,8 @@
-import { getPenStrokeOutline, type PenShape } from "@smalldraw/core";
+import {
+  createPenJSONGeometry,
+  getPenStrokeOutline,
+  type PenShape,
+} from "@smalldraw/core";
 import type { Vec2Tuple } from "@smalldraw/geometry";
 import { renderMarkerPath } from "./markerPath";
 import { getSvgPathFromStroke } from "./penPath";
@@ -21,13 +25,7 @@ function renderFreehandPenBrush({
   color,
   isTemporary,
 }: PenBrushRenderContext): void {
-  const geometry = {
-    type: "pen" as const,
-    points,
-    ...(shape.geometry.type === "pen" && shape.geometry.pressures
-      ? { pressures: shape.geometry.pressures }
-      : {}),
-  };
+  const geometry = createPenJSONGeometry(points, shape.geometry.pressures);
   const outline = getPenStrokeOutline(
     {
       ...shape,

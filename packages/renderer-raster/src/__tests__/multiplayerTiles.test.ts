@@ -4,12 +4,12 @@ import type { DrawingDocument } from "@smalldraw/core";
 import {
   AddShape,
   type AnyShape,
+  type BoxedGeometry,
+  createPenJSONGeometry,
   DeleteShape,
   DrawingStore,
   getDefaultShapeHandlerRegistry,
   getOrderedShapes,
-  type PenGeometry,
-  type BoxedGeometry,
   UpdateShapeTransform,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
@@ -32,7 +32,11 @@ function createRect(id: string, translation: [number, number]): AnyShape {
     id,
     type: "boxed",
     zIndex: "a",
-    geometry: { type: "boxed", kind: "rect", size: v(240, 160) } as BoxedGeometry,
+    geometry: {
+      type: "boxed",
+      kind: "rect",
+      size: v(240, 160),
+    } as BoxedGeometry,
     transform: { translation },
     style: {
       fill: { type: "solid", color: "#2e7d32" },
@@ -46,11 +50,10 @@ function createPen(id: string, translation: [number, number]): AnyShape {
     id,
     type: "pen",
     zIndex: "b",
-    geometry: {
-      type: "pen",
-      points: [v(-80, -20), v(-20, 40), v(40, -10), v(80, 30)],
-      pressures: [1, 1, 1, 1],
-    } as PenGeometry,
+    geometry: createPenJSONGeometry(
+      [v(-80, -20), v(-20, 40), v(40, -10), v(80, 30)],
+      [1, 1, 1, 1],
+    ),
     transform: { translation },
     style: {
       stroke: {

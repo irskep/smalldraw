@@ -27,7 +27,7 @@ function createDefaultShapeRendererRegistry(): ShapeRendererRegistry {
     ),
   );
   registry.set("pen", (ctx, shape) =>
-    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen" } }),
+    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
   );
   return registry;
 }

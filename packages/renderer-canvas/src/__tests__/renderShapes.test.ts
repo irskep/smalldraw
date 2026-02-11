@@ -1,10 +1,10 @@
 import { describe, test } from "bun:test";
 import {
   type AnyShape,
-  createDocument,
-  getDefaultShapeHandlerRegistry,
-  type PenGeometry,
   type BoxedGeometry,
+  createDocument,
+  createPenJSONGeometry,
+  getDefaultShapeHandlerRegistry,
 } from "@smalldraw/core";
 import { expectSnapshot, renderDocumentToImage } from "./snapshotUtils";
 
@@ -40,7 +40,11 @@ describe("renderer-canvas snapshots", () => {
         id: "rect-1",
         type: "boxed",
         zIndex: "a",
-        geometry: { type: "boxed", kind: "rect", size: v(120, 80) } as BoxedGeometry,
+        geometry: {
+          type: "boxed",
+          kind: "rect",
+          size: v(120, 80),
+        } as BoxedGeometry,
         style: {
           fill: { type: "solid", color: "#2E7D32" },
           stroke: { type: "brush", color: "#0D47A1", size: 6 },
@@ -57,7 +61,11 @@ describe("renderer-canvas snapshots", () => {
           id: "rect-1",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(140, 90) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(140, 90),
+          } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#f5f5f5" },
             stroke: { type: "brush", color: "#546e7a", size: 3 },
@@ -67,11 +75,10 @@ describe("renderer-canvas snapshots", () => {
           id: "pen-1",
           type: "pen",
           zIndex: "b",
-          geometry: {
-            type: "pen",
-            points: [v(-60, -20), v(-20, 20), v(20, -10), v(60, 30)],
-            pressures: [1, 1, 1, 1],
-          } as PenGeometry,
+          geometry: createPenJSONGeometry(
+            [v(-60, -20), v(-20, 20), v(20, -10), v(60, 30)],
+            [1, 1, 1, 1],
+          ),
           style: {
             stroke: {
               type: "brush",
@@ -95,7 +102,11 @@ describe("renderer-canvas snapshots", () => {
           id: "rect-1",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(140, 90) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(140, 90),
+          } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#f5f5f5" },
             stroke: { type: "brush", color: "#546e7a", size: 3 },
@@ -105,11 +116,10 @@ describe("renderer-canvas snapshots", () => {
           id: "marker-1",
           type: "pen",
           zIndex: "b",
-          geometry: {
-            type: "pen",
-            points: [v(-60, -30), v(-25, 8), v(15, -15), v(58, 26)],
-            pressures: [1, 1, 1, 1],
-          } as PenGeometry,
+          geometry: createPenJSONGeometry(
+            [v(-60, -30), v(-25, 8), v(15, -15), v(58, 26)],
+            [1, 1, 1, 1],
+          ),
           style: {
             stroke: {
               type: "brush",
@@ -133,7 +143,11 @@ describe("renderer-canvas snapshots", () => {
           id: "rect-back",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(140, 90) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(140, 90),
+          } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#d32f2f" },
             stroke: { type: "brush", color: "#b71c1c", size: 4 },
@@ -143,7 +157,11 @@ describe("renderer-canvas snapshots", () => {
           id: "rect-front",
           type: "boxed",
           zIndex: "b",
-          geometry: { type: "boxed", kind: "rect", size: v(90, 60) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(90, 60),
+          } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#1976d2" },
             stroke: { type: "brush", color: "#0d47a1", size: 4 },
@@ -163,7 +181,11 @@ describe("renderer-canvas snapshots", () => {
           id: "rect-solid",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(160, 110) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(160, 110),
+          } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#263238" },
             stroke: { type: "brush", color: "#102027", size: 6 },
@@ -173,11 +195,10 @@ describe("renderer-canvas snapshots", () => {
           id: "pen-erase",
           type: "pen",
           zIndex: "b",
-          geometry: {
-            type: "pen",
-            points: [v(-70, 0), v(-20, -30), v(20, 30), v(70, 0)],
-            pressures: [1, 1, 1, 1],
-          } as PenGeometry,
+          geometry: createPenJSONGeometry(
+            [v(-70, 0), v(-20, -30), v(20, 30), v(70, 0)],
+            [1, 1, 1, 1],
+          ),
           style: {
             stroke: {
               type: "brush",
@@ -202,7 +223,11 @@ describe("renderer-canvas snapshots", () => {
           id: "rect-base",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(180, 120) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(180, 120),
+          } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#1976d2" },
             stroke: { type: "brush", color: "#0d47a1", size: 6 },
@@ -212,11 +237,10 @@ describe("renderer-canvas snapshots", () => {
           id: "eraser-stroke",
           type: "pen",
           zIndex: "b",
-          geometry: {
-            type: "pen",
-            points: [v(-70, -40), v(-10, 0), v(40, -20), v(70, 40)],
-            pressures: [1, 1, 1, 1],
-          } as PenGeometry,
+          geometry: createPenJSONGeometry(
+            [v(-70, -40), v(-10, 0), v(40, -20), v(70, 40)],
+            [1, 1, 1, 1],
+          ),
           style: {
             stroke: {
               type: "brush",

@@ -53,23 +53,25 @@ describe("Geometry actions", () => {
       change: (next, update) => change(next, update),
     };
     const pen = createShape("pen", {
-      type: "pen",
-      points: [
+      type: "pen-json",
+      pointsJson: JSON.stringify([
         [0, 0],
         [10, 10],
-      ],
+      ]),
+      pointCount: 2,
     });
 
     doc = undo.apply(new AddShape(pen), doc, ctx);
     expect(doc.shapes[pen.id].geometry).toMatchObject(pen.geometry);
 
     const updatedGeometry = {
-      type: "pen",
-      points: [
+      type: "pen-json",
+      pointsJson: JSON.stringify([
         [5, 5],
         [15, 15],
         [20, 0],
-      ],
+      ]),
+      pointCount: 3,
     };
     doc = undo.apply(
       new UpdateShapeGeometry(pen.id, updatedGeometry),

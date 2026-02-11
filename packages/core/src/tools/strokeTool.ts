@@ -8,10 +8,8 @@ import {
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
-import type {
-  PenPointsGeometry,
-  PenShape,
-} from "../model/shapes/penShape";
+import type { PenShape } from "../model/shapes/penShape";
+import { createPenJSONGeometry } from "../model/shapes/penShape";
 import type { StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { attachPointerHandlers } from "./pointerHandlers";
@@ -44,7 +42,10 @@ interface ActiveStrokeState {
 
 interface StrokeDraftState {
   id: string;
-  geometry: PenPointsGeometry;
+  geometry: {
+    points: Array<[number, number]>;
+    pressures?: number[];
+  };
   stroke: StrokeStyle;
   zIndex: string;
   lastInputPoint: Vec2 | null;
@@ -126,14 +127,12 @@ export function createStrokeTool(
     const drawing: StrokeDraftState = {
       id: draftId,
       geometry: {
-        type: "pen",
         points: sprayMode ? [] : [toVec2Like(point)],
-        pressures:
-          sprayMode
-            ? undefined
-            : isPressureSample(pressure)
-              ? [pressure]
-              : undefined,
+        pressures: sprayMode
+          ? undefined
+          : isPressureSample(pressure)
+            ? [pressure]
+            : undefined,
       },
       stroke,
       zIndex,
@@ -147,7 +146,9 @@ export function createStrokeTool(
         point,
         Math.max(
           1,
-          Math.round(getSprayDotsPerCluster(stroke.size) * SPRAY_TAP_DOTS_SCALE),
+          Math.round(
+            getSprayDotsPerCluster(stroke.size) * SPRAY_TAP_DOTS_SCALE,
+          ),
         ),
       );
     }
@@ -372,7 +373,9 @@ function getSprayMode(brushId: string | undefined): "even" | "uneven" | null {
 
 function stopSprayAnimation(state: ActiveStrokeState | undefined): void {
   if (!state?.sprayAnimationHandle) {
-    state && (state.sprayAnimationLastFrameMs = null);
+    if (state) {
+      state.sprayAnimationLastFrameMs = null;
+    }
     return;
   }
   cancelFrame(state.sprayAnimationHandle);
@@ -385,7 +388,10 @@ function requestFrame(callback: (timestampMs: number) => void): number {
   if (typeof raf === "function") {
     return raf(callback);
   }
-  return globalThis.setTimeout(() => callback(nowMs()), 16) as unknown as number;
+  return globalThis.setTimeout(
+    () => callback(nowMs()),
+    16,
+  ) as unknown as number;
 }
 
 function cancelFrame(handle: number): void {
@@ -404,7 +410,10 @@ function nowMs(): number {
   return Date.now();
 }
 
-function appendUnevenSprayFrame(draft: StrokeDraftState, deltaMs: number): Box | null {
+function appendUnevenSprayFrame(
+  draft: StrokeDraftState,
+  deltaMs: number,
+): Box | null {
   const point = draft.lastInputPoint;
   if (!point) {
     return null;
@@ -415,7 +424,8 @@ function appendUnevenSprayFrame(draft: StrokeDraftState, deltaMs: number): Box |
   );
   const clustersPerSecond = Math.max(
     8,
-    Math.pow(Math.max(1, draft.stroke.size), UNEVEN_SPRAY_CLUSTERS_PER_SECOND_EXPONENT) *
+    Math.max(1, draft.stroke.size) **
+      UNEVEN_SPRAY_CLUSTERS_PER_SECOND_EXPONENT *
       UNEVEN_SPRAY_CLUSTERS_PER_SECOND_SCALE *
       sprayRateDamping,
   );
@@ -449,7 +459,10 @@ function appendUnevenSprayBridge(
   if (distance <= 0) {
     return null;
   }
-  const spacing = Math.max(2, draft.stroke.size * UNEVEN_SPRAY_BRIDGE_SPACING_SCALE);
+  const spacing = Math.max(
+    2,
+    draft.stroke.size * UNEVEN_SPRAY_BRIDGE_SPACING_SCALE,
+  );
   const rawBridgeCount = Math.floor(distance / spacing);
   const bridgeCount = Math.min(
     rawBridgeCount,
@@ -466,9 +479,9 @@ function appendUnevenSprayBridge(
   );
   for (let index = 1; index <= bridgeCount; index += 1) {
     const length = step * index;
-    const center = new Vec2().add(from).add(
-      new Vec2().add(direction).mul([length, length]),
-    );
+    const center = new Vec2()
+      .add(from)
+      .add(new Vec2().add(direction).mul([length, length]));
     appendSprayCluster(draft, center, dotsPerCluster);
   }
   return getSpraySegmentDirtyBounds(from, point, draft.stroke.size);
@@ -499,9 +512,9 @@ function appendSpraySegment(draft: StrokeDraftState, point: Vec2): Box | null {
   while (remainder + (distance - traveled) >= spacing) {
     const step = spacing - remainder;
     traveled += step;
-    const samplePoint = new Vec2().add(from).add(
-      new Vec2().add(direction).mul([traveled, traveled]),
-    );
+    const samplePoint = new Vec2()
+      .add(from)
+      .add(new Vec2().add(direction).mul([traveled, traveled]));
     appendSprayCluster(draft, samplePoint, clusterDotCount);
     appended = true;
     remainder = 0;
@@ -543,7 +556,7 @@ function getSprayDotsPerCluster(strokeSize: number): number {
     SPRAY_DOTS_LARGE_SIZE_DAMPING_EXPONENT,
   );
   return (
-    Math.pow(Math.max(1, strokeSize), SPRAY_DOTS_PER_CLUSTER_EXPONENT) *
+    Math.max(1, strokeSize) ** SPRAY_DOTS_PER_CLUSTER_EXPONENT *
     SPRAY_DOTS_PER_CLUSTER_SCALE *
     dotDamping
   );
@@ -572,7 +585,11 @@ function getSprayPointDirtyBounds(point: Vec2, strokeSize: number): Box {
   };
 }
 
-function getSpraySegmentDirtyBounds(from: Vec2, to: Vec2, strokeSize: number): Box {
+function getSpraySegmentDirtyBounds(
+  from: Vec2,
+  to: Vec2,
+  strokeSize: number,
+): Box {
   const padding = getSprayDirtyPadding(strokeSize);
   const segmentBounds = BoxOperations.fromPointPair(from, to);
   const paddingVec = new Vec2(padding, padding);
@@ -583,8 +600,11 @@ function getSpraySegmentDirtyBounds(from: Vec2, to: Vec2, strokeSize: number): B
 }
 
 function getLargeSizeDamping(strokeSize: number, exponent: number): number {
-  const normalizedSize = Math.max(1, strokeSize / SPRAY_LARGE_SIZE_DAMPING_START);
-  return Math.pow(normalizedSize, -exponent);
+  const normalizedSize = Math.max(
+    1,
+    strokeSize / SPRAY_LARGE_SIZE_DAMPING_START,
+  );
+  return normalizedSize ** -exponent;
 }
 
 function getStrokePreviewBounds(
@@ -592,7 +612,9 @@ function getStrokePreviewBounds(
   strokeSize: number,
   brushId?: string,
 ): Box | null {
-  const previewPoints = getSprayMode(brushId) ? points.slice(-64) : points.slice(-6);
+  const previewPoints = getSprayMode(brushId)
+    ? points.slice(-64)
+    : points.slice(-6);
   const pointBounds = BoxOperations.fromPointArray(previewPoints);
   if (!pointBounds) {
     return null;
@@ -616,13 +638,7 @@ function createStrokeShape(draft: StrokeDraftState): PenShape | undefined {
   return {
     id: draft.id,
     type: "pen",
-    geometry: {
-      type: "pen",
-      points: localPoints,
-      ...(draft.geometry.pressures
-        ? { pressures: draft.geometry.pressures }
-        : {}),
-    },
+    geometry: createPenJSONGeometry(localPoints, draft.geometry.pressures),
     style: {
       stroke: draft.stroke,
     },
@@ -641,20 +657,19 @@ function createStrokeShape(draft: StrokeDraftState): PenShape | undefined {
   };
 }
 
-function createPreviewStrokeShape(draft: StrokeDraftState): PenShape | undefined {
+function createPreviewStrokeShape(
+  draft: StrokeDraftState,
+): PenShape | undefined {
   if (!draft.geometry.points.length) {
     return undefined;
   }
   return {
     id: draft.id,
     type: "pen",
-    geometry: {
-      type: "pen",
-      points: draft.geometry.points,
-      ...(draft.geometry.pressures
-        ? { pressures: draft.geometry.pressures }
-        : {}),
-    },
+    geometry: createPenJSONGeometry(
+      draft.geometry.points,
+      draft.geometry.pressures,
+    ),
     style: {
       stroke: draft.stroke,
     },

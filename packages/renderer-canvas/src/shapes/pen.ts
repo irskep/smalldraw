@@ -1,4 +1,8 @@
-import { getPenGeometryPoints, type PenShape, type Shape } from "@smalldraw/core";
+import {
+  getPenGeometryPoints,
+  type PenShape,
+  type Shape,
+} from "@smalldraw/core";
 import { toVec2, toVec2Like } from "@smalldraw/geometry";
 import { requirePenBrushRenderer } from "./penBrushRenderers";
 

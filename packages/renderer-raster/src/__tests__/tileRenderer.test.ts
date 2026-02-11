@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
   type AnyShape,
-  DrawingStore,
   type BoxedGeometry,
+  createPenJSONGeometry,
+  DrawingStore,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
 import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
@@ -128,7 +129,11 @@ describe("TileRenderer", () => {
       id: "shape-1",
       type: "boxed",
       zIndex: "a",
-      geometry: { type: "boxed", kind: "rect", size: [50, 50] } as BoxedGeometry,
+      geometry: {
+        type: "boxed",
+        kind: "rect",
+        size: [50, 50],
+      } as BoxedGeometry,
       transform: { translation: [TILE_SIZE / 2, TILE_SIZE / 2] },
       style: { fill: { type: "solid", color: "#000" } },
     });
@@ -136,7 +141,11 @@ describe("TileRenderer", () => {
       id: "shape-1",
       type: "boxed",
       zIndex: "a",
-      geometry: { type: "boxed", kind: "rect", size: [50, 50] } as BoxedGeometry,
+      geometry: {
+        type: "boxed",
+        kind: "rect",
+        size: [50, 50],
+      } as BoxedGeometry,
       transform: { translation: [TILE_SIZE / 2, TILE_SIZE / 2] },
       style: { fill: { type: "solid", color: "#000" } },
     });
@@ -144,7 +153,11 @@ describe("TileRenderer", () => {
       id: "shape-1",
       type: "boxed",
       zIndex: "a",
-      geometry: { type: "boxed", kind: "rect", size: [50, 50] } as BoxedGeometry,
+      geometry: {
+        type: "boxed",
+        kind: "rect",
+        size: [50, 50],
+      } as BoxedGeometry,
       transform: { translation: [TILE_SIZE + TILE_SIZE / 2, TILE_SIZE / 2] },
       style: { fill: { type: "solid", color: "#000" } },
     });
@@ -390,7 +403,11 @@ describe("TileRenderer", () => {
         id: "rect-1",
         type: "boxed",
         zIndex: "a",
-        geometry: { type: "boxed", kind: "rect", size: [220, 220] as [number, number] },
+        geometry: {
+          type: "boxed",
+          kind: "rect",
+          size: [220, 220] as [number, number],
+        },
         transform: { translation: [128, 128] as [number, number] },
         style: { fill: { type: "solid", color: "#0ea5e9" as const } },
       },
@@ -398,15 +415,12 @@ describe("TileRenderer", () => {
         id: "pen-1",
         type: "pen",
         zIndex: "b",
-        geometry: {
-          type: "pen",
-          points: [
-            [-80, -20],
-            [-20, 10],
-            [20, -10],
-            [80, 20],
-          ] as [number, number][],
-        },
+        geometry: createPenJSONGeometry([
+          [-80, -20],
+          [-20, 10],
+          [20, -10],
+          [80, 20],
+        ]),
         transform: { translation: [128, 128] as [number, number] },
         style: {
           stroke: {
@@ -421,14 +435,11 @@ describe("TileRenderer", () => {
         id: "eraser-1",
         type: "pen",
         zIndex: "c",
-        geometry: {
-          type: "pen",
-          points: [
-            [-70, 0],
-            [0, 0],
-            [70, 0],
-          ] as [number, number][],
-        },
+        geometry: createPenJSONGeometry([
+          [-70, 0],
+          [0, 0],
+          [70, 0],
+        ]),
         transform: { translation: [128, 128] as [number, number] },
         style: {
           stroke: {
@@ -505,7 +516,11 @@ describe("TileRenderer", () => {
         id: "rect-bg",
         type: "boxed",
         zIndex: "a",
-        geometry: { type: "boxed", kind: "rect", size: [220, 220] as [number, number] },
+        geometry: {
+          type: "boxed",
+          kind: "rect",
+          size: [220, 220] as [number, number],
+        },
         transform: { translation: [128, 128] as [number, number] },
         style: { fill: { type: "solid", color: "#fde047" } },
       },
@@ -513,15 +528,12 @@ describe("TileRenderer", () => {
         id: "pen-accent",
         type: "pen",
         zIndex: "b",
-        geometry: {
-          type: "pen",
-          points: [
-            [-80, -40],
-            [-20, 20],
-            [20, -10],
-            [90, 40],
-          ] as [number, number][],
-        },
+        geometry: createPenJSONGeometry([
+          [-80, -40],
+          [-20, 20],
+          [20, -10],
+          [90, 40],
+        ]),
         transform: { translation: [128, 128] as [number, number] },
         style: {
           stroke: {
@@ -536,14 +548,11 @@ describe("TileRenderer", () => {
         id: "eraser-cut",
         type: "pen",
         zIndex: "c",
-        geometry: {
-          type: "pen",
-          points: [
-            [-60, 0],
-            [0, 0],
-            [60, 0],
-          ] as [number, number][],
-        },
+        geometry: createPenJSONGeometry([
+          [-60, 0],
+          [0, 0],
+          [60, 0],
+        ]),
         transform: { translation: [128, 128] as [number, number] },
         style: {
           stroke: {

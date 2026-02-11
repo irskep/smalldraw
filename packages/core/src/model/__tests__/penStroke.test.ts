@@ -5,6 +5,7 @@ import {
   getPenStrokeOutline,
 } from "../penStroke";
 import type { PenShape } from "../shapes/penShape";
+import { createPenJSONGeometry } from "../shapes/penShape";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
@@ -16,11 +17,7 @@ function createPenShape(params: {
   return {
     id: "pen-1",
     type: "pen",
-    geometry: {
-      type: "pen",
-      points: params.points,
-      ...(params.pressures ? { pressures: params.pressures } : {}),
-    },
+    geometry: createPenJSONGeometry(params.points, params.pressures),
     style: {
       stroke: {
         type: "brush",

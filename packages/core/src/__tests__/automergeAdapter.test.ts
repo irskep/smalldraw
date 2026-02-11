@@ -6,8 +6,8 @@ import {
   getDefaultShapeHandlerRegistry,
   ShapeHandlerRegistry,
 } from "../model/shapeHandlers";
-import type { PenShape } from "../model/shapes/penShape";
 import type { BoxedShape } from "../model/shapes/boxedShape";
+import { createPenJSONGeometry, type PenShape } from "../model/shapes/penShape";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
@@ -30,10 +30,7 @@ describe("Automerge JSON adapter", () => {
       {
         id: "pen-1",
         type: "pen",
-        geometry: {
-          type: "pen",
-          points: [v(0, 0), v(10, 5)],
-        },
+        geometry: createPenJSONGeometry([v(0, 0), v(10, 5)]),
         style: {
           stroke: {
             type: "brush",

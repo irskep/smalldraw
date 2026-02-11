@@ -3,12 +3,15 @@ import type {
   BoxedShape,
   Fill,
   GradientStop,
+  PenShape,
   Shape,
   ShapeHandlerRegistry,
   StrokeStyle,
 } from "@smalldraw/core";
 import {
+  createPenJSONGeometry,
   getGeometryLocalBounds,
+  getPenGeometryPoints,
   getPenStrokeOutline,
   normalizeShapeTransform,
 } from "@smalldraw/core";
@@ -25,7 +28,6 @@ import {
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import Konva from "konva";
-import type { PenShape } from "packages/core/src/model/shapes/penShape";
 import { outlineToPath } from "./stroke";
 
 type RenderableNode = Konva.Shape | Konva.Group;
@@ -135,15 +137,12 @@ function createPenNode(
   const stroke = shape.style.stroke;
   const color = stroke?.color ?? "#000000";
   // Normalize through Vec2 to stabilize float precision for stroke generation.
-  const points = shape.geometry.points.map((point) =>
+  const points = getPenGeometryPoints(shape.geometry).map((point) =>
     toVec2Like(toVec2(point)),
   );
   const outline = getPenStrokeOutline({
     ...shape,
-    geometry: {
-      ...shape.geometry,
-      points,
-    },
+    geometry: createPenJSONGeometry(points, shape.geometry.pressures),
   });
   if (!outline.length) {
     return null;

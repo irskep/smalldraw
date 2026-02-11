@@ -2,10 +2,10 @@ import { describe, test } from "bun:test";
 
 import {
   type AnyShape,
-  createDocument,
-  getDefaultShapeHandlerRegistry,
-  type PenGeometry,
   type BoxedGeometry,
+  createDocument,
+  createPenJSONGeometry,
+  getDefaultShapeHandlerRegistry,
 } from "@smalldraw/core";
 import { Vec2 } from "gl-matrix";
 import type { Viewport } from "../index";
@@ -44,7 +44,11 @@ describe("renderer snapshots", () => {
         id: "solid-rect",
         type: "boxed",
         zIndex: "a",
-        geometry: { type: "boxed", kind: "rect", size: v(80, 60) } as BoxedGeometry,
+        geometry: {
+          type: "boxed",
+          kind: "rect",
+          size: v(80, 60),
+        } as BoxedGeometry,
         style: {
           fill: { type: "solid", color: "#2E7D32" },
           stroke: { type: "brush", color: "#0D47A1", size: 4 },
@@ -62,9 +66,8 @@ describe("renderer snapshots", () => {
           id: "pen-shape",
           type: "pen",
           zIndex: "a",
-          geometry: {
-            type: "pen",
-            points: [
+          geometry: createPenJSONGeometry(
+            [
               v(-80, -10),
               v(-40, -30),
               v(-10, -5),
@@ -72,8 +75,8 @@ describe("renderer snapshots", () => {
               v(60, 0),
               v(30, 30),
             ],
-            pressures: [1, 1, 1, 1, 1, 1],
-          } as PenGeometry,
+            [1, 1, 1, 1, 1, 1],
+          ),
           style: {
             stroke: {
               type: "brush",
@@ -87,11 +90,10 @@ describe("renderer snapshots", () => {
           id: "polyline-stroke",
           type: "pen",
           zIndex: "b",
-          geometry: {
-            type: "pen",
-            points: [v(-80, 40), v(-20, 20), v(0, 50), v(60, 40)],
-            pressures: [1, 1, 1, 1],
-          } as PenGeometry,
+          geometry: createPenJSONGeometry(
+            [v(-80, 40), v(-20, 20), v(0, 50), v(60, 40)],
+            [1, 1, 1, 1],
+          ),
           style: {
             stroke: {
               type: "brush",
@@ -120,7 +122,11 @@ describe("renderer snapshots", () => {
           id: "rotated-rect",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(80, 40) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(80, 40),
+          } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#26c6da" },
             stroke: { type: "brush", color: "#00838f", size: 3 },

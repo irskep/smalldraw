@@ -1,5 +1,5 @@
 import { change } from "@automerge/automerge/slim";
-import { BoxOperations, type Box } from "@smalldraw/geometry";
+import { type Box, BoxOperations } from "@smalldraw/geometry";
 import type { ActionContext, UndoableAction } from "../actions";
 import { filterShapesAfterClear } from "../model/clear";
 import { createDocument, type DrawingDocument } from "../model/document";
@@ -310,7 +310,10 @@ export class DrawingStore {
       return;
     }
     this.accumulatedPreviewDirtyBounds = this.accumulatedPreviewDirtyBounds
-      ? BoxOperations.fromBoxPair(this.accumulatedPreviewDirtyBounds, dirtyBounds)
+      ? BoxOperations.fromBoxPair(
+          this.accumulatedPreviewDirtyBounds,
+          dirtyBounds,
+        )
       : dirtyBounds;
   }
 

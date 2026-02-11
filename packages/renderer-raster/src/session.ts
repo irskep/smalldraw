@@ -94,7 +94,10 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
         perfAddTimingMs("session.render.ms", perfNowMs() - renderStartMs);
         return;
       }
-    } else if (this.hasBackdropSnapshot && !this.retainHotLayerUntilBakeComplete) {
+    } else if (
+      this.hasBackdropSnapshot &&
+      !this.retainHotLayerUntilBakeComplete
+    ) {
       this.hotLayer.setBackdrop(null);
       this.hasBackdropSnapshot = false;
       this.skipBackdropUntilStrokeEnd = false;

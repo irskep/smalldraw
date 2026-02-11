@@ -1,7 +1,7 @@
 import {
-  createEvenSpraycanTool,
   createEllipseTool,
   createEraserTool,
+  createEvenSpraycanTool,
   createMarkerTool,
   createPenTool,
   createRectangleTool,

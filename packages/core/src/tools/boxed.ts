@@ -129,7 +129,11 @@ export function createBoxedTool(
     });
   };
 
-  const beginShape = (runtime: ToolRuntime, point: Vec2, pressure?: number) => {
+  const beginShape = (
+    runtime: ToolRuntime,
+    point: Vec2,
+    _pressure?: number,
+  ) => {
     const state = ensureState(runtime);
     const draft: BoxedDraftState = {
       id: runtime.generateShapeId(options.draftIdPrefix),
@@ -149,7 +153,7 @@ export function createBoxedTool(
   const updatePoint = (
     runtime: ToolRuntime,
     point: Vec2,
-    pressure?: number,
+    _pressure?: number,
   ) => {
     const state = runtimeState.get(runtime);
     if (!state?.draft) return;

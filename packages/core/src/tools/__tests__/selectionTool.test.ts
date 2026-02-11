@@ -6,8 +6,11 @@ import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getShapeBounds } from "../../model/geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { PenShape } from "../../model/shapes/penShape";
 import type { BoxedGeometry, BoxedShape } from "../../model/shapes/boxedShape";
+import {
+  createPenJSONGeometry,
+  type PenShape,
+} from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
@@ -81,7 +84,9 @@ describe("selection tool", () => {
       id: "rect-handle",
       type: "boxed",
       geometry: {
-        type: "boxed", kind: "rect", size: v(10, 10),
+        type: "boxed",
+        kind: "rect",
+        size: v(10, 10),
       },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
@@ -107,7 +112,9 @@ describe("selection tool", () => {
       id: "rect-hover",
       type: "boxed",
       geometry: {
-        type: "boxed", kind: "rect", size: v(10, 10),
+        type: "boxed",
+        kind: "rect",
+        size: v(10, 10),
       },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
@@ -158,10 +165,7 @@ describe("selection tool", () => {
     const penShape: TestShapeInput = {
       id: "pen-1",
       type: "pen",
-      geometry: {
-        type: "pen",
-        points: [v(-5, -5), v(5, 5)],
-      },
+      geometry: createPenJSONGeometry([v(-5, -5), v(5, 5)]),
       zIndex: "a",
       style: { stroke: { type: "brush", color: "#000", size: 2 } },
       interactions: { resizable: true, rotatable: false },
@@ -214,10 +218,7 @@ describe("selection tool", () => {
     const pen: TestShapeInput = {
       id: "pen-move",
       type: "pen",
-      geometry: {
-        type: "pen",
-        points: [v(-5, -5), v(5, 5)],
-      },
+      geometry: createPenJSONGeometry([v(-5, -5), v(5, 5)]),
       zIndex: "c",
       interactions: { resizable: true, rotatable: false },
       transform: {
@@ -320,7 +321,9 @@ describe("selection tool", () => {
       id: "rect-1",
       type: "boxed",
       geometry: {
-        type: "boxed", kind: "rect", size: v(20, 10),
+        type: "boxed",
+        kind: "rect",
+        size: v(20, 10),
       },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
@@ -357,7 +360,9 @@ describe("selection tool", () => {
 
     const resized = docRef.current.shapes["rect-1"] as BoxedShape | undefined;
     expect(resized?.geometry).toEqual({
-      type: "boxed", kind: "rect", size: v(30, 15),
+      type: "boxed",
+      kind: "rect",
+      size: v(30, 15),
     });
     expect(resized?.transform?.translation).toEqual(v(5, 2.5));
   });
@@ -571,7 +576,9 @@ describe("selection tool", () => {
       handleId: "mid-right",
     });
 
-    const resized = docRef.current.shapes["axis-rect"] as BoxedShape | undefined;
+    const resized = docRef.current.shapes["axis-rect"] as
+      | BoxedShape
+      | undefined;
     const geometry = resized?.geometry;
     expect(geometry?.type).toBe("boxed");
     if (geometry?.kind !== "rect") {
@@ -747,10 +754,7 @@ describe("selection tool", () => {
     const pen: TestShapeInput = {
       id: "pen-relative",
       type: "pen",
-      geometry: {
-        type: "pen",
-        points: [v(-5, -5), v(5, 5)],
-      },
+      geometry: createPenJSONGeometry([v(-5, -5), v(5, 5)]),
       zIndex: "pen-relative",
       interactions: { resizable: true, rotatable: false },
       transform: {
@@ -793,10 +797,7 @@ describe("selection tool", () => {
     const penShape: TestShapeInput = {
       id: "pen-scale",
       type: "pen",
-      geometry: {
-        type: "pen",
-        points: [v(-5, -5), v(5, 5)],
-      },
+      geometry: createPenJSONGeometry([v(-5, -5), v(5, 5)]),
       zIndex: "pen-scale",
       interactions: { resizable: true, rotatable: false },
       transform: {
@@ -833,10 +834,9 @@ describe("selection tool", () => {
     const resized = docRef.current.shapes["pen-scale"] as PenShape | undefined;
     expect(resized?.transform?.translation).toEqual(v(7.5, 7.5));
     expect(resized?.transform?.scale).toEqual(v(1.5, 1.5));
-    expect(resized?.geometry).toEqual({
-      type: "pen",
-      points: [v(-5, -5), v(5, 5)],
-    });
+    expect(resized?.geometry).toEqual(
+      createPenJSONGeometry([v(-5, -5), v(5, 5)]),
+    );
   });
 
   test("resizes multiple rectangles as a group", () => {
@@ -895,7 +895,9 @@ describe("selection tool", () => {
     expect(
       (docRef.current.shapes.left as BoxedShape | undefined)?.geometry,
     ).toEqual({
-      type: "boxed", kind: "rect", size: v(15, 20),
+      type: "boxed",
+      kind: "rect",
+      size: v(15, 20),
     });
     expect(docRef.current.shapes.right?.transform?.translation).toEqual(
       v(25, 0),
@@ -903,7 +905,9 @@ describe("selection tool", () => {
     expect(
       (docRef.current.shapes.right as BoxedShape | undefined)?.geometry,
     ).toEqual({
-      type: "boxed", kind: "rect", size: v(30, 20),
+      type: "boxed",
+      kind: "rect",
+      size: v(30, 20),
     });
   });
 
@@ -912,7 +916,9 @@ describe("selection tool", () => {
       id: "rect-2",
       type: "boxed",
       geometry: {
-        type: "boxed", kind: "rect", size: v(10, 10),
+        type: "boxed",
+        kind: "rect",
+        size: v(10, 10),
       },
       zIndex: "c",
       interactions: { resizable: true, rotatable: true },

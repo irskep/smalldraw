@@ -1,6 +1,6 @@
 import type { AnyGeometry } from "@smalldraw/geometry";
-import { ClearShapeHandler } from "./shapes/clearShape";
 import { BoxedShapeHandler } from "./shapes/boxedShape";
+import { ClearShapeHandler } from "./shapes/clearShape";
 import { PenShapeHandler } from "./shapes/penShape";
 import type { ShapeHandler } from "./shapeTypes";
 

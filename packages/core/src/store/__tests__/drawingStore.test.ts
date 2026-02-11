@@ -7,8 +7,8 @@ import type { ActionContext } from "../../actions";
 import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { PenShape } from "../../model/shapes/penShape";
 import type { BoxedGeometry, BoxedShape } from "../../model/shapes/boxedShape";
+import type { PenShape } from "../../model/shapes/penShape";
 import { createPenTool, createRectangleTool } from "../../tools/drawingTools";
 import { createSelectionTool as createSelectionDefinition } from "../../tools/selection";
 import type { ToolDefinition } from "../../tools/types";
@@ -24,7 +24,9 @@ function createDraftTool(): ToolDefinition {
     activate(runtime) {
       runtime.on("pointerDown", (event) => {
         const geometry: BoxedGeometry = {
-          type: "boxed", kind: "rect", size: v(10, 10),
+          type: "boxed",
+          kind: "rect",
+          size: v(10, 10),
         };
         runtime.setDraft({
           toolId: runtime.toolId,
@@ -161,7 +163,7 @@ describe("DrawingStore", () => {
     const shapes = Object.values(store.getDocument().shapes) as PenShape[];
     expect(shapes).toHaveLength(1);
     const shape = shapes[0];
-    expect(shape.geometry.type).toBe("pen");
+    expect(shape.geometry.type).toBe("pen-json");
     const worldPoints = getWorldPointsFromShape(shape);
     expect(worldPoints).toHaveLength(2);
     expect(worldPoints[0]?.[0]).toBeCloseTo(0, 3);
@@ -179,7 +181,9 @@ describe("DrawingStore", () => {
 
     expect(store.getDrafts()).toHaveLength(1);
     expect(store.getDrafts()[0].geometry as BoxedGeometry).toEqual({
-      type: "boxed", kind: "rect", size: v(10, 10),
+      type: "boxed",
+      kind: "rect",
+      size: v(10, 10),
     });
 
     store.activateTool("brush.freehand");
@@ -230,7 +234,7 @@ describe("DrawingStore", () => {
       | PenShape
       | BoxedShape
     )[];
-    const penShape = shapes.find((shape) => shape.geometry.type === "pen");
+    const penShape = shapes.find((shape) => shape.geometry.type === "pen-json");
     const boxedShape = shapes.find(
       (shape) =>
         shape.geometry.type === "boxed" && shape.geometry.kind === "rect",

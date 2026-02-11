@@ -1,10 +1,10 @@
 import { describe, test } from "bun:test";
 import {
   type AnyShape,
+  type BoxedGeometry,
+  createPenJSONGeometry,
   DrawingStore,
   getDefaultShapeHandlerRegistry,
-  type PenGeometry,
-  type BoxedGeometry,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
 import { createCanvas } from "canvas";
@@ -82,7 +82,11 @@ describe("tile baking snapshots", () => {
           id: "rect-1",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(200, 140) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(200, 140),
+          } as BoxedGeometry,
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             fill: solidFill("#2e7d32"),
@@ -105,7 +109,11 @@ describe("tile baking snapshots", () => {
           id: "rect-1",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(220, 140) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(220, 140),
+          } as BoxedGeometry,
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             fill: solidFill("#f57c00"),
@@ -157,7 +165,11 @@ describe("tile baking snapshots", () => {
           id: "rect-1",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(320, 220) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(320, 220),
+          } as BoxedGeometry,
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             fill: solidFill("#263238"),
@@ -168,11 +180,10 @@ describe("tile baking snapshots", () => {
           id: "pen-1",
           type: "pen",
           zIndex: "b",
-          geometry: {
-            type: "pen",
-            points: [v(-120, 0), v(-40, -80), v(40, 80), v(120, 0)],
-            pressures: [1, 1, 1, 1],
-          } as PenGeometry,
+          geometry: createPenJSONGeometry(
+            [v(-120, 0), v(-40, -80), v(40, 80), v(120, 0)],
+            [1, 1, 1, 1],
+          ),
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             stroke: {
@@ -207,7 +218,11 @@ describe("tile baking snapshots", () => {
           id: "rect-1",
           type: "boxed",
           zIndex: "a",
-          geometry: { type: "boxed", kind: "rect", size: v(220, 160) } as BoxedGeometry,
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: v(220, 160),
+          } as BoxedGeometry,
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             fill: solidFill("#1976d2"),
@@ -218,11 +233,10 @@ describe("tile baking snapshots", () => {
           id: "eraser-1",
           type: "pen",
           zIndex: "b",
-          geometry: {
-            type: "pen",
-            points: [v(-90, -50), v(-20, 0), v(40, -20), v(90, 50)],
-            pressures: [1, 1, 1, 1],
-          } as PenGeometry,
+          geometry: createPenJSONGeometry(
+            [v(-90, -50), v(-20, 0), v(40, -20), v(90, 50)],
+            [1, 1, 1, 1],
+          ),
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             stroke: {
