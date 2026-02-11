@@ -29,6 +29,7 @@
     0 0 0 1px color-mix(in oklch, var(--gray-7) 18%, white);
 
   --kd-toolbar-cell-size: 50px;
+  --kd-toolbar-bottom-cell-size: clamp(72px, 20vw, 100px);
   --kd-toolbar-palette-cell-size: 52px;
   --kd-toolbar-label-size-sm: 10px;
   --kd-toolbar-label-size-md: 11px;

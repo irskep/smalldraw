@@ -119,7 +119,7 @@
 
 .kids-draw-family-variants {
   grid-auto-flow: column;
-  grid-auto-columns: var(--kd-toolbar-cell-size);
+  grid-auto-columns: var(--kd-toolbar-bottom-cell-size);
 }
 
 .kids-draw-family-variants[hidden] {
@@ -127,10 +127,10 @@
 }
 
 .kids-draw-tool-variant-button {
-  width: var(--kd-toolbar-cell-size);
-  height: var(--kd-toolbar-cell-size);
-  min-width: var(--kd-toolbar-cell-size);
-  min-height: var(--kd-toolbar-cell-size);
+  width: var(--kd-toolbar-bottom-cell-size);
+  height: var(--kd-toolbar-bottom-cell-size);
+  min-width: var(--kd-toolbar-bottom-cell-size);
+  min-height: var(--kd-toolbar-bottom-cell-size);
   padding: 0;
   display: flex;
   align-items: center;
@@ -251,6 +251,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.kids-draw-family-variants .kids-draw-tool-variant-button {
+  width: var(--kd-toolbar-bottom-cell-size);
+  height: var(--kd-toolbar-bottom-cell-size);
+  min-width: var(--kd-toolbar-bottom-cell-size);
+  min-height: var(--kd-toolbar-bottom-cell-size);
 }
 
 .kids-draw-tool-button {
