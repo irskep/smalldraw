@@ -4,6 +4,7 @@ import {
   createMarkerTool,
   createPenTool,
   createRectangleTool,
+  createSprayTool,
   type ToolDefinition,
   type ToolStyleSupport,
 } from "@smalldraw/core";
@@ -13,6 +14,7 @@ import {
   Highlighter,
   type IconNode,
   Pen,
+  SprayCan,
   Square,
 } from "lucide";
 
@@ -41,6 +43,7 @@ export type ToolbarItem =
 
 const PEN_TOOL = createPenTool();
 const MARKER_TOOL = createMarkerTool();
+const SPRAY_TOOL = createSprayTool();
 const ERASER_TOOL = createEraserTool();
 const RECTANGLE_TOOL = createRectangleTool();
 const ELLIPSE_TOOL = createEllipseTool();
@@ -61,6 +64,14 @@ export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
     icon: Highlighter,
     cursorMode: "hide-while-drawing",
     tool: MARKER_TOOL,
+  },
+  {
+    id: SPRAY_TOOL.id,
+    familyId: "brush",
+    label: "Spray",
+    icon: SprayCan,
+    cursorMode: "hide-while-drawing",
+    tool: SPRAY_TOOL,
   },
   {
     id: ERASER_TOOL.id,
@@ -94,7 +105,7 @@ export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
     label: "Brush",
     icon: Pen,
     defaultToolId: "brush.freehand",
-    toolIds: ["brush.freehand", "brush.marker"],
+    toolIds: ["brush.freehand", "brush.marker", "brush.spray"],
   },
   {
     id: "eraser",

@@ -1,4 +1,4 @@
-import type { Box } from "@smalldraw/geometry";
+import { type Box, BoxOperations, getX, getY } from "@smalldraw/geometry";
 import { getMarkerStrokeBounds } from "./markerSmoothing";
 import type { PenShape } from "./shapes/penShape";
 
@@ -23,6 +23,13 @@ const PEN_BRUSH_REGISTRY = new Map<string, PenBrushDefinition>([
       getBounds: getMarkerStrokeBounds,
     },
   ],
+  [
+    "spray",
+    {
+      id: "spray",
+      getBounds: getSprayStrokeBounds,
+    },
+  ],
 ]);
 
 export function requirePenBrushDefinition(
@@ -36,4 +43,17 @@ export function requirePenBrushDefinition(
     throw new Error(`Unknown pen brushId '${brushId}'.`);
   }
   return definition;
+}
+
+function getSprayStrokeBounds(shape: PenShape): Box | null {
+  const pointBounds = BoxOperations.fromPointArray(shape.geometry.points);
+  if (!pointBounds) {
+    return null;
+  }
+  const strokeSize = Math.max(1, shape.style.stroke?.size ?? 1);
+  const radius = Math.max(2, strokeSize * 1.6);
+  return {
+    min: [getX(pointBounds.min) - radius, getY(pointBounds.min) - radius],
+    max: [getX(pointBounds.max) + radius, getY(pointBounds.max) + radius],
+  };
 }

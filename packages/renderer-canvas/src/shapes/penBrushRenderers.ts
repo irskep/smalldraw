@@ -53,6 +53,27 @@ function renderFreehandPenBrush({
   ctx.fill();
 }
 
+function renderSprayPenBrush({
+  ctx,
+  points,
+  strokeSize,
+  color,
+}: PenBrushRenderContext): void {
+  if (!points.length) {
+    return;
+  }
+  const dotRadius = Math.max(0.35, strokeSize * 0.12);
+  const dotAlpha = 0.11;
+  ctx.fillStyle = color;
+  ctx.globalAlpha = dotAlpha;
+  for (const point of points) {
+    ctx.beginPath();
+    ctx.arc(point[0], point[1], dotRadius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
 const PEN_BRUSH_RENDERERS = new Map<string, PenBrushRenderer>([
   ["freehand", renderFreehandPenBrush],
   [
@@ -61,6 +82,7 @@ const PEN_BRUSH_RENDERERS = new Map<string, PenBrushRenderer>([
       renderMarkerPath(ctx, points, strokeSize);
     },
   ],
+  ["spray", renderSprayPenBrush],
 ]);
 
 export function requirePenBrushRenderer(

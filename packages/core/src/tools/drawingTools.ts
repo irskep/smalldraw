@@ -45,6 +45,27 @@ export function createMarkerTool(options?: MarkerToolOptions): ToolDefinition {
   });
 }
 
+export interface SprayToolOptions extends StrokeToolOptions {}
+
+const SPRAY_DEFAULT_STROKE: StrokeStyle = {
+  type: "brush",
+  color: "#000000",
+  size: 6,
+  brushId: "spray",
+  compositeOp: "source-over",
+} as const;
+
+export function createSprayTool(options?: SprayToolOptions): ToolDefinition {
+  return createStrokeTool({
+    id: "brush.spray",
+    label: "Spray Paint",
+    draftIdPrefix: "brush-spray-draft",
+    shapeIdPrefix: "brush-spray",
+    fallbackStroke: SPRAY_DEFAULT_STROKE,
+    runtimeOptions: options,
+  });
+}
+
 export interface EraserToolOptions extends StrokeToolOptions {}
 
 const ERASER_DEFAULT_STROKE: StrokeStyle = {

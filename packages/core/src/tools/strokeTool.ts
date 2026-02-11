@@ -16,6 +16,10 @@ import { isPressureSample } from "./pressure";
 import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 
 const PRIMARY_BUTTON_MASK = 1;
+const SPRAY_RADIUS_SCALE = 1.25;
+const SPRAY_SPACING_SCALE = 0.38;
+const SPRAY_DOTS_PER_CLUSTER_SCALE = 1.2;
+const SPRAY_TAP_DOTS_SCALE = 2.5;
 
 interface ActiveStrokeState {
   drawing: StrokeDraftState | null;
@@ -28,6 +32,8 @@ interface StrokeDraftState {
   geometry: PenGeometry;
   stroke: StrokeStyle;
   zIndex: string;
+  lastInputPoint: Vec2 | null;
+  sprayDistanceRemainder: number;
 }
 
 const runtimeState = new WeakMap<ToolRuntime, ActiveStrokeState>();
@@ -97,16 +103,32 @@ export function createStrokeTool(
     }
     const draftId = runtime.generateShapeId(options.draftIdPrefix);
     const zIndex = runtime.getNextZIndex();
-    state.drawing = {
+    const stroke = resolveStroke(runtime);
+    const drawing: StrokeDraftState = {
       id: draftId,
       geometry: {
         type: "pen",
-        points: [toVec2Like(point)],
-        pressures: isPressureSample(pressure) ? [pressure] : undefined,
+        points: stroke.brushId === "spray" ? [] : [toVec2Like(point)],
+        pressures:
+          stroke.brushId === "spray"
+            ? undefined
+            : isPressureSample(pressure)
+              ? [pressure]
+              : undefined,
       },
-      stroke: resolveStroke(runtime),
+      stroke,
       zIndex,
+      lastInputPoint: new Vec2(point),
+      sprayDistanceRemainder: 0,
     };
+    if (stroke.brushId === "spray") {
+      appendSprayCluster(
+        drawing,
+        point,
+        Math.max(1, Math.round(stroke.size * SPRAY_TAP_DOTS_SCALE)),
+      );
+    }
+    state.drawing = drawing;
     state.lastPreviewSegmentBounds = null;
     updateDraft(runtime);
   };
@@ -120,10 +142,16 @@ export function createStrokeTool(
     if (!state?.drawing) {
       return;
     }
+    if (state.drawing.stroke.brushId === "spray") {
+      appendSpraySegment(state.drawing, point);
+      updateDraft(runtime);
+      return;
+    }
     state.drawing.geometry.points.push(toVec2Like(point));
     if (state.drawing.geometry.pressures && isPressureSample(pressure)) {
       state.drawing.geometry.pressures.push(pressure);
     }
+    state.drawing.lastInputPoint = new Vec2(point);
     updateDraft(runtime);
   };
 
@@ -132,7 +160,7 @@ export function createStrokeTool(
     if (!state?.drawing) {
       return;
     }
-    const draftShape = createStrokeShape(state.drawing) ?? null;
+    const draftShape = createPreviewStrokeShape(state.drawing) ?? null;
     if (!draftShape) {
       runtime.clearDraft();
       runtime.setPreview(null);
@@ -147,6 +175,7 @@ export function createStrokeTool(
     const nextBounds = getStrokePreviewBounds(
       state.drawing.geometry.points,
       state.drawing.stroke.size,
+      state.drawing.stroke.brushId,
     );
     if (!nextBounds) {
       runtime.setPreview(null);
@@ -156,9 +185,7 @@ export function createStrokeTool(
     const dirtyBounds = state.lastPreviewSegmentBounds
       ? BoxOperations.fromBoxPair(state.lastPreviewSegmentBounds, nextBounds)
       : nextBounds;
-    runtime.setPreview({
-      dirtyBounds,
-    });
+    runtime.setPreview({ dirtyBounds });
     state.lastPreviewSegmentBounds = nextBounds;
   };
 
@@ -169,7 +196,8 @@ export function createStrokeTool(
       runtime.setPreview(null);
       return;
     }
-    if (state.drawing.geometry.points.length < 2) {
+    const minPointCount = state.drawing.stroke.brushId === "spray" ? 1 : 2;
+    if (state.drawing.geometry.points.length < minPointCount) {
       runtime.clearDraft();
       runtime.setPreview(null);
       state.drawing = null;
@@ -257,11 +285,71 @@ export function createStrokeTool(
   };
 }
 
+function appendSpraySegment(draft: StrokeDraftState, point: Vec2): void {
+  const from = draft.lastInputPoint;
+  if (!from) {
+    draft.lastInputPoint = new Vec2(point);
+    appendSprayCluster(draft, point, 1);
+    return;
+  }
+  const segment = new Vec2().add(point).sub(from);
+  const distance = Vec2.length(segment);
+  if (distance <= 0) {
+    return;
+  }
+  const spacing = Math.max(0.75, draft.stroke.size * SPRAY_SPACING_SCALE);
+  const clusterDotCount = Math.max(
+    1,
+    Math.round(draft.stroke.size * SPRAY_DOTS_PER_CLUSTER_SCALE),
+  );
+  const direction = new Vec2().add(segment).mul([1 / distance, 1 / distance]);
+  let traveled = 0;
+  let remainder = draft.sprayDistanceRemainder;
+
+  while (remainder + (distance - traveled) >= spacing) {
+    const step = spacing - remainder;
+    traveled += step;
+    const samplePoint = new Vec2().add(from).add(
+      new Vec2().add(direction).mul([traveled, traveled]),
+    );
+    appendSprayCluster(draft, samplePoint, clusterDotCount);
+    remainder = 0;
+  }
+
+  draft.sprayDistanceRemainder = remainder + (distance - traveled);
+  draft.lastInputPoint = new Vec2(point);
+}
+
+function appendSprayCluster(
+  draft: StrokeDraftState,
+  center: Vec2,
+  count: number,
+): void {
+  const sprayRadius = Math.max(2, draft.stroke.size * SPRAY_RADIUS_SCALE);
+  for (let index = 0; index < count; index += 1) {
+    const offset = sampleDiskOffset(sprayRadius);
+    const dot = new Vec2().add(center).add(offset);
+    draft.geometry.points.push(toVec2Like(dot));
+  }
+}
+
+function sampleDiskOffset(radius: number): Vec2 {
+  const angle = Math.random() * Math.PI * 2;
+  const radialDistance = Math.sqrt(Math.random()) * radius;
+  return new Vec2(Math.cos(angle), Math.sin(angle)).mul([
+    radialDistance,
+    radialDistance,
+  ]);
+}
+
 function getStrokePreviewBounds(
   points: Array<[number, number]>,
   strokeSize: number,
+  brushId?: string,
 ): Box | null {
-  const pointBounds = BoxOperations.fromPointArray(points.slice(-6));
+  const previewPoints =
+    brushId === "spray" ? points.slice(-64) : points.slice(-6);
+  const pointBounds = BoxOperations.fromPointArray(previewPoints);
   if (!pointBounds) {
     return null;
   }
@@ -304,6 +392,38 @@ function createStrokeShape(draft: StrokeDraftState): PenShape | undefined {
     transform: {
       translation: toVec2Like(center),
       scale: toVec2Like(new Vec2(1, 1)),
+      rotation: 0,
+    },
+  };
+}
+
+function createPreviewStrokeShape(draft: StrokeDraftState): PenShape | undefined {
+  if (!draft.geometry.points.length) {
+    return undefined;
+  }
+  return {
+    id: draft.id,
+    type: "pen",
+    geometry: {
+      type: "pen",
+      points: draft.geometry.points,
+      ...(draft.geometry.pressures
+        ? { pressures: draft.geometry.pressures }
+        : {}),
+    },
+    style: {
+      stroke: draft.stroke,
+    },
+    zIndex: draft.zIndex,
+    layerId: "default",
+    temporalOrder: 0,
+    interactions: {
+      resizable: true,
+      rotatable: false,
+    },
+    transform: {
+      translation: [0, 0],
+      scale: [1, 1],
       rotation: 0,
     },
   };
