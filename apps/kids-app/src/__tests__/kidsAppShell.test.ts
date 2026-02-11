@@ -35,6 +35,15 @@ function dispatchPointer(
   overlay.dispatchEvent(event);
 }
 
+function dispatchPointerLeave(overlay: HTMLElement): void {
+  const event = new PointerEvent("pointerleave", {
+    bubbles: true,
+    pointerId: 1,
+    pointerType: "mouse",
+  });
+  overlay.dispatchEvent(event);
+}
+
 function dispatchPointerMoveWithCoalesced(
   overlay: HTMLElement,
   x: number,
@@ -715,6 +724,95 @@ describe("kids-app shell", () => {
     expect(secondSummary?.lastStrokeSummary?.pointerMoveEvents).toBe(1);
     expect(secondSummary?.lastStrokeSummary?.pointerSamples).toBe(1);
     expect(secondSummary?.lastStrokeSummary?.coalescedEvents).toBe(0);
+
+    app.destroy();
+  });
+
+  test("pointer leaving paper mid-stroke does not cancel commit", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    dispatchPointer(overlay, "pointerdown", 80, 80, 1);
+    dispatchPointer(overlay, "pointermove", 140, 120, 1);
+    dispatchPointerLeave(overlay);
+    dispatchPointer(overlay, "pointerup", 140, 120, 0);
+
+    const shapes = Object.values(app.store.getDocument().shapes) as PenShape[];
+    expect(shapes).toHaveLength(1);
+    const worldPoints = getWorldPointsFromShape(shapes[0]!);
+    expect(worldPoints.length).toBeGreaterThan(1);
+
+    app.destroy();
+  });
+
+  test("pointer up on window after leaving paper still commits active stroke", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    dispatchPointer(overlay, "pointerdown", 100, 100, 1);
+    dispatchPointer(overlay, "pointermove", 180, 160, 1);
+    dispatchPointerLeave(overlay);
+    window.dispatchEvent(
+      new PointerEvent("pointerup", {
+        bubbles: true,
+        pointerId: 1,
+        pointerType: "mouse",
+        clientX: 180,
+        clientY: 160,
+        buttons: 0,
+      }),
+    );
+
+    const shapes = Object.values(app.store.getDocument().shapes) as PenShape[];
+    expect(shapes).toHaveLength(1);
+    const worldPoints = getWorldPointsFromShape(shapes[0]!);
+    expect(worldPoints.length).toBeGreaterThan(1);
 
     app.destroy();
   });

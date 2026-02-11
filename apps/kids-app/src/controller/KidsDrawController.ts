@@ -5,7 +5,7 @@ import {
   getTopZIndex,
   type SmalldrawCore,
 } from "@smalldraw/core";
-import type { Vec2 } from "@smalldraw/geometry";
+import { Vec2 } from "@smalldraw/geometry";
 import { FilePlus, type IconNode, Trash2 } from "lucide";
 import {
   applyResponsiveLayout,
@@ -101,6 +101,8 @@ export function createKidsDrawController(options: {
   let rafHandle: number | null = null;
   let layoutRafHandle: number | null = null;
   let debouncedResizeBakeHandle: ReturnType<typeof setTimeout> | null = null;
+  let activePointerId: number | null = null;
+  let lastPointerPoint = new Vec2(0, 0);
   let destroyed = false;
   let newDrawingRequestId = 0;
   let clearCounter = 0;
@@ -472,14 +474,19 @@ export function createKidsDrawController(options: {
   };
 
   const onPointerDown = (event: PointerEvent) => {
+    if (pointerIsDown) {
+      return;
+    }
     event.preventDefault();
     cursorOverlay.handlePointerDown(event);
     pointerIsDown = true;
+    activePointerId = event.pointerId;
     cursorOverlay.setDrawingActive(pointerIsDown);
     drawingPerfFrameCount = 0;
     perfSession.begin();
+    lastPointerPoint = toPoint(event);
     store.dispatch("pointerDown", {
-      point: toPoint(event),
+      point: lastPointerPoint,
       buttons: event.buttons,
     });
     stage.overlay.setPointerCapture?.(event.pointerId);
@@ -495,6 +502,10 @@ export function createKidsDrawController(options: {
       shiftKey: sample.shiftKey,
       altKey: sample.altKey,
     }));
+    const finalPoint = pointerSamples[pointerSamples.length - 1]?.point;
+    if (finalPoint) {
+      lastPointerPoint = finalPoint;
+    }
     perfSession.onPointerMoveSamples(pointerSamples.length, usedCoalesced);
     store.dispatchBatch("pointerMove", pointerSamples);
   };
@@ -506,13 +517,33 @@ export function createKidsDrawController(options: {
     event: PointerEvent,
     type: "pointerUp" | "pointerCancel",
   ) => {
-    store.dispatch(type, { point: toPoint(event), buttons: event.buttons });
+    if (!pointerIsDown) {
+      return;
+    }
+    if (activePointerId !== null && event.pointerId !== activePointerId) {
+      return;
+    }
+    lastPointerPoint = toPoint(event);
+    store.dispatch(type, { point: lastPointerPoint, buttons: event.buttons });
     pointerIsDown = false;
+    activePointerId = null;
     cursorOverlay.setDrawingActive(pointerIsDown);
     perfSession.end(drawingPerfFrameCount);
     if (type === "pointerUp") {
       stage.overlay.releasePointerCapture?.(event.pointerId);
     }
+    syncToolbarUi();
+  };
+
+  const forceCancelPointerSession = () => {
+    if (!pointerIsDown) {
+      return;
+    }
+    store.dispatch("pointerCancel", { point: lastPointerPoint, buttons: 0 });
+    pointerIsDown = false;
+    activePointerId = null;
+    cursorOverlay.setDrawingActive(pointerIsDown);
+    perfSession.end(drawingPerfFrameCount);
     syncToolbarUi();
   };
 
@@ -653,10 +684,30 @@ export function createKidsDrawController(options: {
   listen(stage.overlay, "pointercancel", (event) => {
     endPointerSession(event, "pointerCancel");
   });
+  listen(window, "pointerup", (event) => {
+    endPointerSession(event as PointerEvent, "pointerUp");
+  });
+  listen(window, "pointercancel", (event) => {
+    endPointerSession(event as PointerEvent, "pointerCancel");
+  });
+  listen(stage.overlay, "lostpointercapture", () => {
+    forceCancelPointerSession();
+  });
   listen(stage.overlay, "pointerleave", (event) => {
     cursorOverlay.handlePointerLeave();
-    endPointerSession(event, "pointerCancel");
   });
+  listen(window, "blur", () => {
+    forceCancelPointerSession();
+  });
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "hidden") {
+      forceCancelPointerSession();
+    }
+  };
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  disposers.push(() =>
+    document.removeEventListener("visibilitychange", handleVisibilityChange),
+  );
 
   store.setOnRenderNeeded(() => {
     perfSession.onModelInvalidation();
