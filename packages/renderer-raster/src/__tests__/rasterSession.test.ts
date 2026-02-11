@@ -281,6 +281,7 @@ describe("RasterSession", () => {
     });
 
     expect(store.getDrafts()).toHaveLength(0);
+    await session.flushBakes();
     expect(layerModes[layerModes.length - 1]).toBe("tiles");
     expect(pixelAt(hotCtx, 10, 10)[3]).toBe(0);
   });

@@ -34,6 +34,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   private bakeQueue: Promise<void> = Promise.resolve();
   private forceFullHotRenderOnce = false;
   private hadRenderableShapes = false;
+  private retainHotLayerUntilBakeComplete = false;
 
   constructor(
     store: DrawingStore,
@@ -65,9 +66,12 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     const previousClearShapeIds = new Set(this.knownClearShapeIds);
     const drafts = this.store.getDrafts();
     const hasDrafts = drafts.length > 0;
+    if (hasDrafts) {
+      this.retainHotLayerUntilBakeComplete = false;
+    }
     const preview = this.store.getPreview();
     const requiresTileBackdrop = hasDrafts;
-    if (!hasDrafts) {
+    if (!hasDrafts && !this.retainHotLayerUntilBakeComplete) {
       this.layerController?.setMode("tiles");
     }
     if (requiresTileBackdrop) {
@@ -90,7 +94,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
         perfAddTimingMs("session.render.ms", perfNowMs() - renderStartMs);
         return;
       }
-    } else if (this.hasBackdropSnapshot) {
+    } else if (this.hasBackdropSnapshot && !this.retainHotLayerUntilBakeComplete) {
       this.hotLayer.setBackdrop(null);
       this.hasBackdropSnapshot = false;
       this.skipBackdropUntilStrokeEnd = false;
@@ -99,14 +103,18 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     }
     if (!perfFlagEnabled("skipHotLayerRender")) {
       const hotStartMs = perfNowMs();
-      const dirtyBounds = this.forceFullHotRenderOnce
-        ? null
-        : (preview?.dirtyBounds ?? null);
-      this.hotLayer.renderDrafts(drafts, {
-        dirtyBounds,
-      });
+      if (!(this.retainHotLayerUntilBakeComplete && !hasDrafts)) {
+        const dirtyBounds = this.forceFullHotRenderOnce
+          ? null
+          : (preview?.dirtyBounds ?? null);
+        this.hotLayer.renderDrafts(drafts, {
+          dirtyBounds,
+        });
+      }
       this.forceFullHotRenderOnce = false;
-      this.layerController?.setMode(hasDrafts ? "hot" : "tiles");
+      this.layerController?.setMode(
+        hasDrafts || this.retainHotLayerUntilBakeComplete ? "hot" : "tiles",
+      );
       perfAddTimingMs(
         "session.hotLayer.renderDrafts.ms",
         perfNowMs() - hotStartMs,
@@ -123,6 +131,9 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     if (this.hasClearMutation(dirtyState, docShapes, previousClearShapeIds)) {
       this.updateKnownClearShapeIds(docShapes);
       if (!perfFlagEnabled("skipTileBakeScheduling")) {
+        if (!hasDrafts && this.hasBackdropSnapshot) {
+          this.retainHotLayerUntilBakeComplete = true;
+        }
         this.tileRenderer.scheduleBakeForClear();
         this.enqueueBake();
       } else {
@@ -134,6 +145,9 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     if (!hasDrafts && hadRenderableShapes && !hasRenderableShapes) {
       this.updateKnownClearShapeIds(docShapes);
       if (!perfFlagEnabled("skipTileBakeScheduling")) {
+        if (!hasDrafts && this.hasBackdropSnapshot) {
+          this.retainHotLayerUntilBakeComplete = true;
+        }
         this.tileRenderer.scheduleBakeForClear();
         this.enqueueBake();
       } else {
@@ -154,6 +168,9 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
       return;
     }
     if (!perfFlagEnabled("skipTileBakeScheduling")) {
+      if (!hasDrafts && this.hasBackdropSnapshot) {
+        this.retainHotLayerUntilBakeComplete = true;
+      }
       this.tileRenderer.scheduleBakeForShapes(touchedShapeIds);
       this.enqueueBake();
     } else {
@@ -189,6 +206,13 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
       .then(async () => {
         perfAddCounter("session.bakeQueue.flushes");
         await this.tileRenderer.bakePendingTiles();
+        if (
+          this.retainHotLayerUntilBakeComplete &&
+          this.store.getDrafts().length === 0
+        ) {
+          this.retainHotLayerUntilBakeComplete = false;
+          this.render();
+        }
       })
       .catch((error: unknown) => {
         this.onBakeError?.(error);
