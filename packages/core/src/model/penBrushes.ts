@@ -24,10 +24,17 @@ const PEN_BRUSH_REGISTRY = new Map<string, PenBrushDefinition>([
     },
   ],
   [
-    "spray",
+    "even-spraycan",
     {
-      id: "spray",
-      getBounds: getSprayStrokeBounds,
+      id: "even-spraycan",
+      getBounds: getSpraycanStrokeBounds,
+    },
+  ],
+  [
+    "uneven-spraycan",
+    {
+      id: "uneven-spraycan",
+      getBounds: getSpraycanStrokeBounds,
     },
   ],
 ]);
@@ -45,7 +52,7 @@ export function requirePenBrushDefinition(
   return definition;
 }
 
-function getSprayStrokeBounds(shape: PenShape): Box | null {
+function getSpraycanStrokeBounds(shape: PenShape): Box | null {
   const pointBounds = BoxOperations.fromPointArray(shape.geometry.points);
   if (!pointBounds) {
     return null;

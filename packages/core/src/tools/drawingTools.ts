@@ -45,23 +45,46 @@ export function createMarkerTool(options?: MarkerToolOptions): ToolDefinition {
   });
 }
 
-export interface SprayToolOptions extends StrokeToolOptions {}
+export interface SpraycanToolOptions extends StrokeToolOptions {}
 
-const SPRAY_DEFAULT_STROKE: StrokeStyle = {
+const EVEN_SPRAYCAN_DEFAULT_STROKE: StrokeStyle = {
   type: "brush",
   color: "#000000",
   size: 6,
-  brushId: "spray",
+  brushId: "even-spraycan",
   compositeOp: "source-over",
 } as const;
 
-export function createSprayTool(options?: SprayToolOptions): ToolDefinition {
+const UNEVEN_SPRAYCAN_DEFAULT_STROKE: StrokeStyle = {
+  type: "brush",
+  color: "#000000",
+  size: 6,
+  brushId: "uneven-spraycan",
+  compositeOp: "source-over",
+} as const;
+
+export function createEvenSpraycanTool(
+  options?: SpraycanToolOptions,
+): ToolDefinition {
   return createStrokeTool({
-    id: "brush.spray",
-    label: "Spray Paint",
-    draftIdPrefix: "brush-spray-draft",
-    shapeIdPrefix: "brush-spray",
-    fallbackStroke: SPRAY_DEFAULT_STROKE,
+    id: "brush.even-spraycan",
+    label: "Even Spraycan",
+    draftIdPrefix: "brush-even-spraycan-draft",
+    shapeIdPrefix: "brush-even-spraycan",
+    fallbackStroke: EVEN_SPRAYCAN_DEFAULT_STROKE,
+    runtimeOptions: options,
+  });
+}
+
+export function createUnevenSpraycanTool(
+  options?: SpraycanToolOptions,
+): ToolDefinition {
+  return createStrokeTool({
+    id: "brush.uneven-spraycan",
+    label: "Uneven Spraycan",
+    draftIdPrefix: "brush-uneven-spraycan-draft",
+    shapeIdPrefix: "brush-uneven-spraycan",
+    fallbackStroke: UNEVEN_SPRAYCAN_DEFAULT_STROKE,
     runtimeOptions: options,
   });
 }

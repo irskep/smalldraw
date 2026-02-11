@@ -62,7 +62,7 @@ function renderSprayPenBrush({
   if (!points.length) {
     return;
   }
-  const dotRadius = Math.max(0.35, strokeSize * 0.12);
+  const dotRadius = Math.max(1, strokeSize * 0.12);
   const dotAlpha = 0.11;
   ctx.fillStyle = color;
   ctx.globalAlpha = dotAlpha;
@@ -82,7 +82,8 @@ const PEN_BRUSH_RENDERERS = new Map<string, PenBrushRenderer>([
       renderMarkerPath(ctx, points, strokeSize);
     },
   ],
-  ["spray", renderSprayPenBrush],
+  ["even-spraycan", renderSprayPenBrush],
+  ["uneven-spraycan", renderSprayPenBrush],
 ]);
 
 export function requirePenBrushRenderer(

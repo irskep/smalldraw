@@ -1,10 +1,11 @@
 import {
+  createEvenSpraycanTool,
   createEllipseTool,
   createEraserTool,
   createMarkerTool,
   createPenTool,
   createRectangleTool,
-  createSprayTool,
+  createUnevenSpraycanTool,
   type ToolDefinition,
   type ToolStyleSupport,
 } from "@smalldraw/core";
@@ -43,7 +44,8 @@ export type ToolbarItem =
 
 const PEN_TOOL = createPenTool();
 const MARKER_TOOL = createMarkerTool();
-const SPRAY_TOOL = createSprayTool();
+const EVEN_SPRAYCAN_TOOL = createEvenSpraycanTool();
+const UNEVEN_SPRAYCAN_TOOL = createUnevenSpraycanTool();
 const ERASER_TOOL = createEraserTool();
 const RECTANGLE_TOOL = createRectangleTool();
 const ELLIPSE_TOOL = createEllipseTool();
@@ -66,12 +68,20 @@ export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
     tool: MARKER_TOOL,
   },
   {
-    id: SPRAY_TOOL.id,
+    id: EVEN_SPRAYCAN_TOOL.id,
     familyId: "brush",
-    label: "Spray",
+    label: "Spray (Move)",
     icon: SprayCan,
     cursorMode: "hide-while-drawing",
-    tool: SPRAY_TOOL,
+    tool: EVEN_SPRAYCAN_TOOL,
+  },
+  {
+    id: UNEVEN_SPRAYCAN_TOOL.id,
+    familyId: "brush",
+    label: "Spray (Hold)",
+    icon: SprayCan,
+    cursorMode: "hide-while-drawing",
+    tool: UNEVEN_SPRAYCAN_TOOL,
   },
   {
     id: ERASER_TOOL.id,
@@ -105,7 +115,12 @@ export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
     label: "Brush",
     icon: Pen,
     defaultToolId: "brush.freehand",
-    toolIds: ["brush.freehand", "brush.marker", "brush.spray"],
+    toolIds: [
+      "brush.freehand",
+      "brush.marker",
+      "brush.even-spraycan",
+      "brush.uneven-spraycan",
+    ],
   },
   {
     id: "eraser",
