@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { DraftShape, RectGeometry } from "@smalldraw/core";
+import type { DraftShape, BoxedGeometry } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
 import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
@@ -23,9 +23,9 @@ function draftRect(
 ): DraftShape {
   return {
     id,
-    type: "rect",
+    type: "boxed",
     zIndex: "a",
-    geometry: { type: "rect", size: v(40, 30) } as RectGeometry,
+    geometry: { type: "boxed", kind: "rect", size: v(40, 30) } as BoxedGeometry,
     transform: { translation },
     style: { fill: { type: "solid", color } },
     toolId: "brush.freehand",

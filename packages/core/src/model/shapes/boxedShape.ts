@@ -11,27 +11,37 @@ import type { AnyShape, Shape } from "../shape";
 import { normalizeShapeTransform } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 
-export interface RectGeometry {
-  type: "rect";
+export type BoxedShapeKind = "rect" | "ellipse";
+
+export interface BoxedGeometry {
+  type: "boxed";
+  kind: BoxedShapeKind;
   size: Vec2Tuple;
 }
 
-export type RectShape = Shape & { geometry: RectGeometry };
+export type BoxedShape = Shape & { type: "boxed"; geometry: BoxedGeometry };
+type ShapeWithBoxedGeometry = Shape & { geometry: BoxedGeometry };
 
-// Rectangle - full featured with geometry, selection (including axis-resize)
-export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
+function getHalfSize(geometry: BoxedGeometry): Vec2 {
+  return new Vec2(getX(geometry.size), getY(geometry.size)).div(new Vec2(2));
+}
+
+function getStrokePadding(shape: Shape): number {
+  return (shape.style?.stroke?.size ?? 0) / 2;
+}
+
+export const BoxedShapeHandler: ShapeHandler<BoxedGeometry, unknown> = {
   geometry: {
-    getBounds(shape: RectShape) {
-      const g = shape.geometry;
-      const halfSize = new Vec2(getX(g.size), getY(g.size)).div(new Vec2(2));
-      const padding = (shape.style?.stroke?.size ?? 0) / 2;
+    getBounds(shape: ShapeWithBoxedGeometry) {
+      const halfSize = getHalfSize(shape.geometry);
+      const padding = getStrokePadding(shape);
       const min = new Vec2(-halfSize.x, -halfSize.y).sub(new Vec2(padding));
       const max = new Vec2(halfSize.x, halfSize.y).add(new Vec2(padding));
       return BoxOperations.fromPointPair(min, max);
     },
   },
   shape: {
-    hitTest(shape: RectShape, point: Vec2) {
+    hitTest(shape: ShapeWithBoxedGeometry, point: Vec2) {
       const transform = normalizeShapeTransform(shape.transform);
       const matrix = buildTransformMatrix(transform);
       const inverse = Mat2d.invert(new Mat2d(), matrix);
@@ -43,33 +53,44 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
         point,
         inverse,
       ) as Vec2;
-      const halfSize = new Vec2(
-        getX(shape.geometry.size),
-        getY(shape.geometry.size),
-      ).div(new Vec2(2));
-      const padding = (shape.style.stroke?.size ?? 0) / 2;
-      const min = new Vec2(-halfSize.x - padding, -halfSize.y - padding);
-      const max = new Vec2(halfSize.x + padding, halfSize.y + padding);
-      return new BoxOperations({ min, max }).containsPoint(localPoint);
+      const halfSize = getHalfSize(shape.geometry);
+      const padding = getStrokePadding(shape);
+      if (shape.geometry.kind === "rect") {
+        const min = new Vec2(-halfSize.x - padding, -halfSize.y - padding);
+        const max = new Vec2(halfSize.x + padding, halfSize.y + padding);
+        return new BoxOperations({ min, max }).containsPoint(localPoint);
+      }
+
+      const radiusX = halfSize.x + padding;
+      const radiusY = halfSize.y + padding;
+      if (radiusX <= 0 || radiusY <= 0) {
+        return false;
+      }
+      const normalizedX = localPoint.x / radiusX;
+      const normalizedY = localPoint.y / radiusY;
+      return normalizedX * normalizedX + normalizedY * normalizedY <= 1;
     },
   },
   selection: {
     canResize: (shape) => shape.interactions?.resizable !== false,
-    prepareResize: (shape: RectShape) => {
+    prepareResize: (shape: ShapeWithBoxedGeometry) => {
       return {
         geometry: {
-          type: "rect",
+          type: "boxed",
+          kind: shape.geometry.kind,
           size: toVec2Like(shape.geometry.size),
         },
       };
     },
     resize({ snapshotGeometry, selectionScale, nextBounds, layout }) {
       if (!layout) return null;
-      const g = snapshotGeometry as RectGeometry;
-      const geometry: RectGeometry = {
-        type: "rect",
+      const geometry: BoxedGeometry = {
+        type: "boxed",
+        kind: snapshotGeometry.kind,
         size: toVec2Like(
-          new Vec2(getX(g.size), getY(g.size)).mul(selectionScale),
+          new Vec2(getX(snapshotGeometry.size), getY(snapshotGeometry.size)).mul(
+            selectionScale,
+          ),
         ),
       };
       const translation = getPointFromLayout(layout, nextBounds);
@@ -97,18 +118,20 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
           : getY(snapshotGeometry.size);
       return {
         geometry: {
-          type: "rect" as const,
+          type: "boxed",
+          kind: snapshotGeometry.kind,
           size: toVec2Like(new Vec2(width, height)),
         },
       };
     },
   },
   serialization: {
-    toJSON(shape: RectShape) {
+    toJSON(shape: ShapeWithBoxedGeometry) {
       return {
         ...shape,
         geometry: {
-          type: "rect",
+          type: "boxed",
+          kind: shape.geometry.kind,
           size: toVec2Like(shape.geometry.size),
         },
         ...(shape.transform
@@ -119,16 +142,17 @@ export const RectShapeHandler: ShapeHandler<RectGeometry, unknown> = {
       };
     },
     fromJSON(shape: AnyShape) {
-      const rectShape = shape as RectShape;
+      const boxedShape = shape as BoxedShape;
       return {
-        ...rectShape,
+        ...boxedShape,
         geometry: {
-          type: "rect",
-          size: toVec2Like(rectShape.geometry.size),
+          type: "boxed",
+          kind: boxedShape.geometry.kind,
+          size: toVec2Like(boxedShape.geometry.size),
         },
-        ...(rectShape.transform
+        ...(boxedShape.transform
           ? {
-              transform: rectShape.transform,
+              transform: boxedShape.transform,
             }
           : {}),
       };

@@ -5,7 +5,7 @@ import {
   createDocument,
   getDefaultShapeHandlerRegistry,
   type PenGeometry,
-  type RectGeometry,
+  type BoxedGeometry,
 } from "@smalldraw/core";
 import { Vec2 } from "gl-matrix";
 import type { Viewport } from "../index";
@@ -42,9 +42,9 @@ describe("renderer snapshots", () => {
     await expectDocumentSnapshot("rectangle-solid", [
       {
         id: "solid-rect",
-        type: "rect",
+        type: "boxed",
         zIndex: "a",
-        geometry: { type: "rect", size: v(80, 60) } as RectGeometry,
+        geometry: { type: "boxed", kind: "rect", size: v(80, 60) } as BoxedGeometry,
         style: {
           fill: { type: "solid", color: "#2E7D32" },
           stroke: { type: "brush", color: "#0D47A1", size: 4 },
@@ -118,9 +118,9 @@ describe("renderer snapshots", () => {
       [
         {
           id: "rotated-rect",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(80, 40) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(80, 40) } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#26c6da" },
             stroke: { type: "brush", color: "#00838f", size: 3 },

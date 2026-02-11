@@ -4,7 +4,7 @@ import {
   DrawingStore,
   getDefaultShapeHandlerRegistry,
   type PenGeometry,
-  type RectGeometry,
+  type BoxedGeometry,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
 import { createCanvas } from "canvas";
@@ -80,9 +80,9 @@ describe("tile baking snapshots", () => {
       shapes: [
         {
           id: "rect-1",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(200, 140) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(200, 140) } as BoxedGeometry,
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             fill: solidFill("#2e7d32"),
@@ -103,9 +103,9 @@ describe("tile baking snapshots", () => {
       shapes: [
         {
           id: "rect-1",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(220, 140) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(220, 140) } as BoxedGeometry,
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             fill: solidFill("#f57c00"),
@@ -155,9 +155,9 @@ describe("tile baking snapshots", () => {
       shapes: [
         {
           id: "rect-1",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(320, 220) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(320, 220) } as BoxedGeometry,
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             fill: solidFill("#263238"),
@@ -205,9 +205,9 @@ describe("tile baking snapshots", () => {
       shapes: [
         {
           id: "rect-1",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(220, 160) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(220, 160) } as BoxedGeometry,
           transform: { translation: v(TILE_SIZE / 2, TILE_SIZE / 2) },
           style: {
             fill: solidFill("#1976d2"),

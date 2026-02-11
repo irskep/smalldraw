@@ -7,7 +7,7 @@ import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
-import { createMarkerTool } from "../marker";
+import { createMarkerTool } from "../drawingTools";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
 

@@ -1,8 +1,8 @@
 import type { AnyShape, Shape, ShapeHandlerRegistry } from "@smalldraw/core";
 import { normalizeShapeTransform } from "@smalldraw/core";
 import { getX, getY } from "@smalldraw/geometry";
+import { renderBoxed } from "./shapes/boxed";
 import { renderPen } from "./shapes/pen";
-import { renderRect } from "./shapes/rect";
 
 export type ShapeRenderer = (
   ctx: CanvasRenderingContext2D,
@@ -14,11 +14,15 @@ export type ShapeRendererRegistry = Map<string, ShapeRenderer>;
 
 function createDefaultShapeRendererRegistry(): ShapeRendererRegistry {
   const registry = new Map<string, ShapeRenderer>();
-  registry.set("rect", (ctx, shape, _geometryRegistry) =>
-    renderRect(
+  registry.set("boxed", (ctx, shape, _geometryRegistry) =>
+    renderBoxed(
       ctx,
       shape as AnyShape & {
-        geometry: { type: "rect"; size: [number, number] };
+        geometry: {
+          type: "boxed";
+          kind: "rect" | "ellipse";
+          size: [number, number];
+        };
       },
     ),
   );

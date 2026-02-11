@@ -2,16 +2,16 @@ import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { RectShape } from "../../model/shapes/rectShape";
+import type { BoxedShape } from "../../model/shapes/boxedShape";
 import { UndoManager } from "../../undo";
 import { type ActionContext, CompositeAction, UpdateShapeTransform } from "..";
 
 describe("UpdateShapeTransform action", () => {
   const v = (x = 0, y = x): [number, number] => [x, y];
-  const baseShape: RectShape = {
+  const baseShape: BoxedShape = {
     id: "shape-1",
-    type: "rect",
-    geometry: { type: "rect", size: v(10) },
+    type: "boxed",
+    geometry: { type: "boxed", kind: "rect", size: v(10) },
     style: {},
     zIndex: "a",
     transform: {

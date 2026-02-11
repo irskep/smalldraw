@@ -7,17 +7,17 @@ import { createDocument } from "../../model/document";
 import { getShapeBounds } from "../../model/geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
-import type { RectGeometry, RectShape } from "../../model/shapes/rectShape";
+import type { BoxedGeometry, BoxedShape } from "../../model/shapes/boxedShape";
 import { UndoManager } from "../../undo";
 import { ToolRuntimeImpl } from "../runtime";
 import { createSelectionTool } from "../selection";
 import type { HandleBehavior } from "../types";
 
 type TestShapeInput =
-  | (Omit<RectShape, "style"> & { style?: RectShape["style"] })
+  | (Omit<BoxedShape, "style"> & { style?: BoxedShape["style"] })
   | (Omit<PenShape, "style"> & { style?: PenShape["style"] });
 
-type TestShape = RectShape | PenShape;
+type TestShape = BoxedShape | PenShape;
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
@@ -77,12 +77,11 @@ function createRuntime(
 
 describe("selection tool", () => {
   test("emits handle descriptors on activation", () => {
-    const rectShape: TestShapeInput = {
+    const boxedShape: TestShapeInput = {
       id: "rect-handle",
-      type: "rect",
+      type: "boxed",
       geometry: {
-        type: "rect",
-        size: v(10, 10),
+        type: "boxed", kind: "rect", size: v(10, 10),
       },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
@@ -92,7 +91,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const { docRef, registry } = setupDoc([rectShape]);
+    const { docRef, registry } = setupDoc([boxedShape]);
     const { runtime } = createRuntime(docRef, registry);
     const tool = createSelectionTool();
     const payloads: unknown[] = [];
@@ -104,12 +103,11 @@ describe("selection tool", () => {
   });
 
   test("hover events describe handle behavior with modifiers", () => {
-    const rectShape: TestShapeInput = {
+    const boxedShape: TestShapeInput = {
       id: "rect-hover",
-      type: "rect",
+      type: "boxed",
       geometry: {
-        type: "rect",
-        size: v(10, 10),
+        type: "boxed", kind: "rect", size: v(10, 10),
       },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
@@ -119,7 +117,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const { docRef, registry } = setupDoc([rectShape]);
+    const { docRef, registry } = setupDoc([boxedShape]);
     const { runtime } = createRuntime(docRef, registry);
     const tool = createSelectionTool();
     const hovers: Array<{
@@ -203,8 +201,8 @@ describe("selection tool", () => {
   test("moves all selected shapes when dragging", () => {
     const rect: TestShapeInput = {
       id: "rect-move",
-      type: "rect",
-      geometry: { type: "rect", size: v(10, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -261,8 +259,8 @@ describe("selection tool", () => {
   test("emits selection frame updates during move and resize", () => {
     const rect: TestShapeInput = {
       id: "rect-frame",
-      type: "rect",
-      geometry: { type: "rect", size: v(10, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
       zIndex: "frame",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -318,12 +316,11 @@ describe("selection tool", () => {
   });
 
   test("resizes rectangle using corner handle", () => {
-    const rectShape: TestShapeInput = {
+    const boxedShape: TestShapeInput = {
       id: "rect-1",
-      type: "rect",
+      type: "boxed",
       geometry: {
-        type: "rect",
-        size: v(20, 10),
+        type: "boxed", kind: "rect", size: v(20, 10),
       },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
@@ -333,7 +330,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const { docRef, registry } = setupDoc([rectShape]);
+    const { docRef, registry } = setupDoc([boxedShape]);
     const selectionState = {
       ids: new Set<string>(["rect-1"]),
       primaryId: "rect-1",
@@ -358,19 +355,18 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = docRef.current.shapes["rect-1"] as RectShape | undefined;
+    const resized = docRef.current.shapes["rect-1"] as BoxedShape | undefined;
     expect(resized?.geometry).toEqual({
-      type: "rect",
-      size: v(30, 15),
+      type: "boxed", kind: "rect", size: v(30, 15),
     });
     expect(resized?.transform?.translation).toEqual(v(5, 2.5));
   });
 
   test("resizes rotated rectangle around selection frame", () => {
-    const rotatedRect: RectShape = {
+    const rotatedRect: BoxedShape = {
       id: "rot-rect",
-      type: "rect",
-      geometry: { type: "rect", size: v(20, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(20, 10) },
       style: {},
       zIndex: "rot",
       interactions: { resizable: true, rotatable: true },
@@ -405,14 +401,14 @@ describe("selection tool", () => {
       handleId: "top-left",
     });
 
-    const resized = docRef.current.shapes["rot-rect"] as RectShape | undefined;
+    const resized = docRef.current.shapes["rot-rect"] as BoxedShape | undefined;
     expect(resized?.transform?.translation).toEqual(v(-5, -5));
     const geometry = resized?.geometry;
-    expect(geometry?.type).toBe("rect");
-    if (geometry?.type !== "rect") {
+    expect(geometry?.type).toBe("boxed");
+    if (geometry?.kind !== "rect") {
       throw new Error("Expected rectangle geometry");
     }
-    const rectGeometry = geometry as RectGeometry;
+    const rectGeometry = geometry as BoxedGeometry;
     const initialBounds = getShapeBounds(rotatedRect, registry);
     const newBounds = BoxOperations.fromPointPair(
       initialBounds.max,
@@ -444,10 +440,10 @@ describe("selection tool", () => {
   });
 
   test("resizes rotated rectangle with world-axis scale", () => {
-    const rotatedRect: RectShape = {
+    const rotatedRect: BoxedShape = {
       id: "rot-rect-scale",
-      type: "rect",
-      geometry: { type: "rect", size: v(24, 12) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(24, 12) },
       style: {},
       zIndex: "rot-scale",
       interactions: { resizable: true, rotatable: true },
@@ -490,14 +486,14 @@ describe("selection tool", () => {
     });
 
     const resized = docRef.current.shapes["rot-rect-scale"] as
-      | RectShape
+      | BoxedShape
       | undefined;
     const geometry = resized?.geometry;
-    expect(geometry?.type).toBe("rect");
-    if (geometry?.type !== "rect") {
+    expect(geometry?.type).toBe("boxed");
+    if (geometry?.kind !== "rect") {
       throw new Error("Expected rectangle geometry");
     }
-    const rectGeometry = geometry as RectGeometry;
+    const rectGeometry = geometry as BoxedGeometry;
     const boundsOps = new BoxOperations(bounds);
     const selectionScale = new Vec2(
       targetSize.x / boundsOps.width,
@@ -521,10 +517,10 @@ describe("selection tool", () => {
 
   test("resizes rotated rectangle along local width using axis handle", () => {
     const rotation = Math.PI / 4;
-    const rectShape: RectShape = {
+    const boxedShape: BoxedShape = {
       id: "axis-rect",
-      type: "rect",
-      geometry: { type: "rect", size: v(20, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(20, 10) },
       style: {},
       zIndex: "axis-rect",
       interactions: { resizable: true, rotatable: true },
@@ -534,7 +530,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const { docRef, registry } = setupDoc([rectShape]);
+    const { docRef, registry } = setupDoc([boxedShape]);
     const selectionState = {
       ids: new Set<string>(["axis-rect"]),
       primaryId: "axis-rect",
@@ -543,7 +539,7 @@ describe("selection tool", () => {
     const tool = createSelectionTool();
     tool.activate(runtime);
 
-    const bounds = getShapeBounds(rectShape, registry);
+    const bounds = getShapeBounds(boxedShape, registry);
     const startPoint = new Vec2(
       getX(bounds.max),
       (getY(bounds.min) + getY(bounds.max)) / 2,
@@ -575,13 +571,13 @@ describe("selection tool", () => {
       handleId: "mid-right",
     });
 
-    const resized = docRef.current.shapes["axis-rect"] as RectShape | undefined;
+    const resized = docRef.current.shapes["axis-rect"] as BoxedShape | undefined;
     const geometry = resized?.geometry;
-    expect(geometry?.type).toBe("rect");
-    if (geometry?.type !== "rect") {
+    expect(geometry?.type).toBe("boxed");
+    if (geometry?.kind !== "rect") {
       throw new Error("Expected rectangle geometry");
     }
-    const rectGeometry = geometry as RectGeometry;
+    const rectGeometry = geometry as BoxedGeometry;
     expect(getX(rectGeometry.size)).toBeCloseTo(30, 6);
     expect(getY(rectGeometry.size)).toBeCloseTo(10, 6);
     expect(getX(resized?.transform?.translation ?? [0, 0])).toBeCloseTo(
@@ -595,10 +591,10 @@ describe("selection tool", () => {
   });
 
   test("axis resize keeps opposite edge fixed on unrotated rectangle", () => {
-    const rectShape: TestShapeInput = {
+    const boxedShape: TestShapeInput = {
       id: "axis-rect-0",
-      type: "rect",
-      geometry: { type: "rect", size: v(10, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
       zIndex: "axis-rect-0",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -607,7 +603,7 @@ describe("selection tool", () => {
         scale: v(2, 1),
       },
     };
-    const { docRef, registry } = setupDoc([rectShape]);
+    const { docRef, registry } = setupDoc([boxedShape]);
     const selectionState = {
       ids: new Set<string>(["axis-rect-0"]),
       primaryId: "axis-rect-0",
@@ -642,10 +638,10 @@ describe("selection tool", () => {
   });
 
   test("axis resize from left handle keeps right edge fixed", () => {
-    const rectShape: TestShapeInput = {
+    const boxedShape: TestShapeInput = {
       id: "axis-rect-left",
-      type: "rect",
-      geometry: { type: "rect", size: v(20, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(20, 10) },
       zIndex: "axis-rect-left",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -654,7 +650,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const { docRef, registry } = setupDoc([rectShape]);
+    const { docRef, registry } = setupDoc([boxedShape]);
     const selectionState = {
       ids: new Set<string>(["axis-rect-left"]),
       primaryId: "axis-rect-left",
@@ -689,10 +685,10 @@ describe("selection tool", () => {
   });
 
   test("axis resize from top handle keeps bottom edge fixed", () => {
-    const rectShape: TestShapeInput = {
+    const boxedShape: TestShapeInput = {
       id: "axis-rect-top",
-      type: "rect",
-      geometry: { type: "rect", size: v(12, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(12, 10) },
       zIndex: "axis-rect-top",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -701,7 +697,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const { docRef, registry } = setupDoc([rectShape]);
+    const { docRef, registry } = setupDoc([boxedShape]);
     const selectionState = {
       ids: new Set<string>(["axis-rect-top"]),
       primaryId: "axis-rect-top",
@@ -738,8 +734,8 @@ describe("selection tool", () => {
   test("non-resizable shapes keep relative position during resize", () => {
     const rect: TestShapeInput = {
       id: "rect-relative",
-      type: "rect",
-      geometry: { type: "rect", size: v(10, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
       zIndex: "rect-relative",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -846,8 +842,8 @@ describe("selection tool", () => {
   test("resizes multiple rectangles as a group", () => {
     const left: TestShapeInput = {
       id: "left",
-      type: "rect",
-      geometry: { type: "rect", size: v(10, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
       zIndex: "l",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -858,8 +854,8 @@ describe("selection tool", () => {
     };
     const right: TestShapeInput = {
       id: "right",
-      type: "rect",
-      geometry: { type: "rect", size: v(20, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(20, 10) },
       zIndex: "r",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -897,29 +893,26 @@ describe("selection tool", () => {
       v(-12.5, 0),
     );
     expect(
-      (docRef.current.shapes.left as RectShape | undefined)?.geometry,
+      (docRef.current.shapes.left as BoxedShape | undefined)?.geometry,
     ).toEqual({
-      type: "rect",
-      size: v(15, 20),
+      type: "boxed", kind: "rect", size: v(15, 20),
     });
     expect(docRef.current.shapes.right?.transform?.translation).toEqual(
       v(25, 0),
     );
     expect(
-      (docRef.current.shapes.right as RectShape | undefined)?.geometry,
+      (docRef.current.shapes.right as BoxedShape | undefined)?.geometry,
     ).toEqual({
-      type: "rect",
-      size: v(30, 20),
+      type: "boxed", kind: "rect", size: v(30, 20),
     });
   });
 
   test("rotates rectangle using rotation handle", () => {
-    const rectShape: TestShapeInput = {
+    const boxedShape: TestShapeInput = {
       id: "rect-2",
-      type: "rect",
+      type: "boxed",
       geometry: {
-        type: "rect",
-        size: v(10, 10),
+        type: "boxed", kind: "rect", size: v(10, 10),
       },
       zIndex: "c",
       interactions: { resizable: true, rotatable: true },
@@ -929,7 +922,7 @@ describe("selection tool", () => {
         scale: v(1, 1),
       },
     };
-    const { docRef, registry } = setupDoc([rectShape]);
+    const { docRef, registry } = setupDoc([boxedShape]);
     const selectionState = {
       ids: new Set<string>(["rect-2"]),
       primaryId: "rect-2",
@@ -964,8 +957,8 @@ describe("selection tool", () => {
   test("rotates all selected rotatable shapes", () => {
     const left: TestShapeInput = {
       id: "left-rot",
-      type: "rect",
-      geometry: { type: "rect", size: v(10, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
       zIndex: "x",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -976,8 +969,8 @@ describe("selection tool", () => {
     };
     const right: TestShapeInput = {
       id: "right-rot",
-      type: "rect",
-      geometry: { type: "rect", size: v(10, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
       zIndex: "y",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -1036,8 +1029,8 @@ describe("selection tool", () => {
   test("clears selection frame when clicking outside selected shapes", () => {
     const rect1: TestShapeInput = {
       id: "rect-1",
-      type: "rect",
-      geometry: { type: "rect", size: v(50, 50) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(50, 50) },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -1048,8 +1041,8 @@ describe("selection tool", () => {
     };
     const rect2: TestShapeInput = {
       id: "rect-2",
-      type: "rect",
-      geometry: { type: "rect", size: v(50, 50) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(50, 50) },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -1084,8 +1077,8 @@ describe("selection tool", () => {
   test("keeps selection frame when clicking inside multi-select bounding box", () => {
     const rect1: TestShapeInput = {
       id: "rect-3",
-      type: "rect",
-      geometry: { type: "rect", size: v(50, 50) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(50, 50) },
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -1096,8 +1089,8 @@ describe("selection tool", () => {
     };
     const rect2: TestShapeInput = {
       id: "rect-4",
-      type: "rect",
-      geometry: { type: "rect", size: v(50, 50) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(50, 50) },
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
       transform: {

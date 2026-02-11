@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   type AnyShape,
   DrawingStore,
-  type RectGeometry,
+  type BoxedGeometry,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
 import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
@@ -126,25 +126,25 @@ describe("TileRenderer", () => {
 
     renderer.updateTouchedTilesForShape({
       id: "shape-1",
-      type: "rect",
+      type: "boxed",
       zIndex: "a",
-      geometry: { type: "rect", size: [50, 50] } as RectGeometry,
+      geometry: { type: "boxed", kind: "rect", size: [50, 50] } as BoxedGeometry,
       transform: { translation: [TILE_SIZE / 2, TILE_SIZE / 2] },
       style: { fill: { type: "solid", color: "#000" } },
     });
     renderer.updateTouchedTilesForShape({
       id: "shape-1",
-      type: "rect",
+      type: "boxed",
       zIndex: "a",
-      geometry: { type: "rect", size: [50, 50] } as RectGeometry,
+      geometry: { type: "boxed", kind: "rect", size: [50, 50] } as BoxedGeometry,
       transform: { translation: [TILE_SIZE / 2, TILE_SIZE / 2] },
       style: { fill: { type: "solid", color: "#000" } },
     });
     renderer.updateTouchedTilesForShape({
       id: "shape-1",
-      type: "rect",
+      type: "boxed",
       zIndex: "a",
-      geometry: { type: "rect", size: [50, 50] } as RectGeometry,
+      geometry: { type: "boxed", kind: "rect", size: [50, 50] } as BoxedGeometry,
       transform: { translation: [TILE_SIZE + TILE_SIZE / 2, TILE_SIZE / 2] },
       style: { fill: { type: "solid", color: "#000" } },
     });
@@ -388,9 +388,9 @@ describe("TileRenderer", () => {
     const scene = [
       {
         id: "rect-1",
-        type: "rect",
+        type: "boxed",
         zIndex: "a",
-        geometry: { type: "rect", size: [220, 220] as [number, number] },
+        geometry: { type: "boxed", kind: "rect", size: [220, 220] as [number, number] },
         transform: { translation: [128, 128] as [number, number] },
         style: { fill: { type: "solid", color: "#0ea5e9" as const } },
       },
@@ -503,9 +503,9 @@ describe("TileRenderer", () => {
     const scene = [
       {
         id: "rect-bg",
-        type: "rect",
+        type: "boxed",
         zIndex: "a",
-        geometry: { type: "rect", size: [220, 220] as [number, number] },
+        geometry: { type: "boxed", kind: "rect", size: [220, 220] as [number, number] },
         transform: { translation: [128, 128] as [number, number] },
         style: { fill: { type: "solid", color: "#fde047" } },
       },

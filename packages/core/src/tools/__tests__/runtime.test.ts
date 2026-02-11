@@ -7,7 +7,7 @@ import { createDocument } from "../../model/document";
 import { canonicalizeShape } from "../../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenGeometry } from "../../model/shapes/penShape";
-import type { RectShape } from "../../model/shapes/rectShape";
+import type { BoxedShape } from "../../model/shapes/boxedShape";
 import { UndoManager } from "../../undo";
 import { getZIndexBetween } from "../../zindex";
 import { ToolRuntimeImpl } from "../runtime";
@@ -107,11 +107,12 @@ describe("ToolRuntimeImpl", () => {
   test("commit applies undoable action to the document", () => {
     const { runtime, getDocument } = createRuntime();
     const registry = getDefaultShapeHandlerRegistry();
-    const shape: RectShape = {
+    const shape: BoxedShape = {
       id: "rect-1",
-      type: "rect",
+      type: "boxed",
       geometry: {
-        type: "rect",
+        type: "boxed",
+        kind: "rect",
         size: [10, 10],
       },
       style: {},
@@ -137,9 +138,10 @@ describe("ToolRuntimeImpl", () => {
       [
         {
           id: "shape-1",
-          type: "rect",
+          type: "boxed",
           geometry: {
-            type: "rect",
+            type: "boxed",
+            kind: "rect",
             size: [10, 10],
           },
           style: {},
@@ -149,7 +151,7 @@ describe("ToolRuntimeImpl", () => {
             scale: [1, 1],
             rotation: 0,
           },
-        } as RectShape,
+        } as BoxedShape,
       ],
       registry,
     );

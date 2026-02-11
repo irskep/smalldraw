@@ -1,7 +1,7 @@
 import type { AnyGeometry } from "@smalldraw/geometry";
 import { ClearShapeHandler } from "./shapes/clearShape";
+import { BoxedShapeHandler } from "./shapes/boxedShape";
 import { PenShapeHandler } from "./shapes/penShape";
-import { RectShapeHandler } from "./shapes/rectShape";
 import type { ShapeHandler } from "./shapeTypes";
 
 export class ShapeHandlerRegistry {
@@ -37,7 +37,7 @@ export class ShapeHandlerRegistry {
 const defaultRegistry = new ShapeHandlerRegistry();
 
 defaultRegistry.register("pen", PenShapeHandler);
-defaultRegistry.register("rect", RectShapeHandler);
+defaultRegistry.register("boxed", BoxedShapeHandler);
 defaultRegistry.register("clear", ClearShapeHandler);
 
 // Lazy singleton

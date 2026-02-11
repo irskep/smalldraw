@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { AnyShape, RectGeometry } from "@smalldraw/core";
+import type { AnyShape, BoxedGeometry } from "@smalldraw/core";
 import { createCanvas } from "canvas";
 import { renderOrderedShapes } from "../index";
 
@@ -12,16 +12,16 @@ function pixelAt(
   return [data[0], data[1], data[2], data[3]];
 }
 
-function rectShape(
+function boxedShape(
   id: string,
   color: string,
   size: number,
-): AnyShape & { geometry: RectGeometry } {
+): AnyShape & { geometry: BoxedGeometry } {
   return {
     id,
-    type: "rect",
+    type: "boxed",
     zIndex: "a",
-    geometry: { type: "rect", size: [size, size] },
+    geometry: { type: "boxed", kind: "rect", size: [size, size] },
     transform: {
       translation: [10, 10],
     },
@@ -34,8 +34,8 @@ function rectShape(
 
 describe("renderOrderedShapes", () => {
   test("renders shapes in provided order", () => {
-    const red = rectShape("red", "#c62828", 14);
-    const blue = rectShape("blue", "#1565c0", 10);
+    const red = boxedShape("red", "#c62828", 14);
+    const blue = boxedShape("blue", "#1565c0", 10);
 
     const canvasA = createCanvas(20, 20);
     const ctxA = canvasA.getContext(

@@ -7,7 +7,7 @@ import {
   getDefaultShapeHandlerRegistry,
 } from "@smalldraw/core";
 import { Vec2 } from "gl-matrix";
-import type { RectShape } from "packages/core/src/model/shapes/rectShape";
+import type { BoxedShape } from "packages/core/src/model/shapes/boxedShape";
 import {
   createStage,
   ensureRendererLayer,
@@ -27,11 +27,11 @@ const baseViewport: Viewport = {
   backgroundColor: "#ffffff",
 };
 
-function createTestShape(id: string, x = 50, y = 50): RectShape {
+function createTestShape(id: string, x = 50, y = 50): BoxedShape {
   return {
     id,
-    type: "rect",
-    geometry: { type: "rect", size: v(40, 30) },
+    type: "boxed",
+    geometry: { type: "boxed", kind: "rect", size: v(40, 30) },
     style: { fill: { type: "solid", color: "#ff0000" } },
     zIndex: `a-${id}`,
     transform: {

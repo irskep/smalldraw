@@ -96,7 +96,7 @@ describe("DrawingApp", () => {
       app.store.getDocument().shapes,
     ) as ShapeWithGeometry[];
     expect(shapes).toHaveLength(1);
-    expect(shapes[0]?.geometry.type).toBe("rect");
+    expect(shapes[0]?.geometry.type).toBe("boxed");
     app.destroy();
   });
 
@@ -176,8 +176,8 @@ describe("DrawingApp", () => {
     const shapeId = "rot-rect";
     (doc.shapes[shapeId] as any) = {
       id: shapeId,
-      type: "rect",
-      geometry: { type: "rect", size: new Vec2(40, 20) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: new Vec2(40, 20) },
       style: {},
       zIndex: "z",
       interactions: { resizable: true, rotatable: true },
@@ -255,7 +255,7 @@ describe("DrawingApp", () => {
     dispatchPointer(overlay, "pointermove", 150, 100, 1);
     const draftsAfterMove = app.store.getDrafts() as ShapeWithGeometry[];
     expect(draftsAfterMove.length).toBeGreaterThan(0);
-    expect(draftsAfterMove[0]?.geometry.type).toBe("rect");
+    expect(draftsAfterMove[0]?.geometry.type).toBe("boxed");
 
     // Complete drawing
     dispatchPointer(overlay, "pointerup", 150, 100, 0);
@@ -273,8 +273,8 @@ describe("DrawingApp", () => {
     const doc = app.store.getDocument();
     (doc.shapes["rect-1"] as any) = {
       id: "rect-1",
-      type: "rect",
-      geometry: { type: "rect", size: new Vec2(50, 50) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: new Vec2(50, 50) },
       style: {},
       zIndex: "a",
       interactions: { resizable: true, rotatable: true },
@@ -286,8 +286,8 @@ describe("DrawingApp", () => {
     };
     (doc.shapes["rect-2"] as any) = {
       id: "rect-2",
-      type: "rect",
-      geometry: { type: "rect", size: new Vec2(50, 50) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: new Vec2(50, 50) },
       style: {},
       zIndex: "b",
       interactions: { resizable: true, rotatable: true },
@@ -371,9 +371,9 @@ describe("DrawingApp", () => {
     expect(shapes).toHaveLength(1);
 
     const shape = shapes[0]!;
-    expect(shape.geometry.type).toBe("rect");
+    expect(shape.geometry.type).toBe("boxed");
     // The rect should be 50x50 in world units (100/2 = 50)
-    const geom = shape.geometry as { type: "rect"; size: [number, number] };
+    const geom = shape.geometry as { type: "boxed"; size: [number, number] };
     expect(geom.size[0]).toBeCloseTo(50, 1);
     expect(geom.size[1]).toBeCloseTo(50, 1);
 

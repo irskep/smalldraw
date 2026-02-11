@@ -9,7 +9,7 @@ import {
   getDefaultShapeHandlerRegistry,
   getOrderedShapes,
   type PenGeometry,
-  type RectGeometry,
+  type BoxedGeometry,
   UpdateShapeTransform,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
@@ -30,9 +30,9 @@ function createViewport(tileCountX: number, tileCountY = 1): Box {
 function createRect(id: string, translation: [number, number]): AnyShape {
   return {
     id,
-    type: "rect",
+    type: "boxed",
     zIndex: "a",
-    geometry: { type: "rect", size: v(240, 160) } as RectGeometry,
+    geometry: { type: "boxed", kind: "rect", size: v(240, 160) } as BoxedGeometry,
     transform: { translation },
     style: {
       fill: { type: "solid", color: "#2e7d32" },

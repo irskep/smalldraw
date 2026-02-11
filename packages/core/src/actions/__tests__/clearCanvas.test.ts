@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { RectGeometry } from "../../model/shapes/rectShape";
+import type { BoxedGeometry } from "../../model/shapes/boxedShape";
 import { DrawingStore } from "../../store/drawingStore";
 import { getOrderedShapes } from "../../zindex";
 import { AddShape } from "../addShape";
@@ -7,12 +7,12 @@ import { ClearCanvas } from "../clearCanvas";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
-function createRectShape(id: string) {
+function createBoxedShape(id: string) {
   return {
     id,
-    type: "rect",
+    type: "boxed",
     zIndex: "a",
-    geometry: { type: "rect", size: v(10, 10) } as RectGeometry,
+    geometry: { type: "boxed", kind: "rect", size: v(10, 10) } as BoxedGeometry,
     style: { fill: { type: "solid" as const, color: "#000000" } },
   };
 }
@@ -30,8 +30,8 @@ function createClearShape(id: string, zIndex: string) {
 describe("ClearCanvas", () => {
   test("filters shapes with temporalOrder at or below the clear", () => {
     const store = new DrawingStore({ tools: [] });
-    store.applyAction(new AddShape(createRectShape("rect-1")));
-    store.applyAction(new AddShape(createRectShape("rect-2")));
+    store.applyAction(new AddShape(createBoxedShape("rect-1")));
+    store.applyAction(new AddShape(createBoxedShape("rect-2")));
 
     const beforeClear = getOrderedShapes(store.getDocument()).map(
       (shape) => shape.id,

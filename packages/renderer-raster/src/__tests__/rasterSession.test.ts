@@ -376,9 +376,9 @@ describe("RasterSession", () => {
     store.applyAction(
       new AddShape({
         id: "rect-1",
-        type: "rect",
+        type: "boxed",
         zIndex: "a",
-        geometry: { type: "rect", size: [80, 80] },
+        geometry: { type: "boxed", kind: "rect", size: [80, 80] },
         transform: { translation: [64, 64] },
         style: { fill: { type: "solid", color: "#ff0000" } },
       } as AnyShape),
@@ -437,9 +437,9 @@ describe("RasterSession", () => {
     store.applyAction(
       new AddShape({
         id: "rect-1",
-        type: "rect",
+        type: "boxed",
         zIndex: "a",
-        geometry: { type: "rect", size: [80, 80] },
+        geometry: { type: "boxed", kind: "rect", size: [80, 80] },
         transform: { translation: [64, 64] },
         style: { fill: { type: "solid", color: "#ff0000" } },
       } as AnyShape),

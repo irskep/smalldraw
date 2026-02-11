@@ -322,6 +322,82 @@ describe("kids-app shell", () => {
     app.destroy();
   });
 
+  test("shape family activates rectangle/ellipse tools and draws boxed kinds", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    const shapeFamilyButton = container.querySelector(
+      '[data-tool-family="shape"]',
+    ) as HTMLElement | null;
+    const rectVariantButton = container.querySelector(
+      '[data-tool-variant="rect"]',
+    ) as HTMLElement | null;
+    const ellipseVariantButton = container.querySelector(
+      '[data-tool-variant="ellipse"]',
+    ) as HTMLElement | null;
+    expect(shapeFamilyButton).not.toBeNull();
+    expect(rectVariantButton).not.toBeNull();
+    expect(ellipseVariantButton).not.toBeNull();
+
+    shapeFamilyButton!.click();
+    expect(app.store.getActiveToolId()).toBe("rect");
+
+    ellipseVariantButton!.click();
+    expect(app.store.getActiveToolId()).toBe("ellipse");
+    dispatchPointer(overlay, "pointerdown", 80, 80, 1);
+    dispatchPointer(overlay, "pointermove", 200, 140, 1);
+    dispatchPointer(overlay, "pointerup", 200, 140, 0);
+
+    rectVariantButton!.click();
+    expect(app.store.getActiveToolId()).toBe("rect");
+    dispatchPointer(overlay, "pointerdown", 240, 180, 1);
+    dispatchPointer(overlay, "pointermove", 340, 260, 1);
+    dispatchPointer(overlay, "pointerup", 340, 260, 0);
+
+    const shapes = Object.values(app.store.getDocument().shapes);
+    const ellipse = shapes.find(
+      (shape) =>
+        shape.type === "boxed" &&
+        shape.geometry.type === "boxed" &&
+        "kind" in shape.geometry &&
+        shape.geometry.kind === "ellipse",
+    );
+    const rect = shapes.find(
+      (shape) =>
+        shape.type === "boxed" &&
+        shape.geometry.type === "boxed" &&
+        "kind" in shape.geometry &&
+        shape.geometry.kind === "rect",
+    );
+    expect(ellipse).toBeDefined();
+    expect(rect).toBeDefined();
+
+    app.destroy();
+  });
+
   test("cursor indicator hides for pen while drawing and remains subtle for eraser", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);

@@ -4,7 +4,7 @@ import {
   createDocument,
   getDefaultShapeHandlerRegistry,
   type PenGeometry,
-  type RectGeometry,
+  type BoxedGeometry,
 } from "@smalldraw/core";
 import { expectSnapshot, renderDocumentToImage } from "./snapshotUtils";
 
@@ -38,9 +38,9 @@ describe("renderer-canvas snapshots", () => {
     await expectDocumentSnapshot("canvas-rect-solid", [
       {
         id: "rect-1",
-        type: "rect",
+        type: "boxed",
         zIndex: "a",
-        geometry: { type: "rect", size: v(120, 80) } as RectGeometry,
+        geometry: { type: "boxed", kind: "rect", size: v(120, 80) } as BoxedGeometry,
         style: {
           fill: { type: "solid", color: "#2E7D32" },
           stroke: { type: "brush", color: "#0D47A1", size: 6 },
@@ -55,9 +55,9 @@ describe("renderer-canvas snapshots", () => {
       [
         {
           id: "rect-1",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(140, 90) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(140, 90) } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#f5f5f5" },
             stroke: { type: "brush", color: "#546e7a", size: 3 },
@@ -93,9 +93,9 @@ describe("renderer-canvas snapshots", () => {
       [
         {
           id: "rect-1",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(140, 90) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(140, 90) } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#f5f5f5" },
             stroke: { type: "brush", color: "#546e7a", size: 3 },
@@ -131,9 +131,9 @@ describe("renderer-canvas snapshots", () => {
       [
         {
           id: "rect-back",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(140, 90) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(140, 90) } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#d32f2f" },
             stroke: { type: "brush", color: "#b71c1c", size: 4 },
@@ -141,9 +141,9 @@ describe("renderer-canvas snapshots", () => {
         },
         {
           id: "rect-front",
-          type: "rect",
+          type: "boxed",
           zIndex: "b",
-          geometry: { type: "rect", size: v(90, 60) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(90, 60) } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#1976d2" },
             stroke: { type: "brush", color: "#0d47a1", size: 4 },
@@ -161,9 +161,9 @@ describe("renderer-canvas snapshots", () => {
       [
         {
           id: "rect-solid",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(160, 110) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(160, 110) } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#263238" },
             stroke: { type: "brush", color: "#102027", size: 6 },
@@ -200,9 +200,9 @@ describe("renderer-canvas snapshots", () => {
       [
         {
           id: "rect-base",
-          type: "rect",
+          type: "boxed",
           zIndex: "a",
-          geometry: { type: "rect", size: v(180, 120) } as RectGeometry,
+          geometry: { type: "boxed", kind: "rect", size: v(180, 120) } as BoxedGeometry,
           style: {
             fill: { type: "solid", color: "#1976d2" },
             stroke: { type: "brush", color: "#0d47a1", size: 6 },

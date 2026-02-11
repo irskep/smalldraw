@@ -8,9 +8,8 @@ import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
-import type { RectGeometry, RectShape } from "../../model/shapes/rectShape";
-import { createPenTool } from "../../tools/pen";
-import { createRectangleTool } from "../../tools/rectangle";
+import type { BoxedGeometry, BoxedShape } from "../../model/shapes/boxedShape";
+import { createPenTool, createRectangleTool } from "../../tools/drawingTools";
 import { createSelectionTool as createSelectionDefinition } from "../../tools/selection";
 import type { ToolDefinition } from "../../tools/types";
 import { getZIndexBetween } from "../../zindex";
@@ -24,15 +23,14 @@ function createDraftTool(): ToolDefinition {
     label: "Draft Tool",
     activate(runtime) {
       runtime.on("pointerDown", (event) => {
-        const geometry: RectGeometry = {
-          type: "rect",
-          size: v(10, 10),
+        const geometry: BoxedGeometry = {
+          type: "boxed", kind: "rect", size: v(10, 10),
         };
         runtime.setDraft({
           toolId: runtime.toolId,
           temporary: true,
           id: "draft-1",
-          type: "rect",
+          type: "boxed",
           geometry,
           zIndex: runtime.getNextZIndex(),
           style: { fill: { type: "solid", color: "#ff0000" } },
@@ -158,9 +156,8 @@ describe("DrawingStore", () => {
     store.dispatch("pointerDown", { point: new Vec2(10, 10), buttons: 1 });
 
     expect(store.getDrafts()).toHaveLength(1);
-    expect(store.getDrafts()[0].geometry as RectGeometry).toEqual({
-      type: "rect",
-      size: v(10, 10),
+    expect(store.getDrafts()[0].geometry as BoxedGeometry).toEqual({
+      type: "boxed", kind: "rect", size: v(10, 10),
     });
 
     store.activateTool("brush.freehand");
@@ -209,12 +206,15 @@ describe("DrawingStore", () => {
 
     const shapes = Object.values(store.getDocument().shapes) as (
       | PenShape
-      | RectShape
+      | BoxedShape
     )[];
     const penShape = shapes.find((shape) => shape.geometry.type === "pen");
-    const rectShape = shapes.find((shape) => shape.geometry.type === "rect");
+    const boxedShape = shapes.find(
+      (shape) =>
+        shape.geometry.type === "boxed" && shape.geometry.kind === "rect",
+    );
     expect(penShape?.interactions?.resizable).toBe(true);
-    expect(rectShape?.interactions?.resizable).toBe(true);
+    expect(boxedShape?.interactions?.resizable).toBe(true);
   });
 
   test("selection frame updates can be read from store", () => {
@@ -223,8 +223,8 @@ describe("DrawingStore", () => {
       [
         {
           id: "rect-frame",
-          type: "rect",
-          geometry: { type: "rect", size: v(10, 10) },
+          type: "boxed",
+          geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
           style: {},
           zIndex: "frame",
           interactions: { resizable: true, rotatable: true },
@@ -233,7 +233,7 @@ describe("DrawingStore", () => {
             rotation: 0,
             scale: v(1, 1),
           },
-        } as RectShape,
+        } as BoxedShape,
       ],
       registry,
     );
@@ -258,8 +258,8 @@ describe("DrawingStore", () => {
       [
         {
           id: "rect",
-          type: "rect",
-          geometry: { type: "rect", size: v(10, 10) },
+          type: "boxed",
+          geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
           style: {},
           zIndex: "a",
           interactions: { resizable: true, rotatable: true },
@@ -268,7 +268,7 @@ describe("DrawingStore", () => {
             rotation: 0,
             scale: v(1, 1),
           },
-        } as RectShape,
+        } as BoxedShape,
       ],
       registry,
     );
@@ -352,10 +352,10 @@ describe("DrawingStore", () => {
       registry,
       change: (next, update) => change(next, update),
     };
-    const makeRect = (id: string, zIndex: string): RectShape => ({
+    const makeRect = (id: string, zIndex: string): BoxedShape => ({
       id,
-      type: "rect",
-      geometry: { type: "rect", size: v(10, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
       style: { fill: { type: "solid", color: "#ffffff" } },
       zIndex,
       transform: { translation: v(0, 0), scale: v(1, 1), rotation: 0 },
@@ -426,12 +426,12 @@ describe("DrawingStore", () => {
     store.applyAction(
       new AddShape({
         id: "shape-1",
-        type: "rect",
-        geometry: { type: "rect", size: v(10, 10) },
+        type: "boxed",
+        geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
         style: { fill: { type: "solid", color: "#fff" } },
         zIndex,
         transform: { translation: v(0, 0), scale: v(1, 1), rotation: 0 },
-      } as RectShape),
+      } as BoxedShape),
     );
     expect(store.canUndo()).toBe(true);
 

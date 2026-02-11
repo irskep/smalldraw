@@ -4,9 +4,9 @@ import { Vec2 } from "gl-matrix";
 import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { RectGeometry, RectShape } from "../../model/shapes/rectShape";
+import type { BoxedGeometry, BoxedShape } from "../../model/shapes/boxedShape";
 import { UndoManager } from "../../undo";
-import { createRectangleTool } from "../rectangle";
+import { createRectangleTool } from "../drawingTools";
 import { ToolRuntimeImpl } from "../runtime";
 import type { SharedToolSettings } from "../types";
 
@@ -37,15 +37,14 @@ describe("rectangle tool", () => {
     runtime.dispatch("pointerDown", { point: new Vec2(10, 10), buttons: 1 });
     runtime.dispatch("pointerMove", { point: new Vec2(30, 40), buttons: 1 });
 
-    const draft = runtime.getDraft() as RectShape | null;
+    const draft = runtime.getDraft() as BoxedShape | null;
     expect(draft?.geometry).toEqual({
-      type: "rect",
-      size: [20, 30],
+      type: "boxed", kind: "rect", size: [20, 30],
     });
 
     runtime.dispatch("pointerUp", { point: new Vec2(30, 40), buttons: 0 });
     expect(Object.values(getDocument().shapes)).toHaveLength(1);
-    const shape = Object.values(getDocument().shapes)[0] as RectShape;
+    const shape = Object.values(getDocument().shapes)[0] as BoxedShape;
     expect(draft).toBeDefined();
     expect(shape.geometry).toEqual(draft!.geometry);
     expect(shape.transform?.translation).toEqual([20, 25]);
@@ -81,8 +80,8 @@ describe("rectangle tool", () => {
     runtime.commit(
       new AddShape({
         id: existingShapeId,
-        type: "rect",
-        geometry: { type: "rect", size: [10, 10] } as RectGeometry,
+        type: "boxed",
+        geometry: { type: "boxed", kind: "rect", size: [10, 10] } as BoxedGeometry,
         style: { fill: { type: "solid", color: "#ffffff" } },
         zIndex: "a0",
         transform: { translation: [0, 0], scale: [1, 1], rotation: 0 },

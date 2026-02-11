@@ -7,7 +7,7 @@ import {
   ShapeHandlerRegistry,
 } from "../model/shapeHandlers";
 import type { PenShape } from "../model/shapes/penShape";
-import type { RectShape } from "../model/shapes/rectShape";
+import type { BoxedShape } from "../model/shapes/boxedShape";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
@@ -17,8 +17,8 @@ describe("Automerge JSON adapter", () => {
     const shapes = [
       {
         id: "rect-1",
-        type: "rect",
-        geometry: { type: "rect", size: v(10, 20) },
+        type: "boxed",
+        geometry: { type: "boxed", kind: "rect", size: v(10, 20) },
         style: {},
         zIndex: "a0",
         transform: {
@@ -26,7 +26,7 @@ describe("Automerge JSON adapter", () => {
           scale: v(1, 1),
           rotation: 0,
         },
-      } satisfies RectShape,
+      } satisfies BoxedShape,
       {
         id: "pen-1",
         type: "pen",

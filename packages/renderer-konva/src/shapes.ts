@@ -1,5 +1,6 @@
 import type {
   AnyShape,
+  BoxedShape,
   Fill,
   GradientStop,
   Shape,
@@ -25,7 +26,6 @@ import {
 import { Vec2 } from "gl-matrix";
 import Konva from "konva";
 import type { PenShape } from "packages/core/src/model/shapes/penShape";
-import type { RectShape } from "packages/core/src/model/shapes/rectShape";
 import { outlineToPath } from "./stroke";
 
 type RenderableNode = Konva.Shape | Konva.Group;
@@ -39,8 +39,8 @@ export type ShapeRendererRegistry = Map<string, ShapeRenderer>;
 
 function createDefaultShapeRendererRegistry(): ShapeRendererRegistry {
   const registry = new Map<string, ShapeRenderer>();
-  registry.set("rect", (shape, geometryRegistry) =>
-    createRectNode(shape as RectShape, geometryRegistry),
+  registry.set("boxed", (shape, geometryRegistry) =>
+    createBoxedNode(shape as BoxedShape, geometryRegistry),
   );
   registry.set("pen", (shape, geometryRegistry) =>
     createPenNode(shape as PenShape, geometryRegistry),
@@ -107,11 +107,18 @@ function createContainerForShape(shape: Shape): Konva.Group {
   return group;
 }
 
-function createRectNode(
-  shape: RectShape,
+function createBoxedNode(
+  shape: BoxedShape,
   geometryRegistry?: ShapeHandlerRegistry,
-): Konva.Rect {
+): Konva.Shape {
   const g = shape.geometry;
+  if (g.kind === "ellipse") {
+    return new Konva.Ellipse({
+      ...buildShapeVisualConfig(shape, geometryRegistry),
+      radiusX: getX(g.size) / 2,
+      radiusY: getY(g.size) / 2,
+    });
+  }
   return new Konva.Rect({
     ...buildShapeVisualConfig(shape, geometryRegistry),
     x: -getX(g.size) / 2,

@@ -1,17 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
-import type { RectShape } from "@smalldraw/core";
+import type { BoxedShape } from "@smalldraw/core";
 import { type ActionContext, AddShape, DeleteShape } from "../actions";
 import { createDocument } from "../model/document";
 import { canonicalizeShape } from "../model/shape";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import { UndoManager } from "../undo";
 
-const rectangle: RectShape = {
+const rectangle: BoxedShape = {
   id: "rect-1",
-  type: "rect",
+  type: "boxed",
   geometry: {
-    type: "rect",
+    type: "boxed",
+    kind: "rect",
     size: [100, 50],
   },
   style: { fill: { type: "solid", color: "#ff0000" } },

@@ -1,32 +1,47 @@
 import { BoxOperations, toVec2, toVec2Like } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
-import type { RectGeometry, RectShape } from "../model/shapes/rectShape";
+import type {
+  BoxedGeometry,
+  BoxedShape,
+  BoxedShapeKind,
+} from "../model/shapes/boxedShape";
 import type { Fill, StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { attachPointerHandlers } from "./pointerHandlers";
 import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 
-interface RectDraftState {
+interface BoxedDraftState {
   id: string;
   start: Vec2;
   current: Vec2;
-  pressures?: number[];
-  stroke: StrokeStyle;
-  fill: Fill;
+  kind: BoxedShapeKind;
+  style: {
+    stroke: StrokeStyle;
+    fill: Fill;
+  };
   zIndex: string;
 }
 
-interface ActiveRectState {
-  draft: RectDraftState | null;
+interface ActiveBoxedState {
+  draft: BoxedDraftState | null;
   disposers: DisposerBucket;
 }
 
-const runtimeState = new WeakMap<ToolRuntime, ActiveRectState>();
+const runtimeState = new WeakMap<ToolRuntime, ActiveBoxedState>();
 
-export interface RectangleToolOptions {
+export interface BoxedToolOptions {
   stroke?: StrokeStyle;
   fill?: Fill;
+}
+
+export interface CreateBoxedToolOptions {
+  id: string;
+  label: string;
+  kind: BoxedShapeKind;
+  draftIdPrefix: string;
+  shapeIdPrefix: string;
+  runtimeOptions?: BoxedToolOptions;
 }
 
 function computeSizeAndCenter(
@@ -41,10 +56,8 @@ function computeSizeAndCenter(
   };
 }
 
-export function createRectangleTool(
-  options?: RectangleToolOptions,
-): ToolDefinition {
-  const ensureState = (runtime: ToolRuntime): ActiveRectState => {
+export function createBoxedTool(options: CreateBoxedToolOptions): ToolDefinition {
+  const ensureState = (runtime: ToolRuntime): ActiveBoxedState => {
     let state = runtimeState.get(runtime);
     if (!state) {
       state = { draft: null, disposers: createDisposerBucket() };
@@ -54,9 +67,9 @@ export function createRectangleTool(
   };
 
   const resolveStroke = (runtime: ToolRuntime): StrokeStyle => {
-    const runtimeOptions = runtime.getOptions<RectangleToolOptions>();
+    const runtimeOptions = runtime.getOptions<BoxedToolOptions>();
     const shared = runtime.getSharedSettings();
-    const override = runtimeOptions?.stroke ?? options?.stroke;
+    const override = runtimeOptions?.stroke ?? options.runtimeOptions?.stroke;
     return {
       type: "brush",
       color: override?.color ?? shared.strokeColor,
@@ -67,41 +80,14 @@ export function createRectangleTool(
   };
 
   const resolveFill = (runtime: ToolRuntime): Fill => {
-    const runtimeOptions = runtime.getOptions<RectangleToolOptions>();
-    const override = runtimeOptions?.fill ?? options?.fill;
+    const runtimeOptions = runtime.getOptions<BoxedToolOptions>();
+    const override = runtimeOptions?.fill ?? options.runtimeOptions?.fill;
     return (
       override ?? {
         type: "solid",
         color: runtime.getSharedSettings().fillColor,
       }
     );
-  };
-
-  const beginRect = (runtime: ToolRuntime, point: Vec2, pressure?: number) => {
-    const state = ensureState(runtime);
-    const draft: RectDraftState = {
-      id: runtime.generateShapeId("rect-draft"),
-      start: point,
-      current: point,
-      pressures: pressure ? [pressure] : undefined,
-      stroke: resolveStroke(runtime),
-      fill: resolveFill(runtime),
-      zIndex: runtime.getNextZIndex(),
-    };
-    state.draft = draft;
-    updateDraft(runtime);
-  };
-
-  const updatePoint = (
-    runtime: ToolRuntime,
-    point: Vec2,
-    pressure?: number,
-  ) => {
-    const state = runtimeState.get(runtime);
-    if (!state?.draft) return;
-    state.draft.current = point;
-    if (state.draft.pressures && pressure) state.draft.pressures.push(pressure);
-    updateDraft(runtime);
   };
 
   const updateDraft = (runtime: ToolRuntime) => {
@@ -111,19 +97,20 @@ export function createRectangleTool(
       state.draft.start,
       state.draft.current,
     );
-    const geometry: RectGeometry = {
-      type: "rect",
+    const geometry: BoxedGeometry = {
+      type: "boxed",
+      kind: state.draft.kind,
       size: toVec2Like(size),
     };
     runtime.setDraft({
       toolId: runtime.toolId,
       temporary: true,
       id: state.draft.id,
-      type: "rect",
+      type: "boxed",
       geometry,
       style: {
-        stroke: state.draft.stroke,
-        fill: state.draft.fill,
+        stroke: state.draft.style.stroke,
+        fill: state.draft.style.fill,
       },
       zIndex: state.draft.zIndex,
       layerId: "default",
@@ -140,7 +127,35 @@ export function createRectangleTool(
     });
   };
 
-  const commitRect = (runtime: ToolRuntime) => {
+  const beginShape = (runtime: ToolRuntime, point: Vec2, pressure?: number) => {
+    const state = ensureState(runtime);
+    const draft: BoxedDraftState = {
+      id: runtime.generateShapeId(options.draftIdPrefix),
+      start: point,
+      current: point,
+      kind: options.kind,
+      style: {
+        stroke: resolveStroke(runtime),
+        fill: resolveFill(runtime),
+      },
+      zIndex: runtime.getNextZIndex(),
+    };
+    state.draft = draft;
+    updateDraft(runtime);
+  };
+
+  const updatePoint = (
+    runtime: ToolRuntime,
+    point: Vec2,
+    pressure?: number,
+  ) => {
+    const state = runtimeState.get(runtime);
+    if (!state?.draft) return;
+    state.draft.current = point;
+    updateDraft(runtime);
+  };
+
+  const commitShape = (runtime: ToolRuntime) => {
     const state = runtimeState.get(runtime);
     if (!state?.draft) {
       runtime.clearDraft();
@@ -155,16 +170,17 @@ export function createRectangleTool(
       state.draft = null;
       return;
     }
-    const shape: RectShape = {
-      id: runtime.generateShapeId("rect"),
-      type: "rect",
+    const shape: BoxedShape = {
+      id: runtime.generateShapeId(options.shapeIdPrefix),
+      type: "boxed",
       geometry: {
-        type: "rect",
+        type: "boxed",
+        kind: state.draft.kind,
         size: toVec2Like(size),
       },
       style: {
-        stroke: state.draft.stroke,
-        fill: state.draft.fill,
+        stroke: state.draft.style.stroke,
+        fill: state.draft.style.fill,
       },
       zIndex: state.draft.zIndex,
       layerId: "default",
@@ -184,7 +200,7 @@ export function createRectangleTool(
     state.draft = null;
   };
 
-  const cancelRect = (runtime: ToolRuntime) => {
+  const cancelShape = (runtime: ToolRuntime) => {
     const state = runtimeState.get(runtime);
     if (state) {
       state.draft = null;
@@ -195,7 +211,7 @@ export function createRectangleTool(
   const createPointerDownHandler = (runtime: ToolRuntime): ToolEventHandler => {
     return (event) => {
       if ((event.buttons ?? 1) & 1) {
-        beginRect(runtime, event.point, event.pressure);
+        beginShape(runtime, event.point, event.pressure);
       }
     };
   };
@@ -205,18 +221,18 @@ export function createRectangleTool(
   };
 
   const createPointerUpHandler = (runtime: ToolRuntime): ToolEventHandler => {
-    return () => commitRect(runtime);
+    return () => commitShape(runtime);
   };
 
   const createPointerCancelHandler = (
     runtime: ToolRuntime,
   ): ToolEventHandler => {
-    return () => cancelRect(runtime);
+    return () => cancelShape(runtime);
   };
 
   return {
-    id: "rect",
-    label: "Rectangle",
+    id: options.id,
+    label: options.label,
     activate(runtime) {
       const state = ensureState(runtime);
       state.disposers.dispose();

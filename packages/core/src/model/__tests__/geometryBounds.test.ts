@@ -3,16 +3,16 @@ import { BoxOperations, getX, getY } from "@smalldraw/geometry";
 import { getShapeBounds } from "../geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
 import type { PenShape } from "../shapes/penShape";
-import type { RectShape } from "../shapes/rectShape";
+import type { BoxedShape } from "../shapes/boxedShape";
 
 describe("geometry bounds helpers", () => {
   const v = (x = 0, y = x): [number, number] => [x, y];
   test("computes bounds for rotated rectangle using center-based transform", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const shape: RectShape = {
+    const shape: BoxedShape = {
       id: "rect",
-      type: "rect",
-      geometry: { type: "rect", size: v(20, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(20, 10) },
       style: {},
       interactions: { resizable: true, rotatable: true },
       transform: {
@@ -64,10 +64,10 @@ describe("geometry bounds helpers", () => {
 
   test("includes stroke width in computed bounds", () => {
     const registry = getDefaultShapeHandlerRegistry();
-    const shape: RectShape = {
+    const shape: BoxedShape = {
       id: "stroked",
-      type: "rect",
-      geometry: { type: "rect", size: v(10, 10) },
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
       style: { stroke: { type: "brush", color: "#000", size: 4 } },
       transform: {
         translation: v(0, 0),

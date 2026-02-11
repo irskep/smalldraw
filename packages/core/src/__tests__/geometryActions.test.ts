@@ -92,14 +92,14 @@ describe("Geometry actions", () => {
       change: (next, update) => change(next, update),
     };
     const rect = createShape("rect", {
-      type: "rect",
+      type: "boxed",
       size: [100, 40],
     });
     doc = undo.apply(new AddShape(rect), doc, ctx);
     expect(doc.shapes[rect.id].geometry).toMatchObject(rect.geometry);
 
     const next = {
-      type: "rect",
+      type: "boxed",
       size: [50, 50],
     };
     doc = undo.apply(new UpdateShapeGeometry(rect.id, next), doc, ctx);

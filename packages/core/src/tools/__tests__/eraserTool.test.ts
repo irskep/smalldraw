@@ -7,7 +7,7 @@ import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { PenShape } from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
-import { createEraserTool } from "../eraser";
+import { createEraserTool } from "../drawingTools";
 import { ToolRuntimeImpl } from "../runtime";
 
 describe("eraser tool integration with runtime", () => {

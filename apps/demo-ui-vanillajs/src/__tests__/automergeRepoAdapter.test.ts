@@ -23,8 +23,8 @@ const v = (x = 0, y = x): [number, number] => [x, y];
 function createTestShape(id: string) {
   return {
     id,
-    type: "rect" as const,
-    geometry: { type: "rect" as const, size: v(100, 50) },
+    type: "boxed" as const,
+    geometry: { type: "boxed" as const, kind: "rect", size: v(100, 50) },
     style: { fill: { type: "solid" as const, color: "#ff0000" } },
     zIndex: "a0",
     transform: {

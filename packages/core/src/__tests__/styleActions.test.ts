@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
-import type { RectShape } from "@smalldraw/core";
+import type { BoxedShape } from "@smalldraw/core";
 import {
   type ActionContext,
   AddShape,
@@ -15,13 +15,14 @@ import type { Fill, StrokeStyle } from "../model/style";
 import { UndoManager } from "../undo";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
 
-function baseShape(id: string): RectShape {
+function baseShape(id: string): BoxedShape {
   return {
     id,
-    type: "rect",
+    type: "boxed",
     zIndex: id,
     geometry: {
-      type: "rect",
+      type: "boxed",
+      kind: "rect",
       size: [10, 10],
     },
     style: {

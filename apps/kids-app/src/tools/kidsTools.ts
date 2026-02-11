@@ -1,10 +1,12 @@
 import {
+  createEllipseTool,
   createEraserTool,
   createMarkerTool,
   createPenTool,
+  createRectangleTool,
   type ToolDefinition,
 } from "@smalldraw/core";
-import { Eraser, Highlighter, type IconNode, Pen } from "lucide";
+import { Circle, Eraser, Highlighter, type IconNode, Pen, Square } from "lucide";
 
 export type KidsToolCursorMode = "hide-while-drawing" | "always-visible";
 
@@ -54,6 +56,22 @@ export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
     cursorMode: "always-visible",
     createTool: () => createEraserTool(),
   },
+  {
+    id: "rect",
+    familyId: "shape",
+    label: "Rectangle",
+    icon: Square,
+    cursorMode: "hide-while-drawing",
+    createTool: () => createRectangleTool(),
+  },
+  {
+    id: "ellipse",
+    familyId: "shape",
+    label: "Ellipse",
+    icon: Circle,
+    cursorMode: "hide-while-drawing",
+    createTool: () => createEllipseTool(),
+  },
 ];
 
 export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
@@ -71,10 +89,18 @@ export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
     defaultToolId: "eraser.basic",
     toolIds: ["eraser.basic"],
   },
+  {
+    id: "shape",
+    label: "Shapes",
+    icon: Square,
+    defaultToolId: "rect",
+    toolIds: ["rect", "ellipse"],
+  },
 ];
 
 export const KIDS_DRAW_SIDEBAR_ITEMS: ToolbarItem[] = [
   { kind: "family", familyId: "brush" },
+  { kind: "family", familyId: "shape" },
   { kind: "family", familyId: "eraser" },
 ];
 
