@@ -232,6 +232,8 @@ export function createStrokeTool(
       strokeColor: true,
       strokeWidth: true,
       fillColor: false,
+      transparentStrokeColor: false,
+      transparentFillColor: false,
     },
     activate(runtime) {
       const state = ensureState(runtime);

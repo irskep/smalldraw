@@ -88,6 +88,8 @@ describe("pen tool integration with runtime", () => {
       strokeColor: true,
       strokeWidth: true,
       fillColor: false,
+      transparentStrokeColor: false,
+      transparentFillColor: false,
     });
   });
 

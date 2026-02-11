@@ -139,5 +139,17 @@ export function getToolConfig(toolId: string): KidsToolConfig | null {
 }
 
 export function getToolStyleSupport(toolId: string): ToolStyleSupport {
-  return getToolConfig(toolId)?.tool.styleSupport ?? {};
+  const toolConfig = getToolConfig(toolId);
+  const support = toolConfig?.tool.styleSupport ?? {};
+  if (support.transparentStrokeColor !== undefined) {
+    return support;
+  }
+  // Fallback for hosts running with a stale core bundle that doesn't
+  // expose transparent style flags yet.
+  const allowTransparent = toolConfig?.familyId === "shape";
+  return {
+    ...support,
+    transparentStrokeColor: allowTransparent,
+    transparentFillColor: allowTransparent,
+  };
 }

@@ -47,6 +47,8 @@ export interface ToolStyleSupport {
   strokeColor?: boolean;
   strokeWidth?: boolean;
   fillColor?: boolean;
+  transparentStrokeColor?: boolean;
+  transparentFillColor?: boolean;
 }
 
 export interface ToolRuntime {

@@ -36,6 +36,8 @@ import { createCursorOverlayController } from "./createCursorOverlayController";
 const RESIZE_BAKE_DEBOUNCE_MS = 120;
 const MAX_POINTER_SAMPLES_PER_EVENT = 64;
 const ENABLE_COALESCED_POINTER_SAMPLES = true;
+const DEFAULT_OPAQUE_STROKE_COLOR = "#000000";
+const DEFAULT_OPAQUE_FILL_COLOR = "#ffffff";
 
 type RafRenderState = "idle" | "modelRequested" | "anticipatory";
 type PointerEventWithCoalesced = PointerEvent & {
@@ -390,8 +392,27 @@ export function createKidsDrawController(options: {
     };
   };
 
+  const sanitizeTransparentStylesForTool = (toolId: string): void => {
+    const support = getToolStyleSupport(toolId);
+    const shared = store.getSharedSettings();
+    const nextSettings: Partial<typeof shared> = {};
+    if (
+      shared.strokeColor === "transparent" &&
+      !support.transparentStrokeColor
+    ) {
+      nextSettings.strokeColor = DEFAULT_OPAQUE_STROKE_COLOR;
+    }
+    if (shared.fillColor === "transparent" && !support.transparentFillColor) {
+      nextSettings.fillColor = DEFAULT_OPAQUE_FILL_COLOR;
+    }
+    if (Object.keys(nextSettings).length > 0) {
+      store.updateSharedSettings(nextSettings);
+    }
+  };
+
   const activateToolAndRemember = (toolId: string): void => {
     store.activateTool(toolId);
+    sanitizeTransparentStylesForTool(toolId);
     const familyId = getFamilyIdForTool(toolId);
     if (!familyId) {
       return;
@@ -642,6 +663,10 @@ export function createKidsDrawController(options: {
     requestRenderFromModel();
   });
 
+  const initialToolId = store.getActiveToolId();
+  if (initialToolId) {
+    sanitizeTransparentStylesForTool(initialToolId);
+  }
   syncToolbarUi();
   subscribeToCoreAdapter();
   updateRenderIdentity();

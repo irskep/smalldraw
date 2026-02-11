@@ -239,6 +239,8 @@ export function createBoxedTool(
       strokeColor: true,
       strokeWidth: true,
       fillColor: true,
+      transparentStrokeColor: true,
+      transparentFillColor: true,
     },
     activate(runtime) {
       const state = ensureState(runtime);

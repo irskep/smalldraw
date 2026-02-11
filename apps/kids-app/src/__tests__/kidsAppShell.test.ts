@@ -355,6 +355,12 @@ describe("kids-app shell", () => {
     const fillColorSwatch = container.querySelector(
       'button[data-setting="fill-color"][data-color="#ffdb4d"]',
     ) as DisableableElement | null;
+    const transparentStrokeSwatch = container.querySelector(
+      'button[data-setting="stroke-color"][data-transparent="true"]',
+    ) as DisableableElement | null;
+    const transparentFillSwatch = container.querySelector(
+      'button[data-setting="fill-color"][data-transparent="true"]',
+    ) as DisableableElement | null;
     const rectVariantButton = container.querySelector(
       '[data-tool-variant="rect"]',
     ) as HTMLElement | null;
@@ -363,14 +369,24 @@ describe("kids-app shell", () => {
     ) as HTMLElement | null;
     expect(shapeFamilyButton).not.toBeNull();
     expect(fillColorSwatch).not.toBeNull();
+    expect(transparentStrokeSwatch).not.toBeNull();
+    expect(transparentFillSwatch).not.toBeNull();
     expect(rectVariantButton).not.toBeNull();
     expect(ellipseVariantButton).not.toBeNull();
     expect(fillColorSwatch!.disabled).toBeTrue();
+    expect(transparentStrokeSwatch!.disabled).toBeTrue();
+    expect(transparentFillSwatch!.disabled).toBeTrue();
 
     shapeFamilyButton!.click();
     expect(app.store.getActiveToolId()).toBe("rect");
     expect(fillColorSwatch!.disabled).toBeFalse();
+    expect(transparentStrokeSwatch!.disabled).toBeFalse();
+    expect(transparentFillSwatch!.disabled).toBeFalse();
     fillColorSwatch!.click();
+    transparentStrokeSwatch!.click();
+    transparentFillSwatch!.click();
+    expect(app.store.getSharedSettings().strokeColor).toBe("transparent");
+    expect(app.store.getSharedSettings().fillColor).toBe("transparent");
 
     ellipseVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("ellipse");
@@ -402,10 +418,26 @@ describe("kids-app shell", () => {
     expect(ellipse).toBeDefined();
     expect(rect).toBeDefined();
     if (ellipse?.style.fill?.type === "solid") {
-      expect(ellipse.style.fill.color.toLowerCase()).toBe("#ffdb4d");
+      expect(ellipse.style.fill.color.toLowerCase()).toBe("transparent");
     } else {
       throw new Error("Expected ellipse to use a solid fill.");
     }
+
+    const brushFamilyButton = container.querySelector(
+      '[data-tool-family="brush"]',
+    ) as HTMLElement | null;
+    const penVariantButton = container.querySelector(
+      '[data-tool-variant="brush.freehand"]',
+    ) as HTMLElement | null;
+    expect(brushFamilyButton).not.toBeNull();
+    expect(penVariantButton).not.toBeNull();
+    brushFamilyButton!.click();
+    penVariantButton!.click();
+    const sharedAfterPen = app.store.getSharedSettings();
+    expect(sharedAfterPen.strokeColor).toBe("#000000");
+    expect(sharedAfterPen.fillColor).toBe("#ffffff");
+    expect(transparentStrokeSwatch!.disabled).toBeTrue();
+    expect(transparentFillSwatch!.disabled).toBeTrue();
 
     app.destroy();
   });

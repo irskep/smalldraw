@@ -12,6 +12,8 @@ export interface ToolbarUiState {
   supportsStrokeColor: boolean;
   supportsStrokeWidth: boolean;
   supportsFillColor: boolean;
+  supportsTransparentStrokeColor: boolean;
+  supportsTransparentFillColor: boolean;
   newDrawingPending: boolean;
 }
 
@@ -26,6 +28,8 @@ const DEFAULT_STATE: ToolbarUiState = {
   supportsStrokeColor: true,
   supportsStrokeWidth: true,
   supportsFillColor: false,
+  supportsTransparentStrokeColor: false,
+  supportsTransparentFillColor: false,
   newDrawingPending: false,
 };
 
@@ -56,6 +60,9 @@ export function syncToolbarUiFromDrawingStore(
     supportsStrokeColor: styleSupport.strokeColor ?? true,
     supportsStrokeWidth: styleSupport.strokeWidth ?? true,
     supportsFillColor: styleSupport.fillColor ?? false,
+    supportsTransparentStrokeColor:
+      styleSupport.transparentStrokeColor ?? false,
+    supportsTransparentFillColor: styleSupport.transparentFillColor ?? false,
   };
   if (isEqual(current, next)) return;
   $toolbarUi.set(next);
@@ -95,6 +102,8 @@ function isEqual(a: ToolbarUiState, b: ToolbarUiState): boolean {
     a.supportsStrokeColor === b.supportsStrokeColor &&
     a.supportsStrokeWidth === b.supportsStrokeWidth &&
     a.supportsFillColor === b.supportsFillColor &&
+    a.supportsTransparentStrokeColor === b.supportsTransparentStrokeColor &&
+    a.supportsTransparentFillColor === b.supportsTransparentFillColor &&
     a.newDrawingPending === b.newDrawingPending
   );
 }

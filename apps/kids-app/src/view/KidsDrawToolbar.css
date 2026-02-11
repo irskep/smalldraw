@@ -141,7 +141,7 @@
 
 .kids-draw-color-swatches {
   display: grid;
-  grid-template-columns: repeat(5, var(--kd-toolbar-palette-cell-size));
+  grid-template-columns: repeat(6, var(--kd-toolbar-palette-cell-size));
   gap: var(--size-2);
   justify-content: center;
 }
@@ -160,6 +160,7 @@
   min-width: var(--kd-toolbar-palette-cell-size);
   min-height: var(--kd-toolbar-palette-cell-size);
   position: relative;
+  box-sizing: border-box;
   padding: 0;
   border-radius: var(--radius-3);
   border: 0;
@@ -177,8 +178,42 @@
 }
 
 .kids-draw-color-swatches[data-style-target="fill"] .kids-draw-color-swatch {
-  border: 0;
+  border: 5px solid transparent;
   background: var(--kd-swatch-color);
+}
+
+.kids-draw-color-swatches .kids-draw-color-swatch[data-transparent="true"] {
+  --kd-transparent-light: #f8f8f8;
+  --kd-transparent-dark: #d6d6d6;
+  background-color: var(--kd-transparent-light);
+  background-image:
+    linear-gradient(45deg, var(--kd-transparent-dark) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--kd-transparent-dark) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--kd-transparent-dark) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--kd-transparent-dark) 75%);
+  background-size:
+    10px 10px,
+    10px 10px,
+    10px 10px,
+    10px 10px;
+  background-position:
+    0 0,
+    0 5px,
+    5px -5px,
+    -5px 0;
+}
+
+.kids-draw-color-swatches[data-style-target="stroke"]
+  .kids-draw-color-swatch[data-transparent="true"] {
+  border: 6px solid transparent;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklch, var(--gray-7) 45%, white),
+    var(--shadow-2);
+}
+
+.kids-draw-color-swatches[data-style-target="fill"]
+  .kids-draw-color-swatch[data-transparent="true"] {
+  border-color: transparent;
 }
 
 .kids-draw-color-swatch:active {
@@ -199,6 +234,27 @@
   .kids-draw-color-swatch.is-selected {
   border-color: var(--kd-swatch-color);
   background: var(--kd-swatch-selected-fill, #ffffff);
+}
+
+.kids-draw-color-swatches[data-style-target="stroke"]
+  .kids-draw-color-swatch[data-transparent="true"].is-selected {
+  border-color: transparent;
+  background-color: var(--kd-transparent-light);
+  background-image:
+    linear-gradient(45deg, var(--kd-transparent-dark) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--kd-transparent-dark) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--kd-transparent-dark) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--kd-transparent-dark) 75%);
+  background-size:
+    10px 10px,
+    10px 10px,
+    10px 10px,
+    10px 10px;
+  background-position:
+    0 0,
+    0 5px,
+    5px -5px,
+    -5px 0;
 }
 
 .kids-draw-color-swatches[data-style-target="stroke"]
@@ -231,7 +287,27 @@
 .kids-draw-color-swatches[data-style-target="fill"]
   .kids-draw-color-swatch.is-selected {
   background: var(--kd-swatch-color);
-  border: 5px solid var(--kd-swatch-selected-stroke, #000000);
+  border-color: var(--kd-swatch-selected-stroke, #000000);
+}
+
+.kids-draw-color-swatches[data-style-target="fill"]
+  .kids-draw-color-swatch[data-transparent="true"].is-selected {
+  background-color: var(--kd-transparent-light);
+  background-image:
+    linear-gradient(45deg, var(--kd-transparent-dark) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--kd-transparent-dark) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--kd-transparent-dark) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--kd-transparent-dark) 75%);
+  background-size:
+    10px 10px,
+    10px 10px,
+    10px 10px,
+    10px 10px;
+  background-position:
+    0 0,
+    0 5px,
+    5px -5px,
+    -5px 0;
 }
 
 .kids-draw-color-swatches[data-style-target="fill"]

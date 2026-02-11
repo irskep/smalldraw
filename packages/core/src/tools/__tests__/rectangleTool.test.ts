@@ -38,6 +38,8 @@ describe("rectangle tool", () => {
       strokeColor: true,
       strokeWidth: true,
       fillColor: true,
+      transparentStrokeColor: true,
+      transparentFillColor: true,
     });
   });
 

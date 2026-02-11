@@ -33,9 +33,16 @@ export interface KidsDrawToolbar {
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
 }
 
-const COLOR_SWATCHES = [
+interface ColorSwatchConfig {
+  value: string;
+  label: string;
+  transparent?: boolean;
+}
+
+const COLOR_SWATCHES: ColorSwatchConfig[] = [
   { value: "#000000", label: "Black" },
   { value: "#ffffff", label: "White" },
+  { value: "#8b5a2b", label: "Brown" },
   { value: "#ff4d6d", label: "Strawberry" },
   { value: "#ff8a00", label: "Orange Pop" },
   { value: "#ffdb4d", label: "Sunshine" },
@@ -44,7 +51,8 @@ const COLOR_SWATCHES = [
   { value: "#2e86ff", label: "Sky Blue" },
   { value: "#6c5ce7", label: "Blueberry" },
   { value: "#ff66c4", label: "Bubblegum" },
-] as const;
+  { value: "transparent", label: "Transparent", transparent: true },
+];
 
 const STROKE_WIDTH_OPTIONS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
 
@@ -209,7 +217,7 @@ export function createKidsDrawToolbar(options: {
       "data-style-target": options.target,
     }) as HTMLDivElement;
     for (const swatch of COLOR_SWATCHES) {
-      const swatchButton = el("button", {
+      const swatchAttributes: Record<string, string> = {
         type: "button",
         className: "kids-draw-color-swatch",
         title: swatch.label,
@@ -219,7 +227,11 @@ export function createKidsDrawToolbar(options: {
         "data-style-target": options.target,
         "data-color": swatch.value,
         style: `--kd-swatch-color:${swatch.value}`,
-      }) as HTMLButtonElement;
+      };
+      if (swatch.transparent) {
+        swatchAttributes["data-transparent"] = "true";
+      }
+      const swatchButton = el("button", swatchAttributes) as HTMLButtonElement;
       swatches.push(swatchButton);
       mount(swatchesElement, swatchButton);
     }
@@ -345,13 +357,19 @@ export function createKidsDrawToolbar(options: {
       const selected =
         swatchButton.dataset.color?.toLowerCase() === normalizedStrokeColor;
       setToggleSelectedState(swatchButton, selected);
-      swatchButton.disabled = !state.supportsStrokeColor;
+      const isTransparent = swatchButton.dataset.transparent === "true";
+      swatchButton.disabled =
+        !state.supportsStrokeColor ||
+        (isTransparent && !state.supportsTransparentStrokeColor);
     }
     for (const swatchButton of fillColorSwatchButtons) {
       const selected =
         swatchButton.dataset.color?.toLowerCase() === normalizedFillColor;
       setToggleSelectedState(swatchButton, selected);
-      swatchButton.disabled = !state.supportsFillColor;
+      const isTransparent = swatchButton.dataset.transparent === "true";
+      swatchButton.disabled =
+        !state.supportsFillColor ||
+        (isTransparent && !state.supportsTransparentFillColor);
     }
     fillSwatches.element.classList.toggle(
       "is-disabled",
