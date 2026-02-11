@@ -38,14 +38,6 @@ dir = "apps/server"
 env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db", FRONTEND_ORIGIN = "http://localhost:3030" }
 run = "bun src/index.ts"
 
-[tasks."demo:serve"]
-dir = "apps/demo-ui-vanillajs"
-run = "bunx serve dist"
-
-[tasks."demo:dev"]
-dir = "apps/demo-ui-vanillajs"
-run = "bun run dev"
-
 [tasks."kids-app:dev"]
 dir = "apps/kids-app"
 run = "bun run dev"

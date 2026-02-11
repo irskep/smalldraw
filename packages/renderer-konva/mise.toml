@@ -1,8 +1,0 @@
-[tasks.test]
-run = "bun run test"
-
-[tasks."ts:check"]
-run = "bun run ts:check"
-
-[tasks.lint]
-run = "bun run lint"

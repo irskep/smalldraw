@@ -16,8 +16,6 @@
     "paths": {
       "@smalldraw/core": ["packages/core/src/index.ts"],
       "@smalldraw/geometry": ["packages/geometry/src/index.ts"],
-      "@smalldraw/renderer-konva": ["packages/renderer-konva/src/index.ts"],
-      "@smalldraw/ui-vanillajs": ["packages/ui-vanillajs/src/index.ts"],
       "@smalldraw/*": ["packages/*/src/index.ts"]
     },
     "noEmit": true

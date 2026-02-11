@@ -58,17 +58,6 @@
         "vite": "^5.4.21",
       },
     },
-    "apps/demo-ui-vanillajs": {
-      "name": "demo-ui-vanillajs",
-      "dependencies": {
-        "@automerge/automerge": "^3.2.3",
-        "@automerge/automerge-repo": "2.5.1",
-        "@automerge/automerge-repo-network-broadcastchannel": "2.5.1",
-        "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
-        "@smalldraw/core": "workspace:*",
-        "@smalldraw/ui-vanillajs": "workspace:*",
-      },
-    },
     "apps/docs-site": {
       "name": "docs-site",
       "version": "1.0.0",
@@ -167,18 +156,6 @@
         "canvas": "^3.1.0",
       },
     },
-    "packages/renderer-konva": {
-      "name": "@smalldraw/renderer-konva",
-      "version": "0.0.0",
-      "dependencies": {
-        "@smalldraw/core": "workspace:*",
-        "konva": "^9.3.14",
-      },
-      "devDependencies": {
-        "@smalldraw/testing": "workspace:*",
-        "canvas": "^3.1.0",
-      },
-    },
     "packages/renderer-raster": {
       "name": "@smalldraw/renderer-raster",
       "version": "0.0.0",
@@ -197,19 +174,6 @@
       "version": "0.0.0",
       "dependencies": {
         "looks-same": "^7.0.0",
-      },
-    },
-    "packages/ui-vanillajs": {
-      "name": "@smalldraw/ui-vanillajs",
-      "version": "0.0.0",
-      "dependencies": {
-        "@smalldraw/core": "workspace:*",
-        "@smalldraw/renderer-konva": "workspace:*",
-        "redom": "^3.27.1",
-      },
-      "devDependencies": {
-        "@types/redom": "^3.2.4",
-        "happy-dom": "^14.10.1",
       },
     },
   },
@@ -662,13 +626,9 @@
 
     "@smalldraw/renderer-canvas": ["@smalldraw/renderer-canvas@workspace:packages/renderer-canvas"],
 
-    "@smalldraw/renderer-konva": ["@smalldraw/renderer-konva@workspace:packages/renderer-konva"],
-
     "@smalldraw/renderer-raster": ["@smalldraw/renderer-raster@workspace:packages/renderer-raster"],
 
     "@smalldraw/testing": ["@smalldraw/testing@workspace:packages/testing"],
-
-    "@smalldraw/ui-vanillajs": ["@smalldraw/ui-vanillajs@workspace:packages/ui-vanillajs"],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
@@ -1260,8 +1220,6 @@
 
     "delaunator": ["delaunator@5.0.1", "", { "dependencies": { "robust-predicates": "^3.0.2" } }, "sha512-8nvh+XBe96aCESrGOqMp/84b13H9cdKbG5P2ejQCh4d4sK9RL4371qou9drQjMhvnPmhWl5hnmqbEE0fXr9Xnw=="],
 
-    "demo-ui-vanillajs": ["demo-ui-vanillajs@workspace:apps/demo-ui-vanillajs"],
-
     "denque": ["denque@2.1.0", "", {}, "sha512-HVQE3AAb/pxF8fQAoiqpvg9i3evqug3hoiwakOyZAwJm+6vZehbkYXZ0l4JxS+I3QxM97v5aaRNhj8v5oBhekw=="],
 
     "depd": ["depd@2.0.0", "", {}, "sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw=="],
@@ -1607,8 +1565,6 @@
     "kids-app": ["kids-app@workspace:apps/kids-app"],
 
     "kind-of": ["kind-of@6.0.3", "", {}, "sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw=="],
-
-    "konva": ["konva@9.3.22", "", {}, "sha512-yQI5d1bmELlD/fowuyfOp9ff+oamg26WOCkyqUyc+nczD/lhRa3EvD2MZOoc4c1293TAubW9n34fSQLgSeEgSw=="],
 
     "langium": ["langium@3.3.1", "", { "dependencies": { "chevrotain": "~11.0.3", "chevrotain-allstar": "~0.3.0", "vscode-languageserver": "~9.0.1", "vscode-languageserver-textdocument": "~1.0.11", "vscode-uri": "~3.0.8" } }, "sha512-QJv/h939gDpvT+9SiLVlY7tZC3xB2qK57v0J04Sh9wpMb6MP1q8gB21L3WIo8T5P1MSMg3Ep14L7KkDCFG3y4w=="],
 
