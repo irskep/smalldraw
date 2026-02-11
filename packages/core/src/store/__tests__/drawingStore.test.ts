@@ -8,8 +8,10 @@ import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { BoxedGeometry, BoxedShape } from "../../model/shapes/boxedShape";
-import type { PenShape } from "../../model/shapes/penShape";
-import { createPenTool, createRectangleTool } from "../../tools/drawingTools";
+import {
+  createPenJSONGeometry,
+  type PenShape,
+} from "../../model/shapes/penShape";
 import { createSelectionTool as createSelectionDefinition } from "../../tools/selection";
 import type { ToolDefinition } from "../../tools/types";
 import { getZIndexBetween } from "../../zindex";
@@ -135,6 +137,211 @@ function createRuntimeSelectionTool(selectionIds: string[]): ToolDefinition {
     activate(runtime) {
       runtime.setSelection(selectionIds);
       return selectionDef.activate(runtime);
+    },
+  };
+}
+
+function createPenTool(): ToolDefinition {
+  return {
+    id: "brush.freehand",
+    label: "Pen",
+    styleSupport: {
+      strokeColor: true,
+      strokeWidth: true,
+      fillColor: false,
+      transparentStrokeColor: false,
+      transparentFillColor: false,
+    },
+    activate(runtime) {
+      let points: Array<[number, number]> = [];
+      let drawing = false;
+      let draftId = "";
+      runtime.on("pointerDown", (event) => {
+        drawing = true;
+        draftId = runtime.generateShapeId("pen-draft");
+        points = [toVec2Like(event.point)];
+        runtime.setDraft({
+          toolId: runtime.toolId,
+          temporary: true,
+          id: draftId,
+          type: "pen",
+          geometry: createPenJSONGeometry(points),
+          style: {
+            stroke: {
+              type: "brush",
+              color: runtime.getSharedSettings().strokeColor,
+              size: runtime.getSharedSettings().strokeWidth,
+              brushId: "freehand",
+              compositeOp: "source-over",
+            },
+          },
+          zIndex: runtime.getNextZIndex(),
+          interactions: { resizable: true, rotatable: false },
+          transform: { translation: [0, 0], scale: [1, 1], rotation: 0 },
+        });
+      });
+      runtime.on("pointerMove", (event) => {
+        if (!drawing) return;
+        points.push(toVec2Like(event.point));
+        runtime.setDraft({
+          toolId: runtime.toolId,
+          temporary: true,
+          id: draftId,
+          type: "pen",
+          geometry: createPenJSONGeometry(points),
+          style: {
+            stroke: {
+              type: "brush",
+              color: runtime.getSharedSettings().strokeColor,
+              size: runtime.getSharedSettings().strokeWidth,
+              brushId: "freehand",
+              compositeOp: "source-over",
+            },
+          },
+          zIndex: runtime.getNextZIndex(),
+          interactions: { resizable: true, rotatable: false },
+          transform: { translation: [0, 0], scale: [1, 1], rotation: 0 },
+        });
+      });
+      runtime.on("pointerUp", () => {
+        if (!drawing || points.length < 2) {
+          drawing = false;
+          runtime.clearDraft();
+          return;
+        }
+        drawing = false;
+        runtime.commit(
+          new AddShape({
+            id: runtime.generateShapeId("pen"),
+            type: "pen",
+            geometry: createPenJSONGeometry(points),
+            style: {
+              stroke: {
+                type: "brush",
+                color: runtime.getSharedSettings().strokeColor,
+                size: runtime.getSharedSettings().strokeWidth,
+                brushId: "freehand",
+                compositeOp: "source-over",
+              },
+            },
+            zIndex: runtime.getNextZIndex(),
+            interactions: { resizable: true, rotatable: false },
+            transform: { translation: [0, 0], scale: [1, 1], rotation: 0 },
+          } as PenShape),
+        );
+        runtime.clearDraft();
+      });
+      return () => {
+        drawing = false;
+        points = [];
+        runtime.clearDraft();
+      };
+    },
+  };
+}
+
+function createRectangleTool(): ToolDefinition {
+  return {
+    id: "rect",
+    label: "Rectangle",
+    styleSupport: {
+      strokeColor: true,
+      strokeWidth: true,
+      fillColor: true,
+      transparentStrokeColor: true,
+      transparentFillColor: true,
+    },
+    activate(runtime) {
+      let start: [number, number] | null = null;
+      runtime.on("pointerDown", (event) => {
+        start = toVec2Like(event.point);
+      });
+      runtime.on("pointerMove", (event) => {
+        if (!start) return;
+        const current = toVec2Like(event.point);
+        const minX = Math.min(start[0], current[0]);
+        const minY = Math.min(start[1], current[1]);
+        const maxX = Math.max(start[0], current[0]);
+        const maxY = Math.max(start[1], current[1]);
+        const width = maxX - minX;
+        const height = maxY - minY;
+        runtime.setDraft({
+          toolId: runtime.toolId,
+          temporary: true,
+          id: runtime.generateShapeId("rect-draft"),
+          type: "boxed",
+          geometry: {
+            type: "boxed",
+            kind: "rect",
+            size: [width, height],
+          } as BoxedGeometry,
+          style: {
+            stroke: {
+              type: "brush",
+              color: runtime.getSharedSettings().strokeColor,
+              size: runtime.getSharedSettings().strokeWidth,
+              compositeOp: "source-over",
+            },
+            fill: {
+              type: "solid",
+              color: runtime.getSharedSettings().fillColor,
+            },
+          },
+          zIndex: runtime.getNextZIndex(),
+          interactions: { resizable: true, rotatable: true },
+          transform: {
+            translation: [minX + width / 2, minY + height / 2],
+            scale: [1, 1],
+            rotation: 0,
+          },
+        });
+      });
+      runtime.on("pointerUp", (event) => {
+        if (!start) return;
+        const end = toVec2Like(event.point);
+        const minX = Math.min(start[0], end[0]);
+        const minY = Math.min(start[1], end[1]);
+        const maxX = Math.max(start[0], end[0]);
+        const maxY = Math.max(start[1], end[1]);
+        const width = maxX - minX;
+        const height = maxY - minY;
+        start = null;
+        if (width === 0 && height === 0) {
+          runtime.clearDraft();
+          return;
+        }
+        runtime.commit(
+          new AddShape({
+            id: runtime.generateShapeId("rect"),
+            type: "boxed",
+            geometry: { type: "boxed", kind: "rect", size: [width, height] },
+            style: {
+              stroke: {
+                type: "brush",
+                color: runtime.getSharedSettings().strokeColor,
+                size: runtime.getSharedSettings().strokeWidth,
+                compositeOp: "source-over",
+              },
+              fill: {
+                type: "solid",
+                color: runtime.getSharedSettings().fillColor,
+              },
+            },
+            zIndex: runtime.getNextZIndex(),
+            interactions: { resizable: true, rotatable: true },
+            transform: {
+              translation: [minX + width / 2, minY + height / 2],
+              scale: [1, 1],
+              rotation: 0,
+            },
+          } as BoxedShape),
+        );
+        runtime.clearDraft();
+      });
+      return () => {
+        start = null;
+        runtime.clearDraft();
+      };
     },
   };
 }

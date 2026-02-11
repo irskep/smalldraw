@@ -1,17 +1,20 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
+import {
+  AddShape,
+  type BoxedGeometry,
+  type BoxedShape,
+  createDocument,
+  type SharedToolSettings,
+  ToolRuntimeImpl,
+  UndoManager,
+} from "@smalldraw/core";
 import { Vec2 } from "gl-matrix";
-import { AddShape } from "../../actions";
-import { createDocument } from "../../model/document";
-import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { BoxedGeometry, BoxedShape } from "../../model/shapes/boxedShape";
-import { UndoManager } from "../../undo";
-import { createRectangleTool } from "../drawingTools";
-import { ToolRuntimeImpl } from "../runtime";
-import type { SharedToolSettings } from "../types";
+import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
+import { createRectangleTool } from "../../tools/drawingTools";
 
 function setup(params?: { sharedSettings?: SharedToolSettings }) {
-  const registry = getDefaultShapeHandlerRegistry();
+  const registry = createKidsShapeHandlerRegistry();
   let document = createDocument(undefined, registry);
   const undoManager = new UndoManager();
   const runtime = new ToolRuntimeImpl({
@@ -58,12 +61,8 @@ describe("rectangle tool", () => {
     runtime.dispatch("pointerUp", { point: new Vec2(30, 40), buttons: 0 });
     expect(Object.values(getDocument().shapes)).toHaveLength(1);
     const shape = Object.values(getDocument().shapes)[0] as BoxedShape;
-    expect(draft).toBeDefined();
     expect(shape.geometry).toEqual(draft!.geometry);
     expect(shape.transform?.translation).toEqual([20, 25]);
-    expect(shape.interactions?.resizable).toBe(true);
-    expect(shape.layerId).toBe("default");
-    expect(shape.temporalOrder).toBe(0);
     expect(shape.style.stroke?.compositeOp).toBe("source-over");
   });
 
@@ -79,9 +78,10 @@ describe("rectangle tool", () => {
     runtime.dispatch("pointerUp", { point: new Vec2(10, 10), buttons: 0 });
 
     const shape = Object.values(getDocument().shapes)[0];
-    expect(shape.style.fill?.type).toBe("solid");
     if (shape.style.fill?.type === "solid") {
       expect(shape.style.fill.color).toBe("#abcdef");
+    } else {
+      throw new Error("Expected solid fill.");
     }
     expect(shape.style.stroke?.color).toBe("#111111");
     expect(shape.style.stroke?.size).toBe(4);

@@ -1,15 +1,19 @@
+import {
+  AddShape,
+  attachPointerHandlers,
+  type BoxedGeometry,
+  type BoxedShape,
+  type BoxedShapeKind,
+  createDisposerBucket,
+  type DisposerBucket,
+  type Fill,
+  type StrokeStyle,
+  type ToolDefinition,
+  type ToolEventHandler,
+  type ToolRuntime,
+} from "@smalldraw/core";
 import { BoxOperations, toVec2, toVec2Like } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
-import { AddShape } from "../actions";
-import type {
-  BoxedGeometry,
-  BoxedShape,
-  BoxedShapeKind,
-} from "../model/shapes/boxedShape";
-import type { Fill, StrokeStyle } from "../model/style";
-import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
-import { attachPointerHandlers } from "./pointerHandlers";
-import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 
 interface BoxedDraftState {
   id: string;

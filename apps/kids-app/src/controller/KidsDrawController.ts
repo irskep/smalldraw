@@ -693,7 +693,7 @@ export function createKidsDrawController(options: {
   listen(stage.overlay, "lostpointercapture", () => {
     forceCancelPointerSession();
   });
-  listen(stage.overlay, "pointerleave", (event) => {
+  listen(stage.overlay, "pointerleave", (_event) => {
     cursorOverlay.handlePointerLeave();
   });
   listen(window, "blur", () => {

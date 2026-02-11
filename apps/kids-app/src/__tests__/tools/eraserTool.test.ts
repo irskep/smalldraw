@@ -1,22 +1,22 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
-import { BoxOperations } from "@smalldraw/geometry";
-import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
-import { Vec2 } from "gl-matrix";
-import { createDocument } from "../../model/document";
-import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import {
+  createDocument,
   createPenJSONGeometry,
   getPenGeometryPoints,
   type PenShape,
-} from "../../model/shapes/penShape";
-import { UndoManager } from "../../undo";
-import { createEraserTool } from "../drawingTools";
-import { ToolRuntimeImpl } from "../runtime";
+  ToolRuntimeImpl,
+  UndoManager,
+} from "@smalldraw/core";
+import { BoxOperations } from "@smalldraw/geometry";
+import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
+import { Vec2 } from "gl-matrix";
+import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
+import { createEraserTool } from "../../tools/drawingTools";
 
 describe("eraser tool integration with runtime", () => {
   function setup() {
-    const registry = getDefaultShapeHandlerRegistry();
+    const registry = createKidsShapeHandlerRegistry();
     let document = createDocument(undefined, registry);
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({
@@ -134,7 +134,6 @@ describe("eraser tool integration with runtime", () => {
 
     const preview = runtime.getPreview();
     expect(preview).not.toBeNull();
-    expect(preview?.dirtyBounds).toBeDefined();
     const dirtyOps = new BoxOperations(preview!.dirtyBounds!);
     expect(dirtyOps.width).toBeLessThan(220);
   });

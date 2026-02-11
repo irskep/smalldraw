@@ -14,10 +14,11 @@ import {
   type DrawingDocumentData,
   type DrawingDocumentSize,
 } from "./model/document";
-import { getDefaultShapeHandlerRegistry } from "./model/shapeHandlers";
+import type { ShapeHandlerRegistry } from "./model/shapeHandlers";
 import type { DrawingStoreAdapter } from "./store/drawingStore";
 
 export interface SmalldrawCoreOptions {
+  shapeHandlers: ShapeHandlerRegistry;
   persistence?: {
     storageKey: string;
     mode: "reuse" | "always-new";
@@ -87,18 +88,23 @@ async function getOrCreateHandle(
 }
 
 export async function createSmalldraw(
-  options: SmalldrawCoreOptions = {},
+  options: SmalldrawCoreOptions,
 ): Promise<SmalldrawCore> {
   const {
+    shapeHandlers,
     persistence,
     documentSize = DEFAULT_DOCUMENT_SIZE,
     debug = false,
   } = options;
 
+  if (!shapeHandlers) {
+    throw new Error("createSmalldraw requires shapeHandlers");
+  }
+
   await initAutomerge();
 
   const repo = createRepo();
-  const registry = getDefaultShapeHandlerRegistry();
+  const registry = shapeHandlers;
 
   const storageKey = persistence?.storageKey ?? "smalldraw-doc-url";
   const mode = persistence?.mode ?? "reuse";

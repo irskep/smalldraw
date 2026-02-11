@@ -1,14 +1,4 @@
-import {
-  createEllipseTool,
-  createEraserTool,
-  createEvenSpraycanTool,
-  createMarkerTool,
-  createPenTool,
-  createRectangleTool,
-  createUnevenSpraycanTool,
-  type ToolDefinition,
-  type ToolStyleSupport,
-} from "@smalldraw/core";
+import type { ToolDefinition, ToolStyleSupport } from "@smalldraw/core";
 import {
   Circle,
   Eraser,
@@ -18,6 +8,15 @@ import {
   SprayCan,
   Square,
 } from "lucide";
+import {
+  createEllipseTool,
+  createEraserTool,
+  createEvenSpraycanTool,
+  createMarkerTool,
+  createPenTool,
+  createRectangleTool,
+  createUnevenSpraycanTool,
+} from "./drawingTools";
 
 export type KidsToolCursorMode = "hide-while-drawing" | "always-visible";
 
@@ -167,15 +166,9 @@ export function getToolConfig(toolId: string): KidsToolConfig | null {
 export function getToolStyleSupport(toolId: string): ToolStyleSupport {
   const toolConfig = getToolConfig(toolId);
   const support = toolConfig?.tool.styleSupport ?? {};
-  if (support.transparentStrokeColor !== undefined) {
-    return support;
-  }
-  // Fallback for hosts running with a stale core bundle that doesn't
-  // expose transparent style flags yet.
-  const allowTransparent = toolConfig?.familyId === "shape";
   return {
     ...support,
-    transparentStrokeColor: allowTransparent,
-    transparentFillColor: allowTransparent,
+    transparentStrokeColor: support.transparentStrokeColor ?? false,
+    transparentFillColor: support.transparentFillColor ?? false,
   };
 }

@@ -1,24 +1,24 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
-import { getWorldPointsFromShape } from "@smalldraw/testing";
-import { Vec2 } from "gl-matrix";
-import { createDocument } from "../../model/document";
-import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import {
+  createDocument,
   getPenGeometryPoints,
   type PenShape,
-} from "../../model/shapes/penShape";
-import { UndoManager } from "../../undo";
+  type ToolDefinition,
+  ToolRuntimeImpl,
+  UndoManager,
+} from "@smalldraw/core";
+import { getWorldPointsFromShape } from "@smalldraw/testing";
+import { Vec2 } from "gl-matrix";
+import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 import {
   createEvenSpraycanTool,
   createUnevenSpraycanTool,
-} from "../drawingTools";
-import { ToolRuntimeImpl } from "../runtime";
-import type { ToolDefinition } from "../types";
+} from "../../tools/drawingTools";
 
 describe("spraycan tools integration with runtime", () => {
   function setup(toolId: string, createTool: () => ToolDefinition) {
-    const registry = getDefaultShapeHandlerRegistry();
+    const registry = createKidsShapeHandlerRegistry();
     let document = createDocument(undefined, registry);
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({

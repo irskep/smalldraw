@@ -1,4 +1,16 @@
 import {
+  AddShape,
+  attachPointerHandlers,
+  createDisposerBucket,
+  createPenJSONGeometry,
+  type DisposerBucket,
+  type PenShape,
+  type StrokeStyle,
+  type ToolDefinition,
+  type ToolEventHandler,
+  type ToolRuntime,
+} from "@smalldraw/core";
+import {
   type Box,
   BoxOperations,
   getX,
@@ -7,14 +19,7 @@ import {
   toVec2Like,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
-import { AddShape } from "../actions";
-import type { PenShape } from "../model/shapes/penShape";
-import { createPenJSONGeometry } from "../model/shapes/penShape";
-import type { StrokeStyle } from "../model/style";
-import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
-import { attachPointerHandlers } from "./pointerHandlers";
 import { isPressureSample } from "./pressure";
-import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 
 const PRIMARY_BUTTON_MASK = 1;
 const SPRAY_RADIUS_SCALE = 0.625;

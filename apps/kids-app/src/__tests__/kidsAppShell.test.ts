@@ -6,13 +6,13 @@ import {
   type DrawingDocument,
   type DrawingDocumentData,
   type DrawingStoreActionEvent,
-  getDefaultShapeHandlerRegistry,
   type PenShape,
   type SmalldrawCore,
 } from "@smalldraw/core";
 import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { createKidsDrawApp } from "../createKidsDrawApp";
 import { resolvePageSize } from "../layout/responsiveLayout";
+import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 
 type DisableableElement = HTMLElement & { disabled: boolean };
 
@@ -100,7 +100,7 @@ async function waitUntil(
 function createMockCore(
   initialSize = { width: 960, height: 600 },
 ): SmalldrawCore {
-  const registry = getDefaultShapeHandlerRegistry();
+  const registry = createKidsShapeHandlerRegistry();
   let doc = createDocument(undefined, registry, initialSize);
   const listeners = new Set<(doc: DrawingDocument) => void>();
 

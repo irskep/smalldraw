@@ -7,6 +7,7 @@ import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
 import { resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
+import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import {
   DEFAULT_KIDS_DRAW_FAMILY_ID,
   getDefaultToolIdForFamily,
@@ -44,6 +45,7 @@ export async function createKidsDrawApp(
   const desiredInitialSize: DrawingDocumentSize = hasExplicitSize
     ? getExplicitSize()
     : resolveCurrentPageSize();
+  const shapeHandlers = createKidsShapeHandlerRegistry();
 
   const providedCore = options.core;
   const core =
@@ -54,6 +56,7 @@ export async function createKidsDrawApp(
         mode: "reuse",
       },
       documentSize: desiredInitialSize,
+      shapeHandlers,
     }));
 
   const docSize = core.storeAdapter.getDoc().size;
@@ -90,6 +93,7 @@ export async function createKidsDrawApp(
     tools: KIDS_DRAW_TOOLS.map((tool) => tool.tool),
     document: core.storeAdapter.getDoc(),
     actionDispatcher: (event) => core.storeAdapter.applyAction(event),
+    shapeHandlers,
   });
   store.activateTool(getDefaultToolIdForFamily(DEFAULT_KIDS_DRAW_FAMILY_ID));
 

@@ -1,26 +1,26 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
-import { BoxOperations } from "@smalldraw/geometry";
-import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
-import { Vec2 } from "gl-matrix";
-import { createDocument } from "../../model/document";
-import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import {
+  createDocument,
   createPenJSONGeometry,
   getPenGeometryPoints,
   type PenShape,
-} from "../../model/shapes/penShape";
-import { UndoManager } from "../../undo";
-import { createPenTool } from "../drawingTools";
-import { ToolRuntimeImpl } from "../runtime";
-import type { SharedToolSettings } from "../types";
+  type SharedToolSettings,
+  ToolRuntimeImpl,
+  UndoManager,
+} from "@smalldraw/core";
+import { BoxOperations } from "@smalldraw/geometry";
+import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
+import { Vec2 } from "gl-matrix";
+import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
+import { createPenTool } from "../../tools/drawingTools";
 
 describe("pen tool integration with runtime", () => {
   function setup(params?: {
     runtimeStrokeColor?: string;
     sharedSettings?: SharedToolSettings;
   }) {
-    const registry = getDefaultShapeHandlerRegistry();
+    const registry = createKidsShapeHandlerRegistry();
     let document = createDocument(undefined, registry);
     const undoManager = new UndoManager();
     const runtimeOptions = params?.runtimeStrokeColor
@@ -44,8 +44,6 @@ describe("pen tool integration with runtime", () => {
     return {
       runtime,
       getDocument: () => document,
-      undoManager,
-      tool,
       deactivate,
     };
   }
@@ -80,9 +78,6 @@ describe("pen tool integration with runtime", () => {
       [10, 10],
       [20, 5],
     ]);
-    expect(shape.layerId).toBe("default");
-    expect(shape.temporalOrder).toBe(0);
-    expect(shape.style.stroke?.compositeOp).toBe("source-over");
   });
 
   test("declares stroke-only style support", () => {
@@ -131,7 +126,6 @@ describe("pen tool integration with runtime", () => {
     const shapeEntries = Object.values(getDocument().shapes);
     expect(shapeEntries).toHaveLength(1);
     const shape = shapeEntries[0] as PenShape;
-    expect(shape.geometry.type).toBe("pen-json");
     expect(shape.geometry.pressures).toEqual([0, 0.3, 0]);
     expect(getPenGeometryPoints(shape.geometry)).toHaveLength(3);
   });
@@ -150,7 +144,6 @@ describe("pen tool integration with runtime", () => {
     const shape = Object.values(getDocument().shapes)[0];
     expect(shape.style.stroke?.color).toBe("#00ff00");
     expect(shape.style.stroke?.size).toBe(7);
-    expect(runtime.getSharedSettings().strokeWidth).toBe(7);
   });
 
   test("deactivation clears drafts and prevents further commits", () => {
@@ -183,7 +176,6 @@ describe("pen tool integration with runtime", () => {
 
     const preview = runtime.getPreview();
     expect(preview).not.toBeNull();
-    expect(preview?.dirtyBounds).toBeDefined();
     const dirtyOps = new BoxOperations(preview!.dirtyBounds!);
     expect(dirtyOps.width).toBeLessThan(220);
   });

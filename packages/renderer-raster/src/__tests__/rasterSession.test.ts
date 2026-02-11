@@ -4,14 +4,16 @@ import {
   type AnyShape,
   ClearCanvas,
   createDocument,
-  createEraserTool,
-  createPenTool,
   DrawingStore,
   getDefaultShapeHandlerRegistry,
   type ToolDefinition,
 } from "@smalldraw/core";
 import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
+import {
+  createEraserTool,
+  createPenTool,
+} from "../../../../apps/kids-app/src/tools/drawingTools";
 import { HotLayer, RasterSession, TILE_SIZE, TileRenderer } from "../index";
 
 function pixelAt(

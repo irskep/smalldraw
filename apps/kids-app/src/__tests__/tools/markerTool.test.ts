@@ -1,19 +1,21 @@
 import { describe, expect, test } from "bun:test";
 import { change } from "@automerge/automerge/slim";
+import {
+  createDocument,
+  type PenShape,
+  type SharedToolSettings,
+  ToolRuntimeImpl,
+  UndoManager,
+} from "@smalldraw/core";
 import { BoxOperations } from "@smalldraw/geometry";
 import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
 import { Vec2 } from "gl-matrix";
-import { createDocument } from "../../model/document";
-import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { PenShape } from "../../model/shapes/penShape";
-import { UndoManager } from "../../undo";
-import { createMarkerTool } from "../drawingTools";
-import { ToolRuntimeImpl } from "../runtime";
-import type { SharedToolSettings } from "../types";
+import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
+import { createMarkerTool } from "../../tools/drawingTools";
 
 describe("marker tool integration with runtime", () => {
   function setup(params?: { sharedSettings?: SharedToolSettings }) {
-    const registry = getDefaultShapeHandlerRegistry();
+    const registry = createKidsShapeHandlerRegistry();
     let document = createDocument(undefined, registry);
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({

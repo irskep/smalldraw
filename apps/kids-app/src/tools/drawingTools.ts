@@ -1,7 +1,6 @@
-import type { StrokeStyle } from "../model/style";
+import type { StrokeStyle, ToolDefinition } from "@smalldraw/core";
 import { type BoxedToolOptions, createBoxedTool } from "./boxed";
 import { createStrokeTool, type StrokeToolOptions } from "./strokeTool";
-import type { ToolDefinition } from "./types";
 
 export interface PenToolOptions extends StrokeToolOptions {}
 
