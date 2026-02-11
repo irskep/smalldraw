@@ -27,7 +27,8 @@ export interface KidsDrawToolbar {
   readonly redoButton: SquareIconButton;
   readonly clearButton: SquareIconButton;
   readonly newDrawingButton: SquareIconButton;
-  readonly colorSwatchButtons: HTMLButtonElement[];
+  readonly strokeColorSwatchButtons: HTMLButtonElement[];
+  readonly fillColorSwatchButtons: HTMLButtonElement[];
   readonly strokeWidthButtons: HTMLButtonElement[];
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
 }
@@ -194,25 +195,54 @@ export function createKidsDrawToolbar(options: {
   });
   mount(actionPanelElement, newDrawingButton.el);
 
-  const colorSwatchButtons: HTMLButtonElement[] = [];
-  const colorSwatchesElement = el("div.kids-draw-color-swatches", {
-    role: "radiogroup",
-    "aria-label": "Color palette",
-  }) as HTMLDivElement;
-  for (const swatch of COLOR_SWATCHES) {
-    const swatchButton = el("button", {
-      type: "button",
-      className: "kids-draw-color-swatch",
-      title: swatch.label,
-      "aria-label": swatch.label,
-      "aria-pressed": "false",
-      "data-setting": "color",
-      "data-color": swatch.value,
-      style: `--kd-swatch-color:${swatch.value}`,
-    }) as HTMLButtonElement;
-    colorSwatchButtons.push(swatchButton);
-    mount(colorSwatchesElement, swatchButton);
-  }
+  const createColorSwatches = (options: {
+    target: "stroke" | "fill";
+    label: string;
+  }): {
+    element: HTMLDivElement;
+    swatches: HTMLButtonElement[];
+  } => {
+    const swatches: HTMLButtonElement[] = [];
+    const swatchesElement = el("div.kids-draw-color-swatches", {
+      role: "radiogroup",
+      "aria-label": `${options.label} palette`,
+      "data-style-target": options.target,
+    }) as HTMLDivElement;
+    for (const swatch of COLOR_SWATCHES) {
+      const swatchButton = el("button", {
+        type: "button",
+        className: "kids-draw-color-swatch",
+        title: swatch.label,
+        "aria-label": swatch.label,
+        "aria-pressed": "false",
+        "data-setting": `${options.target}-color`,
+        "data-style-target": options.target,
+        "data-color": swatch.value,
+        style: `--kd-swatch-color:${swatch.value}`,
+      }) as HTMLButtonElement;
+      swatches.push(swatchButton);
+      mount(swatchesElement, swatchButton);
+    }
+
+    return { element: swatchesElement, swatches };
+  };
+
+  const strokeSwatches = createColorSwatches({
+    target: "stroke",
+    label: "Stroke",
+  });
+  const fillSwatches = createColorSwatches({
+    target: "fill",
+    label: "Fill",
+  });
+  const strokeColorSwatchButtons = strokeSwatches.swatches;
+  const fillColorSwatchButtons = fillSwatches.swatches;
+
+  const stylePickersElement = el(
+    "div.kids-draw-style-pickers",
+  ) as HTMLDivElement;
+  mount(stylePickersElement, strokeSwatches.element);
+  mount(stylePickersElement, fillSwatches.element);
 
   const minPreviewSize = 2;
   const maxPreviewSize = 18;
@@ -254,7 +284,7 @@ export function createKidsDrawToolbar(options: {
   const colorPanelElement = el(
     "div.kids-draw-toolbar-panel.kids-draw-toolbar-colors.kids-toolbar-grid-panel",
   ) as HTMLDivElement;
-  mount(colorPanelElement, colorSwatchesElement);
+  mount(colorPanelElement, stylePickersElement);
 
   const strokePanelElement = el(
     "div.kids-draw-toolbar-panel.kids-draw-toolbar-strokes.kids-toolbar-grid-panel",
@@ -281,7 +311,8 @@ export function createKidsDrawToolbar(options: {
   };
 
   const applyState = (state: ToolbarUiState): void => {
-    const normalizedStateColor = state.strokeColor.toLowerCase();
+    const normalizedStrokeColor = state.strokeColor.toLowerCase();
+    const normalizedFillColor = state.fillColor.toLowerCase();
     const activeToolId = toolById.has(state.activeToolId)
       ? state.activeToolId
       : (tools[0]?.id ??
@@ -310,11 +341,34 @@ export function createKidsDrawToolbar(options: {
     redoButton.setDisabled(!state.canRedo);
     newDrawingButton.setDisabled(state.newDrawingPending);
 
-    for (const swatchButton of colorSwatchButtons) {
+    for (const swatchButton of strokeColorSwatchButtons) {
       const selected =
-        swatchButton.dataset.color?.toLowerCase() === normalizedStateColor;
+        swatchButton.dataset.color?.toLowerCase() === normalizedStrokeColor;
       setToggleSelectedState(swatchButton, selected);
+      swatchButton.disabled = !state.supportsStrokeColor;
     }
+    for (const swatchButton of fillColorSwatchButtons) {
+      const selected =
+        swatchButton.dataset.color?.toLowerCase() === normalizedFillColor;
+      setToggleSelectedState(swatchButton, selected);
+      swatchButton.disabled = !state.supportsFillColor;
+    }
+    fillSwatches.element.classList.toggle(
+      "is-disabled",
+      !state.supportsFillColor,
+    );
+    strokeSwatches.element.classList.toggle(
+      "is-disabled",
+      !state.supportsStrokeColor,
+    );
+    fillSwatches.element.style.setProperty(
+      "--kd-swatch-selected-stroke",
+      state.strokeColor,
+    );
+    strokeSwatches.element.style.setProperty(
+      "--kd-swatch-selected-fill",
+      state.fillColor,
+    );
 
     let nearestStrokeWidth: number = STROKE_WIDTH_OPTIONS[0];
     let nearestDelta = Math.abs(state.strokeWidth - nearestStrokeWidth);
@@ -329,6 +383,7 @@ export function createKidsDrawToolbar(options: {
       const width = Number(widthButton.dataset.size);
       const selected = Number.isFinite(width) && width === nearestStrokeWidth;
       setToggleSelectedState(widthButton, selected);
+      widthButton.disabled = !state.supportsStrokeWidth;
     }
   };
 
@@ -350,7 +405,8 @@ export function createKidsDrawToolbar(options: {
     redoButton,
     clearButton,
     newDrawingButton,
-    colorSwatchButtons,
+    strokeColorSwatchButtons,
+    fillColorSwatchButtons,
     strokeWidthButtons,
     bindUiState,
   };

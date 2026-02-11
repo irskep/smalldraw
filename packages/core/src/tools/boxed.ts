@@ -56,7 +56,9 @@ function computeSizeAndCenter(
   };
 }
 
-export function createBoxedTool(options: CreateBoxedToolOptions): ToolDefinition {
+export function createBoxedTool(
+  options: CreateBoxedToolOptions,
+): ToolDefinition {
   const ensureState = (runtime: ToolRuntime): ActiveBoxedState => {
     let state = runtimeState.get(runtime);
     if (!state) {
@@ -233,6 +235,11 @@ export function createBoxedTool(options: CreateBoxedToolOptions): ToolDefinition
   return {
     id: options.id,
     label: options.label,
+    styleSupport: {
+      strokeColor: true,
+      strokeWidth: true,
+      fillColor: true,
+    },
     activate(runtime) {
       const state = ensureState(runtime);
       state.disposers.dispose();

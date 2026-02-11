@@ -1,4 +1,4 @@
-import type { DrawingStore } from "@smalldraw/core";
+import type { DrawingStore, ToolStyleSupport } from "@smalldraw/core";
 import { atom } from "nanostores";
 
 export interface ToolbarUiState {
@@ -7,7 +7,11 @@ export interface ToolbarUiState {
   canUndo: boolean;
   canRedo: boolean;
   strokeColor: string;
+  fillColor: string;
   strokeWidth: number;
+  supportsStrokeColor: boolean;
+  supportsStrokeWidth: boolean;
+  supportsFillColor: boolean;
   newDrawingPending: boolean;
 }
 
@@ -17,7 +21,11 @@ const DEFAULT_STATE: ToolbarUiState = {
   canUndo: false,
   canRedo: false,
   strokeColor: "#000000",
+  fillColor: "#ffffff",
   strokeWidth: 2,
+  supportsStrokeColor: true,
+  supportsStrokeWidth: true,
+  supportsFillColor: false,
   newDrawingPending: false,
 };
 
@@ -27,6 +35,7 @@ export function syncToolbarUiFromDrawingStore(
   store: DrawingStore,
   options?: {
     resolveActiveFamilyId?: (activeToolId: string) => string | null;
+    resolveToolStyleSupport?: (activeToolId: string) => ToolStyleSupport;
   },
 ): void {
   const shared = store.getSharedSettings();
@@ -34,6 +43,7 @@ export function syncToolbarUiFromDrawingStore(
   const activeToolId = store.getActiveToolId() ?? "";
   const activeFamilyId =
     options?.resolveActiveFamilyId?.(activeToolId) ?? current.activeFamilyId;
+  const styleSupport = options?.resolveToolStyleSupport?.(activeToolId) ?? {};
   const next: ToolbarUiState = {
     ...current,
     activeToolId,
@@ -41,20 +51,26 @@ export function syncToolbarUiFromDrawingStore(
     canUndo: store.canUndo(),
     canRedo: store.canRedo(),
     strokeColor: shared.strokeColor,
+    fillColor: shared.fillColor,
     strokeWidth: shared.strokeWidth,
+    supportsStrokeColor: styleSupport.strokeColor ?? true,
+    supportsStrokeWidth: styleSupport.strokeWidth ?? true,
+    supportsFillColor: styleSupport.fillColor ?? false,
   };
   if (isEqual(current, next)) return;
   $toolbarUi.set(next);
 }
 
-export function setToolbarStrokeUi(
+export function setToolbarStyleUi(
   strokeColor: string,
+  fillColor: string,
   strokeWidth: number,
 ): void {
   const current = $toolbarUi.get();
   const next: ToolbarUiState = {
     ...current,
     strokeColor,
+    fillColor,
     strokeWidth,
   };
   if (isEqual(current, next)) return;
@@ -74,7 +90,11 @@ function isEqual(a: ToolbarUiState, b: ToolbarUiState): boolean {
     a.canUndo === b.canUndo &&
     a.canRedo === b.canRedo &&
     a.strokeColor === b.strokeColor &&
+    a.fillColor === b.fillColor &&
     a.strokeWidth === b.strokeWidth &&
+    a.supportsStrokeColor === b.supportsStrokeColor &&
+    a.supportsStrokeWidth === b.supportsStrokeWidth &&
+    a.supportsFillColor === b.supportsFillColor &&
     a.newDrawingPending === b.newDrawingPending
   );
 }

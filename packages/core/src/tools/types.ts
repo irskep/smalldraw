@@ -41,6 +41,14 @@ export interface SelectionState {
   primaryId?: string;
 }
 
+export type ToolStyleElement = "strokeColor" | "strokeWidth" | "fillColor";
+
+export interface ToolStyleSupport {
+  strokeColor?: boolean;
+  strokeWidth?: boolean;
+  fillColor?: boolean;
+}
+
 export interface ToolRuntime {
   toolId: string;
   /** Register an event handler. Returns a disposer to detach the handler. */
@@ -125,6 +133,7 @@ export type ToolRuntimeEvent<TPayload = unknown> =
 export interface ToolDefinition {
   id: string;
   label: string;
+  styleSupport?: ToolStyleSupport;
   // biome-ignore lint/suspicious/noConfusingVoidType: API conciseness
   activate(runtime: ToolRuntime): void | undefined | (() => void);
 }

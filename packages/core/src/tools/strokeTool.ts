@@ -228,6 +228,11 @@ export function createStrokeTool(
   return {
     id: options.id,
     label: options.label,
+    styleSupport: {
+      strokeColor: true,
+      strokeWidth: true,
+      fillColor: false,
+    },
     activate(runtime) {
       const state = ensureState(runtime);
       state.disposers.dispose();

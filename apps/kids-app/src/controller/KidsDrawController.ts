@@ -20,12 +20,13 @@ import type { RasterPipeline } from "../render/createRasterPipeline";
 import {
   getDefaultToolIdForFamily,
   getFamilyIdForTool,
+  getToolStyleSupport,
   type KidsToolConfig,
   type KidsToolFamilyConfig,
 } from "../tools/kidsTools";
 import {
   setNewDrawingPending,
-  setToolbarStrokeUi,
+  setToolbarStyleUi,
   syncToolbarUiFromDrawingStore,
 } from "../ui/stores/toolbarUiStore";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
@@ -159,6 +160,7 @@ export function createKidsDrawController(options: {
   const syncToolbarUi = (): void => {
     syncToolbarUiFromDrawingStore(store, {
       resolveActiveFamilyId: getFamilyIdForTool,
+      resolveToolStyleSupport: getToolStyleSupport,
     });
     cursorOverlay.sync();
   };
@@ -571,7 +573,7 @@ export function createKidsDrawController(options: {
   listen(toolbar.newDrawingButton.el, "click", () => {
     void onNewDrawingClick();
   });
-  for (const colorButton of toolbar.colorSwatchButtons) {
+  for (const colorButton of toolbar.strokeColorSwatchButtons) {
     listen(colorButton, "click", () => {
       const strokeColor = colorButton.dataset.color;
       if (!strokeColor) {
@@ -579,7 +581,26 @@ export function createKidsDrawController(options: {
       }
       store.updateSharedSettings({ strokeColor });
       const shared = store.getSharedSettings();
-      setToolbarStrokeUi(shared.strokeColor, shared.strokeWidth);
+      setToolbarStyleUi(
+        shared.strokeColor,
+        shared.fillColor,
+        shared.strokeWidth,
+      );
+    });
+  }
+  for (const colorButton of toolbar.fillColorSwatchButtons) {
+    listen(colorButton, "click", () => {
+      const fillColor = colorButton.dataset.color;
+      if (!fillColor) {
+        return;
+      }
+      store.updateSharedSettings({ fillColor });
+      const shared = store.getSharedSettings();
+      setToolbarStyleUi(
+        shared.strokeColor,
+        shared.fillColor,
+        shared.strokeWidth,
+      );
     });
   }
   for (const widthButton of toolbar.strokeWidthButtons) {
@@ -590,7 +611,11 @@ export function createKidsDrawController(options: {
       }
       store.updateSharedSettings({ strokeWidth });
       const shared = store.getSharedSettings();
-      setToolbarStrokeUi(shared.strokeColor, shared.strokeWidth);
+      setToolbarStyleUi(
+        shared.strokeColor,
+        shared.fillColor,
+        shared.strokeWidth,
+      );
     });
   }
   listen(stage.overlay, "pointerdown", onPointerDown);

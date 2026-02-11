@@ -183,7 +183,7 @@ describe("kids-app shell", () => {
       ".kids-draw-tiles canvas",
     ) as HTMLCanvasElement | null;
     const defaultColorSwatch = container.querySelector(
-      'button[data-setting="color"][data-color="#000000"]',
+      'button[data-setting="stroke-color"][data-color="#000000"]',
     ) as HTMLButtonElement | null;
     expect(tileCanvas).not.toBeNull();
     expect(tileCanvas?.width).toBeGreaterThan(0);
@@ -223,7 +223,7 @@ describe("kids-app shell", () => {
       }) as DOMRect;
 
     const colorSwatch = container.querySelector(
-      'button[data-setting="color"][data-color="#ff4d6d"]',
+      'button[data-setting="stroke-color"][data-color="#ff4d6d"]',
     ) as HTMLButtonElement | null;
     const widthButton = container.querySelector(
       'button[data-setting="stroke-width"][data-size="24"]',
@@ -352,6 +352,9 @@ describe("kids-app shell", () => {
     const shapeFamilyButton = container.querySelector(
       '[data-tool-family="shape"]',
     ) as HTMLElement | null;
+    const fillColorSwatch = container.querySelector(
+      'button[data-setting="fill-color"][data-color="#ffdb4d"]',
+    ) as DisableableElement | null;
     const rectVariantButton = container.querySelector(
       '[data-tool-variant="rect"]',
     ) as HTMLElement | null;
@@ -359,11 +362,15 @@ describe("kids-app shell", () => {
       '[data-tool-variant="ellipse"]',
     ) as HTMLElement | null;
     expect(shapeFamilyButton).not.toBeNull();
+    expect(fillColorSwatch).not.toBeNull();
     expect(rectVariantButton).not.toBeNull();
     expect(ellipseVariantButton).not.toBeNull();
+    expect(fillColorSwatch!.disabled).toBeTrue();
 
     shapeFamilyButton!.click();
     expect(app.store.getActiveToolId()).toBe("rect");
+    expect(fillColorSwatch!.disabled).toBeFalse();
+    fillColorSwatch!.click();
 
     ellipseVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("ellipse");
@@ -394,6 +401,11 @@ describe("kids-app shell", () => {
     );
     expect(ellipse).toBeDefined();
     expect(rect).toBeDefined();
+    if (ellipse?.style.fill?.type === "solid") {
+      expect(ellipse.style.fill.color.toLowerCase()).toBe("#ffdb4d");
+    } else {
+      throw new Error("Expected ellipse to use a solid fill.");
+    }
 
     app.destroy();
   });

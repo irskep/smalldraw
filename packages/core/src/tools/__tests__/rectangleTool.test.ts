@@ -32,6 +32,15 @@ function setup(params?: { sharedSettings?: SharedToolSettings }) {
 }
 
 describe("rectangle tool", () => {
+  test("declares fill + stroke style support", () => {
+    const tool = createRectangleTool();
+    expect(tool.styleSupport).toEqual({
+      strokeColor: true,
+      strokeWidth: true,
+      fillColor: true,
+    });
+  });
+
   test("creates rectangle geometry from pointer drag", () => {
     const { runtime, getDocument } = setup();
     runtime.dispatch("pointerDown", { point: new Vec2(10, 10), buttons: 1 });
@@ -39,7 +48,9 @@ describe("rectangle tool", () => {
 
     const draft = runtime.getDraft() as BoxedShape | null;
     expect(draft?.geometry).toEqual({
-      type: "boxed", kind: "rect", size: [20, 30],
+      type: "boxed",
+      kind: "rect",
+      size: [20, 30],
     });
 
     runtime.dispatch("pointerUp", { point: new Vec2(30, 40), buttons: 0 });
@@ -81,7 +92,11 @@ describe("rectangle tool", () => {
       new AddShape({
         id: existingShapeId,
         type: "boxed",
-        geometry: { type: "boxed", kind: "rect", size: [10, 10] } as BoxedGeometry,
+        geometry: {
+          type: "boxed",
+          kind: "rect",
+          size: [10, 10],
+        } as BoxedGeometry,
         style: { fill: { type: "solid", color: "#ffffff" } },
         zIndex: "a0",
         transform: { translation: [0, 0], scale: [1, 1], rotation: 0 },

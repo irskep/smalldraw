@@ -146,20 +146,39 @@
   justify-content: center;
 }
 
+.kids-draw-style-pickers {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: var(--kd-toolbar-palette-cell-size);
+  row-gap: var(--size-2);
+  align-items: start;
+}
+
 .kids-draw-toolbar .kids-draw-color-swatch {
   width: var(--kd-toolbar-palette-cell-size);
   height: var(--kd-toolbar-palette-cell-size);
   min-width: var(--kd-toolbar-palette-cell-size);
   min-height: var(--kd-toolbar-palette-cell-size);
+  position: relative;
   padding: 0;
   border-radius: var(--radius-3);
-  border: 3px solid rgba(0, 0, 0, 0.15);
-  background: var(--kd-swatch-color);
+  border: 0;
+  background: transparent;
   box-shadow: var(--shadow-2);
   transition:
     transform 120ms var(--ease-out-3),
     box-shadow 120ms var(--ease-out-3),
     background-color 120ms var(--ease-out-3);
+}
+
+.kids-draw-color-swatches[data-style-target="stroke"] .kids-draw-color-swatch {
+  border: 6px solid var(--kd-swatch-color);
+  background: transparent;
+}
+
+.kids-draw-color-swatches[data-style-target="fill"] .kids-draw-color-swatch {
+  border: 0;
+  background: var(--kd-swatch-color);
 }
 
 .kids-draw-color-swatch:active {
@@ -173,12 +192,71 @@
 
 .kids-draw-toolbar .kids-draw-color-swatch.is-selected {
   transform: translateY(-1px);
+  box-shadow: var(--shadow-3);
+}
+
+.kids-draw-color-swatches[data-style-target="stroke"]
+  .kids-draw-color-swatch.is-selected {
+  border-color: var(--kd-swatch-color);
+  background: var(--kd-swatch-selected-fill, #ffffff);
+}
+
+.kids-draw-color-swatches[data-style-target="stroke"]
+  .kids-draw-color-swatch.is-selected::before,
+.kids-draw-color-swatches[data-style-target="stroke"]
+  .kids-draw-color-swatch.is-selected::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 60%;
+  height: 3px;
+  border-radius: var(--radius-round);
+  transform: translateX(-50%);
+}
+
+.kids-draw-color-swatches[data-style-target="stroke"]
+  .kids-draw-color-swatch.is-selected::before {
+  top: calc(50% - 5px);
+  background: #ffffff;
+  transform: translateX(-50%) rotate(-28deg);
+}
+
+.kids-draw-color-swatches[data-style-target="stroke"]
+  .kids-draw-color-swatch.is-selected::after {
+  top: calc(50% + 2px);
+  background: #000000;
+  transform: translateX(-50%) rotate(-28deg);
+}
+
+.kids-draw-color-swatches[data-style-target="fill"]
+  .kids-draw-color-swatch.is-selected {
   background: var(--kd-swatch-color);
-  border-color: color-mix(in oklch, var(--kd-swatch-color) 70%, black);
+  border: 5px solid var(--kd-swatch-selected-stroke, #000000);
+}
+
+.kids-draw-color-swatches[data-style-target="fill"]
+  .kids-draw-color-swatch.is-selected::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-round);
+  transform: translate(-50%, -50%);
+  background: transparent;
   box-shadow:
-    0 0 0 3px rgba(255, 255, 255, 0.95),
-    0 0 0 5px color-mix(in oklch, var(--kd-swatch-color) 45%, black),
-    var(--shadow-3);
+    0 0 0 2px #ffffff,
+    0 0 0 4px #000000;
+}
+
+.kids-draw-color-swatch:disabled {
+  cursor: not-allowed;
+  transform: none;
+}
+
+.kids-draw-color-swatches.is-disabled {
+  opacity: 0.6;
 }
 
 .kids-draw-stroke-widths {

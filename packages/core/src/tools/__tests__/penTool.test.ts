@@ -82,6 +82,15 @@ describe("pen tool integration with runtime", () => {
     expect(shape.style.stroke?.compositeOp).toBe("source-over");
   });
 
+  test("declares stroke-only style support", () => {
+    const tool = createPenTool();
+    expect(tool.styleSupport).toEqual({
+      strokeColor: true,
+      strokeWidth: true,
+      fillColor: false,
+    });
+  });
+
   test("uses runtime stroke options when provided", () => {
     const { runtime, getDocument } = setup({ runtimeStrokeColor: "#ff00ff" });
 

@@ -11,6 +11,7 @@ import {
   DEFAULT_KIDS_DRAW_FAMILY_ID,
   getDefaultToolIdForFamily,
   getFamilyIdForTool,
+  getToolStyleSupport,
   KIDS_DRAW_SIDEBAR_ITEMS,
   KIDS_DRAW_TOOL_FAMILIES,
   KIDS_DRAW_TOOLS,
@@ -86,7 +87,7 @@ export async function createKidsDrawApp(
   mount(options.container, element);
 
   const store = new DrawingStore({
-    tools: KIDS_DRAW_TOOLS.map((tool) => tool.createTool()),
+    tools: KIDS_DRAW_TOOLS.map((tool) => tool.tool),
     document: core.storeAdapter.getDoc(),
     actionDispatcher: (event) => core.storeAdapter.applyAction(event),
   });
@@ -100,6 +101,7 @@ export async function createKidsDrawApp(
   store.updateSharedSettings({ strokeWidth: defaultStrokeWidth });
   syncToolbarUiFromDrawingStore(store, {
     resolveActiveFamilyId: getFamilyIdForTool,
+    resolveToolStyleSupport: getToolStyleSupport,
   });
   const unbindToolbarUi = toolbar.bindUiState($toolbarUi);
 

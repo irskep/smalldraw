@@ -5,8 +5,16 @@ import {
   createPenTool,
   createRectangleTool,
   type ToolDefinition,
+  type ToolStyleSupport,
 } from "@smalldraw/core";
-import { Circle, Eraser, Highlighter, type IconNode, Pen, Square } from "lucide";
+import {
+  Circle,
+  Eraser,
+  Highlighter,
+  type IconNode,
+  Pen,
+  Square,
+} from "lucide";
 
 export type KidsToolCursorMode = "hide-while-drawing" | "always-visible";
 
@@ -16,7 +24,7 @@ export interface KidsToolConfig {
   label: string;
   icon: IconNode;
   cursorMode: KidsToolCursorMode;
-  createTool: () => ToolDefinition;
+  tool: ToolDefinition;
 }
 
 export interface KidsToolFamilyConfig {
@@ -31,46 +39,52 @@ export type ToolbarItem =
   | { kind: "family"; familyId: string }
   | { kind: "tool"; toolId: string };
 
+const PEN_TOOL = createPenTool();
+const MARKER_TOOL = createMarkerTool();
+const ERASER_TOOL = createEraserTool();
+const RECTANGLE_TOOL = createRectangleTool();
+const ELLIPSE_TOOL = createEllipseTool();
+
 export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
   {
-    id: "brush.freehand",
+    id: PEN_TOOL.id,
     familyId: "brush",
     label: "Pen",
     icon: Pen,
     cursorMode: "hide-while-drawing",
-    createTool: () => createPenTool(),
+    tool: PEN_TOOL,
   },
   {
-    id: "brush.marker",
+    id: MARKER_TOOL.id,
     familyId: "brush",
     label: "Marker",
     icon: Highlighter,
     cursorMode: "hide-while-drawing",
-    createTool: () => createMarkerTool(),
+    tool: MARKER_TOOL,
   },
   {
-    id: "eraser.basic",
+    id: ERASER_TOOL.id,
     familyId: "eraser",
     label: "Eraser",
     icon: Eraser,
     cursorMode: "always-visible",
-    createTool: () => createEraserTool(),
+    tool: ERASER_TOOL,
   },
   {
-    id: "rect",
+    id: RECTANGLE_TOOL.id,
     familyId: "shape",
     label: "Rectangle",
     icon: Square,
     cursorMode: "hide-while-drawing",
-    createTool: () => createRectangleTool(),
+    tool: RECTANGLE_TOOL,
   },
   {
-    id: "ellipse",
+    id: ELLIPSE_TOOL.id,
     familyId: "shape",
     label: "Ellipse",
     icon: Circle,
     cursorMode: "hide-while-drawing",
-    createTool: () => createEllipseTool(),
+    tool: ELLIPSE_TOOL,
   },
 ];
 
@@ -122,4 +136,8 @@ export function getFamilyIdForTool(toolId: string): string | null {
 
 export function getToolConfig(toolId: string): KidsToolConfig | null {
   return KIDS_DRAW_TOOLS.find((item) => item.id === toolId) ?? null;
+}
+
+export function getToolStyleSupport(toolId: string): ToolStyleSupport {
+  return getToolConfig(toolId)?.tool.styleSupport ?? {};
 }
