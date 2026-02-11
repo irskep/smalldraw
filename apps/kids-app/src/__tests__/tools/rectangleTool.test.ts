@@ -66,7 +66,7 @@ describe("rectangle tool", () => {
     expect(shape.style.stroke?.compositeOp).toBe("source-over");
   });
 
-  test("uses shared fill color by default", () => {
+  test("uses shared stroke color for fill by default", () => {
     const shared: SharedToolSettings = {
       strokeColor: "#111111",
       strokeWidth: 4,
@@ -79,7 +79,7 @@ describe("rectangle tool", () => {
 
     const shape = Object.values(getDocument().shapes)[0];
     if (shape.style.fill?.type === "solid") {
-      expect(shape.style.fill.color).toBe("#abcdef");
+      expect(shape.style.fill.color).toBe("#111111");
     } else {
       throw new Error("Expected solid fill.");
     }

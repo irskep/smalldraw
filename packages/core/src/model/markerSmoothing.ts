@@ -1,6 +1,4 @@
-import { type Box, BoxOperations, type Vec2Tuple } from "@smalldraw/geometry";
-import { Vec2 } from "gl-matrix";
-import { getPenGeometryPoints, type PenShape } from "./shapes/penShape";
+import type { Vec2Tuple } from "@smalldraw/geometry";
 
 export const DEFAULT_MARKER_SMOOTHING_ORDER = 3;
 
@@ -12,23 +10,6 @@ export function smoothMarkerPoints(
     return points;
   }
   return bspline(points, order);
-}
-
-export function getMarkerStrokeBounds(shape: PenShape): Box | null {
-  const inputPoints = getPenGeometryPoints(shape.geometry);
-  const points = smoothMarkerPoints(inputPoints);
-  const bounds = BoxOperations.fromPointArray(
-    points.length ? points : inputPoints,
-  );
-  if (!bounds) {
-    return null;
-  }
-  const strokeSize = Math.max(1, shape.style.stroke?.size ?? 1);
-  const padding = strokeSize / 2;
-  return BoxOperations.fromPointPair(
-    new Vec2(bounds.min).sub([padding, padding]),
-    new Vec2(bounds.max).add([padding, padding]),
-  );
 }
 
 function bspline(points: Vec2Tuple[], order: number): Vec2Tuple[] {

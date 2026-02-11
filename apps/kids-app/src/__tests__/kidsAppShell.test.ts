@@ -271,7 +271,7 @@ describe("kids-app shell", () => {
     clearButton!.click();
 
     const eraserFamilyButton = container.querySelector(
-      '[data-tool-family="eraser"]',
+      '.kids-draw-tool-selector [data-tool-family="eraser"]',
     ) as HTMLElement | null;
     const markerVariantButton = container.querySelector(
       '[data-tool-variant="brush.marker"]',
@@ -331,7 +331,7 @@ describe("kids-app shell", () => {
     app.destroy();
   });
 
-  test("shape family activates rectangle/ellipse tools and draws boxed kinds", async () => {
+  test("filled/outline shape families preserve sub-shape and draw boxed kinds", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
@@ -358,51 +358,66 @@ describe("kids-app shell", () => {
         },
       }) as DOMRect;
 
-    const shapeFamilyButton = container.querySelector(
-      '[data-tool-family="shape"]',
+    const filledShapeFamilyButton = container.querySelector(
+      '.kids-draw-tool-selector [data-tool-family="shape.filled"]',
     ) as HTMLElement | null;
-    const fillColorSwatch = container.querySelector(
-      'button[data-setting="fill-color"][data-color="#ffdb4d"]',
+    const outlineShapeFamilyButton = container.querySelector(
+      '.kids-draw-tool-selector [data-tool-family="shape.outline"]',
+    ) as HTMLElement | null;
+    const yellowColorSwatch = container.querySelector(
+      'button[data-setting="stroke-color"][data-color="#ffdb4d"]',
     ) as DisableableElement | null;
-    const transparentStrokeSwatch = container.querySelector(
-      'button[data-setting="stroke-color"][data-transparent="true"]',
-    ) as DisableableElement | null;
-    const transparentFillSwatch = container.querySelector(
-      'button[data-setting="fill-color"][data-transparent="true"]',
+    const grayColorSwatch = container.querySelector(
+      'button[data-setting="stroke-color"][data-color="#9ca3af"]',
     ) as DisableableElement | null;
     const rectVariantButton = container.querySelector(
       '[data-tool-variant="rect"]',
     ) as HTMLElement | null;
+    const rectOutlineVariantButton = container.querySelector(
+      '[data-tool-variant="rect.outline"]',
+    ) as HTMLElement | null;
     const ellipseVariantButton = container.querySelector(
       '[data-tool-variant="ellipse"]',
     ) as HTMLElement | null;
-    expect(shapeFamilyButton).not.toBeNull();
-    expect(fillColorSwatch).not.toBeNull();
-    expect(transparentStrokeSwatch).not.toBeNull();
-    expect(transparentFillSwatch).not.toBeNull();
+    const ellipseOutlineVariantButton = container.querySelector(
+      '[data-tool-variant="ellipse.outline"]',
+    ) as HTMLElement | null;
+    expect(filledShapeFamilyButton).not.toBeNull();
+    expect(outlineShapeFamilyButton).not.toBeNull();
+    expect(yellowColorSwatch).not.toBeNull();
+    expect(grayColorSwatch).not.toBeNull();
     expect(rectVariantButton).not.toBeNull();
+    expect(rectOutlineVariantButton).not.toBeNull();
     expect(ellipseVariantButton).not.toBeNull();
-    expect(fillColorSwatch!.disabled).toBeTrue();
-    expect(transparentStrokeSwatch!.disabled).toBeTrue();
-    expect(transparentFillSwatch!.disabled).toBeTrue();
+    expect(ellipseOutlineVariantButton).not.toBeNull();
 
-    shapeFamilyButton!.click();
+    filledShapeFamilyButton!.click();
     expect(app.store.getActiveToolId()).toBe("rect");
-    expect(fillColorSwatch!.disabled).toBeFalse();
-    expect(transparentStrokeSwatch!.disabled).toBeFalse();
-    expect(transparentFillSwatch!.disabled).toBeFalse();
-    fillColorSwatch!.click();
-    transparentStrokeSwatch!.click();
-    transparentFillSwatch!.click();
-    expect(app.store.getSharedSettings().strokeColor).toBe("transparent");
-    expect(app.store.getSharedSettings().fillColor).toBe("transparent");
+    yellowColorSwatch!.click();
+    expect(app.store.getSharedSettings().strokeColor).toBe("#ffdb4d");
+    expect(app.store.getSharedSettings().fillColor).toBe("#ffffff");
 
     ellipseVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("ellipse");
+    outlineShapeFamilyButton!.click();
+    expect(app.store.getActiveToolId()).toBe("ellipse.outline");
     dispatchPointer(overlay, "pointerdown", 80, 80, 1);
     dispatchPointer(overlay, "pointermove", 200, 140, 1);
     dispatchPointer(overlay, "pointerup", 200, 140, 0);
+    filledShapeFamilyButton!.click();
+    expect(app.store.getActiveToolId()).toBe("ellipse");
 
+    grayColorSwatch!.click();
+    expect(app.store.getSharedSettings().strokeColor).toBe("#9ca3af");
+    outlineShapeFamilyButton!.click();
+    rectOutlineVariantButton!.click();
+    expect(app.store.getActiveToolId()).toBe("rect.outline");
+
+    dispatchPointer(overlay, "pointerdown", 120, 180, 1);
+    dispatchPointer(overlay, "pointermove", 220, 260, 1);
+    dispatchPointer(overlay, "pointerup", 220, 260, 0);
+
+    filledShapeFamilyButton!.click();
     rectVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("rect");
     dispatchPointer(overlay, "pointerdown", 240, 180, 1);
@@ -417,15 +432,27 @@ describe("kids-app shell", () => {
         "kind" in shape.geometry &&
         shape.geometry.kind === "ellipse",
     );
-    const rect = shapes.find(
+    const rectOutline = shapes.find(
       (shape) =>
         shape.type === "boxed" &&
         shape.geometry.type === "boxed" &&
         "kind" in shape.geometry &&
-        shape.geometry.kind === "rect",
+        shape.geometry.kind === "rect" &&
+        shape.style.fill?.type === "solid" &&
+        shape.style.fill.color.toLowerCase() === "transparent",
+    );
+    const rectFilled = shapes.find(
+      (shape) =>
+        shape.type === "boxed" &&
+        shape.geometry.type === "boxed" &&
+        "kind" in shape.geometry &&
+        shape.geometry.kind === "rect" &&
+        shape.style.fill?.type === "solid" &&
+        shape.style.fill.color.toLowerCase() === "#9ca3af",
     );
     expect(ellipse).toBeDefined();
-    expect(rect).toBeDefined();
+    expect(rectOutline).toBeDefined();
+    expect(rectFilled).toBeDefined();
     if (ellipse?.style.fill?.type === "solid") {
       expect(ellipse.style.fill.color.toLowerCase()).toBe("transparent");
     } else {
@@ -433,7 +460,7 @@ describe("kids-app shell", () => {
     }
 
     const brushFamilyButton = container.querySelector(
-      '[data-tool-family="brush"]',
+      '.kids-draw-tool-selector [data-tool-family="brush"]',
     ) as HTMLElement | null;
     const penVariantButton = container.querySelector(
       '[data-tool-variant="brush.freehand"]',
@@ -443,10 +470,8 @@ describe("kids-app shell", () => {
     brushFamilyButton!.click();
     penVariantButton!.click();
     const sharedAfterPen = app.store.getSharedSettings();
-    expect(sharedAfterPen.strokeColor).toBe("#000000");
+    expect(sharedAfterPen.strokeColor).toBe("#9ca3af");
     expect(sharedAfterPen.fillColor).toBe("#ffffff");
-    expect(transparentStrokeSwatch!.disabled).toBeTrue();
-    expect(transparentFillSwatch!.disabled).toBeTrue();
 
     app.destroy();
   });
@@ -482,13 +507,13 @@ describe("kids-app shell", () => {
       ".kids-draw-cursor-indicator",
     ) as HTMLDivElement | null;
     const brushFamilyButton = container.querySelector(
-      '[data-tool-family="brush"]',
+      '.kids-draw-tool-selector [data-tool-family="brush"]',
     ) as HTMLElement | null;
     const penVariantButton = container.querySelector(
       '[data-tool-variant="brush.freehand"]',
     ) as HTMLElement | null;
     const eraserFamilyButton = container.querySelector(
-      '[data-tool-family="eraser"]',
+      '.kids-draw-tool-selector [data-tool-family="eraser"]',
     ) as HTMLElement | null;
     expect(cursorIndicator).not.toBeNull();
     expect(brushFamilyButton).not.toBeNull();

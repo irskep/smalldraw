@@ -124,6 +124,27 @@ export function createRectangleTool(
   });
 }
 
+export interface RectangleOutlineToolOptions extends BoxedToolOptions {}
+
+export function createRectangleOutlineTool(
+  options?: RectangleOutlineToolOptions,
+): ToolDefinition {
+  return createBoxedTool({
+    id: "rect.outline",
+    label: "Rectangle Outline",
+    kind: "rect",
+    draftIdPrefix: "rect-outline-draft",
+    shapeIdPrefix: "rect-outline",
+    runtimeOptions: {
+      fill: {
+        type: "solid",
+        color: "transparent",
+      },
+      ...options,
+    },
+  });
+}
+
 export interface EllipseToolOptions extends BoxedToolOptions {}
 
 export function createEllipseTool(
@@ -136,5 +157,26 @@ export function createEllipseTool(
     draftIdPrefix: "ellipse-draft",
     shapeIdPrefix: "ellipse",
     runtimeOptions: options,
+  });
+}
+
+export interface EllipseOutlineToolOptions extends BoxedToolOptions {}
+
+export function createEllipseOutlineTool(
+  options?: EllipseOutlineToolOptions,
+): ToolDefinition {
+  return createBoxedTool({
+    id: "ellipse.outline",
+    label: "Ellipse Outline",
+    kind: "ellipse",
+    draftIdPrefix: "ellipse-outline-draft",
+    shapeIdPrefix: "ellipse-outline",
+    runtimeOptions: {
+      fill: {
+        type: "solid",
+        color: "transparent",
+      },
+      ...options,
+    },
   });
 }

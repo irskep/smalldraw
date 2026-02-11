@@ -91,7 +91,7 @@ export function createBoxedTool(
     return (
       override ?? {
         type: "solid",
-        color: runtime.getSharedSettings().fillColor,
+        color: runtime.getSharedSettings().strokeColor,
       }
     );
   };

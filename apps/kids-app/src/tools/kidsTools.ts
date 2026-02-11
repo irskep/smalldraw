@@ -10,11 +10,13 @@ import {
 } from "lucide";
 import {
   createEllipseTool,
+  createEllipseOutlineTool,
   createEraserTool,
   createEvenSpraycanTool,
   createMarkerTool,
   createPenTool,
   createRectangleTool,
+  createRectangleOutlineTool,
   createUnevenSpraycanTool,
 } from "./drawingTools";
 
@@ -23,6 +25,7 @@ export type KidsToolCursorMode = "hide-while-drawing" | "always-visible";
 export interface KidsToolConfig {
   id: string;
   familyId: string;
+  shapeVariant?: "rect" | "ellipse";
   label: string;
   icon: IconNode;
   cursorMode: KidsToolCursorMode;
@@ -33,6 +36,7 @@ export interface KidsToolFamilyConfig {
   id: string;
   label: string;
   icon: IconNode;
+  shapeFamilyGroup?: "shape";
   defaultToolId: string;
   toolIds: string[];
 }
@@ -48,6 +52,54 @@ const UNEVEN_SPRAYCAN_TOOL = createUnevenSpraycanTool();
 const ERASER_TOOL = createEraserTool();
 const RECTANGLE_TOOL = createRectangleTool();
 const ELLIPSE_TOOL = createEllipseTool();
+const RECTANGLE_OUTLINE_TOOL = createRectangleOutlineTool();
+const ELLIPSE_OUTLINE_TOOL = createEllipseOutlineTool();
+
+const FILLED_SHAPE_FAMILY_ICON: IconNode = [
+  [
+    "rect",
+    {
+      x: "2.5",
+      y: "2.5",
+      width: "19",
+      height: "19",
+      rx: "3",
+      ry: "3",
+      fill: "currentColor",
+      stroke: "none",
+    },
+  ],
+];
+
+const FILLED_RECT_ICON: IconNode = [
+  [
+    "rect",
+    {
+      x: "2.5",
+      y: "2.5",
+      width: "19",
+      height: "19",
+      rx: "2",
+      ry: "2",
+      fill: "currentColor",
+      stroke: "none",
+    },
+  ],
+];
+
+const FILLED_ELLIPSE_ICON: IconNode = [
+  [
+    "ellipse",
+    {
+      cx: "12",
+      cy: "12",
+      rx: "9.5",
+      ry: "9.5",
+      fill: "currentColor",
+      stroke: "none",
+    },
+  ],
+];
 
 export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
   {
@@ -92,19 +144,39 @@ export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
   },
   {
     id: RECTANGLE_TOOL.id,
-    familyId: "shape",
+    familyId: "shape.filled",
+    shapeVariant: "rect",
     label: "Rectangle",
-    icon: Square,
+    icon: FILLED_RECT_ICON,
     cursorMode: "hide-while-drawing",
     tool: RECTANGLE_TOOL,
   },
   {
     id: ELLIPSE_TOOL.id,
-    familyId: "shape",
+    familyId: "shape.filled",
+    shapeVariant: "ellipse",
+    label: "Ellipse",
+    icon: FILLED_ELLIPSE_ICON,
+    cursorMode: "hide-while-drawing",
+    tool: ELLIPSE_TOOL,
+  },
+  {
+    id: RECTANGLE_OUTLINE_TOOL.id,
+    familyId: "shape.outline",
+    shapeVariant: "rect",
+    label: "Rectangle",
+    icon: Square,
+    cursorMode: "hide-while-drawing",
+    tool: RECTANGLE_OUTLINE_TOOL,
+  },
+  {
+    id: ELLIPSE_OUTLINE_TOOL.id,
+    familyId: "shape.outline",
+    shapeVariant: "ellipse",
     label: "Ellipse",
     icon: Circle,
     cursorMode: "hide-while-drawing",
-    tool: ELLIPSE_TOOL,
+    tool: ELLIPSE_OUTLINE_TOOL,
   },
 ];
 
@@ -129,18 +201,28 @@ export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
     toolIds: ["eraser.basic"],
   },
   {
-    id: "shape",
-    label: "Shapes",
-    icon: Square,
+    id: "shape.filled",
+    label: "Filled",
+    icon: FILLED_SHAPE_FAMILY_ICON,
+    shapeFamilyGroup: "shape",
     defaultToolId: "rect",
     toolIds: ["rect", "ellipse"],
+  },
+  {
+    id: "shape.outline",
+    label: "Outline",
+    icon: Circle,
+    shapeFamilyGroup: "shape",
+    defaultToolId: "rect.outline",
+    toolIds: ["rect.outline", "ellipse.outline"],
   },
 ];
 
 export const KIDS_DRAW_SIDEBAR_ITEMS: ToolbarItem[] = [
   { kind: "family", familyId: "brush" },
-  { kind: "family", familyId: "shape" },
   { kind: "family", familyId: "eraser" },
+  { kind: "family", familyId: "shape.filled" },
+  { kind: "family", familyId: "shape.outline" },
 ];
 
 export const DEFAULT_KIDS_DRAW_FAMILY_ID =
@@ -161,6 +243,29 @@ export function getFamilyIdForTool(toolId: string): string | null {
 
 export function getToolConfig(toolId: string): KidsToolConfig | null {
   return KIDS_DRAW_TOOLS.find((item) => item.id === toolId) ?? null;
+}
+
+export function getToolShapeVariant(
+  toolId: string,
+): KidsToolConfig["shapeVariant"] | undefined {
+  return getToolConfig(toolId)?.shapeVariant;
+}
+
+export function getMatchingShapeFamilyToolId(options: {
+  familyId: string;
+  shapeVariant: KidsToolConfig["shapeVariant"] | undefined;
+}): string | null {
+  const family = KIDS_DRAW_TOOL_FAMILIES.find(
+    (item) => item.id === options.familyId,
+  );
+  if (!family?.shapeFamilyGroup || !options.shapeVariant) {
+    return null;
+  }
+  const toolId = family.toolIds.find((id) => {
+    const tool = getToolConfig(id);
+    return tool?.shapeVariant === options.shapeVariant;
+  });
+  return toolId ?? null;
 }
 
 export function getToolStyleSupport(toolId: string): ToolStyleSupport {

@@ -28,7 +28,6 @@ export interface KidsDrawToolbar {
   readonly clearButton: SquareIconButton;
   readonly newDrawingButton: SquareIconButton;
   readonly strokeColorSwatchButtons: HTMLButtonElement[];
-  readonly fillColorSwatchButtons: HTMLButtonElement[];
   readonly strokeWidthButtons: HTMLButtonElement[];
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
 }
@@ -36,7 +35,6 @@ export interface KidsDrawToolbar {
 interface ColorSwatchConfig {
   value: string;
   label: string;
-  transparent?: boolean;
 }
 
 const COLOR_SWATCHES: ColorSwatchConfig[] = [
@@ -51,7 +49,7 @@ const COLOR_SWATCHES: ColorSwatchConfig[] = [
   { value: "#2e86ff", label: "Sky Blue" },
   { value: "#6c5ce7", label: "Blueberry" },
   { value: "#ff66c4", label: "Bubblegum" },
-  { value: "transparent", label: "Transparent", transparent: true },
+  { value: "#9ca3af", label: "Gray" },
 ];
 
 const STROKE_WIDTH_OPTIONS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
@@ -203,18 +201,15 @@ export function createKidsDrawToolbar(options: {
   });
   mount(actionPanelElement, newDrawingButton.el);
 
-  const createColorSwatches = (options: {
-    target: "stroke" | "fill";
-    label: string;
-  }): {
+  const createColorSwatches = (): {
     element: HTMLDivElement;
     swatches: HTMLButtonElement[];
   } => {
     const swatches: HTMLButtonElement[] = [];
     const swatchesElement = el("div.kids-draw-color-swatches", {
       role: "radiogroup",
-      "aria-label": `${options.label} palette`,
-      "data-style-target": options.target,
+      "aria-label": "Color palette",
+      "data-style-target": "stroke",
     }) as HTMLDivElement;
     for (const swatch of COLOR_SWATCHES) {
       const swatchAttributes: Record<string, string> = {
@@ -223,14 +218,11 @@ export function createKidsDrawToolbar(options: {
         title: swatch.label,
         "aria-label": swatch.label,
         "aria-pressed": "false",
-        "data-setting": `${options.target}-color`,
-        "data-style-target": options.target,
+        "data-setting": "stroke-color",
+        "data-style-target": "stroke",
         "data-color": swatch.value,
         style: `--kd-swatch-color:${swatch.value}`,
       };
-      if (swatch.transparent) {
-        swatchAttributes["data-transparent"] = "true";
-      }
       const swatchButton = el("button", swatchAttributes) as HTMLButtonElement;
       swatches.push(swatchButton);
       mount(swatchesElement, swatchButton);
@@ -239,16 +231,8 @@ export function createKidsDrawToolbar(options: {
     return { element: swatchesElement, swatches };
   };
 
-  const strokeSwatches = createColorSwatches({
-    target: "stroke",
-    label: "Stroke",
-  });
-  const fillSwatches = createColorSwatches({
-    target: "fill",
-    label: "Fill",
-  });
+  const strokeSwatches = createColorSwatches();
   const strokeColorSwatchButtons = strokeSwatches.swatches;
-  const fillColorSwatchButtons = fillSwatches.swatches;
 
   const stylePickersElement = el(
     "div.kids-draw-style-pickers",
@@ -256,13 +240,8 @@ export function createKidsDrawToolbar(options: {
   const strokeColorsPanelElement = el(
     "div.kids-draw-toolbar-panel.kids-draw-toolbar-color-surface.kids-toolbar-grid-panel",
   ) as HTMLDivElement;
-  const fillColorsPanelElement = el(
-    "div.kids-draw-toolbar-panel.kids-draw-toolbar-color-surface.kids-toolbar-grid-panel",
-  ) as HTMLDivElement;
   mount(strokeColorsPanelElement, strokeSwatches.element);
-  mount(fillColorsPanelElement, fillSwatches.element);
   mount(stylePickersElement, strokeColorsPanelElement);
-  mount(stylePickersElement, fillColorsPanelElement);
 
   const minPreviewSize = 2;
   const maxPreviewSize = 18;
@@ -332,7 +311,6 @@ export function createKidsDrawToolbar(options: {
 
   const applyState = (state: ToolbarUiState): void => {
     const normalizedStrokeColor = state.strokeColor.toLowerCase();
-    const normalizedFillColor = state.fillColor.toLowerCase();
     const activeToolId = toolById.has(state.activeToolId)
       ? state.activeToolId
       : (tools[0]?.id ??
@@ -365,35 +343,11 @@ export function createKidsDrawToolbar(options: {
       const selected =
         swatchButton.dataset.color?.toLowerCase() === normalizedStrokeColor;
       setToggleSelectedState(swatchButton, selected);
-      const isTransparent = swatchButton.dataset.transparent === "true";
-      swatchButton.disabled =
-        !state.supportsStrokeColor ||
-        (isTransparent && !state.supportsTransparentStrokeColor);
+      swatchButton.disabled = !state.supportsStrokeColor;
     }
-    for (const swatchButton of fillColorSwatchButtons) {
-      const selected =
-        swatchButton.dataset.color?.toLowerCase() === normalizedFillColor;
-      setToggleSelectedState(swatchButton, selected);
-      const isTransparent = swatchButton.dataset.transparent === "true";
-      swatchButton.disabled =
-        !state.supportsFillColor ||
-        (isTransparent && !state.supportsTransparentFillColor);
-    }
-    fillSwatches.element.classList.toggle(
-      "is-disabled",
-      !state.supportsFillColor,
-    );
     strokeSwatches.element.classList.toggle(
       "is-disabled",
       !state.supportsStrokeColor,
-    );
-    fillSwatches.element.style.setProperty(
-      "--kd-swatch-selected-stroke",
-      state.strokeColor,
-    );
-    strokeSwatches.element.style.setProperty(
-      "--kd-swatch-selected-fill",
-      state.fillColor,
     );
 
     let nearestStrokeWidth: number = STROKE_WIDTH_OPTIONS[0];
@@ -432,7 +386,6 @@ export function createKidsDrawToolbar(options: {
     clearButton,
     newDrawingButton,
     strokeColorSwatchButtons,
-    fillColorSwatchButtons,
     strokeWidthButtons,
     bindUiState,
   };

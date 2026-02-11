@@ -20,6 +20,8 @@ import type { RasterPipeline } from "../render/createRasterPipeline";
 import {
   getDefaultToolIdForFamily,
   getFamilyIdForTool,
+  getMatchingShapeFamilyToolId,
+  getToolShapeVariant,
   getToolStyleSupport,
   type KidsToolConfig,
   type KidsToolFamilyConfig,
@@ -560,7 +562,20 @@ export function createKidsDrawController(options: {
       button.el,
       "click",
       runAndSync(() => {
+        const activeToolId = store.getActiveToolId() ?? "";
+        const activeShapeVariant =
+          getToolShapeVariant(activeToolId) ??
+          (activeToolId.includes("ellipse")
+            ? "ellipse"
+            : activeToolId.includes("rect")
+              ? "rect"
+              : undefined);
+        const matchingShapeToolId = getMatchingShapeFamilyToolId({
+          familyId,
+          shapeVariant: activeShapeVariant,
+        });
         const toolId =
+          matchingShapeToolId ??
           selectedToolIdByFamily.get(familyId) ??
           getDefaultToolIdForFamily(familyId);
         activateToolAndRemember(toolId);
@@ -632,21 +647,6 @@ export function createKidsDrawController(options: {
         return;
       }
       store.updateSharedSettings({ strokeColor });
-      const shared = store.getSharedSettings();
-      setToolbarStyleUi(
-        shared.strokeColor,
-        shared.fillColor,
-        shared.strokeWidth,
-      );
-    });
-  }
-  for (const colorButton of toolbar.fillColorSwatchButtons) {
-    listen(colorButton, "click", () => {
-      const fillColor = colorButton.dataset.color;
-      if (!fillColor) {
-        return;
-      }
-      store.updateSharedSettings({ fillColor });
       const shared = store.getSharedSettings();
       setToolbarStyleUi(
         shared.strokeColor,
