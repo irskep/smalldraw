@@ -149,7 +149,7 @@
 .kids-draw-style-pickers {
   display: grid;
   grid-template-columns: auto auto;
-  column-gap: var(--kd-toolbar-palette-cell-size);
+  column-gap: var(--size-2);
   row-gap: var(--size-2);
   align-items: start;
 }

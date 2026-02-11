@@ -253,8 +253,16 @@ export function createKidsDrawToolbar(options: {
   const stylePickersElement = el(
     "div.kids-draw-style-pickers",
   ) as HTMLDivElement;
-  mount(stylePickersElement, strokeSwatches.element);
-  mount(stylePickersElement, fillSwatches.element);
+  const strokeColorsPanelElement = el(
+    "div.kids-draw-toolbar-panel.kids-draw-toolbar-color-surface.kids-toolbar-grid-panel",
+  ) as HTMLDivElement;
+  const fillColorsPanelElement = el(
+    "div.kids-draw-toolbar-panel.kids-draw-toolbar-color-surface.kids-toolbar-grid-panel",
+  ) as HTMLDivElement;
+  mount(strokeColorsPanelElement, strokeSwatches.element);
+  mount(fillColorsPanelElement, fillSwatches.element);
+  mount(stylePickersElement, strokeColorsPanelElement);
+  mount(stylePickersElement, fillColorsPanelElement);
 
   const minPreviewSize = 2;
   const maxPreviewSize = 18;
@@ -294,7 +302,7 @@ export function createKidsDrawToolbar(options: {
   }
 
   const colorPanelElement = el(
-    "div.kids-draw-toolbar-panel.kids-draw-toolbar-colors.kids-toolbar-grid-panel",
+    "div.kids-draw-toolbar-colors",
   ) as HTMLDivElement;
   mount(colorPanelElement, stylePickersElement);
 
