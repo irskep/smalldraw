@@ -1,6 +1,6 @@
 import { type Box, BoxOperations, type Vec2Tuple } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
-import type { PenShape } from "./shapes/penShape";
+import { getPenGeometryPoints, type PenShape } from "./shapes/penShape";
 
 export const DEFAULT_MARKER_SMOOTHING_ORDER = 3;
 
@@ -15,9 +15,10 @@ export function smoothMarkerPoints(
 }
 
 export function getMarkerStrokeBounds(shape: PenShape): Box | null {
-  const points = smoothMarkerPoints(shape.geometry.points);
+  const inputPoints = getPenGeometryPoints(shape.geometry);
+  const points = smoothMarkerPoints(inputPoints);
   const bounds = BoxOperations.fromPointArray(
-    points.length ? points : shape.geometry.points,
+    points.length ? points : inputPoints,
   );
   if (!bounds) {
     return null;

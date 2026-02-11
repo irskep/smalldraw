@@ -1,6 +1,11 @@
 import type { DrawingDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
+import {
+  createPenJSONGeometry,
+  getPenGeometryPoints,
+  type PenShape,
+} from "../model/shapes/penShape";
 import type { ActionContext, UndoableAction } from "./types";
 import { stripUndefined } from "./utils";
 
@@ -14,7 +19,9 @@ export class AddShape implements UndoableAction {
 
   redo(doc: DrawingDocument, ctx: ActionContext): DrawingDocument {
     if (!this.canonicalShape) {
-      this.canonicalShape = canonicalizeShape(this.inputShape, ctx.registry);
+      this.canonicalShape = compressSpraycanShape(
+        canonicalizeShape(this.inputShape, ctx.registry),
+      );
     }
     const safeShape = stripUndefined(this.canonicalShape);
     return ctx.change(doc, (draft) => {
@@ -44,4 +51,24 @@ export class AddShape implements UndoableAction {
   affectsZOrder(): boolean {
     return true;
   }
+}
+
+function compressSpraycanShape(shape: AnyShape): AnyShape {
+  if (shape.type !== "pen") {
+    return shape;
+  }
+  const penShape = shape as PenShape;
+  const brushId = penShape.style.stroke?.brushId;
+  if (brushId !== "even-spraycan" && brushId !== "uneven-spraycan") {
+    return shape;
+  }
+  const points = getPenGeometryPoints(penShape.geometry);
+  if (!points.length) {
+    return shape;
+  }
+  const compressedShape: PenShape = {
+    ...penShape,
+    geometry: createPenJSONGeometry(points),
+  };
+  return compressedShape as AnyShape;
 }

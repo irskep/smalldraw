@@ -1,6 +1,6 @@
 import { type Box, BoxOperations, getX, getY } from "@smalldraw/geometry";
 import { getMarkerStrokeBounds } from "./markerSmoothing";
-import type { PenShape } from "./shapes/penShape";
+import { getPenGeometryPoints, type PenShape } from "./shapes/penShape";
 
 export type PenBrushBoundsResolver = (shape: PenShape) => Box | null;
 
@@ -53,7 +53,9 @@ export function requirePenBrushDefinition(
 }
 
 function getSpraycanStrokeBounds(shape: PenShape): Box | null {
-  const pointBounds = BoxOperations.fromPointArray(shape.geometry.points);
+  const pointBounds = BoxOperations.fromPointArray(
+    getPenGeometryPoints(shape.geometry),
+  );
   if (!pointBounds) {
     return null;
   }

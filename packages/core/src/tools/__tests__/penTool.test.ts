@@ -128,6 +128,10 @@ describe("pen tool integration with runtime", () => {
     const shapeEntries = Object.values(getDocument().shapes);
     expect(shapeEntries).toHaveLength(1);
     const shape = shapeEntries[0] as PenShape;
+    expect(shape.geometry.type).toBe("pen");
+    if (shape.geometry.type !== "pen") {
+      throw new Error("Expected pen geometry to use point-list format.");
+    }
     expect(shape.geometry.pressures).toEqual([0, 0.3, 0]);
     expect(shape.geometry.points).toHaveLength(3);
   });

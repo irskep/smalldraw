@@ -4,7 +4,7 @@ import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { Vec2 } from "gl-matrix";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
-import type { PenShape } from "../../model/shapes/penShape";
+import { getPenGeometryPoints, type PenShape } from "../../model/shapes/penShape";
 import { UndoManager } from "../../undo";
 import {
   createEvenSpraycanTool,
@@ -46,7 +46,14 @@ describe("spraycan tools integration with runtime", () => {
 
     const draft = runtime.getDraft() as PenShape | null;
     expect(draft).not.toBeNull();
-    expect(draft!.geometry.points.length).toBeGreaterThan(8);
+    if (!draft) {
+      throw new Error("Expected draft spray shape.");
+    }
+    expect(draft.geometry.type).toBe("pen");
+    if (draft.geometry.type !== "pen") {
+      throw new Error("Expected draft spray geometry to use point-list format.");
+    }
+    expect(draft.geometry.points.length).toBeGreaterThan(8);
 
     runtime.dispatch("pointerUp", { point: new Vec2(20, 0), buttons: 0 });
 
@@ -54,9 +61,11 @@ describe("spraycan tools integration with runtime", () => {
     expect(shapeEntries).toHaveLength(1);
     const shape = shapeEntries[0];
     expect(shape.style.stroke?.brushId).toBe("even-spraycan");
+    expect(shape.geometry.type).toBe("pen-json");
+    expect(getPenGeometryPoints(shape.geometry).length).toBeGreaterThan(8);
 
     const worldPoints = getWorldPointsFromShape(shape);
-    expect(worldPoints.length).toBe(draft!.geometry.points.length);
+    expect(worldPoints.length).toBeGreaterThan(8);
     const bounds = worldPoints.reduce(
       (acc, point) => ({
         minX: Math.min(acc.minX, point[0]),
@@ -81,7 +90,8 @@ describe("spraycan tools integration with runtime", () => {
 
     const shapeEntries = Object.values(getDocument().shapes) as PenShape[];
     expect(shapeEntries).toHaveLength(1);
-    expect(shapeEntries[0]!.geometry.points.length).toBeGreaterThan(0);
+    expect(shapeEntries[0]!.geometry.type).toBe("pen-json");
+    expect(getWorldPointsFromShape(shapeEntries[0]!).length).toBeGreaterThan(0);
   });
 
   test("UnevenSpraycan accumulates dots while holding without pointer movement", () => {
@@ -92,7 +102,7 @@ describe("spraycan tools integration with runtime", () => {
     baseline.runtime.dispatch("pointerDown", { point: new Vec2(30, 40), buttons: 1 });
     baseline.runtime.dispatch("pointerUp", { point: new Vec2(30, 40), buttons: 0 });
     const baselineShapeEntries = Object.values(baseline.getDocument().shapes) as PenShape[];
-    const baselineCount = baselineShapeEntries[0]!.geometry.points.length;
+    const baselineCount = getWorldPointsFromShape(baselineShapeEntries[0]!).length;
 
     const { runtime, getDocument } = setup(
       "brush.uneven-spraycan",
@@ -133,8 +143,9 @@ describe("spraycan tools integration with runtime", () => {
     const shapeEntries = Object.values(getDocument().shapes) as PenShape[];
     expect(shapeEntries).toHaveLength(1);
     expect(shapeEntries[0]!.style.stroke?.brushId).toBe("uneven-spraycan");
-    expect(shapeEntries[0]!.geometry.points.length).toBeGreaterThan(
+    expect(getWorldPointsFromShape(shapeEntries[0]!).length).toBeGreaterThan(
       baselineCount,
     );
   });
+
 });

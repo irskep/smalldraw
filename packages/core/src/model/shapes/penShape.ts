@@ -12,33 +12,48 @@ import type { AnyShape, Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
 import { getHitTestBounds } from "./hitTestUtils";
 
-export interface PenGeometry {
+export interface PenPointsGeometry {
   type: "pen";
   points: Vec2Tuple[];
   pressures?: number[]; // same length as points
 }
 
+export interface PenJSONGeometry {
+  type: "pen-json";
+  pointsJson: string;
+  pointCount: number;
+}
+
+export type PenGeometry = PenPointsGeometry | PenJSONGeometry;
 export type PenShape = Shape & { geometry: PenGeometry };
+
+const decodedPointCache = new WeakMap<PenGeometry, Vec2Tuple[]>();
+const decodedPointsByJson = new Map<string, Vec2Tuple[]>();
+const MAX_DECODED_JSON_CACHE_SIZE = 64;
 
 export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
   geometry: {
     getBounds: (shape: PenShape) =>
       getPenStrokeBounds(shape) ??
-      BoxOperations.fromPointArray(shape.geometry.points),
+      BoxOperations.fromPointArray(getPenGeometryPoints(shape.geometry)),
     canonicalize(shape: PenShape, center) {
+      const points = getPenGeometryPoints(shape.geometry);
       return {
-        ...shape.geometry,
-        points: shape.geometry.points.map((pt) =>
+        type: "pen",
+        points: points.map((pt) =>
           toVec2Like(new Vec2().add(toVec2(pt)).sub(center)),
         ),
+        ...(shape.geometry.type === "pen" && shape.geometry.pressures
+          ? { pressures: shape.geometry.pressures }
+          : {}),
       };
     },
   },
   shape: {
     hitTest(shape: PenShape, point: Vec2) {
+      const points = getPenGeometryPoints(shape.geometry);
       const localBounds =
-        getPenStrokeBounds(shape) ??
-        BoxOperations.fromPointArray(shape.geometry.points);
+        getPenStrokeBounds(shape) ?? BoxOperations.fromPointArray(points);
       const bounds = getHitTestBounds(shape, localBounds);
       return new BoxOperations(bounds).containsPoint(point);
     },
@@ -50,8 +65,8 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
       return {
         geometry: {
           type: "pen",
-          points: g.points,
-          pressures: g.pressures,
+          points: getPenGeometryPoints(g),
+          ...(g.type === "pen" && g.pressures ? { pressures: g.pressures } : {}),
         },
       };
     },
@@ -75,15 +90,16 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
   },
   serialization: {
     toJSON(shape: PenShape) {
+      const geometry =
+        shape.geometry.type === "pen-json"
+          ? shape.geometry
+          : createPenPointsGeometry(
+              shape.geometry.points,
+              shape.geometry.pressures,
+            );
       return {
         ...shape,
-        geometry: {
-          type: "pen",
-          points: shape.geometry.points,
-          ...(shape.geometry.pressures
-            ? { pressures: shape.geometry.pressures }
-            : {}),
-        },
+        geometry,
         ...(shape.transform
           ? {
               transform: shape.transform,
@@ -93,15 +109,16 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
     },
     fromJSON(shape: AnyShape) {
       const penShape = shape as PenShape;
+      const geometry =
+        penShape.geometry.type === "pen-json"
+          ? penShape.geometry
+          : createPenPointsGeometry(
+              penShape.geometry.points,
+              penShape.geometry.pressures,
+            );
       return {
         ...penShape,
-        geometry: {
-          type: "pen",
-          points: penShape.geometry.points,
-          ...(penShape.geometry.pressures
-            ? { pressures: penShape.geometry.pressures }
-            : {}),
-        },
+        geometry,
         ...(penShape.transform
           ? {
               transform: penShape.transform,
@@ -111,3 +128,81 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
     },
   },
 };
+
+export function getPenGeometryPoints(geometry: PenGeometry): Vec2Tuple[] {
+  if (geometry.type === "pen") {
+    return geometry.points;
+  }
+  const cachedByJson = decodedPointsByJson.get(geometry.pointsJson);
+  if (cachedByJson) {
+    decodedPointCache.set(geometry, cachedByJson);
+    return cachedByJson;
+  }
+  const cached = decodedPointCache.get(geometry);
+  if (cached) {
+    return cached;
+  }
+  const decoded = decodePenPointsJson(geometry.pointsJson);
+  decodedPointsByJson.set(geometry.pointsJson, decoded);
+  if (decodedPointsByJson.size > MAX_DECODED_JSON_CACHE_SIZE) {
+    const oldestKey = decodedPointsByJson.keys().next().value;
+    if (typeof oldestKey === "string") {
+      decodedPointsByJson.delete(oldestKey);
+    }
+  }
+  decodedPointCache.set(geometry, decoded);
+  return decoded;
+}
+
+export function encodePenPointsJson(points: Vec2Tuple[]): string {
+  return JSON.stringify(points);
+}
+
+export function createPenJSONGeometry(points: Vec2Tuple[]): PenJSONGeometry {
+  return {
+    type: "pen-json",
+    pointsJson: encodePenPointsJson(points),
+    pointCount: points.length,
+  };
+}
+
+function createPenPointsGeometry(
+  points: Vec2Tuple[],
+  pressures?: number[],
+): PenPointsGeometry {
+  return {
+    type: "pen",
+    points,
+    ...(pressures ? { pressures } : {}),
+  };
+}
+
+function decodePenPointsJson(pointsJson: string | undefined): Vec2Tuple[] {
+  if (!pointsJson) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(pointsJson) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    const points: Vec2Tuple[] = [];
+    for (const item of parsed) {
+      if (!Array.isArray(item) || item.length < 2) {
+        continue;
+      }
+      const x = item[0];
+      const y = item[1];
+      if (typeof x !== "number" || typeof y !== "number") {
+        continue;
+      }
+      if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        continue;
+      }
+      points.push([x, y]);
+    }
+    return points;
+  } catch {
+    return [];
+  }
+}

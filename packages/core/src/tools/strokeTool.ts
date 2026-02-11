@@ -8,7 +8,10 @@ import {
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
 import { AddShape } from "../actions";
-import type { PenGeometry, PenShape } from "../model/shapes/penShape";
+import type {
+  PenPointsGeometry,
+  PenShape,
+} from "../model/shapes/penShape";
 import type { StrokeStyle } from "../model/style";
 import { createDisposerBucket, type DisposerBucket } from "./disposerBucket";
 import { attachPointerHandlers } from "./pointerHandlers";
@@ -16,13 +19,16 @@ import { isPressureSample } from "./pressure";
 import type { ToolDefinition, ToolEventHandler, ToolRuntime } from "./types";
 
 const PRIMARY_BUTTON_MASK = 1;
-const SPRAY_RADIUS_SCALE = 1.25;
+const SPRAY_RADIUS_SCALE = 0.625;
 const SPRAY_SPACING_SCALE = 0.38;
-const SPRAY_DOTS_PER_CLUSTER_SCALE = 1.1;
+const SPRAY_DOTS_PER_CLUSTER_SCALE = 1.32;
 const SPRAY_DOTS_PER_CLUSTER_EXPONENT = 0.6;
+const SPRAY_LARGE_SIZE_DAMPING_START = 12;
+const SPRAY_DOTS_LARGE_SIZE_DAMPING_EXPONENT = 0.5;
 const SPRAY_TAP_DOTS_SCALE = 2.5;
 const UNEVEN_SPRAY_CLUSTERS_PER_SECOND_SCALE = 7.5;
 const UNEVEN_SPRAY_CLUSTERS_PER_SECOND_EXPONENT = 0.65;
+const UNEVEN_SPRAY_RATE_LARGE_SIZE_DAMPING_EXPONENT = 0.675;
 const UNEVEN_SPRAY_BRIDGE_SPACING_SCALE = 1.4;
 const UNEVEN_SPRAY_MAX_BRIDGE_CLUSTERS_PER_MOVE = 8;
 const EVEN_SPRAYCAN_BRUSH_ID = "even-spraycan";
@@ -38,7 +44,7 @@ interface ActiveStrokeState {
 
 interface StrokeDraftState {
   id: string;
-  geometry: PenGeometry;
+  geometry: PenPointsGeometry;
   stroke: StrokeStyle;
   zIndex: string;
   lastInputPoint: Vec2 | null;
@@ -150,7 +156,10 @@ export function createStrokeTool(
       startUnevenSprayAnimation(runtime);
     }
     state.lastPreviewSegmentBounds = null;
-    updateDraft(runtime);
+    updateDraft(
+      runtime,
+      sprayMode ? getSprayPointDirtyBounds(point, stroke.size) : undefined,
+    );
   };
 
   const appendPoint = (
@@ -164,13 +173,16 @@ export function createStrokeTool(
     }
     const sprayMode = getSprayMode(state.drawing.stroke.brushId);
     if (sprayMode === "even") {
-      appendSpraySegment(state.drawing, point);
-      updateDraft(runtime);
+      const dirtyBounds = appendSpraySegment(state.drawing, point);
+      if (dirtyBounds) {
+        updateDraft(runtime, dirtyBounds);
+      }
       return;
     }
     if (sprayMode === "uneven") {
-      if (appendUnevenSprayBridge(state.drawing, point)) {
-        updateDraft(runtime);
+      const dirtyBounds = appendUnevenSprayBridge(state.drawing, point);
+      if (dirtyBounds) {
+        updateDraft(runtime, dirtyBounds);
       }
       return;
     }
@@ -182,7 +194,7 @@ export function createStrokeTool(
     updateDraft(runtime);
   };
 
-  const updateDraft = (runtime: ToolRuntime): void => {
+  const updateDraft = (runtime: ToolRuntime, boundsHint?: Box): void => {
     const state = runtimeState.get(runtime);
     if (!state?.drawing) {
       return;
@@ -199,11 +211,13 @@ export function createStrokeTool(
       toolId: runtime.toolId,
       temporary: true,
     });
-    const nextBounds = getStrokePreviewBounds(
-      state.drawing.geometry.points,
-      state.drawing.stroke.size,
-      state.drawing.stroke.brushId,
-    );
+    const nextBounds =
+      boundsHint ??
+      getStrokePreviewBounds(
+        state.drawing.geometry.points,
+        state.drawing.stroke.size,
+        state.drawing.stroke.brushId,
+      );
     if (!nextBounds) {
       runtime.setPreview(null);
       state.lastPreviewSegmentBounds = null;
@@ -274,8 +288,10 @@ export function createStrokeTool(
         return;
       }
       const deltaMs = Math.max(0, Math.min(100, timestampMs - previous));
-      appendUnevenSprayFrame(latest.drawing, deltaMs);
-      updateDraft(runtime);
+      const dirtyBounds = appendUnevenSprayFrame(latest.drawing, deltaMs);
+      if (dirtyBounds) {
+        updateDraft(runtime, dirtyBounds);
+      }
       latest.sprayAnimationHandle = requestFrame(tick);
     };
     state.sprayAnimationLastFrameMs = null;
@@ -388,21 +404,26 @@ function nowMs(): number {
   return Date.now();
 }
 
-function appendUnevenSprayFrame(draft: StrokeDraftState, deltaMs: number): void {
+function appendUnevenSprayFrame(draft: StrokeDraftState, deltaMs: number): Box | null {
   const point = draft.lastInputPoint;
   if (!point) {
-    return;
+    return null;
   }
+  const sprayRateDamping = getLargeSizeDamping(
+    draft.stroke.size,
+    UNEVEN_SPRAY_RATE_LARGE_SIZE_DAMPING_EXPONENT,
+  );
   const clustersPerSecond = Math.max(
     8,
     Math.pow(Math.max(1, draft.stroke.size), UNEVEN_SPRAY_CLUSTERS_PER_SECOND_EXPONENT) *
-      UNEVEN_SPRAY_CLUSTERS_PER_SECOND_SCALE,
+      UNEVEN_SPRAY_CLUSTERS_PER_SECOND_SCALE *
+      sprayRateDamping,
   );
   draft.sprayClusterRemainder += (deltaMs / 1000) * clustersPerSecond;
   const clusterCount = Math.floor(draft.sprayClusterRemainder);
   draft.sprayClusterRemainder -= clusterCount;
   if (clusterCount <= 0) {
-    return;
+    return null;
   }
   const dotsPerCluster = Math.max(
     1,
@@ -411,21 +432,22 @@ function appendUnevenSprayFrame(draft: StrokeDraftState, deltaMs: number): void 
   for (let index = 0; index < clusterCount; index += 1) {
     appendSprayCluster(draft, point, dotsPerCluster);
   }
+  return getSprayPointDirtyBounds(point, draft.stroke.size);
 }
 
 function appendUnevenSprayBridge(
   draft: StrokeDraftState,
   point: Vec2,
-): boolean {
+): Box | null {
   const from = draft.lastInputPoint;
   draft.lastInputPoint = new Vec2(point);
   if (!from) {
-    return false;
+    return null;
   }
   const segment = new Vec2().add(point).sub(from);
   const distance = Vec2.length(segment);
   if (distance <= 0) {
-    return false;
+    return null;
   }
   const spacing = Math.max(2, draft.stroke.size * UNEVEN_SPRAY_BRIDGE_SPACING_SCALE);
   const rawBridgeCount = Math.floor(distance / spacing);
@@ -434,7 +456,7 @@ function appendUnevenSprayBridge(
     UNEVEN_SPRAY_MAX_BRIDGE_CLUSTERS_PER_MOVE,
   );
   if (bridgeCount <= 0) {
-    return false;
+    return null;
   }
   const direction = new Vec2().add(segment).mul([1 / distance, 1 / distance]);
   const step = distance / (bridgeCount + 1);
@@ -449,20 +471,20 @@ function appendUnevenSprayBridge(
     );
     appendSprayCluster(draft, center, dotsPerCluster);
   }
-  return true;
+  return getSpraySegmentDirtyBounds(from, point, draft.stroke.size);
 }
 
-function appendSpraySegment(draft: StrokeDraftState, point: Vec2): void {
+function appendSpraySegment(draft: StrokeDraftState, point: Vec2): Box | null {
   const from = draft.lastInputPoint;
   if (!from) {
     draft.lastInputPoint = new Vec2(point);
     appendSprayCluster(draft, point, 1);
-    return;
+    return getSprayPointDirtyBounds(point, draft.stroke.size);
   }
   const segment = new Vec2().add(point).sub(from);
   const distance = Vec2.length(segment);
   if (distance <= 0) {
-    return;
+    return null;
   }
   const spacing = Math.max(0.75, draft.stroke.size * SPRAY_SPACING_SCALE);
   const clusterDotCount = Math.max(
@@ -472,6 +494,7 @@ function appendSpraySegment(draft: StrokeDraftState, point: Vec2): void {
   const direction = new Vec2().add(segment).mul([1 / distance, 1 / distance]);
   let traveled = 0;
   let remainder = draft.sprayDistanceRemainder;
+  let appended = false;
 
   while (remainder + (distance - traveled) >= spacing) {
     const step = spacing - remainder;
@@ -480,11 +503,16 @@ function appendSpraySegment(draft: StrokeDraftState, point: Vec2): void {
       new Vec2().add(direction).mul([traveled, traveled]),
     );
     appendSprayCluster(draft, samplePoint, clusterDotCount);
+    appended = true;
     remainder = 0;
   }
 
   draft.sprayDistanceRemainder = remainder + (distance - traveled);
   draft.lastInputPoint = new Vec2(point);
+  if (!appended) {
+    return null;
+  }
+  return getSpraySegmentDirtyBounds(from, point, draft.stroke.size);
 }
 
 function appendSprayCluster(
@@ -510,10 +538,53 @@ function sampleDiskOffset(radius: number): Vec2 {
 }
 
 function getSprayDotsPerCluster(strokeSize: number): number {
+  const dotDamping = getLargeSizeDamping(
+    strokeSize,
+    SPRAY_DOTS_LARGE_SIZE_DAMPING_EXPONENT,
+  );
   return (
     Math.pow(Math.max(1, strokeSize), SPRAY_DOTS_PER_CLUSTER_EXPONENT) *
-    SPRAY_DOTS_PER_CLUSTER_SCALE
+    SPRAY_DOTS_PER_CLUSTER_SCALE *
+    dotDamping
   );
+}
+
+function getSpraySpreadRadius(strokeSize: number): number {
+  return Math.max(2, strokeSize * SPRAY_RADIUS_SCALE);
+}
+
+function getSprayDotRadius(strokeSize: number): number {
+  return Math.max(1, strokeSize * 0.12);
+}
+
+function getSprayDirtyPadding(strokeSize: number): number {
+  return getSpraySpreadRadius(strokeSize) + getSprayDotRadius(strokeSize) + 1;
+}
+
+function getSprayPointDirtyBounds(point: Vec2, strokeSize: number): Box {
+  const padding = getSprayDirtyPadding(strokeSize);
+  const paddingVec = new Vec2(padding, padding);
+  const min = new Vec2(point).sub(paddingVec);
+  const max = new Vec2(point).add(paddingVec);
+  return {
+    min,
+    max,
+  };
+}
+
+function getSpraySegmentDirtyBounds(from: Vec2, to: Vec2, strokeSize: number): Box {
+  const padding = getSprayDirtyPadding(strokeSize);
+  const segmentBounds = BoxOperations.fromPointPair(from, to);
+  const paddingVec = new Vec2(padding, padding);
+  return {
+    min: new Vec2(segmentBounds.min).sub(paddingVec),
+    max: new Vec2(segmentBounds.max).add(paddingVec),
+  };
+}
+
+function getLargeSizeDamping(strokeSize: number, exponent: number): number {
+  const normalizedSize = Math.max(1, strokeSize / SPRAY_LARGE_SIZE_DAMPING_START);
+  return Math.pow(normalizedSize, -exponent);
 }
 
 function getStrokePreviewBounds(

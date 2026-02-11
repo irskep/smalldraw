@@ -11,7 +11,7 @@ import { Vec2 } from "gl-matrix";
 import type { StrokeOptions as FreehandStrokeOptions } from "perfect-freehand";
 import getStroke from "perfect-freehand";
 import { requirePenBrushDefinition } from "./penBrushes";
-import type { PenShape } from "./shapes/penShape";
+import { getPenGeometryPoints, type PenShape } from "./shapes/penShape";
 
 const DEFAULT_PEN_STROKE_OPTIONS = {
   smoothing: 0.6,
@@ -44,7 +44,8 @@ export function getPenStrokeOutline(
   shape: PenShape,
   renderOptions: PenStrokeRenderOptions = {},
 ): Vec2Tuple[] {
-  if (!shape.geometry.points.length) {
+  const points = getPenGeometryPoints(shape.geometry);
+  if (!points.length) {
     return [];
   }
   const options = getPenStrokeOptions(shape, renderOptions);
@@ -56,7 +57,7 @@ export function getPenStrokeOutline(
     options,
   ) as Vec2Tuple[];
   if (!outline.length) {
-    return createDotStroke(shape.geometry.points[0], options);
+    return createDotStroke(points[0], options);
   }
   return outline;
 }
@@ -79,7 +80,7 @@ export function getPenStrokeBounds(
 }
 
 export function getFreehandInputPoints(shape: PenShape): number[][] {
-  const points = shape.geometry.points;
+  const points = getPenGeometryPoints(shape.geometry);
   const pressures = getAlignedPressures(shape);
   if (!pressures) {
     return points.map((point) => [getX(point), getY(point)]);
@@ -96,7 +97,9 @@ function hasAlignedPressureSamples(shape: PenShape): boolean {
 }
 
 function getAlignedPressures(shape: PenShape): number[] | null {
-  const { points, pressures } = shape.geometry;
+  const points = getPenGeometryPoints(shape.geometry);
+  const pressures =
+    shape.geometry.type === "pen" ? shape.geometry.pressures : undefined;
   if (!pressures || pressures.length !== points.length) {
     return null;
   }

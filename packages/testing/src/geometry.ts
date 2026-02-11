@@ -4,7 +4,9 @@ type Vec2Tuple = [number, number];
 
 type ShapeWithPoints = {
   geometry: {
-    points: Vec2Tuple[];
+    type?: "pen" | "pen-json";
+    points?: Vec2Tuple[];
+    pointsJson?: string;
   };
   transform?: {
     translation?: Vec2Tuple;
@@ -13,7 +15,8 @@ type ShapeWithPoints = {
 
 export function getWorldPointsFromShape(shape: ShapeWithPoints): Vec2Tuple[] {
   const translation = shape.transform?.translation ?? [0, 0];
-  return shape.geometry.points.map(([x, y]) => [
+  const points = getShapePoints(shape);
+  return points.map(([x, y]) => [
     x + translation[0],
     y + translation[1],
   ]);
@@ -33,5 +36,36 @@ export function expectPointsClose(
     }
     expect(rec[0]).toBeCloseTo(exp[0], precision);
     expect(rec[1]).toBeCloseTo(exp[1], precision);
+  }
+}
+
+function getShapePoints(shape: ShapeWithPoints): Vec2Tuple[] {
+  const points = shape.geometry.points ?? [];
+  if (points.length > 0) {
+    return points;
+  }
+  const json = shape.geometry.pointsJson;
+  if (!json) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(json) as unknown;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    if (parsed.length === 0) {
+      return [];
+    }
+    const first = parsed[0] as unknown;
+    if (
+      !Array.isArray(first) ||
+      typeof first[0] !== "number" ||
+      typeof first[1] !== "number"
+    ) {
+      return [];
+    }
+    return parsed as Vec2Tuple[];
+  } catch {
+    return [];
   }
 }

@@ -1,5 +1,5 @@
 import { change } from "@automerge/automerge/slim";
-import type { Box } from "@smalldraw/geometry";
+import { BoxOperations, type Box } from "@smalldraw/geometry";
 import type { ActionContext, UndoableAction } from "../actions";
 import { filterShapesAfterClear } from "../model/clear";
 import { createDocument, type DrawingDocument } from "../model/document";
@@ -76,6 +76,9 @@ export class DrawingStore {
     behavior: null,
   };
   private selectionFrame: Box | null = null;
+  private accumulatedPreviewDirtyBounds: Box | null = null;
+  private previewVersion = 0;
+  private consumedPreviewVersion = 0;
 
   // Dirty tracking for incremental rendering
   private dirtyShapeIds = new Set<string>();
@@ -183,10 +186,36 @@ export class DrawingStore {
   }
 
   getPreview(): ToolPreview | null {
+    if (this.previewVersion <= this.consumedPreviewVersion) {
+      return null;
+    }
     if (!this.activeToolId) {
       return null;
     }
-    return this.runtimes.get(this.activeToolId)?.getPreview() ?? null;
+    const preview = this.runtimes.get(this.activeToolId)?.getPreview() ?? null;
+    if (!this.accumulatedPreviewDirtyBounds) {
+      return preview;
+    }
+    if (!preview) {
+      return { dirtyBounds: this.accumulatedPreviewDirtyBounds };
+    }
+    const previewBounds = preview.dirtyBounds;
+    return {
+      ...preview,
+      dirtyBounds: previewBounds
+        ? BoxOperations.fromBoxPair(
+            this.accumulatedPreviewDirtyBounds,
+            previewBounds,
+          )
+        : this.accumulatedPreviewDirtyBounds,
+    };
+  }
+
+  consumePreview(): ToolPreview | null {
+    const preview = this.getPreview();
+    this.consumedPreviewVersion = this.previewVersion;
+    this.accumulatedPreviewDirtyBounds = null;
+    return preview;
   }
 
   private getOrCreateRuntime(toolId: string): ToolRuntimeImpl {
@@ -205,8 +234,11 @@ export class DrawingStore {
       onDraftChange: () => {
         this.triggerRender();
       },
-      onPreviewChange: () => {
-        this.triggerRender();
+      onPreviewChange: (preview) => {
+        if (this.activeToolId === toolId) {
+          this.notePreviewChange(preview);
+          this.triggerRender();
+        }
       },
     });
     runtime.onEvent("handles", (payload: HandleDescriptor[]) => {
@@ -250,6 +282,9 @@ export class DrawingStore {
     // DrawingStore event listeners should persist across tool switches.
     runtime?.clearDraft();
     runtime?.setPreview(null);
+    this.accumulatedPreviewDirtyBounds = null;
+    this.previewVersion = 0;
+    this.consumedPreviewVersion = 0;
     this.handles = [];
     this.handleHover = { handleId: null, behavior: null };
     this.selectionFrame = null;
@@ -262,6 +297,21 @@ export class DrawingStore {
       return;
     }
     this.onRenderNeeded?.();
+  }
+
+  private notePreviewChange(preview: ToolPreview | null): void {
+    this.previewVersion += 1;
+    if (!preview) {
+      this.accumulatedPreviewDirtyBounds = null;
+      return;
+    }
+    const dirtyBounds = preview.dirtyBounds;
+    if (!dirtyBounds) {
+      return;
+    }
+    this.accumulatedPreviewDirtyBounds = this.accumulatedPreviewDirtyBounds
+      ? BoxOperations.fromBoxPair(this.accumulatedPreviewDirtyBounds, dirtyBounds)
+      : dirtyBounds;
   }
 
   private runWithBatchedRender(task: () => void): void {

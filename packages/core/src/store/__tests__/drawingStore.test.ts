@@ -103,6 +103,28 @@ function createPreviewTool(preview: {
   };
 }
 
+function createStreamingPreviewTool(): ToolDefinition {
+  return {
+    id: "stream-preview-tool",
+    label: "Stream Preview Tool",
+    activate(runtime) {
+      runtime.on("pointerDown", () => {
+        runtime.setPreview({
+          dirtyBounds: { min: v(0, 0), max: v(10, 10) },
+        });
+      });
+      runtime.on("pointerMove", () => {
+        runtime.setPreview({
+          dirtyBounds: { min: v(90, 90), max: v(100, 100) },
+        });
+      });
+      runtime.on("pointerUp", () => {
+        runtime.setPreview(null);
+      });
+    },
+  };
+}
+
 function createRuntimeSelectionTool(selectionIds: string[]): ToolDefinition {
   const selectionDef = createSelectionDefinition();
   return {
@@ -313,11 +335,49 @@ describe("DrawingStore", () => {
       ],
     });
     store.activateTool("preview-tool");
-    expect(store.getPreview()).toEqual({
-      dirtyBounds: { min: v(1, 2), max: v(3, 4) },
-    });
+    const preview = store.getPreview();
+    expect(preview?.dirtyBounds).toBeDefined();
+    expect(preview?.dirtyBounds?.min[0]).toBe(1);
+    expect(preview?.dirtyBounds?.min[1]).toBe(2);
+    expect(preview?.dirtyBounds?.max[0]).toBe(3);
+    expect(preview?.dirtyBounds?.max[1]).toBe(4);
     store.activateTool("brush.freehand");
     expect(store.getPreview()).toBeNull();
+  });
+
+  test("store accumulates preview dirty bounds until consumed", () => {
+    const store = new DrawingStore({
+      tools: [createStreamingPreviewTool()],
+    });
+    store.activateTool("stream-preview-tool");
+
+    store.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    store.dispatch("pointerMove", { point: new Vec2(100, 100), buttons: 1 });
+
+    const preview = store.getPreview();
+    expect(preview?.dirtyBounds).toBeDefined();
+    expect(preview?.dirtyBounds?.min[0]).toBe(0);
+    expect(preview?.dirtyBounds?.min[1]).toBe(0);
+    expect(preview?.dirtyBounds?.max[0]).toBe(100);
+    expect(preview?.dirtyBounds?.max[1]).toBe(100);
+    const consumed = store.consumePreview();
+    expect(consumed?.dirtyBounds).toBeDefined();
+    expect(consumed?.dirtyBounds?.min[0]).toBe(0);
+    expect(consumed?.dirtyBounds?.min[1]).toBe(0);
+    expect(consumed?.dirtyBounds?.max[0]).toBe(100);
+    expect(consumed?.dirtyBounds?.max[1]).toBe(100);
+    expect(store.getPreview()).toBeNull();
+
+    store.dispatch("pointerMove", { point: new Vec2(100, 100), buttons: 1 });
+    const moved = store.consumePreview();
+    expect(moved?.dirtyBounds).toBeDefined();
+    expect(moved?.dirtyBounds?.min[0]).toBe(90);
+    expect(moved?.dirtyBounds?.min[1]).toBe(90);
+    expect(moved?.dirtyBounds?.max[0]).toBe(100);
+    expect(moved?.dirtyBounds?.max[1]).toBe(100);
+
+    store.dispatch("pointerUp", { point: new Vec2(100, 100), buttons: 0 });
+    expect(store.consumePreview()).toBeNull();
   });
 
   test("selection helpers manage ids consistently", () => {

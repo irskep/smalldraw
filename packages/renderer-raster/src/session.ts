@@ -69,7 +69,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     if (hasDrafts) {
       this.retainHotLayerUntilBakeComplete = false;
     }
-    const preview = this.store.getPreview();
+    const preview = this.store.consumePreview();
     const requiresTileBackdrop = hasDrafts;
     if (!hasDrafts && !this.retainHotLayerUntilBakeComplete) {
       this.layerController?.setMode("tiles");

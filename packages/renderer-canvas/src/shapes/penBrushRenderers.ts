@@ -21,13 +21,17 @@ function renderFreehandPenBrush({
   color,
   isTemporary,
 }: PenBrushRenderContext): void {
+  const geometry = {
+    type: "pen" as const,
+    points,
+    ...(shape.geometry.type === "pen" && shape.geometry.pressures
+      ? { pressures: shape.geometry.pressures }
+      : {}),
+  };
   const outline = getPenStrokeOutline(
     {
       ...shape,
-      geometry: {
-        ...shape.geometry,
-        points,
-      },
+      geometry,
     },
     { last: !isTemporary },
   );
