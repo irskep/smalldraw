@@ -16,6 +16,7 @@
 
 .kids-draw-toolbar-bottom {
   padding-bottom: var(--size-2);
+  width: 100%;
 }
 
 .kids-toolbar-grid-panel {
@@ -146,7 +147,7 @@
   border-radius: var(--radius-3);
   box-shadow: var(--kd-shadow-toolbar);
   width: auto;
-  max-width: calc(100vw - 24px);
+  max-width: min(100%, calc(100vw - 24px));
 }
 
 .kids-draw-family-variants-shell[hidden] {
@@ -154,25 +155,9 @@
 }
 
 .kids-draw-family-variants-viewport {
-  --kd-family-variants-page-width: calc(
-    (var(--kd-toolbar-cell-size) * 13) +
-    (var(--size-2) * 12)
-  );
-  --kd-family-variants-available-width: max(
-    0px,
-    calc(100vw - 24px - (var(--kd-toolbar-cell-size) * 2) - (var(--size-2) * 2))
-  );
   overflow: hidden;
   flex: 0 1 auto;
   min-width: 0;
-  width: min(
-    var(--kd-family-variants-page-width),
-    var(--kd-family-variants-available-width)
-  );
-  max-width: min(
-    var(--kd-family-variants-page-width),
-    var(--kd-family-variants-available-width)
-  );
 }
 
 .kids-draw-family-variants-nav {
@@ -185,7 +170,10 @@
 
 .kids-draw-family-variants[data-variant-layout="two-row-single-height"] {
   grid-auto-flow: row;
-  grid-template-columns: repeat(13, var(--kd-toolbar-cell-size));
+  grid-template-columns: repeat(
+      var(--kd-family-variants-columns, 13),
+      var(--kd-toolbar-cell-size)
+    );
   grid-template-rows: repeat(2, var(--kd-toolbar-cell-size));
   grid-auto-columns: var(--kd-toolbar-cell-size);
   width: max-content;
@@ -196,24 +184,16 @@
 
 .kids-draw-family-variants.is-two-row-single-height {
   grid-auto-flow: row;
-  grid-template-columns: repeat(13, var(--kd-toolbar-cell-size));
+  grid-template-columns: repeat(
+      var(--kd-family-variants-columns, 13),
+      var(--kd-toolbar-cell-size)
+    );
   grid-template-rows: repeat(2, var(--kd-toolbar-cell-size));
   grid-auto-columns: var(--kd-toolbar-cell-size);
   width: max-content;
   min-width: max-content;
   overflow: hidden;
   max-width: none;
-}
-
-.kids-draw-family-variants[data-active-page="0"]
-  [data-variant-page]:not([data-variant-page="0"]),
-.kids-draw-family-variants[data-active-page="1"]
-  [data-variant-page]:not([data-variant-page="1"]),
-.kids-draw-family-variants[data-active-page="2"]
-  [data-variant-page]:not([data-variant-page="2"]),
-.kids-draw-family-variants[data-active-page="3"]
-  [data-variant-page]:not([data-variant-page="3"]) {
-  display: none;
 }
 
 .kids-draw-family-variants[hidden] {
@@ -366,6 +346,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.kids-draw-tool-selector .kids-draw-tool-button[hidden],
+.kids-draw-family-variants .kids-draw-tool-variant-button[hidden],
+.kids-draw-action-panel .kids-draw-action-button[hidden],
+.kids-square-icon-button[hidden] {
+  display: none;
 }
 
 .kids-draw-family-variants .kids-draw-tool-variant-button {

@@ -60,6 +60,26 @@ const COLOR_SWATCHES: ColorSwatchConfig[] = [
 ];
 
 const STROKE_WIDTH_OPTIONS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
+const PAGED_VARIANT_ROWS = 2;
+const VIEWPORT_HORIZONTAL_MARGIN_PX = 24;
+
+interface FamilyVariantPagerState {
+  familyId: string;
+  panel: HTMLDivElement;
+  shell: HTMLDivElement;
+  viewport: HTMLDivElement;
+  orderedToolIds: string[];
+  orderedButtons: SquareIconButton[];
+  prevButton: SquareIconButton;
+  nextButton: SquareIconButton;
+  pageSize: number;
+}
+
+function parsePxValue(value: string | null | undefined): number {
+  if (!value) return 0;
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
 export function createKidsDrawToolbar(options: {
   tools: KidsToolConfig[];
@@ -133,7 +153,7 @@ export function createKidsDrawToolbar(options: {
   const familyVariantOrders = new Map<string, string[]>();
   const familyVariantPagerSync = new Map<string, () => void>();
   const familyVariantActivePage = new Map<string, number>();
-  const PAGED_VARIANT_PAGE_SIZE = 26;
+  const familyVariantPagerStates = new Map<string, FamilyVariantPagerState>();
   for (const family of families) {
     const panel = el("div.kids-draw-family-variants", {
       role: "radiogroup",
@@ -149,7 +169,8 @@ export function createKidsDrawToolbar(options: {
       family.toolIds.some((toolId) => toolId.startsWith("stamp.image."));
 
     const orderedToolIds: string[] = [];
-    family.toolIds.forEach((toolId, index) => {
+    const orderedButtons: SquareIconButton[] = [];
+    family.toolIds.forEach((toolId) => {
       const tool = toolById.get(toolId);
       if (!tool) return;
       const hideVariantLabel = family.variantLayout === "two-row-single-height";
@@ -166,12 +187,7 @@ export function createKidsDrawToolbar(options: {
       });
       variantButtons.set(tool.id, variantButton);
       orderedToolIds.push(tool.id);
-      if (shouldUsePagerShell) {
-        variantButton.el.setAttribute(
-          "data-variant-page",
-          `${Math.floor(index / PAGED_VARIANT_PAGE_SIZE)}`,
-        );
-      }
+      orderedButtons.push(variantButton);
       mount(panel, variantButton.el);
     });
     familyVariantOrders.set(family.id, orderedToolIds);
@@ -212,10 +228,170 @@ export function createKidsDrawToolbar(options: {
         nextButton.el,
       ) as HTMLDivElement;
 
+      const pagerState: FamilyVariantPagerState = {
+        familyId: family.id,
+        panel,
+        shell,
+        viewport,
+        orderedToolIds,
+        orderedButtons,
+        prevButton,
+        nextButton,
+        pageSize: PAGED_VARIANT_ROWS,
+      };
+      familyVariantPagerStates.set(family.id, pagerState);
+
+      const getViewportPageSize = (): {
+        pageSize: number;
+        columnCount: number;
+        pageWidth: number;
+      } => {
+        const shellStyles = window.getComputedStyle(shell);
+        const panelStyles = window.getComputedStyle(panel);
+        const shellPaddingHorizontal =
+          parsePxValue(shellStyles.paddingLeft) +
+          parsePxValue(shellStyles.paddingRight);
+        const shellGap = parsePxValue(shellStyles.columnGap || shellStyles.gap);
+        const navButtonWidth = Math.max(
+          prevButton.el.getBoundingClientRect().width,
+          nextButton.el.getBoundingClientRect().width,
+          parsePxValue(shellStyles.getPropertyValue("--kd-toolbar-cell-size")),
+        );
+        const firstButton = orderedButtons[0]?.el;
+        const cellWidth = Math.max(
+          firstButton?.getBoundingClientRect().width ?? 0,
+          parsePxValue(panelStyles.getPropertyValue("--kd-toolbar-cell-size")),
+        );
+        const columnGap = parsePxValue(
+          panelStyles.columnGap || panelStyles.gap,
+        );
+        const shellParentWidth =
+          shell.parentElement?.getBoundingClientRect().width ??
+          bottomElement.getBoundingClientRect().width;
+        const constrainedShellWidth = Math.max(
+          cellWidth,
+          Math.min(
+            window.innerWidth - VIEWPORT_HORIZONTAL_MARGIN_PX,
+            shellParentWidth > 0
+              ? shellParentWidth
+              : window.innerWidth - VIEWPORT_HORIZONTAL_MARGIN_PX,
+          ),
+        );
+        const availableWidth = Math.max(
+          cellWidth,
+          constrainedShellWidth -
+            shellPaddingHorizontal -
+            navButtonWidth * 2 -
+            shellGap * 2,
+        );
+        const maxColumns = Math.max(
+          1,
+          Math.ceil(orderedToolIds.length / PAGED_VARIANT_ROWS),
+        );
+        const columnCount = Math.max(
+          1,
+          Math.min(
+            maxColumns,
+            Math.floor((availableWidth + columnGap) / (cellWidth + columnGap)),
+          ),
+        );
+        const pageWidth =
+          columnCount * cellWidth + Math.max(0, columnCount - 1) * columnGap;
+        return {
+          pageSize: Math.max(1, columnCount * PAGED_VARIANT_ROWS),
+          columnCount,
+          pageWidth,
+        };
+      };
+
+      const applyPagedVisibility = (): void => {
+        const { pageSize, columnCount, pageWidth } = getViewportPageSize();
+        pagerState.pageSize = pageSize;
+        panel.style.setProperty(
+          "--kd-family-variants-columns",
+          `${columnCount}`,
+        );
+        viewport.style.width = `${pageWidth}px`;
+        viewport.style.maxWidth = `${pageWidth}px`;
+        const totalPages = Math.max(
+          1,
+          Math.ceil(orderedToolIds.length / pagerState.pageSize),
+        );
+        const currentPage = Math.max(
+          0,
+          Math.min(totalPages - 1, familyVariantActivePage.get(family.id) ?? 0),
+        );
+        familyVariantActivePage.set(family.id, currentPage);
+        panel.setAttribute("data-active-page", `${currentPage}`);
+        const startIndex = currentPage * pagerState.pageSize;
+        const endIndex = startIndex + pagerState.pageSize;
+        pagerState.orderedButtons.forEach((button, index) => {
+          button.el.hidden = index < startIndex || index >= endIndex;
+        });
+        prevButton.setDisabled(currentPage <= 0);
+        nextButton.setDisabled(currentPage >= totalPages - 1);
+
+        const shellStyles = window.getComputedStyle(shell);
+        const panelStyles = window.getComputedStyle(panel);
+        const shellPaddingHorizontal =
+          parsePxValue(shellStyles.paddingLeft) +
+          parsePxValue(shellStyles.paddingRight);
+        const shellGap = parsePxValue(shellStyles.columnGap || shellStyles.gap);
+        const navButtonWidth = Math.max(
+          prevButton.el.getBoundingClientRect().width,
+          nextButton.el.getBoundingClientRect().width,
+          parsePxValue(shellStyles.getPropertyValue("--kd-toolbar-cell-size")),
+        );
+        const firstButton = orderedButtons[0]?.el;
+        const cellWidth = Math.max(
+          firstButton?.getBoundingClientRect().width ?? 0,
+          parsePxValue(panelStyles.getPropertyValue("--kd-toolbar-cell-size")),
+        );
+        const columnGap = parsePxValue(
+          panelStyles.columnGap || panelStyles.gap,
+        );
+        const constrainedShellWidth = Math.max(
+          cellWidth,
+          Math.min(
+            window.innerWidth - VIEWPORT_HORIZONTAL_MARGIN_PX,
+            shell.parentElement?.getBoundingClientRect().width ??
+              bottomElement.getBoundingClientRect().width,
+          ),
+        );
+        const measuredShellWidth = shell.getBoundingClientRect().width;
+        const availableWidth = Math.max(
+          cellWidth,
+          constrainedShellWidth -
+            shellPaddingHorizontal -
+            navButtonWidth * 2 -
+            shellGap * 2,
+        );
+        console.debug("[kids-draw:stamp-pager]", {
+          familyId: family.id,
+          windowInnerWidth: window.innerWidth,
+          constrainedShellWidth,
+          measuredShellWidth,
+          shellPaddingHorizontal,
+          shellGap,
+          navButtonWidth,
+          cellWidth,
+          columnGap,
+          availableWidth,
+          columnCount,
+          pageSize,
+          pageWidth,
+          currentPage,
+          totalPages,
+          startIndex,
+          endIndex: Math.min(endIndex, orderedToolIds.length),
+          visibleToolIds: orderedToolIds.slice(startIndex, endIndex),
+        });
+      };
+
       const scrollByPage = (direction: -1 | 1): void => {
         const totalPages = Math.max(
           1,
-          Math.ceil(orderedToolIds.length / PAGED_VARIANT_PAGE_SIZE),
+          Math.ceil(orderedToolIds.length / pagerState.pageSize),
         );
         const currentPage = familyVariantActivePage.get(family.id) ?? 0;
         const nextPage = Math.max(
@@ -223,18 +399,11 @@ export function createKidsDrawToolbar(options: {
           Math.min(totalPages - 1, currentPage + direction),
         );
         familyVariantActivePage.set(family.id, nextPage);
-        panel.setAttribute("data-active-page", `${nextPage}`);
-        syncPager();
+        applyPagedVisibility();
       };
 
       const syncPager = (): void => {
-        const totalPages = Math.max(
-          1,
-          Math.ceil(orderedToolIds.length / PAGED_VARIANT_PAGE_SIZE),
-        );
-        const currentPage = familyVariantActivePage.get(family.id) ?? 0;
-        prevButton.setDisabled(currentPage <= 0);
-        nextButton.setDisabled(currentPage >= totalPages - 1);
+        applyPagedVisibility();
       };
       familyVariantPagerSync.set(family.id, syncPager);
 
@@ -444,11 +613,12 @@ export function createKidsDrawToolbar(options: {
       container.hidden = !isActive;
       if (isActive) {
         const orderedToolIds = familyVariantOrders.get(familyId) ?? [];
-        if (orderedToolIds.length > PAGED_VARIANT_PAGE_SIZE) {
+        const pagerState = familyVariantPagerStates.get(familyId);
+        if (pagerState && orderedToolIds.length > pagerState.pageSize) {
           const selectedIndex = orderedToolIds.indexOf(activeToolId);
           if (selectedIndex >= 0) {
             const selectedPage = Math.floor(
-              selectedIndex / PAGED_VARIANT_PAGE_SIZE,
+              selectedIndex / pagerState.pageSize,
             );
             familyVariantActivePage.set(familyId, selectedPage);
             familyVariantToolbars
