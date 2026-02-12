@@ -1,6 +1,11 @@
 import type { StrokeStyle, ToolDefinition } from "@smalldraw/core";
 import { type BoxedToolOptions, createBoxedTool } from "./boxed";
 import { getAlphabetGlyph, type StampGlyph } from "./stampGlyphs";
+import { createImageStampTool } from "./stamps/imageStamp";
+import {
+  getImageStampAsset,
+  getImageStampLabel,
+} from "./stamps/imageStampCatalog";
 import { createStampTool, type StampToolOptions } from "./stampTool";
 import { createStrokeTool, type StrokeToolOptions } from "./strokeTool";
 
@@ -198,6 +203,24 @@ export function createAlphabetStampTool(
     shapeIdPrefix: `stamp-letter-${normalizedLetter.toLowerCase()}`,
     glyph,
     letter: normalizedLetter,
+    runtimeOptions: options,
+  });
+}
+
+export interface ImageStampToolOptions extends StampToolOptions {
+  assetId: string;
+}
+
+export function createPngStampTool(
+  options: ImageStampToolOptions,
+): ToolDefinition {
+  const asset = getImageStampAsset(options.assetId);
+  const label = getImageStampLabel(asset.id);
+  return createImageStampTool({
+    id: `stamp.image.${asset.id}`,
+    label: `Stamp ${label}`,
+    shapeIdPrefix: `stamp-image-${asset.id}`,
+    asset,
     runtimeOptions: options,
   });
 }

@@ -3,6 +3,8 @@ import { el, setChildren } from "redom";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+export type SquareIconSource = IconNode | { kind: "image"; src: string };
+
 export class SquareIconButton {
   readonly el: HTMLButtonElement;
   readonly iconElement: HTMLSpanElement;
@@ -58,6 +60,17 @@ export class SquareIconButton {
     setChildren(this.iconElement, [svg]);
   }
 
+  setIconImage(src: string): void {
+    const image = el("img.kids-square-icon-button__icon-image", {
+      src,
+      alt: "",
+      loading: "lazy",
+      decoding: "async",
+      draggable: "false",
+    }) as HTMLImageElement;
+    setChildren(this.iconElement, [image]);
+  }
+
   setSelected(selected: boolean): void {
     this.el.classList.toggle("is-selected", selected);
     this.el.setAttribute("aria-pressed", selected ? "true" : "false");
@@ -79,7 +92,7 @@ export class SquareIconButton {
 export function createSquareIconButton(options: {
   className: string;
   label: string;
-  icon: IconNode;
+  icon: SquareIconSource;
   attributes: Record<string, string>;
 }): SquareIconButton {
   const button = new SquareIconButton();
@@ -96,6 +109,10 @@ export function createSquareIconButton(options: {
     button.el.setAttribute(name, value);
   }
   button.setLabel(options.label);
-  button.setIcon(options.icon);
+  if ("kind" in options.icon) {
+    button.setIconImage(options.icon.src);
+  } else {
+    button.setIcon(options.icon);
+  }
   return button;
 }

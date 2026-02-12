@@ -3,6 +3,15 @@ import { Vec2 } from "@smalldraw/geometry";
 import type { IconNode } from "lucide";
 import type { KidsToolCursorMode } from "../tools/kidsTools";
 import { getAlphabetGlyph } from "../tools/stampGlyphs";
+import { computeImageStampSize } from "../tools/stamps/imageStamp";
+import {
+  getLoadedImageStampAsset,
+  warmImageStampAsset,
+} from "../tools/stamps/imageStampAssets";
+import {
+  getImageStampAsset,
+  getImageStampAssetIdFromToolId,
+} from "../tools/stamps/imageStampCatalog";
 import {
   computeStampSize,
   sampleStampStrokeLocalPoints,
@@ -81,20 +90,45 @@ export function createCursorOverlayController(options: {
     strokeColor: string,
     baseStrokeSize: number,
   ): boolean => {
-    if (!toolId.startsWith("stamp.letter.")) {
-      return false;
-    }
-    const suffix = toolId.slice("stamp.letter.".length);
-    if (!suffix) {
-      return false;
-    }
-    const letter = suffix[0].toUpperCase();
-    const glyph = getAlphabetGlyph(letter);
     const weightedStrokeSize = toStampStrokeSize(baseStrokeSize);
     const stampSize = computeStampSize(weightedStrokeSize);
-    const padding = Math.max(2, Math.ceil(weightedStrokeSize * 1.5));
-    const logicalWidth = glyph.advance * stampSize + padding * 2;
-    const logicalHeight = stampSize + padding * 2;
+    const imageAssetId = getImageStampAssetIdFromToolId(toolId);
+    const glyphTool = toolId.startsWith("stamp.letter.");
+
+    const padding = glyphTool
+      ? Math.max(2, Math.ceil(weightedStrokeSize * 1.5))
+      : Math.max(2, Math.ceil(weightedStrokeSize));
+
+    const logicalSize = (() => {
+      if (imageAssetId) {
+        const asset = getImageStampAsset(imageAssetId);
+        const size = computeImageStampSize(asset, stampSize);
+        return {
+          width: size.width + padding * 2,
+          height: size.height + padding * 2,
+        };
+      }
+      if (glyphTool) {
+        const suffix = toolId.slice("stamp.letter.".length);
+        if (!suffix) {
+          return null;
+        }
+        const letter = suffix[0].toUpperCase();
+        const glyph = getAlphabetGlyph(letter);
+        return {
+          width: glyph.advance * stampSize + padding * 2,
+          height: stampSize + padding * 2,
+        };
+      }
+      return null;
+    })();
+
+    if (!logicalSize) {
+      return false;
+    }
+
+    const logicalWidth = logicalSize.width;
+    const logicalHeight = logicalSize.height;
     const dpr = Math.max(
       1,
       (globalThis as { devicePixelRatio?: number }).devicePixelRatio ?? 1,
@@ -124,7 +158,8 @@ export function createCursorOverlayController(options: {
       typeof ctx.moveTo !== "function" ||
       typeof ctx.lineTo !== "function" ||
       typeof ctx.stroke !== "function" ||
-      typeof ctx.restore !== "function"
+      typeof ctx.restore !== "function" ||
+      typeof ctx.drawImage !== "function"
     ) {
       return false;
     }
@@ -137,20 +172,37 @@ export function createCursorOverlayController(options: {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
-    for (const glyphStroke of glyph.strokes) {
-      if (glyphStroke.commands.length === 0) {
-        continue;
+    if (imageAssetId) {
+      const asset = getImageStampAsset(imageAssetId);
+      const size = computeImageStampSize(asset, stampSize);
+      warmImageStampAsset(asset.src);
+      const image = getLoadedImageStampAsset(asset.src);
+      if (!image) {
+        return false;
       }
-      const sampled = sampleStampStrokeLocalPoints(glyphStroke);
-      if (sampled.length < 2) {
-        continue;
+      ctx.drawImage(image, 0, 0, size.width, size.height);
+    } else {
+      const suffix = toolId.slice("stamp.letter.".length);
+      if (!suffix) {
+        return false;
       }
-      ctx.beginPath();
-      ctx.moveTo(sampled[0][0] * stampSize, sampled[0][1] * stampSize);
-      for (const [x, y] of sampled.slice(1)) {
-        ctx.lineTo(x * stampSize, y * stampSize);
+      const letter = suffix[0].toUpperCase();
+      const glyph = getAlphabetGlyph(letter);
+      for (const glyphStroke of glyph.strokes) {
+        if (glyphStroke.commands.length === 0) {
+          continue;
+        }
+        const sampled = sampleStampStrokeLocalPoints(glyphStroke);
+        if (sampled.length < 2) {
+          continue;
+        }
+        ctx.beginPath();
+        ctx.moveTo(sampled[0][0] * stampSize, sampled[0][1] * stampSize);
+        for (const [x, y] of sampled.slice(1)) {
+          ctx.lineTo(x * stampSize, y * stampSize);
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
     }
 
     ctx.restore();
@@ -218,26 +270,45 @@ export function createCursorOverlayController(options: {
 
   const playStampCommit = (point: Vec2): void => {
     const activeToolId = store.getActiveToolId();
-    if (!activeToolId?.startsWith("stamp.letter.")) {
+    if (!activeToolId?.startsWith("stamp.")) {
       return;
     }
-    const suffix = activeToolId.slice("stamp.letter.".length);
-    if (!suffix) {
-      return;
-    }
-    const letter = suffix[0].toUpperCase();
-    const glyph = getAlphabetGlyph(letter);
     const { strokeColor, strokeWidth } = store.getSharedSettings();
     const weightedStrokeSize = toStampStrokeSize(strokeWidth);
     const stampSize = computeStampSize(weightedStrokeSize);
-    const popWidth = glyph.advance * stampSize + weightedStrokeSize * 2;
-    const popHeight = stampSize + weightedStrokeSize * 2;
+    const imageAssetId = getImageStampAssetIdFromToolId(activeToolId);
+    const popSize = (() => {
+      if (imageAssetId) {
+        const asset = getImageStampAsset(imageAssetId);
+        const size = computeImageStampSize(asset, stampSize);
+        return {
+          width: size.width + weightedStrokeSize * 2,
+          height: size.height + weightedStrokeSize * 2,
+        };
+      }
+      if (!activeToolId.startsWith("stamp.letter.")) {
+        return null;
+      }
+      const suffix = activeToolId.slice("stamp.letter.".length);
+      if (!suffix) {
+        return null;
+      }
+      const letter = suffix[0].toUpperCase();
+      const glyph = getAlphabetGlyph(letter);
+      return {
+        width: glyph.advance * stampSize + weightedStrokeSize * 2,
+        height: stampSize + weightedStrokeSize * 2,
+      };
+    })();
+    if (!popSize) {
+      return;
+    }
 
     const pop = document.createElement("div");
     pop.className = "kids-draw-stamp-pop";
     pop.style.setProperty("--kd-stamp-pop-color", strokeColor);
-    pop.style.width = `${popWidth}px`;
-    pop.style.height = `${popHeight}px`;
+    pop.style.width = `${popSize.width}px`;
+    pop.style.height = `${popSize.height}px`;
     pop.style.left = `${point[0]}px`;
     pop.style.top = `${point[1]}px`;
     stage.sceneRoot.appendChild(pop);

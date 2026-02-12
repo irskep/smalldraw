@@ -1,6 +1,13 @@
 import "./KidsDrawToolbar.css";
 
-import { FilePlus, Redo2, Trash2, Undo2 } from "lucide";
+import {
+  ChevronLeft,
+  ChevronRight,
+  FilePlus,
+  Redo2,
+  Trash2,
+  Undo2,
+} from "lucide";
 import type { ReadableAtom } from "nanostores";
 import { el, mount } from "redom";
 import type {
@@ -122,17 +129,29 @@ export function createKidsDrawToolbar(options: {
 
   const variantButtons = new Map<string, SquareIconButton>();
   const familyVariantToolbars = new Map<string, HTMLDivElement>();
+  const familyVariantContainers = new Map<string, HTMLDivElement>();
+  const familyVariantOrders = new Map<string, string[]>();
+  const familyVariantPagerSync = new Map<string, () => void>();
+  const familyVariantActivePage = new Map<string, number>();
+  const PAGED_VARIANT_PAGE_SIZE = 26;
   for (const family of families) {
-    const panel = el("div.kids-draw-family-variants.kids-toolbar-grid-panel", {
+    const panel = el("div.kids-draw-family-variants", {
       role: "radiogroup",
       "aria-label": `${family.label} tools`,
       "data-tool-family-toolbar": family.id,
       "data-variant-layout": family.variantLayout ?? "default",
     }) as HTMLDivElement;
+    if (family.variantLayout === "two-row-single-height") {
+      panel.classList.add("is-two-row-single-height");
+    }
+    const shouldUsePagerShell =
+      family.variantLayout === "two-row-single-height" &&
+      family.toolIds.some((toolId) => toolId.startsWith("stamp.image."));
 
-    for (const toolId of family.toolIds) {
+    const orderedToolIds: string[] = [];
+    family.toolIds.forEach((toolId, index) => {
       const tool = toolById.get(toolId);
-      if (!tool) continue;
+      if (!tool) return;
       const hideVariantLabel = family.variantLayout === "two-row-single-height";
       const variantButton = createSquareIconButton({
         className: "kids-draw-tool-variant-button",
@@ -146,10 +165,97 @@ export function createKidsDrawToolbar(options: {
         },
       });
       variantButtons.set(tool.id, variantButton);
+      orderedToolIds.push(tool.id);
+      if (shouldUsePagerShell) {
+        variantButton.el.setAttribute(
+          "data-variant-page",
+          `${Math.floor(index / PAGED_VARIANT_PAGE_SIZE)}`,
+        );
+      }
       mount(panel, variantButton.el);
-    }
+    });
+    familyVariantOrders.set(family.id, orderedToolIds);
 
     familyVariantToolbars.set(family.id, panel);
+
+    if (shouldUsePagerShell) {
+      const viewport = el(
+        "div.kids-draw-family-variants-viewport",
+        panel,
+      ) as HTMLDivElement;
+      const prevButton = createSquareIconButton({
+        className:
+          "kids-draw-family-variants-nav kids-draw-family-variants-nav-prev",
+        label: "",
+        icon: ChevronLeft,
+        attributes: {
+          "aria-label": `Previous ${family.label} stamps`,
+          title: "Previous",
+          "data-tool-family-prev": family.id,
+        },
+      });
+      const nextButton = createSquareIconButton({
+        className:
+          "kids-draw-family-variants-nav kids-draw-family-variants-nav-next",
+        label: "",
+        icon: ChevronRight,
+        attributes: {
+          "aria-label": `Next ${family.label} stamps`,
+          title: "Next",
+          "data-tool-family-next": family.id,
+        },
+      });
+      const shell = el(
+        "div.kids-draw-family-variants-shell",
+        prevButton.el,
+        viewport,
+        nextButton.el,
+      ) as HTMLDivElement;
+
+      const scrollByPage = (direction: -1 | 1): void => {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(orderedToolIds.length / PAGED_VARIANT_PAGE_SIZE),
+        );
+        const currentPage = familyVariantActivePage.get(family.id) ?? 0;
+        const nextPage = Math.max(
+          0,
+          Math.min(totalPages - 1, currentPage + direction),
+        );
+        familyVariantActivePage.set(family.id, nextPage);
+        panel.setAttribute("data-active-page", `${nextPage}`);
+        syncPager();
+      };
+
+      const syncPager = (): void => {
+        const totalPages = Math.max(
+          1,
+          Math.ceil(orderedToolIds.length / PAGED_VARIANT_PAGE_SIZE),
+        );
+        const currentPage = familyVariantActivePage.get(family.id) ?? 0;
+        prevButton.setDisabled(currentPage <= 0);
+        nextButton.setDisabled(currentPage >= totalPages - 1);
+      };
+      familyVariantPagerSync.set(family.id, syncPager);
+
+      prevButton.el.addEventListener("click", () => {
+        scrollByPage(-1);
+      });
+      nextButton.el.addEventListener("click", () => {
+        scrollByPage(1);
+      });
+      window.addEventListener("resize", syncPager);
+      familyVariantActivePage.set(family.id, 0);
+      panel.setAttribute("data-active-page", "0");
+      queueMicrotask(syncPager);
+
+      familyVariantContainers.set(family.id, shell);
+      mount(bottomElement, shell);
+      continue;
+    }
+
+    panel.classList.add("kids-toolbar-grid-panel");
+    familyVariantContainers.set(family.id, panel);
     mount(bottomElement, panel);
   }
 
@@ -333,8 +439,25 @@ export function createKidsDrawToolbar(options: {
       const selected = toolId === activeToolId;
       button.setSelected(selected);
     }
-    for (const [familyId, panel] of familyVariantToolbars) {
-      panel.hidden = familyId !== activeFamilyId;
+    for (const [familyId, container] of familyVariantContainers) {
+      const isActive = familyId === activeFamilyId;
+      container.hidden = !isActive;
+      if (isActive) {
+        const orderedToolIds = familyVariantOrders.get(familyId) ?? [];
+        if (orderedToolIds.length > PAGED_VARIANT_PAGE_SIZE) {
+          const selectedIndex = orderedToolIds.indexOf(activeToolId);
+          if (selectedIndex >= 0) {
+            const selectedPage = Math.floor(
+              selectedIndex / PAGED_VARIANT_PAGE_SIZE,
+            );
+            familyVariantActivePage.set(familyId, selectedPage);
+            familyVariantToolbars
+              .get(familyId)
+              ?.setAttribute("data-active-page", `${selectedPage}`);
+          }
+        }
+        familyVariantPagerSync.get(familyId)?.();
+      }
     }
 
     undoButton.setDisabled(!state.canUndo);

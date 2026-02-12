@@ -18,6 +18,7 @@ const { document } = windowInstance;
 (globalThis as any).HTMLCanvasElement = windowInstance.HTMLCanvasElement;
 (globalThis as any).SVGElement = windowInstance.SVGElement;
 (globalThis as any).navigator = windowInstance.navigator;
+(globalThis as any).Image = windowInstance.Image;
 (globalThis as any).PointerEvent =
   (windowInstance as any).PointerEvent ?? windowInstance.MouseEvent;
 
@@ -30,6 +31,8 @@ const contextStub: Partial<CanvasRenderingContext2D> = {
   beginPath: () => {},
   moveTo: () => {},
   lineTo: () => {},
+  quadraticCurveTo: () => {},
+  drawImage: () => {},
   stroke: () => {},
   restore: () => {},
   fillRect: () => {},

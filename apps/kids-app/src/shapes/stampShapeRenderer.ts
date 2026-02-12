@@ -1,9 +1,28 @@
 import type { Shape } from "@smalldraw/core";
+import { getLoadedImageStampAsset } from "../tools/stamps/imageStampAssets";
 import type { StampShape } from "./stampShape";
 
 export function renderStamp(ctx: CanvasRenderingContext2D, shape: Shape): void {
   const stamp = shape as StampShape;
   if (stamp.geometry.type !== "stamp") {
+    return;
+  }
+
+  if (stamp.geometry.stampType === "image") {
+    if (typeof ctx.drawImage !== "function") {
+      return;
+    }
+    const image = getLoadedImageStampAsset(stamp.geometry.src);
+    if (!image) {
+      return;
+    }
+    ctx.drawImage(
+      image,
+      -stamp.geometry.width / 2,
+      -stamp.geometry.height / 2,
+      stamp.geometry.width,
+      stamp.geometry.height,
+    );
     return;
   }
 

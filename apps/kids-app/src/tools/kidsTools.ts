@@ -1,5 +1,6 @@
 import type { ToolDefinition, ToolStyleSupport } from "@smalldraw/core";
 import {
+  Cat,
   Circle,
   Eraser,
   Highlighter,
@@ -8,6 +9,7 @@ import {
   SprayCan,
   Square,
 } from "lucide";
+import type { SquareIconSource } from "../view/SquareIconButton";
 import {
   createAlphabetStampTool,
   createEllipseOutlineTool,
@@ -16,11 +18,18 @@ import {
   createEvenSpraycanTool,
   createMarkerTool,
   createPenTool,
+  createPngStampTool,
   createRectangleOutlineTool,
   createRectangleTool,
   createUnevenSpraycanTool,
 } from "./drawingTools";
 import { getAlphabetGlyphIcon, getAlphabetLetters } from "./stampGlyphs";
+import {
+  getImageStampAssetIdFromToolId,
+  getImageStampAssets,
+  getImageStampLabel,
+  getImageStampToolId,
+} from "./stamps/imageStampCatalog";
 
 export type KidsToolCursorMode = "hide-while-drawing" | "always-visible";
 
@@ -29,7 +38,7 @@ export interface KidsToolConfig {
   familyId: string;
   shapeVariant?: "rect" | "ellipse";
   label: string;
-  icon: IconNode;
+  icon: SquareIconSource;
   cursorPreviewIcon?: IconNode;
   cursorMode: KidsToolCursorMode;
   tool: ToolDefinition;
@@ -67,6 +76,20 @@ const ALPHABET_STAMP_TOOL_CONFIGS = getAlphabetLetters().map((letter) => {
     label: letter,
     icon,
     cursorPreviewIcon: icon,
+    cursorMode: "always-visible" as const,
+    tool,
+  };
+});
+const IMAGE_STAMP_TOOL_CONFIGS = getImageStampAssets().map((asset) => {
+  const tool = createPngStampTool({ assetId: asset.id });
+  return {
+    id: tool.id,
+    familyId: "stamp.images",
+    label: getImageStampLabel(asset.id),
+    icon: {
+      kind: "image" as const,
+      src: asset.src,
+    },
     cursorMode: "always-visible" as const,
     tool,
   };
@@ -196,6 +219,7 @@ export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
     tool: ELLIPSE_OUTLINE_TOOL,
   },
   ...ALPHABET_STAMP_TOOL_CONFIGS,
+  ...IMAGE_STAMP_TOOL_CONFIGS,
 ];
 
 export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
@@ -242,6 +266,14 @@ export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
     defaultToolId: "stamp.letter.a",
     toolIds: ALPHABET_STAMP_TOOL_CONFIGS.map((tool) => tool.id),
   },
+  {
+    id: "stamp.images",
+    label: "Stamps",
+    icon: Cat,
+    variantLayout: "two-row-single-height",
+    defaultToolId: getImageStampToolId(getImageStampAssets()[0]?.id ?? "cat1"),
+    toolIds: IMAGE_STAMP_TOOL_CONFIGS.map((tool) => tool.id),
+  },
 ];
 
 export const KIDS_DRAW_SIDEBAR_ITEMS: ToolbarItem[] = [
@@ -250,6 +282,7 @@ export const KIDS_DRAW_SIDEBAR_ITEMS: ToolbarItem[] = [
   { kind: "family", familyId: "shape.filled" },
   { kind: "family", familyId: "shape.outline" },
   { kind: "family", familyId: "stamp.alphabet" },
+  { kind: "family", familyId: "stamp.images" },
 ];
 
 export const DEFAULT_KIDS_DRAW_FAMILY_ID =
@@ -303,4 +336,8 @@ export function getToolStyleSupport(toolId: string): ToolStyleSupport {
     transparentStrokeColor: support.transparentStrokeColor ?? false,
     transparentFillColor: support.transparentFillColor ?? false,
   };
+}
+
+export function isImageStampToolId(toolId: string): boolean {
+  return getImageStampAssetIdFromToolId(toolId) !== null;
 }

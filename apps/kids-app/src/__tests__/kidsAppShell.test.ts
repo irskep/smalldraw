@@ -515,11 +515,19 @@ describe("kids-app shell", () => {
     const cursorIndicator = container.querySelector(
       ".kids-draw-cursor-indicator",
     ) as HTMLDivElement | null;
+    const lettersPrevButton = container.querySelector(
+      '[data-tool-family-prev="stamp.alphabet"]',
+    ) as HTMLElement | null;
+    const lettersNextButton = container.querySelector(
+      '[data-tool-family-next="stamp.alphabet"]',
+    ) as HTMLElement | null;
 
     expect(lettersFamilyButton).not.toBeNull();
     expect(lettersToolbar).not.toBeNull();
     expect(stampZVariantButton).not.toBeNull();
     expect(cursorIndicator).not.toBeNull();
+    expect(lettersPrevButton).toBeNull();
+    expect(lettersNextButton).toBeNull();
     expect(lettersFamilyButton?.getAttribute("title")).toBe("Letters");
     expect(lettersToolbar?.getAttribute("data-variant-layout")).toBe(
       "two-row-single-height",
@@ -554,6 +562,97 @@ describe("kids-app shell", () => {
       expect(shape.id.startsWith("stamp-letter-z-")).toBeTrue();
       expect(shape.type).toBe("stamp");
     }
+
+    app.destroy();
+  });
+
+  test("png stamp family uses two-row scrolling variants and stamps selected images", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    const imageFamilyButton = container.querySelector(
+      '.kids-draw-tool-selector [data-tool-family="stamp.images"]',
+    ) as HTMLElement | null;
+    const imageToolbar = container.querySelector(
+      '[data-tool-family-toolbar="stamp.images"]',
+    ) as HTMLElement | null;
+    const imageVariantButton = container.querySelector(
+      '[data-tool-variant="stamp.image.cat1"]',
+    ) as HTMLElement | null;
+    const prevPageButton = container.querySelector(
+      '[data-tool-family-prev="stamp.images"]',
+    ) as HTMLElement | null;
+    const nextPageButton = container.querySelector(
+      '[data-tool-family-next="stamp.images"]',
+    ) as HTMLElement | null;
+    const imageIcon = imageVariantButton?.querySelector(
+      ".kids-square-icon-button__icon-image",
+    ) as HTMLImageElement | null;
+    const cursorIndicator = container.querySelector(
+      ".kids-draw-cursor-indicator",
+    ) as HTMLDivElement | null;
+
+    expect(imageFamilyButton).not.toBeNull();
+    expect(imageToolbar).not.toBeNull();
+    expect(imageVariantButton).not.toBeNull();
+    expect(prevPageButton).not.toBeNull();
+    expect(nextPageButton).not.toBeNull();
+    expect(imageIcon).not.toBeNull();
+    expect(imageToolbar?.getAttribute("data-variant-layout")).toBe(
+      "two-row-single-height",
+    );
+
+    imageFamilyButton!.click();
+    expect(app.store.getActiveToolId()).toBe("stamp.image.bird1");
+    dispatchPointer(overlay, "pointermove", 150, 130, 0, "mouse");
+    expect(cursorIndicator).not.toBeNull();
+    expect(cursorIndicator!.style.visibility).toBe("");
+
+    imageVariantButton!.click();
+    expect(app.store.getActiveToolId()).toBe("stamp.image.cat1");
+    dispatchPointer(overlay, "pointerdown", 220, 220, 1, "mouse");
+    dispatchPointer(overlay, "pointerup", 220, 220, 0, "mouse");
+
+    const shapes = Object.values(app.store.getDocument().shapes);
+    expect(shapes.length).toBeGreaterThanOrEqual(1);
+    const newestShape = shapes[shapes.length - 1];
+    expect(newestShape?.type).toBe("stamp");
+    expect(
+      (newestShape as { geometry?: { stampType?: string } })?.geometry
+        ?.stampType,
+    ).toBe("image");
+    expect(
+      (
+        newestShape as {
+          geometry?: {
+            assetId?: string;
+          };
+        }
+      )?.geometry?.assetId,
+    ).toBe("cat1");
 
     app.destroy();
   });

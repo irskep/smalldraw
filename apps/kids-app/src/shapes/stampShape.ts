@@ -25,7 +25,7 @@ export interface StampPath {
   commands: StampPathCommand[];
 }
 
-export interface StampGeometry {
+export interface LetterStampGeometry {
   type: "stamp";
   stampType: "letter";
   letter: string;
@@ -34,9 +34,29 @@ export interface StampGeometry {
   paths: StampPath[];
 }
 
+export interface ImageStampGeometry {
+  type: "stamp";
+  stampType: "image";
+  assetId: string;
+  src: string;
+  width: number;
+  height: number;
+}
+
+export type StampGeometry = LetterStampGeometry | ImageStampGeometry;
+
 export type StampShape = Shape & { type: "stamp"; geometry: StampGeometry };
 
 export function getStampGeometryBounds(geometry: StampGeometry): Box | null {
+  if (geometry.stampType === "image") {
+    const halfWidth = geometry.width / 2;
+    const halfHeight = geometry.height / 2;
+    return {
+      min: [-halfWidth, -halfHeight],
+      max: [halfWidth, halfHeight],
+    };
+  }
+
   const points: Vec2Tuple[] = [];
 
   const addQuadraticPoint = (
@@ -110,6 +130,9 @@ export const KidsStampShapeHandler: ShapeHandler<StampGeometry, unknown> = {
     getBounds: (shape: Shape & { geometry: StampGeometry }) =>
       getStampGeometryBounds(shape.geometry),
     canonicalize(shape: Shape & { geometry: StampGeometry }, center) {
+      if (shape.geometry.stampType === "image") {
+        return shape.geometry;
+      }
       const toLocal = (point: Vec2Tuple): Vec2Tuple =>
         toVec2Like(new Vec2().add(toVec2(point)).sub(center));
       return {

@@ -17,6 +17,8 @@ import {
   KIDS_DRAW_TOOL_FAMILIES,
   KIDS_DRAW_TOOLS,
 } from "../tools/kidsTools";
+import { warmImageStampAssets } from "../tools/stamps/imageStampAssets";
+import { getImageStampAssets } from "../tools/stamps/imageStampCatalog";
 import {
   $toolbarUi,
   syncToolbarUiFromDrawingStore,
@@ -33,6 +35,8 @@ const KIDS_DRAW_STROKE_WIDTH_MULTIPLIER = 3;
 export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
 ): Promise<KidsDrawApp> {
+  warmImageStampAssets(getImageStampAssets().map((asset) => asset.src));
+
   const hasExplicitSize =
     options.width !== undefined || options.height !== undefined;
   const getExplicitSize = (): DrawingDocumentSize => ({

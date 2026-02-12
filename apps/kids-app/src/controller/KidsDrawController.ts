@@ -535,7 +535,7 @@ export function createKidsDrawController(options: {
     lastPointerPoint = toPoint(event);
     const committedToolId = store.getActiveToolId();
     store.dispatch(type, { point: lastPointerPoint, buttons: event.buttons });
-    if (type === "pointerUp" && committedToolId?.startsWith("stamp.letter.")) {
+    if (type === "pointerUp" && committedToolId?.startsWith("stamp.")) {
       cursorOverlay.playStampCommit(lastPointerPoint);
     }
     pointerIsDown = false;

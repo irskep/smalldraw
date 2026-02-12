@@ -1,7 +1,7 @@
 import type { StrokeStyle, ToolDefinition, ToolRuntime } from "@smalldraw/core";
 import { toVec2Like } from "@smalldraw/geometry";
 import type { Vec2 } from "gl-matrix";
-import type { StampGeometry, StampShape } from "../../shapes/stampShape";
+import type { LetterStampGeometry, StampShape } from "../../shapes/stampShape";
 import type { StampGlyph, StampPoint } from "../stampGlyphs";
 import { createStampPlacementTool } from "./stampPlacementTool";
 import {
@@ -41,7 +41,7 @@ export function buildLetterStampGeometry(params: {
   glyph: StampGlyph;
   letter: string;
   stampSize: number;
-}): StampGeometry {
+}): LetterStampGeometry {
   const { glyph, letter, stampSize } = params;
   const width = glyph.advance * stampSize;
   const height = stampSize;
