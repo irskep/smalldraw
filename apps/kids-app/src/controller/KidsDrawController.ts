@@ -56,6 +56,19 @@ type ConfirmDialogRequest = {
   icon?: IconNode;
 };
 
+type SaveFilePickerLike = (options: {
+  suggestedName?: string;
+  types?: Array<{
+    description?: string;
+    accept: Record<string, string[]>;
+  }>;
+}) => Promise<{
+  createWritable: () => Promise<{
+    write: (data: Blob) => Promise<void>;
+    close: () => Promise<void>;
+  }>;
+}>;
+
 export interface KidsDrawController {
   destroy(): void;
 }
@@ -483,7 +496,7 @@ export function createKidsDrawController(options: {
     }
   };
 
-  const onExportClick = (): void => {
+  const onExportClick = async (): Promise<void> => {
     const size = getSize();
     const exportCanvas = document.createElement("canvas");
     exportCanvas.width = Math.max(1, Math.round(size.width));
@@ -502,11 +515,57 @@ export function createKidsDrawController(options: {
     exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
     exportCtx.restore();
 
-    const dataUrl = exportCanvas.toDataURL("image/png");
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const fileName = `kids-draw-${timestamp}.png`;
+    const blob: Blob | null =
+      typeof exportCanvas.toBlob === "function"
+        ? await new Promise((resolve) => {
+            exportCanvas.toBlob((result) => resolve(result), "image/png");
+          })
+        : null;
+    const picker = (
+      window as unknown as {
+        showSaveFilePicker?: SaveFilePickerLike;
+      }
+    ).showSaveFilePicker;
+
+    if (blob && picker) {
+      try {
+        const fileHandle = await picker({
+          suggestedName: fileName,
+          types: [
+            {
+              description: "PNG Image",
+              accept: { "image/png": [".png"] },
+            },
+          ],
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    if (blob) {
+      const link = document.createElement("a");
+      const objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
+      link.download = fileName;
+      link.rel = "noopener";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+      return;
+    }
+
+    const dataUrl = exportCanvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.href = dataUrl;
-    link.download = `kids-draw-${timestamp}.png`;
+    link.download = fileName;
     link.rel = "noopener";
     link.click();
   };
@@ -678,7 +737,7 @@ export function createKidsDrawController(options: {
     })();
   });
   listen(toolbar.exportButton.el, "click", () => {
-    onExportClick();
+    void onExportClick();
   });
   listen(toolbar.newDrawingButton.el, "click", () => {
     void onNewDrawingClick();
