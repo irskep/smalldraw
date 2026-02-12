@@ -7,34 +7,10 @@ import {
   getDefaultShapeHandlerRegistry,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
-import {
-  renderBoxed,
-  renderPen,
-  type ShapeRendererRegistry,
-} from "@smalldraw/renderer-canvas";
+import { TILE_SIZE, TileRenderer, tileKey } from "@smalldraw/renderer-raster";
 import { createCanvas } from "canvas";
-import { TILE_SIZE, TileRenderer, tileKey } from "../index";
+import { createTestShapeRendererRegistry } from "../../shapes/renderers/testShapeRendererRegistry";
 import { expectSnapshot } from "./snapshotUtils";
-
-function createTestShapeRendererRegistry(): ShapeRendererRegistry {
-  const registry: ShapeRendererRegistry = new Map();
-  registry.set("boxed", (ctx, shape) =>
-    renderBoxed(
-      ctx,
-      shape as AnyShape & {
-        geometry: {
-          type: "boxed";
-          kind: "rect" | "ellipse";
-          size: [number, number];
-        };
-      },
-    ),
-  );
-  registry.set("pen", (ctx, shape) =>
-    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
-  );
-  return registry;
-}
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 const solidFill = (color: string) => ({ type: "solid" as const, color });

@@ -1,12 +1,18 @@
 import type { DrawingDocument } from "@smalldraw/core";
 import {
+  type RenderDocumentOptions,
+  renderDocument,
+} from "@smalldraw/renderer-canvas";
+import {
   expectSnapshot as expectSnapshotBase,
   resolveSnapshotDir,
 } from "@smalldraw/testing";
 import { createCanvas } from "canvas";
-import { type RenderDocumentOptions, renderDocument } from "../index";
 
-const SNAPSHOT_DIR = resolveSnapshotDir(import.meta.url);
+const SNAPSHOT_DIR = resolveSnapshotDir(
+  import.meta.url,
+  "../../../__snapshots__",
+);
 
 export async function renderDocumentToImage(
   document: DrawingDocument,
@@ -38,7 +44,7 @@ export async function expectSnapshot(
 ): Promise<void> {
   return expectSnapshotBase(buffer, snapshotName, {
     snapshotDir: SNAPSHOT_DIR,
-    testCommand: "bun --filter @smalldraw/renderer-canvas test",
+    testCommand: "bun --filter kids-app test",
     tolerance,
   });
 }

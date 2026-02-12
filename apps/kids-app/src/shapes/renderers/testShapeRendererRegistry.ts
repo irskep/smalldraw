@@ -1,11 +1,9 @@
 import type { AnyShape } from "@smalldraw/core";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
-import { renderRasterFill } from "../shapes/rasterFillShapeRenderer";
-import { renderBoxed } from "../shapes/renderers/boxed";
-import { renderPen } from "../shapes/renderers/pen";
-import { renderStamp } from "../shapes/stampShapeRenderer";
+import { renderBoxed } from "./boxed";
+import { renderPen } from "./pen";
 
-export function createKidsShapeRendererRegistry(): ShapeRendererRegistry {
+export function createTestShapeRendererRegistry(): ShapeRendererRegistry {
   const registry: ShapeRendererRegistry = new Map();
   registry.set("boxed", (ctx, shape) =>
     renderBoxed(
@@ -22,7 +20,5 @@ export function createKidsShapeRendererRegistry(): ShapeRendererRegistry {
   registry.set("pen", (ctx, shape) =>
     renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
   );
-  registry.set("stamp", (ctx, shape) => renderStamp(ctx, shape));
-  registry.set("raster-fill", (ctx, shape) => renderRasterFill(ctx, shape));
   return registry;
 }

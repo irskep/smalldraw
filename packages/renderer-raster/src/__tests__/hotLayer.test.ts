@@ -1,34 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import type { AnyShape, BoxedGeometry, DraftShape } from "@smalldraw/core";
+import type { BoxedGeometry, DraftShape } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
-import {
-  renderBoxed,
-  renderPen,
-  type ShapeRendererRegistry,
-} from "@smalldraw/renderer-canvas";
 import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
 import { HotLayer } from "../hotLayer";
-
-function createTestShapeRendererRegistry(): ShapeRendererRegistry {
-  const registry: ShapeRendererRegistry = new Map();
-  registry.set("boxed", (ctx, shape) =>
-    renderBoxed(
-      ctx,
-      shape as AnyShape & {
-        geometry: {
-          type: "boxed";
-          kind: "rect" | "ellipse";
-          size: [number, number];
-        };
-      },
-    ),
-  );
-  registry.set("pen", (ctx, shape) =>
-    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
-  );
-  return registry;
-}
+import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
 function pixelAt(
   ctx: CanvasRenderingContext2D,

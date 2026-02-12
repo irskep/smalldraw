@@ -5,41 +5,13 @@ import {
   createPenJSONGeometry,
   DrawingStore,
 } from "@smalldraw/core";
-import type { Box } from "@smalldraw/geometry";
-import {
-  renderBoxed,
-  renderOrderedShapes,
-  renderPen,
-  type ShapeRendererRegistry,
-} from "@smalldraw/renderer-canvas";
+import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import { createCanvas } from "canvas";
-import {
-  createInMemorySnapshotStore,
-  getVisibleTileCoords,
-  TILE_SIZE,
-  TileRenderer,
-  tileKey,
-} from "../index";
-
-function createTestShapeRendererRegistry(): ShapeRendererRegistry {
-  const registry: ShapeRendererRegistry = new Map();
-  registry.set("boxed", (ctx, shape) =>
-    renderBoxed(
-      ctx,
-      shape as AnyShape & {
-        geometry: {
-          type: "boxed";
-          kind: "rect" | "ellipse";
-          size: [number, number];
-        };
-      },
-    ),
-  );
-  registry.set("pen", (ctx, shape) =>
-    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
-  );
-  return registry;
-}
+import { TILE_SIZE } from "../constants";
+import { TileRenderer } from "../index";
+import { createInMemorySnapshotStore } from "../snapshots";
+import { getVisibleTileCoords, tileKey } from "../tiles";
+import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
 describe("TileRenderer", () => {
   const shapeRendererRegistry = createTestShapeRendererRegistry();
@@ -52,9 +24,9 @@ describe("TileRenderer", () => {
     const renderer = new TileRenderer(store, provider, {
       shapeRendererRegistry,
     });
-    const bounds: Box = {
-      min: [0, 0],
-      max: [TILE_SIZE, TILE_SIZE],
+    const bounds = {
+      min: [0, 0] as [number, number],
+      max: [TILE_SIZE, TILE_SIZE] as [number, number],
     };
     renderer.updateViewport(bounds);
     expect(renderer.getViewport()).toEqual(bounds);

@@ -4,7 +4,7 @@ import {
   getDefaultShapeHandlerRegistry,
 } from "@smalldraw/core";
 import { createCanvas } from "canvas";
-import { renderDocument } from "../index";
+import { renderDocument } from "../document";
 import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
 function pixelAt(

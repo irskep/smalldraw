@@ -12,45 +12,13 @@ import {
   getOrderedShapes,
   UpdateShapeTransform,
 } from "@smalldraw/core";
-import type { Box } from "@smalldraw/geometry";
-import {
-  renderBoxed,
-  renderOrderedShapes,
-  renderPen,
-  type ShapeRendererRegistry,
-} from "@smalldraw/renderer-canvas";
+import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
+import { TILE_SIZE, TileRenderer } from "@smalldraw/renderer-raster";
 import { imagesMatch } from "@smalldraw/testing";
 import { createCanvas } from "canvas";
-import { TILE_SIZE, TileRenderer } from "../index";
-
-function createTestShapeRendererRegistry(): ShapeRendererRegistry {
-  const registry: ShapeRendererRegistry = new Map();
-  registry.set("boxed", (ctx, shape) =>
-    renderBoxed(
-      ctx,
-      shape as AnyShape & {
-        geometry: {
-          type: "boxed";
-          kind: "rect" | "ellipse";
-          size: [number, number];
-        };
-      },
-    ),
-  );
-  registry.set("pen", (ctx, shape) =>
-    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
-  );
-  return registry;
-}
+import { createTestShapeRendererRegistry } from "../../shapes/renderers/testShapeRendererRegistry";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
-
-function createViewport(tileCountX: number, tileCountY = 1): Box {
-  return {
-    min: [0, 0],
-    max: [TILE_SIZE * tileCountX, TILE_SIZE * tileCountY],
-  };
-}
 
 function createRect(id: string, translation: [number, number]): AnyShape {
   return {
@@ -112,6 +80,13 @@ async function renderTileFromDoc(
   });
   ctx.restore();
   return canvas.toBuffer("image/png");
+}
+
+function createViewport(tileCountX: number, tileCountY = 1) {
+  return {
+    min: [0, 0] as [number, number],
+    max: [TILE_SIZE * tileCountX, TILE_SIZE * tileCountY] as [number, number],
+  };
 }
 
 async function bakeTileFromDoc(

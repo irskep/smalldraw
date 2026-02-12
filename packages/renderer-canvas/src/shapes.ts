@@ -2,9 +2,6 @@ import type { Shape, ShapeHandlerRegistry } from "@smalldraw/core";
 import { normalizeShapeTransform } from "@smalldraw/core";
 import { getX, getY } from "@smalldraw/geometry";
 
-export { renderBoxed } from "./shapes/boxed";
-export { renderPen } from "./shapes/pen";
-
 export type ShapeRenderer = (
   ctx: CanvasRenderingContext2D,
   shape: Shape,

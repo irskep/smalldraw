@@ -7,10 +7,10 @@ import {
   getDefaultShapeHandlerRegistry,
   getOrderedShapes,
 } from "@smalldraw/core";
+import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import { createCanvas } from "canvas";
-import { renderOrderedShapes } from "../index";
+import { createTestShapeRendererRegistry } from "../../shapes/renderers/testShapeRendererRegistry";
 import { expectSnapshot, renderDocumentToImage } from "./snapshotUtils";
-import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 

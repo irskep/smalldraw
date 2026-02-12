@@ -9,37 +9,17 @@ import {
   type ToolDefinition,
 } from "@smalldraw/core";
 import {
-  renderBoxed,
-  renderPen,
-  type ShapeRendererRegistry,
-} from "@smalldraw/renderer-canvas";
+  HotLayer,
+  RasterSession,
+  TILE_SIZE,
+  TileRenderer,
+} from "@smalldraw/renderer-raster";
 import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
-import {
-  createEraserTool,
-  createPenTool,
-} from "../../../../apps/kids-app/src/tools/drawingTools";
-import { HotLayer, RasterSession, TILE_SIZE, TileRenderer } from "../index";
+import { createTestShapeRendererRegistry } from "../../shapes/renderers/testShapeRendererRegistry";
+import { createEraserTool, createPenTool } from "../../tools/drawingTools";
 
-function createTestShapeRendererRegistry(): ShapeRendererRegistry {
-  const registry: ShapeRendererRegistry = new Map();
-  registry.set("boxed", (ctx, shape) =>
-    renderBoxed(
-      ctx,
-      shape as AnyShape & {
-        geometry: {
-          type: "boxed";
-          kind: "rect" | "ellipse";
-          size: [number, number];
-        };
-      },
-    ),
-  );
-  registry.set("pen", (ctx, shape) =>
-    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
-  );
-  return registry;
-}
+const shapeRendererRegistry = createTestShapeRendererRegistry();
 
 function pixelAt(
   ctx: CanvasRenderingContext2D,
@@ -51,8 +31,6 @@ function pixelAt(
 }
 
 describe("RasterSession", () => {
-  const shapeRendererRegistry = createTestShapeRendererRegistry();
-
   test("runs draw cycle from draft to baked tiles", async () => {
     const store = new DrawingStore({
       tools: [createPenTool()],
@@ -73,6 +51,8 @@ describe("RasterSession", () => {
     const renderer = new TileRenderer(store, provider, {
       shapeRendererRegistry,
       backgroundColor: "#ffffff",
+      createViewportSnapshotCanvas: (w, h) =>
+        createCanvas(w, h) as unknown as HTMLCanvasElement,
       baker: {
         bakeTile: async (coord, canvas) => {
           bakeCalls.push(`${coord.x},${coord.y}`);
