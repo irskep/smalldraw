@@ -9,6 +9,7 @@ import { type Box, getX, getY } from "@smalldraw/geometry";
 import {
   getOrderedShapesBounds,
   renderOrderedShapes,
+  type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
 import { Vec2 } from "gl-matrix";
 import { TILE_SIZE } from "./constants";
@@ -33,6 +34,7 @@ export interface TileRendererOptions<
   TSnapshot = unknown,
 > {
   shapeHandlers?: ShapeHandlerRegistry;
+  shapeRendererRegistry: ShapeRendererRegistry;
   tileSize?: number;
   backgroundColor?: string;
   baker?: TileBaker<TCanvas>;
@@ -58,7 +60,7 @@ export interface TileRendererHandle {
 export function bind(
   coreStore: DrawingStore,
   tileProvider: TileProvider,
-  options: TileRendererOptions = {},
+  options: TileRendererOptions,
 ): TileRendererHandle {
   const renderer = new TileRenderer(coreStore, tileProvider, options);
   return {
@@ -71,6 +73,7 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   private coreStore: DrawingStore;
   private tileProvider: TileProvider<TCanvas>;
   private shapeHandlers: ShapeHandlerRegistry;
+  private shapeRendererRegistry: ShapeRendererRegistry;
   private tileSize: number;
   private baker?: TileBaker<TCanvas>;
   private snapshotAdapter?: TileSnapshotAdapter<TCanvas, TSnapshot>;
@@ -96,12 +99,13 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   constructor(
     coreStore: DrawingStore,
     tileProvider: TileProvider<TCanvas>,
-    options: TileRendererOptions<TCanvas, TSnapshot> = {},
+    options: TileRendererOptions<TCanvas, TSnapshot>,
   ) {
     this.coreStore = coreStore;
     this.tileProvider = tileProvider;
     this.shapeHandlers =
       options.shapeHandlers ?? this.coreStore.getShapeHandlers();
+    this.shapeRendererRegistry = options.shapeRendererRegistry;
     this.tileSize = options.tileSize ?? TILE_SIZE;
     this.backgroundColor = options.backgroundColor;
     this.baker = options.baker;
@@ -167,6 +171,7 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
       ctx.restore();
     }
     renderOrderedShapes(ctx, shapes, {
+      registry: this.shapeRendererRegistry,
       geometryHandlerRegistry: this.shapeHandlers,
     });
   }

@@ -1,0 +1,6 @@
+- spiral: hold your finger down and it slowly makes a spiral out from your finger
+- raster rect copy
+- brush variant: dotted stroke (`brushId: "dotted"`). Renderer-driven effect only; reuse existing pen geometry and tool runtime.
+- brush variant: arrow-end stroke (`brushId: "arrow-end"`). Add arrowhead at stroke end in renderer; no new geometry/action types.
+- brush variant: calligraphy/variable-width stroke (`brushId` split TBD). Keep as pen-based brush variants; scope is renderer + bounds updates only.
+- paint bucket: flood fill tool with tolerance and optional fill styles (noisy/checker/target). Requires raster readback + async region fill pipeline.

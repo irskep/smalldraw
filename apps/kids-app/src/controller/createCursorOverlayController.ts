@@ -229,7 +229,7 @@ export function createCursorOverlayController(options: {
     const cursorMode = activeToolId
       ? cursorModeByToolId.get(activeToolId)
       : undefined;
-    if (!cursorMode || !mouseHoverPoint) {
+    if (!cursorMode || cursorMode === "none" || !mouseHoverPoint) {
       indicator.style.visibility = "hidden";
       return;
     }
@@ -380,7 +380,10 @@ export function createCursorOverlayController(options: {
         stampPointerDownPoint
       ) {
         const activeToolId = store.getActiveToolId();
-        if (typeof activeToolId === "string" && activeToolId.startsWith("stamp.")) {
+        if (
+          typeof activeToolId === "string" &&
+          activeToolId.startsWith("stamp.")
+        ) {
           const currentPoint = toPoint(event);
           const distance = Vec2.distance(currentPoint, stampPointerDownPoint);
           if (distance >= STAMP_DRAG_HIDE_DISTANCE_PX) {

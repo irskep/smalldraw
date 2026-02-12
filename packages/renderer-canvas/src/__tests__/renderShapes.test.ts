@@ -5,8 +5,12 @@ import {
   createDocument,
   createPenJSONGeometry,
   getDefaultShapeHandlerRegistry,
+  getOrderedShapes,
 } from "@smalldraw/core";
+import { createCanvas } from "canvas";
+import { renderOrderedShapes } from "../index";
 import { expectSnapshot, renderDocumentToImage } from "./snapshotUtils";
+import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
@@ -16,7 +20,8 @@ async function expectDocumentSnapshot(
   width = 200,
   height = 200,
 ) {
-  const registry = getDefaultShapeHandlerRegistry();
+  const shapeHandlerRegistry = getDefaultShapeHandlerRegistry();
+  const shapeRendererRegistry = createTestShapeRendererRegistry();
   const document = createDocument(
     shapes.map((shape) => ({
       ...shape,
@@ -25,9 +30,10 @@ async function expectDocumentSnapshot(
         translation: shape.transform?.translation ?? v(width / 2, height / 2),
       },
     })),
-    registry,
+    shapeHandlerRegistry,
   );
   const image = await renderDocumentToImage(document, width, height, {
+    registry: shapeRendererRegistry,
     background: "#ffffff",
   });
   await expectSnapshot(image, name);
@@ -254,6 +260,66 @@ describe("renderer-canvas snapshots", () => {
       ],
       260,
       200,
+    );
+  });
+
+  test("export compositing keeps erased pixels white with destination-over background", async () => {
+    const width = 260;
+    const height = 200;
+    const registry = getDefaultShapeHandlerRegistry();
+    const shapeRendererRegistry = createTestShapeRendererRegistry();
+    const shapes: AnyShape[] = [
+      {
+        id: "rect-solid",
+        type: "boxed",
+        zIndex: "a",
+        geometry: {
+          type: "boxed",
+          kind: "rect",
+          size: v(180, 120),
+        } as BoxedGeometry,
+        style: {
+          fill: { type: "solid", color: "#263238" },
+          stroke: { type: "brush", color: "#102027", size: 6 },
+        },
+        transform: { translation: v(width / 2, height / 2) },
+      },
+      {
+        id: "eraser-stroke",
+        type: "pen",
+        zIndex: "b",
+        geometry: createPenJSONGeometry(
+          [v(-70, -40), v(-10, 0), v(40, -20), v(70, 40)],
+          [1, 1, 1, 1],
+        ),
+        style: {
+          stroke: {
+            type: "brush",
+            color: "#ffffff",
+            size: 20,
+            brushId: "marker",
+            compositeOp: "destination-out",
+          },
+        },
+        transform: { translation: v(width / 2, height / 2) },
+      },
+    ];
+    const document = createDocument(shapes, registry);
+
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    renderOrderedShapes(ctx, getOrderedShapes(document), {
+      registry: shapeRendererRegistry,
+      geometryHandlerRegistry: registry,
+    });
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-over";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+    await expectSnapshot(
+      canvas.toBuffer("image/png"),
+      "canvas-export-destination-over-eraser",
     );
   });
 });

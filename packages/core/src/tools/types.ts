@@ -1,6 +1,7 @@
 import type { Box } from "@smalldraw/geometry";
 import type { Vec2 } from "gl-matrix";
 import type { UndoableAction } from "../actions";
+import type { DrawingDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
 
 export type ToolEventName =
@@ -91,6 +92,8 @@ export interface ToolRuntime {
   clearSelection(): void;
   isSelected(id: string): boolean;
   getShape(shapeId: string): AnyShape | undefined;
+  getDocument(): DrawingDocument;
+  getOrderedShapes(): AnyShape[];
   /** Get the shape handler registry for this drawing session */
   getShapeHandlers(): import("../model/shapeHandlers").ShapeHandlerRegistry;
   onEvent<TPayload>(

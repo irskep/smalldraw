@@ -92,10 +92,7 @@ function buildLineShape(params: {
     };
   }
 
-  const center = new Vec2()
-    .add(start)
-    .add(end)
-    .mul([0.5, 0.5]);
+  const center = new Vec2().add(start).add(end).mul([0.5, 0.5]);
   return {
     id: params.id,
     type: "pen",

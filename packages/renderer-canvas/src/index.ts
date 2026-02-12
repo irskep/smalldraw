@@ -9,8 +9,8 @@ export {
 } from "./document";
 
 export {
-  createShapeRendererRegistry,
-  defaultShapeRendererRegistry,
+  renderBoxed,
+  renderPen,
   renderShape,
   type ShapeRenderer,
   type ShapeRendererRegistry,

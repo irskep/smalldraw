@@ -12,17 +12,17 @@ export async function renderDocumentToImage(
   document: DrawingDocument,
   width: number,
   height: number,
-  options?: RenderDocumentOptions & { background?: string },
+  options: RenderDocumentOptions & { background?: string },
 ): Promise<Buffer> {
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
-  const background = options?.background;
+  const background = options.background;
   if (background) {
     const renderCtx = ctx as unknown as CanvasRenderingContext2D;
     renderCtx.fillStyle = background;
     renderCtx.fillRect(0, 0, width, height);
   }
-  const { background: _bg, ...renderOptions } = options ?? {};
+  const { background: _bg, ...renderOptions } = options;
   renderDocument(
     ctx as unknown as CanvasRenderingContext2D,
     document,

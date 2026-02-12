@@ -4,12 +4,16 @@ import type {
   ShapeHandlerRegistry,
 } from "@smalldraw/core";
 import { type Box, BoxOperations, getX, getY } from "@smalldraw/geometry";
-import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
+import {
+  renderOrderedShapes,
+  type ShapeRendererRegistry,
+} from "@smalldraw/renderer-canvas";
 import { Vec2 } from "gl-matrix";
 import { perfAddTimingMs, perfNowMs } from "./perfDebug";
 import type { Viewport } from "./viewport";
 
 export interface HotLayerOptions {
+  shapeRendererRegistry: ShapeRendererRegistry;
   geometryHandlerRegistry?: ShapeHandlerRegistry;
   backgroundColor?: string;
 }
@@ -20,6 +24,7 @@ export interface HotLayerRenderOptions {
 
 export class HotLayer {
   private readonly ctx: CanvasRenderingContext2D;
+  private readonly shapeRendererRegistry: ShapeRendererRegistry;
   private readonly geometryHandlerRegistry?: ShapeHandlerRegistry;
   private readonly backgroundColor?: string;
   private viewport: Viewport | null = null;
@@ -28,13 +33,14 @@ export class HotLayer {
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
-    options: HotLayerOptions = {},
+    options: HotLayerOptions,
   ) {
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       throw new Error("HotLayer requires a 2D canvas context.");
     }
     this.ctx = ctx as CanvasRenderingContext2D;
+    this.shapeRendererRegistry = options.shapeRendererRegistry;
     this.geometryHandlerRegistry = options.geometryHandlerRegistry;
     this.backgroundColor = options.backgroundColor;
   }
@@ -143,6 +149,7 @@ export class HotLayer {
     const ordered = orderByZIndex(shapes);
     renderOrderedShapes(this.ctx, ordered, {
       clear: false,
+      registry: this.shapeRendererRegistry,
       geometryHandlerRegistry: this.geometryHandlerRegistry,
     });
     this.ctx.restore();

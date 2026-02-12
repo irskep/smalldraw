@@ -5,6 +5,7 @@ import {
 } from "@smalldraw/core";
 import { createCanvas } from "canvas";
 import { renderDocument } from "../index";
+import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
 function pixelAt(
   ctx: CanvasRenderingContext2D,
@@ -21,7 +22,9 @@ describe("renderDocument", () => {
     const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
     const registry = getDefaultShapeHandlerRegistry();
     const document = createDocument(undefined, registry);
-    renderDocument(ctx, document);
+    renderDocument(ctx, document, {
+      registry: createTestShapeRendererRegistry(),
+    });
     expect(pixelAt(ctx, 10, 10)).toEqual([0, 0, 0, 0]);
   });
 });

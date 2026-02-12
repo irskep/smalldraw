@@ -6,7 +6,12 @@ import {
   DrawingStore,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
-import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
+import {
+  renderBoxed,
+  renderOrderedShapes,
+  renderPen,
+  type ShapeRendererRegistry,
+} from "@smalldraw/renderer-canvas";
 import { createCanvas } from "canvas";
 import {
   createInMemorySnapshotStore,
@@ -16,13 +21,37 @@ import {
   tileKey,
 } from "../index";
 
+function createTestShapeRendererRegistry(): ShapeRendererRegistry {
+  const registry: ShapeRendererRegistry = new Map();
+  registry.set("boxed", (ctx, shape) =>
+    renderBoxed(
+      ctx,
+      shape as AnyShape & {
+        geometry: {
+          type: "boxed";
+          kind: "rect" | "ellipse";
+          size: [number, number];
+        };
+      },
+    ),
+  );
+  registry.set("pen", (ctx, shape) =>
+    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
+  );
+  return registry;
+}
+
 describe("TileRenderer", () => {
+  const shapeRendererRegistry = createTestShapeRendererRegistry();
+
   test("tracks viewport updates", () => {
     const store = new DrawingStore({ tools: [] });
     const provider = {
       getTileCanvas: () => ({}) as HTMLCanvasElement,
     };
-    const renderer = new TileRenderer(store, provider);
+    const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
+    });
     const bounds: Box = {
       min: [0, 0],
       max: [TILE_SIZE, TILE_SIZE],
@@ -36,7 +65,9 @@ describe("TileRenderer", () => {
     const provider = {
       getTileCanvas: () => ({}) as HTMLCanvasElement,
     };
-    const renderer = new TileRenderer(store, provider);
+    const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
+    });
     const state = renderer.getRenderState();
     expect(Array.isArray(state.shapes)).toBeTrue();
     expect(state.dirtyState).toBeDefined();
@@ -71,7 +102,9 @@ describe("TileRenderer", () => {
         events.push(`release:${coord.x},${coord.y}`);
       },
     };
-    const renderer = new TileRenderer(store, provider);
+    const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
+    });
 
     renderer.updateViewport({
       min: [0, 0],
@@ -96,7 +129,10 @@ describe("TileRenderer", () => {
         events.push(`bake:${coord.x},${coord.y}`);
       },
     };
-    const renderer = new TileRenderer(store, provider, { baker });
+    const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
+      baker,
+    });
 
     renderer.updateViewport({
       min: [0, 0],
@@ -123,7 +159,9 @@ describe("TileRenderer", () => {
     const provider = {
       getTileCanvas: (coord: { x: number; y: number }) => ({ coord }),
     };
-    const renderer = new TileRenderer(store, provider);
+    const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
+    });
 
     renderer.updateTouchedTilesForShape({
       id: "shape-1",
@@ -174,6 +212,7 @@ describe("TileRenderer", () => {
     };
     const snapshotStore = createInMemorySnapshotStore<string>();
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       snapshotStore,
       snapshotAdapter: {
         captureSnapshot: (canvas) => {
@@ -232,7 +271,10 @@ describe("TileRenderer", () => {
     const provider = {
       getTileCanvas: () => ({}) as HTMLCanvasElement,
     };
-    const renderer = new TileRenderer(store, provider, { snapshotStore });
+    const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
+      snapshotStore,
+    });
 
     renderer.markShapeTouched("shape-1", { x: 0, y: 0 });
     renderer.markShapeTouched("shape-2", { x: 1, y: 0 });
@@ -248,6 +290,7 @@ describe("TileRenderer", () => {
       getTileCanvas: (coord: { x: number; y: number }) => ({ coord }),
     };
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       baker: {
         bakeTile: async (coord) => {
           baked.push(`${coord.x},${coord.y}`);
@@ -276,6 +319,7 @@ describe("TileRenderer", () => {
       getTileCanvas: (coord: { x: number; y: number }) => ({ coord }),
     };
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       snapshotStore,
       snapshotAdapter: {
         captureSnapshot: () => "snap",
@@ -308,6 +352,7 @@ describe("TileRenderer", () => {
       getTileCanvas: (coord: { x: number; y: number }) => ({ coord }),
     };
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       snapshotStore,
       baker: {
         bakeTile: async (coord) => {
@@ -339,6 +384,7 @@ describe("TileRenderer", () => {
         ) as unknown as HTMLCanvasElement,
     };
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       createViewportSnapshotCanvas: (width, height) =>
         createCanvas(width, height) as unknown as HTMLCanvasElement,
       baker: {
@@ -463,6 +509,7 @@ describe("TileRenderer", () => {
           ) as unknown as HTMLCanvasElement,
       };
       const renderer = new TileRenderer(store, provider, {
+        shapeRendererRegistry,
         backgroundColor: "#ffffff",
         createViewportSnapshotCanvas: (width, height) =>
           createCanvas(width, height) as unknown as HTMLCanvasElement,
@@ -481,6 +528,7 @@ describe("TileRenderer", () => {
             renderOrderedShapes(
               ctx as unknown as CanvasRenderingContext2D,
               scene,
+              { registry: shapeRendererRegistry },
             );
             ctx.restore();
           },
@@ -576,6 +624,7 @@ describe("TileRenderer", () => {
           ) as unknown as HTMLCanvasElement,
       };
       const renderer = new TileRenderer(store, provider, {
+        shapeRendererRegistry,
         backgroundColor: "#ffffff",
         createViewportSnapshotCanvas: (w, h) =>
           createCanvas(w, h) as unknown as HTMLCanvasElement,
@@ -594,6 +643,7 @@ describe("TileRenderer", () => {
             renderOrderedShapes(
               ctx as unknown as CanvasRenderingContext2D,
               scene,
+              { registry: shapeRendererRegistry },
             );
             ctx.restore();
           },

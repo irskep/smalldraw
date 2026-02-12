@@ -1,8 +1,9 @@
-import type { AnyShape, Shape, ShapeHandlerRegistry } from "@smalldraw/core";
+import type { Shape, ShapeHandlerRegistry } from "@smalldraw/core";
 import { normalizeShapeTransform } from "@smalldraw/core";
 import { getX, getY } from "@smalldraw/geometry";
-import { renderBoxed } from "./shapes/boxed";
-import { renderPen } from "./shapes/pen";
+
+export { renderBoxed } from "./shapes/boxed";
+export { renderPen } from "./shapes/pen";
 
 export type ShapeRenderer = (
   ctx: CanvasRenderingContext2D,
@@ -12,45 +13,10 @@ export type ShapeRenderer = (
 
 export type ShapeRendererRegistry = Map<string, ShapeRenderer>;
 
-function createDefaultShapeRendererRegistry(): ShapeRendererRegistry {
-  const registry = new Map<string, ShapeRenderer>();
-  registry.set("boxed", (ctx, shape, _geometryRegistry) =>
-    renderBoxed(
-      ctx,
-      shape as AnyShape & {
-        geometry: {
-          type: "boxed";
-          kind: "rect" | "ellipse";
-          size: [number, number];
-        };
-      },
-    ),
-  );
-  registry.set("pen", (ctx, shape) =>
-    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
-  );
-  return registry;
-}
-
-export function createShapeRendererRegistry(
-  overrides?: Map<string, ShapeRenderer>,
-): ShapeRendererRegistry {
-  const registry = new Map(createDefaultShapeRendererRegistry());
-  if (overrides) {
-    for (const [type, renderer] of overrides) {
-      registry.set(type, renderer);
-    }
-  }
-  return registry;
-}
-
-export const defaultShapeRendererRegistry =
-  createDefaultShapeRendererRegistry();
-
 export function renderShape(
   ctx: CanvasRenderingContext2D,
   shape: Shape,
-  registry: ShapeRendererRegistry = defaultShapeRendererRegistry,
+  registry: ShapeRendererRegistry,
   geometryRegistry?: ShapeHandlerRegistry,
 ): void {
   const renderer = registry.get(shape.type);

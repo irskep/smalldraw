@@ -7,15 +7,13 @@ import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
 import { resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
+import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import {
-  DEFAULT_KIDS_DRAW_FAMILY_ID,
+  createKidsToolCatalog,
   getDefaultToolIdForFamily,
   getFamilyIdForTool,
   getToolStyleSupport,
-  KIDS_DRAW_SIDEBAR_ITEMS,
-  KIDS_DRAW_TOOL_FAMILIES,
-  KIDS_DRAW_TOOLS,
 } from "../tools/kidsTools";
 import { warmImageStampAssets } from "../tools/stamps/imageStampAssets";
 import { getImageStampAssets } from "../tools/stamps/imageStampCatalog";
@@ -50,6 +48,7 @@ export async function createKidsDrawApp(
     ? getExplicitSize()
     : resolveCurrentPageSize();
   const shapeHandlers = createKidsShapeHandlerRegistry();
+  const shapeRendererRegistry = createKidsShapeRendererRegistry();
 
   const providedCore = options.core;
   const core =
@@ -73,10 +72,12 @@ export async function createKidsDrawApp(
 
   const element = el("div.kids-draw-app") as HTMLDivElement;
 
+  const catalog = createKidsToolCatalog(shapeRendererRegistry);
+
   const toolbar = createKidsDrawToolbar({
-    tools: KIDS_DRAW_TOOLS,
-    families: KIDS_DRAW_TOOL_FAMILIES,
-    sidebarItems: KIDS_DRAW_SIDEBAR_ITEMS,
+    tools: catalog.tools,
+    families: catalog.families,
+    sidebarItems: catalog.sidebarItems,
   });
   const stage = createKidsDrawStage({
     width: size.width,
@@ -94,12 +95,14 @@ export async function createKidsDrawApp(
   mount(options.container, element);
 
   const store = new DrawingStore({
-    tools: KIDS_DRAW_TOOLS.map((tool) => tool.tool),
+    tools: catalog.tools.map((tool) => tool.tool),
     document: core.storeAdapter.getDoc(),
     actionDispatcher: (event) => core.storeAdapter.applyAction(event),
     shapeHandlers,
   });
-  store.activateTool(getDefaultToolIdForFamily(DEFAULT_KIDS_DRAW_FAMILY_ID));
+  store.activateTool(
+    getDefaultToolIdForFamily(catalog.defaultFamilyId, catalog),
+  );
 
   const shared = store.getSharedSettings();
   const defaultStrokeWidth = Math.max(
@@ -108,14 +111,15 @@ export async function createKidsDrawApp(
   );
   store.updateSharedSettings({ strokeWidth: defaultStrokeWidth });
   syncToolbarUiFromDrawingStore(store, {
-    resolveActiveFamilyId: getFamilyIdForTool,
-    resolveToolStyleSupport: getToolStyleSupport,
+    resolveActiveFamilyId: (toolId) => getFamilyIdForTool(toolId, catalog),
+    resolveToolStyleSupport: (toolId) => getToolStyleSupport(toolId, catalog),
   });
   const unbindToolbarUi = toolbar.bindUiState($toolbarUi);
 
   const pipeline = createRasterPipeline({
     store,
     stage,
+    shapeRendererRegistry,
     width: size.width,
     height: size.height,
     backgroundColor,
@@ -132,8 +136,10 @@ export async function createKidsDrawApp(
     store,
     core,
     toolbar,
-    tools: KIDS_DRAW_TOOLS,
-    families: KIDS_DRAW_TOOL_FAMILIES,
+    catalog,
+    shapeRendererRegistry,
+    tools: catalog.tools,
+    families: catalog.families,
     stage,
     pipeline,
     backgroundColor,

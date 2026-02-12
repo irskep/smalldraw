@@ -1,5 +1,9 @@
 import type { StrokeStyle, ToolDefinition } from "@smalldraw/core";
 import { type BoxedToolOptions, createBoxedTool } from "./boxed";
+import {
+  createFillTool as createFillToolDefinition,
+  type FillToolOptions as FillToolOptionsDefinition,
+} from "./fillTool";
 import { createLineTool as createLineToolDefinition } from "./lineTool";
 import { getAlphabetGlyph, type StampGlyph } from "./stampGlyphs";
 import { createImageStampTool } from "./stamps/imageStamp";
@@ -117,6 +121,12 @@ export function createEraserTool(options?: EraserToolOptions): ToolDefinition {
   });
 }
 
+export interface FillToolOptions extends FillToolOptionsDefinition {}
+
+export function createFillTool(options: FillToolOptions): ToolDefinition {
+  return createFillToolDefinition(options);
+}
+
 export interface RectangleToolOptions extends BoxedToolOptions {}
 
 export function createRectangleTool(
@@ -189,7 +199,7 @@ export function createEllipseOutlineTool(
   });
 }
 
-export interface LineToolOptions {}
+export type LineToolOptions = Record<string, never>;
 
 export function createLineTool(_options?: LineToolOptions): ToolDefinition {
   return createLineToolDefinition();

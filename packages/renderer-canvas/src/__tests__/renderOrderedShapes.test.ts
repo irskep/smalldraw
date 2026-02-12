@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { AnyShape, BoxedGeometry } from "@smalldraw/core";
 import { createCanvas } from "canvas";
 import { renderOrderedShapes } from "../index";
+import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
 function pixelAt(
   ctx: CanvasRenderingContext2D,
@@ -34,6 +35,7 @@ function boxedShape(
 
 describe("renderOrderedShapes", () => {
   test("renders shapes in provided order", () => {
+    const registry = createTestShapeRendererRegistry();
     const red = boxedShape("red", "#c62828", 14);
     const blue = boxedShape("blue", "#1565c0", 10);
 
@@ -43,7 +45,7 @@ describe("renderOrderedShapes", () => {
     ) as unknown as CanvasRenderingContext2D;
     ctxA.fillStyle = "#ffffff";
     ctxA.fillRect(0, 0, 20, 20);
-    renderOrderedShapes(ctxA, [red, blue]);
+    renderOrderedShapes(ctxA, [red, blue], { registry });
 
     const canvasB = createCanvas(20, 20);
     const ctxB = canvasB.getContext(
@@ -51,7 +53,7 @@ describe("renderOrderedShapes", () => {
     ) as unknown as CanvasRenderingContext2D;
     ctxB.fillStyle = "#ffffff";
     ctxB.fillRect(0, 0, 20, 20);
-    renderOrderedShapes(ctxB, [blue, red]);
+    renderOrderedShapes(ctxB, [blue, red], { registry });
 
     expect(pixelAt(ctxA, 10, 10)).toEqual([21, 101, 192, 255]);
     expect(pixelAt(ctxB, 10, 10)).toEqual([198, 40, 40, 255]);

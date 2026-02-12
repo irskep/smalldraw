@@ -1,6 +1,6 @@
 import type { AnyShape, DrawingStore } from "@smalldraw/core";
 import { BoxOperations, Vec2 } from "@smalldraw/geometry";
-import { defaultShapeRendererRegistry } from "@smalldraw/renderer-canvas";
+import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import {
   createDomLayerController,
   createDomTileProvider,
@@ -9,7 +9,6 @@ import {
   TILE_SIZE,
   TileRenderer,
 } from "@smalldraw/renderer-raster";
-import { renderStamp } from "../shapes/stampShapeRenderer";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 
 export interface RasterPipeline {
@@ -28,18 +27,14 @@ export interface RasterPipeline {
 export function createRasterPipeline(options: {
   store: DrawingStore;
   stage: KidsDrawStage;
+  shapeRendererRegistry: ShapeRendererRegistry;
   width: number;
   height: number;
   backgroundColor: string;
   tilePixelRatio: number;
   renderIdentity: string;
 }): RasterPipeline {
-  const { store, stage, backgroundColor } = options;
-  if (!defaultShapeRendererRegistry.has("stamp")) {
-    defaultShapeRendererRegistry.set("stamp", (ctx, shape) =>
-      renderStamp(ctx, shape),
-    );
-  }
+  const { store, stage, shapeRendererRegistry, backgroundColor } = options;
   let width = options.width;
   let height = options.height;
   let tilePixelRatio = options.tilePixelRatio;
@@ -50,6 +45,7 @@ export function createRasterPipeline(options: {
   });
 
   const tileRenderer = new TileRenderer(store, tileProvider, {
+    shapeRendererRegistry,
     backgroundColor,
     renderIdentity: options.renderIdentity,
     baker: {
@@ -89,6 +85,7 @@ export function createRasterPipeline(options: {
   tileRenderer.updateViewport({ min: [0, 0], max: [width, height] });
 
   const hotLayer = new HotLayer(stage.hotCanvas, {
+    shapeRendererRegistry,
     backgroundColor: undefined,
   });
   const layerController = createDomLayerController(

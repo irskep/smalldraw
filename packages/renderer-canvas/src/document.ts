@@ -6,15 +6,11 @@ import type {
 } from "@smalldraw/core";
 import { computeSelectionBounds, getOrderedShapes } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
-import {
-  defaultShapeRendererRegistry,
-  renderShape,
-  type ShapeRendererRegistry,
-} from "./shapes";
+import { renderShape, type ShapeRendererRegistry } from "./shapes";
 
 export interface RenderDocumentOptions {
   clear?: boolean;
-  registry?: ShapeRendererRegistry;
+  registry: ShapeRendererRegistry;
   geometryHandlerRegistry?: ShapeHandlerRegistry;
 }
 
@@ -30,15 +26,14 @@ export interface DocumentOrderedShapeBounds extends OrderedShapeBounds {
 export function renderOrderedShapes(
   ctx: CanvasRenderingContext2D,
   shapes: Shape[],
-  options: RenderDocumentOptions = {},
+  options: RenderDocumentOptions,
 ): void {
-  const { clear = true } = options;
+  const { clear = true, registry } = options;
   const width = ctx.canvas.width;
   const height = ctx.canvas.height;
   if (clear) {
     ctx.clearRect(0, 0, width, height);
   }
-  const registry = options.registry ?? defaultShapeRendererRegistry;
   const geometryRegistry = options.geometryHandlerRegistry;
   for (const shape of shapes) {
     renderShape(ctx, shape, registry, geometryRegistry);
@@ -48,7 +43,7 @@ export function renderOrderedShapes(
 export function renderDocument(
   ctx: CanvasRenderingContext2D,
   document: DrawingDocument,
-  options: RenderDocumentOptions = {},
+  options: RenderDocumentOptions,
 ): void {
   const orderedShapes = getOrderedShapes(document);
   renderOrderedShapes(ctx, orderedShapes, options);

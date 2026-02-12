@@ -13,10 +13,35 @@ import {
   UpdateShapeTransform,
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
-import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
+import {
+  renderBoxed,
+  renderOrderedShapes,
+  renderPen,
+  type ShapeRendererRegistry,
+} from "@smalldraw/renderer-canvas";
 import { imagesMatch } from "@smalldraw/testing";
 import { createCanvas } from "canvas";
 import { TILE_SIZE, TileRenderer } from "../index";
+
+function createTestShapeRendererRegistry(): ShapeRendererRegistry {
+  const registry: ShapeRendererRegistry = new Map();
+  registry.set("boxed", (ctx, shape) =>
+    renderBoxed(
+      ctx,
+      shape as AnyShape & {
+        geometry: {
+          type: "boxed";
+          kind: "rect" | "ellipse";
+          size: [number, number];
+        };
+      },
+    ),
+  );
+  registry.set("pen", (ctx, shape) =>
+    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
+  );
+  return registry;
+}
 
 const v = (x = 0, y = x): [number, number] => [x, y];
 
@@ -66,6 +91,8 @@ function createPen(id: string, translation: [number, number]): AnyShape {
   };
 }
 
+const shapeRendererRegistry = createTestShapeRendererRegistry();
+
 async function renderTileFromDoc(
   doc: DrawingDocument,
   tileX = 0,
@@ -80,6 +107,7 @@ async function renderTileFromDoc(
   ctx.translate(-tileX * TILE_SIZE, -tileY * TILE_SIZE);
   renderOrderedShapes(ctx, getOrderedShapes(doc), {
     clear: false,
+    registry: shapeRendererRegistry,
     geometryHandlerRegistry: registry,
   });
   ctx.restore();
@@ -106,6 +134,7 @@ async function bakeTileFromDoc(
     },
   };
   const renderer = new TileRenderer(store, provider, {
+    shapeRendererRegistry,
     shapeHandlers: registry,
     baker: {
       bakeTile: async (coord, canvas) => {
@@ -119,6 +148,7 @@ async function bakeTileFromDoc(
         ctx.translate(-coord.x * TILE_SIZE, -coord.y * TILE_SIZE);
         renderOrderedShapes(ctx, getOrderedShapes(doc), {
           clear: false,
+          registry: shapeRendererRegistry,
           geometryHandlerRegistry: registry,
         });
         ctx.restore();

@@ -6,7 +6,10 @@ import {
   type SmalldrawCore,
 } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
-import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
+import {
+  renderOrderedShapes,
+  type ShapeRendererRegistry,
+} from "@smalldraw/renderer-canvas";
 import { FilePlus, type IconNode, Trash2 } from "lucide";
 import {
   applyResponsiveLayout,
@@ -24,6 +27,7 @@ import {
   getMatchingShapeFamilyToolId,
   getToolShapeVariant,
   getToolStyleSupport,
+  type KidsToolCatalog,
   type KidsToolConfig,
   type KidsToolFamilyConfig,
 } from "../tools/kidsTools";
@@ -77,6 +81,8 @@ export function createKidsDrawController(options: {
   store: DrawingStore;
   core: SmalldrawCore;
   toolbar: KidsDrawToolbar;
+  catalog: KidsToolCatalog;
+  shapeRendererRegistry: ShapeRendererRegistry;
   tools: KidsToolConfig[];
   families: KidsToolFamilyConfig[];
   stage: KidsDrawStage;
@@ -94,6 +100,8 @@ export function createKidsDrawController(options: {
     store,
     core,
     toolbar,
+    catalog,
+    shapeRendererRegistry,
     tools,
     families,
     stage,
@@ -186,8 +194,8 @@ export function createKidsDrawController(options: {
 
   const syncToolbarUi = (): void => {
     syncToolbarUiFromDrawingStore(store, {
-      resolveActiveFamilyId: getFamilyIdForTool,
-      resolveToolStyleSupport: getToolStyleSupport,
+      resolveActiveFamilyId: (toolId) => getFamilyIdForTool(toolId, catalog),
+      resolveToolStyleSupport: (toolId) => getToolStyleSupport(toolId, catalog),
     });
     cursorOverlay.sync();
   };
@@ -418,7 +426,7 @@ export function createKidsDrawController(options: {
   };
 
   const sanitizeTransparentStylesForTool = (toolId: string): void => {
-    const support = getToolStyleSupport(toolId);
+    const support = getToolStyleSupport(toolId, catalog);
     const shared = store.getSharedSettings();
     const nextSettings: Partial<typeof shared> = {};
     if (
@@ -438,7 +446,7 @@ export function createKidsDrawController(options: {
   const activateToolAndRemember = (toolId: string): void => {
     store.activateTool(toolId);
     sanitizeTransparentStylesForTool(toolId);
-    const familyId = getFamilyIdForTool(toolId);
+    const familyId = getFamilyIdForTool(toolId, catalog);
     if (!familyId) {
       return;
     }
@@ -507,6 +515,7 @@ export function createKidsDrawController(options: {
     }
 
     renderOrderedShapes(exportCtx, store.getOrderedShapes(), {
+      registry: shapeRendererRegistry,
       geometryHandlerRegistry: store.getShapeHandlers(),
     });
     exportCtx.save();
@@ -663,7 +672,7 @@ export function createKidsDrawController(options: {
       runAndSync(() => {
         const activeToolId = store.getActiveToolId() ?? "";
         const activeShapeVariant =
-          getToolShapeVariant(activeToolId) ??
+          getToolShapeVariant(activeToolId, catalog) ??
           (activeToolId.includes("ellipse")
             ? "ellipse"
             : activeToolId.includes("rect")
@@ -672,11 +681,12 @@ export function createKidsDrawController(options: {
         const matchingShapeToolId = getMatchingShapeFamilyToolId({
           familyId,
           shapeVariant: activeShapeVariant,
+          catalog,
         });
         const toolId =
           matchingShapeToolId ??
           selectedToolIdByFamily.get(familyId) ??
-          getDefaultToolIdForFamily(familyId);
+          getDefaultToolIdForFamily(familyId, catalog);
         activateToolAndRemember(toolId);
       }),
     );

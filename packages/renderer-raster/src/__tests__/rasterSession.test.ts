@@ -8,6 +8,11 @@ import {
   getDefaultShapeHandlerRegistry,
   type ToolDefinition,
 } from "@smalldraw/core";
+import {
+  renderBoxed,
+  renderPen,
+  type ShapeRendererRegistry,
+} from "@smalldraw/renderer-canvas";
 import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
 import {
@@ -15,6 +20,26 @@ import {
   createPenTool,
 } from "../../../../apps/kids-app/src/tools/drawingTools";
 import { HotLayer, RasterSession, TILE_SIZE, TileRenderer } from "../index";
+
+function createTestShapeRendererRegistry(): ShapeRendererRegistry {
+  const registry: ShapeRendererRegistry = new Map();
+  registry.set("boxed", (ctx, shape) =>
+    renderBoxed(
+      ctx,
+      shape as AnyShape & {
+        geometry: {
+          type: "boxed";
+          kind: "rect" | "ellipse";
+          size: [number, number];
+        };
+      },
+    ),
+  );
+  registry.set("pen", (ctx, shape) =>
+    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
+  );
+  return registry;
+}
 
 function pixelAt(
   ctx: CanvasRenderingContext2D,
@@ -26,6 +51,8 @@ function pixelAt(
 }
 
 describe("RasterSession", () => {
+  const shapeRendererRegistry = createTestShapeRendererRegistry();
+
   test("runs draw cycle from draft to baked tiles", async () => {
     const store = new DrawingStore({
       tools: [createPenTool()],
@@ -44,6 +71,7 @@ describe("RasterSession", () => {
     };
 
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       backgroundColor: "#ffffff",
       baker: {
         bakeTile: async (coord, canvas) => {
@@ -61,7 +89,9 @@ describe("RasterSession", () => {
       },
     });
     const hotCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
-    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     const session = new RasterSession(store, renderer, hotLayer);
 
     hotLayer.setViewport({
@@ -133,6 +163,7 @@ describe("RasterSession", () => {
       },
     };
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       baker: {
         bakeTile: async (coord, canvas) => {
           const ctx = canvas.getContext(
@@ -148,7 +179,9 @@ describe("RasterSession", () => {
       },
     });
     const hotCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
-    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: TILE_SIZE,
       height: TILE_SIZE,
@@ -211,13 +244,16 @@ describe("RasterSession", () => {
     };
 
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       backgroundColor: "#ffffff",
     });
     const hotCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
     (hotCanvas as unknown as { style?: { backgroundColor: string } }).style = {
       backgroundColor: "",
     };
-    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: TILE_SIZE,
       height: TILE_SIZE,
@@ -303,6 +339,7 @@ describe("RasterSession", () => {
       },
     };
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       baker: {
         bakeTile: async (coord) => {
           bakeCalls.push(`${coord.x},${coord.y}`);
@@ -310,7 +347,9 @@ describe("RasterSession", () => {
       },
     });
     const hotCanvas = createCanvas(TILE_SIZE * 2, TILE_SIZE * 2);
-    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: TILE_SIZE * 2,
       height: TILE_SIZE * 2,
@@ -346,6 +385,7 @@ describe("RasterSession", () => {
       getTileCanvas: () => tileCanvas,
     };
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       backgroundColor: "#ffffff",
       baker: {
         bakeTile: async (coord, canvas) => {
@@ -362,7 +402,9 @@ describe("RasterSession", () => {
       },
     });
     const hotCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
-    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: TILE_SIZE,
       height: TILE_SIZE,
@@ -407,6 +449,7 @@ describe("RasterSession", () => {
       getTileCanvas: () => tileCanvas,
     };
     const renderer = new TileRenderer(store, provider, {
+      shapeRendererRegistry,
       backgroundColor: "#ffffff",
       baker: {
         bakeTile: async (coord, canvas) => {
@@ -423,7 +466,9 @@ describe("RasterSession", () => {
       },
     });
     const hotCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
-    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: TILE_SIZE,
       height: TILE_SIZE,
@@ -485,11 +530,17 @@ describe("RasterSession", () => {
     const store = new DrawingStore({
       tools: [previewTool],
     });
-    const renderer = new TileRenderer(store, {
-      getTileCanvas: () => createCanvas(TILE_SIZE, TILE_SIZE),
-    });
+    const renderer = new TileRenderer(
+      store,
+      {
+        getTileCanvas: () => createCanvas(TILE_SIZE, TILE_SIZE),
+      },
+      { shapeRendererRegistry },
+    );
     const hotCanvas = createCanvas(TILE_SIZE, TILE_SIZE);
-    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(hotCanvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     const session = new RasterSession(store, renderer, hotLayer);
     hotLayer.setViewport({
       width: TILE_SIZE,

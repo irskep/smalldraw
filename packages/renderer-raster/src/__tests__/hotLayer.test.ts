@@ -1,9 +1,34 @@
 import { describe, expect, test } from "bun:test";
-import type { BoxedGeometry, DraftShape } from "@smalldraw/core";
+import type { AnyShape, BoxedGeometry, DraftShape } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
+import {
+  renderBoxed,
+  renderPen,
+  type ShapeRendererRegistry,
+} from "@smalldraw/renderer-canvas";
 import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
 import { HotLayer } from "../hotLayer";
+
+function createTestShapeRendererRegistry(): ShapeRendererRegistry {
+  const registry: ShapeRendererRegistry = new Map();
+  registry.set("boxed", (ctx, shape) =>
+    renderBoxed(
+      ctx,
+      shape as AnyShape & {
+        geometry: {
+          type: "boxed";
+          kind: "rect" | "ellipse";
+          size: [number, number];
+        };
+      },
+    ),
+  );
+  registry.set("pen", (ctx, shape) =>
+    renderPen(ctx, shape as AnyShape & { geometry: { type: "pen-json" } }),
+  );
+  return registry;
+}
 
 function pixelAt(
   ctx: CanvasRenderingContext2D,
@@ -39,9 +64,13 @@ const box = (min: [number, number], max: [number, number]): Box => ({
 });
 
 describe("HotLayer", () => {
+  const shapeRendererRegistry = createTestShapeRendererRegistry();
+
   test("renders drafts in screen space and clears on request", () => {
     const canvas = createCanvas(200, 200);
-    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: 200,
       height: 200,
@@ -61,7 +90,9 @@ describe("HotLayer", () => {
 
   test("applies viewport center shift", () => {
     const canvas = createCanvas(200, 200);
-    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: 200,
       height: 200,
@@ -79,7 +110,9 @@ describe("HotLayer", () => {
 
   test("respects z-index ordering for overlapping drafts", () => {
     const canvas = createCanvas(200, 200);
-    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: 200,
       height: 200,
@@ -103,7 +136,9 @@ describe("HotLayer", () => {
 
   test("applies viewport scale", () => {
     const canvas = createCanvas(200, 200);
-    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: 200,
       height: 200,
@@ -121,7 +156,9 @@ describe("HotLayer", () => {
 
   test("clears when rendering empty drafts", () => {
     const canvas = createCanvas(200, 200);
-    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: 200,
       height: 200,
@@ -139,7 +176,9 @@ describe("HotLayer", () => {
 
   test("clips redraw to dirty bounds", () => {
     const canvas = createCanvas(200, 200);
-    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: 200,
       height: 200,
@@ -166,7 +205,9 @@ describe("HotLayer", () => {
 
   test("maps dirty backdrop blits across different source/backing resolutions", () => {
     const canvas = createCanvas(400, 400);
-    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
     hotLayer.setViewport({
       width: 200,
       height: 200,

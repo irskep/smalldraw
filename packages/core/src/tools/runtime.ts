@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import type { UndoableAction } from "../actions";
 import type { DrawingDocument } from "../model/document";
+import type { AnyShape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
 import { getOrderedShapes, getZIndexBetween } from "../zindex";
 import type {
@@ -36,7 +37,7 @@ export const DEFAULT_SHARED_SETTINGS: SharedToolSettings = {
 
 export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   public readonly toolId: string;
-  private readonly getDocument: () => DrawingDocument;
+  private readonly getDocumentFn: () => DrawingDocument;
   private readonly commitAction: (action: UndoableAction) => void;
   private readonly shapeHandlers: ShapeHandlerRegistry;
   private readonly options?: TOptions;
@@ -53,7 +54,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   constructor(config: ToolRuntimeConfig<TOptions>) {
     this.toolId = config.toolId;
     this.shapeHandlers = config.shapeHandlers;
-    this.getDocument = config.getDocument;
+    this.getDocumentFn = config.getDocument;
     this.commitAction = config.commitAction;
     this.options = config.options;
     this.onDraftChange = config.onDraftChange;
@@ -159,7 +160,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   }
 
   getNextZIndex(): string {
-    const ordered = getOrderedShapes(this.getDocument());
+    const ordered = getOrderedShapes(this.getDocumentFn());
     const last = ordered.length ? ordered[ordered.length - 1].zIndex : null;
     return getZIndexBetween(last, null);
   }
@@ -241,7 +242,15 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   }
 
   getShape(shapeId: string) {
-    return this.getDocument().shapes[shapeId];
+    return this.getDocumentFn().shapes[shapeId];
+  }
+
+  getDocument(): DrawingDocument {
+    return this.getDocumentFn();
+  }
+
+  getOrderedShapes(): AnyShape[] {
+    return getOrderedShapes(this.getDocumentFn());
   }
 
   getShapeHandlers(): ShapeHandlerRegistry {
