@@ -3,6 +3,7 @@ import "./KidsDrawToolbar.css";
 import {
   ChevronLeft,
   ChevronRight,
+  Download,
   FilePlus,
   Redo2,
   Trash2,
@@ -33,6 +34,7 @@ export interface KidsDrawToolbar {
   readonly undoButton: SquareIconButton;
   readonly redoButton: SquareIconButton;
   readonly clearButton: SquareIconButton;
+  readonly exportButton: SquareIconButton;
   readonly newDrawingButton: SquareIconButton;
   readonly strokeColorSwatchButtons: HTMLButtonElement[];
   readonly strokeWidthButtons: HTMLButtonElement[];
@@ -452,6 +454,11 @@ export function createKidsDrawToolbar(options: {
   });
   mount(actionPanelElement, redoButton.el);
 
+  const actionSpacer = el("div.kids-draw-action-spacer", {
+    "aria-hidden": "true",
+  }) as HTMLDivElement;
+  mount(actionPanelElement, actionSpacer);
+
   const clearButton = createSquareIconButton({
     className: "kids-draw-action-button kids-draw-action-clear",
     label: "Clear",
@@ -464,6 +471,19 @@ export function createKidsDrawToolbar(options: {
     },
   });
   mount(actionPanelElement, clearButton.el);
+
+  const exportButton = createSquareIconButton({
+    className: "kids-draw-action-button kids-draw-action-export",
+    label: "Export",
+    icon: Download,
+    attributes: {
+      title: "Export PNG",
+      "aria-label": "Export PNG",
+      "data-action": "export",
+      layout: "row",
+    },
+  });
+  mount(actionPanelElement, exportButton.el);
 
   const newDrawingButton = createSquareIconButton({
     className: "kids-draw-action-button kids-draw-action-new",
@@ -679,6 +699,7 @@ export function createKidsDrawToolbar(options: {
     undoButton,
     redoButton,
     clearButton,
+    exportButton,
     newDrawingButton,
     strokeColorSwatchButtons,
     strokeWidthButtons,

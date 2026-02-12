@@ -6,6 +6,7 @@ import {
   type SmalldrawCore,
 } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
+import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import { FilePlus, type IconNode, Trash2 } from "lucide";
 import {
   applyResponsiveLayout,
@@ -482,6 +483,34 @@ export function createKidsDrawController(options: {
     }
   };
 
+  const onExportClick = (): void => {
+    const size = getSize();
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = Math.max(1, Math.round(size.width));
+    exportCanvas.height = Math.max(1, Math.round(size.height));
+    const exportCtx = exportCanvas.getContext("2d");
+    if (!exportCtx || typeof exportCanvas.toDataURL !== "function") {
+      return;
+    }
+
+    renderOrderedShapes(exportCtx, store.getOrderedShapes(), {
+      geometryHandlerRegistry: store.getShapeHandlers(),
+    });
+    exportCtx.save();
+    exportCtx.globalCompositeOperation = "destination-over";
+    exportCtx.fillStyle = backgroundColor;
+    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    exportCtx.restore();
+
+    const dataUrl = exportCanvas.toDataURL("image/png");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `kids-draw-${timestamp}.png`;
+    link.rel = "noopener";
+    link.click();
+  };
+
   const onPointerDown = (event: PointerEvent) => {
     if (pointerIsDown) {
       return;
@@ -647,6 +676,9 @@ export function createKidsDrawController(options: {
       );
       syncToolbarUi();
     })();
+  });
+  listen(toolbar.exportButton.el, "click", () => {
+    onExportClick();
   });
   listen(toolbar.newDrawingButton.el, "click", () => {
     void onNewDrawingClick();

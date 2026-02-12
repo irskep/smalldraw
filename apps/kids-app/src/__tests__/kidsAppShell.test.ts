@@ -246,6 +246,9 @@ describe("kids-app shell", () => {
     const clearButton = container.querySelector(
       '[data-action="clear"]',
     ) as HTMLElement | null;
+    const exportButton = container.querySelector(
+      '[data-action="export"]',
+    ) as HTMLElement | null;
     const newDrawingButton = container.querySelector(
       '[data-action="new-drawing"]',
     ) as DisableableElement | null;
@@ -257,6 +260,7 @@ describe("kids-app shell", () => {
     expect(undoButton).not.toBeNull();
     expect(redoButton).not.toBeNull();
     expect(clearButton).not.toBeNull();
+    expect(exportButton).not.toBeNull();
     expect(newDrawingButton).not.toBeNull();
     expect(tileLayer).not.toBeNull();
     expect(undoButton!.disabled).toBeTrue();
@@ -268,6 +272,9 @@ describe("kids-app shell", () => {
     dispatchPointer(overlay, "pointermove", 180, 180, 1);
     dispatchPointer(overlay, "pointerup", 180, 180, 0);
     expect(undoButton!.disabled).toBeFalse();
+
+    exportButton!.click();
+
     clearButton!.click();
 
     const eraserFamilyButton = container.querySelector(
