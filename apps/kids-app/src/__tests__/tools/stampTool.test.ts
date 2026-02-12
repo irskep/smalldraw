@@ -51,6 +51,22 @@ describe("alphabet stamp tool", () => {
     }
   });
 
+  test("supports drag-to-rotate-and-scale before commit", () => {
+    const { runtime, getDocument } = setup();
+
+    runtime.dispatch("pointerDown", { point: new Vec2(100, 80), buttons: 1 });
+    runtime.dispatch("pointerMove", { point: new Vec2(128, 80), buttons: 1 });
+    runtime.dispatch("pointerUp", { point: new Vec2(128, 80), buttons: 0 });
+
+    const shapes = Object.values(getDocument().shapes) as AnyShape[];
+    expect(shapes.length).toBe(1);
+    const shape = shapes[0]!;
+    expect(shape.transform?.translation).toEqual([100, 80]);
+    expect(shape.transform?.rotation ?? 0).toBe(0);
+    expect((shape.transform?.scale?.[0] ?? 1) > 1).toBeTrue();
+    expect((shape.transform?.scale?.[1] ?? 1) > 1).toBeTrue();
+  });
+
   test("uses shared stroke settings", () => {
     const { runtime, getDocument } = setup({
       sharedSettings: {

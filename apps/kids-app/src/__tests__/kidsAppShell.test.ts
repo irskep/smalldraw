@@ -729,6 +729,65 @@ describe("kids-app shell", () => {
     app.destroy();
   });
 
+  test("stamp cursor preview hides once stamp drag starts", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    const cursorIndicator = container.querySelector(
+      ".kids-draw-cursor-indicator",
+    ) as HTMLDivElement | null;
+    const alphabetFamilyButton = container.querySelector(
+      '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
+    ) as HTMLElement | null;
+    const stampAVariantButton = container.querySelector(
+      '[data-tool-variant="stamp.letter.a"]',
+    ) as HTMLElement | null;
+    expect(cursorIndicator).not.toBeNull();
+    expect(alphabetFamilyButton).not.toBeNull();
+    expect(stampAVariantButton).not.toBeNull();
+
+    alphabetFamilyButton!.click();
+    stampAVariantButton!.click();
+
+    dispatchPointer(overlay, "pointermove", 200, 120, 0, "mouse");
+    expect(cursorIndicator!.style.visibility).toBe("");
+
+    dispatchPointer(overlay, "pointerdown", 200, 120, 1, "mouse");
+    dispatchPointer(overlay, "pointermove", 202, 122, 1, "mouse");
+    expect(cursorIndicator!.style.visibility).toBe("");
+
+    dispatchPointer(overlay, "pointermove", 216, 136, 1, "mouse");
+    expect(cursorIndicator!.style.visibility).toBe("hidden");
+
+    dispatchPointer(overlay, "pointerup", 216, 136, 0, "mouse");
+    expect(cursorIndicator!.style.visibility).toBe("");
+
+    app.destroy();
+  });
+
   test("new drawing re-resolves logical size from page size when size is implicit", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);

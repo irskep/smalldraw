@@ -58,6 +58,8 @@ export function createImageStampShape(params: {
   stroke: StrokeStyle;
   asset: ImageStampAssetDescriptor;
   stampSize: number;
+  rotation: number;
+  scale: number;
 }): StampShape {
   const size = computeImageStampSize(params.asset, params.stampSize);
   const geometry: ImageStampGeometry = {
@@ -87,8 +89,8 @@ export function createImageStampShape(params: {
     },
     transform: {
       translation: toVec2Like(params.point),
-      scale: [1, 1],
-      rotation: 0,
+      scale: [params.scale, params.scale],
+      rotation: params.rotation,
     },
   };
 }
@@ -104,7 +106,7 @@ export function createImageStampTool(
     resolveStroke(runtime: ToolRuntime) {
       return resolveStampStroke(runtime, options.runtimeOptions);
     },
-    createShape({ id, point, zIndex, stroke, runtime }) {
+    createShape({ id, point, zIndex, stroke, rotation, scale, runtime }) {
       const stampSize = resolveStampSize(
         runtime,
         stroke.size,
@@ -117,6 +119,8 @@ export function createImageStampTool(
         stroke,
         asset: options.asset,
         stampSize,
+        rotation,
+        scale,
       });
     },
   });

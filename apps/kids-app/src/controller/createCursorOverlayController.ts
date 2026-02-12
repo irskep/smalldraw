@@ -63,12 +63,15 @@ export function createCursorOverlayController(options: {
   stage.cursorIndicator.appendChild(previewSvg);
 
   let drawingActive = false;
+  let stampDragActive = false;
+  let stampPointerDownPoint: Vec2 | null = null;
   let mouseHoverPoint: [number, number] | null = null;
   let overlayLeft = 0;
   let overlayTop = 0;
   let overlayWidthScale = 1;
   let overlayHeightScale = 1;
   let activePreviewToolId: string | null = null;
+  const STAMP_DRAG_HIDE_DISTANCE_PX = 4;
 
   const renderPreviewIcon = (iconNode: IconNode): void => {
     while (previewSvg.firstChild) {
@@ -234,6 +237,15 @@ export function createCursorOverlayController(options: {
       indicator.style.visibility = "hidden";
       return;
     }
+    if (
+      drawingActive &&
+      stampDragActive &&
+      typeof activeToolId === "string" &&
+      activeToolId.startsWith("stamp.")
+    ) {
+      indicator.style.visibility = "hidden";
+      return;
+    }
 
     const { strokeColor, strokeWidth } = store.getSharedSettings();
     const previewIcon = activeToolId
@@ -336,6 +348,10 @@ export function createCursorOverlayController(options: {
     refreshMetrics,
     setDrawingActive(active) {
       drawingActive = active;
+      if (!active) {
+        stampDragActive = false;
+        stampPointerDownPoint = null;
+      }
       sync();
     },
     sync,
@@ -343,12 +359,35 @@ export function createCursorOverlayController(options: {
     toPoint,
     handlePointerDown(event) {
       refreshMetrics();
+      const activeToolId = store.getActiveToolId();
+      if (
+        event.pointerType === "mouse" &&
+        typeof activeToolId === "string" &&
+        activeToolId.startsWith("stamp.")
+      ) {
+        stampPointerDownPoint = toPoint(event);
+        stampDragActive = false;
+      }
       if (event.pointerType !== "mouse") {
         mouseHoverPoint = null;
         sync();
       }
     },
     handlePointerMove(event) {
+      if (
+        event.pointerType === "mouse" &&
+        drawingActive &&
+        stampPointerDownPoint
+      ) {
+        const activeToolId = store.getActiveToolId();
+        if (typeof activeToolId === "string" && activeToolId.startsWith("stamp.")) {
+          const currentPoint = toPoint(event);
+          const distance = Vec2.distance(currentPoint, stampPointerDownPoint);
+          if (distance >= STAMP_DRAG_HIDE_DISTANCE_PX) {
+            stampDragActive = true;
+          }
+        }
+      }
       if (event.pointerType === "mouse") {
         updateMouseHoverPointFromEvent(event);
         return;

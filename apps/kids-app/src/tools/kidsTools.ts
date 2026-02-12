@@ -5,6 +5,7 @@ import {
   Eraser,
   Highlighter,
   type IconNode,
+  Minus,
   Pen,
   SprayCan,
   Square,
@@ -19,6 +20,7 @@ import {
   createMarkerTool,
   createPenTool,
   createPngStampTool,
+  createLineTool,
   createRectangleOutlineTool,
   createRectangleTool,
   createUnevenSpraycanTool,
@@ -67,6 +69,7 @@ const RECTANGLE_TOOL = createRectangleTool();
 const ELLIPSE_TOOL = createEllipseTool();
 const RECTANGLE_OUTLINE_TOOL = createRectangleOutlineTool();
 const ELLIPSE_OUTLINE_TOOL = createEllipseOutlineTool();
+const LINE_TOOL = createLineTool();
 const ALPHABET_STAMP_TOOL_CONFIGS = getAlphabetLetters().map((letter) => {
   const icon = getAlphabetGlyphIcon(letter);
   const tool = createAlphabetStampTool({ letter });
@@ -218,6 +221,14 @@ export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
     cursorMode: "hide-while-drawing",
     tool: ELLIPSE_OUTLINE_TOOL,
   },
+  {
+    id: LINE_TOOL.id,
+    familyId: "shape.outline",
+    label: "Line",
+    icon: Minus,
+    cursorMode: "hide-while-drawing",
+    tool: LINE_TOOL,
+  },
   ...ALPHABET_STAMP_TOOL_CONFIGS,
   ...IMAGE_STAMP_TOOL_CONFIGS,
 ];
@@ -256,7 +267,7 @@ export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
     icon: Circle,
     shapeFamilyGroup: "shape",
     defaultToolId: "rect.outline",
-    toolIds: ["rect.outline", "ellipse.outline"],
+    toolIds: ["rect.outline", "ellipse.outline", "line"],
   },
   {
     id: "stamp.alphabet",

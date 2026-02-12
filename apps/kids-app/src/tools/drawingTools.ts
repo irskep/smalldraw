@@ -1,5 +1,6 @@
 import type { StrokeStyle, ToolDefinition } from "@smalldraw/core";
 import { type BoxedToolOptions, createBoxedTool } from "./boxed";
+import { createLineTool as createLineToolDefinition } from "./lineTool";
 import { getAlphabetGlyph, type StampGlyph } from "./stampGlyphs";
 import { createImageStampTool } from "./stamps/imageStamp";
 import {
@@ -186,6 +187,12 @@ export function createEllipseOutlineTool(
       ...options,
     },
   });
+}
+
+export interface LineToolOptions {}
+
+export function createLineTool(_options?: LineToolOptions): ToolDefinition {
+  return createLineToolDefinition();
 }
 
 export interface AlphabetStampToolOptions extends StampToolOptions {

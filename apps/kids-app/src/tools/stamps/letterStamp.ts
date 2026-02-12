@@ -80,6 +80,8 @@ export function createLetterStampShape(params: {
   glyph: StampGlyph;
   letter: string;
   stampSize: number;
+  rotation: number;
+  scale: number;
 }): StampShape {
   const geometry = buildLetterStampGeometry({
     glyph: params.glyph,
@@ -105,8 +107,8 @@ export function createLetterStampShape(params: {
     },
     transform: {
       translation: toVec2Like(params.point),
-      scale: [1, 1],
-      rotation: 0,
+      scale: [params.scale, params.scale],
+      rotation: params.rotation,
     },
   };
 }
@@ -122,7 +124,7 @@ export function createLetterStampTool(
     resolveStroke(runtime: ToolRuntime) {
       return resolveStampStroke(runtime, options.runtimeOptions);
     },
-    createShape({ id, point, zIndex, stroke, runtime }) {
+    createShape({ id, point, zIndex, stroke, rotation, scale, runtime }) {
       const stampSize = resolveStampSize(
         runtime,
         stroke.size,
@@ -136,6 +138,8 @@ export function createLetterStampTool(
         glyph: options.glyph,
         letter: options.letter,
         stampSize,
+        rotation,
+        scale,
       });
     },
   });
