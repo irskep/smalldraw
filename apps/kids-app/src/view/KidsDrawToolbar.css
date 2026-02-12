@@ -92,6 +92,10 @@
   white-space: nowrap;
 }
 
+.kids-square-icon-button .kids-square-icon-button__label[hidden] {
+  display: none;
+}
+
 .kids-square-icon-button:active {
   transform: scale(0.96);
 }
@@ -120,6 +124,15 @@
 .kids-draw-family-variants {
   grid-auto-flow: column;
   grid-auto-columns: var(--kd-toolbar-bottom-cell-size);
+}
+
+.kids-draw-family-variants[data-variant-layout="two-row-single-height"] {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(13, var(--kd-toolbar-cell-size));
+  grid-template-rows: repeat(2, var(--kd-toolbar-cell-size));
+  grid-auto-columns: var(--kd-toolbar-cell-size);
+  overflow-x: auto;
+  max-width: min(100vw - 24px, 860px);
 }
 
 .kids-draw-family-variants[hidden] {
@@ -279,6 +292,14 @@
   height: var(--kd-toolbar-bottom-cell-size);
   min-width: var(--kd-toolbar-bottom-cell-size);
   min-height: var(--kd-toolbar-bottom-cell-size);
+}
+
+.kids-draw-family-variants[data-variant-layout="two-row-single-height"]
+  .kids-draw-tool-variant-button {
+  width: var(--kd-toolbar-cell-size);
+  height: var(--kd-toolbar-cell-size);
+  min-width: var(--kd-toolbar-cell-size);
+  min-height: var(--kd-toolbar-cell-size);
 }
 
 .kids-draw-tool-button {

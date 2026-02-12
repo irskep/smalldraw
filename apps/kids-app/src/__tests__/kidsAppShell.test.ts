@@ -476,6 +476,88 @@ describe("kids-app shell", () => {
     app.destroy();
   });
 
+  test("letters stamp family shows A cursor preview, row-major flow, and stamps selected letters", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    const lettersFamilyButton = container.querySelector(
+      '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
+    ) as HTMLElement | null;
+    const lettersToolbar = container.querySelector(
+      '[data-tool-family-toolbar="stamp.alphabet"]',
+    ) as HTMLElement | null;
+    const stampZVariantButton = container.querySelector(
+      '[data-tool-variant="stamp.letter.z"]',
+    ) as HTMLElement | null;
+    const cursorIndicator = container.querySelector(
+      ".kids-draw-cursor-indicator",
+    ) as HTMLDivElement | null;
+
+    expect(lettersFamilyButton).not.toBeNull();
+    expect(lettersToolbar).not.toBeNull();
+    expect(stampZVariantButton).not.toBeNull();
+    expect(cursorIndicator).not.toBeNull();
+    expect(lettersFamilyButton?.getAttribute("title")).toBe("Letters");
+    expect(lettersToolbar?.getAttribute("data-variant-layout")).toBe(
+      "two-row-single-height",
+    );
+    const variantButtons = lettersToolbar?.querySelectorAll(
+      "[data-tool-variant]",
+    );
+    expect(variantButtons?.length).toBe(26);
+    const firstVariantLabel = lettersToolbar?.querySelector(
+      '[data-tool-variant="stamp.letter.a"] .kids-square-icon-button__label',
+    ) as HTMLElement | null;
+    expect(firstVariantLabel?.hidden).toBeTrue();
+
+    lettersFamilyButton!.click();
+    expect(app.store.getActiveToolId()).toBe("stamp.letter.a");
+    dispatchPointer(overlay, "pointermove", 140, 110, 0, "mouse");
+    expect(cursorIndicator!.classList.contains("is-glyph-preview")).toBeTrue();
+    expect(cursorIndicator!.style.visibility).toBe("");
+
+    stampZVariantButton!.click();
+    expect(app.store.getActiveToolId()).toBe("stamp.letter.z");
+    dispatchPointer(overlay, "pointerdown", 200, 200, 1, "mouse");
+    dispatchPointer(overlay, "pointerup", 200, 200, 0, "mouse");
+    const stampPop = container.querySelector(
+      ".kids-draw-stamp-pop",
+    ) as HTMLElement | null;
+    expect(stampPop).not.toBeNull();
+
+    const shapes = Object.values(app.store.getDocument().shapes);
+    expect(shapes.length).toBeGreaterThanOrEqual(1);
+    for (const shape of shapes) {
+      expect(shape.id.startsWith("stamp-letter-z-")).toBeTrue();
+      expect(shape.type).toBe("stamp");
+    }
+
+    app.destroy();
+  });
+
   test("cursor indicator hides for pen while drawing and remains subtle for eraser", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);

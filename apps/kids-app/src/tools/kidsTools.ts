@@ -9,16 +9,18 @@ import {
   Square,
 } from "lucide";
 import {
-  createEllipseTool,
+  createAlphabetStampTool,
   createEllipseOutlineTool,
+  createEllipseTool,
   createEraserTool,
   createEvenSpraycanTool,
   createMarkerTool,
   createPenTool,
-  createRectangleTool,
   createRectangleOutlineTool,
+  createRectangleTool,
   createUnevenSpraycanTool,
 } from "./drawingTools";
+import { getAlphabetGlyphIcon, getAlphabetLetters } from "./stampGlyphs";
 
 export type KidsToolCursorMode = "hide-while-drawing" | "always-visible";
 
@@ -28,6 +30,7 @@ export interface KidsToolConfig {
   shapeVariant?: "rect" | "ellipse";
   label: string;
   icon: IconNode;
+  cursorPreviewIcon?: IconNode;
   cursorMode: KidsToolCursorMode;
   tool: ToolDefinition;
 }
@@ -37,6 +40,7 @@ export interface KidsToolFamilyConfig {
   label: string;
   icon: IconNode;
   shapeFamilyGroup?: "shape";
+  variantLayout?: "default" | "two-row-single-height";
   defaultToolId: string;
   toolIds: string[];
 }
@@ -54,6 +58,19 @@ const RECTANGLE_TOOL = createRectangleTool();
 const ELLIPSE_TOOL = createEllipseTool();
 const RECTANGLE_OUTLINE_TOOL = createRectangleOutlineTool();
 const ELLIPSE_OUTLINE_TOOL = createEllipseOutlineTool();
+const ALPHABET_STAMP_TOOL_CONFIGS = getAlphabetLetters().map((letter) => {
+  const icon = getAlphabetGlyphIcon(letter);
+  const tool = createAlphabetStampTool({ letter });
+  return {
+    id: tool.id,
+    familyId: "stamp.alphabet",
+    label: letter,
+    icon,
+    cursorPreviewIcon: icon,
+    cursorMode: "always-visible" as const,
+    tool,
+  };
+});
 
 const FILLED_SHAPE_FAMILY_ICON: IconNode = [
   [
@@ -178,6 +195,7 @@ export const KIDS_DRAW_TOOLS: KidsToolConfig[] = [
     cursorMode: "hide-while-drawing",
     tool: ELLIPSE_OUTLINE_TOOL,
   },
+  ...ALPHABET_STAMP_TOOL_CONFIGS,
 ];
 
 export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
@@ -216,6 +234,14 @@ export const KIDS_DRAW_TOOL_FAMILIES: KidsToolFamilyConfig[] = [
     defaultToolId: "rect.outline",
     toolIds: ["rect.outline", "ellipse.outline"],
   },
+  {
+    id: "stamp.alphabet",
+    label: "Letters",
+    icon: getAlphabetGlyphIcon("A"),
+    variantLayout: "two-row-single-height",
+    defaultToolId: "stamp.letter.a",
+    toolIds: ALPHABET_STAMP_TOOL_CONFIGS.map((tool) => tool.id),
+  },
 ];
 
 export const KIDS_DRAW_SIDEBAR_ITEMS: ToolbarItem[] = [
@@ -223,6 +249,7 @@ export const KIDS_DRAW_SIDEBAR_ITEMS: ToolbarItem[] = [
   { kind: "family", familyId: "eraser" },
   { kind: "family", familyId: "shape.filled" },
   { kind: "family", familyId: "shape.outline" },
+  { kind: "family", familyId: "stamp.alphabet" },
 ];
 
 export const DEFAULT_KIDS_DRAW_FAMILY_ID =

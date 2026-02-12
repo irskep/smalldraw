@@ -30,7 +30,9 @@ export class SquareIconButton {
   }
 
   setLabel(label: string): void {
+    const hasLabel = label.trim().length > 0;
     this.labelElement.textContent = label;
+    this.labelElement.hidden = !hasLabel;
   }
 
   setIcon(iconNode: IconNode): void {

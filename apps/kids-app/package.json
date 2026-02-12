@@ -13,6 +13,7 @@
   "dependencies": {
     "@smalldraw/core": "workspace:*",
     "@smalldraw/geometry": "workspace:*",
+    "@smalldraw/renderer-canvas": "workspace:*",
     "@smalldraw/renderer-raster": "workspace:*",
     "lucide": "^0.563.0",
     "nanostores": "^0.11.4",

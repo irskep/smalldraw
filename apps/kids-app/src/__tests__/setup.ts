@@ -26,6 +26,11 @@ const contextStub: Partial<CanvasRenderingContext2D> = {
   setTransform: () => {},
   clearRect: () => {},
   save: () => {},
+  translate: () => {},
+  beginPath: () => {},
+  moveTo: () => {},
+  lineTo: () => {},
+  stroke: () => {},
   restore: () => {},
   fillRect: () => {},
 };

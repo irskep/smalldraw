@@ -1,5 +1,6 @@
 import type { AnyShape, DrawingStore } from "@smalldraw/core";
 import { BoxOperations, Vec2 } from "@smalldraw/geometry";
+import { defaultShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import {
   createDomLayerController,
   createDomTileProvider,
@@ -8,6 +9,7 @@ import {
   TILE_SIZE,
   TileRenderer,
 } from "@smalldraw/renderer-raster";
+import { renderStamp } from "../shapes/stampShapeRenderer";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 
 export interface RasterPipeline {
@@ -33,6 +35,11 @@ export function createRasterPipeline(options: {
   renderIdentity: string;
 }): RasterPipeline {
   const { store, stage, backgroundColor } = options;
+  if (!defaultShapeRendererRegistry.has("stamp")) {
+    defaultShapeRendererRegistry.set("stamp", (ctx, shape) =>
+      renderStamp(ctx, shape),
+    );
+  }
   let width = options.width;
   let height = options.height;
   let tilePixelRatio = options.tilePixelRatio;

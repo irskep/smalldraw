@@ -123,6 +123,13 @@ export function createKidsDrawController(options: {
     cursorModeByToolId: new Map(
       tools.map((tool) => [tool.id, tool.cursorMode] as const),
     ),
+    cursorPreviewIconByToolId: new Map(
+      tools.flatMap((tool) =>
+        tool.cursorPreviewIcon
+          ? ([[tool.id, tool.cursorPreviewIcon]] as const)
+          : [],
+      ),
+    ),
   });
   const selectedToolIdByFamily = new Map<string, string>(
     families.map((family) => [family.id, family.defaultToolId] as const),
@@ -526,7 +533,11 @@ export function createKidsDrawController(options: {
       return;
     }
     lastPointerPoint = toPoint(event);
+    const committedToolId = store.getActiveToolId();
     store.dispatch(type, { point: lastPointerPoint, buttons: event.buttons });
+    if (type === "pointerUp" && committedToolId?.startsWith("stamp.letter.")) {
+      cursorOverlay.playStampCommit(lastPointerPoint);
+    }
     pointerIsDown = false;
     activePointerId = null;
     cursorOverlay.setDrawingActive(pointerIsDown);

@@ -1,5 +1,7 @@
 import type { StrokeStyle, ToolDefinition } from "@smalldraw/core";
 import { type BoxedToolOptions, createBoxedTool } from "./boxed";
+import { getAlphabetGlyph, type StampGlyph } from "./stampGlyphs";
+import { createStampTool, type StampToolOptions } from "./stampTool";
 import { createStrokeTool, type StrokeToolOptions } from "./strokeTool";
 
 export interface PenToolOptions extends StrokeToolOptions {}
@@ -178,5 +180,24 @@ export function createEllipseOutlineTool(
       },
       ...options,
     },
+  });
+}
+
+export interface AlphabetStampToolOptions extends StampToolOptions {
+  letter: string;
+}
+
+export function createAlphabetStampTool(
+  options: AlphabetStampToolOptions,
+): ToolDefinition {
+  const normalizedLetter = options.letter.toUpperCase();
+  const glyph: StampGlyph = getAlphabetGlyph(normalizedLetter);
+  return createStampTool({
+    id: `stamp.letter.${normalizedLetter.toLowerCase()}`,
+    label: `Stamp ${normalizedLetter}`,
+    shapeIdPrefix: `stamp-letter-${normalizedLetter.toLowerCase()}`,
+    glyph,
+    letter: normalizedLetter,
+    runtimeOptions: options,
   });
 }

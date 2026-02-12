@@ -127,14 +127,16 @@ export function createKidsDrawToolbar(options: {
       role: "radiogroup",
       "aria-label": `${family.label} tools`,
       "data-tool-family-toolbar": family.id,
+      "data-variant-layout": family.variantLayout ?? "default",
     }) as HTMLDivElement;
 
     for (const toolId of family.toolIds) {
       const tool = toolById.get(toolId);
       if (!tool) continue;
+      const hideVariantLabel = family.variantLayout === "two-row-single-height";
       const variantButton = createSquareIconButton({
         className: "kids-draw-tool-variant-button",
-        label: tool.label,
+        label: hideVariantLabel ? "" : tool.label,
         icon: tool.icon,
         attributes: {
           "data-tool-variant": tool.id,
