@@ -1,6 +1,6 @@
 import "./KidsDrawToolbar.css";
 
-import { Download, FilePlus, Redo2, Trash2, Undo2 } from "lucide";
+import { Download, FilePlus, FolderOpen, Redo2, Trash2, Undo2 } from "lucide";
 import type { ReadableAtom } from "nanostores";
 import { el, mount } from "redom";
 import type {
@@ -29,6 +29,7 @@ export interface KidsDrawToolbar {
   readonly clearButton: SquareIconButton;
   readonly exportButton: SquareIconButton;
   readonly newDrawingButton: SquareIconButton;
+  readonly browseButton: SquareIconButton;
   readonly strokeColorSwatchButtons: HTMLButtonElement[];
   readonly strokeWidthButtons: HTMLButtonElement[];
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
@@ -260,6 +261,19 @@ export function createKidsDrawToolbar(options: {
   });
   mount(actionPanelElement, newDrawingButton.el);
 
+  const browseButton = createSquareIconButton({
+    className: "kids-draw-action-button kids-draw-action-browse",
+    label: "Browse",
+    icon: FolderOpen,
+    attributes: {
+      title: "Browse drawings",
+      "aria-label": "Browse drawings",
+      "data-action": "browse",
+      layout: "row",
+    },
+  });
+  mount(actionPanelElement, browseButton.el);
+
   const createColorSwatches = (): {
     element: HTMLDivElement;
     swatches: HTMLButtonElement[];
@@ -452,6 +466,7 @@ export function createKidsDrawToolbar(options: {
     clearButton,
     exportButton,
     newDrawingButton,
+    browseButton,
     strokeColorSwatchButtons,
     strokeWidthButtons,
     bindUiState,

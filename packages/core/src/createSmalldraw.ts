@@ -20,8 +20,11 @@ import type { DrawingStoreAdapter } from "./store/drawingStore";
 export interface SmalldrawCoreOptions {
   shapeHandlers: ShapeHandlerRegistry;
   persistence?: {
-    storageKey: string;
-    mode: "reuse" | "always-new";
+    storageKey?: string;
+    mode?: "reuse" | "always-new";
+    getCurrentDocUrl?: () => Promise<string | null> | string | null;
+    setCurrentDocUrl?: (url: string) => Promise<void> | void;
+    clearCurrentDocUrl?: () => Promise<void> | void;
   };
   documentSize?: DrawingDocumentSize;
   debug?: boolean;
@@ -29,6 +32,11 @@ export interface SmalldrawCoreOptions {
 
 export interface SmalldrawCore {
   readonly storeAdapter: DrawingStoreAdapter;
+  getCurrentDocUrl(): string;
+  open(url: string): Promise<DrawingStoreAdapter>;
+  createNew(options?: {
+    documentSize?: DrawingDocumentSize;
+  }): Promise<{ url: string; adapter: DrawingStoreAdapter }>;
   reset(options?: {
     documentSize?: DrawingDocumentSize;
   }): Promise<DrawingStoreAdapter>;
@@ -50,7 +58,7 @@ function createRepo(): Repo {
 
 async function getOrCreateHandle(
   repo: Repo,
-  storageKey: string,
+  currentDocUrl: string | null,
   mode: "reuse" | "always-new",
   documentSize: DrawingDocumentSize,
   debug: boolean,
@@ -68,19 +76,17 @@ async function getOrCreateHandle(
     return handle;
   }
 
-  const storedUrl = localStorage.getItem(storageKey);
   if (debug) {
-    console.debug("[createSmalldraw] stored doc url:", storedUrl);
+    console.debug("[createSmalldraw] stored doc url:", currentDocUrl);
   }
 
-  if (storedUrl) {
-    return await repo.find<DrawingDocumentData>(storedUrl as AutomergeUrl);
+  if (currentDocUrl) {
+    return await repo.find<DrawingDocumentData>(currentDocUrl as AutomergeUrl);
   }
 
   const handle = repo.create<DrawingDocumentData>(
     createEmptyDrawingDocumentData(documentSize),
   );
-  localStorage.setItem(storageKey, handle.url);
   if (debug) {
     console.debug("[createSmalldraw] created new doc:", handle.url);
   }
@@ -108,14 +114,36 @@ export async function createSmalldraw(
 
   const storageKey = persistence?.storageKey ?? "smalldraw-doc-url";
   const mode = persistence?.mode ?? "reuse";
+  const readCurrentDocUrl = async (): Promise<string | null> => {
+    if (persistence?.getCurrentDocUrl) {
+      return (await persistence.getCurrentDocUrl()) ?? null;
+    }
+    return localStorage.getItem(storageKey);
+  };
+  const writeCurrentDocUrl = async (url: string): Promise<void> => {
+    if (persistence?.setCurrentDocUrl) {
+      await persistence.setCurrentDocUrl(url);
+      return;
+    }
+    localStorage.setItem(storageKey, url);
+  };
+  const clearCurrentDocUrl = async (): Promise<void> => {
+    if (persistence?.clearCurrentDocUrl) {
+      await persistence.clearCurrentDocUrl();
+      return;
+    }
+    localStorage.removeItem(storageKey);
+  };
 
+  const initialCurrentDocUrl = await readCurrentDocUrl();
   let handle = await getOrCreateHandle(
     repo,
-    storageKey,
+    initialCurrentDocUrl,
     mode,
     documentSize,
     debug,
   );
+  await writeCurrentDocUrl(handle.url);
   await handle.whenReady();
 
   if (debug) {
@@ -128,28 +156,55 @@ export async function createSmalldraw(
     registry,
     debug,
   });
+  const createNewDocument = async (createOptions?: {
+    documentSize?: DrawingDocumentSize;
+  }): Promise<{ url: string; adapter: DrawingStoreAdapter }> => {
+    const nextDocumentSize = createOptions?.documentSize ?? documentSize;
+    handle = await getOrCreateHandle(
+      repo,
+      null,
+      "always-new",
+      nextDocumentSize,
+      debug,
+    );
+    await handle.whenReady();
+    await writeCurrentDocUrl(handle.url);
+    storeAdapter = createAutomergeStoreAdapter({
+      handle,
+      registry,
+      debug,
+    });
+    return {
+      url: handle.url,
+      adapter: storeAdapter,
+    };
+  };
 
   return {
     get storeAdapter() {
       return storeAdapter;
     },
-    async reset(resetOptions) {
-      const nextDocumentSize = resetOptions?.documentSize ?? documentSize;
-      localStorage.removeItem(storageKey);
-      handle = await getOrCreateHandle(
-        repo,
-        storageKey,
-        "always-new",
-        nextDocumentSize,
-        debug,
-      );
+    getCurrentDocUrl() {
+      return handle.url;
+    },
+    async open(url) {
+      handle = await repo.find<DrawingDocumentData>(url as AutomergeUrl);
       await handle.whenReady();
+      await writeCurrentDocUrl(handle.url);
       storeAdapter = createAutomergeStoreAdapter({
         handle,
         registry,
         debug,
       });
       return storeAdapter;
+    },
+    async createNew(createOptions) {
+      return await createNewDocument(createOptions);
+    },
+    async reset(resetOptions) {
+      await clearCurrentDocUrl();
+      const created = await createNewDocument(resetOptions);
+      return created.adapter;
     },
     destroy() {
       // Reserved for future teardown (e.g. closing adapters).

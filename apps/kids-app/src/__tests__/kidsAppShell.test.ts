@@ -11,6 +11,11 @@ import {
 } from "@smalldraw/core";
 import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { createKidsDrawApp } from "../createKidsDrawApp";
+import type {
+  KidsDocumentBackend,
+  KidsDocumentCreateInput,
+  KidsDocumentSummary,
+} from "../documents";
 import { resolvePageSize } from "../layout/responsiveLayout";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 
@@ -97,11 +102,91 @@ async function waitUntil(
   return predicate();
 }
 
+function createMockDocumentBackend(
+  initialDocuments: KidsDocumentSummary[],
+  currentDocUrl: string | null,
+): KidsDocumentBackend {
+  const documentsByUrl = new Map(
+    initialDocuments.map((document) => [document.docUrl, document] as const),
+  );
+  const thumbnailsByUrl = new Map<string, Blob>();
+  let current = currentDocUrl;
+
+  const now = (): string => new Date().toISOString();
+
+  return {
+    mode: "local",
+    async listDocuments() {
+      return Array.from(documentsByUrl.values()).sort(
+        (a, b) => Date.parse(b.lastOpenedAt) - Date.parse(a.lastOpenedAt),
+      );
+    },
+    async getDocument(docUrl) {
+      return documentsByUrl.get(docUrl) ?? null;
+    },
+    async createDocument(input: KidsDocumentCreateInput) {
+      const timestamp = now();
+      const existing = documentsByUrl.get(input.docUrl);
+      const next: KidsDocumentSummary = {
+        docUrl: input.docUrl,
+        title: input.title ?? existing?.title,
+        createdAt: existing?.createdAt ?? timestamp,
+        updatedAt: timestamp,
+        lastOpenedAt: timestamp,
+      };
+      documentsByUrl.set(next.docUrl, next);
+      return next;
+    },
+    async touchDocument(docUrl) {
+      const timestamp = now();
+      const existing = documentsByUrl.get(docUrl);
+      const next: KidsDocumentSummary = existing
+        ? {
+            ...existing,
+            updatedAt: timestamp,
+            lastOpenedAt: timestamp,
+          }
+        : {
+            docUrl,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            lastOpenedAt: timestamp,
+          };
+      documentsByUrl.set(docUrl, next);
+      return next;
+    },
+    async deleteDocument(docUrl) {
+      documentsByUrl.delete(docUrl);
+      thumbnailsByUrl.delete(docUrl);
+      if (current === docUrl) {
+        current = null;
+      }
+    },
+    async saveThumbnail(docUrl, blob) {
+      thumbnailsByUrl.set(docUrl, blob);
+    },
+    async getThumbnail(docUrl) {
+      return thumbnailsByUrl.get(docUrl) ?? null;
+    },
+    async setCurrentDocument(docUrl) {
+      current = docUrl;
+    },
+    async getCurrentDocument() {
+      return current;
+    },
+  };
+}
+
 function createMockCore(
   initialSize = { width: 960, height: 600 },
 ): SmalldrawCore {
   const registry = createKidsShapeHandlerRegistry();
+  const docByUrl = new Map<string, DrawingDocument>();
+  let docCounter = 0;
+  const createDocUrl = (): string => `automerge:mock-${++docCounter}`;
+  let currentDocUrl = createDocUrl();
   let doc = createDocument(undefined, registry, initialSize);
+  docByUrl.set(currentDocUrl, doc);
   const listeners = new Set<(doc: DrawingDocument) => void>();
 
   const change: ActionContext["change"] = (nextDoc, update) => {
@@ -118,6 +203,7 @@ function createMockCore(
       } else {
         doc = applyActionToDoc(doc, event.action, registry, change);
       }
+      docByUrl.set(currentDocUrl, doc);
       for (const listener of listeners) {
         listener(doc);
       }
@@ -132,13 +218,37 @@ function createMockCore(
 
   return {
     storeAdapter,
-    async reset(options) {
-      const nextSize = options?.documentSize ?? doc.size;
-      doc = createDocument(undefined, registry, nextSize);
+    getCurrentDocUrl() {
+      return currentDocUrl;
+    },
+    async open(url) {
+      const nextDoc = docByUrl.get(url);
+      if (!nextDoc) {
+        throw new Error(`Missing mock document for url: ${url}`);
+      }
+      currentDocUrl = url;
+      doc = nextDoc;
       for (const listener of listeners) {
         listener(doc);
       }
       return storeAdapter;
+    },
+    async createNew(options) {
+      const nextSize = options?.documentSize ?? doc.size;
+      currentDocUrl = createDocUrl();
+      doc = createDocument(undefined, registry, nextSize);
+      docByUrl.set(currentDocUrl, doc);
+      for (const listener of listeners) {
+        listener(doc);
+      }
+      return {
+        url: currentDocUrl,
+        adapter: storeAdapter,
+      };
+    },
+    async reset(options) {
+      const created = await this.createNew(options);
+      return created.adapter;
     },
     destroy() {},
   };
@@ -151,6 +261,10 @@ function createDelayedResetCore(
   const base = createMockCore(initialSize);
   return {
     ...base,
+    async createNew(options) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return base.createNew(options);
+    },
     async reset(options) {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
       return base.reset(options);
@@ -483,6 +597,150 @@ describe("kids-app shell", () => {
     app.destroy();
   });
 
+  test("document browser opens from actions and switches documents", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const core = createMockCore({ width: 640, height: 480 });
+    const firstDocUrl = core.getCurrentDocUrl();
+    const secondDoc = await core.createNew({
+      documentSize: { width: 320, height: 240 },
+    });
+    const secondDocUrl = secondDoc.url;
+    await core.open(firstDocUrl);
+
+    const documentBackend = createMockDocumentBackend(
+      [
+        {
+          docUrl: firstDocUrl,
+          createdAt: "2026-02-16T00:00:00.000Z",
+          updatedAt: "2026-02-16T00:00:00.000Z",
+          lastOpenedAt: "2026-02-16T00:00:00.000Z",
+        },
+        {
+          docUrl: secondDocUrl,
+          createdAt: "2026-02-16T00:00:00.000Z",
+          updatedAt: "2026-02-16T00:00:00.000Z",
+          lastOpenedAt: "2026-02-16T00:00:00.000Z",
+        },
+      ],
+      firstDocUrl,
+    );
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core,
+      documentBackend,
+      confirmDestructiveAction: async () => true,
+    });
+
+    const browseButton = container.querySelector(
+      '[data-action="browse"]',
+    ) as HTMLButtonElement | null;
+    expect(browseButton).not.toBeNull();
+    browseButton!.click();
+
+    const browser = container.querySelector(
+      ".kids-draw-document-browser",
+    ) as HTMLDivElement | null;
+    expect(browser).not.toBeNull();
+    expect(browser?.hidden).toBeFalse();
+
+    const openButtonReady = await waitUntil(() => {
+      return (
+        container.querySelector(`[data-doc-browser-open="${secondDocUrl}"]`) !==
+        null
+      );
+    });
+    expect(openButtonReady).toBeTrue();
+    const openSecondButton = container.querySelector(
+      `[data-doc-browser-open="${secondDocUrl}"]`,
+    ) as HTMLButtonElement | null;
+    openSecondButton!.click();
+
+    const switched = await waitUntil(
+      () => core.getCurrentDocUrl() === secondDocUrl,
+    );
+    expect(switched).toBeTrue();
+    const browserClosed = await waitUntil(() => browser?.hidden === true);
+    expect(browserClosed).toBeTrue();
+
+    app.destroy();
+  });
+
+  test("document browser can delete a non-current document", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const core = createMockCore({ width: 640, height: 480 });
+    const firstDocUrl = core.getCurrentDocUrl();
+    const secondDoc = await core.createNew({
+      documentSize: { width: 320, height: 240 },
+    });
+    const secondDocUrl = secondDoc.url;
+    await core.open(firstDocUrl);
+
+    const documentBackend = createMockDocumentBackend(
+      [
+        {
+          docUrl: firstDocUrl,
+          createdAt: "2026-02-16T00:00:00.000Z",
+          updatedAt: "2026-02-16T00:00:00.000Z",
+          lastOpenedAt: "2026-02-16T00:00:00.000Z",
+        },
+        {
+          docUrl: secondDocUrl,
+          createdAt: "2026-02-16T00:00:00.000Z",
+          updatedAt: "2026-02-16T00:00:00.000Z",
+          lastOpenedAt: "2026-02-16T00:00:00.000Z",
+        },
+      ],
+      firstDocUrl,
+    );
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core,
+      documentBackend,
+      confirmDestructiveAction: async () => true,
+    });
+
+    const browseButton = container.querySelector(
+      '[data-action="browse"]',
+    ) as HTMLButtonElement | null;
+    browseButton!.click();
+
+    const deleteButtonReady = await waitUntil(() => {
+      return (
+        container.querySelector(
+          `[data-doc-browser-delete="${secondDocUrl}"]`,
+        ) !== null
+      );
+    });
+    expect(deleteButtonReady).toBeTrue();
+    const deleteSecondButton = container.querySelector(
+      `[data-doc-browser-delete="${secondDocUrl}"]`,
+    ) as HTMLButtonElement | null;
+    deleteSecondButton!.click();
+
+    let removed = false;
+    for (let i = 0; i < 50; i += 1) {
+      if ((await documentBackend.getDocument(secondDocUrl)) === null) {
+        removed = true;
+        break;
+      }
+      await waitForTurn();
+    }
+    expect(removed).toBeTrue();
+    expect(core.getCurrentDocUrl()).toBe(firstDocUrl);
+
+    app.destroy();
+  });
+
   test("letters stamp family shows A cursor preview, row-major flow, and stamps selected letters", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
@@ -546,7 +804,8 @@ describe("kids-app shell", () => {
     const firstVariantLabel = lettersToolbar?.querySelector(
       '[data-tool-variant="stamp.letter.a"] .kids-square-icon-button__label',
     ) as HTMLElement | null;
-    expect(firstVariantLabel?.hidden).toBeTrue();
+    expect(firstVariantLabel?.textContent).toBe("A");
+    expect(firstVariantLabel?.hidden).toBeFalse();
 
     lettersFamilyButton!.click();
     expect(app.store.getActiveToolId()).toBe("stamp.letter.a");

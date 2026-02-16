@@ -73,7 +73,10 @@
 
 .button-grid[data-orientation="horizontal"] .button-grid-track {
   grid-auto-flow: column;
-  grid-auto-columns: var(--button-grid-item-width, var(--button-grid-cell-size));
+  grid-auto-columns: var(
+    --button-grid-item-width,
+    var(--button-grid-cell-size)
+  );
   grid-template-rows: repeat(2, var(--button-grid-cell-size));
 }
 
@@ -214,7 +217,10 @@
 
 .button-grid[data-mode="mobile"] .button-grid-track {
   grid-auto-flow: column;
-  grid-auto-columns: var(--button-grid-item-width, var(--button-grid-cell-size));
+  grid-auto-columns: var(
+    --button-grid-item-width,
+    var(--button-grid-cell-size)
+  );
   grid-template-rows: var(--button-grid-cell-size);
 }
 

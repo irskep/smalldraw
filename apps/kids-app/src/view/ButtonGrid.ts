@@ -1,11 +1,6 @@
 import "./ButtonGrid.css";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  PanelBottomOpen,
-  X,
-} from "lucide";
+import { ChevronLeft, ChevronRight, PanelBottomOpen, X } from "lucide";
 import { el, list, mount, setChildren } from "redom";
 import {
   createSquareIconButton,
@@ -264,7 +259,10 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       Math.min(currentAnchorIndex, containers.length - 1),
     );
 
-    const targetStart = getItemMainStart(containers[currentAnchorIndex], horizontal);
+    const targetStart = getItemMainStart(
+      containers[currentAnchorIndex],
+      horizontal,
+    );
     setTrackOffset(Math.max(0, targetStart), horizontal);
   };
 
@@ -314,7 +312,10 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     }
 
     const horizontal = useHorizontalFlow();
-    const targetStart = getItemMainStart(containers[nextAnchorIndex], horizontal);
+    const targetStart = getItemMainStart(
+      containers[nextAnchorIndex],
+      horizontal,
+    );
     if (targetStart <= currentOffsetPx + EPSILON) {
       return null;
     }
@@ -367,9 +368,11 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       const start = horizontal ? rect.left : rect.top;
       const end = horizontal ? rect.right : rect.bottom;
       const intersects =
-        end > viewportRange.start + EPSILON && start < viewportRange.end - EPSILON;
+        end > viewportRange.start + EPSILON &&
+        start < viewportRange.end - EPSILON;
       const fullyVisible =
-        start >= viewportRange.start - EPSILON && end <= viewportRange.end + EPSILON;
+        start >= viewportRange.start - EPSILON &&
+        end <= viewportRange.end + EPSILON;
       container.style.visibility = intersects && !fullyVisible ? "hidden" : "";
     }
   };
@@ -380,7 +383,10 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     }
 
     const items = getActiveItems();
-    const models = items.map((item) => ({ id: item.id, element: item.element }));
+    const models = items.map((item) => ({
+      id: item.id,
+      element: item.element,
+    }));
     listView.update(models);
 
     viewport.style.width = "";

@@ -5,6 +5,7 @@ import {
 } from "@smalldraw/core";
 import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
+import { createLocalDocumentBackend } from "../documents";
 import { resolveLayoutMode, resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
@@ -60,18 +61,34 @@ export async function createKidsDrawApp(
   }
   const shapeHandlers = createKidsShapeHandlerRegistry();
   const shapeRendererRegistry = createKidsShapeRendererRegistry();
+  const documentBackend =
+    options.documentBackend ??
+    createLocalDocumentBackend({
+      currentDocStorageKey: "kids-draw-doc-url",
+    });
 
   const providedCore = options.core;
   const core =
     providedCore ??
     (await createSmalldraw({
       persistence: {
-        storageKey: "kids-draw-doc-url",
         mode: "reuse",
+        getCurrentDocUrl: () => documentBackend.getCurrentDocument(),
+        setCurrentDocUrl: (url) => documentBackend.setCurrentDocument(url),
       },
       documentSize: desiredInitialSize,
       shapeHandlers,
     }));
+  try {
+    await documentBackend.createDocument({
+      docUrl: core.getCurrentDocUrl(),
+      documentSize: core.storeAdapter.getDoc().size,
+    });
+  } catch (error) {
+    console.warn("[kids-draw:documents] failed to ensure current doc index", {
+      error,
+    });
+  }
 
   const docSize = core.storeAdapter.getDoc().size;
   let size = {
@@ -153,6 +170,8 @@ export async function createKidsDrawApp(
     families: catalog.families,
     stage,
     pipeline,
+    appElement: element,
+    documentBackend,
     backgroundColor,
     hasExplicitSize,
     providedCore: Boolean(providedCore),

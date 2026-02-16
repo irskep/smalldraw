@@ -19,6 +19,8 @@ const { document } = windowInstance;
 (globalThis as any).SVGElement = windowInstance.SVGElement;
 (globalThis as any).navigator = windowInstance.navigator;
 (globalThis as any).Image = windowInstance.Image;
+(globalThis as any).localStorage = windowInstance.localStorage;
+(globalThis as any).sessionStorage = windowInstance.sessionStorage;
 (globalThis as any).PointerEvent =
   (windowInstance as any).PointerEvent ?? windowInstance.MouseEvent;
 

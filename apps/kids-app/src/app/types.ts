@@ -1,5 +1,6 @@
 import type { DrawingStore, SmalldrawCore } from "@smalldraw/core";
 import type { IconNode } from "lucide";
+import type { KidsDocumentBackend } from "../documents";
 
 export interface ConfirmDialogRequest {
   title: string;
@@ -16,6 +17,7 @@ export interface KidsDrawAppOptions {
   height?: number;
   backgroundColor?: string;
   core?: SmalldrawCore;
+  documentBackend?: KidsDocumentBackend;
   confirmDestructiveAction?: (dialog: ConfirmDialogRequest) => Promise<boolean>;
 }
 

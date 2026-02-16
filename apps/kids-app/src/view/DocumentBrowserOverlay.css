@@ -1,0 +1,238 @@
+.kids-draw-document-browser {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  padding: max(var(--size-3), env(safe-area-inset-top))
+    max(var(--size-3), env(safe-area-inset-right))
+    max(var(--size-3), env(safe-area-inset-bottom))
+    max(var(--size-3), env(safe-area-inset-left));
+  background: rgb(15 23 42 / 35%);
+}
+
+.kids-draw-document-browser[hidden] {
+  display: none;
+}
+
+.kids-draw-document-browser__panel {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--size-2);
+  padding: var(--size-3);
+  border-radius: var(--radius-4);
+  background: var(--kd-surface-canvas);
+  box-shadow: var(--shadow-6);
+}
+
+.kids-draw-document-browser__controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-2);
+}
+
+.kids-draw-document-browser__title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 70vw;
+  pointer-events: none;
+  margin: 0;
+  text-align: center;
+  font-size: var(--font-size-3);
+  color: var(--kd-text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kids-draw-document-browser__close {
+  border: 0;
+  border-radius: var(--radius-3);
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gray-2);
+  cursor: pointer;
+}
+
+.kids-draw-document-browser__close-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.kids-draw-document-browser__new {
+  border: 0;
+  border-radius: var(--radius-3);
+  padding: 10px 14px;
+  background: var(--blue-6);
+  color: white;
+  cursor: pointer;
+}
+
+.kids-draw-document-browser__grid {
+  --doc-thumb-size: clamp(112px, 18vw, 240px);
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--doc-thumb-size), 1fr));
+  gap: var(--size-3);
+  align-content: start;
+  padding: var(--size-1);
+}
+
+.kids-draw-document-browser__empty {
+  grid-column: 1 / -1;
+  margin: var(--size-2) 0 0;
+  color: var(--kd-text-default);
+}
+
+.kids-draw-document-browser__loading {
+  grid-column: 1 / -1;
+  margin: var(--size-2) 0 0;
+  color: var(--kd-text-default);
+}
+
+.kids-draw-document-tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+}
+
+.kids-draw-document-tile.is-current .kids-draw-document-tile__open {
+  border-color: var(--blue-6);
+  box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--blue-6) 38%, white);
+}
+
+.kids-draw-document-tile__open {
+  width: 100%;
+  height: 100%;
+  border: var(--border-size-1) solid var(--gray-4);
+  border-radius: var(--radius-3);
+  background: white;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  display: block;
+}
+
+.kids-draw-document-tile__open:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--blue-6) 42%, white);
+}
+
+.kids-draw-document-tile__thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.kids-draw-document-tile__fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    45deg,
+    color-mix(in oklch, var(--gray-3) 70%, white) 0 25%,
+    color-mix(in oklch, var(--gray-2) 65%, white) 25% 50%,
+    color-mix(in oklch, var(--gray-3) 70%, white) 50% 75%,
+    color-mix(in oklch, var(--gray-2) 65%, white) 75% 100%
+  );
+  background-size: 24px 24px;
+}
+
+.kids-draw-document-tile__delete {
+  position: absolute;
+  top: var(--size-1);
+  right: var(--size-1);
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background: color-mix(in oklch, var(--red-3) 55%, white);
+  color: color-mix(in oklch, var(--red-8) 75%, black);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-1);
+}
+
+.kids-draw-document-tile__delete:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--blue-6) 40%, white);
+}
+
+.kids-draw-document-tile__delete-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.kids-draw-document-preview {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--size-4);
+  background: rgb(2 6 23 / 45%);
+}
+
+.kids-draw-document-preview[hidden] {
+  display: none;
+}
+
+.kids-draw-document-preview__card {
+  width: min(88vw, 780px);
+  max-height: min(88vh, 900px);
+  display: grid;
+  gap: var(--size-2);
+  padding: var(--size-2);
+  border-radius: var(--radius-4);
+  background: white;
+  box-shadow: var(--shadow-6);
+}
+
+.kids-draw-document-preview__image {
+  width: 100%;
+  max-height: min(72vh, 720px);
+  object-fit: contain;
+  border-radius: var(--radius-3);
+  background: color-mix(in oklch, var(--gray-1) 80%, white);
+}
+
+.kids-draw-document-preview__meta {
+  display: grid;
+  gap: 2px;
+  padding-inline: 2px;
+}
+
+.kids-draw-document-preview__meta-title,
+.kids-draw-document-preview__meta-time {
+  margin: 0;
+  color: var(--gray-8);
+  font-size: var(--font-size-1);
+}
+
+@media (max-width: 720px) {
+  .kids-draw-document-browser__panel {
+    padding: var(--size-2);
+  }
+
+  .kids-draw-document-browser__title {
+    font-size: var(--font-size-2);
+  }
+
+  .kids-draw-document-browser__grid {
+    --doc-thumb-size: clamp(100px, 28vw, 180px);
+    gap: var(--size-2);
+  }
+}

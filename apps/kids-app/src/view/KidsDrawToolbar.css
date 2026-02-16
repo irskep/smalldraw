@@ -352,7 +352,8 @@
 
 .kids-draw-action-clear,
 .kids-draw-action-export,
-.kids-draw-action-new {
+.kids-draw-action-new,
+.kids-draw-action-browse {
   grid-column: 1 / 3;
   width: 100%;
 }
@@ -371,9 +372,11 @@
 .kids-draw-viewport[data-layout-mode="medium"] .kids-draw-action-clear,
 .kids-draw-viewport[data-layout-mode="medium"] .kids-draw-action-export,
 .kids-draw-viewport[data-layout-mode="medium"] .kids-draw-action-new,
+.kids-draw-viewport[data-layout-mode="medium"] .kids-draw-action-browse,
 .kids-draw-viewport[data-layout-mode="mobile"] .kids-draw-action-clear,
 .kids-draw-viewport[data-layout-mode="mobile"] .kids-draw-action-export,
-.kids-draw-viewport[data-layout-mode="mobile"] .kids-draw-action-new {
+.kids-draw-viewport[data-layout-mode="mobile"] .kids-draw-action-new,
+.kids-draw-viewport[data-layout-mode="mobile"] .kids-draw-action-browse {
   grid-column: auto;
   width: var(--kd-toolbar-cell-size);
 }

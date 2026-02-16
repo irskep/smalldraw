@@ -18,6 +18,7 @@ import {
   SlidersHorizontal,
   Trash2,
 } from "lucide";
+import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 import {
   applyResponsiveLayout,
   getViewportPaddingForProfile,
@@ -46,12 +47,14 @@ import {
   setToolbarStyleUi,
   syncToolbarUiFromDrawingStore,
 } from "../ui/stores/toolbarUiStore";
+import { createDocumentBrowserOverlay } from "../view/DocumentBrowserOverlay";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import { createSquareIconButton } from "../view/SquareIconButton";
 import { createCursorOverlayController } from "./createCursorOverlayController";
 
 const RESIZE_BAKE_DEBOUNCE_MS = 120;
+const THUMBNAIL_SAVE_DEBOUNCE_MS = 1000;
 const MAX_POINTER_SAMPLES_PER_EVENT = 64;
 const ENABLE_COALESCED_POINTER_SAMPLES = true;
 const DEFAULT_OPAQUE_STROKE_COLOR = "#000000";
@@ -98,6 +101,8 @@ export function createKidsDrawController(options: {
   families: KidsToolFamilyConfig[];
   stage: KidsDrawStage;
   pipeline: RasterPipeline;
+  appElement: HTMLDivElement;
+  documentBackend: KidsDocumentBackend;
   backgroundColor: string;
   hasExplicitSize: boolean;
   providedCore: boolean;
@@ -117,6 +122,8 @@ export function createKidsDrawController(options: {
     families,
     stage,
     pipeline,
+    appElement,
+    documentBackend,
     backgroundColor,
     hasExplicitSize,
     providedCore,
@@ -153,6 +160,13 @@ export function createKidsDrawController(options: {
   );
   let currentRenderIdentity = "";
   let unsubscribeCoreAdapter: (() => void) | null = null;
+  let metadataTouchTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  let thumbnailSaveTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  let browserDocuments: KidsDocumentSummary[] = [];
+  let browserLoading = false;
+  let browserBusyDocUrl: string | null = null;
+  let browserRequestId = 0;
+  let browserThumbnailUrlByDocUrl = new Map<string, string>();
   const cursorOverlay = createCursorOverlayController({
     store,
     stage,
@@ -222,6 +236,22 @@ export function createKidsDrawController(options: {
     }
     console.debug("[kids-draw:lifecycle]", ...args);
   };
+
+  const documentBrowserOverlay = createDocumentBrowserOverlay({
+    onClose: () => {
+      closeDocumentBrowser();
+    },
+    onNewDocument: () => {
+      void createNewDocumentFromBrowser();
+    },
+    onOpenDocument: (docUrl) => {
+      void openDocumentFromBrowser(docUrl);
+    },
+    onDeleteDocument: (docUrl) => {
+      void deleteDocumentFromBrowser(docUrl);
+    },
+  });
+  appElement.appendChild(documentBrowserOverlay.el);
 
   function listen<K extends keyof WindowEventMap>(
     target: Window,
@@ -499,10 +529,7 @@ export function createKidsDrawController(options: {
     const height = Math.max(
       MIN_HEIGHT,
       Math.round(
-        hostHeight -
-          paddingTop -
-          paddingBottom -
-          IMPLICIT_DOC_VERTICAL_SLACK,
+        hostHeight - paddingTop - paddingBottom - IMPLICIT_DOC_VERTICAL_SLACK,
       ),
     );
     return { width, height };
@@ -616,8 +643,292 @@ export function createKidsDrawController(options: {
     unsubscribeCoreAdapter?.();
     unsubscribeCoreAdapter = core.storeAdapter.subscribe((doc) => {
       store.applyDocument(doc);
+      scheduleDocumentTouch();
+      scheduleThumbnailSave();
       syncToolbarUi();
     });
+  };
+
+  const renderDocumentBrowser = (): void => {
+    documentBrowserOverlay.setLoading(browserLoading);
+    documentBrowserOverlay.setBusyDocument(browserBusyDocUrl);
+    documentBrowserOverlay.setDocuments(
+      browserDocuments,
+      core.getCurrentDocUrl(),
+      browserThumbnailUrlByDocUrl,
+    );
+  };
+
+  const clearBrowserThumbnails = (): void => {
+    for (const url of browserThumbnailUrlByDocUrl.values()) {
+      URL.revokeObjectURL(url);
+    }
+    browserThumbnailUrlByDocUrl = new Map();
+  };
+
+  const loadBrowserThumbnails = async (
+    requestId: number,
+    documents: KidsDocumentSummary[],
+  ): Promise<void> => {
+    const nextThumbnailUrlByDocUrl = new Map<string, string>();
+    for (const document of documents) {
+      try {
+        const thumbnailBlob = await documentBackend.getThumbnail(
+          document.docUrl,
+        );
+        if (!thumbnailBlob) {
+          continue;
+        }
+        nextThumbnailUrlByDocUrl.set(
+          document.docUrl,
+          URL.createObjectURL(thumbnailBlob),
+        );
+      } catch (error) {
+        console.warn("[kids-draw:documents] failed to load thumbnail", {
+          docUrl: document.docUrl,
+          error,
+        });
+      }
+    }
+    if (requestId !== browserRequestId) {
+      for (const url of nextThumbnailUrlByDocUrl.values()) {
+        URL.revokeObjectURL(url);
+      }
+      return;
+    }
+
+    clearBrowserThumbnails();
+    browserThumbnailUrlByDocUrl = nextThumbnailUrlByDocUrl;
+    renderDocumentBrowser();
+  };
+
+  const closeDocumentBrowser = (): void => {
+    documentBrowserOverlay.setOpen(false);
+    browserBusyDocUrl = null;
+    renderDocumentBrowser();
+  };
+
+  const reloadDocumentBrowser = async (): Promise<void> => {
+    const requestId = ++browserRequestId;
+    browserLoading = true;
+    renderDocumentBrowser();
+    try {
+      const documents = await documentBackend.listDocuments();
+      if (requestId !== browserRequestId) {
+        return;
+      }
+      browserDocuments = documents;
+      await loadBrowserThumbnails(requestId, documents);
+    } finally {
+      if (requestId === browserRequestId) {
+        browserLoading = false;
+        renderDocumentBrowser();
+      }
+    }
+  };
+
+  const openDocumentBrowser = async (): Promise<void> => {
+    documentBrowserOverlay.setOpen(true);
+    browserBusyDocUrl = null;
+    renderDocumentBrowser();
+    await reloadDocumentBrowser();
+  };
+
+  const switchToDocument = async (docUrl: string): Promise<void> => {
+    await flushThumbnailSave();
+    const adapter = await core.open(docUrl);
+    await documentBackend.touchDocument(docUrl);
+    store.resetToDocument(adapter.getDoc());
+    applyCanvasSize(adapter.getDoc().size.width, adapter.getDoc().size.height);
+    subscribeToCoreAdapter();
+    pipeline.scheduleBakeForClear();
+    pipeline.bakePendingTiles();
+    requestRenderFromModel();
+    syncToolbarUi();
+  };
+
+  const createNewDocument = async (
+    nextDocumentSize: DrawingDocumentSize,
+  ): Promise<void> => {
+    await flushThumbnailSave();
+    const { adapter, url } = await core.createNew({
+      documentSize: nextDocumentSize,
+    });
+    await documentBackend.createDocument({
+      docUrl: url,
+      documentSize: nextDocumentSize,
+    });
+    store.resetToDocument(adapter.getDoc());
+    applyCanvasSize(nextDocumentSize.width, nextDocumentSize.height);
+    subscribeToCoreAdapter();
+    pipeline.scheduleBakeForClear();
+    pipeline.bakePendingTiles();
+    requestRenderFromModel();
+    syncToolbarUi();
+  };
+
+  const createNewDocumentFromBrowser = async (): Promise<void> => {
+    if (!documentBrowserOverlay.isOpen()) {
+      return;
+    }
+    browserBusyDocUrl = "__new__";
+    renderDocumentBrowser();
+    try {
+      const nextDocumentSize = hasExplicitSize
+        ? getExplicitSize()
+        : resolveImplicitDocumentSizeFromViewport();
+      await createNewDocument(nextDocumentSize);
+      closeDocumentBrowser();
+    } finally {
+      browserBusyDocUrl = null;
+      renderDocumentBrowser();
+    }
+  };
+
+  const openDocumentFromBrowser = async (docUrl: string): Promise<void> => {
+    if (!documentBrowserOverlay.isOpen()) {
+      return;
+    }
+    if (docUrl === core.getCurrentDocUrl()) {
+      closeDocumentBrowser();
+      return;
+    }
+    browserBusyDocUrl = docUrl;
+    renderDocumentBrowser();
+    try {
+      await switchToDocument(docUrl);
+      closeDocumentBrowser();
+    } finally {
+      browserBusyDocUrl = null;
+      renderDocumentBrowser();
+    }
+  };
+
+  const deleteDocumentFromBrowser = async (docUrl: string): Promise<void> => {
+    if (!documentBrowserOverlay.isOpen()) {
+      return;
+    }
+    const confirmed = await confirmDestructiveAction({
+      title: "Delete drawing?",
+      message: "This drawing will be removed.",
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      tone: "danger",
+      icon: Trash2,
+    });
+    if (!confirmed || destroyed) {
+      return;
+    }
+    browserBusyDocUrl = docUrl;
+    renderDocumentBrowser();
+    try {
+      const deletingCurrent = docUrl === core.getCurrentDocUrl();
+      if (deletingCurrent) {
+        await flushThumbnailSave();
+      }
+      await documentBackend.deleteDocument(docUrl);
+      if (deletingCurrent) {
+        const remainingDocs = await documentBackend.listDocuments();
+        const fallback = remainingDocs[0];
+        if (fallback) {
+          await switchToDocument(fallback.docUrl);
+        } else {
+          const nextDocumentSize = hasExplicitSize
+            ? getExplicitSize()
+            : resolveImplicitDocumentSizeFromViewport();
+          await createNewDocument(nextDocumentSize);
+        }
+      }
+      await reloadDocumentBrowser();
+    } finally {
+      browserBusyDocUrl = null;
+      renderDocumentBrowser();
+    }
+  };
+
+  const flushDocumentTouch = async (): Promise<void> => {
+    const docUrl = core.getCurrentDocUrl();
+    try {
+      await documentBackend.touchDocument(docUrl);
+    } catch (error) {
+      console.warn("[kids-draw:documents] failed to touch document", {
+        docUrl,
+        error,
+      });
+    }
+  };
+
+  const createThumbnailBlob = async (): Promise<Blob | null> => {
+    const doc = store.getDocument();
+    const width = Math.max(1, Math.round(doc.size.width));
+    const height = Math.max(1, Math.round(doc.size.height));
+    const maxDimension = 320;
+    const scale = Math.min(1, maxDimension / Math.max(width, height));
+    const targetWidth = Math.max(1, Math.round(width * scale));
+    const targetHeight = Math.max(1, Math.round(height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx || typeof canvas.toBlob !== "function") {
+      return null;
+    }
+
+    ctx.save();
+    ctx.scale(scale, scale);
+    renderOrderedShapes(ctx, store.getOrderedShapes(), {
+      registry: shapeRendererRegistry,
+      geometryHandlerRegistry: store.getShapeHandlers(),
+    });
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-over";
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, targetWidth, targetHeight);
+    ctx.restore();
+
+    return await new Promise((resolve) => {
+      canvas.toBlob((result) => resolve(result), "image/webp", 0.82);
+    });
+  };
+
+  const flushThumbnailSave = async (): Promise<void> => {
+    const docUrl = core.getCurrentDocUrl();
+    try {
+      const thumbnailBlob = await createThumbnailBlob();
+      if (!thumbnailBlob) {
+        return;
+      }
+      await documentBackend.saveThumbnail(docUrl, thumbnailBlob);
+    } catch (error) {
+      console.warn("[kids-draw:documents] failed to save thumbnail", {
+        docUrl,
+        error,
+      });
+    }
+  };
+
+  const scheduleDocumentTouch = (): void => {
+    if (metadataTouchTimeoutHandle !== null) {
+      clearTimeout(metadataTouchTimeoutHandle);
+    }
+    metadataTouchTimeoutHandle = setTimeout(() => {
+      metadataTouchTimeoutHandle = null;
+      void flushDocumentTouch();
+    }, 500);
+  };
+
+  const scheduleThumbnailSave = (
+    delayMs = THUMBNAIL_SAVE_DEBOUNCE_MS,
+  ): void => {
+    if (thumbnailSaveTimeoutHandle !== null) {
+      clearTimeout(thumbnailSaveTimeoutHandle);
+    }
+    thumbnailSaveTimeoutHandle = setTimeout(() => {
+      thumbnailSaveTimeoutHandle = null;
+      void flushThumbnailSave();
+    }, delayMs);
   };
 
   const runAndSync = (fn: () => void): (() => void) => {
@@ -675,9 +986,7 @@ export function createKidsDrawController(options: {
       const nextDocumentSize = hasExplicitSize
         ? getExplicitSize()
         : resolveImplicitDocumentSizeFromViewport();
-      const adapter = await core.reset({
-        documentSize: nextDocumentSize,
-      });
+      await createNewDocument(nextDocumentSize);
       debugLifecycle("new-drawing:reset-resolved", { requestId, destroyed });
       if (destroyed || requestId !== newDrawingRequestId) {
         debugLifecycle("new-drawing:aborted-after-reset", {
@@ -687,13 +996,7 @@ export function createKidsDrawController(options: {
         });
         return;
       }
-      store.resetToDocument(adapter.getDoc());
-      applyCanvasSize(nextDocumentSize.width, nextDocumentSize.height);
-      subscribeToCoreAdapter();
-      pipeline.scheduleBakeForClear();
-      pipeline.bakePendingTiles();
-      requestRenderFromModel();
-      syncToolbarUi();
+      closeDocumentBrowser();
     } finally {
       if (!destroyed && requestId === newDrawingRequestId) {
         setNewDrawingPending(false);
@@ -843,6 +1146,7 @@ export function createKidsDrawController(options: {
     perfSession.end(drawingPerfFrameCount);
     if (type === "pointerUp") {
       stage.overlay.releasePointerCapture?.(event.pointerId);
+      scheduleThumbnailSave(140);
     }
     syncToolbarUi();
   };
@@ -981,6 +1285,10 @@ export function createKidsDrawController(options: {
     void onNewDrawingClick();
     closeMobilePortraitActions();
   });
+  listen(toolbar.browseButton.el, "click", () => {
+    void openDocumentBrowser();
+    closeMobilePortraitActions();
+  });
   for (const colorButton of toolbar.strokeColorSwatchButtons) {
     listen(colorButton, "click", () => {
       const strokeColor = colorButton.dataset.color;
@@ -1057,6 +1365,15 @@ export function createKidsDrawController(options: {
   listen(window, "blur", () => {
     forceCancelPointerSession();
   });
+  listen(window, "keydown", (event) => {
+    if (!(event instanceof KeyboardEvent)) {
+      return;
+    }
+    if (event.key === "Escape" && documentBrowserOverlay.isOpen()) {
+      event.preventDefault();
+      closeDocumentBrowser();
+    }
+  });
   const handleVisibilityChange = () => {
     if (document.visibilityState === "hidden") {
       forceCancelPointerSession();
@@ -1078,6 +1395,7 @@ export function createKidsDrawController(options: {
   }
   syncToolbarUi();
   subscribeToCoreAdapter();
+  scheduleDocumentTouch();
   updateRenderIdentity();
   applyLayoutAndPixelRatio();
   scheduleResizeBake();
@@ -1092,6 +1410,15 @@ export function createKidsDrawController(options: {
       store.setOnRenderNeeded(undefined);
       unsubscribeCoreAdapter?.();
       unsubscribeCoreAdapter = null;
+      if (metadataTouchTimeoutHandle !== null) {
+        clearTimeout(metadataTouchTimeoutHandle);
+        metadataTouchTimeoutHandle = null;
+      }
+      if (thumbnailSaveTimeoutHandle !== null) {
+        clearTimeout(thumbnailSaveTimeoutHandle);
+        thumbnailSaveTimeoutHandle = null;
+      }
+      clearBrowserThumbnails();
 
       if (layoutRafHandle !== null) {
         cancelAnimationFrameHandle(layoutRafHandle);
@@ -1112,6 +1439,7 @@ export function createKidsDrawController(options: {
 
       toolbar.destroy();
       pipeline.dispose();
+      documentBrowserOverlay.el.remove();
       if (!providedCore) {
         core.destroy();
       }
