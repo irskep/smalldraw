@@ -8,8 +8,8 @@
   color-scheme: light;
   --kd-font-family: var(--font-sans);
 
-  --kd-surface-app: var(--gray-3);
-  --kd-surface-viewport: var(--gray-1);
+  --kd-surface-app: color-mix(in oklch, white 96%, var(--yellow-1));
+  --kd-surface-viewport: color-mix(in oklch, white 92%, var(--yellow-1));
   --kd-surface-canvas: var(--gray-0);
   --kd-surface-ui-chrome: var(--yellow-0);
   --kd-surface-toolbar: var(--kd-surface-ui-chrome);
