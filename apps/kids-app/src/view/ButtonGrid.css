@@ -1,0 +1,224 @@
+.button-grid {
+  --button-grid-cell-size: var(--kd-toolbar-cell-size);
+  display: block;
+  max-width: 100%;
+}
+
+.button-grid[data-orientation="horizontal"] {
+  width: 100%;
+}
+
+.button-grid-inline-host {
+  display: block;
+}
+
+.button-grid-inline-host[hidden] {
+  display: none;
+}
+
+.button-grid[data-orientation="horizontal"] .button-grid-inline-host {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.button-grid[data-orientation="vertical"] .button-grid-inline-host {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.button-grid[data-large-layout="two-row-xlarge"] {
+  --button-grid-cell-size: calc(var(--kd-toolbar-cell-size) * 2);
+}
+
+.button-grid-shell {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  padding: var(--size-2);
+  background: var(--kd-surface-toolbar-panel);
+  border-radius: var(--radius-3);
+  box-shadow: var(--kd-shadow-toolbar);
+  width: max-content;
+  max-width: min(100%, calc(100vw - 24px));
+}
+
+.button-grid[data-orientation="vertical"] .button-grid-shell {
+  flex-direction: column;
+  width: auto;
+  max-width: none;
+  max-height: min(100%, calc(100vh - 24px));
+}
+
+.button-grid-viewport {
+  overflow: hidden;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.button-grid[data-orientation="horizontal"] .button-grid-viewport {
+  flex: 0 1 auto;
+  min-width: var(--button-grid-cell-size);
+}
+
+.button-grid[data-orientation="vertical"] .button-grid-viewport {
+  flex: 1 1 auto;
+  min-height: var(--button-grid-cell-size);
+}
+
+.button-grid-track {
+  display: grid;
+  gap: var(--size-2);
+}
+
+.button-grid[data-orientation="horizontal"] .button-grid-track {
+  grid-auto-flow: column;
+  grid-auto-columns: var(--button-grid-item-width, var(--button-grid-cell-size));
+  grid-template-rows: repeat(2, var(--button-grid-cell-size));
+}
+
+.button-grid[data-orientation="horizontal"][data-large-layout="two-row-xlarge"][data-mode="large"]
+  .button-grid-track {
+  grid-template-rows: var(--button-grid-cell-size);
+}
+
+.button-grid[data-orientation="horizontal"][data-mode="medium"]
+  .button-grid-track,
+.button-grid[data-orientation="horizontal"][data-mode="mobile"]
+  .button-grid-track {
+  grid-template-rows: var(--button-grid-cell-size);
+}
+
+.button-grid[data-orientation="vertical"] .button-grid-track {
+  grid-auto-flow: row;
+  grid-auto-rows: var(--button-grid-cell-size);
+  grid-template-columns: repeat(2, var(--button-grid-cell-size));
+}
+
+.button-grid[data-orientation="vertical"][data-mode="medium"]
+  .button-grid-track,
+.button-grid[data-orientation="vertical"][data-mode="mobile"]
+  .button-grid-track {
+  grid-template-columns: var(--button-grid-cell-size);
+}
+
+.button-grid-item {
+  width: var(--button-grid-item-width, var(--button-grid-cell-size));
+  height: var(--button-grid-cell-size);
+  min-width: var(--button-grid-item-width, var(--button-grid-cell-size));
+  min-height: var(--button-grid-cell-size);
+}
+
+.button-grid-item > * {
+  width: 100%;
+  height: 100%;
+}
+
+.button-grid-nav {
+  width: var(--kd-toolbar-cell-size);
+  height: var(--kd-toolbar-cell-size);
+  min-width: var(--kd-toolbar-cell-size);
+  min-height: var(--kd-toolbar-cell-size);
+  max-width: var(--kd-toolbar-cell-size);
+  max-height: var(--kd-toolbar-cell-size);
+  flex: 0 0 var(--kd-toolbar-cell-size);
+  align-self: center;
+  padding: 0;
+}
+
+.button-grid-mobile-trigger {
+  width: max-content;
+  max-width: 100%;
+  height: var(--kd-toolbar-cell-size);
+  min-width: var(--kd-toolbar-cell-size);
+  min-height: var(--kd-toolbar-cell-size);
+  padding-inline: var(--size-3);
+  padding-block: 0;
+}
+
+.button-grid .button-grid-mobile-trigger.kids-square-icon-button {
+  width: max-content;
+  max-width: 100%;
+  padding-inline: var(--size-3);
+  padding-block: 0;
+}
+
+.button-grid-mobile-popover {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: var(--size-3);
+  padding: max(16px, env(safe-area-inset-top)) 12px
+    max(16px, env(safe-area-inset-bottom)) 12px;
+  background: color-mix(in oklch, var(--gray-0) 94%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.button-grid-mobile-body {
+  display: block;
+  width: 100%;
+}
+
+.button-grid.is-mobile-open .button-grid-mobile-popover {
+  display: flex;
+}
+
+.button-grid-mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-2);
+}
+
+.button-grid-mobile-title {
+  font-size: var(--font-size-3);
+  font-weight: var(--font-weight-7);
+  color: var(--kd-text-strong);
+}
+
+.button-grid-mobile-close {
+  width: max-content;
+  max-width: 100%;
+  height: var(--kd-toolbar-cell-size);
+  min-width: var(--kd-toolbar-cell-size);
+  min-height: var(--kd-toolbar-cell-size);
+  padding-inline: var(--size-3);
+  padding-block: 0;
+}
+
+.button-grid .button-grid-mobile-close.kids-square-icon-button {
+  width: max-content;
+  max-width: 100%;
+  padding-inline: var(--size-3);
+  padding-block: 0;
+}
+
+.button-grid[data-mode="mobile"] .button-grid-shell {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  justify-content: space-between;
+}
+
+.button-grid[data-mode="mobile"] .button-grid-inline-host {
+  display: block;
+}
+
+.button-grid[data-mode="mobile"][data-orientation="vertical"]
+  .button-grid-shell {
+  flex-direction: row;
+}
+
+.button-grid[data-mode="mobile"] .button-grid-track {
+  grid-auto-flow: column;
+  grid-auto-columns: var(--button-grid-item-width, var(--button-grid-cell-size));
+  grid-template-rows: var(--button-grid-cell-size);
+}
+
+.button-grid[data-mode="mobile"] .button-grid-viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+}

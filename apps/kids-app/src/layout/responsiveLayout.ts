@@ -1,17 +1,57 @@
 export const MIN_WIDTH = 320;
 export const MIN_HEIGHT = 240;
-export const AUTO_HEIGHT_RESERVED = 80;
-export const VIEWPORT_PADDING_TOP = 100;
-export const VIEWPORT_PADDING_RIGHT = 140;
-export const VIEWPORT_PADDING_BOTTOM = 100;
-export const VIEWPORT_PADDING_LEFT = 140;
+export const AUTO_HEIGHT_RESERVED = 0;
+export const IMPLICIT_DOC_VERTICAL_SLACK = 10;
+export const VIEWPORT_PADDING_TOP = 24;
+export const VIEWPORT_PADDING_RIGHT = 24;
+export const VIEWPORT_PADDING_BOTTOM = 24;
+export const VIEWPORT_PADDING_LEFT = 24;
+export const LARGE_LAYOUT_MIN_WIDTH = 1024;
+export const MOBILE_LAYOUT_MAX_WIDTH = 768;
+export const SHORT_VIEWPORT_MAX_HEIGHT = 540;
 
-type ViewportPadding = {
+export type ResponsiveLayoutMode = "large" | "medium" | "mobile";
+export type ResponsiveLayoutOrientation = "portrait" | "landscape";
+export type ResponsiveLayoutProfile =
+  | "large"
+  | "medium"
+  | "mobile-landscape"
+  | "mobile-portrait";
+
+export type ViewportPadding = {
   top: number;
   right: number;
   bottom: number;
   left: number;
 };
+
+const LAYOUT_PROFILE_PADDING: Record<ResponsiveLayoutProfile, ViewportPadding> =
+  {
+    large: {
+      top: 136,
+      right: 140,
+      bottom: 132,
+      left: 140,
+    },
+    medium: {
+      top: 136,
+      right: 96,
+      bottom: 132,
+      left: 80,
+    },
+    "mobile-landscape": {
+      top: 100,
+      right: 84,
+      bottom: 58,
+      left: 52,
+    },
+    "mobile-portrait": {
+      top: 152,
+      right: 24,
+      bottom: 144,
+      left: 24,
+    },
+  };
 
 const safeAreaInset = (
   side: "top" | "right" | "bottom" | "left",
@@ -72,8 +112,10 @@ export function resolvePageSize(fallback: { width: number; height: number }): {
     return fallback;
   }
 
-  const horizontalPadding = VIEWPORT_PADDING_LEFT + VIEWPORT_PADDING_RIGHT;
-  const verticalPadding = VIEWPORT_PADDING_TOP + VIEWPORT_PADDING_BOTTOM;
+  const profile = resolveLayoutProfile(window.innerWidth, window.innerHeight);
+  const padding = getViewportPaddingForProfile(profile);
+  const horizontalPadding = padding.left + padding.right;
+  const verticalPadding = padding.top + padding.bottom;
   return {
     width: Math.max(
       MIN_WIDTH,
@@ -81,9 +123,59 @@ export function resolvePageSize(fallback: { width: number; height: number }): {
     ),
     height: Math.max(
       MIN_HEIGHT,
-      Math.round(window.innerHeight - AUTO_HEIGHT_RESERVED - verticalPadding),
+      Math.round(
+        window.innerHeight -
+          AUTO_HEIGHT_RESERVED -
+          verticalPadding -
+          IMPLICIT_DOC_VERTICAL_SLACK,
+      ),
     ),
   };
+}
+
+export function resolveLayoutMode(
+  width: number,
+  height: number,
+): ResponsiveLayoutMode {
+  if (
+    width <= MOBILE_LAYOUT_MAX_WIDTH ||
+    (width <= LARGE_LAYOUT_MIN_WIDTH && height <= SHORT_VIEWPORT_MAX_HEIGHT)
+  ) {
+    return "mobile";
+  }
+  if (width < LARGE_LAYOUT_MIN_WIDTH) {
+    return "medium";
+  }
+  return "large";
+}
+
+export function resolveLayoutOrientation(
+  width: number,
+  height: number,
+): ResponsiveLayoutOrientation {
+  return height > width ? "portrait" : "landscape";
+}
+
+export function resolveLayoutProfile(
+  width: number,
+  height: number,
+): ResponsiveLayoutProfile {
+  const mode = resolveLayoutMode(width, height);
+  if (mode === "large") {
+    return "large";
+  }
+  if (mode === "medium") {
+    return "medium";
+  }
+  return resolveLayoutOrientation(width, height) === "portrait"
+    ? "mobile-portrait"
+    : "mobile-landscape";
+}
+
+export function getViewportPaddingForProfile(
+  profile: ResponsiveLayoutProfile,
+): ViewportPadding {
+  return LAYOUT_PROFILE_PADDING[profile];
 }
 
 export function applyResponsiveLayout(params: {

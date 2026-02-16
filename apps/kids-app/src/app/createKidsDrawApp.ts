@@ -5,7 +5,7 @@ import {
 } from "@smalldraw/core";
 import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
-import { resolvePageSize } from "../layout/responsiveLayout";
+import { resolveLayoutMode, resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
@@ -43,10 +43,21 @@ export async function createKidsDrawApp(
   });
   const resolveCurrentPageSize = (): DrawingDocumentSize =>
     resolvePageSize(getExplicitSize());
+  const resolvedImplicitPageSize = resolveCurrentPageSize();
 
   const desiredInitialSize: DrawingDocumentSize = hasExplicitSize
     ? getExplicitSize()
-    : resolveCurrentPageSize();
+    : resolvedImplicitPageSize;
+  if (typeof window !== "undefined") {
+    console.info("[kids-draw:size] initial-page-size", {
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      layoutMode: resolveLayoutMode(window.innerWidth, window.innerHeight),
+      hasExplicitSize,
+      explicitFallback: getExplicitSize(),
+      resolvedImplicitPageSize,
+      desiredInitialSize,
+    });
+  }
   const shapeHandlers = createKidsShapeHandlerRegistry();
   const shapeRendererRegistry = createKidsShapeRendererRegistry();
 

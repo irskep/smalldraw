@@ -10,14 +10,24 @@ import {
   renderOrderedShapes,
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
-import { FilePlus, type IconNode, Trash2 } from "lucide";
+import {
+  FilePlus,
+  type IconNode,
+  MoreHorizontal,
+  Palette,
+  SlidersHorizontal,
+  Trash2,
+} from "lucide";
 import {
   applyResponsiveLayout,
+  getViewportPaddingForProfile,
+  IMPLICIT_DOC_VERTICAL_SLACK,
+  MIN_HEIGHT,
+  MIN_WIDTH,
   normalizePixelRatio,
-  VIEWPORT_PADDING_BOTTOM,
-  VIEWPORT_PADDING_LEFT,
-  VIEWPORT_PADDING_RIGHT,
-  VIEWPORT_PADDING_TOP,
+  type ResponsiveLayoutMode,
+  type ResponsiveLayoutProfile,
+  resolveLayoutProfile,
 } from "../layout/responsiveLayout";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
@@ -38,6 +48,7 @@ import {
 } from "../ui/stores/toolbarUiStore";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
+import { createSquareIconButton } from "../view/SquareIconButton";
 import { createCursorOverlayController } from "./createCursorOverlayController";
 
 const RESIZE_BAKE_DEBOUNCE_MS = 120;
@@ -133,6 +144,10 @@ export function createKidsDrawController(options: {
   let displayScale = 1;
   let displayWidth = getSize().width;
   let displayHeight = getSize().height;
+  let currentLayoutProfile: ResponsiveLayoutProfile = resolveLayoutProfile(
+    window.innerWidth,
+    window.innerHeight,
+  );
   let tilePixelRatio = normalizePixelRatio(
     (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
   );
@@ -156,6 +171,47 @@ export function createKidsDrawController(options: {
   const selectedToolIdByFamily = new Map<string, string>(
     families.map((family) => [family.id, family.defaultToolId] as const),
   );
+  const mobilePortraitBottomStrip = document.createElement("div");
+  mobilePortraitBottomStrip.className = "kids-draw-mobile-portrait-bottom";
+  const mobilePortraitTopStrip = document.createElement("div");
+  mobilePortraitTopStrip.className = "kids-draw-mobile-portrait-top";
+  const mobilePortraitTopControls = document.createElement("div");
+  mobilePortraitTopControls.className = "kids-draw-mobile-top-controls";
+  const mobilePortraitColorsButton = createSquareIconButton({
+    className: "kids-draw-mobile-top-toggle kids-draw-tool-button",
+    label: "Color",
+    icon: Palette,
+    attributes: {
+      title: "Show colors",
+      "aria-label": "Show colors",
+      layout: "row",
+    },
+  });
+  const mobilePortraitStrokesButton = createSquareIconButton({
+    className: "kids-draw-mobile-top-toggle kids-draw-tool-button",
+    label: "Size",
+    icon: SlidersHorizontal,
+    attributes: {
+      title: "Show stroke widths",
+      "aria-label": "Show stroke widths",
+      layout: "row",
+    },
+  });
+  const mobilePortraitActionsTrigger = createSquareIconButton({
+    className: "kids-draw-mobile-actions-trigger",
+    label: "Actions",
+    icon: MoreHorizontal,
+    attributes: {
+      title: "Actions",
+      "aria-label": "Actions",
+      "aria-expanded": "false",
+    },
+  });
+  const mobilePortraitActionsPopover = document.createElement("div");
+  mobilePortraitActionsPopover.className = "kids-draw-mobile-actions-popover";
+  let mobilePortraitActionsOpen = false;
+  mobilePortraitColorsButton.setSelected(true);
+  mobilePortraitStrokesButton.setSelected(false);
 
   const debugLifecycle = (...args: unknown[]): void => {
     if (
@@ -287,24 +343,169 @@ export function createKidsDrawController(options: {
     }
   };
 
+  const resolveModeForProfile = (
+    profile: ResponsiveLayoutProfile,
+  ): ResponsiveLayoutMode => {
+    if (profile === "large") {
+      return "large";
+    }
+    if (profile === "medium") {
+      return "medium";
+    }
+    return "mobile";
+  };
+
+  const getMobilePortraitTopPanel = (): "colors" | "strokes" => {
+    return mobilePortraitStrokesButton.el.classList.contains("is-selected")
+      ? "strokes"
+      : "colors";
+  };
+
+  const setMobilePortraitTopPanel = (panel: "colors" | "strokes"): void => {
+    mobilePortraitColorsButton.setSelected(panel === "colors");
+    mobilePortraitStrokesButton.setSelected(panel === "strokes");
+  };
+
+  const syncMobilePortraitTopPanel = (): void => {
+    const panel = getMobilePortraitTopPanel();
+    const colorsPanel = toolbar.topElement.querySelector(
+      ".kids-draw-toolbar-colors",
+    ) as HTMLDivElement | null;
+    const strokePanel = toolbar.topElement.querySelector(
+      ".kids-draw-toolbar-strokes",
+    ) as HTMLDivElement | null;
+    if (colorsPanel) {
+      colorsPanel.hidden = panel !== "colors";
+    }
+    if (strokePanel) {
+      strokePanel.hidden = panel !== "strokes";
+    }
+  };
+
+  const applyToolbarLayoutProfile = (
+    profile: ResponsiveLayoutProfile,
+  ): void => {
+    const orientation =
+      window.innerHeight > window.innerWidth ? "portrait" : "landscape";
+    stage.viewportHost.dataset.layoutProfile = profile;
+    stage.viewportHost.dataset.layoutMode = resolveModeForProfile(profile);
+    stage.viewportHost.dataset.layoutOrientation = orientation;
+
+    if (profile === "mobile-portrait") {
+      syncMobilePortraitTopPanel();
+      mobilePortraitActionsPopover.replaceChildren(toolbar.actionPanelElement);
+      mobilePortraitActionsPopover.hidden = !mobilePortraitActionsOpen;
+      mobilePortraitActionsTrigger.el.setAttribute(
+        "aria-expanded",
+        mobilePortraitActionsOpen ? "true" : "false",
+      );
+      mobilePortraitTopControls.replaceChildren(
+        mobilePortraitColorsButton.el,
+        mobilePortraitStrokesButton.el,
+        mobilePortraitActionsTrigger.el,
+      );
+      mobilePortraitTopStrip.replaceChildren(
+        mobilePortraitTopControls,
+        toolbar.topElement,
+        mobilePortraitActionsPopover,
+      );
+      mobilePortraitBottomStrip.replaceChildren(
+        toolbar.bottomElement,
+        toolbar.toolSelectorElement,
+      );
+      stage.insetTopSlot.replaceChildren(mobilePortraitTopStrip);
+      stage.insetLeftSlot.replaceChildren();
+      stage.insetRightSlot.replaceChildren();
+      stage.insetBottomSlot.replaceChildren(mobilePortraitBottomStrip);
+      return;
+    }
+
+    mobilePortraitActionsOpen = false;
+    setMobilePortraitTopPanel("colors");
+    const colorsPanel = toolbar.topElement.querySelector(
+      ".kids-draw-toolbar-colors",
+    ) as HTMLDivElement | null;
+    const strokePanel = toolbar.topElement.querySelector(
+      ".kids-draw-toolbar-strokes",
+    ) as HTMLDivElement | null;
+    if (colorsPanel) {
+      colorsPanel.hidden = false;
+    }
+    if (strokePanel) {
+      strokePanel.hidden = false;
+    }
+    mobilePortraitActionsPopover.hidden = true;
+    mobilePortraitActionsTrigger.el.setAttribute("aria-expanded", "false");
+
+    stage.insetTopSlot.replaceChildren(toolbar.topElement);
+    stage.insetLeftSlot.replaceChildren(toolbar.toolSelectorElement);
+    stage.insetRightSlot.replaceChildren(toolbar.actionPanelElement);
+    stage.insetBottomSlot.replaceChildren(toolbar.bottomElement);
+  };
+
+  const syncLayoutProfile = (): void => {
+    currentLayoutProfile = resolveLayoutProfile(
+      window.innerWidth,
+      window.innerHeight,
+    );
+    applyToolbarLayoutProfile(currentLayoutProfile);
+  };
+
+  const closeMobilePortraitActions = (): void => {
+    if (!mobilePortraitActionsOpen) {
+      return;
+    }
+    mobilePortraitActionsOpen = false;
+    if (currentLayoutProfile === "mobile-portrait") {
+      applyToolbarLayoutProfile(currentLayoutProfile);
+    }
+  };
+
+  const toggleMobilePortraitActions = (): void => {
+    if (currentLayoutProfile !== "mobile-portrait") {
+      return;
+    }
+    mobilePortraitActionsOpen = !mobilePortraitActionsOpen;
+    applyToolbarLayoutProfile(currentLayoutProfile);
+  };
+
   const getViewportPadding = (): {
     top: number;
     right: number;
     bottom: number;
     left: number;
+  } => getViewportPaddingForProfile(currentLayoutProfile);
+
+  const resolveImplicitDocumentSizeFromViewport = (): {
+    width: number;
+    height: number;
   } => {
-    const topToolbarHeight = Math.ceil(
-      toolbar.topElement.getBoundingClientRect().height,
+    const fallback = resolvePageSize();
+    const host = stage.viewportHost;
+    const hostWidth = Math.round(host.clientWidth);
+    const hostHeight = Math.round(host.clientHeight);
+    if (hostWidth <= 0 || hostHeight <= 0) {
+      return fallback;
+    }
+    const styles = window.getComputedStyle(host);
+    const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
+    const paddingRight = Number.parseFloat(styles.paddingRight) || 0;
+    const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
+    const paddingLeft = Number.parseFloat(styles.paddingLeft) || 0;
+    const width = Math.max(
+      MIN_WIDTH,
+      Math.round(hostWidth - paddingLeft - paddingRight),
     );
-    const bottomToolbarHeight = Math.ceil(
-      toolbar.bottomElement.getBoundingClientRect().height,
+    const height = Math.max(
+      MIN_HEIGHT,
+      Math.round(
+        hostHeight -
+          paddingTop -
+          paddingBottom -
+          IMPLICIT_DOC_VERTICAL_SLACK,
+      ),
     );
-    return {
-      top: Math.max(VIEWPORT_PADDING_TOP, topToolbarHeight + 4),
-      right: VIEWPORT_PADDING_RIGHT,
-      bottom: Math.max(VIEWPORT_PADDING_BOTTOM, bottomToolbarHeight + 4),
-      left: VIEWPORT_PADDING_LEFT,
-    };
+    return { width, height };
   };
 
   const applyCanvasSize = (nextWidth: number, nextHeight: number): void => {
@@ -335,6 +536,7 @@ export function createKidsDrawController(options: {
   };
 
   const applyLayoutAndPixelRatio = (): void => {
+    syncLayoutProfile();
     const size = getSize();
     const updated = applyResponsiveLayout({
       viewportHost: stage.viewportHost,
@@ -472,7 +674,7 @@ export function createKidsDrawController(options: {
     try {
       const nextDocumentSize = hasExplicitSize
         ? getExplicitSize()
-        : resolvePageSize();
+        : resolveImplicitDocumentSizeFromViewport();
       const adapter = await core.reset({
         documentSize: nextDocumentSize,
       });
@@ -712,13 +914,37 @@ export function createKidsDrawController(options: {
   listen(
     toolbar.undoButton.el,
     "click",
-    runAndSync(() => store.undo()),
+    runAndSync(() => {
+      store.undo();
+      closeMobilePortraitActions();
+    }),
   );
   listen(
     toolbar.redoButton.el,
     "click",
-    runAndSync(() => store.redo()),
+    runAndSync(() => {
+      store.redo();
+      closeMobilePortraitActions();
+    }),
   );
+  listen(mobilePortraitActionsTrigger.el, "click", (event) => {
+    event.stopPropagation();
+    toggleMobilePortraitActions();
+  });
+  listen(mobilePortraitColorsButton.el, "click", () => {
+    if (currentLayoutProfile !== "mobile-portrait") {
+      return;
+    }
+    setMobilePortraitTopPanel("colors");
+    applyToolbarLayoutProfile(currentLayoutProfile);
+  });
+  listen(mobilePortraitStrokesButton.el, "click", () => {
+    if (currentLayoutProfile !== "mobile-portrait") {
+      return;
+    }
+    setMobilePortraitTopPanel("strokes");
+    applyToolbarLayoutProfile(currentLayoutProfile);
+  });
   listen(toolbar.clearButton.el, "click", () => {
     void (async () => {
       const confirmed = await confirmDestructiveAction({
@@ -743,14 +969,17 @@ export function createKidsDrawController(options: {
           style: {},
         }),
       );
+      closeMobilePortraitActions();
       syncToolbarUi();
     })();
   });
   listen(toolbar.exportButton.el, "click", () => {
     void onExportClick();
+    closeMobilePortraitActions();
   });
   listen(toolbar.newDrawingButton.el, "click", () => {
     void onNewDrawingClick();
+    closeMobilePortraitActions();
   });
   for (const colorButton of toolbar.strokeColorSwatchButtons) {
     listen(colorButton, "click", () => {
@@ -801,6 +1030,23 @@ export function createKidsDrawController(options: {
   });
   listen(window, "pointercancel", (event) => {
     endPointerSession(event as PointerEvent, "pointerCancel");
+  });
+  listen(window, "pointerdown", (event) => {
+    if (
+      currentLayoutProfile !== "mobile-portrait" ||
+      !mobilePortraitActionsOpen
+    ) {
+      return;
+    }
+    const target = event.target as Node | null;
+    if (
+      target &&
+      (mobilePortraitTopStrip.contains(target) ||
+        mobilePortraitActionsPopover.contains(target))
+    ) {
+      return;
+    }
+    closeMobilePortraitActions();
   });
   listen(stage.overlay, "lostpointercapture", () => {
     forceCancelPointerSession();
@@ -864,6 +1110,7 @@ export function createKidsDrawController(options: {
         dispose();
       }
 
+      toolbar.destroy();
       pipeline.dispose();
       if (!providedCore) {
         core.destroy();

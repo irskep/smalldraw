@@ -3,6 +3,7 @@
   --kd-inset-right: 0;
   --kd-inset-bottom: 0;
   --kd-inset-left: 0;
+  --kd-edge-offset: 10px;
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
@@ -14,12 +15,18 @@
   box-sizing: border-box;
 }
 
+.kids-draw-viewport[data-layout-profile="large"] {
+  --kd-edge-offset: 8px;
+}
+
 .kids-draw-inset-ui {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: var(--kd-inset-left) 1fr var(--kd-inset-right);
-  grid-template-rows: var(--kd-inset-top) 1fr var(--kd-inset-bottom);
+  grid-template-columns:
+    var(--kd-inset-left) minmax(0, 1fr)
+    var(--kd-inset-right);
+  grid-template-rows: var(--kd-inset-top) minmax(0, 1fr) var(--kd-inset-bottom);
   pointer-events: none;
   z-index: 20;
 }
@@ -36,6 +43,7 @@
 .kids-draw-inset-slot-top {
   grid-column: 2;
   grid-row: 1;
+  min-width: 0;
   align-items: flex-end;
   justify-content: center;
 }
@@ -44,12 +52,14 @@
   grid-column: 3;
   grid-row: 1 / 4;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  padding-right: var(--kd-edge-offset);
 }
 
 .kids-draw-inset-slot-bottom {
   grid-column: 2;
   grid-row: 3;
+  min-width: 0;
   align-items: flex-end;
   justify-content: center;
 }
@@ -58,7 +68,77 @@
   grid-column: 1;
   grid-row: 1 / 4;
   align-items: center;
+  justify-content: flex-start;
+  padding-left: var(--kd-edge-offset);
+}
+
+.kids-draw-mobile-portrait-bottom {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: var(--size-1);
+  padding-inline: 0;
+  padding-bottom: var(--size-2);
+  box-sizing: border-box;
+}
+
+.kids-draw-mobile-portrait-bottom > .kids-draw-tool-selector,
+.kids-draw-mobile-portrait-bottom > .kids-draw-toolbar-bottom {
+  width: 100%;
+  min-width: 0;
+}
+
+.kids-draw-mobile-portrait-top {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--size-1);
+  padding-top: var(--size-2);
+  padding-inline: 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.kids-draw-mobile-portrait-top > .kids-draw-toolbar-top {
+  min-width: 0;
+}
+
+.kids-draw-mobile-actions-popover {
+  position: absolute;
+  top: calc(100% + var(--size-1));
+  right: var(--kd-edge-offset);
+  z-index: 30;
+}
+
+.kids-draw-mobile-top-controls {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--size-1);
+}
+
+.kids-draw-mobile-top-controls > .kids-draw-mobile-actions-trigger {
+  margin-left: auto;
+}
+
+.kids-draw-mobile-portrait-top > .kids-draw-mobile-actions-trigger {
+  align-self: start;
+}
+
+.kids-draw-viewport[data-layout-profile="mobile-portrait"]
+  .kids-draw-inset-slot-top {
+  align-items: flex-start;
+}
+
+.kids-draw-viewport[data-layout-profile="mobile-portrait"] {
   justify-content: center;
+  align-items: center;
 }
 
 .kids-draw-frame {

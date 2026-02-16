@@ -1,14 +1,6 @@
 import "./KidsDrawToolbar.css";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  FilePlus,
-  Redo2,
-  Trash2,
-  Undo2,
-} from "lucide";
+import { Download, FilePlus, Redo2, Trash2, Undo2 } from "lucide";
 import type { ReadableAtom } from "nanostores";
 import { el, mount } from "redom";
 import type {
@@ -17,6 +9,7 @@ import type {
   ToolbarItem,
 } from "../tools/kidsTools";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
+import { type ButtonGrid, createButtonGrid } from "./ButtonGrid";
 import {
   createSquareIconButton,
   type SquareIconButton,
@@ -39,6 +32,7 @@ export interface KidsDrawToolbar {
   readonly strokeColorSwatchButtons: HTMLButtonElement[];
   readonly strokeWidthButtons: HTMLButtonElement[];
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
+  destroy(): void;
 }
 
 interface ColorSwatchConfig {
@@ -62,26 +56,6 @@ const COLOR_SWATCHES: ColorSwatchConfig[] = [
 ];
 
 const STROKE_WIDTH_OPTIONS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
-const PAGED_VARIANT_ROWS = 2;
-const VIEWPORT_HORIZONTAL_MARGIN_PX = 24;
-
-interface FamilyVariantPagerState {
-  familyId: string;
-  panel: HTMLDivElement;
-  shell: HTMLDivElement;
-  viewport: HTMLDivElement;
-  orderedToolIds: string[];
-  orderedButtons: SquareIconButton[];
-  prevButton: SquareIconButton;
-  nextButton: SquareIconButton;
-  pageSize: number;
-}
-
-function parsePxValue(value: string | null | undefined): number {
-  if (!value) return 0;
-  const parsed = Number.parseFloat(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
 
 export function createKidsDrawToolbar(options: {
   tools: KidsToolConfig[];
@@ -96,12 +70,15 @@ export function createKidsDrawToolbar(options: {
   const bottomElement = el(
     "div.kids-draw-toolbar.kids-draw-toolbar-bottom",
   ) as HTMLDivElement;
-  const toolSelectorElement = el(
-    "div.kids-draw-tool-selector.kids-toolbar-grid-panel",
-  ) as HTMLDivElement;
   const actionPanelElement = el(
     "div.kids-draw-action-panel.kids-toolbar-grid-panel",
   ) as HTMLDivElement;
+  const toolSelectorGrid = createButtonGrid({
+    className: "kids-draw-tool-selector",
+    orientation: "vertical",
+    mobileLabel: "Tools",
+  });
+  const toolSelectorElement = toolSelectorGrid.el;
 
   const toolById = new Map(tools.map((tool) => [tool.id, tool] as const));
   const familyById = new Map(
@@ -113,6 +90,7 @@ export function createKidsDrawToolbar(options: {
 
   const familyButtons = new Map<string, SquareIconButton>();
   const directToolButtons = new Map<string, SquareIconButton>();
+  const toolSelectorItems: { id: string; element: HTMLElement }[] = [];
   for (const item of sidebarItems) {
     if (item.kind === "family") {
       const family = familyById.get(item.familyId);
@@ -128,7 +106,10 @@ export function createKidsDrawToolbar(options: {
         },
       });
       familyButtons.set(family.id, button);
-      mount(toolSelectorElement, button.el);
+      toolSelectorItems.push({
+        id: `family:${family.id}`,
+        element: button.el,
+      });
       continue;
     }
 
@@ -146,39 +127,25 @@ export function createKidsDrawToolbar(options: {
       },
     });
     directToolButtons.set(tool.id, button);
-    mount(toolSelectorElement, button.el);
+    toolSelectorItems.push({
+      id: `tool:${tool.id}`,
+      element: button.el,
+    });
   }
+  toolSelectorGrid.setLists([{ id: "main", items: toolSelectorItems }]);
 
   const variantButtons = new Map<string, SquareIconButton>();
   const familyVariantToolbars = new Map<string, HTMLDivElement>();
   const familyVariantContainers = new Map<string, HTMLDivElement>();
-  const familyVariantOrders = new Map<string, string[]>();
-  const familyVariantPagerSync = new Map<string, () => void>();
-  const familyVariantActivePage = new Map<string, number>();
-  const familyVariantPagerStates = new Map<string, FamilyVariantPagerState>();
+  const familyVariantGrids = new Map<string, ButtonGrid>();
   for (const family of families) {
-    const panel = el("div.kids-draw-family-variants", {
-      role: "radiogroup",
-      "aria-label": `${family.label} tools`,
-      "data-tool-family-toolbar": family.id,
-      "data-variant-layout": family.variantLayout ?? "default",
-    }) as HTMLDivElement;
-    if (family.variantLayout === "two-row-single-height") {
-      panel.classList.add("is-two-row-single-height");
-    }
-    const shouldUsePagerShell =
-      family.variantLayout === "two-row-single-height" &&
-      family.toolIds.some((toolId) => toolId.startsWith("stamp.image."));
-
-    const orderedToolIds: string[] = [];
-    const orderedButtons: SquareIconButton[] = [];
-    family.toolIds.forEach((toolId) => {
+    const variantItems: { id: string; element: HTMLElement }[] = [];
+    for (const toolId of family.toolIds) {
       const tool = toolById.get(toolId);
-      if (!tool) return;
-      const hideVariantLabel = family.variantLayout === "two-row-single-height";
+      if (!tool) continue;
       const variantButton = createSquareIconButton({
         className: "kids-draw-tool-variant-button",
-        label: hideVariantLabel ? "" : tool.label,
+        label: tool.label,
         icon: tool.icon,
         attributes: {
           "data-tool-variant": tool.id,
@@ -188,246 +155,41 @@ export function createKidsDrawToolbar(options: {
         },
       });
       variantButtons.set(tool.id, variantButton);
-      orderedToolIds.push(tool.id);
-      orderedButtons.push(variantButton);
-      mount(panel, variantButton.el);
-    });
-    familyVariantOrders.set(family.id, orderedToolIds);
-
-    familyVariantToolbars.set(family.id, panel);
-
-    if (shouldUsePagerShell) {
-      const viewport = el(
-        "div.kids-draw-family-variants-viewport",
-        panel,
-      ) as HTMLDivElement;
-      const prevButton = createSquareIconButton({
-        className:
-          "kids-draw-family-variants-nav kids-draw-family-variants-nav-prev",
-        label: "",
-        icon: ChevronLeft,
-        attributes: {
-          "aria-label": `Previous ${family.label} stamps`,
-          title: "Previous",
-          "data-tool-family-prev": family.id,
-        },
+      variantItems.push({
+        id: tool.id,
+        element: variantButton.el,
       });
-      const nextButton = createSquareIconButton({
-        className:
-          "kids-draw-family-variants-nav kids-draw-family-variants-nav-next",
-        label: "",
-        icon: ChevronRight,
-        attributes: {
-          "aria-label": `Next ${family.label} stamps`,
-          title: "Next",
-          "data-tool-family-next": family.id,
-        },
-      });
-      const shell = el(
-        "div.kids-draw-family-variants-shell",
-        prevButton.el,
-        viewport,
-        nextButton.el,
-      ) as HTMLDivElement;
-
-      const pagerState: FamilyVariantPagerState = {
-        familyId: family.id,
-        panel,
-        shell,
-        viewport,
-        orderedToolIds,
-        orderedButtons,
-        prevButton,
-        nextButton,
-        pageSize: PAGED_VARIANT_ROWS,
-      };
-      familyVariantPagerStates.set(family.id, pagerState);
-
-      const getViewportPageSize = (): {
-        pageSize: number;
-        columnCount: number;
-        pageWidth: number;
-      } => {
-        const shellStyles = window.getComputedStyle(shell);
-        const panelStyles = window.getComputedStyle(panel);
-        const shellPaddingHorizontal =
-          parsePxValue(shellStyles.paddingLeft) +
-          parsePxValue(shellStyles.paddingRight);
-        const shellGap = parsePxValue(shellStyles.columnGap || shellStyles.gap);
-        const navButtonWidth = Math.max(
-          prevButton.el.getBoundingClientRect().width,
-          nextButton.el.getBoundingClientRect().width,
-          parsePxValue(shellStyles.getPropertyValue("--kd-toolbar-cell-size")),
-        );
-        const firstButton = orderedButtons[0]?.el;
-        const cellWidth = Math.max(
-          firstButton?.getBoundingClientRect().width ?? 0,
-          parsePxValue(panelStyles.getPropertyValue("--kd-toolbar-cell-size")),
-        );
-        const columnGap = parsePxValue(
-          panelStyles.columnGap || panelStyles.gap,
-        );
-        const shellParentWidth =
-          shell.parentElement?.getBoundingClientRect().width ??
-          bottomElement.getBoundingClientRect().width;
-        const constrainedShellWidth = Math.max(
-          cellWidth,
-          Math.min(
-            window.innerWidth - VIEWPORT_HORIZONTAL_MARGIN_PX,
-            shellParentWidth > 0
-              ? shellParentWidth
-              : window.innerWidth - VIEWPORT_HORIZONTAL_MARGIN_PX,
-          ),
-        );
-        const availableWidth = Math.max(
-          cellWidth,
-          constrainedShellWidth -
-            shellPaddingHorizontal -
-            navButtonWidth * 2 -
-            shellGap * 2,
-        );
-        const maxColumns = Math.max(
-          1,
-          Math.ceil(orderedToolIds.length / PAGED_VARIANT_ROWS),
-        );
-        const columnCount = Math.max(
-          1,
-          Math.min(
-            maxColumns,
-            Math.floor((availableWidth + columnGap) / (cellWidth + columnGap)),
-          ),
-        );
-        const pageWidth =
-          columnCount * cellWidth + Math.max(0, columnCount - 1) * columnGap;
-        return {
-          pageSize: Math.max(1, columnCount * PAGED_VARIANT_ROWS),
-          columnCount,
-          pageWidth,
-        };
-      };
-
-      const applyPagedVisibility = (): void => {
-        const { pageSize, columnCount, pageWidth } = getViewportPageSize();
-        pagerState.pageSize = pageSize;
-        panel.style.setProperty(
-          "--kd-family-variants-columns",
-          `${columnCount}`,
-        );
-        viewport.style.width = `${pageWidth}px`;
-        viewport.style.maxWidth = `${pageWidth}px`;
-        const totalPages = Math.max(
-          1,
-          Math.ceil(orderedToolIds.length / pagerState.pageSize),
-        );
-        const currentPage = Math.max(
-          0,
-          Math.min(totalPages - 1, familyVariantActivePage.get(family.id) ?? 0),
-        );
-        familyVariantActivePage.set(family.id, currentPage);
-        panel.setAttribute("data-active-page", `${currentPage}`);
-        const startIndex = currentPage * pagerState.pageSize;
-        const endIndex = startIndex + pagerState.pageSize;
-        pagerState.orderedButtons.forEach((button, index) => {
-          button.el.hidden = index < startIndex || index >= endIndex;
-        });
-        prevButton.setDisabled(currentPage <= 0);
-        nextButton.setDisabled(currentPage >= totalPages - 1);
-
-        const shellStyles = window.getComputedStyle(shell);
-        const panelStyles = window.getComputedStyle(panel);
-        const shellPaddingHorizontal =
-          parsePxValue(shellStyles.paddingLeft) +
-          parsePxValue(shellStyles.paddingRight);
-        const shellGap = parsePxValue(shellStyles.columnGap || shellStyles.gap);
-        const navButtonWidth = Math.max(
-          prevButton.el.getBoundingClientRect().width,
-          nextButton.el.getBoundingClientRect().width,
-          parsePxValue(shellStyles.getPropertyValue("--kd-toolbar-cell-size")),
-        );
-        const firstButton = orderedButtons[0]?.el;
-        const cellWidth = Math.max(
-          firstButton?.getBoundingClientRect().width ?? 0,
-          parsePxValue(panelStyles.getPropertyValue("--kd-toolbar-cell-size")),
-        );
-        const columnGap = parsePxValue(
-          panelStyles.columnGap || panelStyles.gap,
-        );
-        const constrainedShellWidth = Math.max(
-          cellWidth,
-          Math.min(
-            window.innerWidth - VIEWPORT_HORIZONTAL_MARGIN_PX,
-            shell.parentElement?.getBoundingClientRect().width ??
-              bottomElement.getBoundingClientRect().width,
-          ),
-        );
-        const measuredShellWidth = shell.getBoundingClientRect().width;
-        const availableWidth = Math.max(
-          cellWidth,
-          constrainedShellWidth -
-            shellPaddingHorizontal -
-            navButtonWidth * 2 -
-            shellGap * 2,
-        );
-        console.debug("[kids-draw:stamp-pager]", {
-          familyId: family.id,
-          windowInnerWidth: window.innerWidth,
-          constrainedShellWidth,
-          measuredShellWidth,
-          shellPaddingHorizontal,
-          shellGap,
-          navButtonWidth,
-          cellWidth,
-          columnGap,
-          availableWidth,
-          columnCount,
-          pageSize,
-          pageWidth,
-          currentPage,
-          totalPages,
-          startIndex,
-          endIndex: Math.min(endIndex, orderedToolIds.length),
-          visibleToolIds: orderedToolIds.slice(startIndex, endIndex),
-        });
-      };
-
-      const scrollByPage = (direction: -1 | 1): void => {
-        const totalPages = Math.max(
-          1,
-          Math.ceil(orderedToolIds.length / pagerState.pageSize),
-        );
-        const currentPage = familyVariantActivePage.get(family.id) ?? 0;
-        const nextPage = Math.max(
-          0,
-          Math.min(totalPages - 1, currentPage + direction),
-        );
-        familyVariantActivePage.set(family.id, nextPage);
-        applyPagedVisibility();
-      };
-
-      const syncPager = (): void => {
-        applyPagedVisibility();
-      };
-      familyVariantPagerSync.set(family.id, syncPager);
-
-      prevButton.el.addEventListener("click", () => {
-        scrollByPage(-1);
-      });
-      nextButton.el.addEventListener("click", () => {
-        scrollByPage(1);
-      });
-      window.addEventListener("resize", syncPager);
-      familyVariantActivePage.set(family.id, 0);
-      panel.setAttribute("data-active-page", "0");
-      queueMicrotask(syncPager);
-
-      familyVariantContainers.set(family.id, shell);
-      mount(bottomElement, shell);
-      continue;
     }
 
-    panel.classList.add("kids-toolbar-grid-panel");
-    familyVariantContainers.set(family.id, panel);
-    mount(bottomElement, panel);
+    const variantGrid = createButtonGrid({
+      className: "kids-draw-family-variants",
+      orientation: "horizontal",
+      largeLayout: "two-row-xlarge",
+      mobileLabel: family.label,
+    });
+    variantGrid.el.setAttribute("role", "radiogroup");
+    variantGrid.el.setAttribute("aria-label", `${family.label} tools`);
+    variantGrid.el.setAttribute("data-tool-family-toolbar", family.id);
+    variantGrid.el.setAttribute(
+      "data-variant-layout",
+      family.variantLayout ?? "default",
+    );
+    if (family.id === "stamp.images") {
+      variantGrid.prevButton.el.setAttribute(
+        "data-tool-family-prev",
+        family.id,
+      );
+      variantGrid.nextButton.el.setAttribute(
+        "data-tool-family-next",
+        family.id,
+      );
+    }
+    variantGrid.setLists([{ id: "main", items: variantItems }]);
+
+    familyVariantToolbars.set(family.id, variantGrid.el);
+    familyVariantContainers.set(family.id, variantGrid.el);
+    familyVariantGrids.set(family.id, variantGrid);
+    mount(bottomElement, variantGrid.el);
   }
 
   const undoButton = createSquareIconButton({
@@ -632,21 +394,9 @@ export function createKidsDrawToolbar(options: {
       const isActive = familyId === activeFamilyId;
       container.hidden = !isActive;
       if (isActive) {
-        const orderedToolIds = familyVariantOrders.get(familyId) ?? [];
-        const pagerState = familyVariantPagerStates.get(familyId);
-        if (pagerState && orderedToolIds.length > pagerState.pageSize) {
-          const selectedIndex = orderedToolIds.indexOf(activeToolId);
-          if (selectedIndex >= 0) {
-            const selectedPage = Math.floor(
-              selectedIndex / pagerState.pageSize,
-            );
-            familyVariantActivePage.set(familyId, selectedPage);
-            familyVariantToolbars
-              .get(familyId)
-              ?.setAttribute("data-active-page", `${selectedPage}`);
-          }
-        }
-        familyVariantPagerSync.get(familyId)?.();
+        const grid = familyVariantGrids.get(familyId);
+        grid?.ensureItemVisible(activeToolId);
+        grid?.syncLayout();
       }
     }
 
@@ -684,6 +434,7 @@ export function createKidsDrawToolbar(options: {
 
   const bindUiState = (state: ReadableAtom<ToolbarUiState>): (() => void) => {
     applyState(state.get());
+    toolSelectorGrid.syncLayout();
     return state.subscribe(applyState);
   };
 
@@ -704,5 +455,11 @@ export function createKidsDrawToolbar(options: {
     strokeColorSwatchButtons,
     strokeWidthButtons,
     bindUiState,
+    destroy() {
+      toolSelectorGrid.destroy();
+      for (const grid of familyVariantGrids.values()) {
+        grid.destroy();
+      }
+    },
   };
 }
