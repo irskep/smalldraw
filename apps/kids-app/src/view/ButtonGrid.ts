@@ -39,6 +39,7 @@ interface ButtonGridOptions {
   orientation?: ButtonGridOrientation;
   largeLayout?: ButtonGridLargeLayout;
   mobileLabel?: string;
+  paginateInLarge?: boolean;
 }
 
 interface ButtonGridItemViewModel {
@@ -86,6 +87,7 @@ const resolveAutoMode = (): ButtonGridMode => {
 export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   const orientation = options.orientation ?? "horizontal";
   const largeLayout = options.largeLayout ?? "two-row";
+  const paginateInLarge = options.paginateInLarge ?? false;
   let mode: ButtonGridMode = resolveAutoMode();
   let destroyed = false;
   let layoutRetryFrame = 0;
@@ -188,6 +190,8 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   const useHorizontalFlow = (): boolean =>
     orientation === "horizontal" || mode === "mobile";
 
+  const shouldPaginate = (): boolean => mode !== "large" || paginateInLarge;
+
   const getItemContainers = (): HTMLDivElement[] =>
     Array.from(track.children) as HTMLDivElement[];
 
@@ -242,7 +246,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
 
   const applyAnchorOffset = (items: ButtonGridItem[]): void => {
     const horizontal = useHorizontalFlow();
-    if (mode === "large" || items.length === 0) {
+    if (!shouldPaginate() || items.length === 0) {
       currentAnchorIndex = 0;
       setTrackOffset(0, horizontal);
       return;
@@ -323,7 +327,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   };
 
   const syncPagerControls = (items: ButtonGridItem[]): void => {
-    if (mode === "large" || items.length === 0) {
+    if (!shouldPaginate() || items.length === 0) {
       prevButton.el.hidden = true;
       nextButton.el.hidden = true;
       return;
@@ -354,7 +358,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   };
 
   const syncPartialVisibility = (): void => {
-    if (mode === "large") {
+    if (!shouldPaginate()) {
       for (const container of getItemContainers()) {
         container.style.visibility = "";
       }
@@ -421,7 +425,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   };
 
   const goToNextPage = (): void => {
-    if (mode === "large") {
+    if (!shouldPaginate()) {
       return;
     }
 
@@ -445,7 +449,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   };
 
   const goToPreviousPage = (): void => {
-    if (mode === "large") {
+    if (!shouldPaginate()) {
       return;
     }
 
@@ -511,7 +515,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       render();
     },
     ensureItemVisible(itemId: string): void {
-      if (mode === "large") {
+      if (!shouldPaginate()) {
         return;
       }
       const items = getActiveItems();

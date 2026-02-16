@@ -331,7 +331,10 @@ export function createKidsToolCatalog(
     { kind: "family", familyId: "stamp.images" },
   ];
 
-  const defaultFamilyId = families[0]?.id ?? "brush";
+  const defaultFamilyId =
+    families.find((family) => family.id === "stamp.images")?.id ??
+    families[0]?.id ??
+    "brush";
 
   return { tools, families, sidebarItems, defaultFamilyId };
 }

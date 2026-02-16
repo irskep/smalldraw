@@ -140,6 +140,9 @@ export function createKidsDrawToolbar(options: {
   const familyVariantContainers = new Map<string, HTMLDivElement>();
   const familyVariantGrids = new Map<string, ButtonGrid>();
   for (const family of families) {
+    const isTwoRowSingleHeight =
+      family.variantLayout === "two-row-single-height";
+    const isStampImages = family.id === "stamp.images";
     const variantItems: { id: string; element: HTMLElement }[] = [];
     for (const toolId of family.toolIds) {
       const tool = toolById.get(toolId);
@@ -165,8 +168,9 @@ export function createKidsDrawToolbar(options: {
     const variantGrid = createButtonGrid({
       className: "kids-draw-family-variants",
       orientation: "horizontal",
-      largeLayout: "two-row-xlarge",
+      largeLayout: isTwoRowSingleHeight ? "two-row" : "two-row-xlarge",
       mobileLabel: family.label,
+      paginateInLarge: isStampImages,
     });
     variantGrid.el.setAttribute("role", "radiogroup");
     variantGrid.el.setAttribute("aria-label", `${family.label} tools`);

@@ -154,6 +154,12 @@
   --button-grid-cell-size: var(--kd-toolbar-cell-size);
 }
 
+.kids-draw-family-variants[data-variant-layout="two-row-single-height"]
+  .button-grid-viewport {
+  padding: 2px;
+  margin: -2px;
+}
+
 .kids-draw-tool-variant-button {
   width: var(--kd-toolbar-bottom-cell-size);
   height: var(--kd-toolbar-bottom-cell-size);
