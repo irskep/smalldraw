@@ -352,6 +352,14 @@
   --sq-label-size: var(--kd-toolbar-label-size-sm);
 }
 
+.kids-draw-family-variants[data-tool-family-toolbar="stamp.images"]
+  .kids-square-icon-button {
+  --sq-content-gap: 0;
+  --sq-content-padding-block: 0;
+  --sq-icon-offset-y: 0;
+  --sq-label-offset-y: 0;
+}
+
 .kids-draw-tool-button {
   font-size: var(--kd-toolbar-label-size-sm);
   line-height: 1;

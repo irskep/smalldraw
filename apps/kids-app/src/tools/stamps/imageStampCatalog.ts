@@ -117,7 +117,25 @@ const IMAGE_STAMP_ASSETS: ImageStampAsset[] = [
   { id: "mtrumpet", src: img_mtrumpet, width: 200, height: 62 },
 ];
 
+const IMAGE_STAMP_LABEL_OVERRIDES: Record<string, string> = {
+  fapple: "Apple",
+  fbananas: "Bananas",
+  flemon: "Lemon",
+  forange: "Orange",
+  fshake: "Shake",
+  mbanjo: "Banjo",
+  mguitar: "Guitar",
+  mguitar2: "Guitar 2",
+  mguitar3: "Guitar 3",
+  mnote1: "Note 1",
+  mtrumpet: "Trumpet",
+};
+
 const formatLabel = (assetId: string): string => {
+  const override = IMAGE_STAMP_LABEL_OVERRIDES[assetId];
+  if (override) {
+    return override;
+  }
   const withSpaces = assetId.replace(/([a-z])([0-9])/g, "$1 $2");
   return withSpaces.replace(
     /(^|\s)([a-z])/g,

@@ -149,7 +149,7 @@ export function createKidsDrawToolbar(options: {
       if (!tool) continue;
       const variantButton = createSquareIconButton({
         className: "kids-draw-tool-variant-button",
-        label: tool.label,
+        label: isStampImages ? "" : tool.label,
         icon: tool.icon,
         attributes: {
           "data-tool-variant": tool.id,
