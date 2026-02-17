@@ -43,13 +43,21 @@ import {
   type KidsToolFamilyConfig,
 } from "../tools/kidsTools";
 import {
+  $toolbarUi,
+  loadPersistedToolbarUiState,
+  type PersistedKidsUiStateV1,
+  savePersistedToolbarUiState,
   setNewDrawingPending,
   setToolbarStyleUi,
   syncToolbarUiFromDrawingStore,
+  type ToolbarUiState,
 } from "../ui/stores/toolbarUiStore";
 import { createDocumentBrowserOverlay } from "../view/DocumentBrowserOverlay";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
+import {
+  STROKE_WIDTH_OPTIONS,
+  type KidsDrawToolbar,
+} from "../view/KidsDrawToolbar";
 import { createSquareIconButton } from "../view/SquareIconButton";
 import { createCursorOverlayController } from "./createCursorOverlayController";
 
@@ -59,6 +67,7 @@ const MAX_POINTER_SAMPLES_PER_EVENT = 64;
 const ENABLE_COALESCED_POINTER_SAMPLES = true;
 const DEFAULT_OPAQUE_STROKE_COLOR = "#000000";
 const DEFAULT_OPAQUE_FILL_COLOR = "#ffffff";
+const UI_STATE_PERSIST_DEBOUNCE_MS = 150;
 
 type RafRenderState = "idle" | "modelRequested" | "anticipatory";
 type PointerEventWithCoalesced = PointerEvent & {
@@ -89,6 +98,57 @@ type SaveFilePickerLike = (options: {
 
 export interface KidsDrawController {
   destroy(): void;
+}
+
+function getNearestStrokeWidthOption(strokeWidth: number): number {
+  let nearest: number = STROKE_WIDTH_OPTIONS[0];
+  let nearestDelta = Math.abs(strokeWidth - nearest);
+  for (const option of STROKE_WIDTH_OPTIONS) {
+    const delta = Math.abs(strokeWidth - option);
+    if (delta < nearestDelta) {
+      nearest = option;
+      nearestDelta = delta;
+    }
+  }
+  return nearest;
+}
+
+function resolveInitialToolbarUiStateFromPersistence(input: {
+  catalog: KidsToolCatalog;
+  current: {
+    activeToolId: string;
+    strokeColor: string;
+    strokeWidth: number;
+  };
+  persisted: PersistedKidsUiStateV1 | null;
+}): {
+  activeToolId: string;
+  strokeColor: string;
+  strokeWidth: number;
+} {
+  const { catalog, current, persisted } = input;
+  if (!persisted) {
+    return current;
+  }
+
+  const toolIds = new Set(catalog.tools.map((tool) => tool.id));
+  const activeToolId = toolIds.has(persisted.activeToolId)
+    ? persisted.activeToolId
+    : current.activeToolId;
+  const strokeColor =
+    persisted.strokeColor.trim().length > 0
+      ? persisted.strokeColor.toLowerCase()
+      : current.strokeColor;
+  const strokeWidth =
+    Number.isFinite(persisted.strokeWidth) && persisted.strokeWidth > 0
+      ? getNearestStrokeWidthOption(persisted.strokeWidth)
+      : current.strokeWidth;
+
+  return {
+    activeToolId,
+    strokeColor,
+    strokeWidth,
+  };
 }
 
 export function createKidsDrawController(options: {
@@ -160,8 +220,13 @@ export function createKidsDrawController(options: {
   );
   let currentRenderIdentity = "";
   let unsubscribeCoreAdapter: (() => void) | null = null;
+  let unsubscribeToolbarUiPersistence: (() => void) | null = null;
   let metadataTouchTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
   let thumbnailSaveTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  let toolbarUiPersistTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  let pendingToolbarUiPersistState: PersistedKidsUiStateV1 | null = null;
+  let lastPersistedToolbarUiSignature: string | null = null;
+  let lastObservedToolbarUiSignature: string | null = null;
   let browserDocuments: KidsDocumentSummary[] = [];
   let browserLoading = false;
   let browserBusyDocUrl: string | null = null;
@@ -277,6 +342,59 @@ export function createKidsDrawController(options: {
     target.addEventListener(type, listener);
     disposers.push(() => target.removeEventListener(type, listener));
   }
+
+  const toPersistedToolbarUiState = (
+    state: Pick<ToolbarUiState, "activeToolId" | "strokeColor" | "strokeWidth">,
+  ): PersistedKidsUiStateV1 => ({
+    version: 1,
+    activeToolId: state.activeToolId,
+    strokeColor: state.strokeColor,
+    strokeWidth: state.strokeWidth,
+  });
+
+  const getToolbarUiPersistSignature = (
+    state: PersistedKidsUiStateV1,
+  ): string => {
+    return `${state.activeToolId}|${state.strokeColor}|${state.strokeWidth}`;
+  };
+
+  const flushToolbarUiPersistence = (): void => {
+    if (!pendingToolbarUiPersistState) {
+      return;
+    }
+    savePersistedToolbarUiState(pendingToolbarUiPersistState);
+    lastPersistedToolbarUiSignature = getToolbarUiPersistSignature(
+      pendingToolbarUiPersistState,
+    );
+    pendingToolbarUiPersistState = null;
+  };
+
+  const queueToolbarUiPersistence = (
+    state: PersistedKidsUiStateV1,
+    signature: string,
+  ): void => {
+    if (signature === lastPersistedToolbarUiSignature) {
+      return;
+    }
+    pendingToolbarUiPersistState = state;
+    if (toolbarUiPersistTimeoutHandle !== null) {
+      clearTimeout(toolbarUiPersistTimeoutHandle);
+    }
+    toolbarUiPersistTimeoutHandle = setTimeout(() => {
+      toolbarUiPersistTimeoutHandle = null;
+      flushToolbarUiPersistence();
+    }, UI_STATE_PERSIST_DEBOUNCE_MS);
+  };
+
+  const handleToolbarUiChangedForPersistence = (state: ToolbarUiState): void => {
+    const nextPersistedState = toPersistedToolbarUiState(state);
+    const signature = getToolbarUiPersistSignature(nextPersistedState);
+    if (signature === lastObservedToolbarUiSignature) {
+      return;
+    }
+    lastObservedToolbarUiSignature = signature;
+    queueToolbarUiPersistence(nextPersistedState, signature);
+  };
 
   const syncToolbarUi = (): void => {
     syncToolbarUiFromDrawingStore(store, {
@@ -1389,11 +1507,41 @@ export function createKidsDrawController(options: {
     requestRenderFromModel();
   });
 
-  const initialToolId = store.getActiveToolId();
-  if (initialToolId) {
-    sanitizeTransparentStylesForTool(initialToolId);
+  const initialSharedSettings = store.getSharedSettings();
+  const initialToolId = store.getActiveToolId() ?? "";
+  const resolvedInitialToolbarUiState = resolveInitialToolbarUiStateFromPersistence(
+    {
+      catalog,
+      current: {
+        activeToolId: initialToolId,
+        strokeColor: initialSharedSettings.strokeColor,
+        strokeWidth: initialSharedSettings.strokeWidth,
+      },
+      persisted: loadPersistedToolbarUiState(),
+    },
+  );
+  if (resolvedInitialToolbarUiState.activeToolId) {
+    activateToolAndRemember(resolvedInitialToolbarUiState.activeToolId);
+  }
+  const nextSharedSettings: Partial<typeof initialSharedSettings> = {};
+  const currentSharedSettings = store.getSharedSettings();
+  if (currentSharedSettings.strokeColor !== resolvedInitialToolbarUiState.strokeColor) {
+    nextSharedSettings.strokeColor = resolvedInitialToolbarUiState.strokeColor;
+  }
+  if (currentSharedSettings.strokeWidth !== resolvedInitialToolbarUiState.strokeWidth) {
+    nextSharedSettings.strokeWidth = resolvedInitialToolbarUiState.strokeWidth;
+  }
+  if (Object.keys(nextSharedSettings).length > 0) {
+    store.updateSharedSettings(nextSharedSettings);
   }
   syncToolbarUi();
+  const initialPersistedState = toPersistedToolbarUiState($toolbarUi.get());
+  lastObservedToolbarUiSignature =
+    getToolbarUiPersistSignature(initialPersistedState);
+  lastPersistedToolbarUiSignature = lastObservedToolbarUiSignature;
+  unsubscribeToolbarUiPersistence = $toolbarUi.subscribe((state) => {
+    handleToolbarUiChangedForPersistence(state);
+  });
   subscribeToCoreAdapter();
   scheduleDocumentTouch();
   updateRenderIdentity();
@@ -1410,6 +1558,13 @@ export function createKidsDrawController(options: {
       store.setOnRenderNeeded(undefined);
       unsubscribeCoreAdapter?.();
       unsubscribeCoreAdapter = null;
+      unsubscribeToolbarUiPersistence?.();
+      unsubscribeToolbarUiPersistence = null;
+      if (toolbarUiPersistTimeoutHandle !== null) {
+        clearTimeout(toolbarUiPersistTimeoutHandle);
+        toolbarUiPersistTimeoutHandle = null;
+      }
+      flushToolbarUiPersistence();
       if (metadataTouchTimeoutHandle !== null) {
         clearTimeout(metadataTouchTimeoutHandle);
         metadataTouchTimeoutHandle = null;

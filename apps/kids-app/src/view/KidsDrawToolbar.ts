@@ -56,7 +56,7 @@ const COLOR_SWATCHES: ColorSwatchConfig[] = [
   { value: "#9ca3af", label: "Gray" },
 ];
 
-const STROKE_WIDTH_OPTIONS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
+export const STROKE_WIDTH_OPTIONS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
 
 export function createKidsDrawToolbar(options: {
   tools: KidsToolConfig[];
@@ -139,6 +139,7 @@ export function createKidsDrawToolbar(options: {
   const familyVariantToolbars = new Map<string, HTMLDivElement>();
   const familyVariantContainers = new Map<string, HTMLDivElement>();
   const familyVariantGrids = new Map<string, ButtonGrid>();
+  let ensureVisibleRafHandle: number | null = null;
   for (const family of families) {
     const isTwoRowSingleHeight =
       family.variantLayout === "two-row-single-height";
@@ -415,6 +416,14 @@ export function createKidsDrawToolbar(options: {
         const grid = familyVariantGrids.get(familyId);
         grid?.syncLayout();
         grid?.ensureItemVisible(activeToolId);
+        if (ensureVisibleRafHandle !== null) {
+          window.cancelAnimationFrame(ensureVisibleRafHandle);
+        }
+        ensureVisibleRafHandle = window.requestAnimationFrame(() => {
+          ensureVisibleRafHandle = null;
+          grid?.syncLayout();
+          grid?.ensureItemVisible(activeToolId);
+        });
       }
     }
 
@@ -475,6 +484,10 @@ export function createKidsDrawToolbar(options: {
     strokeWidthButtons,
     bindUiState,
     destroy() {
+      if (ensureVisibleRafHandle !== null) {
+        window.cancelAnimationFrame(ensureVisibleRafHandle);
+        ensureVisibleRafHandle = null;
+      }
       toolSelectorGrid.destroy();
       for (const grid of familyVariantGrids.values()) {
         grid.destroy();

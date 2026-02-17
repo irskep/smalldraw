@@ -17,6 +17,15 @@ export interface ToolbarUiState {
   newDrawingPending: boolean;
 }
 
+export const UI_STATE_STORAGE_KEY = "kids-draw:ui-state:v1";
+
+export interface PersistedKidsUiStateV1 {
+  version: 1;
+  activeToolId: string;
+  strokeColor: string;
+  strokeWidth: number;
+}
+
 const DEFAULT_STATE: ToolbarUiState = {
   activeToolId: "",
   activeFamilyId: "",
@@ -88,6 +97,47 @@ export function setNewDrawingPending(newDrawingPending: boolean): void {
   const current = $toolbarUi.get();
   if (current.newDrawingPending === newDrawingPending) return;
   $toolbarUi.set({ ...current, newDrawingPending });
+}
+
+export function loadPersistedToolbarUiState(): PersistedKidsUiStateV1 | null {
+  try {
+    const raw = globalThis.localStorage?.getItem(UI_STATE_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed: unknown = JSON.parse(raw);
+    return isPersistedKidsUiStateV1(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function savePersistedToolbarUiState(
+  state: PersistedKidsUiStateV1,
+): void {
+  try {
+    globalThis.localStorage?.setItem(
+      UI_STATE_STORAGE_KEY,
+      JSON.stringify(state),
+    );
+  } catch {
+    // Ignore write failures (quota/security) so UI behavior stays unaffected.
+  }
+}
+
+function isPersistedKidsUiStateV1(
+  value: unknown,
+): value is PersistedKidsUiStateV1 {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<PersistedKidsUiStateV1>;
+  return (
+    candidate.version === 1 &&
+    typeof candidate.activeToolId === "string" &&
+    typeof candidate.strokeColor === "string" &&
+    typeof candidate.strokeWidth === "number"
+  );
 }
 
 function isEqual(a: ToolbarUiState, b: ToolbarUiState): boolean {

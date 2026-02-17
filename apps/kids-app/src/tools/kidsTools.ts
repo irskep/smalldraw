@@ -263,10 +263,10 @@ export function createKidsToolCatalog(
       id: "brush",
       label: "Brush",
       icon: Pen,
-      defaultToolId: "brush.freehand",
+      defaultToolId: "brush.marker",
       toolIds: [
-        "brush.freehand",
         "brush.marker",
+        "brush.freehand",
         "brush.even-spraycan",
         "brush.uneven-spraycan",
       ],
@@ -331,10 +331,7 @@ export function createKidsToolCatalog(
     { kind: "family", familyId: "stamp.images" },
   ];
 
-  const defaultFamilyId =
-    families.find((family) => family.id === "stamp.images")?.id ??
-    families[0]?.id ??
-    "brush";
+  const defaultFamilyId = families[0]?.id ?? "brush";
 
   return { tools, families, sidebarItems, defaultFamilyId };
 }

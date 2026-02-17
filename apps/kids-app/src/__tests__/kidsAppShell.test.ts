@@ -17,7 +17,10 @@ import type {
   KidsDocumentSummary,
 } from "../documents";
 import { resolvePageSize } from "../layout/responsiveLayout";
+import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
+import { createKidsToolCatalog } from "../tools/kidsTools";
+import { UI_STATE_STORAGE_KEY } from "../ui/stores/toolbarUiStore";
 
 type DisableableElement = HTMLElement & { disabled: boolean };
 
@@ -100,6 +103,11 @@ async function waitUntil(
     await waitForTurn();
   }
   return predicate();
+}
+
+async function waitForToolbarUiPersistence(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 220));
+  await waitForTurn();
 }
 
 function createMockDocumentBackend(
@@ -420,9 +428,10 @@ describe("kids-app shell", () => {
     const shapes = Object.values(app.store.getDocument().shapes);
     expect(shapes).toHaveLength(3);
 
-    const penShape = shapes.find((shape) =>
-      shape.id.startsWith("brush-freehand-"),
-    );
+    const penShape = shapes.find((shape) => {
+      const compositeOp = shape.style.stroke?.compositeOp;
+      return shape.type === "pen" && compositeOp !== "destination-out";
+    });
     const eraserShape = shapes.find((shape) =>
       shape.id.startsWith("eraser-basic-"),
     );
@@ -1143,6 +1152,249 @@ describe("kids-app shell", () => {
     expect(hotCanvas!.style.height).toBe("333px");
 
     app.destroy();
+  });
+
+  test("hydrates toolbar UI state from persisted payload", async () => {
+    localStorage.clear();
+    const catalog = createKidsToolCatalog(createKidsShapeRendererRegistry());
+    const defaultToolId =
+      catalog.families.find((family) => family.id === catalog.defaultFamilyId)
+        ?.defaultToolId ?? catalog.tools[0]?.id ?? "";
+    const persistedToolId =
+      catalog.tools.find((tool) => tool.id !== defaultToolId)?.id ??
+      defaultToolId;
+
+    localStorage.setItem(
+      UI_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        activeToolId: persistedToolId,
+        strokeColor: "#2E86FF",
+        strokeWidth: 24,
+      }),
+    );
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const app = await createKidsDrawApp({
+      container,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+
+    expect(app.store.getActiveToolId()).toBe(persistedToolId);
+    const shared = app.store.getSharedSettings();
+    expect(shared.strokeColor).toBe("#2e86ff");
+    expect(shared.strokeWidth).toBe(24);
+
+    app.destroy();
+  });
+
+  test("falls back when persisted tool id is unknown", async () => {
+    localStorage.clear();
+    const catalog = createKidsToolCatalog(createKidsShapeRendererRegistry());
+    const defaultToolId =
+      catalog.families.find((family) => family.id === catalog.defaultFamilyId)
+        ?.defaultToolId ?? catalog.tools[0]?.id ?? "";
+
+    localStorage.setItem(
+      UI_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        activeToolId: "tool.unknown",
+        strokeColor: "#00b894",
+        strokeWidth: 16,
+      }),
+    );
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const app = await createKidsDrawApp({
+      container,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+
+    expect(app.store.getActiveToolId()).toBe(defaultToolId);
+    expect(app.store.getSharedSettings().strokeColor).toBe("#00b894");
+    expect(app.store.getSharedSettings().strokeWidth).toBe(16);
+
+    app.destroy();
+  });
+
+  test("invalid persisted payload is ignored safely", async () => {
+    localStorage.clear();
+    localStorage.setItem(UI_STATE_STORAGE_KEY, "{broken json");
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const app = await createKidsDrawApp({
+      container,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+
+    expect(app.store.getSharedSettings().strokeColor).toBe("#000000");
+    expect(app.store.getSharedSettings().strokeWidth).toBe(6);
+
+    app.destroy();
+  });
+
+  test("snaps persisted stroke width to nearest toolbar option", async () => {
+    localStorage.clear();
+    localStorage.setItem(
+      UI_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        activeToolId: "tool.unknown",
+        strokeColor: "#000000",
+        strokeWidth: 7,
+      }),
+    );
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const app = await createKidsDrawApp({
+      container,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+
+    expect(app.store.getSharedSettings().strokeWidth).toBe(8);
+    app.destroy();
+  });
+
+  test("restores stamp variant pagination for persisted stamp tool", async () => {
+    localStorage.clear();
+    const catalog = createKidsToolCatalog(createKidsShapeRendererRegistry());
+    const stampImagesFamily = catalog.families.find(
+      (family) => family.id === "stamp.images",
+    );
+    const persistedToolId =
+      stampImagesFamily?.toolIds[stampImagesFamily.toolIds.length - 1] ?? "";
+    expect(persistedToolId).not.toBe("");
+    localStorage.setItem(
+      UI_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        activeToolId: persistedToolId,
+        strokeColor: "#000000",
+        strokeWidth: 8,
+      }),
+    );
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const app = await createKidsDrawApp({
+      container,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    await waitForTurn();
+
+    expect(app.store.getActiveToolId()).toBe(persistedToolId);
+    const stampPrevButton = container.querySelector(
+      '[data-tool-family-prev="stamp.images"]',
+    ) as HTMLButtonElement | null;
+    expect(stampPrevButton).not.toBeNull();
+    expect(stampPrevButton!.disabled).toBeFalse();
+
+    app.destroy();
+  });
+
+  test("persists toolbar UI when tool/color/width change", async () => {
+    localStorage.clear();
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const app = await createKidsDrawApp({
+      container,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+
+    const markerToolButton = container.querySelector(
+      '[data-tool-variant="brush.marker"]',
+    ) as HTMLButtonElement | null;
+    const blueColorButton = container.querySelector(
+      '[data-setting="stroke-color"][data-color="#2e86ff"]',
+    ) as HTMLButtonElement | null;
+    const widthButton24 = container.querySelector(
+      '[data-setting="stroke-width"][data-size="24"]',
+    ) as HTMLButtonElement | null;
+    expect(markerToolButton).not.toBeNull();
+    expect(blueColorButton).not.toBeNull();
+    expect(widthButton24).not.toBeNull();
+    markerToolButton!.click();
+    blueColorButton!.click();
+    widthButton24!.click();
+
+    await waitForToolbarUiPersistence();
+
+    const persistedRaw = localStorage.getItem(UI_STATE_STORAGE_KEY);
+    expect(persistedRaw).not.toBeNull();
+    const persisted = JSON.parse(persistedRaw ?? "{}") as {
+      version?: number;
+      activeToolId?: string;
+      strokeColor?: string;
+      strokeWidth?: number;
+    };
+    expect(persisted.version).toBe(1);
+    expect(persisted.activeToolId).toBe(app.store.getActiveToolId() ?? undefined);
+    expect(persisted.strokeColor).toBe(app.store.getSharedSettings().strokeColor);
+    expect(persisted.strokeWidth).toBe(app.store.getSharedSettings().strokeWidth);
+
+    app.destroy();
+  });
+
+  test("duplicate toolbar state does not spam persisted writes", async () => {
+    localStorage.clear();
+    const storagePrototype = Object.getPrototypeOf(localStorage) as Storage;
+    const originalSetItem = storagePrototype.setItem;
+    let storageWriteCount = 0;
+    storagePrototype.setItem = function setItem(
+      this: Storage,
+      key: string,
+      value: string,
+    ): void {
+      if (key === UI_STATE_STORAGE_KEY) {
+        storageWriteCount += 1;
+      }
+      originalSetItem.call(this, key, value);
+    };
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const app = await createKidsDrawApp({
+        container,
+        core: createMockCore({ width: 640, height: 480 }),
+        confirmDestructiveAction: async () => true,
+      });
+
+      const blueColorButton = container.querySelector(
+        '[data-setting="stroke-color"][data-color="#2e86ff"]',
+      ) as HTMLButtonElement | null;
+      const widthButton24 = container.querySelector(
+        '[data-setting="stroke-width"][data-size="24"]',
+      ) as HTMLButtonElement | null;
+      expect(blueColorButton).not.toBeNull();
+      expect(widthButton24).not.toBeNull();
+
+      blueColorButton!.click();
+      await waitForToolbarUiPersistence();
+      const writesAfterFirstChange = storageWriteCount;
+
+      blueColorButton!.click();
+      widthButton24!.click();
+      widthButton24!.click();
+      await waitForToolbarUiPersistence();
+
+      expect(storageWriteCount).toBeGreaterThanOrEqual(1);
+      expect(storageWriteCount).toBe(writesAfterFirstChange + 1);
+
+      app.destroy();
+    } finally {
+      storagePrototype.setItem = originalSetItem;
+    }
   });
 
   test("destroy during async new drawing reset does not leak effects", async () => {

@@ -1,3 +1,4 @@
+import { beforeEach } from "bun:test";
 import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64";
 import {
   initializeBase64Wasm,
@@ -30,6 +31,8 @@ const contextStub: Partial<CanvasRenderingContext2D> = {
   clearRect: () => {},
   save: () => {},
   translate: () => {},
+  rotate: () => {},
+  scale: () => {},
   beginPath: () => {},
   moveTo: () => {},
   lineTo: () => {},
@@ -46,3 +49,8 @@ const contextStub: Partial<CanvasRenderingContext2D> = {
   }
 ).getContext = (() =>
   contextStub as CanvasRenderingContext2D) as unknown as HTMLCanvasElement["getContext"];
+
+beforeEach(() => {
+  localStorage.clear();
+  sessionStorage.clear();
+});
