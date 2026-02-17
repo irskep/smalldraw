@@ -6,3 +6,20 @@ run = "bun run lint"
 
 [tasks.test]
 run = "bun run test"
+
+[tasks.build]
+run = "bun run build"
+sources = [
+  "src/**/*.ts",
+  "src/**/*.css",
+  "src/**/*.html",
+  "public/**/*",
+  "scripts/build.ts",
+  "package.json",
+  "tsconfig.json",
+]
+outputs = ["dist/**/*"]
+
+[tasks.deploy]
+depends = ["build"]
+run = "bunx wrangler deploy"

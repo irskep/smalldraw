@@ -81,3 +81,9 @@ run = "bun run dev"
 depends = ["docs:typedoc"]
 dir = "apps/docs-site"
 run = "bun run build"
+
+[tasks."splat:build"]
+run = "mise run //apps/kids-app:build"
+
+[tasks."splat:deploy"]
+run = "mise run //apps/kids-app:deploy"
