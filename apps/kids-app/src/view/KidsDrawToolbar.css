@@ -141,6 +141,11 @@
   );
 }
 
+.kids-square-icon-button:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--blue-5) 60%, black);
+  outline-offset: -2px;
+}
+
 .kids-square-icon-button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
@@ -160,12 +165,6 @@
 
 .kids-draw-family-variants[data-variant-layout="two-row-single-height"] {
   --button-grid-cell-size: var(--kd-toolbar-cell-size);
-}
-
-.kids-draw-family-variants[data-variant-layout="two-row-single-height"]
-  .button-grid-viewport {
-  padding: 2px;
-  margin: -2px;
 }
 
 .kids-draw-tool-variant-button {

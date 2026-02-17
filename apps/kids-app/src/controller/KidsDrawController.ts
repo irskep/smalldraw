@@ -862,7 +862,7 @@ export function createKidsDrawController(options: {
     const doc = store.getDocument();
     const width = Math.max(1, Math.round(doc.size.width));
     const height = Math.max(1, Math.round(doc.size.height));
-    const maxDimension = 320;
+    const maxDimension = 640;
     const scale = Math.min(1, maxDimension / Math.max(width, height));
     const targetWidth = Math.max(1, Math.round(width * scale));
     const targetHeight = Math.max(1, Math.round(height * scale));

@@ -4,3 +4,9 @@
 - brush variant: arrow-end stroke (`brushId: "arrow-end"`). Add arrowhead at stroke end in renderer; no new geometry/action types.
 - brush variant: calligraphy/variable-width stroke (`brushId` split TBD). Keep as pen-based brush variants; scope is renderer + bounds updates only.
 - paint bucket: flood fill tool with tolerance and optional fill styles (noisy/checker/target). Requires raster readback + async region fill pipeline.
+- coloring book
+  - https://publicdomainreview.org/blog/2020/03/free-colouring-book/
+  - https://publicdomainreview.org/blog/2020/05/free-colouring-book-2/
+  - https://library.nyam.org/colorourcollections/
+  - https://freeforcommercialuse.net/#collections
+  - https://teachingandlearninglabs.com/AllHTML/coloringbook.shtml

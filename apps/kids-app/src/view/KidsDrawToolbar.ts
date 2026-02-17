@@ -413,8 +413,8 @@ export function createKidsDrawToolbar(options: {
       container.hidden = !isActive;
       if (isActive) {
         const grid = familyVariantGrids.get(familyId);
-        grid?.ensureItemVisible(activeToolId);
         grid?.syncLayout();
+        grid?.ensureItemVisible(activeToolId);
       }
     }
 

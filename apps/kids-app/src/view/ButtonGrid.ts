@@ -110,6 +110,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   elRoot.dataset.orientation = orientation;
   elRoot.dataset.largeLayout = largeLayout;
   elRoot.dataset.mode = mode;
+  elRoot.dataset.paginateLarge = paginateInLarge ? "true" : "false";
 
   const prevButton = createSquareIconButton({
     className: "button-grid-nav button-grid-nav-prev",
@@ -326,6 +327,83 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     return nextAnchorIndex;
   };
 
+  const isItemFullyVisibleAtAnchor = (
+    containers: HTMLDivElement[],
+    itemIndex: number,
+    anchorIndex: number,
+  ): boolean => {
+    const target = containers[itemIndex];
+    const anchor = containers[anchorIndex];
+    if (!target || !anchor) {
+      return false;
+    }
+    const horizontal = useHorizontalFlow();
+    const viewportMainSize = getViewportMainSize(horizontal);
+    const anchorStart = getItemMainStart(anchor, horizontal);
+    const targetRect = target.getBoundingClientRect();
+    const targetStart = getItemMainStart(target, horizontal);
+    const targetEnd = targetStart + getMainSizeFromRect(targetRect, horizontal);
+    return (
+      targetStart >= anchorStart - EPSILON &&
+      targetEnd <= anchorStart + viewportMainSize + EPSILON
+    );
+  };
+
+  const resolveNextAnchorIndexFromAnchor = (
+    containers: HTMLDivElement[],
+    anchorIndex: number,
+  ): number | null => {
+    const anchor = containers[anchorIndex];
+    if (!anchor) {
+      return null;
+    }
+    const horizontal = useHorizontalFlow();
+    const viewportMainSize = getViewportMainSize(horizontal);
+    const anchorStart = getItemMainStart(anchor, horizontal);
+    let lastFullyVisible = -1;
+
+    for (let index = 0; index < containers.length; index += 1) {
+      const rect = containers[index].getBoundingClientRect();
+      const start = getItemMainStart(containers[index], horizontal);
+      const end = start + getMainSizeFromRect(rect, horizontal);
+      if (
+        start >= anchorStart - EPSILON &&
+        end <= anchorStart + viewportMainSize + EPSILON
+      ) {
+        lastFullyVisible = index;
+      }
+    }
+
+    if (lastFullyVisible >= containers.length - 1) {
+      return null;
+    }
+    const nextAnchorIndex =
+      lastFullyVisible >= 0
+        ? Math.min(lastFullyVisible + 1, containers.length - 1)
+        : Math.min(anchorIndex + 1, containers.length - 1);
+    if (nextAnchorIndex <= anchorIndex) {
+      return null;
+    }
+    return nextAnchorIndex;
+  };
+
+  const buildPageAnchors = (containers: HTMLDivElement[]): number[] => {
+    if (containers.length === 0) {
+      return [];
+    }
+    const anchors = [0];
+    let cursor = 0;
+    while (true) {
+      const nextAnchor = resolveNextAnchorIndexFromAnchor(containers, cursor);
+      if (nextAnchor === null || nextAnchor === cursor) {
+        break;
+      }
+      anchors.push(nextAnchor);
+      cursor = nextAnchor;
+    }
+    return anchors;
+  };
+
   const syncPagerControls = (items: ButtonGridItem[]): void => {
     if (!shouldPaginate() || items.length === 0) {
       prevButton.el.hidden = true;
@@ -523,8 +601,35 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       if (index < 0) {
         return;
       }
-      currentAnchorIndex = index;
-      anchorHistory = [index];
+      const containers = getItemContainers();
+      if (containers.length === 0) {
+        return;
+      }
+      if (isItemFullyVisibleAtAnchor(containers, index, currentAnchorIndex)) {
+        return;
+      }
+
+      const anchors = buildPageAnchors(containers);
+      if (anchors.length === 0) {
+        return;
+      }
+      let targetAnchor = anchors[0];
+      for (const anchor of anchors) {
+        if (isItemFullyVisibleAtAnchor(containers, index, anchor)) {
+          targetAnchor = anchor;
+          break;
+        }
+        if (anchor <= index) {
+          targetAnchor = anchor;
+        }
+      }
+      const targetAnchorPosition = anchors.indexOf(targetAnchor);
+      if (targetAnchorPosition >= 0) {
+        anchorHistory = anchors.slice(0, targetAnchorPosition + 1);
+      } else {
+        anchorHistory = [targetAnchor];
+      }
+      currentAnchorIndex = targetAnchor;
       render();
     },
     syncLayout(): void {
