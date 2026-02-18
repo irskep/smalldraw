@@ -828,8 +828,8 @@ describe("splatterboard shell", () => {
     const firstVariantLabel = lettersToolbar?.querySelector(
       '[data-tool-variant="stamp.letter.a"] .kids-square-icon-button__label',
     ) as HTMLElement | null;
-    expect(firstVariantLabel?.textContent).toBe("A");
-    expect(firstVariantLabel?.hidden).toBeFalse();
+    expect(firstVariantLabel?.textContent).toBe("");
+    expect(firstVariantLabel?.hidden).toBeTrue();
 
     lettersFamilyButton!.click();
     expect(app.store.getActiveToolId()).toBe("stamp.letter.a");

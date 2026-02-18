@@ -52,7 +52,8 @@
 
 .button-grid-viewport {
   --button-grid-viewport-bleed: 2px;
-  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
   min-width: 0;
   flex: 0 1 auto;
   padding: var(--button-grid-viewport-bleed);

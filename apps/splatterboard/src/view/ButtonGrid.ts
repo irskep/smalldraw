@@ -89,13 +89,17 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   let mode: ButtonGridMode = resolveAutoMode();
   let destroyed = false;
   let layoutRetryFrame = 0;
-  let currentAnchorIndex = 0;
-  let currentOffsetPx = 0;
-  let anchorHistory: number[] = [0];
+  let currentPageIndex = 0;
+  let selectedItemId = "";
+  let needsPaginationRecalc = true;
+  let measuredViewportMainSize = 0;
 
   const listsById = new Map<string, ButtonGridItem[]>();
   let orderedListIds: string[] = [];
   let activeListId = "";
+
+  let pageItemIndices: number[][] = [[0]];
+  let itemPageByIndex: number[] = [];
 
   const elRoot = el("div.button-grid") as HTMLDivElement;
   if (options.className) {
@@ -174,220 +178,120 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       : itemRect.top - trackRect.top;
   };
 
-  const getViewportRange = (
-    horizontal: boolean,
-  ): { start: number; end: number } => {
-    const rect = viewport.getBoundingClientRect();
-    return horizontal
-      ? { start: rect.left, end: rect.right }
-      : { start: rect.top, end: rect.bottom };
-  };
-
-  const setTrackOffset = (offsetPx: number, horizontal: boolean): void => {
-    currentOffsetPx = Math.max(0, offsetPx);
-    track.style.transform = horizontal
-      ? `translateX(${-currentOffsetPx}px)`
-      : `translateY(${-currentOffsetPx}px)`;
-  };
-
-  const getTrackMainSize = (horizontal: boolean): number =>
-    horizontal ? track.scrollWidth : track.scrollHeight;
-
   const getViewportMainSize = (horizontal: boolean): number =>
     getMainSizeFromRect(viewport.getBoundingClientRect(), horizontal);
 
-  const resetAnchors = (): void => {
-    currentAnchorIndex = 0;
-    anchorHistory = [0];
+  const resetPagination = (): void => {
+    currentPageIndex = 0;
+    pageItemIndices = [[0]];
+    itemPageByIndex = [];
+    measuredViewportMainSize = 0;
+    needsPaginationRecalc = true;
   };
 
-  const pushAnchor = (index: number): void => {
-    const clamped = Math.max(0, Math.round(index));
-    if (anchorHistory[anchorHistory.length - 1] === clamped) {
+  const clampPageIndex = (): void => {
+    const lastPage = Math.max(0, pageItemIndices.length - 1);
+    currentPageIndex = Math.max(0, Math.min(currentPageIndex, lastPage));
+  };
+
+  const computePagination = (items: ButtonGridItem[]): void => {
+    const itemCount = items.length;
+    if (itemCount === 0) {
+      pageItemIndices = [];
+      itemPageByIndex = [];
+      currentPageIndex = 0;
+      measuredViewportMainSize = 0;
       return;
     }
-    anchorHistory.push(clamped);
-  };
 
-  const applyAnchorOffset = (items: ButtonGridItem[]): void => {
+    if (!shouldPaginate()) {
+      pageItemIndices = [Array.from({ length: itemCount }, (_, index) => index)];
+      itemPageByIndex = Array.from({ length: itemCount }, () => 0);
+      currentPageIndex = 0;
+      measuredViewportMainSize = 0;
+      return;
+    }
+
     const horizontal = useHorizontalFlow();
-    if (!shouldPaginate() || items.length === 0) {
-      currentAnchorIndex = 0;
-      setTrackOffset(0, horizontal);
-      return;
-    }
-
+    const viewportMainSize = getViewportMainSize(horizontal);
+    measuredViewportMainSize = viewportMainSize;
     const containers = getItemContainers();
-    if (containers.length === 0) {
-      setTrackOffset(0, horizontal);
+
+    if (containers.length !== itemCount || viewportMainSize <= 1) {
+      pageItemIndices = [Array.from({ length: itemCount }, (_, index) => index)];
+      itemPageByIndex = Array.from({ length: itemCount }, () => 0);
+      currentPageIndex = 0;
+      measuredViewportMainSize = 0;
       return;
     }
 
-    currentAnchorIndex = Math.max(
-      0,
-      Math.min(currentAnchorIndex, containers.length - 1),
-    );
-
-    const targetStart = getItemMainStart(
-      containers[currentAnchorIndex],
-      horizontal,
-    );
-    setTrackOffset(Math.max(0, targetStart), horizontal);
-  };
-
-  const findLastFullyVisibleIndex = (containers: HTMLDivElement[]): number => {
-    const horizontal = useHorizontalFlow();
-    const viewportRange = getViewportRange(horizontal);
-    let lastFullyVisible = -1;
-
-    for (let index = 0; index < containers.length; index += 1) {
-      const rect = containers[index].getBoundingClientRect();
-      const start = horizontal ? rect.left : rect.top;
-      const end = horizontal ? rect.right : rect.bottom;
-      if (
-        start >= viewportRange.start - EPSILON &&
-        end <= viewportRange.end + EPSILON
-      ) {
-        lastFullyVisible = index;
-      }
+    const starts: number[] = [];
+    const ends: number[] = [];
+    for (const container of containers) {
+      const start = getItemMainStart(container, horizontal);
+      const end =
+        start + getMainSizeFromRect(container.getBoundingClientRect(), horizontal);
+      starts.push(start);
+      ends.push(end);
     }
 
-    return lastFullyVisible;
-  };
+    const pages: number[][] = [];
+    const pageByItem: number[] = Array.from({ length: itemCount }, () => 0);
 
-  const resolveNextAnchorIndex = (
-    containers: HTMLDivElement[],
-  ): number | null => {
-    if (containers.length === 0) {
-      return null;
-    }
-    const lastFullyVisibleIndex = findLastFullyVisibleIndex(containers);
-    if (lastFullyVisibleIndex >= containers.length - 1) {
-      return null;
-    }
-    let nextAnchorIndex =
-      lastFullyVisibleIndex >= 0
-        ? Math.min(lastFullyVisibleIndex + 1, containers.length - 1)
-        : Math.min(currentAnchorIndex + 1, containers.length - 1);
-
-    if (
-      nextAnchorIndex === currentAnchorIndex &&
-      nextAnchorIndex < containers.length - 1
-    ) {
-      nextAnchorIndex += 1;
-    }
-    if (nextAnchorIndex <= currentAnchorIndex) {
-      return null;
-    }
-
-    const horizontal = useHorizontalFlow();
-    const targetStart = getItemMainStart(
-      containers[nextAnchorIndex],
-      horizontal,
-    );
-    if (targetStart <= currentOffsetPx + EPSILON) {
-      return null;
-    }
-    return nextAnchorIndex;
-  };
-
-  const isItemFullyVisibleAtAnchor = (
-    containers: HTMLDivElement[],
-    itemIndex: number,
-    anchorIndex: number,
-  ): boolean => {
-    const target = containers[itemIndex];
-    const anchor = containers[anchorIndex];
-    if (!target || !anchor) {
-      return false;
-    }
-    const horizontal = useHorizontalFlow();
-    const viewportMainSize = getViewportMainSize(horizontal);
-    const anchorStart = getItemMainStart(anchor, horizontal);
-    const targetRect = target.getBoundingClientRect();
-    const targetStart = getItemMainStart(target, horizontal);
-    const targetEnd = targetStart + getMainSizeFromRect(targetRect, horizontal);
-    return (
-      targetStart >= anchorStart - EPSILON &&
-      targetEnd <= anchorStart + viewportMainSize + EPSILON
-    );
-  };
-
-  const resolveNextAnchorIndexFromAnchor = (
-    containers: HTMLDivElement[],
-    anchorIndex: number,
-  ): number | null => {
-    const anchor = containers[anchorIndex];
-    if (!anchor) {
-      return null;
-    }
-    const horizontal = useHorizontalFlow();
-    const viewportMainSize = getViewportMainSize(horizontal);
-    const anchorStart = getItemMainStart(anchor, horizontal);
-    let lastFullyVisible = -1;
-
-    for (let index = 0; index < containers.length; index += 1) {
-      const rect = containers[index].getBoundingClientRect();
-      const start = getItemMainStart(containers[index], horizontal);
-      const end = start + getMainSizeFromRect(rect, horizontal);
-      if (
-        start >= anchorStart - EPSILON &&
-        end <= anchorStart + viewportMainSize + EPSILON
-      ) {
-        lastFullyVisible = index;
-      }
-    }
-
-    if (lastFullyVisible >= containers.length - 1) {
-      return null;
-    }
-    const nextAnchorIndex =
-      lastFullyVisible >= 0
-        ? Math.min(lastFullyVisible + 1, containers.length - 1)
-        : Math.min(anchorIndex + 1, containers.length - 1);
-    if (nextAnchorIndex <= anchorIndex) {
-      return null;
-    }
-    return nextAnchorIndex;
-  };
-
-  const buildPageAnchors = (containers: HTMLDivElement[]): number[] => {
-    if (containers.length === 0) {
-      return [];
-    }
-    const anchors = [0];
     let cursor = 0;
-    while (true) {
-      const nextAnchor = resolveNextAnchorIndexFromAnchor(containers, cursor);
-      if (nextAnchor === null || nextAnchor === cursor) {
+    while (cursor < itemCount) {
+      const pageStart = starts[cursor] ?? 0;
+      const pageLimit = pageStart + viewportMainSize + EPSILON;
+      let endIndex = cursor;
+
+      while (endIndex + 1 < itemCount) {
+        const candidateEnd = ends[endIndex + 1] ?? 0;
+        if (candidateEnd <= pageLimit) {
+          endIndex += 1;
+          continue;
+        }
         break;
       }
-      anchors.push(nextAnchor);
-      cursor = nextAnchor;
+
+      if (endIndex < cursor) {
+        endIndex = cursor;
+      }
+
+      const pageIndex = pages.length;
+      const pageItems: number[] = [];
+      for (let itemIndex = cursor; itemIndex <= endIndex; itemIndex += 1) {
+        pageItems.push(itemIndex);
+        pageByItem[itemIndex] = pageIndex;
+      }
+      pages.push(pageItems);
+      cursor = endIndex + 1;
     }
-    return anchors;
+
+    pageItemIndices = pages.length > 0 ? pages : [Array.from({ length: itemCount }, (_, index) => index)];
+    itemPageByIndex = pageByItem;
+  };
+
+  const syncSelectedPage = (items: ButtonGridItem[]): void => {
+    if (!shouldPaginate() || items.length === 0 || !selectedItemId) {
+      clampPageIndex();
+      return;
+    }
+
+    const selectedIndex = items.findIndex((item) => item.id === selectedItemId);
+    if (selectedIndex < 0) {
+      clampPageIndex();
+      return;
+    }
+
+    const selectedPage = itemPageByIndex[selectedIndex];
+    if (typeof selectedPage === "number" && Number.isFinite(selectedPage)) {
+      currentPageIndex = selectedPage;
+    }
+    clampPageIndex();
   };
 
   const syncPagerControls = (items: ButtonGridItem[]): void => {
-    if (!shouldPaginate() || items.length === 0) {
-      prevButton.el.hidden = true;
-      nextButton.el.hidden = true;
-      return;
-    }
-
-    const horizontal = useHorizontalFlow();
-    const viewportRange = getViewportRange(horizontal);
-    const containers = getItemContainers();
-    const hasBefore = containers.some((container) => {
-      const rect = container.getBoundingClientRect();
-      const end = horizontal ? rect.right : rect.bottom;
-      return end < viewportRange.start - EPSILON;
-    });
-    const nextAnchorIndex = resolveNextAnchorIndex(containers);
-    const hasAfter = nextAnchorIndex !== null;
-    const hasOverflow = hasBefore || hasAfter;
-
-    if (!hasOverflow) {
+    if (!shouldPaginate() || items.length === 0 || pageItemIndices.length <= 1) {
       prevButton.el.hidden = true;
       nextButton.el.hidden = true;
       return;
@@ -395,32 +299,8 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
 
     prevButton.el.hidden = false;
     nextButton.el.hidden = false;
-    prevButton.setDisabled(!hasBefore && anchorHistory.length <= 1);
-    nextButton.setDisabled(!hasAfter);
-  };
-
-  const syncPartialVisibility = (): void => {
-    if (!shouldPaginate()) {
-      for (const container of getItemContainers()) {
-        container.style.visibility = "";
-      }
-      return;
-    }
-
-    const horizontal = useHorizontalFlow();
-    const viewportRange = getViewportRange(horizontal);
-    for (const container of getItemContainers()) {
-      const rect = container.getBoundingClientRect();
-      const start = horizontal ? rect.left : rect.top;
-      const end = horizontal ? rect.right : rect.bottom;
-      const intersects =
-        end > viewportRange.start + EPSILON &&
-        start < viewportRange.end - EPSILON;
-      const fullyVisible =
-        start >= viewportRange.start - EPSILON &&
-        end <= viewportRange.end + EPSILON;
-      container.style.visibility = intersects && !fullyVisible ? "hidden" : "";
-    }
+    prevButton.setDisabled(currentPageIndex <= 0);
+    nextButton.setDisabled(currentPageIndex >= pageItemIndices.length - 1);
   };
 
   const render = (): void => {
@@ -429,11 +309,10 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     }
 
     const items = getActiveItems();
-    const models = items.map((item) => ({
+    const allModels = items.map((item) => ({
       id: item.id,
       element: item.element,
     }));
-    listView.update(models);
 
     viewport.style.width = "";
     viewport.style.maxWidth = "";
@@ -443,22 +322,50 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     elRoot.dataset.mode = mode;
     mount(inlineHost, shell);
     inlineHost.hidden = false;
+    track.style.transform = "";
 
-    applyAnchorOffset(items);
+    if (needsPaginationRecalc) {
+      listView.update(allModels);
+      computePagination(items);
+      syncSelectedPage(items);
+      needsPaginationRecalc = false;
+    } else {
+      clampPageIndex();
+    }
+
+    const currentPageItems = pageItemIndices[currentPageIndex] ?? [];
+    const visibleModels =
+      shouldPaginate() && items.length > 0
+        ? currentPageItems
+            .map((itemIndex) => allModels[itemIndex])
+            .filter((model): model is ButtonGridItemViewModel =>
+              Boolean(model),
+            )
+        : allModels;
+
+    if (shouldPaginate() && measuredViewportMainSize > 1) {
+      if (useHorizontalFlow()) {
+        viewport.style.width = `${measuredViewportMainSize}px`;
+      } else {
+        viewport.style.height = `${measuredViewportMainSize}px`;
+      }
+    }
+
+    listView.update(visibleModels);
     syncPagerControls(items);
-    syncPartialVisibility();
 
     const horizontal = useHorizontalFlow();
     const viewportMainSize = getViewportMainSize(horizontal);
-    const trackMainSize = getTrackMainSize(horizontal);
     if (
+      shouldPaginate() &&
       mode === "mobile" &&
       items.length > 1 &&
-      (viewportMainSize <= 1 || trackMainSize <= 1) &&
+      viewportMainSize <= 1 &&
       layoutRetryFrame === 0
     ) {
       layoutRetryFrame = window.requestAnimationFrame(() => {
         layoutRetryFrame = 0;
+        needsPaginationRecalc = true;
         render();
       });
     }
@@ -468,23 +375,11 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     if (!shouldPaginate()) {
       return;
     }
-
-    const items = getActiveItems();
-    if (items.length <= 1) {
+    if (currentPageIndex >= pageItemIndices.length - 1) {
       return;
     }
 
-    const containers = getItemContainers();
-    if (containers.length === 0) {
-      return;
-    }
-    const nextAnchorIndex = resolveNextAnchorIndex(containers);
-    if (nextAnchorIndex === null) {
-      return;
-    }
-
-    currentAnchorIndex = nextAnchorIndex;
-    pushAnchor(nextAnchorIndex);
+    currentPageIndex += 1;
     render();
   };
 
@@ -492,19 +387,12 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     if (!shouldPaginate()) {
       return;
     }
-
-    if (anchorHistory.length > 1) {
-      anchorHistory.pop();
-      currentAnchorIndex = anchorHistory[anchorHistory.length - 1] ?? 0;
-      render();
+    if (currentPageIndex <= 0) {
       return;
     }
 
-    if (currentAnchorIndex > 0) {
-      currentAnchorIndex -= 1;
-      anchorHistory = [currentAnchorIndex];
-      render();
-    }
+    currentPageIndex -= 1;
+    render();
   };
 
   const onWindowResize = (): void => {
@@ -512,6 +400,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     if (nextMode !== mode) {
       mode = nextMode;
     }
+    needsPaginationRecalc = true;
     render();
   };
 
@@ -534,7 +423,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       if (!listsById.has(activeListId)) {
         activeListId = orderedListIds[0] ?? "";
       }
-      resetAnchors();
+      resetPagination();
       render();
     },
     setActiveList(listId: string): void {
@@ -542,7 +431,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
         return;
       }
       activeListId = listId;
-      resetAnchors();
+      resetPagination();
       render();
     },
     setMode(nextMode: ButtonGridMode): void {
@@ -550,50 +439,32 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
         return;
       }
       mode = nextMode;
-      resetAnchors();
+      resetPagination();
       render();
     },
     ensureItemVisible(itemId: string): void {
+      selectedItemId = itemId;
       if (!shouldPaginate()) {
         return;
       }
+
       const items = getActiveItems();
-      const index = items.findIndex((item) => item.id === itemId);
-      if (index < 0) {
-        return;
-      }
-      const containers = getItemContainers();
-      if (containers.length === 0) {
-        return;
-      }
-      if (isItemFullyVisibleAtAnchor(containers, index, currentAnchorIndex)) {
+      const itemIndex = items.findIndex((item) => item.id === itemId);
+      if (itemIndex < 0) {
         return;
       }
 
-      const anchors = buildPageAnchors(containers);
-      if (anchors.length === 0) {
-        return;
-      }
-      let targetAnchor = anchors[0];
-      for (const anchor of anchors) {
-        if (isItemFullyVisibleAtAnchor(containers, index, anchor)) {
-          targetAnchor = anchor;
-          break;
-        }
-        if (anchor <= index) {
-          targetAnchor = anchor;
+      if (!needsPaginationRecalc) {
+        const resolvedPage = itemPageByIndex[itemIndex];
+        if (typeof resolvedPage === "number" && Number.isFinite(resolvedPage)) {
+          currentPageIndex = resolvedPage;
         }
       }
-      const targetAnchorPosition = anchors.indexOf(targetAnchor);
-      if (targetAnchorPosition >= 0) {
-        anchorHistory = anchors.slice(0, targetAnchorPosition + 1);
-      } else {
-        anchorHistory = [targetAnchor];
-      }
-      currentAnchorIndex = targetAnchor;
+
       render();
     },
     syncLayout(): void {
+      needsPaginationRecalc = true;
       render();
     },
     destroy(): void {

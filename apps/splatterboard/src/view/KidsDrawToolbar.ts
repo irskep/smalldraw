@@ -142,6 +142,7 @@ export function createKidsDrawToolbar(options: {
   for (const family of families) {
     const isTwoRowSingleHeight =
       family.variantLayout === "two-row-single-height";
+    const hideVariantLabels = family.id.startsWith("stamp.");
     const isStampImages = family.id === "stamp.images";
     const variantItems: { id: string; element: HTMLElement }[] = [];
     for (const toolId of family.toolIds) {
@@ -149,7 +150,7 @@ export function createKidsDrawToolbar(options: {
       if (!tool) continue;
       const variantButton = createSquareIconButton({
         className: "kids-draw-tool-variant-button",
-        label: isStampImages ? "" : tool.label,
+        label: hideVariantLabels ? "" : tool.label,
         icon: tool.icon,
         attributes: {
           "data-tool-variant": tool.id,

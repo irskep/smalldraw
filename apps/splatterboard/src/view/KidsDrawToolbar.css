@@ -19,6 +19,11 @@
   width: 100%;
 }
 
+.kids-draw-toolbar-bottom,
+.kids-draw-toolbar-bottom * {
+  overflow-y: visible;
+}
+
 .kids-draw-toolbar .kids-draw-toolbar-colors[hidden],
 .kids-draw-toolbar .kids-draw-toolbar-strokes[hidden] {
   display: none;
@@ -576,7 +581,8 @@
   height: var(--kd-toolbar-cell-size);
   min-height: var(--kd-toolbar-cell-size);
   max-width: var(--kd-toolbar-cell-size);
-  overflow: clip;
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 .kids-draw-viewport[data-layout-profile="mobile-portrait"]
@@ -596,6 +602,7 @@
   .kids-draw-family-variants
   .kids-square-icon-button__label {
   max-width: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   text-overflow: ellipsis;
 }
