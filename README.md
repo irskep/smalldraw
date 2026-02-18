@@ -1,4 +1,10 @@
-# Smalldraw
+# Steve's drawing program experiments
+
+This repo, although public, is not written for public consumption. It is not licensed as open source. It is a work in progress, full of random text files and unfinished work. Do not look here for anything interesting.
+
+That said, it is the source code for https://splatterboard.app/.
+
+---
 
 This is a greenfield prototype of a "drawing program construction kit." It is a vector/raster hybrid but can be used to specialize in vector or raster work.
 
