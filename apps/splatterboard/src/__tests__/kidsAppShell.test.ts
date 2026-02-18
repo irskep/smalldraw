@@ -1317,6 +1317,152 @@ describe("splatterboard shell", () => {
     app.destroy();
   });
 
+  test("mobile reload restores tool selector page for persisted stamp family", async () => {
+    localStorage.clear();
+    const originalInnerWidth = window.innerWidth;
+    const originalInnerHeight = window.innerHeight;
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      writable: true,
+      value: 390,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      writable: true,
+      value: 844,
+    });
+
+    localStorage.setItem(
+      UI_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        activeToolId: "stamp.image.cat1",
+        strokeColor: "#000000",
+        strokeWidth: 8,
+      }),
+    );
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    try {
+      const app = await createKidsDrawApp({
+        container,
+        core: createMockCore({ width: 640, height: 480 }),
+        confirmDestructiveAction: async () => true,
+      });
+      await waitForTurn();
+
+      const toolSelectorStampFamilyButton = container.querySelector(
+        '.kids-draw-tool-selector [data-tool-family="stamp.images"]',
+      ) as HTMLButtonElement | null;
+      const selectorPrevButton = container.querySelector(
+        '.kids-draw-tool-selector [data-button-grid-nav="prev"]',
+      ) as HTMLButtonElement | null;
+      const selectorNextButton = container.querySelector(
+        '.kids-draw-tool-selector [data-button-grid-nav="next"]',
+      ) as HTMLButtonElement | null;
+
+      expect(app.store.getActiveToolId()).toBe("stamp.image.cat1");
+      expect(toolSelectorStampFamilyButton).not.toBeNull();
+      expect(toolSelectorStampFamilyButton?.classList.contains("is-selected")).toBeTrue();
+      expect(selectorPrevButton).not.toBeNull();
+      expect(selectorNextButton).not.toBeNull();
+      expect(selectorPrevButton?.disabled).toBeFalse();
+
+      app.destroy();
+    } finally {
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        writable: true,
+        value: originalInnerWidth,
+      });
+      Object.defineProperty(window, "innerHeight", {
+        configurable: true,
+        writable: true,
+        value: originalInnerHeight,
+      });
+    }
+  });
+
+  test("resizing large to mobile with selected stamp image does not collapse tool selector to one item per page", async () => {
+    localStorage.clear();
+    const catalog = createKidsToolCatalog(createKidsShapeRendererRegistry());
+    const selectedStampToolId =
+      catalog.tools.find(
+        (tool) => tool.familyId === "stamp.images" && tool.label === "Guitar",
+      )?.id ??
+      catalog.families.find((family) => family.id === "stamp.images")?.toolIds[0] ??
+      "";
+    expect(selectedStampToolId).not.toBe("");
+
+    const originalInnerWidth = window.innerWidth;
+    const originalInnerHeight = window.innerHeight;
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      writable: true,
+      value: 1280,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      writable: true,
+      value: 800,
+    });
+
+    localStorage.setItem(
+      UI_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        activeToolId: selectedStampToolId,
+        strokeColor: "#000000",
+        strokeWidth: 8,
+      }),
+    );
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    try {
+      const app = await createKidsDrawApp({
+        container,
+        core: createMockCore({ width: 960, height: 600 }),
+        confirmDestructiveAction: async () => true,
+      });
+      await waitForTurn();
+
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        writable: true,
+        value: 380,
+      });
+      Object.defineProperty(window, "innerHeight", {
+        configurable: true,
+        writable: true,
+        value: 820,
+      });
+      window.dispatchEvent(new window.Event("resize"));
+      await waitForTurn();
+      await waitForTurn();
+
+      const visibleSelectorButtons = container.querySelectorAll(
+        ".kids-draw-tool-selector [data-tool-family], .kids-draw-tool-selector [data-tool-id]",
+      );
+      expect(app.store.getActiveToolId()).toBe(selectedStampToolId);
+      expect(visibleSelectorButtons.length).toBeGreaterThan(1);
+
+      app.destroy();
+    } finally {
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        writable: true,
+        value: originalInnerWidth,
+      });
+      Object.defineProperty(window, "innerHeight", {
+        configurable: true,
+        writable: true,
+        value: originalInnerHeight,
+      });
+    }
+  });
+
   test("persists toolbar UI when tool/color/width change", async () => {
     localStorage.clear();
     const container = document.createElement("div");

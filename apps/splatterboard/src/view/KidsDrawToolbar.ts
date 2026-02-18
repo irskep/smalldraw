@@ -1,7 +1,7 @@
 import "./KidsDrawToolbar.css";
 
 import { Download, FilePlus, FolderOpen, Redo2, Trash2, Undo2 } from "lucide";
-import type { ReadableAtom } from "nanostores";
+import { computed, type ReadableAtom } from "nanostores";
 import { el, mount } from "redom";
 import type {
   KidsToolConfig,
@@ -33,6 +33,7 @@ export interface KidsDrawToolbar {
   readonly strokeColorSwatchButtons: HTMLButtonElement[];
   readonly strokeWidthButtons: HTMLButtonElement[];
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
+  syncLayout(): void;
   destroy(): void;
 }
 
@@ -396,13 +397,33 @@ export function createKidsDrawToolbar(options: {
     return families[0]?.id ?? "";
   };
 
-  const applyState = (state: ToolbarUiState): void => {
-    const normalizedStrokeColor = state.strokeColor.toLowerCase();
-    const activeToolId = toolById.has(state.activeToolId)
-      ? state.activeToolId
+  const resolveActiveToolId = (activeToolId: string): string => {
+    return toolById.has(activeToolId)
+      ? activeToolId
       : (tools[0]?.id ??
         familyById.get(families[0]?.id ?? "")?.defaultToolId ??
         "");
+  };
+
+  const resolveToolSelectorSelectedItemId = (
+    activeToolId: string,
+    activeFamilyId: string,
+  ): string => {
+    if (directToolButtons.has(activeToolId)) {
+      return `tool:${activeToolId}`;
+    }
+    if (familyButtons.has(activeFamilyId)) {
+      return `family:${activeFamilyId}`;
+    }
+    return "";
+  };
+
+  let unbindToolSelectorSelection: (() => void) | null = null;
+  let unbindVariantSelections: Array<() => void> = [];
+
+  const applyState = (state: ToolbarUiState): void => {
+    const normalizedStrokeColor = state.strokeColor.toLowerCase();
+    const activeToolId = resolveActiveToolId(state.activeToolId);
     const activeFamilyId = resolveActiveFamilyId(activeToolId);
 
     for (const [familyId, button] of familyButtons) {
@@ -424,14 +445,13 @@ export function createKidsDrawToolbar(options: {
       if (isActive) {
         const grid = familyVariantGrids.get(familyId);
         grid?.syncLayout();
-        grid?.ensureItemVisible(activeToolId);
         if (ensureVisibleRafHandle !== null) {
           window.cancelAnimationFrame(ensureVisibleRafHandle);
         }
         ensureVisibleRafHandle = window.requestAnimationFrame(() => {
           ensureVisibleRafHandle = null;
+          toolSelectorGrid.syncLayout();
           grid?.syncLayout();
-          grid?.ensureItemVisible(activeToolId);
         });
       }
     }
@@ -479,9 +499,31 @@ export function createKidsDrawToolbar(options: {
   };
 
   const bindUiState = (state: ReadableAtom<ToolbarUiState>): (() => void) => {
+    unbindToolSelectorSelection?.();
+    unbindVariantSelections.forEach((unbind) => unbind());
+    const selectedToolIdStore = computed(state, (nextState) =>
+      resolveActiveToolId(nextState.activeToolId),
+    );
+    const toolSelectorSelectionStore = computed(state, (nextState) => {
+      const activeToolId = resolveActiveToolId(nextState.activeToolId);
+      const activeFamilyId = resolveActiveFamilyId(activeToolId);
+      return resolveToolSelectorSelectedItemId(activeToolId, activeFamilyId);
+    });
+    unbindToolSelectorSelection =
+      toolSelectorGrid.bindSelection(toolSelectorSelectionStore);
+    unbindVariantSelections = Array.from(familyVariantGrids.values(), (grid) =>
+      grid.bindSelection(selectedToolIdStore),
+    );
+
     applyState(state.get());
-    toolSelectorGrid.syncLayout();
-    return state.subscribe(applyState);
+    const unbindUiState = state.subscribe(applyState);
+    return () => {
+      unbindUiState();
+      unbindToolSelectorSelection?.();
+      unbindToolSelectorSelection = null;
+      unbindVariantSelections.forEach((unbind) => unbind());
+      unbindVariantSelections = [];
+    };
   };
 
   return {
@@ -502,11 +544,23 @@ export function createKidsDrawToolbar(options: {
     strokeColorSwatchButtons,
     strokeWidthButtons,
     bindUiState,
+    syncLayout() {
+      toolSelectorGrid.syncLayout();
+      for (const grid of familyVariantGrids.values()) {
+        grid.syncLayout();
+      }
+    },
     destroy() {
       if (ensureVisibleRafHandle !== null) {
         window.cancelAnimationFrame(ensureVisibleRafHandle);
         ensureVisibleRafHandle = null;
       }
+      unbindToolSelectorSelection?.();
+      unbindToolSelectorSelection = null;
+      for (const unbind of unbindVariantSelections) {
+        unbind();
+      }
+      unbindVariantSelections = [];
       toolSelectorGrid.destroy();
       for (const grid of familyVariantGrids.values()) {
         grid.destroy();

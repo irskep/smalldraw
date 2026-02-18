@@ -565,6 +565,7 @@ export function createKidsDrawController(options: {
       stage.insetLeftSlot.replaceChildren();
       stage.insetRightSlot.replaceChildren();
       stage.insetBottomSlot.replaceChildren(mobilePortraitBottomStrip);
+      toolbar.syncLayout();
       return;
     }
 
@@ -589,6 +590,7 @@ export function createKidsDrawController(options: {
     stage.insetLeftSlot.replaceChildren(toolbar.toolSelectorElement);
     stage.insetRightSlot.replaceChildren(toolbar.actionPanelElement);
     stage.insetBottomSlot.replaceChildren(toolbar.bottomElement);
+    toolbar.syncLayout();
   };
 
   const syncLayoutProfile = (): void => {
@@ -676,6 +678,13 @@ export function createKidsDrawController(options: {
     displayScale = updated.displayScale;
     displayWidth = updated.displayWidth;
     displayHeight = updated.displayHeight;
+    toolbar.syncLayout();
+    scheduleAnimationFrame(() => {
+      if (destroyed) {
+        return;
+      }
+      toolbar.syncLayout();
+    });
     scheduleResizeBake();
     requestRenderFromModel();
   };
@@ -708,6 +717,13 @@ export function createKidsDrawController(options: {
       scheduleResizeBake();
     }
     cursorOverlay.refreshMetrics();
+    toolbar.syncLayout();
+    scheduleAnimationFrame(() => {
+      if (destroyed) {
+        return;
+      }
+      toolbar.syncLayout();
+    });
   };
 
   const scheduleResponsiveLayout = (): void => {

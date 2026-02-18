@@ -1,6 +1,7 @@
 import "./ButtonGrid.css";
 
 import { ChevronLeft, ChevronRight } from "lucide";
+import type { ReadableAtom } from "nanostores";
 import { el, list, mount, setChildren } from "redom";
 import {
   createSquareIconButton,
@@ -28,6 +29,7 @@ export interface ButtonGrid {
   setLists(lists: ButtonGridList[]): void;
   setActiveList(listId: string): void;
   setMode(mode: ButtonGridMode): void;
+  bindSelection(store: ReadableAtom<string>): () => void;
   ensureItemVisible(itemId: string): void;
   syncLayout(): void;
   destroy(): void;
@@ -89,6 +91,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   let mode: ButtonGridMode = resolveAutoMode();
   let destroyed = false;
   let layoutRetryFrame = 0;
+  let selectionUnbind: (() => void) | null = null;
   let currentPageIndex = 0;
   let selectedItemId = "";
   let needsPaginationRecalc = true;
@@ -320,7 +323,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     viewport.style.maxHeight = "";
 
     elRoot.dataset.mode = mode;
-    mount(inlineHost, shell);
+    // Structure is mounted once during setup; render updates only dynamic state.
     inlineHost.hidden = false;
     track.style.transform = "";
 
@@ -395,6 +398,28 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     render();
   };
 
+  const ensureVisibleInternal = (itemId: string): void => {
+    selectedItemId = itemId;
+    if (!shouldPaginate()) {
+      return;
+    }
+
+    const items = getActiveItems();
+    const itemIndex = items.findIndex((item) => item.id === itemId);
+    if (itemIndex < 0) {
+      return;
+    }
+
+    if (!needsPaginationRecalc) {
+      const resolvedPage = itemPageByIndex[itemIndex];
+      if (typeof resolvedPage === "number" && Number.isFinite(resolvedPage)) {
+        currentPageIndex = resolvedPage;
+      }
+    }
+
+    render();
+  };
+
   const onWindowResize = (): void => {
     const nextMode = resolveAutoMode();
     if (nextMode !== mode) {
@@ -442,26 +467,35 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       resetPagination();
       render();
     },
-    ensureItemVisible(itemId: string): void {
-      selectedItemId = itemId;
-      if (!shouldPaginate()) {
-        return;
-      }
+    bindSelection(store: ReadableAtom<string>): () => void {
+      selectionUnbind?.();
+      selectionUnbind = null;
 
-      const items = getActiveItems();
-      const itemIndex = items.findIndex((item) => item.id === itemId);
-      if (itemIndex < 0) {
-        return;
-      }
-
-      if (!needsPaginationRecalc) {
-        const resolvedPage = itemPageByIndex[itemIndex];
-        if (typeof resolvedPage === "number" && Number.isFinite(resolvedPage)) {
-          currentPageIndex = resolvedPage;
+      const applySelection = (itemId: string): void => {
+        if (itemId) {
+          ensureVisibleInternal(itemId);
+          return;
         }
-      }
+        selectedItemId = "";
+        render();
+      };
 
-      render();
+      applySelection(store.get());
+
+      const unbind = store.subscribe((itemId) => {
+        applySelection(itemId ?? "");
+      });
+      selectionUnbind = unbind;
+
+      return () => {
+        if (selectionUnbind === unbind) {
+          selectionUnbind = null;
+        }
+        unbind();
+      };
+    },
+    ensureItemVisible(itemId: string): void {
+      ensureVisibleInternal(itemId);
     },
     syncLayout(): void {
       needsPaginationRecalc = true;
@@ -476,6 +510,8 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
         window.cancelAnimationFrame(layoutRetryFrame);
         layoutRetryFrame = 0;
       }
+      selectionUnbind?.();
+      selectionUnbind = null;
       window.removeEventListener("resize", onWindowResize);
       window.visualViewport?.removeEventListener("resize", onWindowResize);
     },
