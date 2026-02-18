@@ -280,7 +280,7 @@ function createDelayedResetCore(
   };
 }
 
-describe("kids-app shell", () => {
+describe("splatterboard shell", () => {
   test("mounts and unmounts cleanly with tile and hot layers", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);

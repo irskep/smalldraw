@@ -76,8 +76,8 @@
         "vuepress": "^2.0.0-rc.26",
       },
     },
-    "apps/kids-app": {
-      "name": "kids-app",
+    "apps/splatterboard": {
+      "name": "splatterboard",
       "dependencies": {
         "@smalldraw/core": "workspace:*",
         "@smalldraw/geometry": "workspace:*",
@@ -1564,7 +1564,7 @@
 
     "khroma": ["khroma@2.1.0", "", {}, "sha512-Ls993zuzfayK269Svk9hzpeGUKob/sIgZzyHYdjQoAdQetRKpOLj+k/QQQ/6Qi0Yz65mlROrfd+Ev+1+7dz9Kw=="],
 
-    "kids-app": ["kids-app@workspace:apps/kids-app"],
+    "splatterboard": ["splatterboard@workspace:apps/splatterboard"],
 
     "kind-of": ["kind-of@6.0.3", "", {}, "sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw=="],
 

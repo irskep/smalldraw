@@ -105,7 +105,7 @@ export function createRasterPipeline(options: {
 
   const hotCtx = stage.hotCanvas.getContext("2d");
   if (!hotCtx) {
-    throw new Error("kids-app hot canvas requires a 2D context");
+    throw new Error("splatterboard hot canvas requires a 2D context");
   }
 
   const applyHotCanvasPixelRatio = (): void => {

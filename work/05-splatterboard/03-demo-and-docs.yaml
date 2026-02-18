@@ -1,18 +1,18 @@
-id: kids-app-demo-docs
+id: splatterboard-demo-docs
 status: complete
 summary: Provide a simple demo entry and short usage notes.
 context:
   - A clear demo path ensures validation without tooling confusion.
   - Documentation prevents regressions when others try it.
 prerequisites:
-  - work/05-kids-app/02-input-and-settings.yaml
+  - work/05-splatterboard/02-input-and-settings.yaml
 acceptance_criteria:
   - Demo build/serve script exists and is documented.
   - Usage notes explain how to run and what to expect.
   - All tests/typecheck/lint pass:
-    - bun --filter kids-app test
-    - bun --filter kids-app ts:check
-    - bun --filter kids-app lint
+    - bun --filter splatterboard test
+    - bun --filter splatterboard ts:check
+    - bun --filter splatterboard lint
   - mise run validate:all
 notes:
   - Keep docs minimal and focused on running the demo.

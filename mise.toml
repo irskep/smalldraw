@@ -38,8 +38,8 @@ dir = "apps/server"
 env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db", FRONTEND_ORIGIN = "http://localhost:3030" }
 run = "bun src/index.ts"
 
-[tasks."kids-app:dev"]
-dir = "apps/kids-app"
+[tasks."splatterboard:dev"]
+dir = "apps/splatterboard"
 run = "bun run dev"
 
 [tasks."db:push:prod"]
@@ -83,7 +83,7 @@ dir = "apps/docs-site"
 run = "bun run build"
 
 [tasks."splat:build"]
-run = "mise run //apps/kids-app:build"
+run = "mise run //apps/splatterboard:build"
 
 [tasks."splat:deploy"]
-run = "mise run //apps/kids-app:deploy"
+run = "mise run //apps/splatterboard:deploy"

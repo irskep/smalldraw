@@ -44,7 +44,7 @@ export async function expectSnapshot(
 ): Promise<void> {
   return expectSnapshotBase(buffer, snapshotName, {
     snapshotDir: SNAPSHOT_DIR,
-    testCommand: "bun --filter kids-app test",
+    testCommand: "bun --filter splatterboard test",
     tolerance,
   });
 }
