@@ -18,6 +18,7 @@ import {
   SlidersHorizontal,
   Trash2,
 } from "lucide";
+import { mount, setChildren } from "redom";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 import {
   applyResponsiveLayout,
@@ -316,7 +317,7 @@ export function createKidsDrawController(options: {
       void deleteDocumentFromBrowser(docUrl);
     },
   });
-  appElement.appendChild(documentBrowserOverlay.el);
+  mount(appElement, documentBrowserOverlay.el);
 
   function listen<K extends keyof WindowEventMap>(
     target: Window,
@@ -541,30 +542,30 @@ export function createKidsDrawController(options: {
 
     if (profile === "mobile-portrait") {
       syncMobilePortraitTopPanel();
-      mobilePortraitActionsPopover.replaceChildren(toolbar.actionPanelElement);
+      setChildren(mobilePortraitActionsPopover, [toolbar.actionPanelElement]);
       mobilePortraitActionsPopover.hidden = !mobilePortraitActionsOpen;
       mobilePortraitActionsTrigger.el.setAttribute(
         "aria-expanded",
         mobilePortraitActionsOpen ? "true" : "false",
       );
-      mobilePortraitTopControls.replaceChildren(
+      setChildren(mobilePortraitTopControls, [
         mobilePortraitColorsButton.el,
         mobilePortraitStrokesButton.el,
         mobilePortraitActionsTrigger.el,
-      );
-      mobilePortraitTopStrip.replaceChildren(
+      ]);
+      setChildren(mobilePortraitTopStrip, [
         mobilePortraitTopControls,
         toolbar.topElement,
         mobilePortraitActionsPopover,
-      );
-      mobilePortraitBottomStrip.replaceChildren(
+      ]);
+      setChildren(mobilePortraitBottomStrip, [
         toolbar.bottomElement,
         toolbar.toolSelectorElement,
-      );
-      stage.insetTopSlot.replaceChildren(mobilePortraitTopStrip);
-      stage.insetLeftSlot.replaceChildren();
-      stage.insetRightSlot.replaceChildren();
-      stage.insetBottomSlot.replaceChildren(mobilePortraitBottomStrip);
+      ]);
+      setChildren(stage.insetTopSlot, [mobilePortraitTopStrip]);
+      setChildren(stage.insetLeftSlot, []);
+      setChildren(stage.insetRightSlot, []);
+      setChildren(stage.insetBottomSlot, [mobilePortraitBottomStrip]);
       toolbar.syncLayout();
       return;
     }
@@ -586,10 +587,10 @@ export function createKidsDrawController(options: {
     mobilePortraitActionsPopover.hidden = true;
     mobilePortraitActionsTrigger.el.setAttribute("aria-expanded", "false");
 
-    stage.insetTopSlot.replaceChildren(toolbar.topElement);
-    stage.insetLeftSlot.replaceChildren(toolbar.toolSelectorElement);
-    stage.insetRightSlot.replaceChildren(toolbar.actionPanelElement);
-    stage.insetBottomSlot.replaceChildren(toolbar.bottomElement);
+    setChildren(stage.insetTopSlot, [toolbar.topElement]);
+    setChildren(stage.insetLeftSlot, [toolbar.toolSelectorElement]);
+    setChildren(stage.insetRightSlot, [toolbar.actionPanelElement]);
+    setChildren(stage.insetBottomSlot, [toolbar.bottomElement]);
     toolbar.syncLayout();
   };
 
