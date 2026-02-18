@@ -38,7 +38,7 @@ dir = "apps/server"
 env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db", FRONTEND_ORIGIN = "http://localhost:3030" }
 run = "bun src/index.ts"
 
-[tasks."splatterboard:dev"]
+[tasks."splat:dev"]
 dir = "apps/splatterboard"
 run = "bun run dev"
 
