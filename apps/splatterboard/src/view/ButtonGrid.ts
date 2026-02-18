@@ -1,6 +1,6 @@
 import "./ButtonGrid.css";
 
-import { ChevronLeft, ChevronRight, PanelBottomOpen, X } from "lucide";
+import { ChevronLeft, ChevronRight } from "lucide";
 import { el, list, mount, setChildren } from "redom";
 import {
   createSquareIconButton,
@@ -25,7 +25,6 @@ export interface ButtonGrid {
   readonly el: HTMLDivElement;
   readonly prevButton: SquareIconButton;
   readonly nextButton: SquareIconButton;
-  readonly mobileTriggerButton: SquareIconButton;
   setLists(lists: ButtonGridList[]): void;
   setActiveList(listId: string): void;
   setMode(mode: ButtonGridMode): void;
@@ -38,7 +37,6 @@ interface ButtonGridOptions {
   className?: string;
   orientation?: ButtonGridOrientation;
   largeLayout?: ButtonGridLargeLayout;
-  mobileLabel?: string;
   paginateInLarge?: boolean;
 }
 
@@ -133,27 +131,6 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     },
   });
 
-  const mobileTriggerButton = createSquareIconButton({
-    className: "button-grid-mobile-trigger",
-    label: options.mobileLabel ?? "Tools",
-    icon: PanelBottomOpen,
-    attributes: {
-      "aria-label": options.mobileLabel ?? "Open tools",
-      title: options.mobileLabel ?? "Open tools",
-      layout: "row",
-    },
-  });
-  const mobileCloseButton = createSquareIconButton({
-    className: "button-grid-mobile-close",
-    label: "Close",
-    icon: X,
-    attributes: {
-      "aria-label": "Close tools",
-      title: "Close tools",
-      layout: "row",
-    },
-  });
-
   const track = el("div.button-grid-track") as HTMLDivElement;
   const listView = list(track, ButtonGridItemView, "id");
   const viewport = el("div.button-grid-viewport", track) as HTMLDivElement;
@@ -163,23 +140,10 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     viewport,
     nextButton.el,
   ) as HTMLDivElement;
-  const mobileHeader = el(
-    "div.button-grid-mobile-header",
-    el("div.button-grid-mobile-title", options.mobileLabel ?? "Tools"),
-    mobileCloseButton.el,
-  ) as HTMLDivElement;
   const inlineHost = el("div.button-grid-inline-host") as HTMLDivElement;
-  const mobileBody = el("div.button-grid-mobile-body") as HTMLDivElement;
-  const mobilePopover = el(
-    "div.button-grid-mobile-popover",
-    mobileHeader,
-    mobileBody,
-  ) as HTMLDivElement;
 
   mount(inlineHost, shell);
   mount(elRoot, inlineHost);
-  mount(elRoot, mobileTriggerButton.el);
-  mount(elRoot, mobilePopover);
 
   const getActiveItems = (): ButtonGridItem[] => {
     if (!activeListId) {
@@ -479,8 +443,6 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     elRoot.dataset.mode = mode;
     mount(inlineHost, shell);
     inlineHost.hidden = false;
-    mobileTriggerButton.el.hidden = true;
-    mobilePopover.hidden = true;
 
     applyAnchorOffset(items);
     syncPagerControls(items);
@@ -562,7 +524,6 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     el: elRoot,
     prevButton,
     nextButton,
-    mobileTriggerButton,
     setLists(lists: ButtonGridList[]): void {
       listsById.clear();
       orderedListIds = [];

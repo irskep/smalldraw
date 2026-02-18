@@ -77,7 +77,6 @@ export function createKidsDrawToolbar(options: {
   const toolSelectorGrid = createButtonGrid({
     className: "kids-draw-tool-selector",
     orientation: "vertical",
-    mobileLabel: "Tools",
   });
   const toolSelectorElement = toolSelectorGrid.el;
 
@@ -170,7 +169,6 @@ export function createKidsDrawToolbar(options: {
       className: "kids-draw-family-variants",
       orientation: "horizontal",
       largeLayout: isTwoRowSingleHeight ? "two-row" : "two-row-xlarge",
-      mobileLabel: family.label,
       paginateInLarge: isStampImages,
     });
     variantGrid.el.setAttribute("role", "radiogroup");
