@@ -76,6 +76,14 @@ export class SquareIconButton {
     this.el.setAttribute("aria-pressed", selected ? "true" : "false");
   }
 
+  setRadioSelected(selected: boolean): void {
+    this.el.classList.toggle("is-selected", selected);
+    this.el.setAttribute("role", "radio");
+    this.el.setAttribute("aria-checked", selected ? "true" : "false");
+    this.el.tabIndex = selected ? 0 : -1;
+    this.el.removeAttribute("aria-pressed");
+  }
+
   setDisabled(disabled: boolean): void {
     this.el.disabled = disabled;
   }

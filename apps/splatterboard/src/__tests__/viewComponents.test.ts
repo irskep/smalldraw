@@ -23,6 +23,26 @@ describe("view components", () => {
     expect(button.el.disabled).toBeTrue();
   });
 
+  test("SquareIconButton can expose radio semantics", () => {
+    const button = createSquareIconButton({
+      className: "kids-draw-tool-variant-button",
+      label: "Marker",
+      icon: AlertTriangle,
+      attributes: {
+        title: "Marker",
+        "aria-label": "Marker",
+      },
+    });
+
+    button.setRadioSelected(true);
+
+    expect(button.el.classList.contains("is-selected")).toBeTrue();
+    expect(button.el.getAttribute("role")).toBe("radio");
+    expect(button.el.getAttribute("aria-checked")).toBe("true");
+    expect(button.el.getAttribute("aria-pressed")).toBeNull();
+    expect(button.el.tabIndex).toBe(0);
+  });
+
   test("ModalDialogView resolves confirm and cancel flows", async () => {
     const dialog = createModalDialogView();
     document.body.appendChild(dialog.el);

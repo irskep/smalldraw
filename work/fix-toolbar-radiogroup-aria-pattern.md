@@ -43,3 +43,5 @@ If the team prefers button toggles instead, remove `radiogroup` roles and keep `
 - Keyboard navigation check (Tab + Arrow keys if implemented).
 - Existing UI tests pass; add tests for `aria-checked` if missing.
 
+## Status
+complete

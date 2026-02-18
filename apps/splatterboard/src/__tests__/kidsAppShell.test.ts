@@ -316,11 +316,26 @@ describe("splatterboard shell", () => {
     const defaultColorSwatch = container.querySelector(
       'button[data-setting="stroke-color"][data-color="#000000"]',
     ) as HTMLButtonElement | null;
+    const activeToolVariant = container.querySelector(
+      '[data-tool-variant][aria-checked="true"]',
+    ) as HTMLButtonElement | null;
+    const selectedStrokeWidth = container.querySelector(
+      'button[data-setting="stroke-width"][aria-checked="true"]',
+    ) as HTMLButtonElement | null;
     expect(tileCanvas).not.toBeNull();
     expect(tileCanvas?.width).toBeGreaterThan(0);
     expect(tileCanvas?.height).toBeGreaterThan(0);
     expect(defaultColorSwatch).not.toBeNull();
+    expect(activeToolVariant).not.toBeNull();
+    expect(selectedStrokeWidth).not.toBeNull();
     expect(defaultColorSwatch?.classList.contains("is-selected")).toBeTrue();
+    expect(defaultColorSwatch?.getAttribute("role")).toBe("radio");
+    expect(defaultColorSwatch?.getAttribute("aria-checked")).toBe("true");
+    expect(activeToolVariant?.getAttribute("role")).toBe("radio");
+    expect(selectedStrokeWidth?.getAttribute("role")).toBe("radio");
+    expect(
+      container.querySelector('[role="radiogroup"] [aria-pressed]'),
+    ).toBeNull();
 
     app.destroy();
     expect(container.querySelector(".kids-draw-app")).toBeNull();

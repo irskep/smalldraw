@@ -156,6 +156,9 @@ export function createKidsDrawToolbar(options: {
           "data-tool-family": tool.familyId,
           title: tool.label,
           "aria-label": tool.label,
+          role: "radio",
+          "aria-checked": "false",
+          tabindex: "-1",
         },
       });
       variantButtons.set(tool.id, variantButton);
@@ -293,7 +296,9 @@ export function createKidsDrawToolbar(options: {
         className: "kids-draw-color-swatch",
         title: swatch.label,
         "aria-label": swatch.label,
-        "aria-pressed": "false",
+        role: "radio",
+        "aria-checked": "false",
+        tabindex: "-1",
         "data-setting": "stroke-color",
         "data-style-target": "stroke",
         "data-color": swatch.value,
@@ -344,7 +349,9 @@ export function createKidsDrawToolbar(options: {
         type: "button",
         title: `${strokeWidth}px brush`,
         "aria-label": `${strokeWidth}px brush`,
-        "aria-pressed": "false",
+        role: "radio",
+        "aria-checked": "false",
+        tabindex: "-1",
         "data-setting": "stroke-width",
         "data-size": `${strokeWidth}`,
       },
@@ -369,12 +376,15 @@ export function createKidsDrawToolbar(options: {
   mount(topElement, colorPanelElement);
   mount(topElement, strokePanelElement);
 
-  const setToggleSelectedState = (
+  const setRadioSelectedState = (
     button: HTMLButtonElement,
     selected: boolean,
   ): void => {
     button.classList.toggle("is-selected", selected);
-    button.setAttribute("aria-pressed", selected ? "true" : "false");
+    button.setAttribute("role", "radio");
+    button.setAttribute("aria-checked", selected ? "true" : "false");
+    button.tabIndex = selected ? 0 : -1;
+    button.removeAttribute("aria-pressed");
   };
 
   const resolveActiveFamilyId = (activeToolId: string): string => {
@@ -405,7 +415,7 @@ export function createKidsDrawToolbar(options: {
 
     for (const [toolId, button] of variantButtons) {
       const selected = toolId === activeToolId;
-      button.setSelected(selected);
+      button.setRadioSelected(selected);
     }
     for (const [familyId, container] of familyVariantContainers) {
       const isActive = familyId === activeFamilyId;
@@ -429,10 +439,16 @@ export function createKidsDrawToolbar(options: {
     redoButton.setDisabled(!state.canRedo);
     newDrawingButton.setDisabled(state.newDrawingPending);
 
-    for (const swatchButton of strokeColorSwatchButtons) {
-      const selected =
-        swatchButton.dataset.color?.toLowerCase() === normalizedStrokeColor;
-      setToggleSelectedState(swatchButton, selected);
+    const selectedSwatchIndex = Math.max(
+      0,
+      strokeColorSwatchButtons.findIndex(
+        (swatchButton) =>
+          swatchButton.dataset.color?.toLowerCase() === normalizedStrokeColor,
+      ),
+    );
+    for (const [index, swatchButton] of strokeColorSwatchButtons.entries()) {
+      const selected = index === selectedSwatchIndex;
+      setRadioSelectedState(swatchButton, selected);
       swatchButton.disabled = !state.supportsStrokeColor;
     }
     strokeSwatches.element.classList.toggle(
@@ -449,10 +465,14 @@ export function createKidsDrawToolbar(options: {
         nearestDelta = delta;
       }
     }
-    for (const widthButton of strokeWidthButtons) {
+    const selectedWidthIndex = strokeWidthButtons.findIndex((widthButton) => {
       const width = Number(widthButton.dataset.size);
-      const selected = Number.isFinite(width) && width === nearestStrokeWidth;
-      setToggleSelectedState(widthButton, selected);
+      return Number.isFinite(width) && width === nearestStrokeWidth;
+    });
+    const resolvedWidthIndex = Math.max(0, selectedWidthIndex);
+    for (const [index, widthButton] of strokeWidthButtons.entries()) {
+      const selected = index === resolvedWidthIndex;
+      setRadioSelectedState(widthButton, selected);
       widthButton.disabled = !state.supportsStrokeWidth;
     }
   };
