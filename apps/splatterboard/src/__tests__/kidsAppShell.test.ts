@@ -11,6 +11,7 @@ import {
 } from "@smalldraw/core";
 import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { createKidsDrawApp } from "../createKidsDrawApp";
+import { getColoringPageById } from "../coloring/catalog";
 import type {
   KidsDocumentBackend,
   KidsDocumentCreateInput,
@@ -715,6 +716,104 @@ describe("splatterboard shell", () => {
     expect(browserClosed).toBeTrue();
 
     app.destroy();
+  });
+
+  test("switching to normal doc clears stale coloring overlay using document metadata", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const page = getColoringPageById("pdr-v1-001");
+    expect(page).not.toBeNull();
+
+    const core = createMockCore({ width: 640, height: 480 });
+    const coloringDoc = await core.createNew({
+      documentSize: { width: 640, height: 480 },
+      documentPresentation: {
+        documentType: "coloring",
+        referenceImage: {
+          src: page!.src,
+          composite: "over-drawing",
+        },
+      },
+    });
+    const coloringDocUrl = coloringDoc.url;
+    const staleNormalDoc = await core.createNew({
+      documentSize: { width: 640, height: 480 },
+      documentPresentation: {
+        documentType: "coloring",
+        referenceImage: {
+          src: page!.src,
+          composite: "over-drawing",
+        },
+      },
+    });
+    const staleNormalDocUrl = staleNormalDoc.url;
+    await core.open(coloringDocUrl);
+
+    const documentBackend = createMockDocumentBackend(
+      [
+        {
+          docUrl: coloringDocUrl,
+          mode: "coloring",
+          coloringPageId: "pdr-v1-001",
+          referenceImageSrc: page!.src,
+          referenceComposite: "over-drawing",
+          createdAt: "2026-02-16T00:00:00.000Z",
+          updatedAt: "2026-02-16T00:00:00.000Z",
+          lastOpenedAt: "2026-02-16T00:00:00.000Z",
+        },
+        {
+          docUrl: staleNormalDocUrl,
+          mode: "normal",
+          createdAt: "2026-02-16T00:00:00.000Z",
+          updatedAt: "2026-02-16T00:00:00.000Z",
+          lastOpenedAt: "2026-02-16T00:00:00.000Z",
+        },
+      ],
+      coloringDocUrl,
+    );
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core,
+      documentBackend,
+      confirmDestructiveAction: async () => true,
+    });
+    try {
+      const browseButton = container.querySelector(
+        '[data-action="browse"]',
+      ) as HTMLButtonElement | null;
+      expect(browseButton).not.toBeNull();
+      browseButton!.click();
+
+      const openNormalReady = await waitUntil(() => {
+        return (
+          container.querySelector(
+            `[data-doc-browser-open="${staleNormalDocUrl}"]`,
+          ) !== null
+        );
+      });
+      expect(openNormalReady).toBeTrue();
+      const openNormalButton = container.querySelector(
+        `[data-doc-browser-open="${staleNormalDocUrl}"]`,
+      ) as HTMLButtonElement | null;
+      expect(openNormalButton).not.toBeNull();
+      openNormalButton!.click();
+
+      const switched = await waitUntil(
+        () => core.getCurrentDocUrl() === staleNormalDocUrl,
+        100,
+      );
+      expect(switched).toBeTrue();
+      const summary = await documentBackend.getDocument(staleNormalDocUrl);
+      expect(summary?.mode).toBe("normal");
+      expect(summary?.referenceImageSrc).toBeUndefined();
+      expect(summary?.referenceComposite).toBeUndefined();
+    } finally {
+      app.destroy();
+    }
   });
 
   test("document browser can delete a non-current document", async () => {

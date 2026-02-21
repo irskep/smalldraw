@@ -1,5 +1,5 @@
 import type { DrawingStore, ToolStyleSupport } from "@smalldraw/core";
-import { atom } from "nanostores";
+import { atom, type ReadableAtom } from "nanostores";
 
 export interface ToolbarUiState {
   activeToolId: string;
@@ -42,61 +42,83 @@ const DEFAULT_STATE: ToolbarUiState = {
   newDrawingPending: false,
 };
 
-export const $toolbarUi = atom<ToolbarUiState>(DEFAULT_STATE);
-
-export function syncToolbarUiFromDrawingStore(
-  store: DrawingStore,
-  options?: {
-    resolveActiveFamilyId?: (activeToolId: string) => string | null;
-    resolveToolStyleSupport?: (activeToolId: string) => ToolStyleSupport;
-  },
-): void {
-  const shared = store.getSharedSettings();
-  const current = $toolbarUi.get();
-  const activeToolId = store.getActiveToolId() ?? "";
-  const activeFamilyId =
-    options?.resolveActiveFamilyId?.(activeToolId) ?? current.activeFamilyId;
-  const styleSupport = options?.resolveToolStyleSupport?.(activeToolId) ?? {};
-  const next: ToolbarUiState = {
-    ...current,
-    activeToolId,
-    activeFamilyId,
-    canUndo: store.canUndo(),
-    canRedo: store.canRedo(),
-    strokeColor: shared.strokeColor,
-    fillColor: shared.fillColor,
-    strokeWidth: shared.strokeWidth,
-    supportsStrokeColor: styleSupport.strokeColor ?? true,
-    supportsStrokeWidth: styleSupport.strokeWidth ?? true,
-    supportsFillColor: styleSupport.fillColor ?? false,
-    supportsTransparentStrokeColor:
-      styleSupport.transparentStrokeColor ?? false,
-    supportsTransparentFillColor: styleSupport.transparentFillColor ?? false,
-  };
-  if (isEqual(current, next)) return;
-  $toolbarUi.set(next);
+export interface ToolbarUiStore {
+  readonly $state: ReadableAtom<ToolbarUiState>;
+  get(): ToolbarUiState;
+  subscribe(listener: (state: ToolbarUiState) => void): () => void;
+  syncFromDrawingStore(
+    drawingStore: DrawingStore,
+    options?: {
+      resolveActiveFamilyId?: (activeToolId: string) => string | null;
+      resolveToolStyleSupport?: (activeToolId: string) => ToolStyleSupport;
+    },
+  ): void;
+  setStyleUi(strokeColor: string, fillColor: string, strokeWidth: number): void;
+  setNewDrawingPending(newDrawingPending: boolean): void;
 }
 
-export function setToolbarStyleUi(
-  strokeColor: string,
-  fillColor: string,
-  strokeWidth: number,
-): void {
-  const current = $toolbarUi.get();
-  const next: ToolbarUiState = {
-    ...current,
-    strokeColor,
-    fillColor,
-    strokeWidth,
-  };
-  if (isEqual(current, next)) return;
-  $toolbarUi.set(next);
-}
+export function createToolbarUiStore(): ToolbarUiStore {
+  const state = atom<ToolbarUiState>(DEFAULT_STATE);
 
-export function setNewDrawingPending(newDrawingPending: boolean): void {
-  const current = $toolbarUi.get();
-  if (current.newDrawingPending === newDrawingPending) return;
-  $toolbarUi.set({ ...current, newDrawingPending });
+  const setIfChanged = (next: ToolbarUiState): void => {
+    const current = state.get();
+    if (isEqual(current, next)) {
+      return;
+    }
+    state.set(next);
+  };
+
+  return {
+    $state: state,
+    get(): ToolbarUiState {
+      return state.get();
+    },
+    subscribe(listener: (nextState: ToolbarUiState) => void): () => void {
+      return state.subscribe(listener);
+    },
+    syncFromDrawingStore(drawingStore, options): void {
+      const shared = drawingStore.getSharedSettings();
+      const current = state.get();
+      const activeToolId = drawingStore.getActiveToolId() ?? "";
+      const activeFamilyId =
+        options?.resolveActiveFamilyId?.(activeToolId) ?? current.activeFamilyId;
+      const styleSupport =
+        options?.resolveToolStyleSupport?.(activeToolId) ?? {};
+      const next: ToolbarUiState = {
+        ...current,
+        activeToolId,
+        activeFamilyId,
+        canUndo: drawingStore.canUndo(),
+        canRedo: drawingStore.canRedo(),
+        strokeColor: shared.strokeColor,
+        fillColor: shared.fillColor,
+        strokeWidth: shared.strokeWidth,
+        supportsStrokeColor: styleSupport.strokeColor ?? true,
+        supportsStrokeWidth: styleSupport.strokeWidth ?? true,
+        supportsFillColor: styleSupport.fillColor ?? false,
+        supportsTransparentStrokeColor:
+          styleSupport.transparentStrokeColor ?? false,
+        supportsTransparentFillColor: styleSupport.transparentFillColor ?? false,
+      };
+      setIfChanged(next);
+    },
+    setStyleUi(strokeColor, fillColor, strokeWidth): void {
+      const current = state.get();
+      setIfChanged({
+        ...current,
+        strokeColor,
+        fillColor,
+        strokeWidth,
+      });
+    },
+    setNewDrawingPending(newDrawingPending): void {
+      const current = state.get();
+      if (current.newDrawingPending === newDrawingPending) {
+        return;
+      }
+      state.set({ ...current, newDrawingPending });
+    },
+  };
 }
 
 export function getToolbarUiStorageKeyForDocument(docUrl: string): string {

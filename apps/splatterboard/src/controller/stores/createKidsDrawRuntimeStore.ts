@@ -1,0 +1,83 @@
+import { atom, computed } from "nanostores";
+import type { DocumentSessionPresentation } from "../createDocumentSessionController";
+
+export type RuntimeState = {
+  destroyed: boolean;
+  presentation: DocumentSessionPresentation;
+};
+
+export type KidsDrawRuntimeStore = ReturnType<typeof createKidsDrawRuntimeStore>;
+
+export function createKidsDrawRuntimeStore() {
+  const $state = atom<RuntimeState>({
+    destroyed: false,
+    presentation: { mode: "normal" },
+  });
+
+  const $presentationIdentity = computed($state, (state) => {
+    const presentation = state.presentation;
+    if (presentation.referenceImageSrc && presentation.referenceComposite) {
+      return `${presentation.referenceComposite}:${presentation.referenceImageSrc}`;
+    }
+    return "normal";
+  });
+
+  const setStateIfChanged = (next: RuntimeState): void => {
+    const current = $state.get();
+    if (
+      current.destroyed === next.destroyed &&
+      isSamePresentation(current.presentation, next.presentation)
+    ) {
+      return;
+    }
+    $state.set(next);
+  };
+
+  return {
+    $state,
+    $presentationIdentity,
+    subscribe(listener: (state: RuntimeState) => void): () => void {
+      return $state.subscribe(listener);
+    },
+    subscribePresentationIdentity(listener: (identity: string) => void): () => void {
+      return $presentationIdentity.subscribe(listener);
+    },
+    isDestroyed(): boolean {
+      return $state.get().destroyed;
+    },
+    setDestroyed(destroyed: boolean): void {
+      const current = $state.get();
+      setStateIfChanged({ ...current, destroyed });
+    },
+    getPresentation(): DocumentSessionPresentation {
+      return $state.get().presentation;
+    },
+    setPresentation(presentation: DocumentSessionPresentation): void {
+      const current = $state.get();
+      setStateIfChanged({ ...current, presentation });
+    },
+    getReferenceImageSrc(
+      composite: "under-drawing" | "over-drawing",
+    ): string | null {
+      const presentation = $state.get().presentation;
+      return presentation.referenceComposite === composite
+        ? presentation.referenceImageSrc ?? null
+        : null;
+    },
+    getPresentationIdentity(): string {
+      return $presentationIdentity.get();
+    },
+  };
+}
+
+function isSamePresentation(
+  a: DocumentSessionPresentation,
+  b: DocumentSessionPresentation,
+): boolean {
+  return (
+    a.mode === b.mode &&
+    a.coloringPageId === b.coloringPageId &&
+    a.referenceImageSrc === b.referenceImageSrc &&
+    a.referenceComposite === b.referenceComposite
+  );
+}

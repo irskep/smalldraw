@@ -7,10 +7,7 @@ import {
   type SmalldrawCore,
 } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
-import {
-  renderOrderedShapes,
-  type ShapeRendererRegistry,
-} from "@smalldraw/renderer-canvas";
+import { type ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import {
   Download,
   FilePlus,
@@ -24,31 +21,17 @@ import {
   Undo2,
 } from "lucide";
 import { mount, setChildren } from "redom";
-import { getColoringPageById, getColoringPageBySrc } from "../coloring/catalog";
+import { getColoringPageById } from "../coloring/catalog";
 import type {
   KidsDocumentBackend,
-  KidsDocumentMode,
   KidsDocumentSummary,
 } from "../documents";
 import {
-  applyResponsiveLayout,
-  getViewportPaddingForProfile,
-  IMPLICIT_DOC_VERTICAL_SLACK,
-  MIN_HEIGHT,
-  MIN_WIDTH,
   normalizePixelRatio,
-  type ResponsiveLayoutMode,
-  type ResponsiveLayoutProfile,
-  resolveLayoutProfile,
 } from "../layout/responsiveLayout";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import {
-  getDefaultToolIdForFamily,
-  getFamilyIdForTool,
-  getMatchingShapeFamilyToolId,
-  getToolShapeVariant,
-  getToolStyleSupport,
   type KidsToolCatalog,
   type KidsToolConfig,
   type KidsToolFamilyConfig,
@@ -59,31 +42,34 @@ import {
   warmRasterImage,
 } from "../shapes/rasterImageCache";
 import {
-  $toolbarUi,
-  loadPersistedToolbarUiState,
-  type PersistedKidsUiStateV1,
-  savePersistedToolbarUiState,
-  setNewDrawingPending,
-  setToolbarStyleUi,
-  syncToolbarUiFromDrawingStore,
-  type ToolbarUiState,
+  type ToolbarUiStore,
 } from "../ui/stores/toolbarUiStore";
+import {
+  createToolbarUiPersistence,
+  type ToolbarUiPersistence,
+} from "../ui/stores/toolbarUiPersistence";
 import {
   createDocumentBrowserOverlay,
   type NewDocumentRequest,
 } from "../view/DocumentBrowserOverlay";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import {
-  STROKE_WIDTH_OPTIONS,
-  type KidsDrawToolbar,
-} from "../view/KidsDrawToolbar";
+import { type KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import { createSquareIconButton } from "../view/SquareIconButton";
+import {
+  DocumentSessionController,
+  type DocumentSessionPresentation,
+} from "./createDocumentSessionController";
+import { DocumentPickerController } from "./createDocumentPickerController";
 import { createCursorOverlayController } from "./createCursorOverlayController";
+import { InputSessionController } from "./createInputSessionController";
+import { LayoutController } from "./createLayoutController";
+import { RenderLoopController } from "./createRenderLoopController";
+import { SnapshotService } from "./createSnapshotService";
+import { createKidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
+import { ToolbarStateController } from "./createToolbarStateController";
 
 const RESIZE_BAKE_DEBOUNCE_MS = 120;
 const THUMBNAIL_SAVE_DEBOUNCE_MS = 1000;
-const MAX_POINTER_SAMPLES_PER_EVENT = 64;
-const ENABLE_COALESCED_POINTER_SAMPLES = true;
 const DEFAULT_OPAQUE_STROKE_COLOR = "#000000";
 const DEFAULT_OPAQUE_FILL_COLOR = "#ffffff";
 const UI_STATE_PERSIST_DEBOUNCE_MS = 150;
@@ -93,11 +79,6 @@ const NORMAL_DEFAULT_TOOL_ID = "brush.marker";
 const COLORING_DEFAULT_TOOL_ID = "brush.marker";
 const NORMAL_DEFAULT_STROKE_WIDTH = 8;
 const COLORING_DEFAULT_STROKE_WIDTH = 24;
-
-type RafRenderState = "idle" | "modelRequested" | "anticipatory";
-type PointerEventWithCoalesced = PointerEvent & {
-  getCoalescedEvents?: () => PointerEvent[];
-};
 
 type ConfirmDialogRequest = {
   title: string;
@@ -125,63 +106,7 @@ export interface KidsDrawController {
   destroy(): void;
 }
 
-interface ActiveDocumentPresentation {
-  mode: KidsDocumentMode;
-  coloringPageId?: string;
-  referenceImageSrc?: string;
-  referenceComposite?: "under-drawing" | "over-drawing";
-}
-
-function getNearestStrokeWidthOption(strokeWidth: number): number {
-  let nearest: number = STROKE_WIDTH_OPTIONS[0];
-  let nearestDelta = Math.abs(strokeWidth - nearest);
-  for (const option of STROKE_WIDTH_OPTIONS) {
-    const delta = Math.abs(strokeWidth - option);
-    if (delta < nearestDelta) {
-      nearest = option;
-      nearestDelta = delta;
-    }
-  }
-  return nearest;
-}
-
-function resolveInitialToolbarUiStateFromPersistence(input: {
-  catalog: KidsToolCatalog;
-  current: {
-    activeToolId: string;
-    strokeColor: string;
-    strokeWidth: number;
-  };
-  persisted: PersistedKidsUiStateV1 | null;
-}): {
-  activeToolId: string;
-  strokeColor: string;
-  strokeWidth: number;
-} {
-  const { catalog, current, persisted } = input;
-  if (!persisted) {
-    return current;
-  }
-
-  const toolIds = new Set(catalog.tools.map((tool) => tool.id));
-  const activeToolId = toolIds.has(persisted.activeToolId)
-    ? persisted.activeToolId
-    : current.activeToolId;
-  const strokeColor =
-    persisted.strokeColor.trim().length > 0
-      ? persisted.strokeColor.toLowerCase()
-      : current.strokeColor;
-  const strokeWidth =
-    Number.isFinite(persisted.strokeWidth) && persisted.strokeWidth > 0
-      ? getNearestStrokeWidthOption(persisted.strokeWidth)
-      : current.strokeWidth;
-
-  return {
-    activeToolId,
-    strokeColor,
-    strokeWidth,
-  };
-}
+type ActiveDocumentPresentation = DocumentSessionPresentation;
 
 export function createKidsDrawController(options: {
   store: DrawingStore;
@@ -192,6 +117,7 @@ export function createKidsDrawController(options: {
   tools: KidsToolConfig[];
   families: KidsToolFamilyConfig[];
   stage: KidsDrawStage;
+  toolbarUiStore: ToolbarUiStore;
   pipeline: RasterPipeline;
   appElement: HTMLDivElement;
   documentBackend: KidsDocumentBackend;
@@ -213,6 +139,7 @@ export function createKidsDrawController(options: {
     tools,
     families,
     stage,
+    toolbarUiStore,
     pipeline,
     appElement,
     documentBackend,
@@ -229,47 +156,17 @@ export function createKidsDrawController(options: {
   const perfSession = createKidsDrawPerfSession();
   const disposers: Array<() => void> = [];
 
-  let pointerIsDown = false;
-  let drawingPerfFrameCount = 0;
-  let rafRenderState: RafRenderState = "idle";
-  let rafHandle: number | null = null;
-  let layoutRafHandle: number | null = null;
-  let debouncedResizeBakeHandle: ReturnType<typeof setTimeout> | null = null;
-  let activePointerId: number | null = null;
-  let lastPointerPoint = new Vec2(0, 0);
-  let destroyed = false;
+  const runtimeStore = createKidsDrawRuntimeStore();
   let newDrawingRequestId = 0;
   let clearCounter = 0;
-  let displayScale = 1;
-  let displayWidth = getSize().width;
-  let displayHeight = getSize().height;
-  let currentLayoutProfile: ResponsiveLayoutProfile = resolveLayoutProfile(
-    window.innerWidth,
-    window.innerHeight,
-  );
-  let tilePixelRatio = normalizePixelRatio(
-    (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
-  );
-  let currentRenderIdentity = "";
-  let unsubscribeCoreAdapter: (() => void) | null = null;
-  let unsubscribeToolbarUiPersistence: (() => void) | null = null;
-  let metadataTouchTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
-  let thumbnailSaveTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
-  let toolbarUiPersistTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
-  let pendingToolbarUiPersistState:
-    | { docUrl: string; state: PersistedKidsUiStateV1 }
-    | null = null;
-  let lastPersistedToolbarUiSignature: string | null = null;
-  let lastObservedToolbarUiSignature: string | null = null;
-  let activeDocumentPresentation: ActiveDocumentPresentation = {
-    mode: "normal",
-  };
   let coloringOverlayLoadRequestId = 0;
-  let browserDocuments: KidsDocumentSummary[] = [];
-  let browserLoading = false;
-  let browserBusyDocUrl: string | null = null;
-  let browserRequestId = 0;
-  let browserThumbnailUrlByDocUrl = new Map<string, string>();
+  let documentSessionController: DocumentSessionController;
+  const snapshotService = new SnapshotService({
+    store,
+    shapeRendererRegistry,
+    backgroundColor,
+    getReferenceImageSrc: (composite) => runtimeStore.getReferenceImageSrc(composite),
+  });
   const cursorOverlay = createCursorOverlayController({
     store,
     stage,
@@ -285,9 +182,25 @@ export function createKidsDrawController(options: {
       ),
     ),
   });
-  const selectedToolIdByFamily = new Map<string, string>(
-    families.map((family) => [family.id, family.defaultToolId] as const),
-  );
+  let toolbarStateController: ToolbarStateController;
+  let toolbarUiPersistence: ToolbarUiPersistence;
+  const syncToolbarUi = (): void => {
+    toolbarStateController.syncToolbarUi();
+  };
+  const inputSessionController = new InputSessionController({
+    store,
+    cursorOverlay,
+    overlayElement: stage.overlay,
+    initialLastPointerPoint: new Vec2(0, 0),
+    toPoint: (event) => cursorOverlay.toPoint(event),
+    onScheduleThumbnailSave: (delayMs) => scheduleThumbnailSave(delayMs),
+    perfSession: {
+      begin: () => perfSession.begin(),
+      end: (frameCount) => perfSession.end(frameCount),
+      onPointerMoveSamples: (sampleCount, usedCoalesced) =>
+        perfSession.onPointerMoveSamples(sampleCount, usedCoalesced),
+    },
+  });
   const mobilePortraitBottomStrip = document.createElement("div");
   mobilePortraitBottomStrip.className = "kids-draw-mobile-portrait-bottom";
   const mobilePortraitTopStrip = document.createElement("div");
@@ -436,7 +349,6 @@ export function createKidsDrawController(options: {
     mobilePortraitSecondaryDivider,
     mobilePortraitClearMenuItem,
   ]);
-  let mobilePortraitActionsOpen = false;
   mobilePortraitColorsButton.setSelected(true);
   mobilePortraitStrokesButton.setSelected(false);
 
@@ -450,9 +362,9 @@ export function createKidsDrawController(options: {
     console.debug("[kids-draw:lifecycle]", ...args);
   };
 
-  const documentBrowserOverlay = createDocumentBrowserOverlay({
+  const documentPickerOverlay = createDocumentBrowserOverlay({
     onClose: () => {
-      closeDocumentBrowser();
+      documentPickerController.close();
     },
     onNewDocument: (request) => {
       void createNewDocumentFromBrowser(request);
@@ -464,7 +376,83 @@ export function createKidsDrawController(options: {
       void deleteDocumentFromBrowser(docUrl);
     },
   });
-  mount(appElement, documentBrowserOverlay.el);
+  mount(appElement, documentPickerOverlay.el);
+  const documentPickerController = new DocumentPickerController({
+    pickerOverlay: documentPickerOverlay,
+    documentBackend,
+    getCurrentDocUrl: () => core.getCurrentDocUrl(),
+  });
+  toolbarStateController = new ToolbarStateController({
+    store,
+    toolbarUiStore,
+    toolbar,
+    catalog,
+    families,
+    getCurrentDocUrl: () => core.getCurrentDocUrl(),
+    cursorOverlaySync: () => cursorOverlay.sync(),
+    mobilePortraitUndoMenuItem,
+    mobilePortraitRedoMenuItem,
+    mobilePortraitNewMenuItem,
+    opaqueStrokeColor: DEFAULT_OPAQUE_STROKE_COLOR,
+    opaqueFillColor: DEFAULT_OPAQUE_FILL_COLOR,
+    normalDefaultToolId: NORMAL_DEFAULT_TOOL_ID,
+    coloringDefaultToolId: COLORING_DEFAULT_TOOL_ID,
+    normalDefaultStrokeWidth: NORMAL_DEFAULT_STROKE_WIDTH,
+    coloringDefaultStrokeWidth: COLORING_DEFAULT_STROKE_WIDTH,
+  });
+  toolbarUiPersistence = createToolbarUiPersistence({
+    toolbarUiStore,
+    getCurrentDocUrl: () => core.getCurrentDocUrl(),
+    debounceMs: UI_STATE_PERSIST_DEBOUNCE_MS,
+  });
+  const renderLoopController = new RenderLoopController(
+    {
+      pipeline,
+      backgroundColor,
+      resizeBakeDebounceMs: RESIZE_BAKE_DEBOUNCE_MS,
+      getSize,
+      getPresentationIdentity: () =>
+        runtimeStore.getPresentationIdentity(),
+      onRenderPass: () => {
+        const startMs = perfSession.recordRenderPassStart();
+        inputSessionController.onRenderPass();
+        syncToolbarUi();
+        pipeline.render();
+        pipeline.updateDirtyRectOverlay();
+        perfSession.recordRenderPassEnd(startMs);
+      },
+      perfSession: {
+        onRafFrameExecuted: () => perfSession.onRafFrameExecuted(),
+      },
+    },
+    normalizePixelRatio(
+      (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
+    ),
+  );
+  const layoutController = new LayoutController({
+    stage,
+    toolbar,
+    resolvePageSize,
+    getSize,
+    setSize: (size) => setSize(size),
+    getDestroyed: () => runtimeStore.isDestroyed(),
+    onUpdateViewport: (width, height) => pipeline.updateViewport(width, height),
+    onUpdateRenderIdentity: () => renderLoopController.updateRenderIdentity(),
+    onRequestRenderFromModel: () => renderLoopController.requestRenderFromModel(),
+    onScheduleResizeBake: () => renderLoopController.scheduleResizeBake(),
+    setTilePixelRatio: (pixelRatio) => renderLoopController.setTilePixelRatio(pixelRatio),
+    onRefreshCursorMetrics: () => cursorOverlay.refreshMetrics(),
+    mobilePortraitBottomStrip,
+    mobilePortraitTopStrip,
+    mobilePortraitTopControls,
+    mobilePortraitActionsPopover,
+    mobilePortraitActionsMenu,
+    mobilePortraitActionsTrigger,
+    mobilePortraitColorsButton,
+    mobilePortraitStrokesButton,
+    mobileActionsMenuGapPx: MOBILE_ACTIONS_MENU_GAP_PX,
+    mobileActionsMenuViewportPaddingPx: MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX,
+  });
 
   function listen<K extends keyof WindowEventMap>(
     target: Window,
@@ -491,148 +479,21 @@ export function createKidsDrawController(options: {
     disposers.push(() => target.removeEventListener(type, listener));
   }
 
-  const toPersistedToolbarUiState = (
-    state: Pick<ToolbarUiState, "activeToolId" | "strokeColor" | "strokeWidth">,
-  ): PersistedKidsUiStateV1 => ({
-    version: 1,
-    activeToolId: state.activeToolId,
-    strokeColor: state.strokeColor,
-    strokeWidth: state.strokeWidth,
-  });
-
-  const getToolbarUiPersistSignature = (
-    state: PersistedKidsUiStateV1,
-  ): string => {
-    return `${state.activeToolId}|${state.strokeColor}|${state.strokeWidth}`;
-  };
-
-  const flushToolbarUiPersistence = (): void => {
-    if (!pendingToolbarUiPersistState) {
-      return;
-    }
-    savePersistedToolbarUiState(
-      pendingToolbarUiPersistState.docUrl,
-      pendingToolbarUiPersistState.state,
-    );
-    lastPersistedToolbarUiSignature = getToolbarUiPersistSignature(
-      pendingToolbarUiPersistState.state,
-    );
-    pendingToolbarUiPersistState = null;
-  };
-
-  const queueToolbarUiPersistence = (
-    docUrl: string,
-    state: PersistedKidsUiStateV1,
-    signature: string,
-  ): void => {
-    if (signature === lastPersistedToolbarUiSignature) {
-      return;
-    }
-    pendingToolbarUiPersistState = {
-      docUrl,
-      state,
-    };
-    if (toolbarUiPersistTimeoutHandle !== null) {
-      clearTimeout(toolbarUiPersistTimeoutHandle);
-    }
-    toolbarUiPersistTimeoutHandle = setTimeout(() => {
-      toolbarUiPersistTimeoutHandle = null;
-      flushToolbarUiPersistence();
-    }, UI_STATE_PERSIST_DEBOUNCE_MS);
-  };
-
-  const handleToolbarUiChangedForPersistence = (state: ToolbarUiState): void => {
-    const docUrl = core.getCurrentDocUrl();
-    const nextPersistedState = toPersistedToolbarUiState(state);
-    const signature = getToolbarUiPersistSignature(nextPersistedState);
-    if (signature === lastObservedToolbarUiSignature) {
-      return;
-    }
-    lastObservedToolbarUiSignature = signature;
-    queueToolbarUiPersistence(docUrl, nextPersistedState, signature);
-  };
-
-  const syncToolbarUi = (): void => {
-    syncToolbarUiFromDrawingStore(store, {
-      resolveActiveFamilyId: (toolId) => getFamilyIdForTool(toolId, catalog),
-      resolveToolStyleSupport: (toolId) => getToolStyleSupport(toolId, catalog),
-    });
-    const toolbarUiState = $toolbarUi.get();
-    mobilePortraitUndoMenuItem.disabled = !toolbarUiState.canUndo;
-    mobilePortraitRedoMenuItem.disabled = !toolbarUiState.canRedo;
-    mobilePortraitNewMenuItem.disabled = toolbar.newDrawingButton.el.disabled;
-    cursorOverlay.sync();
-  };
-
-  const resolveDocumentPresentationFromData = (
-    presentation: DrawingDocumentPresentation | undefined,
-  ): ActiveDocumentPresentation => {
-    const explicitDocumentType =
-      presentation?.documentType === "normal" ||
-      presentation?.documentType === "coloring" ||
-      presentation?.documentType === "markup"
-        ? presentation.documentType
-        : null;
-    const referenceImage = presentation?.referenceImage;
-    if (
-      referenceImage &&
-      typeof referenceImage.src === "string" &&
-      referenceImage.src.length > 0 &&
-      (referenceImage.composite === "under-drawing" ||
-        referenceImage.composite === "over-drawing")
-    ) {
-      const coloringPage = getColoringPageBySrc(referenceImage.src);
-      const mode: KidsDocumentMode =
-        explicitDocumentType ??
-        (referenceImage.composite === "under-drawing" ? "markup" : "coloring");
-      return {
-        mode,
-        coloringPageId: coloringPage?.id,
-        referenceImageSrc: referenceImage.src,
-        referenceComposite: referenceImage.composite,
-      };
-    }
-    if (explicitDocumentType) {
-      return { mode: explicitDocumentType };
-    }
-    return { mode: "normal" };
-  };
-
   const resolveDocumentPresentation = (
     documentPresentation: DrawingDocumentPresentation | undefined,
   ): ActiveDocumentPresentation =>
-    resolveDocumentPresentationFromData(documentPresentation);
+    documentSessionController.resolveDocumentPresentation(documentPresentation);
 
   const getReferenceOverlaySrc = (
     presentation: ActiveDocumentPresentation,
-  ): string | null => {
-    if (
-      presentation.referenceComposite !== "over-drawing" ||
-      !presentation.referenceImageSrc
-    ) {
-      return null;
-    }
-    return presentation.referenceImageSrc;
-  };
+  ): string | null => documentSessionController.getReferenceOverlaySrc(presentation);
 
   const toDocumentMetadataFromPresentation = (
     presentation: ActiveDocumentPresentation,
   ): Pick<
     KidsDocumentSummary,
     "mode" | "coloringPageId" | "referenceImageSrc" | "referenceComposite"
-  > => {
-    if (presentation.mode === "normal") {
-      return {
-        mode: "normal",
-      };
-    }
-    return {
-      mode: presentation.mode,
-      coloringPageId: presentation.coloringPageId,
-      referenceImageSrc: presentation.referenceImageSrc,
-      referenceComposite: presentation.referenceComposite,
-    };
-  };
+  > => documentSessionController.toDocumentMetadataFromPresentation(presentation);
 
   const queueColoringOverlayRebakeWhenLoaded = (overlaySrc: string | null): void => {
     coloringOverlayLoadRequestId += 1;
@@ -646,11 +507,11 @@ export function createKidsDrawController(options: {
     const loader = new Image();
     loader.decoding = "async";
     loader.onload = () => {
-      if (destroyed || requestId !== coloringOverlayLoadRequestId) {
+      if (runtimeStore.isDestroyed() || requestId !== coloringOverlayLoadRequestId) {
         return;
       }
       registerRasterImage(overlaySrc, loader);
-      requestRenderFromModel();
+      renderLoopController.requestRenderFromModel();
       scheduleThumbnailSave(0);
     };
     loader.src = overlaySrc;
@@ -659,10 +520,10 @@ export function createKidsDrawController(options: {
   const applyDocumentPresentation = (
     presentation: ActiveDocumentPresentation,
   ): void => {
-    activeDocumentPresentation = presentation;
+    runtimeStore.setPresentation(presentation);
     const overlaySrc = getReferenceOverlaySrc(presentation);
     pipeline.setReferenceOverlaySource(overlaySrc);
-    updateRenderIdentity();
+    renderLoopController.updateRenderIdentity();
     if (overlaySrc) {
       warmRasterImage(overlaySrc);
     }
@@ -675,582 +536,61 @@ export function createKidsDrawController(options: {
       forceDefaults?: boolean;
     },
   ): void => {
-    const defaultStrokeWidth =
-      presentation.mode === "coloring"
-        ? COLORING_DEFAULT_STROKE_WIDTH
-        : NORMAL_DEFAULT_STROKE_WIDTH;
-    const defaultToolId =
-      presentation.mode === "coloring"
-        ? COLORING_DEFAULT_TOOL_ID
-        : NORMAL_DEFAULT_TOOL_ID;
-    const docUrl = core.getCurrentDocUrl();
-    const shared = store.getSharedSettings();
-    const resolvedInitialToolbarUiState = resolveInitialToolbarUiStateFromPersistence(
-      {
-        catalog,
-        current: {
-          activeToolId: defaultToolId,
-          strokeColor: DEFAULT_OPAQUE_STROKE_COLOR,
-          strokeWidth: getNearestStrokeWidthOption(defaultStrokeWidth),
-        },
-        persisted: options?.forceDefaults
-          ? null
-          : loadPersistedToolbarUiState(docUrl),
-      },
+    toolbarStateController.applyToolbarStateForCurrentDocument(
+      presentation,
+      options,
     );
-    activateToolAndRemember(resolvedInitialToolbarUiState.activeToolId);
-    store.updateSharedSettings({
-      strokeColor: resolvedInitialToolbarUiState.strokeColor,
-      strokeWidth: resolvedInitialToolbarUiState.strokeWidth,
-      fillColor: shared.fillColor,
-    });
-    syncToolbarUi();
-    const persistedState = toPersistedToolbarUiState($toolbarUi.get());
-    const signature = getToolbarUiPersistSignature(persistedState);
-    lastObservedToolbarUiSignature = signature;
-    lastPersistedToolbarUiSignature = signature;
-  };
-
-  const setMobilePortraitActionsPopoverOpen = (open: boolean): void => {
-    mobilePortraitActionsPopover.dataset.open = open ? "true" : "false";
-    mobilePortraitActionsPopover.setAttribute("aria-hidden", open ? "false" : "true");
   };
 
   const positionMobilePortraitActionsPopover = (): void => {
-    if (currentLayoutProfile !== "mobile-portrait" || !mobilePortraitActionsOpen) {
-      return;
-    }
-    const triggerRect = mobilePortraitActionsTrigger.el.getBoundingClientRect();
-    const popoverRect = mobilePortraitActionsPopover.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const minLeft = MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX;
-    const maxLeft =
-      viewportWidth -
-      MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX -
-      popoverRect.width;
-    const left = Math.max(
-      minLeft,
-      Math.min(triggerRect.right - popoverRect.width, maxLeft),
-    );
-    const belowTop = triggerRect.bottom + MOBILE_ACTIONS_MENU_GAP_PX;
-    const aboveTop =
-      triggerRect.top - MOBILE_ACTIONS_MENU_GAP_PX - popoverRect.height;
-    const canPlaceAbove = aboveTop >= MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX;
-    const wouldOverflowBottom =
-      belowTop + popoverRect.height >
-      viewportHeight - MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX;
-    const top =
-      wouldOverflowBottom && canPlaceAbove
-        ? aboveTop
-        : Math.max(
-            MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX,
-            Math.min(
-              belowTop,
-              viewportHeight -
-                MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX -
-                popoverRect.height,
-            ),
-          );
-    mobilePortraitActionsPopover.style.left = `${left}px`;
-    mobilePortraitActionsPopover.style.top = `${top}px`;
-  };
-
-  const getRenderIdentity = (): string => {
-    const size = getSize();
-    const presentationIdentity =
-      activeDocumentPresentation.referenceImageSrc &&
-      activeDocumentPresentation.referenceComposite
-        ? `${activeDocumentPresentation.referenceComposite}:${activeDocumentPresentation.referenceImageSrc}`
-        : "normal";
-    return [
-      "kids-draw",
-      `w:${size.width}`,
-      `h:${size.height}`,
-      `tile:256`,
-      `dpr:${tilePixelRatio.toFixed(3)}`,
-      `bg:${backgroundColor}`,
-      `presentation:${presentationIdentity}`,
-    ].join("|");
-  };
-
-  const scheduleAnimationFrame = (callback: FrameRequestCallback): number => {
-    if (typeof requestAnimationFrame === "function") {
-      return requestAnimationFrame(callback);
-    }
-    return setTimeout(() => callback(Date.now()), 16) as unknown as number;
-  };
-
-  const cancelAnimationFrameHandle = (handle: number): void => {
-    if (typeof cancelAnimationFrame === "function") {
-      cancelAnimationFrame(handle);
-      return;
-    }
-    clearTimeout(handle);
-  };
-
-  const renderPass = (): void => {
-    const startMs = perfSession.recordRenderPassStart();
-    if (pointerIsDown) {
-      drawingPerfFrameCount += 1;
-    }
-    syncToolbarUi();
-    pipeline.render();
-    pipeline.updateDirtyRectOverlay();
-    perfSession.recordRenderPassEnd(startMs);
-  };
-
-  const ensureRafScheduled = (): void => {
-    if (rafHandle !== null) return;
-    rafHandle = scheduleAnimationFrame(() => {
-      rafHandle = null;
-      perfSession.onRafFrameExecuted();
-      if (rafRenderState === "idle") {
-        return;
-      }
-      if (rafRenderState === "modelRequested") {
-        renderPass();
-        rafRenderState = "anticipatory";
-        ensureRafScheduled();
-        return;
-      }
-      rafRenderState = "idle";
-    });
-  };
-
-  const requestRenderFromModel = (): void => {
-    if (rafRenderState === "idle") {
-      rafRenderState = "modelRequested";
-      ensureRafScheduled();
-      return;
-    }
-    if (rafRenderState === "anticipatory") {
-      rafRenderState = "modelRequested";
-    }
-  };
-
-  const scheduleResizeBake = (): void => {
-    if (debouncedResizeBakeHandle !== null) {
-      clearTimeout(debouncedResizeBakeHandle);
-    }
-    debouncedResizeBakeHandle = setTimeout(() => {
-      debouncedResizeBakeHandle = null;
-      pipeline.scheduleBakeForClear();
-      pipeline.bakePendingTiles();
-      requestRenderFromModel();
-    }, RESIZE_BAKE_DEBOUNCE_MS);
-  };
-
-  const updateRenderIdentity = (): void => {
-    const nextIdentity = getRenderIdentity();
-    if (nextIdentity !== currentRenderIdentity) {
-      currentRenderIdentity = nextIdentity;
-      pipeline.setRenderIdentity(currentRenderIdentity);
-    }
-  };
-
-  const resolveModeForProfile = (
-    profile: ResponsiveLayoutProfile,
-  ): ResponsiveLayoutMode => {
-    if (profile === "large") {
-      return "large";
-    }
-    if (profile === "medium") {
-      return "medium";
-    }
-    return "mobile";
-  };
-
-  const getMobilePortraitTopPanel = (): "colors" | "strokes" => {
-    return mobilePortraitStrokesButton.el.classList.contains("is-selected")
-      ? "strokes"
-      : "colors";
+    layoutController.positionMobilePortraitActionsPopover();
   };
 
   const setMobilePortraitTopPanel = (panel: "colors" | "strokes"): void => {
-    mobilePortraitColorsButton.setSelected(panel === "colors");
-    mobilePortraitStrokesButton.setSelected(panel === "strokes");
+    layoutController.setMobilePortraitTopPanel(panel);
   };
 
-  const syncMobilePortraitTopPanel = (): void => {
-    const panel = getMobilePortraitTopPanel();
-    const colorsPanel = toolbar.topElement.querySelector(
-      ".kids-draw-toolbar-colors",
-    ) as HTMLDivElement | null;
-    const strokePanel = toolbar.topElement.querySelector(
-      ".kids-draw-toolbar-strokes",
-    ) as HTMLDivElement | null;
-    if (colorsPanel) {
-      colorsPanel.hidden = panel !== "colors";
-    }
-    if (strokePanel) {
-      strokePanel.hidden = panel !== "strokes";
-    }
-  };
-
-  const applyToolbarLayoutProfile = (
-    profile: ResponsiveLayoutProfile,
-  ): void => {
-    const orientation =
-      window.innerHeight > window.innerWidth ? "portrait" : "landscape";
-    stage.viewportHost.dataset.layoutProfile = profile;
-    stage.viewportHost.dataset.layoutMode = resolveModeForProfile(profile);
-    stage.viewportHost.dataset.layoutOrientation = orientation;
-
-    if (profile === "mobile-portrait") {
-      syncMobilePortraitTopPanel();
-      setChildren(mobilePortraitActionsPopover, [mobilePortraitActionsMenu]);
-      mobilePortraitActionsPopover.hidden = false;
-      setMobilePortraitActionsPopoverOpen(mobilePortraitActionsOpen);
-      mobilePortraitActionsTrigger.el.setAttribute(
-        "aria-expanded",
-        mobilePortraitActionsOpen ? "true" : "false",
-      );
-      setChildren(mobilePortraitTopControls, [
-        mobilePortraitColorsButton.el,
-        mobilePortraitStrokesButton.el,
-        mobilePortraitActionsTrigger.el,
-      ]);
-      setChildren(mobilePortraitTopStrip, [
-        mobilePortraitTopControls,
-        toolbar.topElement,
-        mobilePortraitActionsPopover,
-      ]);
-      setChildren(mobilePortraitBottomStrip, [
-        toolbar.bottomElement,
-        toolbar.toolSelectorElement,
-      ]);
-      setChildren(stage.insetTopSlot, [mobilePortraitTopStrip]);
-      setChildren(stage.insetLeftSlot, []);
-      setChildren(stage.insetRightSlot, []);
-      setChildren(stage.insetBottomSlot, [mobilePortraitBottomStrip]);
-      toolbar.syncLayout();
-      positionMobilePortraitActionsPopover();
-      return;
-    }
-
-    mobilePortraitActionsOpen = false;
-    setMobilePortraitTopPanel("colors");
-    const colorsPanel = toolbar.topElement.querySelector(
-      ".kids-draw-toolbar-colors",
-    ) as HTMLDivElement | null;
-    const strokePanel = toolbar.topElement.querySelector(
-      ".kids-draw-toolbar-strokes",
-    ) as HTMLDivElement | null;
-    if (colorsPanel) {
-      colorsPanel.hidden = false;
-    }
-    if (strokePanel) {
-      strokePanel.hidden = false;
-    }
-    mobilePortraitActionsPopover.hidden = true;
-    setMobilePortraitActionsPopoverOpen(false);
-    mobilePortraitActionsTrigger.el.setAttribute("aria-expanded", "false");
-    mobilePortraitActionsPopover.style.removeProperty("left");
-    mobilePortraitActionsPopover.style.removeProperty("top");
-
-    setChildren(stage.insetTopSlot, [toolbar.topElement]);
-    setChildren(stage.insetLeftSlot, [toolbar.toolSelectorElement]);
-    setChildren(stage.insetRightSlot, [toolbar.actionPanelElement]);
-    setChildren(stage.insetBottomSlot, [toolbar.bottomElement]);
-    toolbar.syncLayout();
-  };
-
-  const syncLayoutProfile = (): void => {
-    currentLayoutProfile = resolveLayoutProfile(
-      window.innerWidth,
-      window.innerHeight,
+  const applyToolbarLayoutProfile = (): void => {
+    layoutController.applyToolbarLayoutProfile(
+      layoutController.getCurrentLayoutProfile(),
     );
-    applyToolbarLayoutProfile(currentLayoutProfile);
   };
 
   const closeMobilePortraitActions = (): void => {
-    if (!mobilePortraitActionsOpen) {
-      return;
-    }
-    mobilePortraitActionsOpen = false;
-    if (currentLayoutProfile === "mobile-portrait") {
-      applyToolbarLayoutProfile(currentLayoutProfile);
-    }
+    layoutController.closeMobilePortraitActions();
   };
 
   const toggleMobilePortraitActions = (): void => {
-    if (currentLayoutProfile !== "mobile-portrait") {
-      return;
-    }
-    mobilePortraitActionsOpen = !mobilePortraitActionsOpen;
-    applyToolbarLayoutProfile(currentLayoutProfile);
-    if (mobilePortraitActionsOpen) {
-      positionMobilePortraitActionsPopover();
-    }
+    layoutController.toggleMobilePortraitActions();
   };
-
-  const getViewportPadding = (): {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-  } => getViewportPaddingForProfile(currentLayoutProfile);
 
   const resolveImplicitDocumentSizeFromViewport = (): {
     width: number;
     height: number;
-  } => {
-    const fallback = resolvePageSize();
-    const host = stage.viewportHost;
-    const hostWidth = Math.round(host.clientWidth);
-    const hostHeight = Math.round(host.clientHeight);
-    if (hostWidth <= 0 || hostHeight <= 0) {
-      return fallback;
-    }
-    const styles = window.getComputedStyle(host);
-    const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
-    const paddingRight = Number.parseFloat(styles.paddingRight) || 0;
-    const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
-    const paddingLeft = Number.parseFloat(styles.paddingLeft) || 0;
-    const width = Math.max(
-      MIN_WIDTH,
-      Math.round(hostWidth - paddingLeft - paddingRight),
-    );
-    const height = Math.max(
-      MIN_HEIGHT,
-      Math.round(
-        hostHeight - paddingTop - paddingBottom - IMPLICIT_DOC_VERTICAL_SLACK,
-      ),
-    );
-    return { width, height };
-  };
+  } => layoutController.resolveImplicitDocumentSizeFromViewport();
 
   const applyCanvasSize = (nextWidth: number, nextHeight: number): void => {
-    const size = getSize();
-    if (size.width === nextWidth && size.height === nextHeight) {
-      return;
-    }
-    setSize({ width: nextWidth, height: nextHeight });
-    stage.setSceneDimensions(nextWidth, nextHeight);
-    pipeline.updateViewport(nextWidth, nextHeight);
-    updateRenderIdentity();
-    const updated = applyResponsiveLayout({
-      viewportHost: stage.viewportHost,
-      canvasFrame: stage.canvasFrame,
-      sceneRoot: stage.sceneRoot,
-      width: nextWidth,
-      height: nextHeight,
-      displayScale,
-      displayWidth,
-      displayHeight,
-      padding: getViewportPadding(),
-    });
-    displayScale = updated.displayScale;
-    displayWidth = updated.displayWidth;
-    displayHeight = updated.displayHeight;
-    toolbar.syncLayout();
-    scheduleAnimationFrame(() => {
-      if (destroyed) {
-        return;
-      }
-      toolbar.syncLayout();
-    });
-    scheduleResizeBake();
-    requestRenderFromModel();
+    layoutController.applyCanvasSize(nextWidth, nextHeight);
   };
 
   const applyLayoutAndPixelRatio = (): void => {
-    syncLayoutProfile();
-    const size = getSize();
-    const updated = applyResponsiveLayout({
-      viewportHost: stage.viewportHost,
-      canvasFrame: stage.canvasFrame,
-      sceneRoot: stage.sceneRoot,
-      width: size.width,
-      height: size.height,
-      displayScale,
-      displayWidth,
-      displayHeight,
-      padding: getViewportPadding(),
-    });
-    displayScale = updated.displayScale;
-    displayWidth = updated.displayWidth;
-    displayHeight = updated.displayHeight;
-
-    const nextPixelRatio = normalizePixelRatio(
-      (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
-    );
-    if (nextPixelRatio !== tilePixelRatio) {
-      tilePixelRatio = nextPixelRatio;
-      pipeline.setTilePixelRatio(tilePixelRatio);
-      updateRenderIdentity();
-      scheduleResizeBake();
-    }
-    cursorOverlay.refreshMetrics();
-    toolbar.syncLayout();
-    scheduleAnimationFrame(() => {
-      if (destroyed) {
-        return;
-      }
-      toolbar.syncLayout();
-    });
+    layoutController.applyLayoutAndPixelRatio();
   };
 
   const scheduleResponsiveLayout = (): void => {
-    if (layoutRafHandle !== null) {
-      return;
-    }
-    layoutRafHandle = scheduleAnimationFrame(() => {
-      layoutRafHandle = null;
-      applyLayoutAndPixelRatio();
-    });
+    layoutController.scheduleResponsiveLayout();
   };
 
-  const toPoint = (event: PointerEvent): Vec2 => {
-    return cursorOverlay.toPoint(event);
+  const closeDocumentPicker = (): void => {
+    documentPickerController.close();
   };
 
-  const getPointerMoveSamples = (
-    event: PointerEventWithCoalesced,
-  ): { samples: PointerEvent[]; usedCoalesced: boolean } => {
-    const coalesced = ENABLE_COALESCED_POINTER_SAMPLES
-      ? event.getCoalescedEvents?.()
-      : undefined;
-    const rawSamples =
-      coalesced && coalesced.length > 0 ? coalesced : [event as PointerEvent];
-    const cappedSamples =
-      rawSamples.length > MAX_POINTER_SAMPLES_PER_EVENT
-        ? rawSamples.slice(rawSamples.length - MAX_POINTER_SAMPLES_PER_EVENT)
-        : rawSamples;
-    const samples: PointerEvent[] = [];
-    for (const sample of cappedSamples) {
-      const previous = samples[samples.length - 1];
-      if (
-        previous &&
-        previous.clientX === sample.clientX &&
-        previous.clientY === sample.clientY
-      ) {
-        continue;
-      }
-      samples.push(sample);
-    }
-    if (samples.length === 0) {
-      samples.push(event);
-    }
-    return {
-      samples,
-      usedCoalesced: Boolean(coalesced && coalesced.length > 0),
-    };
+  const reloadDocumentPicker = async (): Promise<void> => {
+    await documentPickerController.reload();
   };
 
-  const subscribeToCoreAdapter = () => {
-    unsubscribeCoreAdapter?.();
-    unsubscribeCoreAdapter = core.storeAdapter.subscribe((doc) => {
-      store.applyDocument(doc);
-      scheduleDocumentTouch();
-      scheduleThumbnailSave();
-      syncToolbarUi();
-    });
-  };
-
-  const renderDocumentBrowser = (): void => {
-    documentBrowserOverlay.setLoading(browserLoading);
-    documentBrowserOverlay.setBusyDocument(browserBusyDocUrl);
-    documentBrowserOverlay.setDocuments(
-      browserDocuments,
-      core.getCurrentDocUrl(),
-      browserThumbnailUrlByDocUrl,
-    );
-  };
-
-  const clearBrowserThumbnails = (): void => {
-    for (const url of browserThumbnailUrlByDocUrl.values()) {
-      URL.revokeObjectURL(url);
-    }
-    browserThumbnailUrlByDocUrl = new Map();
-  };
-
-  const loadBrowserThumbnails = async (
-    requestId: number,
-    documents: KidsDocumentSummary[],
-  ): Promise<void> => {
-    const nextThumbnailUrlByDocUrl = new Map<string, string>();
-    for (const document of documents) {
-      try {
-        const thumbnailBlob = await documentBackend.getThumbnail(
-          document.docUrl,
-        );
-        if (!thumbnailBlob) {
-          continue;
-        }
-        nextThumbnailUrlByDocUrl.set(
-          document.docUrl,
-          URL.createObjectURL(thumbnailBlob),
-        );
-      } catch (error) {
-        console.warn("[kids-draw:documents] failed to load thumbnail", {
-          docUrl: document.docUrl,
-          error,
-        });
-      }
-    }
-    if (requestId !== browserRequestId) {
-      for (const url of nextThumbnailUrlByDocUrl.values()) {
-        URL.revokeObjectURL(url);
-      }
-      return;
-    }
-
-    clearBrowserThumbnails();
-    browserThumbnailUrlByDocUrl = nextThumbnailUrlByDocUrl;
-    renderDocumentBrowser();
-  };
-
-  const closeDocumentBrowser = (): void => {
-    documentBrowserOverlay.setOpen(false);
-    browserBusyDocUrl = null;
-    renderDocumentBrowser();
-  };
-
-  const reloadDocumentBrowser = async (): Promise<void> => {
-    const requestId = ++browserRequestId;
-    browserLoading = true;
-    renderDocumentBrowser();
-    try {
-      const documents = await documentBackend.listDocuments();
-      if (requestId !== browserRequestId) {
-        return;
-      }
-      browserDocuments = documents;
-      await loadBrowserThumbnails(requestId, documents);
-    } finally {
-      if (requestId === browserRequestId) {
-        browserLoading = false;
-        renderDocumentBrowser();
-      }
-    }
-  };
-
-  const openDocumentBrowser = async (): Promise<void> => {
-    documentBrowserOverlay.setOpen(true);
-    browserBusyDocUrl = null;
-    renderDocumentBrowser();
-    await reloadDocumentBrowser();
-  };
-
-  const getPresentationForCreateRequest = (
-    request: NewDocumentRequest,
-  ): DrawingDocumentPresentation => {
-    if (request.mode === "normal") {
-      return { documentType: "normal" };
-    }
-    const page = getColoringPageById(request.coloringPageId);
-    if (!page) {
-      return { documentType: "normal" };
-    }
-    return {
-      documentType: "coloring",
-      referenceImage: {
-        src: page.src,
-        composite: "over-drawing",
-      },
-    };
+  const openDocumentPicker = async (): Promise<void> => {
+    await documentPickerController.open();
   };
 
   const getDocumentSizeForCreateRequest = (
@@ -1265,97 +605,92 @@ export function createKidsDrawController(options: {
     return hasExplicitSize ? getExplicitSize() : resolveImplicitDocumentSizeFromViewport();
   };
 
-  const switchToDocument = async (docUrl: string): Promise<void> => {
-    await flushThumbnailSave();
-    const adapter = await core.open(docUrl);
-    const openedDocument = adapter.getDoc();
-    const docSize = openedDocument.size;
-    const presentation = resolveDocumentPresentation(openedDocument.presentation);
-    await documentBackend.createDocument({
-      docUrl,
-      ...toDocumentMetadataFromPresentation(presentation),
-      documentSize: docSize,
+  documentSessionController = new DocumentSessionController({
+    store,
+    core,
+    documentBackend,
+    thumbnailSaveDebounceMs: THUMBNAIL_SAVE_DEBOUNCE_MS,
+    createThumbnailBlob: () => snapshotService.createThumbnailBlob(),
+    getDocumentSizeForCreateRequest,
+  });
+  const unbindDocumentSessionIntents =
+    documentSessionController.state.subscribeDrainedIntents((intents) => {
+      for (const intent of intents) {
+        if (intent.type === "apply_canvas_size") {
+          applyCanvasSize(intent.width, intent.height);
+          continue;
+        }
+        if (intent.type === "apply_presentation") {
+          applyDocumentPresentation(intent.presentation);
+          continue;
+        }
+        if (intent.type === "apply_toolbar_state") {
+          applyToolbarStateForCurrentDocument(intent.presentation, {
+            forceDefaults: intent.forceDefaults,
+          });
+          continue;
+        }
+        if (intent.type === "adapter_applied") {
+          syncToolbarUi();
+          continue;
+        }
+        if (intent.type === "switch_or_create_completed") {
+          pipeline.scheduleBakeForClear();
+          pipeline.bakePendingTiles();
+          renderLoopController.requestRenderFromModel();
+        }
+      }
     });
-    await documentBackend.touchDocument(docUrl);
-    store.resetToDocument(openedDocument);
-    applyCanvasSize(docSize.width, docSize.height);
-    applyDocumentPresentation(presentation);
-    applyToolbarStateForCurrentDocument(presentation);
-    subscribeToCoreAdapter();
-    pipeline.scheduleBakeForClear();
-    pipeline.bakePendingTiles();
-    requestRenderFromModel();
+  disposers.push(unbindDocumentSessionIntents);
+
+  const switchToDocument = async (docUrl: string): Promise<void> => {
+    await documentSessionController.switchToDocument(docUrl);
   };
 
   const createNewDocument = async (
     request: NewDocumentRequest,
   ): Promise<void> => {
-    const requestPresentation = getPresentationForCreateRequest(request);
-    const nextDocumentSize = getDocumentSizeForCreateRequest(request);
-    await flushThumbnailSave();
-    const { adapter, url } = await core.createNew({
-      documentSize: nextDocumentSize,
-      documentPresentation: requestPresentation,
-    });
-    const createdDocument = adapter.getDoc();
-    const presentation = resolveDocumentPresentation(createdDocument.presentation);
-    await documentBackend.createDocument({
-      docUrl: url,
-      ...toDocumentMetadataFromPresentation(presentation),
-      documentSize: nextDocumentSize,
-    });
-    store.resetToDocument(createdDocument);
-    applyCanvasSize(nextDocumentSize.width, nextDocumentSize.height);
-    applyDocumentPresentation(presentation);
-    applyToolbarStateForCurrentDocument(presentation, { forceDefaults: true });
-    subscribeToCoreAdapter();
-    pipeline.scheduleBakeForClear();
-    pipeline.bakePendingTiles();
-    requestRenderFromModel();
+    await documentSessionController.createNewDocument(request);
   };
 
   const createNewDocumentFromBrowser = async (
     request: NewDocumentRequest,
   ): Promise<void> => {
     if (
-      !documentBrowserOverlay.isOpen() &&
-      !documentBrowserOverlay.isCreateDialogOpen()
+      !documentPickerController.isOpen() &&
+      !documentPickerController.isCreateDialogOpen()
     ) {
       return;
     }
-    browserBusyDocUrl = "__new__";
-    renderDocumentBrowser();
+    documentPickerController.setBusyDocument("__new__");
     try {
       await createNewDocument(request);
-      closeDocumentBrowser();
-      documentBrowserOverlay.closeCreateDialog();
+      closeDocumentPicker();
+      documentPickerController.closeCreateDialog();
     } finally {
-      browserBusyDocUrl = null;
-      renderDocumentBrowser();
+      documentPickerController.setBusyDocument(null);
     }
   };
 
   const openDocumentFromBrowser = async (docUrl: string): Promise<void> => {
-    if (!documentBrowserOverlay.isOpen()) {
+    if (!documentPickerController.isOpen()) {
       return;
     }
     if (docUrl === core.getCurrentDocUrl()) {
-      closeDocumentBrowser();
+      closeDocumentPicker();
       return;
     }
-    browserBusyDocUrl = docUrl;
-    renderDocumentBrowser();
+    documentPickerController.setBusyDocument(docUrl);
     try {
       await switchToDocument(docUrl);
-      closeDocumentBrowser();
+      closeDocumentPicker();
     } finally {
-      browserBusyDocUrl = null;
-      renderDocumentBrowser();
+      documentPickerController.setBusyDocument(null);
     }
   };
 
   const deleteDocumentFromBrowser = async (docUrl: string): Promise<void> => {
-    if (!documentBrowserOverlay.isOpen()) {
+    if (!documentPickerController.isOpen()) {
       return;
     }
     const confirmed = await confirmDestructiveAction({
@@ -1366,11 +701,10 @@ export function createKidsDrawController(options: {
       tone: "danger",
       icon: Trash2,
     });
-    if (!confirmed || destroyed) {
+    if (!confirmed || runtimeStore.isDestroyed()) {
       return;
     }
-    browserBusyDocUrl = docUrl;
-    renderDocumentBrowser();
+    documentPickerController.setBusyDocument(docUrl);
     try {
       const deletingCurrent = docUrl === core.getCurrentDocUrl();
       if (deletingCurrent) {
@@ -1386,216 +720,61 @@ export function createKidsDrawController(options: {
           await createNewDocument({ mode: "normal" });
         }
       }
-      await reloadDocumentBrowser();
+      await reloadDocumentPicker();
     } finally {
-      browserBusyDocUrl = null;
-      renderDocumentBrowser();
+      documentPickerController.setBusyDocument(null);
     }
-  };
-
-  const flushDocumentTouch = async (): Promise<void> => {
-    const docUrl = core.getCurrentDocUrl();
-    try {
-      await documentBackend.touchDocument(docUrl);
-    } catch (error) {
-      console.warn("[kids-draw:documents] failed to touch document", {
-        docUrl,
-        error,
-      });
-    }
-  };
-
-  const drawReferenceImage = (
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    composite: "under-drawing" | "over-drawing",
-  ): void => {
-    if (activeDocumentPresentation.referenceComposite !== composite) {
-      return;
-    }
-    const src = activeDocumentPresentation.referenceImageSrc;
-    if (!src) {
-      return;
-    }
-    const image = getLoadedRasterImage(src);
-    if (!image) {
-      return;
-    }
-    ctx.drawImage(image, 0, 0, width, height);
-  };
-
-  const createThumbnailBlob = async (): Promise<Blob | null> => {
-    const doc = store.getDocument();
-    const width = Math.max(1, Math.round(doc.size.width));
-    const height = Math.max(1, Math.round(doc.size.height));
-    const maxDimension = 640;
-    const scale = Math.min(1, maxDimension / Math.max(width, height));
-    const targetWidth = Math.max(1, Math.round(width * scale));
-    const targetHeight = Math.max(1, Math.round(height * scale));
-    const canvas = document.createElement("canvas");
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx || typeof canvas.toBlob !== "function") {
-      return null;
-    }
-
-    ctx.save();
-    ctx.scale(scale, scale);
-    drawReferenceImage(ctx, width, height, "under-drawing");
-    renderOrderedShapes(ctx, store.getOrderedShapes(), {
-      registry: shapeRendererRegistry,
-      geometryHandlerRegistry: store.getShapeHandlers(),
-    });
-    drawReferenceImage(ctx, width, height, "over-drawing");
-    ctx.restore();
-
-    ctx.save();
-    ctx.globalCompositeOperation = "destination-over";
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, targetWidth, targetHeight);
-    ctx.restore();
-
-    return await new Promise((resolve) => {
-      canvas.toBlob((result) => resolve(result), "image/webp", 0.82);
-    });
   };
 
   const flushThumbnailSave = async (): Promise<void> => {
-    const docUrl = core.getCurrentDocUrl();
-    try {
-      const thumbnailBlob = await createThumbnailBlob();
-      if (!thumbnailBlob) {
-        return;
-      }
-      await documentBackend.saveThumbnail(docUrl, thumbnailBlob);
-    } catch (error) {
-      console.warn("[kids-draw:documents] failed to save thumbnail", {
-        docUrl,
-        error,
-      });
-    }
+    await documentSessionController.flushThumbnailSave();
   };
 
   const scheduleDocumentTouch = (): void => {
-    if (metadataTouchTimeoutHandle !== null) {
-      clearTimeout(metadataTouchTimeoutHandle);
-    }
-    metadataTouchTimeoutHandle = setTimeout(() => {
-      metadataTouchTimeoutHandle = null;
-      void flushDocumentTouch();
-    }, 500);
+    documentSessionController.scheduleDocumentTouch();
   };
 
   const scheduleThumbnailSave = (
     delayMs = THUMBNAIL_SAVE_DEBOUNCE_MS,
   ): void => {
-    if (thumbnailSaveTimeoutHandle !== null) {
-      clearTimeout(thumbnailSaveTimeoutHandle);
-    }
-    thumbnailSaveTimeoutHandle = setTimeout(() => {
-      thumbnailSaveTimeoutHandle = null;
-      void flushThumbnailSave();
-    }, delayMs);
-  };
-
-  const runAndSync = (fn: () => void): (() => void) => {
-    return () => {
-      fn();
-      syncToolbarUi();
-    };
-  };
-
-  const sanitizeTransparentStylesForTool = (toolId: string): void => {
-    const support = getToolStyleSupport(toolId, catalog);
-    const shared = store.getSharedSettings();
-    const nextSettings: Partial<typeof shared> = {};
-    if (
-      shared.strokeColor === "transparent" &&
-      !support.transparentStrokeColor
-    ) {
-      nextSettings.strokeColor = DEFAULT_OPAQUE_STROKE_COLOR;
-    }
-    if (shared.fillColor === "transparent" && !support.transparentFillColor) {
-      nextSettings.fillColor = DEFAULT_OPAQUE_FILL_COLOR;
-    }
-    if (Object.keys(nextSettings).length > 0) {
-      store.updateSharedSettings(nextSettings);
-    }
-  };
-
-  const activateToolAndRemember = (toolId: string): void => {
-    store.activateTool(toolId);
-    sanitizeTransparentStylesForTool(toolId);
-    const familyId = getFamilyIdForTool(toolId, catalog);
-    if (!familyId) {
-      return;
-    }
-    selectedToolIdByFamily.set(familyId, toolId);
+    documentSessionController.scheduleThumbnailSave(delayMs);
   };
 
   const onNewDrawingClick = async () => {
     const requestId = ++newDrawingRequestId;
+    const destroyed = runtimeStore.isDestroyed();
     debugLifecycle("new-drawing:start", { requestId, destroyed });
     if (destroyed || requestId !== newDrawingRequestId) {
       return;
     }
-    setNewDrawingPending(true);
+    toolbarUiStore.setNewDrawingPending(true);
     try {
-      documentBrowserOverlay.openCreateDialog();
+      documentPickerController.openCreateDialog();
     } finally {
-      if (!destroyed && requestId === newDrawingRequestId) {
-        setNewDrawingPending(false);
+      if (!runtimeStore.isDestroyed() && requestId === newDrawingRequestId) {
+        toolbarUiStore.setNewDrawingPending(false);
       }
     }
     debugLifecycle("new-drawing:chooser-open", {
       requestId,
       currentRequestId: newDrawingRequestId,
-      destroyed,
+      destroyed: runtimeStore.isDestroyed(),
     });
   };
 
   const onExportClick = async (): Promise<void> => {
     const size = getSize();
-    const exportCanvas = document.createElement("canvas");
-    exportCanvas.width = Math.max(1, Math.round(size.width));
-    exportCanvas.height = Math.max(1, Math.round(size.height));
-    const exportCtx = exportCanvas.getContext("2d");
-    if (!exportCtx || typeof exportCanvas.toDataURL !== "function") {
+    const exported = await snapshotService.createPngExport({
+      width: size.width,
+      height: size.height,
+    });
+    if (!exported.blob && !exported.dataUrl) {
       return;
     }
 
-    drawReferenceImage(
-      exportCtx,
-      exportCanvas.width,
-      exportCanvas.height,
-      "under-drawing",
-    );
-    renderOrderedShapes(exportCtx, store.getOrderedShapes(), {
-      registry: shapeRendererRegistry,
-      geometryHandlerRegistry: store.getShapeHandlers(),
-    });
-    drawReferenceImage(
-      exportCtx,
-      exportCanvas.width,
-      exportCanvas.height,
-      "over-drawing",
-    );
-    exportCtx.save();
-    exportCtx.globalCompositeOperation = "destination-over";
-    exportCtx.fillStyle = backgroundColor;
-    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-    exportCtx.restore();
-
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const fileName = `kids-draw-${timestamp}.png`;
-    const blob: Blob | null =
-      typeof exportCanvas.toBlob === "function"
-        ? await new Promise((resolve) => {
-            exportCanvas.toBlob((result) => resolve(result), "image/png");
-          })
-        : null;
+    const blob = exported.blob;
     const picker = (
       window as unknown as {
         showSaveFilePicker?: SaveFilePickerLike;
@@ -1635,91 +814,15 @@ export function createKidsDrawController(options: {
       return;
     }
 
-    const dataUrl = exportCanvas.toDataURL("image/png");
+    if (!exported.dataUrl) {
+      return;
+    }
+    const dataUrl = exported.dataUrl;
     const link = document.createElement("a");
     link.href = dataUrl;
     link.download = fileName;
     link.rel = "noopener";
     link.click();
-  };
-
-  const onPointerDown = (event: PointerEvent) => {
-    if (pointerIsDown) {
-      return;
-    }
-    event.preventDefault();
-    cursorOverlay.handlePointerDown(event);
-    pointerIsDown = true;
-    activePointerId = event.pointerId;
-    cursorOverlay.setDrawingActive(pointerIsDown);
-    drawingPerfFrameCount = 0;
-    perfSession.begin();
-    lastPointerPoint = toPoint(event);
-    store.dispatch("pointerDown", {
-      point: lastPointerPoint,
-      buttons: event.buttons,
-    });
-    stage.overlay.setPointerCapture?.(event.pointerId);
-    syncToolbarUi();
-  };
-  const onPointerMove = (event: PointerEventWithCoalesced) => {
-    cursorOverlay.handlePointerMove(event);
-    const { samples, usedCoalesced } = getPointerMoveSamples(event);
-    const pointerSamples = samples.map((sample) => ({
-      point: toPoint(sample),
-      buttons: sample.buttons,
-      pressure: sample.pressure,
-      shiftKey: sample.shiftKey,
-      altKey: sample.altKey,
-    }));
-    const finalPoint = pointerSamples[pointerSamples.length - 1]?.point;
-    if (finalPoint) {
-      lastPointerPoint = finalPoint;
-    }
-    perfSession.onPointerMoveSamples(pointerSamples.length, usedCoalesced);
-    store.dispatchBatch("pointerMove", pointerSamples);
-  };
-
-  const onPointerRawUpdate = (event: PointerEvent): void => {
-    cursorOverlay.handlePointerRawUpdate(event);
-  };
-  const endPointerSession = (
-    event: PointerEvent,
-    type: "pointerUp" | "pointerCancel",
-  ) => {
-    if (!pointerIsDown) {
-      return;
-    }
-    if (activePointerId !== null && event.pointerId !== activePointerId) {
-      return;
-    }
-    lastPointerPoint = toPoint(event);
-    const committedToolId = store.getActiveToolId();
-    store.dispatch(type, { point: lastPointerPoint, buttons: event.buttons });
-    if (type === "pointerUp" && committedToolId?.startsWith("stamp.")) {
-      cursorOverlay.playStampCommit(lastPointerPoint);
-    }
-    pointerIsDown = false;
-    activePointerId = null;
-    cursorOverlay.setDrawingActive(pointerIsDown);
-    perfSession.end(drawingPerfFrameCount);
-    if (type === "pointerUp") {
-      stage.overlay.releasePointerCapture?.(event.pointerId);
-      scheduleThumbnailSave(140);
-    }
-    syncToolbarUi();
-  };
-
-  const forceCancelPointerSession = () => {
-    if (!pointerIsDown) {
-      return;
-    }
-    store.dispatch("pointerCancel", { point: lastPointerPoint, buttons: 0 });
-    pointerIsDown = false;
-    activePointerId = null;
-    cursorOverlay.setDrawingActive(pointerIsDown);
-    perfSession.end(drawingPerfFrameCount);
-    syncToolbarUi();
   };
 
   const onWindowResize = () => {
@@ -1734,54 +837,37 @@ export function createKidsDrawController(options: {
     listen(
       button.el,
       "click",
-      runAndSync(() => {
-        const activeToolId = store.getActiveToolId() ?? "";
-        const activeShapeVariant =
-          getToolShapeVariant(activeToolId, catalog) ??
-          (activeToolId.includes("ellipse")
-            ? "ellipse"
-            : activeToolId.includes("rect")
-              ? "rect"
-              : undefined);
-        const matchingShapeToolId = getMatchingShapeFamilyToolId({
-          familyId,
-          shapeVariant: activeShapeVariant,
-          catalog,
-        });
-        const toolId =
-          matchingShapeToolId ??
-          selectedToolIdByFamily.get(familyId) ??
-          getDefaultToolIdForFamily(familyId, catalog);
-        activateToolAndRemember(toolId);
-      }),
+      () => {
+        toolbarStateController.activateFamilyTool(familyId);
+      },
     );
   }
   for (const [toolId, button] of toolbar.directToolButtons) {
     listen(
       button.el,
       "click",
-      runAndSync(() => {
-        activateToolAndRemember(toolId);
-      }),
+      () => {
+        toolbarStateController.activateToolAndRemember(toolId);
+      },
     );
   }
   for (const [toolId, button] of toolbar.variantButtons) {
     listen(
       button.el,
       "click",
-      runAndSync(() => {
-        activateToolAndRemember(toolId);
-      }),
+      () => {
+        toolbarStateController.activateToolAndRemember(toolId);
+      },
     );
   }
-  const onUndoClick = runAndSync(() => {
+  const onUndoClick = () => {
     store.undo();
     closeMobilePortraitActions();
-  });
-  const onRedoClick = runAndSync(() => {
+  };
+  const onRedoClick = () => {
     store.redo();
     closeMobilePortraitActions();
-  });
+  };
   listen(toolbar.undoButton.el, "click", onUndoClick);
   listen(toolbar.redoButton.el, "click", onRedoClick);
   listen(mobilePortraitUndoMenuItem, "click", onUndoClick);
@@ -1791,18 +877,18 @@ export function createKidsDrawController(options: {
     toggleMobilePortraitActions();
   });
   listen(mobilePortraitColorsButton.el, "click", () => {
-    if (currentLayoutProfile !== "mobile-portrait") {
+    if (layoutController.getCurrentLayoutProfile() !== "mobile-portrait") {
       return;
     }
     setMobilePortraitTopPanel("colors");
-    applyToolbarLayoutProfile(currentLayoutProfile);
+    applyToolbarLayoutProfile();
   });
   listen(mobilePortraitStrokesButton.el, "click", () => {
-    if (currentLayoutProfile !== "mobile-portrait") {
+    if (layoutController.getCurrentLayoutProfile() !== "mobile-portrait") {
       return;
     }
     setMobilePortraitTopPanel("strokes");
-    applyToolbarLayoutProfile(currentLayoutProfile);
+    applyToolbarLayoutProfile();
   });
   const onClearClick = () => {
     void (async () => {
@@ -1814,7 +900,7 @@ export function createKidsDrawController(options: {
         tone: "danger",
         icon: Trash2,
       });
-      if (!confirmed || destroyed) {
+      if (!confirmed || runtimeStore.isDestroyed()) {
         return;
       }
 
@@ -1829,7 +915,6 @@ export function createKidsDrawController(options: {
         }),
       );
       closeMobilePortraitActions();
-      syncToolbarUi();
     })();
   };
   listen(toolbar.clearButton.el, "click", onClearClick);
@@ -1847,7 +932,7 @@ export function createKidsDrawController(options: {
   listen(toolbar.newDrawingButton.el, "click", onNewDrawingClickAndClose);
   listen(mobilePortraitNewMenuItem, "click", onNewDrawingClickAndClose);
   const onBrowseClickAndClose = () => {
-    void openDocumentBrowser();
+    void openDocumentPicker();
     closeMobilePortraitActions();
   };
   listen(toolbar.browseButton.el, "click", onBrowseClickAndClose);
@@ -1859,12 +944,6 @@ export function createKidsDrawController(options: {
         return;
       }
       store.updateSharedSettings({ strokeColor });
-      const shared = store.getSharedSettings();
-      setToolbarStyleUi(
-        shared.strokeColor,
-        shared.fillColor,
-        shared.strokeWidth,
-      );
     });
   }
   for (const widthButton of toolbar.strokeWidthButtons) {
@@ -1874,38 +953,36 @@ export function createKidsDrawController(options: {
         return;
       }
       store.updateSharedSettings({ strokeWidth });
-      const shared = store.getSharedSettings();
-      setToolbarStyleUi(
-        shared.strokeColor,
-        shared.fillColor,
-        shared.strokeWidth,
-      );
     });
   }
-  listen(stage.overlay, "pointerdown", onPointerDown);
-  listen(stage.overlay, "pointermove", onPointerMove);
+  listen(stage.overlay, "pointerdown", (event) => {
+    inputSessionController.handlePointerDown(event as PointerEvent);
+  });
+  listen(stage.overlay, "pointermove", (event) => {
+    inputSessionController.handlePointerMove(event as PointerEvent);
+  });
   listen(stage.overlay, "pointerrawupdate", (event) => {
-    onPointerRawUpdate(event as PointerEvent);
+    inputSessionController.handlePointerRawUpdate(event as PointerEvent);
   });
   listen(stage.overlay, "pointerenter", (event) => {
     cursorOverlay.handlePointerEnter(event as PointerEvent);
   });
   listen(stage.overlay, "pointerup", (event) => {
-    endPointerSession(event, "pointerUp");
+    inputSessionController.handlePointerUp(event as PointerEvent);
   });
   listen(stage.overlay, "pointercancel", (event) => {
-    endPointerSession(event, "pointerCancel");
+    inputSessionController.handlePointerCancel(event as PointerEvent);
   });
   listen(window, "pointerup", (event) => {
-    endPointerSession(event as PointerEvent, "pointerUp");
+    inputSessionController.handlePointerUp(event as PointerEvent);
   });
   listen(window, "pointercancel", (event) => {
-    endPointerSession(event as PointerEvent, "pointerCancel");
+    inputSessionController.handlePointerCancel(event as PointerEvent);
   });
   listen(window, "pointerdown", (event) => {
     if (
-      currentLayoutProfile !== "mobile-portrait" ||
-      !mobilePortraitActionsOpen
+      layoutController.getCurrentLayoutProfile() !== "mobile-portrait" ||
+      !layoutController.isMobilePortraitActionsOpen()
     ) {
       return;
     }
@@ -1920,13 +997,13 @@ export function createKidsDrawController(options: {
     closeMobilePortraitActions();
   });
   listen(stage.overlay, "lostpointercapture", () => {
-    forceCancelPointerSession();
+    inputSessionController.forceCancelPointerSession();
   });
   listen(stage.overlay, "pointerleave", (_event) => {
     cursorOverlay.handlePointerLeave();
   });
   listen(window, "blur", () => {
-    forceCancelPointerSession();
+    inputSessionController.forceCancelPointerSession();
   });
   listen(window, "resize", () => {
     positionMobilePortraitActionsPopover();
@@ -1946,19 +1023,19 @@ export function createKidsDrawController(options: {
     if (!(event instanceof KeyboardEvent)) {
       return;
     }
-    if (event.key === "Escape" && mobilePortraitActionsOpen) {
+    if (event.key === "Escape" && layoutController.isMobilePortraitActionsOpen()) {
       event.preventDefault();
       closeMobilePortraitActions();
       return;
     }
-    if (event.key === "Escape" && documentBrowserOverlay.isOpen()) {
+    if (event.key === "Escape" && documentPickerController.isOpen()) {
       event.preventDefault();
-      closeDocumentBrowser();
+      closeDocumentPicker();
     }
   });
   const handleVisibilityChange = () => {
     if (document.visibilityState === "hidden") {
-      forceCancelPointerSession();
+      inputSessionController.forceCancelPointerSession();
     }
   };
   document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -1968,14 +1045,13 @@ export function createKidsDrawController(options: {
 
   store.setOnRenderNeeded(() => {
     perfSession.onModelInvalidation();
-    requestRenderFromModel();
+    syncToolbarUi();
+    renderLoopController.requestRenderFromModel();
   });
 
   applyDocumentPresentation({ mode: "normal" });
   applyToolbarStateForCurrentDocument({ mode: "normal" });
-  const initialToolbarSignature = getToolbarUiPersistSignature(
-    toPersistedToolbarUiState($toolbarUi.get()),
-  );
+  const initialToolbarSignature = toolbarStateController.getCurrentToolbarSignature();
   void (async () => {
     const docUrl = core.getCurrentDocUrl();
     const presentation = resolveDocumentPresentation(
@@ -1990,63 +1066,34 @@ export function createKidsDrawController(options: {
       return;
     }
     applyDocumentPresentation(presentation);
-    const currentToolbarSignature = getToolbarUiPersistSignature(
-      toPersistedToolbarUiState($toolbarUi.get()),
-    );
+    const currentToolbarSignature = toolbarStateController.getCurrentToolbarSignature();
     if (currentToolbarSignature !== initialToolbarSignature) {
       return;
     }
     applyToolbarStateForCurrentDocument(presentation);
   })();
 
-  unsubscribeToolbarUiPersistence = $toolbarUi.subscribe((state) => {
-    handleToolbarUiChangedForPersistence(state);
-  });
-  subscribeToCoreAdapter();
+  toolbarUiPersistence.start();
+  documentSessionController.subscribeToCoreAdapter();
   scheduleDocumentTouch();
-  updateRenderIdentity();
+  renderLoopController.updateRenderIdentity();
   applyLayoutAndPixelRatio();
-  scheduleResizeBake();
-  requestRenderFromModel();
+  renderLoopController.scheduleResizeBake();
+  renderLoopController.requestRenderFromModel();
 
   return {
     destroy() {
-      destroyed = true;
+      runtimeStore.setDestroyed(true);
       newDrawingRequestId += 1;
       debugLifecycle("destroy", { requestId: newDrawingRequestId });
 
       store.setOnRenderNeeded(undefined);
-      unsubscribeCoreAdapter?.();
-      unsubscribeCoreAdapter = null;
-      unsubscribeToolbarUiPersistence?.();
-      unsubscribeToolbarUiPersistence = null;
-      if (toolbarUiPersistTimeoutHandle !== null) {
-        clearTimeout(toolbarUiPersistTimeoutHandle);
-        toolbarUiPersistTimeoutHandle = null;
-      }
-      flushToolbarUiPersistence();
-      if (metadataTouchTimeoutHandle !== null) {
-        clearTimeout(metadataTouchTimeoutHandle);
-        metadataTouchTimeoutHandle = null;
-      }
-      if (thumbnailSaveTimeoutHandle !== null) {
-        clearTimeout(thumbnailSaveTimeoutHandle);
-        thumbnailSaveTimeoutHandle = null;
-      }
-      clearBrowserThumbnails();
-
-      if (layoutRafHandle !== null) {
-        cancelAnimationFrameHandle(layoutRafHandle);
-        layoutRafHandle = null;
-      }
-      if (debouncedResizeBakeHandle !== null) {
-        clearTimeout(debouncedResizeBakeHandle);
-        debouncedResizeBakeHandle = null;
-      }
-      if (rafHandle !== null) {
-        cancelAnimationFrameHandle(rafHandle);
-        rafHandle = null;
-      }
+      toolbarUiPersistence.stop();
+      toolbarUiPersistence.flush();
+      documentSessionController.dispose();
+      documentPickerController.dispose();
+      layoutController.dispose();
+      renderLoopController.dispose();
 
       for (const dispose of disposers) {
         dispose();
@@ -2054,7 +1101,7 @@ export function createKidsDrawController(options: {
 
       toolbar.destroy();
       pipeline.dispose();
-      documentBrowserOverlay.el.remove();
+      documentPickerOverlay.el.remove();
       if (!providedCore) {
         core.destroy();
       }

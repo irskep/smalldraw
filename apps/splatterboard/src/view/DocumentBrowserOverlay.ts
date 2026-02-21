@@ -1,9 +1,11 @@
 import "./DocumentBrowserOverlay.css";
 
 import { ArrowLeft, type IconNode, Trash2, X } from "lucide";
+import { atom } from "nanostores";
 import { el, list, setChildren } from "redom";
 import { getColoringPages } from "../coloring/catalog";
 import type { KidsDocumentSummary } from "../documents";
+import { bindAtom, bindAttrs } from "./atomBindings";
 
 const LONG_PRESS_PREVIEW_MS = 320;
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -87,11 +89,13 @@ export interface DocumentBrowserOverlay {
   setBusyDocument(docUrl: string | null): void;
 }
 
-interface TileRenderContext {
-  currentDocUrl: string;
-  busyDocUrl: string | null;
-  thumbnailUrlByDocUrl: Map<string, string>;
-}
+type DocumentTileItem = {
+  docUrl: string;
+  document: KidsDocumentSummary;
+  isCurrent: boolean;
+  busy: boolean;
+  thumbnailUrl: string | null;
+};
 
 type ColoringVolumeId = "pdr-v1" | "pdr-v2";
 
@@ -136,10 +140,9 @@ class DocumentTileView {
     ) as HTMLDivElement;
   }
 
-  update(document: KidsDocumentSummary, _: number, __: unknown, context: TileRenderContext): void {
-    const isCurrent = document.docUrl === context.currentDocUrl;
-    const busy = context.busyDocUrl === document.docUrl;
-    const nextThumbnailUrl = context.thumbnailUrlByDocUrl.get(document.docUrl) ?? null;
+  update(item: DocumentTileItem): void {
+    const { document, isCurrent, busy } = item;
+    const nextThumbnailUrl = item.thumbnailUrl;
 
     this.el.classList.toggle("is-current", isCurrent);
     this.el.dataset.docBrowserDoc = document.docUrl;
@@ -383,19 +386,40 @@ export function createDocumentBrowserOverlay(options: {
     createHost,
   ) as HTMLDivElement;
 
-  let open = false;
-  let loading = false;
-  let busyDocUrl: string | null = null;
-  let currentDocUrl = "";
-  let documents: KidsDocumentSummary[] = [];
-  let thumbnailUrlByDocUrl = new Map<string, string>();
-  let previewDocUrl: string | null = null;
-  let touchPressDocUrl: string | null = null;
-  let suppressNextOpenDocUrl: string | null = null;
+  type OverlayState = {
+    open: boolean;
+    loading: boolean;
+    busyDocUrl: string | null;
+    currentDocUrl: string;
+    documents: KidsDocumentSummary[];
+    thumbnailUrlByDocUrl: Map<string, string>;
+    previewDocUrl: string | null;
+    touchPressDocUrl: string | null;
+    suppressNextOpenDocUrl: string | null;
+    createOpen: boolean;
+    createVolumeId: ColoringVolumeId | null;
+  };
+  const $state = atom<OverlayState>({
+    open: false,
+    loading: false,
+    busyDocUrl: null,
+    currentDocUrl: "",
+    documents: [],
+    thumbnailUrlByDocUrl: new Map(),
+    previewDocUrl: null,
+    touchPressDocUrl: null,
+    suppressNextOpenDocUrl: null,
+    createOpen: false,
+    createVolumeId: null,
+  });
   let longPressTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
   let previewImageSrc: string | null = null;
-  let createOpen = false;
-  let createVolumeId: ColoringVolumeId | null = null;
+
+  const updateState = (
+    updater: (state: OverlayState) => OverlayState,
+  ): void => {
+    $state.set(updater($state.get()));
+  };
 
   const clearLongPressTimeout = (): void => {
     if (longPressTimeoutHandle !== null) {
@@ -405,31 +429,36 @@ export function createDocumentBrowserOverlay(options: {
   };
 
   const closePreview = (): void => {
-    previewDocUrl = null;
+    updateState((state) => ({ ...state, previewDocUrl: null }));
   };
 
   const showPreview = (docUrl: string): void => {
-    previewDocUrl = docUrl;
-    render();
+    updateState((state) => ({ ...state, previewDocUrl: docUrl }));
   };
 
   const cancelTouchHold = (): void => {
+    const state = $state.get();
     clearLongPressTimeout();
-    touchPressDocUrl = null;
-    if (!previewDocUrl) {
+    if (!state.previewDocUrl) {
+      if (state.touchPressDocUrl !== null) {
+        updateState((nextState) => ({ ...nextState, touchPressDocUrl: null }));
+      }
       return;
     }
-    suppressNextOpenDocUrl = previewDocUrl;
-    closePreview();
-    render();
+    updateState((nextState) => ({
+      ...nextState,
+      touchPressDocUrl: null,
+      suppressNextOpenDocUrl: state.previewDocUrl,
+      previewDocUrl: null,
+    }));
   };
 
-  const renderCreateGrid = (): void => {
-    if (!createVolumeId) {
+  const renderCreateGrid = (state: OverlayState): void => {
+    if (!state.createVolumeId) {
       setChildren(createPageGrid, []);
       return;
     }
-    const volumePages = pagesByVolume.get(createVolumeId) ?? [];
+    const volumePages = pagesByVolume.get(state.createVolumeId) ?? [];
     const pageButtons = volumePages.map((page) => {
       const pageNum = String(page.pageNumber).padStart(3, "0");
       return el(
@@ -437,7 +466,7 @@ export function createDocumentBrowserOverlay(options: {
         {
           type: "button",
           "data-doc-create-page": page.id,
-          disabled: busyDocUrl === "__new__" ? "true" : null,
+          disabled: state.busyDocUrl === "__new__" ? "true" : null,
         },
         el("img.kids-draw-new-document-page__thumb", {
           src: page.src,
@@ -453,21 +482,19 @@ export function createDocumentBrowserOverlay(options: {
   };
 
   const render = (): void => {
-    browserHost.hidden = !open;
-    createHost.hidden = !createOpen;
-
-    const createBusy = busyDocUrl === "__new__";
-    createBackButton.hidden = createVolumeId === null;
+    const state = $state.get();
+    const createBusy = state.busyDocUrl === "__new__";
+    createBackButton.hidden = state.createVolumeId === null;
     createSubtitle.textContent =
-      createVolumeId === null
+      state.createVolumeId === null
         ? "Choose how to start"
-        : `Choose a page from ${createVolumeId === "pdr-v1" ? "Coloring Book 1" : "Coloring Book 2"}`;
-    createRootChoices.hidden = createVolumeId !== null;
-    createPageView.hidden = createVolumeId === null;
+        : `Choose a page from ${state.createVolumeId === "pdr-v1" ? "Coloring Book 1" : "Coloring Book 2"}`;
+    createRootChoices.hidden = state.createVolumeId !== null;
+    createPageView.hidden = state.createVolumeId === null;
     createTitle.textContent =
-      createVolumeId === null
+      state.createVolumeId === null
         ? "New Drawing"
-        : createVolumeId === "pdr-v1"
+        : state.createVolumeId === "pdr-v1"
           ? "Coloring Book 1"
           : "Coloring Book 2";
 
@@ -476,22 +503,20 @@ export function createDocumentBrowserOverlay(options: {
     }
     createBackButton.disabled = createBusy;
     createCloseButton.disabled = createBusy;
-    renderCreateGrid();
+    renderCreateGrid(state);
 
-    if (!open) {
-      closePreview();
+    if (!state.open) {
       clearLongPressTimeout();
-      touchPressDocUrl = null;
       return;
     }
 
-    const previewDocument = previewDocUrl
-      ? (documents.find((document) => document.docUrl === previewDocUrl) ??
+    const previewDocument = state.previewDocUrl
+      ? (state.documents.find((document) => document.docUrl === state.previewDocUrl) ??
         null)
       : null;
     preview.hidden = previewDocument === null;
     if (previewDocument) {
-      const previewThumbnailUrl = thumbnailUrlByDocUrl.get(
+      const previewThumbnailUrl = state.thumbnailUrlByDocUrl.get(
         previewDocument.docUrl,
       );
       const nextPreviewImageSrc = previewThumbnailUrl ?? null;
@@ -508,21 +533,24 @@ export function createDocumentBrowserOverlay(options: {
       previewMetaTimestamp.textContent = `Last opened: ${formatTimestamp(previewDocument.lastOpenedAt)}`;
     }
 
-    if (loading) {
+    if (state.loading) {
       setChildren(grid, [loadingEl]);
       return;
     }
 
-    if (documents.length === 0) {
+    if (state.documents.length === 0) {
       setChildren(grid, [emptyStateEl]);
       return;
     }
 
-    tileList.update(documents, {
-      currentDocUrl,
-      busyDocUrl,
-      thumbnailUrlByDocUrl,
-    } satisfies TileRenderContext);
+    const items = state.documents.map((document) => ({
+      docUrl: document.docUrl,
+      document,
+      isCurrent: document.docUrl === state.currentDocUrl,
+      busy: state.busyDocUrl === document.docUrl,
+      thumbnailUrl: state.thumbnailUrlByDocUrl.get(document.docUrl) ?? null,
+    }));
+    tileList.update(items);
   };
 
   const onBrowserPointerDown = (event: PointerEvent): void => {
@@ -539,10 +567,10 @@ export function createDocumentBrowserOverlay(options: {
       return;
     }
     clearLongPressTimeout();
-    touchPressDocUrl = docUrl;
+    updateState((nextState) => ({ ...nextState, touchPressDocUrl: docUrl }));
     longPressTimeoutHandle = setTimeout(() => {
       longPressTimeoutHandle = null;
-      if (touchPressDocUrl !== docUrl) {
+      if ($state.get().touchPressDocUrl !== docUrl) {
         return;
       }
       showPreview(docUrl);
@@ -554,14 +582,14 @@ export function createDocumentBrowserOverlay(options: {
   };
 
   const onBrowserClick = (event: MouseEvent): void => {
+    const state = $state.get();
     const target = event.target as HTMLElement | null;
     if (!target) {
       return;
     }
 
-    if (previewDocUrl !== null && target === preview) {
+    if (state.previewDocUrl !== null && target === preview) {
       closePreview();
-      render();
       return;
     }
 
@@ -569,8 +597,11 @@ export function createDocumentBrowserOverlay(options: {
     if (openEl) {
       const docUrl = openEl.getAttribute("data-doc-browser-open");
       if (docUrl) {
-        if (suppressNextOpenDocUrl === docUrl) {
-          suppressNextOpenDocUrl = null;
+        if (state.suppressNextOpenDocUrl === docUrl) {
+          updateState((nextState) => ({
+            ...nextState,
+            suppressNextOpenDocUrl: null,
+          }));
           return;
         }
         options.onOpenDocument(docUrl);
@@ -599,23 +630,26 @@ export function createDocumentBrowserOverlay(options: {
     }
 
     if (target === createHost || target.closest("[data-doc-create-close]")) {
-      createOpen = false;
-      createVolumeId = null;
-      render();
+      updateState((nextState) => ({
+        ...nextState,
+        createOpen: false,
+        createVolumeId: null,
+      }));
       return;
     }
 
     if (target.closest("[data-doc-create-back]")) {
-      createVolumeId = null;
-      render();
+      updateState((nextState) => ({ ...nextState, createVolumeId: null }));
       return;
     }
 
     if (target.closest('[data-doc-browser-create-normal="true"]')) {
       options.onNewDocument({ mode: "normal" });
-      createOpen = false;
-      createVolumeId = null;
-      render();
+      updateState((nextState) => ({
+        ...nextState,
+        createOpen: false,
+        createVolumeId: null,
+      }));
       return;
     }
 
@@ -623,8 +657,10 @@ export function createDocumentBrowserOverlay(options: {
     if (volumeEl) {
       const volumeId = volumeEl.getAttribute("data-doc-create-volume");
       if (volumeId === "pdr-v1" || volumeId === "pdr-v2") {
-        createVolumeId = volumeId;
-        render();
+        updateState((nextState) => ({
+          ...nextState,
+          createVolumeId: volumeId,
+        }));
       }
       return;
     }
@@ -637,9 +673,11 @@ export function createDocumentBrowserOverlay(options: {
           mode: "coloring",
           coloringPageId,
         });
-        createOpen = false;
-        createVolumeId = null;
-        render();
+        updateState((nextState) => ({
+          ...nextState,
+          createOpen: false,
+          createVolumeId: null,
+        }));
       }
       return;
     }
@@ -647,9 +685,11 @@ export function createDocumentBrowserOverlay(options: {
 
   closeButton.addEventListener("click", () => options.onClose());
   newButton.addEventListener("click", () => {
-    createOpen = true;
-    createVolumeId = null;
-    render();
+    updateState((state) => ({
+      ...state,
+      createOpen: true,
+      createVolumeId: null,
+    }));
   });
   browserHost.addEventListener("pointerdown", onBrowserPointerDown);
   browserHost.addEventListener("pointerup", onBrowserPointerEnd);
@@ -657,54 +697,66 @@ export function createDocumentBrowserOverlay(options: {
   browserHost.addEventListener("pointerleave", onBrowserPointerEnd);
   browserHost.addEventListener("click", onBrowserClick);
   createHost.addEventListener("click", onCreateClick);
-  render();
+  bindAttrs($state, browserHost, (state) => ({ hidden: !state.open }));
+  bindAttrs($state, createHost, (state) => ({ hidden: !state.createOpen }));
+  bindAtom($state, (state) => {
+    if (
+      state.previewDocUrl &&
+      !state.documents.some((document) => document.docUrl === state.previewDocUrl)
+    ) {
+      closePreview();
+      return;
+    }
+    render();
+  });
 
   return {
     el: root,
     setOpen(nextOpen) {
-      open = nextOpen;
       if (!nextOpen) {
-        closePreview();
         clearLongPressTimeout();
-        touchPressDocUrl = null;
       }
-      render();
+      updateState((nextState) => ({
+        ...nextState,
+        open: nextOpen,
+        previewDocUrl: nextOpen ? nextState.previewDocUrl : null,
+        touchPressDocUrl: nextOpen ? nextState.touchPressDocUrl : null,
+      }
+      ));
     },
     isOpen() {
-      return open;
+      return $state.get().open;
     },
     openCreateDialog() {
-      createOpen = true;
-      createVolumeId = null;
-      render();
+      updateState((state) => ({
+        ...state,
+        createOpen: true,
+        createVolumeId: null,
+      }));
     },
     closeCreateDialog() {
-      createOpen = false;
-      createVolumeId = null;
-      render();
+      updateState((state) => ({
+        ...state,
+        createOpen: false,
+        createVolumeId: null,
+      }));
     },
     isCreateDialogOpen() {
-      return createOpen;
+      return $state.get().createOpen;
     },
     setLoading(nextLoading) {
-      loading = nextLoading;
-      render();
+      updateState((state) => ({ ...state, loading: nextLoading }));
     },
     setDocuments(nextDocuments, nextCurrentDocUrl, nextThumbnailUrlByDocUrl) {
-      documents = [...nextDocuments];
-      currentDocUrl = nextCurrentDocUrl;
-      thumbnailUrlByDocUrl = new Map(nextThumbnailUrlByDocUrl);
-      if (
-        previewDocUrl &&
-        !documents.some((document) => document.docUrl === previewDocUrl)
-      ) {
-        closePreview();
-      }
-      render();
+      updateState((state) => ({
+        ...state,
+        documents: [...nextDocuments],
+        currentDocUrl: nextCurrentDocUrl,
+        thumbnailUrlByDocUrl: new Map(nextThumbnailUrlByDocUrl),
+      }));
     },
     setBusyDocument(docUrl) {
-      busyDocUrl = docUrl;
-      render();
+      updateState((state) => ({ ...state, busyDocUrl: docUrl }));
     },
   };
 }

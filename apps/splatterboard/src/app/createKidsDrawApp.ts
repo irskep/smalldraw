@@ -20,8 +20,7 @@ import {
 import { warmImageStampAssets } from "../tools/stamps/imageStampAssets";
 import { getImageStampAssets } from "../tools/stamps/imageStampCatalog";
 import {
-  $toolbarUi,
-  syncToolbarUiFromDrawingStore,
+  createToolbarUiStore,
 } from "../ui/stores/toolbarUiStore";
 import { createKidsDrawStage } from "../view/KidsDrawStage";
 import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
@@ -154,11 +153,12 @@ export async function createKidsDrawApp(
   store.activateTool(
     getDefaultToolIdForFamily(catalog.defaultFamilyId, catalog),
   );
-  syncToolbarUiFromDrawingStore(store, {
+  const toolbarUiStore = createToolbarUiStore();
+  toolbarUiStore.syncFromDrawingStore(store, {
     resolveActiveFamilyId: (toolId) => getFamilyIdForTool(toolId, catalog),
     resolveToolStyleSupport: (toolId) => getToolStyleSupport(toolId, catalog),
   });
-  const unbindToolbarUi = toolbar.bindUiState($toolbarUi);
+  const unbindToolbarUi = toolbar.bindUiState(toolbarUiStore.$state);
 
   const pipeline = createRasterPipeline({
     store,
@@ -185,6 +185,7 @@ export async function createKidsDrawApp(
     tools: catalog.tools,
     families: catalog.families,
     stage,
+    toolbarUiStore,
     pipeline,
     appElement: element,
     documentBackend,
