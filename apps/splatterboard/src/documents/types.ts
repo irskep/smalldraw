@@ -1,12 +1,17 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
 
-export type KidsDocumentMode = "normal" | "coloring";
+export type KidsDocumentMode = "normal" | "coloring" | "markup";
+export type KidsDocumentReferenceComposite =
+  | "under-drawing"
+  | "over-drawing";
 
 export interface KidsDocumentSummary {
   docUrl: string;
   title?: string;
   mode: KidsDocumentMode;
   coloringPageId?: string;
+  referenceImageSrc?: string;
+  referenceComposite?: KidsDocumentReferenceComposite;
   createdAt: string;
   updatedAt: string;
   lastOpenedAt: string;
@@ -18,6 +23,8 @@ export interface KidsDocumentCreateInput {
   title?: string;
   mode?: KidsDocumentMode;
   coloringPageId?: string;
+  referenceImageSrc?: string;
+  referenceComposite?: KidsDocumentReferenceComposite;
   documentSize?: DrawingDocumentSize;
 }
 

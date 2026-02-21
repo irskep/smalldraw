@@ -28,7 +28,10 @@ function nowIsoString(): string {
 }
 
 function normalizeMode(mode: unknown): KidsDocumentMode {
-  return mode === "coloring" ? "coloring" : "normal";
+  if (mode === "coloring" || mode === "markup") {
+    return mode;
+  }
+  return "normal";
 }
 
 function normalizeDocumentSummary(
@@ -41,6 +44,16 @@ function normalizeDocumentSummary(
     coloringPageId:
       typeof value.coloringPageId === "string" && value.coloringPageId.length > 0
         ? value.coloringPageId
+        : undefined,
+    referenceImageSrc:
+      typeof value.referenceImageSrc === "string" &&
+      value.referenceImageSrc.length > 0
+        ? value.referenceImageSrc
+        : undefined,
+    referenceComposite:
+      value.referenceComposite === "under-drawing" ||
+      value.referenceComposite === "over-drawing"
+        ? value.referenceComposite
         : undefined,
     createdAt: value.createdAt ?? nowIsoString(),
     updatedAt: value.updatedAt ?? nowIsoString(),
@@ -207,6 +220,14 @@ class IndexedDbDocumentRepository implements DocumentRepository {
         input.mode === "normal"
           ? undefined
           : input.coloringPageId ?? existing?.coloringPageId,
+      referenceImageSrc:
+        input.mode === "normal"
+          ? undefined
+          : input.referenceImageSrc ?? existing?.referenceImageSrc,
+      referenceComposite:
+        input.mode === "normal"
+          ? undefined
+          : input.referenceComposite ?? existing?.referenceComposite,
       createdAt: existing?.createdAt ?? timestamp,
       updatedAt: timestamp,
       lastOpenedAt: timestamp,
@@ -282,6 +303,14 @@ class MemoryDocumentRepository implements DocumentRepository {
         input.mode === "normal"
           ? undefined
           : input.coloringPageId ?? existing?.coloringPageId,
+      referenceImageSrc:
+        input.mode === "normal"
+          ? undefined
+          : input.referenceImageSrc ?? existing?.referenceImageSrc,
+      referenceComposite:
+        input.mode === "normal"
+          ? undefined
+          : input.referenceComposite ?? existing?.referenceComposite,
       createdAt: existing?.createdAt ?? timestamp,
       updatedAt: timestamp,
       lastOpenedAt: timestamp,

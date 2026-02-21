@@ -33,6 +33,9 @@ const COLORING_PAGES: readonly ColoringPageSpec[] = GENERATED_COLORING_ASSETS.ma
 const COLORING_PAGE_BY_ID = new Map(
   COLORING_PAGES.map((page) => [page.id, page] as const),
 );
+const COLORING_PAGE_BY_SRC = new Map(
+  COLORING_PAGES.map((page) => [page.src, page] as const),
+);
 
 export const DEFAULT_COLORING_PAGE_ID = COLORING_PAGES[0].id;
 
@@ -42,4 +45,8 @@ export function getColoringPages(): readonly ColoringPageSpec[] {
 
 export function getColoringPageById(pageId: string): ColoringPageSpec | null {
   return COLORING_PAGE_BY_ID.get(pageId) ?? null;
+}
+
+export function getColoringPageBySrc(src: string): ColoringPageSpec | null {
+  return COLORING_PAGE_BY_SRC.get(src) ?? null;
 }

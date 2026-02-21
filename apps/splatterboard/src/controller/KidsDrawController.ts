@@ -24,9 +24,7 @@ import {
   Undo2,
 } from "lucide";
 import { mount, setChildren } from "redom";
-import {
-  getColoringPageById,
-} from "../coloring/catalog";
+import { getColoringPageById, getColoringPageBySrc } from "../coloring/catalog";
 import type {
   KidsDocumentBackend,
   KidsDocumentMode,
@@ -130,6 +128,8 @@ export interface KidsDrawController {
 interface ActiveDocumentPresentation {
   mode: KidsDocumentMode;
   coloringPageId?: string;
+  referenceImageSrc?: string;
+  referenceComposite?: "under-drawing" | "over-drawing";
 }
 
 function getNearestStrokeWidthOption(strokeWidth: number): number {
@@ -567,15 +567,33 @@ export function createKidsDrawController(options: {
   const resolveDocumentPresentationFromData = (
     presentation: DrawingDocumentPresentation | undefined,
   ): ActiveDocumentPresentation => {
+    const explicitDocumentType =
+      presentation?.documentType === "normal" ||
+      presentation?.documentType === "coloring" ||
+      presentation?.documentType === "markup"
+        ? presentation.documentType
+        : null;
+    const referenceImage = presentation?.referenceImage;
     if (
-      presentation?.mode === "coloring" &&
-      typeof presentation.coloringPageId === "string" &&
-      presentation.coloringPageId.length > 0
+      referenceImage &&
+      typeof referenceImage.src === "string" &&
+      referenceImage.src.length > 0 &&
+      (referenceImage.composite === "under-drawing" ||
+        referenceImage.composite === "over-drawing")
     ) {
+      const coloringPage = getColoringPageBySrc(referenceImage.src);
+      const mode: KidsDocumentMode =
+        explicitDocumentType ??
+        (referenceImage.composite === "under-drawing" ? "markup" : "coloring");
       return {
-        mode: "coloring",
-        coloringPageId: presentation.coloringPageId,
+        mode,
+        coloringPageId: coloringPage?.id,
+        referenceImageSrc: referenceImage.src,
+        referenceComposite: referenceImage.composite,
       };
+    }
+    if (explicitDocumentType) {
+      return { mode: explicitDocumentType };
     }
     return { mode: "normal" };
   };
@@ -585,14 +603,35 @@ export function createKidsDrawController(options: {
   ): ActiveDocumentPresentation =>
     resolveDocumentPresentationFromData(documentPresentation);
 
-  const getColoringOverlaySrc = (
+  const getReferenceOverlaySrc = (
     presentation: ActiveDocumentPresentation,
   ): string | null => {
-    if (presentation.mode !== "coloring" || !presentation.coloringPageId) {
+    if (
+      presentation.referenceComposite !== "over-drawing" ||
+      !presentation.referenceImageSrc
+    ) {
       return null;
     }
-    const page = getColoringPageById(presentation.coloringPageId);
-    return page?.src ?? null;
+    return presentation.referenceImageSrc;
+  };
+
+  const toDocumentMetadataFromPresentation = (
+    presentation: ActiveDocumentPresentation,
+  ): Pick<
+    KidsDocumentSummary,
+    "mode" | "coloringPageId" | "referenceImageSrc" | "referenceComposite"
+  > => {
+    if (presentation.mode === "normal") {
+      return {
+        mode: "normal",
+      };
+    }
+    return {
+      mode: presentation.mode,
+      coloringPageId: presentation.coloringPageId,
+      referenceImageSrc: presentation.referenceImageSrc,
+      referenceComposite: presentation.referenceComposite,
+    };
   };
 
   const queueColoringOverlayRebakeWhenLoaded = (overlaySrc: string | null): void => {
@@ -621,8 +660,8 @@ export function createKidsDrawController(options: {
     presentation: ActiveDocumentPresentation,
   ): void => {
     activeDocumentPresentation = presentation;
-    const overlaySrc = getColoringOverlaySrc(presentation);
-    pipeline.setColoringOverlaySource(overlaySrc);
+    const overlaySrc = getReferenceOverlaySrc(presentation);
+    pipeline.setReferenceOverlaySource(overlaySrc);
     updateRenderIdentity();
     if (overlaySrc) {
       warmRasterImage(overlaySrc);
@@ -720,9 +759,9 @@ export function createKidsDrawController(options: {
   const getRenderIdentity = (): string => {
     const size = getSize();
     const presentationIdentity =
-      activeDocumentPresentation.mode === "coloring" &&
-      activeDocumentPresentation.coloringPageId
-        ? `coloring:${activeDocumentPresentation.coloringPageId}`
+      activeDocumentPresentation.referenceImageSrc &&
+      activeDocumentPresentation.referenceComposite
+        ? `${activeDocumentPresentation.referenceComposite}:${activeDocumentPresentation.referenceImageSrc}`
         : "normal";
     return [
       "kids-draw",
@@ -1199,11 +1238,18 @@ export function createKidsDrawController(options: {
     request: NewDocumentRequest,
   ): DrawingDocumentPresentation => {
     if (request.mode === "normal") {
-      return { mode: "normal" };
+      return { documentType: "normal" };
+    }
+    const page = getColoringPageById(request.coloringPageId);
+    if (!page) {
+      return { documentType: "normal" };
     }
     return {
-      mode: "coloring",
-      coloringPageId: request.coloringPageId,
+      documentType: "coloring",
+      referenceImage: {
+        src: page.src,
+        composite: "over-drawing",
+      },
     };
   };
 
@@ -1227,8 +1273,7 @@ export function createKidsDrawController(options: {
     const presentation = resolveDocumentPresentation(openedDocument.presentation);
     await documentBackend.createDocument({
       docUrl,
-      mode: presentation.mode,
-      coloringPageId: presentation.coloringPageId,
+      ...toDocumentMetadataFromPresentation(presentation),
       documentSize: docSize,
     });
     await documentBackend.touchDocument(docUrl);
@@ -1256,8 +1301,7 @@ export function createKidsDrawController(options: {
     const presentation = resolveDocumentPresentation(createdDocument.presentation);
     await documentBackend.createDocument({
       docUrl: url,
-      mode: presentation.mode,
-      coloringPageId: presentation.coloringPageId,
+      ...toDocumentMetadataFromPresentation(presentation),
       documentSize: nextDocumentSize,
     });
     store.resetToDocument(createdDocument);
@@ -1361,16 +1405,20 @@ export function createKidsDrawController(options: {
     }
   };
 
-  const drawColoringOverlay = (
+  const drawReferenceImage = (
     ctx: CanvasRenderingContext2D,
     width: number,
     height: number,
+    composite: "under-drawing" | "over-drawing",
   ): void => {
-    const overlaySrc = getColoringOverlaySrc(activeDocumentPresentation);
-    if (!overlaySrc) {
+    if (activeDocumentPresentation.referenceComposite !== composite) {
       return;
     }
-    const image = getLoadedRasterImage(overlaySrc);
+    const src = activeDocumentPresentation.referenceImageSrc;
+    if (!src) {
+      return;
+    }
+    const image = getLoadedRasterImage(src);
     if (!image) {
       return;
     }
@@ -1395,11 +1443,12 @@ export function createKidsDrawController(options: {
 
     ctx.save();
     ctx.scale(scale, scale);
+    drawReferenceImage(ctx, width, height, "under-drawing");
     renderOrderedShapes(ctx, store.getOrderedShapes(), {
       registry: shapeRendererRegistry,
       geometryHandlerRegistry: store.getShapeHandlers(),
     });
-    drawColoringOverlay(ctx, width, height);
+    drawReferenceImage(ctx, width, height, "over-drawing");
     ctx.restore();
 
     ctx.save();
@@ -1517,11 +1566,22 @@ export function createKidsDrawController(options: {
       return;
     }
 
+    drawReferenceImage(
+      exportCtx,
+      exportCanvas.width,
+      exportCanvas.height,
+      "under-drawing",
+    );
     renderOrderedShapes(exportCtx, store.getOrderedShapes(), {
       registry: shapeRendererRegistry,
       geometryHandlerRegistry: store.getShapeHandlers(),
     });
-    drawColoringOverlay(exportCtx, exportCanvas.width, exportCanvas.height);
+    drawReferenceImage(
+      exportCtx,
+      exportCanvas.width,
+      exportCanvas.height,
+      "over-drawing",
+    );
     exportCtx.save();
     exportCtx.globalCompositeOperation = "destination-over";
     exportCtx.fillStyle = backgroundColor;
@@ -1923,8 +1983,7 @@ export function createKidsDrawController(options: {
     );
     await documentBackend.createDocument({
       docUrl,
-      mode: presentation.mode,
-      coloringPageId: presentation.coloringPageId,
+      ...toDocumentMetadataFromPresentation(presentation),
       documentSize: store.getDocument().size,
     });
     if (docUrl !== core.getCurrentDocUrl()) {

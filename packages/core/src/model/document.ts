@@ -9,14 +9,19 @@ export interface DrawingDocumentSize {
   height: number;
 }
 
-export type DrawingDocumentPresentation =
-  | {
-      mode: "normal";
-    }
-  | {
-      mode: "coloring";
-      coloringPageId: string;
-    };
+export type DrawingDocumentReferenceComposite =
+  | "under-drawing"
+  | "over-drawing";
+
+export interface DrawingDocumentReferenceImage {
+  src: string;
+  composite: DrawingDocumentReferenceComposite;
+}
+
+export interface DrawingDocumentPresentation {
+  documentType?: string;
+  referenceImage?: DrawingDocumentReferenceImage;
+}
 
 export const DEFAULT_DOCUMENT_SIZE: DrawingDocumentSize = {
   width: 960,
@@ -24,25 +29,35 @@ export const DEFAULT_DOCUMENT_SIZE: DrawingDocumentSize = {
 };
 
 export const DEFAULT_DOCUMENT_PRESENTATION: DrawingDocumentPresentation = {
-  mode: "normal",
 };
 
 function normalizePresentation(
   presentation: DrawingDocumentPresentation | undefined,
 ): DrawingDocumentPresentation {
+  const normalized: DrawingDocumentPresentation = {};
+  const normalizedDocumentType =
+    typeof presentation?.documentType === "string" &&
+    presentation.documentType.trim().length > 0
+      ? presentation.documentType
+      : undefined;
+  if (normalizedDocumentType) {
+    normalized.documentType = normalizedDocumentType;
+  }
+  if (!presentation?.referenceImage) {
+    return normalized;
+  }
   if (
-    presentation?.mode === "coloring" &&
-    typeof presentation.coloringPageId === "string" &&
-    presentation.coloringPageId.length > 0
+    typeof presentation.referenceImage.src === "string" &&
+    presentation.referenceImage.src.length > 0 &&
+    (presentation.referenceImage.composite === "under-drawing" ||
+      presentation.referenceImage.composite === "over-drawing")
   ) {
-    return {
-      mode: "coloring",
-      coloringPageId: presentation.coloringPageId,
+    normalized.referenceImage = {
+      src: presentation.referenceImage.src,
+      composite: presentation.referenceImage.composite,
     };
   }
-  return {
-    mode: "normal",
-  };
+  return normalized;
 }
 
 export interface DrawingDocumentData {

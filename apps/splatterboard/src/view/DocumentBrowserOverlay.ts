@@ -59,10 +59,15 @@ function toFallbackTitle(document: KidsDocumentSummary): string {
 }
 
 function getMetadataTooltip(document: KidsDocumentSummary): string {
-  const mode =
-    document.mode === "coloring" && document.coloringPageId
-      ? `\nMode: Coloring (${document.coloringPageId})`
-      : "\nMode: Normal";
+  const mode = (() => {
+    if (document.mode === "coloring" && document.coloringPageId) {
+      return `\nMode: Coloring (${document.coloringPageId})`;
+    }
+    if (document.mode === "markup") {
+      return "\nMode: Markup";
+    }
+    return "\nMode: Normal";
+  })();
   return `${toFallbackTitle(document)}\nLast opened: ${formatTimestamp(document.lastOpenedAt)}${mode}`;
 }
 

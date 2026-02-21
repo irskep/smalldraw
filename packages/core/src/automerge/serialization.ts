@@ -5,10 +5,7 @@ import type {
   DrawingDocumentPresentation,
   DrawingDocumentSize,
 } from "../model/document";
-import {
-  DEFAULT_DOCUMENT_PRESENTATION,
-  DEFAULT_DOCUMENT_SIZE,
-} from "../model/document";
+import { DEFAULT_DOCUMENT_SIZE } from "../model/document";
 import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
@@ -57,15 +54,38 @@ export function fromJSON(
         Math.round(json.size?.height ?? DEFAULT_DOCUMENT_SIZE.height),
       ),
     };
-    draft.presentation =
-      json.presentation?.mode === "coloring" &&
-      typeof json.presentation.coloringPageId === "string" &&
-      json.presentation.coloringPageId.length > 0
-        ? {
-            mode: "coloring",
-            coloringPageId: json.presentation.coloringPageId,
-          }
-        : DEFAULT_DOCUMENT_PRESENTATION;
+    if (
+      json.presentation?.referenceImage &&
+      typeof json.presentation.referenceImage.src === "string" &&
+      json.presentation.referenceImage.src.length > 0 &&
+      (json.presentation.referenceImage.composite === "under-drawing" ||
+        json.presentation.referenceImage.composite === "over-drawing")
+    ) {
+      const documentType =
+        typeof json.presentation.documentType === "string" &&
+        json.presentation.documentType.trim().length > 0
+          ? json.presentation.documentType
+          : undefined;
+      const nextPresentation: DrawingDocumentPresentation = {
+        referenceImage: {
+          src: json.presentation.referenceImage.src,
+          composite: json.presentation.referenceImage.composite,
+        },
+      };
+      if (documentType) {
+        nextPresentation.documentType = documentType;
+      }
+      draft.presentation = nextPresentation;
+    } else {
+      const nextPresentation: DrawingDocumentPresentation = {};
+      if (
+        typeof json.presentation?.documentType === "string" &&
+        json.presentation.documentType.trim().length > 0
+      ) {
+        nextPresentation.documentType = json.presentation.documentType;
+      }
+      draft.presentation = nextPresentation;
+    }
     draft.shapes = {};
     draft.temporalOrderCounter = json.temporalOrderCounter ?? 0;
     for (const shape of Object.values(json.shapes)) {

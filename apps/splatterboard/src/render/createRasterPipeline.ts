@@ -20,7 +20,7 @@ export interface RasterPipeline {
   getTilePixelRatio(): number;
   setRenderIdentity(renderIdentity: string): void;
   bakeInitialShapes(shapes: AnyShape[]): void;
-  setColoringOverlaySource(src: string | null): void;
+  setReferenceOverlaySource(src: string | null): void;
   scheduleBakeForClear(): void;
   bakePendingTiles(): void;
   dispose(): void;
@@ -236,7 +236,7 @@ export function createRasterPipeline(options: {
       tileRenderer.scheduleBakeForShapes(shapes.map((shape) => shape.id));
       void tileRenderer.bakePendingTiles();
     },
-    setColoringOverlaySource(src) {
+    setReferenceOverlaySource(src) {
       if (typeof src === "string" && src.length > 0) {
         coloringOverlaySource = src;
         coloringOverlayNeedsRedraw = true;

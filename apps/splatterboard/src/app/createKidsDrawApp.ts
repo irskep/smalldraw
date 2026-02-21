@@ -5,6 +5,7 @@ import {
 } from "@smalldraw/core";
 import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
+import { getColoringPageBySrc } from "../coloring/catalog";
 import { createLocalDocumentBackend } from "../documents";
 import { resolveLayoutMode, resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
@@ -81,14 +82,29 @@ export async function createKidsDrawApp(
   try {
     const doc = core.storeAdapter.getDoc();
     const presentation = doc.presentation;
-    const mode = presentation?.mode === "coloring" ? "coloring" : "normal";
+    const referenceImage = presentation?.referenceImage;
+    const coloringPage = referenceImage
+      ? getColoringPageBySrc(referenceImage.src)
+      : null;
+    const explicitDocumentType =
+      presentation?.documentType === "normal" ||
+      presentation?.documentType === "coloring" ||
+      presentation?.documentType === "markup"
+        ? presentation.documentType
+        : null;
+    const mode =
+      explicitDocumentType ??
+      (referenceImage?.composite === "under-drawing"
+        ? "markup"
+        : coloringPage
+          ? "coloring"
+          : "normal");
     await documentBackend.createDocument({
       docUrl: core.getCurrentDocUrl(),
       mode,
-      coloringPageId:
-        presentation?.mode === "coloring"
-          ? presentation.coloringPageId
-          : undefined,
+      coloringPageId: coloringPage?.id,
+      referenceImageSrc: referenceImage?.src,
+      referenceComposite: referenceImage?.composite,
       documentSize: doc.size,
     });
   } catch (error) {

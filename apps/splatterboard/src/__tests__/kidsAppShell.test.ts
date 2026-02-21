@@ -147,6 +147,14 @@ function createMockDocumentBackend(
           input.mode === "normal"
             ? undefined
             : input.coloringPageId ?? existing?.coloringPageId,
+        referenceImageSrc:
+          input.mode === "normal"
+            ? undefined
+            : input.referenceImageSrc ?? existing?.referenceImageSrc,
+        referenceComposite:
+          input.mode === "normal"
+            ? undefined
+            : input.referenceComposite ?? existing?.referenceComposite,
         createdAt: existing?.createdAt ?? timestamp,
         updatedAt: timestamp,
         lastOpenedAt: timestamp,
@@ -1253,8 +1261,9 @@ describe("splatterboard shell", () => {
         () => {
           const presentation = core.storeAdapter.getDoc().presentation;
           return (
-            presentation.mode === "coloring" &&
-            presentation.coloringPageId === "pdr-v1-009"
+            presentation.documentType === "coloring" &&
+            presentation.referenceImage?.composite === "over-drawing" &&
+            (presentation.referenceImage?.src.length ?? 0) > 0
           );
         },
         100,
@@ -1273,8 +1282,9 @@ describe("splatterboard shell", () => {
         () => {
           const presentation = core.storeAdapter.getDoc().presentation;
           return (
-            presentation.mode === "coloring" &&
-            presentation.coloringPageId === "pdr-v1-009"
+            presentation.documentType === "coloring" &&
+            presentation.referenceImage?.composite === "over-drawing" &&
+            (presentation.referenceImage?.src.length ?? 0) > 0
           );
         },
         100,
