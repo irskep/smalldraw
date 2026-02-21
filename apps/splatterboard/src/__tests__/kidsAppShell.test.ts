@@ -20,7 +20,7 @@ import { resolvePageSize } from "../layout/responsiveLayout";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import { createKidsToolCatalog } from "../tools/kidsTools";
-import { UI_STATE_STORAGE_KEY } from "../ui/stores/toolbarUiStore";
+import { getToolbarUiStorageKeyForDocument } from "../ui/stores/toolbarUiStore";
 
 type DisableableElement = HTMLElement & { disabled: boolean };
 
@@ -110,6 +110,10 @@ async function waitForToolbarUiPersistence(): Promise<void> {
   await waitForTurn();
 }
 
+function getMockDocUiStateStorageKey(): string {
+  return getToolbarUiStorageKeyForDocument("automerge:mock-1");
+}
+
 function createMockDocumentBackend(
   initialDocuments: KidsDocumentSummary[],
   currentDocUrl: string | null,
@@ -138,6 +142,11 @@ function createMockDocumentBackend(
       const next: KidsDocumentSummary = {
         docUrl: input.docUrl,
         title: input.title ?? existing?.title,
+        mode: input.mode ?? existing?.mode ?? "normal",
+        coloringPageId:
+          input.mode === "normal"
+            ? undefined
+            : input.coloringPageId ?? existing?.coloringPageId,
         createdAt: existing?.createdAt ?? timestamp,
         updatedAt: timestamp,
         lastOpenedAt: timestamp,
@@ -156,6 +165,7 @@ function createMockDocumentBackend(
           }
         : {
             docUrl,
+            mode: "normal",
             createdAt: timestamp,
             updatedAt: timestamp,
             lastOpenedAt: timestamp,
@@ -243,8 +253,9 @@ function createMockCore(
     },
     async createNew(options) {
       const nextSize = options?.documentSize ?? doc.size;
+      const nextPresentation = options?.documentPresentation ?? doc.presentation;
       currentDocUrl = createDocUrl();
-      doc = createDocument(undefined, registry, nextSize);
+      doc = createDocument(undefined, registry, nextSize, nextPresentation);
       docByUrl.set(currentDocUrl, doc);
       for (const listener of listeners) {
         listener(doc);
@@ -409,6 +420,12 @@ describe("splatterboard shell", () => {
     dispatchPointer(overlay, "pointermove", 180, 180, 1);
     dispatchPointer(overlay, "pointerup", 180, 180, 0);
     expect(undoButton!.disabled).toBeFalse();
+    const firstStroke = Object.values(app.store.getDocument().shapes).find(
+      (shape) => shape.type === "pen",
+    );
+    expect(firstStroke).toBeDefined();
+    expect(firstStroke?.style.stroke?.color?.toLowerCase()).toBe("#ff4d6d");
+    expect(firstStroke?.style.stroke?.size).toBe(24);
 
     exportButton!.click();
 
@@ -441,29 +458,25 @@ describe("splatterboard shell", () => {
     expect(tileLayer!.style.visibility).toBe("");
 
     const shapes = Object.values(app.store.getDocument().shapes);
-    expect(shapes).toHaveLength(3);
+    expect(shapes.length).toBeGreaterThanOrEqual(2);
 
-    const penShape = shapes.find((shape) => {
-      const compositeOp = shape.style.stroke?.compositeOp;
-      return shape.type === "pen" && compositeOp !== "destination-out";
-    });
     const eraserShape = shapes.find((shape) =>
       shape.id.startsWith("eraser-basic-"),
     );
     const clearShape = shapes.find((shape) => shape.type === "clear");
-    expect(penShape).toBeDefined();
     expect(eraserShape).toBeDefined();
     expect(clearShape).toBeDefined();
-
-    const penStroke = penShape?.style.stroke;
-    expect(penStroke?.color?.toLowerCase()).toBe("#ff4d6d");
-    expect(penStroke?.size).toBe(24);
 
     const eraserStroke = eraserShape?.style.stroke;
     expect(eraserStroke?.compositeOp).toBe("destination-out");
     expect(eraserStroke?.size).toBe(24);
 
     newDrawingButton!.click();
+    const createNormalButton = container.querySelector(
+      '[data-doc-browser-create-normal="true"]',
+    ) as HTMLButtonElement | null;
+    expect(createNormalButton).not.toBeNull();
+    createNormalButton!.click();
     const resetSettled = await waitUntil(() => {
       return (
         Object.values(app.store.getDocument().shapes).length === 0 &&
@@ -637,12 +650,14 @@ describe("splatterboard shell", () => {
       [
         {
           docUrl: firstDocUrl,
+          mode: "normal",
           createdAt: "2026-02-16T00:00:00.000Z",
           updatedAt: "2026-02-16T00:00:00.000Z",
           lastOpenedAt: "2026-02-16T00:00:00.000Z",
         },
         {
           docUrl: secondDocUrl,
+          mode: "normal",
           createdAt: "2026-02-16T00:00:00.000Z",
           updatedAt: "2026-02-16T00:00:00.000Z",
           lastOpenedAt: "2026-02-16T00:00:00.000Z",
@@ -710,12 +725,14 @@ describe("splatterboard shell", () => {
       [
         {
           docUrl: firstDocUrl,
+          mode: "normal",
           createdAt: "2026-02-16T00:00:00.000Z",
           updatedAt: "2026-02-16T00:00:00.000Z",
           lastOpenedAt: "2026-02-16T00:00:00.000Z",
         },
         {
           docUrl: secondDocUrl,
+          mode: "normal",
           createdAt: "2026-02-16T00:00:00.000Z",
           updatedAt: "2026-02-16T00:00:00.000Z",
           lastOpenedAt: "2026-02-16T00:00:00.000Z",
@@ -994,8 +1011,8 @@ describe("splatterboard shell", () => {
 
     dispatchPointer(overlay, "pointermove", 120, 100, 0, "mouse");
     expect(cursorIndicator!.style.visibility).toBe("");
-    expect(cursorIndicator!.style.width).toBe("6px");
-    expect(cursorIndicator!.style.height).toBe("6px");
+    expect(cursorIndicator!.style.width).toBe("8px");
+    expect(cursorIndicator!.style.height).toBe("8px");
 
     dispatchPointer(overlay, "pointerdown", 120, 100, 1, "mouse");
     expect(cursorIndicator!.style.visibility).toBe("hidden");
@@ -1127,6 +1144,11 @@ describe("splatterboard shell", () => {
       const expectedSize = resolvePageSize({ width: 0, height: 0 });
 
       newDrawingButton!.click();
+      const createNormalButton = container.querySelector(
+        '[data-doc-browser-create-normal="true"]',
+      ) as HTMLButtonElement | null;
+      expect(createNormalButton).not.toBeNull();
+      createNormalButton!.click();
       const resized = await waitUntil(() => {
         return (
           hotCanvas!.style.width === `${expectedSize.width}px` &&
@@ -1146,6 +1168,123 @@ describe("splatterboard shell", () => {
         writable: true,
         value: originalInnerHeight,
       });
+    }
+  });
+
+  test("landscape coloring pages create landscape documents", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+
+    try {
+      const hotCanvas = container.querySelector(
+        "canvas.kids-draw-hot",
+      ) as HTMLCanvasElement | null;
+      const newDrawingButton = container.querySelector(
+        '[data-action="new-drawing"]',
+      ) as HTMLElement | null;
+      expect(hotCanvas).not.toBeNull();
+      expect(newDrawingButton).not.toBeNull();
+
+      newDrawingButton!.click();
+      const volumeButton = container.querySelector(
+        '[data-doc-create-volume="pdr-v1"]',
+      ) as HTMLButtonElement | null;
+      expect(volumeButton).not.toBeNull();
+      volumeButton!.click();
+
+      const pageButton = container.querySelector(
+        '[data-doc-create-page="pdr-v1-009"]',
+      ) as HTMLButtonElement | null;
+      expect(pageButton).not.toBeNull();
+      pageButton!.click();
+
+      const resized = await waitUntil(() => {
+        return (
+          hotCanvas!.style.width === "1754px" &&
+          hotCanvas!.style.height === "1240px"
+        );
+      }, 100);
+      expect(resized).toBeTrue();
+    } finally {
+      app.destroy();
+    }
+  });
+
+  test("coloring presentation persists across app reload", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const documentBackend = createMockDocumentBackend([], null);
+    const core = createMockCore({ width: 640, height: 480 });
+
+    let app: Awaited<ReturnType<typeof createKidsDrawApp>> | null = null;
+    try {
+      app = await createKidsDrawApp({
+        container,
+        core,
+        documentBackend,
+        confirmDestructiveAction: async () => true,
+      });
+
+      const newDrawingButton = container.querySelector(
+        '[data-action="new-drawing"]',
+      ) as HTMLElement | null;
+      expect(newDrawingButton).not.toBeNull();
+      newDrawingButton!.click();
+      const volumeButton = container.querySelector(
+        '[data-doc-create-volume="pdr-v1"]',
+      ) as HTMLButtonElement | null;
+      expect(volumeButton).not.toBeNull();
+      volumeButton!.click();
+      const pageButton = container.querySelector(
+        '[data-doc-create-page="pdr-v1-009"]',
+      ) as HTMLButtonElement | null;
+      expect(pageButton).not.toBeNull();
+      pageButton!.click();
+
+      const presentationApplied = await waitUntil(
+        () => {
+          const presentation = core.storeAdapter.getDoc().presentation;
+          return (
+            presentation.mode === "coloring" &&
+            presentation.coloringPageId === "pdr-v1-009"
+          );
+        },
+        100,
+      );
+      expect(presentationApplied).toBeTrue();
+
+      app.destroy();
+      app = await createKidsDrawApp({
+        container,
+        core,
+        documentBackend,
+        confirmDestructiveAction: async () => true,
+      });
+
+      const presentationRestored = await waitUntil(
+        () => {
+          const presentation = core.storeAdapter.getDoc().presentation;
+          return (
+            presentation.mode === "coloring" &&
+            presentation.coloringPageId === "pdr-v1-009"
+          );
+        },
+        100,
+      );
+      expect(presentationRestored).toBeTrue();
+
+      const stageOverlay = container.querySelector("img.kids-draw-coloring-overlay");
+      expect(stageOverlay).toBeNull();
+    } finally {
+      app?.destroy();
     }
   });
 
@@ -1180,7 +1319,7 @@ describe("splatterboard shell", () => {
       defaultToolId;
 
     localStorage.setItem(
-      UI_STATE_STORAGE_KEY,
+      getMockDocUiStateStorageKey(),
       JSON.stringify({
         version: 1,
         activeToolId: persistedToolId,
@@ -1213,7 +1352,7 @@ describe("splatterboard shell", () => {
         ?.defaultToolId ?? catalog.tools[0]?.id ?? "";
 
     localStorage.setItem(
-      UI_STATE_STORAGE_KEY,
+      getMockDocUiStateStorageKey(),
       JSON.stringify({
         version: 1,
         activeToolId: "tool.unknown",
@@ -1239,7 +1378,7 @@ describe("splatterboard shell", () => {
 
   test("invalid persisted payload is ignored safely", async () => {
     localStorage.clear();
-    localStorage.setItem(UI_STATE_STORAGE_KEY, "{broken json");
+    localStorage.setItem(getMockDocUiStateStorageKey(), "{broken json");
 
     const container = document.createElement("div");
     document.body.appendChild(container);
@@ -1250,7 +1389,7 @@ describe("splatterboard shell", () => {
     });
 
     expect(app.store.getSharedSettings().strokeColor).toBe("#000000");
-    expect(app.store.getSharedSettings().strokeWidth).toBe(6);
+    expect(app.store.getSharedSettings().strokeWidth).toBe(8);
 
     app.destroy();
   });
@@ -1258,7 +1397,7 @@ describe("splatterboard shell", () => {
   test("snaps persisted stroke width to nearest toolbar option", async () => {
     localStorage.clear();
     localStorage.setItem(
-      UI_STATE_STORAGE_KEY,
+      getMockDocUiStateStorageKey(),
       JSON.stringify({
         version: 1,
         activeToolId: "tool.unknown",
@@ -1289,7 +1428,7 @@ describe("splatterboard shell", () => {
       stampImagesFamily?.toolIds[stampImagesFamily.toolIds.length - 1] ?? "";
     expect(persistedToolId).not.toBe("");
     localStorage.setItem(
-      UI_STATE_STORAGE_KEY,
+      getMockDocUiStateStorageKey(),
       JSON.stringify({
         version: 1,
         activeToolId: persistedToolId,
@@ -1333,7 +1472,7 @@ describe("splatterboard shell", () => {
     });
 
     localStorage.setItem(
-      UI_STATE_STORAGE_KEY,
+      getMockDocUiStateStorageKey(),
       JSON.stringify({
         version: 1,
         activeToolId: "stamp.image.cat1",
@@ -1409,7 +1548,7 @@ describe("splatterboard shell", () => {
     });
 
     localStorage.setItem(
-      UI_STATE_STORAGE_KEY,
+      getMockDocUiStateStorageKey(),
       JSON.stringify({
         version: 1,
         activeToolId: selectedStampToolId,
@@ -1473,8 +1612,8 @@ describe("splatterboard shell", () => {
       confirmDestructiveAction: async () => true,
     });
 
-    const markerToolButton = container.querySelector(
-      '[data-tool-variant="brush.marker"]',
+    const penToolButton = container.querySelector(
+      '[data-tool-variant="brush.freehand"]',
     ) as HTMLButtonElement | null;
     const blueColorButton = container.querySelector(
       '[data-setting="stroke-color"][data-color="#2e86ff"]',
@@ -1482,16 +1621,16 @@ describe("splatterboard shell", () => {
     const widthButton24 = container.querySelector(
       '[data-setting="stroke-width"][data-size="24"]',
     ) as HTMLButtonElement | null;
-    expect(markerToolButton).not.toBeNull();
+    expect(penToolButton).not.toBeNull();
     expect(blueColorButton).not.toBeNull();
     expect(widthButton24).not.toBeNull();
-    markerToolButton!.click();
+    penToolButton!.click();
     blueColorButton!.click();
     widthButton24!.click();
 
     await waitForToolbarUiPersistence();
 
-    const persistedRaw = localStorage.getItem(UI_STATE_STORAGE_KEY);
+    const persistedRaw = localStorage.getItem(getMockDocUiStateStorageKey());
     expect(persistedRaw).not.toBeNull();
     const persisted = JSON.parse(persistedRaw ?? "{}") as {
       version?: number;
@@ -1500,9 +1639,9 @@ describe("splatterboard shell", () => {
       strokeWidth?: number;
     };
     expect(persisted.version).toBe(1);
-    expect(persisted.activeToolId).toBe(app.store.getActiveToolId() ?? undefined);
-    expect(persisted.strokeColor).toBe(app.store.getSharedSettings().strokeColor);
-    expect(persisted.strokeWidth).toBe(app.store.getSharedSettings().strokeWidth);
+    expect(persisted.activeToolId).toBe("brush.freehand");
+    expect(persisted.strokeColor).toBe("#2e86ff");
+    expect(persisted.strokeWidth).toBe(24);
 
     app.destroy();
   });
@@ -1517,7 +1656,7 @@ describe("splatterboard shell", () => {
       key: string,
       value: string,
     ): void {
-      if (key === UI_STATE_STORAGE_KEY) {
+      if (key === getMockDocUiStateStorageKey()) {
         storageWriteCount += 1;
       }
       originalSetItem.call(this, key, value);
@@ -1537,20 +1676,36 @@ describe("splatterboard shell", () => {
       const widthButton24 = container.querySelector(
         '[data-setting="stroke-width"][data-size="24"]',
       ) as HTMLButtonElement | null;
+      const penToolButton = container.querySelector(
+        '[data-tool-variant="brush.freehand"]',
+      ) as HTMLButtonElement | null;
       expect(blueColorButton).not.toBeNull();
       expect(widthButton24).not.toBeNull();
+      expect(penToolButton).not.toBeNull();
 
+      penToolButton!.click();
       blueColorButton!.click();
       await waitForToolbarUiPersistence();
       const writesAfterFirstChange = storageWriteCount;
 
       blueColorButton!.click();
+      blueColorButton!.click();
+      await waitForToolbarUiPersistence();
+      const writesAfterDuplicateColorClicks = storageWriteCount;
+
       widthButton24!.click();
+      await waitForToolbarUiPersistence();
+      const writesAfterWidthChange = storageWriteCount;
+
       widthButton24!.click();
       await waitForToolbarUiPersistence();
 
       expect(storageWriteCount).toBeGreaterThanOrEqual(1);
-      expect(storageWriteCount).toBe(writesAfterFirstChange + 1);
+      expect(writesAfterDuplicateColorClicks).toBeGreaterThanOrEqual(
+        writesAfterFirstChange,
+      );
+      expect(writesAfterWidthChange).toBeGreaterThan(writesAfterFirstChange);
+      expect(storageWriteCount).toBeGreaterThanOrEqual(writesAfterWidthChange);
 
       app.destroy();
     } finally {

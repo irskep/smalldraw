@@ -15,6 +15,7 @@ export interface KidsDrawStage {
   readonly sceneRoot: HTMLDivElement;
   readonly tileLayer: HTMLDivElement;
   readonly hotCanvas: HTMLCanvasElement;
+  readonly hotOverlayCanvas: HTMLCanvasElement;
   readonly overlay: HTMLDivElement;
   readonly cursorIndicator: HTMLDivElement;
   readonly dirtyRectOverlay: SVGSVGElement | null;
@@ -54,6 +55,9 @@ export function createKidsDrawStage(options: {
   const hotCanvas = el(
     "canvas.kids-draw-layer.kids-draw-hot",
   ) as HTMLCanvasElement;
+  const hotOverlayCanvas = el(
+    "canvas.kids-draw-layer.kids-draw-hot-overlay",
+  ) as HTMLCanvasElement;
 
   const dirtyRectOverlay = DEBUG_SHOW_DIRTY_RECT_LAYER
     ? document.createElementNS("http://www.w3.org/2000/svg", "svg")
@@ -91,6 +95,8 @@ export function createKidsDrawStage(options: {
     sceneRoot.style.height = `${nextHeight}px`;
     hotCanvas.style.width = `${nextWidth}px`;
     hotCanvas.style.height = `${nextHeight}px`;
+    hotOverlayCanvas.style.width = `${nextWidth}px`;
+    hotOverlayCanvas.style.height = `${nextHeight}px`;
     if (dirtyRectOverlay) {
       dirtyRectOverlay.style.width = `${nextWidth}px`;
       dirtyRectOverlay.style.height = `${nextHeight}px`;
@@ -106,6 +112,7 @@ export function createKidsDrawStage(options: {
   setSceneDimensions(width, height);
   mount(sceneRoot, tileLayer);
   mount(sceneRoot, hotCanvas);
+  mount(sceneRoot, hotOverlayCanvas);
   if (dirtyRectOverlay) {
     mount(sceneRoot, dirtyRectOverlay);
   }
@@ -130,6 +137,7 @@ export function createKidsDrawStage(options: {
     sceneRoot,
     tileLayer,
     hotCanvas,
+    hotOverlayCanvas,
     overlay,
     cursorIndicator,
     dirtyRectOverlay,

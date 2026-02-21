@@ -17,7 +17,7 @@ export interface ToolbarUiState {
   newDrawingPending: boolean;
 }
 
-export const UI_STATE_STORAGE_KEY = "kids-draw:ui-state:v1";
+export const UI_STATE_STORAGE_KEY_PREFIX = "kids-draw:ui-state:v1";
 
 export interface PersistedKidsUiStateV1 {
   version: 1;
@@ -99,9 +99,17 @@ export function setNewDrawingPending(newDrawingPending: boolean): void {
   $toolbarUi.set({ ...current, newDrawingPending });
 }
 
-export function loadPersistedToolbarUiState(): PersistedKidsUiStateV1 | null {
+export function getToolbarUiStorageKeyForDocument(docUrl: string): string {
+  return `${UI_STATE_STORAGE_KEY_PREFIX}:${encodeURIComponent(docUrl)}`;
+}
+
+export function loadPersistedToolbarUiState(
+  docUrl: string,
+): PersistedKidsUiStateV1 | null {
   try {
-    const raw = globalThis.localStorage?.getItem(UI_STATE_STORAGE_KEY);
+    const raw = globalThis.localStorage?.getItem(
+      getToolbarUiStorageKeyForDocument(docUrl),
+    );
     if (!raw) {
       return null;
     }
@@ -113,11 +121,12 @@ export function loadPersistedToolbarUiState(): PersistedKidsUiStateV1 | null {
 }
 
 export function savePersistedToolbarUiState(
+  docUrl: string,
   state: PersistedKidsUiStateV1,
 ): void {
   try {
     globalThis.localStorage?.setItem(
-      UI_STATE_STORAGE_KEY,
+      getToolbarUiStorageKeyForDocument(docUrl),
       JSON.stringify(state),
     );
   } catch {

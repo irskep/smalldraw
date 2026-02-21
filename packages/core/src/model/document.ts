@@ -9,13 +9,45 @@ export interface DrawingDocumentSize {
   height: number;
 }
 
+export type DrawingDocumentPresentation =
+  | {
+      mode: "normal";
+    }
+  | {
+      mode: "coloring";
+      coloringPageId: string;
+    };
+
 export const DEFAULT_DOCUMENT_SIZE: DrawingDocumentSize = {
   width: 960,
   height: 600,
 };
 
+export const DEFAULT_DOCUMENT_PRESENTATION: DrawingDocumentPresentation = {
+  mode: "normal",
+};
+
+function normalizePresentation(
+  presentation: DrawingDocumentPresentation | undefined,
+): DrawingDocumentPresentation {
+  if (
+    presentation?.mode === "coloring" &&
+    typeof presentation.coloringPageId === "string" &&
+    presentation.coloringPageId.length > 0
+  ) {
+    return {
+      mode: "coloring",
+      coloringPageId: presentation.coloringPageId,
+    };
+  }
+  return {
+    mode: "normal",
+  };
+}
+
 export interface DrawingDocumentData {
   size: DrawingDocumentSize;
+  presentation: DrawingDocumentPresentation;
   shapes: Record<string, AnyShape>;
   temporalOrderCounter: number;
 }
@@ -26,6 +58,7 @@ export function createDocument(
   initialShapes: AnyShape[] | undefined,
   registry: ShapeHandlerRegistry,
   size: DrawingDocumentSize = DEFAULT_DOCUMENT_SIZE,
+  presentation: DrawingDocumentPresentation = DEFAULT_DOCUMENT_PRESENTATION,
 ): DrawingDocument {
   let doc = init<DrawingDocumentData>();
   doc = change(doc, (draft) => {
@@ -33,6 +66,7 @@ export function createDocument(
       width: Math.max(1, Math.round(size.width)),
       height: Math.max(1, Math.round(size.height)),
     };
+    draft.presentation = normalizePresentation(presentation);
     draft.shapes = {};
     let maxTemporalOrder = -1;
     if (initialShapes) {

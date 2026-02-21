@@ -5,5 +5,6 @@ export {
 export type {
   KidsDocumentBackend,
   KidsDocumentCreateInput,
+  KidsDocumentMode,
   KidsDocumentSummary,
 } from "./types";

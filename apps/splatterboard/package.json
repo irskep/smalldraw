@@ -5,6 +5,7 @@
   "scripts": {
     "build": "bun run ./scripts/build.ts",
     "dev": "bun ./src/index.html --watch",
+    "generate:coloring-assets": "bun run ./scripts/generate-coloring-assets.ts",
     "serve": "bunx serve dist",
     "test": "bun test --preload ./src/__tests__/setup.ts --timeout 4000",
     "lint": "bunx biome check --write",

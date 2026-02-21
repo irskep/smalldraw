@@ -9,6 +9,7 @@ import {
   TILE_SIZE,
   TileRenderer,
 } from "@smalldraw/renderer-raster";
+import { getLoadedRasterImage } from "../shapes/rasterImageCache";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 
 export interface RasterPipeline {
@@ -19,6 +20,7 @@ export interface RasterPipeline {
   getTilePixelRatio(): number;
   setRenderIdentity(renderIdentity: string): void;
   bakeInitialShapes(shapes: AnyShape[]): void;
+  setColoringOverlaySource(src: string | null): void;
   scheduleBakeForClear(): void;
   bakePendingTiles(): void;
   dispose(): void;
@@ -38,6 +40,8 @@ export function createRasterPipeline(options: {
   let width = options.width;
   let height = options.height;
   let tilePixelRatio = options.tilePixelRatio;
+  let coloringOverlaySource: string | null = null;
+  let coloringOverlayNeedsRedraw = true;
 
   const tileProvider = createDomTileProvider(stage.tileLayer, {
     getPixelRatio: () => tilePixelRatio,
@@ -107,6 +111,10 @@ export function createRasterPipeline(options: {
   if (!hotCtx) {
     throw new Error("splatterboard hot canvas requires a 2D context");
   }
+  const hotOverlayCtx = stage.hotOverlayCanvas.getContext("2d");
+  if (!hotOverlayCtx) {
+    throw new Error("splatterboard hot overlay canvas requires a 2D context");
+  }
 
   const applyHotCanvasPixelRatio = (): void => {
     const nextWidth = Math.max(1, Math.round(width * tilePixelRatio));
@@ -117,8 +125,60 @@ export function createRasterPipeline(options: {
     if (stage.hotCanvas.height !== nextHeight) {
       stage.hotCanvas.height = nextHeight;
     }
+    if (stage.hotOverlayCanvas.width !== nextWidth) {
+      stage.hotOverlayCanvas.width = nextWidth;
+    }
+    if (stage.hotOverlayCanvas.height !== nextHeight) {
+      stage.hotOverlayCanvas.height = nextHeight;
+    }
     hotCtx.setTransform(1, 0, 0, 1, 0, 0);
     hotCtx.clearRect(0, 0, stage.hotCanvas.width, stage.hotCanvas.height);
+    hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
+    hotOverlayCtx.clearRect(
+      0,
+      0,
+      stage.hotOverlayCanvas.width,
+      stage.hotOverlayCanvas.height,
+    );
+    coloringOverlayNeedsRedraw = true;
+  };
+
+  const renderColoringOverlay = (): void => {
+    if (!coloringOverlaySource) {
+      stage.hotOverlayCanvas.style.display = "none";
+      hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
+      hotOverlayCtx.clearRect(
+        0,
+        0,
+        stage.hotOverlayCanvas.width,
+        stage.hotOverlayCanvas.height,
+      );
+      return;
+    }
+    const overlayImage = getLoadedRasterImage(coloringOverlaySource);
+    if (!overlayImage) {
+      stage.hotOverlayCanvas.style.display = "none";
+      return;
+    }
+    if (!coloringOverlayNeedsRedraw) {
+      return;
+    }
+    stage.hotOverlayCanvas.style.display = "block";
+    hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
+    hotOverlayCtx.clearRect(
+      0,
+      0,
+      stage.hotOverlayCanvas.width,
+      stage.hotOverlayCanvas.height,
+    );
+    hotOverlayCtx.drawImage(
+      overlayImage,
+      0,
+      0,
+      stage.hotOverlayCanvas.width,
+      stage.hotOverlayCanvas.height,
+    );
+    coloringOverlayNeedsRedraw = false;
   };
 
   applyHotCanvasPixelRatio();
@@ -126,6 +186,7 @@ export function createRasterPipeline(options: {
   return {
     render() {
       session.render();
+      renderColoringOverlay();
     },
     updateDirtyRectOverlay() {
       if (!stage.dirtyRectOverlay || !stage.dirtyRectShape) {
@@ -175,6 +236,23 @@ export function createRasterPipeline(options: {
       tileRenderer.scheduleBakeForShapes(shapes.map((shape) => shape.id));
       void tileRenderer.bakePendingTiles();
     },
+    setColoringOverlaySource(src) {
+      if (typeof src === "string" && src.length > 0) {
+        coloringOverlaySource = src;
+        coloringOverlayNeedsRedraw = true;
+        return;
+      }
+      coloringOverlaySource = null;
+      coloringOverlayNeedsRedraw = false;
+      stage.hotOverlayCanvas.style.display = "none";
+      hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
+      hotOverlayCtx.clearRect(
+        0,
+        0,
+        stage.hotOverlayCanvas.width,
+        stage.hotOverlayCanvas.height,
+      );
+    },
     scheduleBakeForClear() {
       tileRenderer.scheduleBakeForClear();
     },
@@ -186,6 +264,15 @@ export function createRasterPipeline(options: {
       layerController.setMode("tiles");
       hotLayer.clear();
       hotLayer.setBackdrop(null);
+      coloringOverlayNeedsRedraw = false;
+      stage.hotOverlayCanvas.style.display = "none";
+      hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
+      hotOverlayCtx.clearRect(
+        0,
+        0,
+        stage.hotOverlayCanvas.width,
+        stage.hotOverlayCanvas.height,
+      );
     },
   };
 }

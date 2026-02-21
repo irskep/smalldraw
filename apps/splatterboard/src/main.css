@@ -60,3 +60,23 @@ body {
   box-sizing: border-box;
   background: var(--kd-surface-app);
 }
+
+.kd-button-unstyled {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  box-shadow: none;
+  filter: none;
+  transform: none;
+  text-shadow: none;
+}
+
+.kd-button-unstyled:hover:not(:disabled),
+.kd-button-unstyled:focus-visible,
+.kd-button-unstyled:active:not(:disabled),
+.kd-button-unstyled:disabled {
+  box-shadow: none;
+  filter: none;
+  transform: none;
+  text-shadow: none;
+}

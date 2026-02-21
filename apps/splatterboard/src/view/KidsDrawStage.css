@@ -109,10 +109,44 @@
 }
 
 .kids-draw-mobile-actions-popover {
-  position: absolute;
-  top: calc(100% + var(--size-1));
-  right: var(--kd-edge-offset);
+  position: fixed;
+  left: 0;
+  top: 0;
   z-index: 30;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(calc(var(--size-px-1) * -1));
+  transform-origin: top right;
+  will-change: transform, opacity;
+}
+
+.kids-draw-mobile-actions-popover[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  animation: var(--animation-fade-in), var(--animation-slide-in-down);
+  animation-duration: 140ms, 140ms;
+  animation-timing-function: var(--ease-out-3), var(--ease-out-3);
+  animation-fill-mode: both, both;
+}
+
+.kids-draw-mobile-actions-popover[data-open="false"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  animation: var(--animation-fade-out), var(--animation-slide-out-up);
+  animation-duration: 110ms, 110ms;
+  animation-timing-function: var(--ease-out-2), var(--ease-out-2);
+  animation-fill-mode: both, both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kids-draw-mobile-actions-popover[data-open="true"],
+  .kids-draw-mobile-actions-popover[data-open="false"] {
+    animation: none;
+    transform: none;
+  }
 }
 
 .kids-draw-mobile-top-controls {
@@ -127,8 +161,119 @@
   margin-left: auto;
 }
 
-.kids-draw-mobile-portrait-top > .kids-draw-mobile-actions-trigger {
-  align-self: start;
+.kids-draw-mobile-actions-menu {
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: var(--size-px-1);
+  background: var(--gray-0);
+  border: 1px solid var(--gray-9);
+  border-radius: var(--radius-2);
+  box-shadow: var(--kd-shadow-toolbar);
+}
+
+.kids-draw-mobile-actions-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--size-px-1);
+}
+
+.kids-draw-mobile-actions-row > .kids-draw-mobile-actions-item {
+  width: 100%;
+}
+
+.kids-draw-mobile-actions-item {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: var(--size-8);
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--kd-text-default);
+  font: inherit;
+  font-size: var(--kd-toolbar-label-size-md);
+  font-weight: var(--font-weight-4);
+  line-height: 1.2;
+  border-radius: var(--radius-1);
+  padding: var(--size-px-2) var(--size-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--size-2);
+  box-shadow: none;
+  filter: none;
+  transform: none;
+  text-shadow: none;
+  transition: background-color 80ms linear;
+}
+
+.kids-draw-mobile-actions-item:hover:not(:disabled) {
+  background: var(--gray-2);
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
+.kids-draw-mobile-actions-item:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--blue-5) 60%, black);
+  outline-offset: -1px;
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
+.kids-draw-mobile-actions-item:active:not(:disabled) {
+  background: var(--gray-3);
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
+.kids-draw-mobile-actions-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
+.kids-draw-mobile-actions-item-icon {
+  width: var(--size-px-5);
+  height: var(--size-px-5);
+  min-width: var(--size-px-5);
+  min-height: var(--size-px-5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kd-text-strong);
+}
+
+.kids-draw-mobile-actions-item-icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.kids-draw-mobile-actions-item-label {
+  display: inline-block;
+  text-align: left;
+}
+
+.kids-draw-mobile-actions-item.is-danger {
+  color: var(--kd-text-strong);
+}
+
+.kids-draw-mobile-actions-item.is-danger .kids-draw-mobile-actions-item-icon {
+  color: var(--kd-text-strong);
+}
+
+.kids-draw-mobile-actions-divider {
+  height: 1px;
+  margin: var(--size-px-1) 0;
+  background: var(--gray-5);
 }
 
 .kids-draw-viewport[data-layout-profile="mobile-portrait"]
@@ -170,6 +315,11 @@
 
 .kids-draw-hot {
   display: block;
+  pointer-events: none;
+}
+
+.kids-draw-hot-overlay {
+  display: none;
   pointer-events: none;
 }
 

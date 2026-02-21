@@ -1,5 +1,6 @@
 import {
   ClearCanvas,
+  type DrawingDocumentPresentation,
   type DrawingDocumentSize,
   type DrawingStore,
   getTopZIndex,
@@ -11,15 +12,26 @@ import {
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
 import {
+  Download,
   FilePlus,
+  FolderOpen,
   type IconNode,
   MoreHorizontal,
   Palette,
+  Redo2,
   SlidersHorizontal,
   Trash2,
+  Undo2,
 } from "lucide";
 import { mount, setChildren } from "redom";
-import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
+import {
+  getColoringPageById,
+} from "../coloring/catalog";
+import type {
+  KidsDocumentBackend,
+  KidsDocumentMode,
+  KidsDocumentSummary,
+} from "../documents";
 import {
   applyResponsiveLayout,
   getViewportPaddingForProfile,
@@ -44,6 +56,11 @@ import {
   type KidsToolFamilyConfig,
 } from "../tools/kidsTools";
 import {
+  getLoadedRasterImage,
+  registerRasterImage,
+  warmRasterImage,
+} from "../shapes/rasterImageCache";
+import {
   $toolbarUi,
   loadPersistedToolbarUiState,
   type PersistedKidsUiStateV1,
@@ -53,7 +70,10 @@ import {
   syncToolbarUiFromDrawingStore,
   type ToolbarUiState,
 } from "../ui/stores/toolbarUiStore";
-import { createDocumentBrowserOverlay } from "../view/DocumentBrowserOverlay";
+import {
+  createDocumentBrowserOverlay,
+  type NewDocumentRequest,
+} from "../view/DocumentBrowserOverlay";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 import {
   STROKE_WIDTH_OPTIONS,
@@ -69,6 +89,12 @@ const ENABLE_COALESCED_POINTER_SAMPLES = true;
 const DEFAULT_OPAQUE_STROKE_COLOR = "#000000";
 const DEFAULT_OPAQUE_FILL_COLOR = "#ffffff";
 const UI_STATE_PERSIST_DEBOUNCE_MS = 150;
+const MOBILE_ACTIONS_MENU_GAP_PX = 8;
+const MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX = 8;
+const NORMAL_DEFAULT_TOOL_ID = "brush.marker";
+const COLORING_DEFAULT_TOOL_ID = "brush.marker";
+const NORMAL_DEFAULT_STROKE_WIDTH = 8;
+const COLORING_DEFAULT_STROKE_WIDTH = 24;
 
 type RafRenderState = "idle" | "modelRequested" | "anticipatory";
 type PointerEventWithCoalesced = PointerEvent & {
@@ -99,6 +125,11 @@ type SaveFilePickerLike = (options: {
 
 export interface KidsDrawController {
   destroy(): void;
+}
+
+interface ActiveDocumentPresentation {
+  mode: KidsDocumentMode;
+  coloringPageId?: string;
 }
 
 function getNearestStrokeWidthOption(strokeWidth: number): number {
@@ -225,9 +256,15 @@ export function createKidsDrawController(options: {
   let metadataTouchTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
   let thumbnailSaveTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
   let toolbarUiPersistTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
-  let pendingToolbarUiPersistState: PersistedKidsUiStateV1 | null = null;
+  let pendingToolbarUiPersistState:
+    | { docUrl: string; state: PersistedKidsUiStateV1 }
+    | null = null;
   let lastPersistedToolbarUiSignature: string | null = null;
   let lastObservedToolbarUiSignature: string | null = null;
+  let activeDocumentPresentation: ActiveDocumentPresentation = {
+    mode: "normal",
+  };
+  let coloringOverlayLoadRequestId = 0;
   let browserDocuments: KidsDocumentSummary[] = [];
   let browserLoading = false;
   let browserBusyDocUrl: string | null = null;
@@ -284,11 +321,121 @@ export function createKidsDrawController(options: {
     attributes: {
       title: "Actions",
       "aria-label": "Actions",
+      "aria-haspopup": "menu",
+      "aria-controls": "kids-draw-mobile-actions-menu",
       "aria-expanded": "false",
     },
   });
   const mobilePortraitActionsPopover = document.createElement("div");
   mobilePortraitActionsPopover.className = "kids-draw-mobile-actions-popover";
+  mobilePortraitActionsPopover.dataset.open = "false";
+  mobilePortraitActionsPopover.setAttribute("aria-hidden", "true");
+  mobilePortraitActionsPopover.hidden = true;
+  const mobilePortraitActionsMenu = document.createElement("div");
+  mobilePortraitActionsMenu.id = "kids-draw-mobile-actions-menu";
+  mobilePortraitActionsMenu.className = "kids-draw-mobile-actions-menu";
+  mobilePortraitActionsMenu.setAttribute("role", "menu");
+  mobilePortraitActionsMenu.setAttribute("aria-label", "Actions");
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const createMenuIcon = (iconNode: IconNode): SVGSVGElement => {
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    for (const [tag, attrs] of iconNode) {
+      const node = document.createElementNS(SVG_NS, tag);
+      for (const [name, value] of Object.entries(attrs)) {
+        if (value !== undefined) {
+          node.setAttribute(name, `${value}`);
+        }
+      }
+      svg.appendChild(node);
+    }
+    return svg;
+  };
+  const createMobilePortraitActionItem = (
+    actionId: string,
+    label: string,
+    icon: IconNode,
+    options?: {
+      danger?: boolean;
+    },
+  ): HTMLButtonElement => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "kids-draw-mobile-actions-item kd-button-unstyled";
+    item.dataset.mobileAction = actionId;
+    item.setAttribute("role", "menuitem");
+    const iconElement = document.createElement("span");
+    iconElement.className = "kids-draw-mobile-actions-item-icon";
+    iconElement.appendChild(createMenuIcon(icon));
+    const labelElement = document.createElement("span");
+    labelElement.className = "kids-draw-mobile-actions-item-label";
+    labelElement.textContent = label;
+    setChildren(item, [iconElement, labelElement]);
+    if (options?.danger) {
+      item.classList.add("is-danger");
+    }
+    return item;
+  };
+  const mobilePortraitUndoMenuItem = createMobilePortraitActionItem(
+    "undo",
+    "Undo",
+    Undo2,
+  );
+  const mobilePortraitRedoMenuItem = createMobilePortraitActionItem(
+    "redo",
+    "Redo",
+    Redo2,
+  );
+  const mobilePortraitUndoRedoRow = document.createElement("div");
+  mobilePortraitUndoRedoRow.className = "kids-draw-mobile-actions-row";
+  mobilePortraitUndoRedoRow.setAttribute("role", "group");
+  mobilePortraitUndoRedoRow.setAttribute("aria-label", "History");
+  setChildren(mobilePortraitUndoRedoRow, [
+    mobilePortraitUndoMenuItem,
+    mobilePortraitRedoMenuItem,
+  ]);
+  const mobilePortraitMenuDivider = document.createElement("div");
+  mobilePortraitMenuDivider.className = "kids-draw-mobile-actions-divider";
+  mobilePortraitMenuDivider.setAttribute("role", "separator");
+  const mobilePortraitSecondaryDivider = document.createElement("div");
+  mobilePortraitSecondaryDivider.className = "kids-draw-mobile-actions-divider";
+  mobilePortraitSecondaryDivider.setAttribute("role", "separator");
+  const mobilePortraitNewMenuItem = createMobilePortraitActionItem(
+    "new-drawing",
+    "New Drawing",
+    FilePlus,
+  );
+  const mobilePortraitBrowseMenuItem = createMobilePortraitActionItem(
+    "browse",
+    "Browse Drawings",
+    FolderOpen,
+  );
+  const mobilePortraitExportMenuItem = createMobilePortraitActionItem(
+    "export",
+    "Export PNG",
+    Download,
+  );
+  const mobilePortraitClearMenuItem = createMobilePortraitActionItem(
+    "clear",
+    "Clear Canvas",
+    Trash2,
+    { danger: true },
+  );
+  setChildren(mobilePortraitActionsMenu, [
+    mobilePortraitUndoRedoRow,
+    mobilePortraitMenuDivider,
+    mobilePortraitNewMenuItem,
+    mobilePortraitBrowseMenuItem,
+    mobilePortraitExportMenuItem,
+    mobilePortraitSecondaryDivider,
+    mobilePortraitClearMenuItem,
+  ]);
   let mobilePortraitActionsOpen = false;
   mobilePortraitColorsButton.setSelected(true);
   mobilePortraitStrokesButton.setSelected(false);
@@ -307,8 +454,8 @@ export function createKidsDrawController(options: {
     onClose: () => {
       closeDocumentBrowser();
     },
-    onNewDocument: () => {
-      void createNewDocumentFromBrowser();
+    onNewDocument: (request) => {
+      void createNewDocumentFromBrowser(request);
     },
     onOpenDocument: (docUrl) => {
       void openDocumentFromBrowser(docUrl);
@@ -363,21 +510,28 @@ export function createKidsDrawController(options: {
     if (!pendingToolbarUiPersistState) {
       return;
     }
-    savePersistedToolbarUiState(pendingToolbarUiPersistState);
+    savePersistedToolbarUiState(
+      pendingToolbarUiPersistState.docUrl,
+      pendingToolbarUiPersistState.state,
+    );
     lastPersistedToolbarUiSignature = getToolbarUiPersistSignature(
-      pendingToolbarUiPersistState,
+      pendingToolbarUiPersistState.state,
     );
     pendingToolbarUiPersistState = null;
   };
 
   const queueToolbarUiPersistence = (
+    docUrl: string,
     state: PersistedKidsUiStateV1,
     signature: string,
   ): void => {
     if (signature === lastPersistedToolbarUiSignature) {
       return;
     }
-    pendingToolbarUiPersistState = state;
+    pendingToolbarUiPersistState = {
+      docUrl,
+      state,
+    };
     if (toolbarUiPersistTimeoutHandle !== null) {
       clearTimeout(toolbarUiPersistTimeoutHandle);
     }
@@ -388,13 +542,14 @@ export function createKidsDrawController(options: {
   };
 
   const handleToolbarUiChangedForPersistence = (state: ToolbarUiState): void => {
+    const docUrl = core.getCurrentDocUrl();
     const nextPersistedState = toPersistedToolbarUiState(state);
     const signature = getToolbarUiPersistSignature(nextPersistedState);
     if (signature === lastObservedToolbarUiSignature) {
       return;
     }
     lastObservedToolbarUiSignature = signature;
-    queueToolbarUiPersistence(nextPersistedState, signature);
+    queueToolbarUiPersistence(docUrl, nextPersistedState, signature);
   };
 
   const syncToolbarUi = (): void => {
@@ -402,11 +557,173 @@ export function createKidsDrawController(options: {
       resolveActiveFamilyId: (toolId) => getFamilyIdForTool(toolId, catalog),
       resolveToolStyleSupport: (toolId) => getToolStyleSupport(toolId, catalog),
     });
+    const toolbarUiState = $toolbarUi.get();
+    mobilePortraitUndoMenuItem.disabled = !toolbarUiState.canUndo;
+    mobilePortraitRedoMenuItem.disabled = !toolbarUiState.canRedo;
+    mobilePortraitNewMenuItem.disabled = toolbar.newDrawingButton.el.disabled;
     cursorOverlay.sync();
+  };
+
+  const resolveDocumentPresentationFromData = (
+    presentation: DrawingDocumentPresentation | undefined,
+  ): ActiveDocumentPresentation => {
+    if (
+      presentation?.mode === "coloring" &&
+      typeof presentation.coloringPageId === "string" &&
+      presentation.coloringPageId.length > 0
+    ) {
+      return {
+        mode: "coloring",
+        coloringPageId: presentation.coloringPageId,
+      };
+    }
+    return { mode: "normal" };
+  };
+
+  const resolveDocumentPresentation = (
+    documentPresentation: DrawingDocumentPresentation | undefined,
+  ): ActiveDocumentPresentation =>
+    resolveDocumentPresentationFromData(documentPresentation);
+
+  const getColoringOverlaySrc = (
+    presentation: ActiveDocumentPresentation,
+  ): string | null => {
+    if (presentation.mode !== "coloring" || !presentation.coloringPageId) {
+      return null;
+    }
+    const page = getColoringPageById(presentation.coloringPageId);
+    return page?.src ?? null;
+  };
+
+  const queueColoringOverlayRebakeWhenLoaded = (overlaySrc: string | null): void => {
+    coloringOverlayLoadRequestId += 1;
+    if (!overlaySrc || typeof Image !== "function") {
+      return;
+    }
+    const requestId = coloringOverlayLoadRequestId;
+    if (getLoadedRasterImage(overlaySrc)) {
+      return;
+    }
+    const loader = new Image();
+    loader.decoding = "async";
+    loader.onload = () => {
+      if (destroyed || requestId !== coloringOverlayLoadRequestId) {
+        return;
+      }
+      registerRasterImage(overlaySrc, loader);
+      requestRenderFromModel();
+      scheduleThumbnailSave(0);
+    };
+    loader.src = overlaySrc;
+  };
+
+  const applyDocumentPresentation = (
+    presentation: ActiveDocumentPresentation,
+  ): void => {
+    activeDocumentPresentation = presentation;
+    const overlaySrc = getColoringOverlaySrc(presentation);
+    pipeline.setColoringOverlaySource(overlaySrc);
+    updateRenderIdentity();
+    if (overlaySrc) {
+      warmRasterImage(overlaySrc);
+    }
+    queueColoringOverlayRebakeWhenLoaded(overlaySrc);
+  };
+
+  const applyToolbarStateForCurrentDocument = (
+    presentation: ActiveDocumentPresentation,
+    options?: {
+      forceDefaults?: boolean;
+    },
+  ): void => {
+    const defaultStrokeWidth =
+      presentation.mode === "coloring"
+        ? COLORING_DEFAULT_STROKE_WIDTH
+        : NORMAL_DEFAULT_STROKE_WIDTH;
+    const defaultToolId =
+      presentation.mode === "coloring"
+        ? COLORING_DEFAULT_TOOL_ID
+        : NORMAL_DEFAULT_TOOL_ID;
+    const docUrl = core.getCurrentDocUrl();
+    const shared = store.getSharedSettings();
+    const resolvedInitialToolbarUiState = resolveInitialToolbarUiStateFromPersistence(
+      {
+        catalog,
+        current: {
+          activeToolId: defaultToolId,
+          strokeColor: DEFAULT_OPAQUE_STROKE_COLOR,
+          strokeWidth: getNearestStrokeWidthOption(defaultStrokeWidth),
+        },
+        persisted: options?.forceDefaults
+          ? null
+          : loadPersistedToolbarUiState(docUrl),
+      },
+    );
+    activateToolAndRemember(resolvedInitialToolbarUiState.activeToolId);
+    store.updateSharedSettings({
+      strokeColor: resolvedInitialToolbarUiState.strokeColor,
+      strokeWidth: resolvedInitialToolbarUiState.strokeWidth,
+      fillColor: shared.fillColor,
+    });
+    syncToolbarUi();
+    const persistedState = toPersistedToolbarUiState($toolbarUi.get());
+    const signature = getToolbarUiPersistSignature(persistedState);
+    lastObservedToolbarUiSignature = signature;
+    lastPersistedToolbarUiSignature = signature;
+  };
+
+  const setMobilePortraitActionsPopoverOpen = (open: boolean): void => {
+    mobilePortraitActionsPopover.dataset.open = open ? "true" : "false";
+    mobilePortraitActionsPopover.setAttribute("aria-hidden", open ? "false" : "true");
+  };
+
+  const positionMobilePortraitActionsPopover = (): void => {
+    if (currentLayoutProfile !== "mobile-portrait" || !mobilePortraitActionsOpen) {
+      return;
+    }
+    const triggerRect = mobilePortraitActionsTrigger.el.getBoundingClientRect();
+    const popoverRect = mobilePortraitActionsPopover.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const minLeft = MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX;
+    const maxLeft =
+      viewportWidth -
+      MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX -
+      popoverRect.width;
+    const left = Math.max(
+      minLeft,
+      Math.min(triggerRect.right - popoverRect.width, maxLeft),
+    );
+    const belowTop = triggerRect.bottom + MOBILE_ACTIONS_MENU_GAP_PX;
+    const aboveTop =
+      triggerRect.top - MOBILE_ACTIONS_MENU_GAP_PX - popoverRect.height;
+    const canPlaceAbove = aboveTop >= MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX;
+    const wouldOverflowBottom =
+      belowTop + popoverRect.height >
+      viewportHeight - MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX;
+    const top =
+      wouldOverflowBottom && canPlaceAbove
+        ? aboveTop
+        : Math.max(
+            MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX,
+            Math.min(
+              belowTop,
+              viewportHeight -
+                MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX -
+                popoverRect.height,
+            ),
+          );
+    mobilePortraitActionsPopover.style.left = `${left}px`;
+    mobilePortraitActionsPopover.style.top = `${top}px`;
   };
 
   const getRenderIdentity = (): string => {
     const size = getSize();
+    const presentationIdentity =
+      activeDocumentPresentation.mode === "coloring" &&
+      activeDocumentPresentation.coloringPageId
+        ? `coloring:${activeDocumentPresentation.coloringPageId}`
+        : "normal";
     return [
       "kids-draw",
       `w:${size.width}`,
@@ -414,6 +731,7 @@ export function createKidsDrawController(options: {
       `tile:256`,
       `dpr:${tilePixelRatio.toFixed(3)}`,
       `bg:${backgroundColor}`,
+      `presentation:${presentationIdentity}`,
     ].join("|");
   };
 
@@ -542,8 +860,9 @@ export function createKidsDrawController(options: {
 
     if (profile === "mobile-portrait") {
       syncMobilePortraitTopPanel();
-      setChildren(mobilePortraitActionsPopover, [toolbar.actionPanelElement]);
-      mobilePortraitActionsPopover.hidden = !mobilePortraitActionsOpen;
+      setChildren(mobilePortraitActionsPopover, [mobilePortraitActionsMenu]);
+      mobilePortraitActionsPopover.hidden = false;
+      setMobilePortraitActionsPopoverOpen(mobilePortraitActionsOpen);
       mobilePortraitActionsTrigger.el.setAttribute(
         "aria-expanded",
         mobilePortraitActionsOpen ? "true" : "false",
@@ -567,6 +886,7 @@ export function createKidsDrawController(options: {
       setChildren(stage.insetRightSlot, []);
       setChildren(stage.insetBottomSlot, [mobilePortraitBottomStrip]);
       toolbar.syncLayout();
+      positionMobilePortraitActionsPopover();
       return;
     }
 
@@ -585,7 +905,10 @@ export function createKidsDrawController(options: {
       strokePanel.hidden = false;
     }
     mobilePortraitActionsPopover.hidden = true;
+    setMobilePortraitActionsPopoverOpen(false);
     mobilePortraitActionsTrigger.el.setAttribute("aria-expanded", "false");
+    mobilePortraitActionsPopover.style.removeProperty("left");
+    mobilePortraitActionsPopover.style.removeProperty("top");
 
     setChildren(stage.insetTopSlot, [toolbar.topElement]);
     setChildren(stage.insetLeftSlot, [toolbar.toolSelectorElement]);
@@ -618,6 +941,9 @@ export function createKidsDrawController(options: {
     }
     mobilePortraitActionsOpen = !mobilePortraitActionsOpen;
     applyToolbarLayoutProfile(currentLayoutProfile);
+    if (mobilePortraitActionsOpen) {
+      positionMobilePortraitActionsPopover();
+    }
   };
 
   const getViewportPadding = (): {
@@ -869,51 +1195,96 @@ export function createKidsDrawController(options: {
     await reloadDocumentBrowser();
   };
 
+  const getPresentationForCreateRequest = (
+    request: NewDocumentRequest,
+  ): DrawingDocumentPresentation => {
+    if (request.mode === "normal") {
+      return { mode: "normal" };
+    }
+    return {
+      mode: "coloring",
+      coloringPageId: request.coloringPageId,
+    };
+  };
+
+  const getDocumentSizeForCreateRequest = (
+    request: NewDocumentRequest,
+  ): DrawingDocumentSize => {
+    if (request.mode === "coloring") {
+      const page = getColoringPageById(request.coloringPageId);
+      if (page) {
+        return page.size;
+      }
+    }
+    return hasExplicitSize ? getExplicitSize() : resolveImplicitDocumentSizeFromViewport();
+  };
+
   const switchToDocument = async (docUrl: string): Promise<void> => {
     await flushThumbnailSave();
     const adapter = await core.open(docUrl);
+    const openedDocument = adapter.getDoc();
+    const docSize = openedDocument.size;
+    const presentation = resolveDocumentPresentation(openedDocument.presentation);
+    await documentBackend.createDocument({
+      docUrl,
+      mode: presentation.mode,
+      coloringPageId: presentation.coloringPageId,
+      documentSize: docSize,
+    });
     await documentBackend.touchDocument(docUrl);
-    store.resetToDocument(adapter.getDoc());
-    applyCanvasSize(adapter.getDoc().size.width, adapter.getDoc().size.height);
+    store.resetToDocument(openedDocument);
+    applyCanvasSize(docSize.width, docSize.height);
+    applyDocumentPresentation(presentation);
+    applyToolbarStateForCurrentDocument(presentation);
     subscribeToCoreAdapter();
     pipeline.scheduleBakeForClear();
     pipeline.bakePendingTiles();
     requestRenderFromModel();
-    syncToolbarUi();
   };
 
   const createNewDocument = async (
-    nextDocumentSize: DrawingDocumentSize,
+    request: NewDocumentRequest,
   ): Promise<void> => {
+    const requestPresentation = getPresentationForCreateRequest(request);
+    const nextDocumentSize = getDocumentSizeForCreateRequest(request);
     await flushThumbnailSave();
     const { adapter, url } = await core.createNew({
       documentSize: nextDocumentSize,
+      documentPresentation: requestPresentation,
     });
+    const createdDocument = adapter.getDoc();
+    const presentation = resolveDocumentPresentation(createdDocument.presentation);
     await documentBackend.createDocument({
       docUrl: url,
+      mode: presentation.mode,
+      coloringPageId: presentation.coloringPageId,
       documentSize: nextDocumentSize,
     });
-    store.resetToDocument(adapter.getDoc());
+    store.resetToDocument(createdDocument);
     applyCanvasSize(nextDocumentSize.width, nextDocumentSize.height);
+    applyDocumentPresentation(presentation);
+    applyToolbarStateForCurrentDocument(presentation, { forceDefaults: true });
     subscribeToCoreAdapter();
     pipeline.scheduleBakeForClear();
     pipeline.bakePendingTiles();
     requestRenderFromModel();
-    syncToolbarUi();
   };
 
-  const createNewDocumentFromBrowser = async (): Promise<void> => {
-    if (!documentBrowserOverlay.isOpen()) {
+  const createNewDocumentFromBrowser = async (
+    request: NewDocumentRequest,
+  ): Promise<void> => {
+    if (
+      !documentBrowserOverlay.isOpen() &&
+      !documentBrowserOverlay.isCreateDialogOpen()
+    ) {
       return;
     }
     browserBusyDocUrl = "__new__";
     renderDocumentBrowser();
     try {
-      const nextDocumentSize = hasExplicitSize
-        ? getExplicitSize()
-        : resolveImplicitDocumentSizeFromViewport();
-      await createNewDocument(nextDocumentSize);
+      await createNewDocument(request);
       closeDocumentBrowser();
+      documentBrowserOverlay.closeCreateDialog();
     } finally {
       browserBusyDocUrl = null;
       renderDocumentBrowser();
@@ -968,10 +1339,7 @@ export function createKidsDrawController(options: {
         if (fallback) {
           await switchToDocument(fallback.docUrl);
         } else {
-          const nextDocumentSize = hasExplicitSize
-            ? getExplicitSize()
-            : resolveImplicitDocumentSizeFromViewport();
-          await createNewDocument(nextDocumentSize);
+          await createNewDocument({ mode: "normal" });
         }
       }
       await reloadDocumentBrowser();
@@ -991,6 +1359,22 @@ export function createKidsDrawController(options: {
         error,
       });
     }
+  };
+
+  const drawColoringOverlay = (
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+  ): void => {
+    const overlaySrc = getColoringOverlaySrc(activeDocumentPresentation);
+    if (!overlaySrc) {
+      return;
+    }
+    const image = getLoadedRasterImage(overlaySrc);
+    if (!image) {
+      return;
+    }
+    ctx.drawImage(image, 0, 0, width, height);
   };
 
   const createThumbnailBlob = async (): Promise<Blob | null> => {
@@ -1015,6 +1399,7 @@ export function createKidsDrawController(options: {
       registry: shapeRendererRegistry,
       geometryHandlerRegistry: store.getShapeHandlers(),
     });
+    drawColoringOverlay(ctx, width, height);
     ctx.restore();
 
     ctx.save();
@@ -1102,46 +1487,24 @@ export function createKidsDrawController(options: {
   };
 
   const onNewDrawingClick = async () => {
-    const confirmed = await confirmDestructiveAction({
-      title: "Start a new drawing?",
-      message: "Your current drawing will be replaced by a blank page.",
-      confirmLabel: "Start New",
-      cancelLabel: "Cancel",
-      tone: "danger",
-      icon: FilePlus,
-    });
-    if (!confirmed || destroyed) {
-      return;
-    }
-
     const requestId = ++newDrawingRequestId;
     debugLifecycle("new-drawing:start", { requestId, destroyed });
+    if (destroyed || requestId !== newDrawingRequestId) {
+      return;
+    }
     setNewDrawingPending(true);
     try {
-      const nextDocumentSize = hasExplicitSize
-        ? getExplicitSize()
-        : resolveImplicitDocumentSizeFromViewport();
-      await createNewDocument(nextDocumentSize);
-      debugLifecycle("new-drawing:reset-resolved", { requestId, destroyed });
-      if (destroyed || requestId !== newDrawingRequestId) {
-        debugLifecycle("new-drawing:aborted-after-reset", {
-          requestId,
-          currentRequestId: newDrawingRequestId,
-          destroyed,
-        });
-        return;
-      }
-      closeDocumentBrowser();
+      documentBrowserOverlay.openCreateDialog();
     } finally {
       if (!destroyed && requestId === newDrawingRequestId) {
         setNewDrawingPending(false);
       }
-      debugLifecycle("new-drawing:done", {
-        requestId,
-        currentRequestId: newDrawingRequestId,
-        destroyed,
-      });
     }
+    debugLifecycle("new-drawing:chooser-open", {
+      requestId,
+      currentRequestId: newDrawingRequestId,
+      destroyed,
+    });
   };
 
   const onExportClick = async (): Promise<void> => {
@@ -1158,6 +1521,7 @@ export function createKidsDrawController(options: {
       registry: shapeRendererRegistry,
       geometryHandlerRegistry: store.getShapeHandlers(),
     });
+    drawColoringOverlay(exportCtx, exportCanvas.width, exportCanvas.height);
     exportCtx.save();
     exportCtx.globalCompositeOperation = "destination-over";
     exportCtx.fillStyle = backgroundColor;
@@ -1350,22 +1714,18 @@ export function createKidsDrawController(options: {
       }),
     );
   }
-  listen(
-    toolbar.undoButton.el,
-    "click",
-    runAndSync(() => {
-      store.undo();
-      closeMobilePortraitActions();
-    }),
-  );
-  listen(
-    toolbar.redoButton.el,
-    "click",
-    runAndSync(() => {
-      store.redo();
-      closeMobilePortraitActions();
-    }),
-  );
+  const onUndoClick = runAndSync(() => {
+    store.undo();
+    closeMobilePortraitActions();
+  });
+  const onRedoClick = runAndSync(() => {
+    store.redo();
+    closeMobilePortraitActions();
+  });
+  listen(toolbar.undoButton.el, "click", onUndoClick);
+  listen(toolbar.redoButton.el, "click", onRedoClick);
+  listen(mobilePortraitUndoMenuItem, "click", onUndoClick);
+  listen(mobilePortraitRedoMenuItem, "click", onRedoClick);
   listen(mobilePortraitActionsTrigger.el, "click", (event) => {
     event.stopPropagation();
     toggleMobilePortraitActions();
@@ -1384,7 +1744,7 @@ export function createKidsDrawController(options: {
     setMobilePortraitTopPanel("strokes");
     applyToolbarLayoutProfile(currentLayoutProfile);
   });
-  listen(toolbar.clearButton.el, "click", () => {
+  const onClearClick = () => {
     void (async () => {
       const confirmed = await confirmDestructiveAction({
         title: "Clear drawing?",
@@ -1411,19 +1771,27 @@ export function createKidsDrawController(options: {
       closeMobilePortraitActions();
       syncToolbarUi();
     })();
-  });
-  listen(toolbar.exportButton.el, "click", () => {
+  };
+  listen(toolbar.clearButton.el, "click", onClearClick);
+  listen(mobilePortraitClearMenuItem, "click", onClearClick);
+  const onExportClickAndClose = () => {
     void onExportClick();
     closeMobilePortraitActions();
-  });
-  listen(toolbar.newDrawingButton.el, "click", () => {
+  };
+  listen(toolbar.exportButton.el, "click", onExportClickAndClose);
+  listen(mobilePortraitExportMenuItem, "click", onExportClickAndClose);
+  const onNewDrawingClickAndClose = () => {
     void onNewDrawingClick();
     closeMobilePortraitActions();
-  });
-  listen(toolbar.browseButton.el, "click", () => {
+  };
+  listen(toolbar.newDrawingButton.el, "click", onNewDrawingClickAndClose);
+  listen(mobilePortraitNewMenuItem, "click", onNewDrawingClickAndClose);
+  const onBrowseClickAndClose = () => {
     void openDocumentBrowser();
     closeMobilePortraitActions();
-  });
+  };
+  listen(toolbar.browseButton.el, "click", onBrowseClickAndClose);
+  listen(mobilePortraitBrowseMenuItem, "click", onBrowseClickAndClose);
   for (const colorButton of toolbar.strokeColorSwatchButtons) {
     listen(colorButton, "click", () => {
       const strokeColor = colorButton.dataset.color;
@@ -1500,8 +1868,27 @@ export function createKidsDrawController(options: {
   listen(window, "blur", () => {
     forceCancelPointerSession();
   });
+  listen(window, "resize", () => {
+    positionMobilePortraitActionsPopover();
+  });
+  listen(window, "scroll", () => {
+    positionMobilePortraitActionsPopover();
+  });
+  if (window.visualViewport) {
+    listen(window.visualViewport, "resize", () => {
+      positionMobilePortraitActionsPopover();
+    });
+    listen(window.visualViewport, "scroll", () => {
+      positionMobilePortraitActionsPopover();
+    });
+  }
   listen(window, "keydown", (event) => {
     if (!(event instanceof KeyboardEvent)) {
+      return;
+    }
+    if (event.key === "Escape" && mobilePortraitActionsOpen) {
+      event.preventDefault();
+      closeMobilePortraitActions();
       return;
     }
     if (event.key === "Escape" && documentBrowserOverlay.isOpen()) {
@@ -1524,38 +1911,35 @@ export function createKidsDrawController(options: {
     requestRenderFromModel();
   });
 
-  const initialSharedSettings = store.getSharedSettings();
-  const initialToolId = store.getActiveToolId() ?? "";
-  const resolvedInitialToolbarUiState = resolveInitialToolbarUiStateFromPersistence(
-    {
-      catalog,
-      current: {
-        activeToolId: initialToolId,
-        strokeColor: initialSharedSettings.strokeColor,
-        strokeWidth: initialSharedSettings.strokeWidth,
-      },
-      persisted: loadPersistedToolbarUiState(),
-    },
+  applyDocumentPresentation({ mode: "normal" });
+  applyToolbarStateForCurrentDocument({ mode: "normal" });
+  const initialToolbarSignature = getToolbarUiPersistSignature(
+    toPersistedToolbarUiState($toolbarUi.get()),
   );
-  if (resolvedInitialToolbarUiState.activeToolId) {
-    activateToolAndRemember(resolvedInitialToolbarUiState.activeToolId);
-  }
-  const nextSharedSettings: Partial<typeof initialSharedSettings> = {};
-  const currentSharedSettings = store.getSharedSettings();
-  if (currentSharedSettings.strokeColor !== resolvedInitialToolbarUiState.strokeColor) {
-    nextSharedSettings.strokeColor = resolvedInitialToolbarUiState.strokeColor;
-  }
-  if (currentSharedSettings.strokeWidth !== resolvedInitialToolbarUiState.strokeWidth) {
-    nextSharedSettings.strokeWidth = resolvedInitialToolbarUiState.strokeWidth;
-  }
-  if (Object.keys(nextSharedSettings).length > 0) {
-    store.updateSharedSettings(nextSharedSettings);
-  }
-  syncToolbarUi();
-  const initialPersistedState = toPersistedToolbarUiState($toolbarUi.get());
-  lastObservedToolbarUiSignature =
-    getToolbarUiPersistSignature(initialPersistedState);
-  lastPersistedToolbarUiSignature = lastObservedToolbarUiSignature;
+  void (async () => {
+    const docUrl = core.getCurrentDocUrl();
+    const presentation = resolveDocumentPresentation(
+      store.getDocument().presentation,
+    );
+    await documentBackend.createDocument({
+      docUrl,
+      mode: presentation.mode,
+      coloringPageId: presentation.coloringPageId,
+      documentSize: store.getDocument().size,
+    });
+    if (docUrl !== core.getCurrentDocUrl()) {
+      return;
+    }
+    applyDocumentPresentation(presentation);
+    const currentToolbarSignature = getToolbarUiPersistSignature(
+      toPersistedToolbarUiState($toolbarUi.get()),
+    );
+    if (currentToolbarSignature !== initialToolbarSignature) {
+      return;
+    }
+    applyToolbarStateForCurrentDocument(presentation);
+  })();
+
   unsubscribeToolbarUiPersistence = $toolbarUi.subscribe((state) => {
     handleToolbarUiChangedForPersistence(state);
   });

@@ -1,8 +1,12 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
 
+export type KidsDocumentMode = "normal" | "coloring";
+
 export interface KidsDocumentSummary {
   docUrl: string;
   title?: string;
+  mode: KidsDocumentMode;
+  coloringPageId?: string;
   createdAt: string;
   updatedAt: string;
   lastOpenedAt: string;
@@ -12,6 +16,8 @@ export interface KidsDocumentSummary {
 export interface KidsDocumentCreateInput {
   docUrl: string;
   title?: string;
+  mode?: KidsDocumentMode;
+  coloringPageId?: string;
   documentSize?: DrawingDocumentSize;
 }
 

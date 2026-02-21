@@ -2,15 +2,20 @@ import { change, init } from "@automerge/automerge/slim";
 import type {
   DrawingDocument,
   DrawingDocumentData,
+  DrawingDocumentPresentation,
   DrawingDocumentSize,
 } from "../model/document";
-import { DEFAULT_DOCUMENT_SIZE } from "../model/document";
+import {
+  DEFAULT_DOCUMENT_PRESENTATION,
+  DEFAULT_DOCUMENT_SIZE,
+} from "../model/document";
 import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
 
 export interface DrawingDocumentJSON {
   size: DrawingDocumentSize;
+  presentation?: DrawingDocumentPresentation;
   shapes: Record<string, AnyShape>;
   temporalOrderCounter?: number;
 }
@@ -30,6 +35,7 @@ export function toJSON(
   }
   return {
     size: doc.size,
+    presentation: doc.presentation,
     shapes,
     temporalOrderCounter: doc.temporalOrderCounter,
   };
@@ -51,6 +57,15 @@ export function fromJSON(
         Math.round(json.size?.height ?? DEFAULT_DOCUMENT_SIZE.height),
       ),
     };
+    draft.presentation =
+      json.presentation?.mode === "coloring" &&
+      typeof json.presentation.coloringPageId === "string" &&
+      json.presentation.coloringPageId.length > 0
+        ? {
+            mode: "coloring",
+            coloringPageId: json.presentation.coloringPageId,
+          }
+        : DEFAULT_DOCUMENT_PRESENTATION;
     draft.shapes = {};
     draft.temporalOrderCounter = json.temporalOrderCounter ?? 0;
     for (const shape of Object.values(json.shapes)) {

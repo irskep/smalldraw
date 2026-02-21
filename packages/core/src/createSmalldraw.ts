@@ -10,8 +10,10 @@ import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-index
 
 import { createAutomergeStoreAdapter } from "./automerge/storeAdapter";
 import {
+  DEFAULT_DOCUMENT_PRESENTATION,
   DEFAULT_DOCUMENT_SIZE,
   type DrawingDocumentData,
+  type DrawingDocumentPresentation,
   type DrawingDocumentSize,
 } from "./model/document";
 import type { ShapeHandlerRegistry } from "./model/shapeHandlers";
@@ -36,9 +38,11 @@ export interface SmalldrawCore {
   open(url: string): Promise<DrawingStoreAdapter>;
   createNew(options?: {
     documentSize?: DrawingDocumentSize;
+    documentPresentation?: DrawingDocumentPresentation;
   }): Promise<{ url: string; adapter: DrawingStoreAdapter }>;
   reset(options?: {
     documentSize?: DrawingDocumentSize;
+    documentPresentation?: DrawingDocumentPresentation;
   }): Promise<DrawingStoreAdapter>;
   destroy(): void;
 }
@@ -61,11 +65,12 @@ async function getOrCreateHandle(
   currentDocUrl: string | null,
   mode: "reuse" | "always-new",
   documentSize: DrawingDocumentSize,
+  documentPresentation: DrawingDocumentPresentation,
   debug: boolean,
 ): Promise<DocHandle<DrawingDocumentData>> {
   if (mode === "always-new") {
     const handle = repo.create<DrawingDocumentData>(
-      createEmptyDrawingDocumentData(documentSize),
+      createEmptyDrawingDocumentData(documentSize, documentPresentation),
     );
     if (debug) {
       console.debug(
@@ -85,7 +90,7 @@ async function getOrCreateHandle(
   }
 
   const handle = repo.create<DrawingDocumentData>(
-    createEmptyDrawingDocumentData(documentSize),
+    createEmptyDrawingDocumentData(documentSize, documentPresentation),
   );
   if (debug) {
     console.debug("[createSmalldraw] created new doc:", handle.url);
@@ -141,6 +146,7 @@ export async function createSmalldraw(
     initialCurrentDocUrl,
     mode,
     documentSize,
+    DEFAULT_DOCUMENT_PRESENTATION,
     debug,
   );
   await writeCurrentDocUrl(handle.url);
@@ -158,13 +164,17 @@ export async function createSmalldraw(
   });
   const createNewDocument = async (createOptions?: {
     documentSize?: DrawingDocumentSize;
+    documentPresentation?: DrawingDocumentPresentation;
   }): Promise<{ url: string; adapter: DrawingStoreAdapter }> => {
     const nextDocumentSize = createOptions?.documentSize ?? documentSize;
+    const nextDocumentPresentation =
+      createOptions?.documentPresentation ?? DEFAULT_DOCUMENT_PRESENTATION;
     handle = await getOrCreateHandle(
       repo,
       null,
       "always-new",
       nextDocumentSize,
+      nextDocumentPresentation,
       debug,
     );
     await handle.whenReady();
@@ -214,12 +224,14 @@ export async function createSmalldraw(
 
 function createEmptyDrawingDocumentData(
   size: DrawingDocumentSize,
+  presentation: DrawingDocumentPresentation,
 ): DrawingDocumentData {
   return {
     size: {
       width: Math.max(1, Math.round(size.width)),
       height: Math.max(1, Math.round(size.height)),
     },
+    presentation,
     shapes: {},
     temporalOrderCounter: 0,
   };

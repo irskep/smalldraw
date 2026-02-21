@@ -29,7 +29,6 @@ import type { KidsDrawApp, KidsDrawAppOptions } from "./types";
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 600;
-const KIDS_DRAW_STROKE_WIDTH_MULTIPLIER = 3;
 
 export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
@@ -80,9 +79,17 @@ export async function createKidsDrawApp(
       shapeHandlers,
     }));
   try {
+    const doc = core.storeAdapter.getDoc();
+    const presentation = doc.presentation;
+    const mode = presentation?.mode === "coloring" ? "coloring" : "normal";
     await documentBackend.createDocument({
       docUrl: core.getCurrentDocUrl(),
-      documentSize: core.storeAdapter.getDoc().size,
+      mode,
+      coloringPageId:
+        presentation?.mode === "coloring"
+          ? presentation.coloringPageId
+          : undefined,
+      documentSize: doc.size,
     });
   } catch (error) {
     console.warn("[kids-draw:documents] failed to ensure current doc index", {
@@ -131,13 +138,6 @@ export async function createKidsDrawApp(
   store.activateTool(
     getDefaultToolIdForFamily(catalog.defaultFamilyId, catalog),
   );
-
-  const shared = store.getSharedSettings();
-  const defaultStrokeWidth = Math.max(
-    1,
-    Math.round(shared.strokeWidth * KIDS_DRAW_STROKE_WIDTH_MULTIPLIER),
-  );
-  store.updateSharedSettings({ strokeWidth: defaultStrokeWidth });
   syncToolbarUiFromDrawingStore(store, {
     resolveActiveFamilyId: (toolId) => getFamilyIdForTool(toolId, catalog),
     resolveToolStyleSupport: (toolId) => getToolStyleSupport(toolId, catalog),

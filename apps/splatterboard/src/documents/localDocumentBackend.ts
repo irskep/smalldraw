@@ -1,11 +1,12 @@
 import type {
   KidsDocumentBackend,
   KidsDocumentCreateInput,
+  KidsDocumentMode,
   KidsDocumentSummary,
 } from "./types";
 
 const DB_NAME = "kids-draw-documents";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const DOCUMENTS_STORE = "documents";
 const THUMBNAILS_STORE = "thumbnails";
 const DEFAULT_CURRENT_DOC_STORAGE_KEY = "kids-draw-doc-url";
@@ -24,6 +25,28 @@ export interface LocalDocumentBackendOptions {
 
 function nowIsoString(): string {
   return new Date().toISOString();
+}
+
+function normalizeMode(mode: unknown): KidsDocumentMode {
+  return mode === "coloring" ? "coloring" : "normal";
+}
+
+function normalizeDocumentSummary(
+  value: Partial<KidsDocumentSummary> & Pick<KidsDocumentSummary, "docUrl">,
+): KidsDocumentSummary {
+  return {
+    docUrl: value.docUrl,
+    title: value.title,
+    mode: normalizeMode(value.mode),
+    coloringPageId:
+      typeof value.coloringPageId === "string" && value.coloringPageId.length > 0
+        ? value.coloringPageId
+        : undefined,
+    createdAt: value.createdAt ?? nowIsoString(),
+    updatedAt: value.updatedAt ?? nowIsoString(),
+    lastOpenedAt: value.lastOpenedAt ?? nowIsoString(),
+    thumbnailKey: value.thumbnailKey,
+  };
 }
 
 function sortDocuments(
@@ -130,8 +153,17 @@ class IndexedDbDocumentRepository implements DocumentRepository {
     const store = transaction.objectStore(DOCUMENTS_STORE);
     const documents = (await toPromise(
       store.getAll(),
-    )) as KidsDocumentSummary[];
-    return sortDocuments(documents);
+    )) as Partial<KidsDocumentSummary>[];
+    return sortDocuments(
+      documents
+        .filter((document) => typeof document.docUrl === "string")
+        .map((document) =>
+          normalizeDocumentSummary(
+            document as Partial<KidsDocumentSummary> &
+              Pick<KidsDocumentSummary, "docUrl">,
+          ),
+        ),
+    );
   }
 
   async getDocument(docUrl: string): Promise<KidsDocumentSummary | null> {
@@ -139,9 +171,15 @@ class IndexedDbDocumentRepository implements DocumentRepository {
     const transaction = db.transaction(DOCUMENTS_STORE, "readonly");
     const store = transaction.objectStore(DOCUMENTS_STORE);
     const document = (await toPromise(store.get(docUrl))) as
-      | KidsDocumentSummary
+      | Partial<KidsDocumentSummary>
       | undefined;
-    return document ?? null;
+    if (!document || typeof document.docUrl !== "string") {
+      return null;
+    }
+    return normalizeDocumentSummary(
+      document as Partial<KidsDocumentSummary> &
+        Pick<KidsDocumentSummary, "docUrl">,
+    );
   }
 
   async upsertDocument(
@@ -151,12 +189,24 @@ class IndexedDbDocumentRepository implements DocumentRepository {
     const db = await this.connection.getDatabase();
     const transaction = db.transaction(DOCUMENTS_STORE, "readwrite");
     const store = transaction.objectStore(DOCUMENTS_STORE);
-    const existing = (await toPromise(store.get(input.docUrl))) as
-      | DocumentRecord
+    const existingRaw = (await toPromise(store.get(input.docUrl))) as
+      | Partial<DocumentRecord>
       | undefined;
+    const existing =
+      existingRaw && typeof existingRaw.docUrl === "string"
+        ? normalizeDocumentSummary(
+            existingRaw as Partial<KidsDocumentSummary> &
+              Pick<KidsDocumentSummary, "docUrl">,
+          )
+        : undefined;
     const next: DocumentRecord = {
       docUrl: input.docUrl,
       title: input.title ?? existing?.title,
+      mode: input.mode ?? existing?.mode ?? "normal",
+      coloringPageId:
+        input.mode === "normal"
+          ? undefined
+          : input.coloringPageId ?? existing?.coloringPageId,
       createdAt: existing?.createdAt ?? timestamp,
       updatedAt: timestamp,
       lastOpenedAt: timestamp,
@@ -171,9 +221,16 @@ class IndexedDbDocumentRepository implements DocumentRepository {
     const db = await this.connection.getDatabase();
     const transaction = db.transaction(DOCUMENTS_STORE, "readwrite");
     const store = transaction.objectStore(DOCUMENTS_STORE);
-    const existing = (await toPromise(store.get(docUrl))) as
-      | KidsDocumentSummary
+    const existingRaw = (await toPromise(store.get(docUrl))) as
+      | Partial<KidsDocumentSummary>
       | undefined;
+    const existing =
+      existingRaw && typeof existingRaw.docUrl === "string"
+        ? normalizeDocumentSummary(
+            existingRaw as Partial<KidsDocumentSummary> &
+              Pick<KidsDocumentSummary, "docUrl">,
+          )
+        : undefined;
     const timestamp = nowIsoString();
     const next: KidsDocumentSummary = existing
       ? {
@@ -183,6 +240,7 @@ class IndexedDbDocumentRepository implements DocumentRepository {
         }
       : {
           docUrl,
+          mode: "normal",
           createdAt: timestamp,
           updatedAt: timestamp,
           lastOpenedAt: timestamp,
@@ -219,6 +277,11 @@ class MemoryDocumentRepository implements DocumentRepository {
     const next: KidsDocumentSummary = {
       docUrl: input.docUrl,
       title: input.title ?? existing?.title,
+      mode: input.mode ?? existing?.mode ?? "normal",
+      coloringPageId:
+        input.mode === "normal"
+          ? undefined
+          : input.coloringPageId ?? existing?.coloringPageId,
       createdAt: existing?.createdAt ?? timestamp,
       updatedAt: timestamp,
       lastOpenedAt: timestamp,

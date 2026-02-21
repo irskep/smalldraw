@@ -1,22 +1,25 @@
 import { describe, expect, test } from "bun:test";
 import {
+  getToolbarUiStorageKeyForDocument,
   loadPersistedToolbarUiState,
   savePersistedToolbarUiState,
-  UI_STATE_STORAGE_KEY,
 } from "../ui/stores/toolbarUiStore";
 
 describe("toolbarUiStore persistence helpers", () => {
+  const docUrl = "automerge:test-doc";
+  const storageKey = getToolbarUiStorageKeyForDocument(docUrl);
+
   test("saves and loads valid v1 payload", () => {
     localStorage.clear();
 
-    savePersistedToolbarUiState({
+    savePersistedToolbarUiState(docUrl, {
       version: 1,
       activeToolId: "tool.pen",
       strokeColor: "#2e86ff",
       strokeWidth: 24,
     });
 
-    expect(loadPersistedToolbarUiState()).toEqual({
+    expect(loadPersistedToolbarUiState(docUrl)).toEqual({
       version: 1,
       activeToolId: "tool.pen",
       strokeColor: "#2e86ff",
@@ -26,15 +29,15 @@ describe("toolbarUiStore persistence helpers", () => {
 
   test("returns null for invalid JSON payload", () => {
     localStorage.clear();
-    localStorage.setItem(UI_STATE_STORAGE_KEY, "{invalid json");
+    localStorage.setItem(storageKey, "{invalid json");
 
-    expect(loadPersistedToolbarUiState()).toBeNull();
+    expect(loadPersistedToolbarUiState(docUrl)).toBeNull();
   });
 
   test("returns null for schema mismatch", () => {
     localStorage.clear();
     localStorage.setItem(
-      UI_STATE_STORAGE_KEY,
+      storageKey,
       JSON.stringify({
         version: 2,
         activeToolId: "tool.pen",
@@ -42,10 +45,10 @@ describe("toolbarUiStore persistence helpers", () => {
         strokeWidth: 8,
       }),
     );
-    expect(loadPersistedToolbarUiState()).toBeNull();
+    expect(loadPersistedToolbarUiState(docUrl)).toBeNull();
 
     localStorage.setItem(
-      UI_STATE_STORAGE_KEY,
+      storageKey,
       JSON.stringify({
         version: 1,
         activeToolId: 42,
@@ -53,6 +56,6 @@ describe("toolbarUiStore persistence helpers", () => {
         strokeWidth: 8,
       }),
     );
-    expect(loadPersistedToolbarUiState()).toBeNull();
+    expect(loadPersistedToolbarUiState(docUrl)).toBeNull();
   });
 });
