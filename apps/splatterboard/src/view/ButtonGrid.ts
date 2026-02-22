@@ -47,6 +47,22 @@ interface ButtonGridItemViewModel {
   element: HTMLElement;
 }
 
+interface ButtonGridState {
+  mode: ButtonGridMode;
+  destroyed: boolean;
+  layoutRetryFrame: number;
+  selectionUnbind: (() => void) | null;
+  currentPageIndex: number;
+  selectedItemId: string;
+  needsPaginationRecalc: boolean;
+  measuredViewportMainSize: number;
+  listsById: Map<string, ButtonGridItem[]>;
+  orderedListIds: string[];
+  activeListId: string;
+  pageItemIndices: number[][];
+  itemPageByIndex: number[];
+}
+
 class ButtonGridItemView {
   readonly el: HTMLDivElement;
   private mountedElement: HTMLElement | null = null;
@@ -88,21 +104,25 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   const orientation = options.orientation ?? "horizontal";
   const largeLayout = options.largeLayout ?? "two-row";
   const paginateInLarge = options.paginateInLarge ?? false;
-  let mode: ButtonGridMode = resolveAutoMode();
-  let destroyed = false;
-  let layoutRetryFrame = 0;
-  let selectionUnbind: (() => void) | null = null;
-  let currentPageIndex = 0;
-  let selectedItemId = "";
-  let needsPaginationRecalc = true;
-  let measuredViewportMainSize = 0;
+  const state: ButtonGridState = {
+    mode: resolveAutoMode(),
+    destroyed: false,
+    layoutRetryFrame: 0,
+    selectionUnbind: null,
+    currentPageIndex: 0,
+    selectedItemId: "",
+    needsPaginationRecalc: true,
+    measuredViewportMainSize: 0,
+    listsById: new Map<string, ButtonGridItem[]>(),
+    orderedListIds: [],
+    activeListId: "",
+    pageItemIndices: [[0]],
+    itemPageByIndex: [],
+  };
 
-  const listsById = new Map<string, ButtonGridItem[]>();
-  let orderedListIds: string[] = [];
-  let activeListId = "";
-
-  let pageItemIndices: number[][] = [[0]];
-  let itemPageByIndex: number[] = [];
+  const updateState = (updater: (draft: ButtonGridState) => void): void => {
+    updater(state);
+  };
 
   const elRoot = el("div.button-grid") as HTMLDivElement;
   if (options.className) {
@@ -114,7 +134,7 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   }
   elRoot.dataset.orientation = orientation;
   elRoot.dataset.largeLayout = largeLayout;
-  elRoot.dataset.mode = mode;
+  elRoot.dataset.mode = state.mode;
   elRoot.dataset.paginateLarge = paginateInLarge ? "true" : "false";
 
   const prevButton = createSquareIconButton({
@@ -153,16 +173,17 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
   mount(elRoot, inlineHost);
 
   const getActiveItems = (): ButtonGridItem[] => {
-    if (!activeListId) {
+    if (!state.activeListId) {
       return [];
     }
-    return listsById.get(activeListId) ?? [];
+    return state.listsById.get(state.activeListId) ?? [];
   };
 
   const useHorizontalFlow = (): boolean =>
-    orientation === "horizontal" || mode === "mobile";
+    orientation === "horizontal" || state.mode === "mobile";
 
-  const shouldPaginate = (): boolean => mode !== "large" || paginateInLarge;
+  const shouldPaginate = (): boolean =>
+    state.mode !== "large" || paginateInLarge;
 
   const getItemContainers = (): HTMLDivElement[] =>
     Array.from(track.children) as HTMLDivElement[];
@@ -185,46 +206,65 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     getMainSizeFromRect(viewport.getBoundingClientRect(), horizontal);
 
   const resetPagination = (): void => {
-    currentPageIndex = 0;
-    pageItemIndices = [[0]];
-    itemPageByIndex = [];
-    measuredViewportMainSize = 0;
-    needsPaginationRecalc = true;
+    updateState((draft) => {
+      draft.currentPageIndex = 0;
+      draft.pageItemIndices = [[0]];
+      draft.itemPageByIndex = [];
+      draft.measuredViewportMainSize = 0;
+      draft.needsPaginationRecalc = true;
+    });
   };
 
   const clampPageIndex = (): void => {
-    const lastPage = Math.max(0, pageItemIndices.length - 1);
-    currentPageIndex = Math.max(0, Math.min(currentPageIndex, lastPage));
+    const lastPage = Math.max(0, state.pageItemIndices.length - 1);
+    updateState((draft) => {
+      draft.currentPageIndex = Math.max(
+        0,
+        Math.min(draft.currentPageIndex, lastPage),
+      );
+    });
   };
 
   const computePagination = (items: ButtonGridItem[]): void => {
     const itemCount = items.length;
     if (itemCount === 0) {
-      pageItemIndices = [];
-      itemPageByIndex = [];
-      currentPageIndex = 0;
-      measuredViewportMainSize = 0;
+      updateState((draft) => {
+        draft.pageItemIndices = [];
+        draft.itemPageByIndex = [];
+        draft.currentPageIndex = 0;
+        draft.measuredViewportMainSize = 0;
+      });
       return;
     }
 
     if (!shouldPaginate()) {
-      pageItemIndices = [Array.from({ length: itemCount }, (_, index) => index)];
-      itemPageByIndex = Array.from({ length: itemCount }, () => 0);
-      currentPageIndex = 0;
-      measuredViewportMainSize = 0;
+      updateState((draft) => {
+        draft.pageItemIndices = [
+          Array.from({ length: itemCount }, (_, index) => index),
+        ];
+        draft.itemPageByIndex = Array.from({ length: itemCount }, () => 0);
+        draft.currentPageIndex = 0;
+        draft.measuredViewportMainSize = 0;
+      });
       return;
     }
 
     const horizontal = useHorizontalFlow();
     const viewportMainSize = getViewportMainSize(horizontal);
-    measuredViewportMainSize = viewportMainSize;
+    updateState((draft) => {
+      draft.measuredViewportMainSize = viewportMainSize;
+    });
     const containers = getItemContainers();
 
     if (containers.length !== itemCount || viewportMainSize <= 1) {
-      pageItemIndices = [Array.from({ length: itemCount }, (_, index) => index)];
-      itemPageByIndex = Array.from({ length: itemCount }, () => 0);
-      currentPageIndex = 0;
-      measuredViewportMainSize = 0;
+      updateState((draft) => {
+        draft.pageItemIndices = [
+          Array.from({ length: itemCount }, (_, index) => index),
+        ];
+        draft.itemPageByIndex = Array.from({ length: itemCount }, () => 0);
+        draft.currentPageIndex = 0;
+        draft.measuredViewportMainSize = 0;
+      });
       return;
     }
 
@@ -270,31 +310,44 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       cursor = endIndex + 1;
     }
 
-    pageItemIndices = pages.length > 0 ? pages : [Array.from({ length: itemCount }, (_, index) => index)];
-    itemPageByIndex = pageByItem;
+    updateState((draft) => {
+      draft.pageItemIndices =
+        pages.length > 0
+          ? pages
+          : [Array.from({ length: itemCount }, (_, index) => index)];
+      draft.itemPageByIndex = pageByItem;
+    });
   };
 
   const syncSelectedPage = (items: ButtonGridItem[]): void => {
-    if (!shouldPaginate() || items.length === 0 || !selectedItemId) {
+    if (!shouldPaginate() || items.length === 0 || !state.selectedItemId) {
       clampPageIndex();
       return;
     }
 
-    const selectedIndex = items.findIndex((item) => item.id === selectedItemId);
+    const selectedIndex = items.findIndex(
+      (item) => item.id === state.selectedItemId,
+    );
     if (selectedIndex < 0) {
       clampPageIndex();
       return;
     }
 
-    const selectedPage = itemPageByIndex[selectedIndex];
+    const selectedPage = state.itemPageByIndex[selectedIndex];
     if (typeof selectedPage === "number" && Number.isFinite(selectedPage)) {
-      currentPageIndex = selectedPage;
+      updateState((draft) => {
+        draft.currentPageIndex = selectedPage;
+      });
     }
     clampPageIndex();
   };
 
   const syncPagerControls = (items: ButtonGridItem[]): void => {
-    if (!shouldPaginate() || items.length === 0 || pageItemIndices.length <= 1) {
+    if (
+      !shouldPaginate() ||
+      items.length === 0 ||
+      state.pageItemIndices.length <= 1
+    ) {
       prevButton.el.hidden = true;
       nextButton.el.hidden = true;
       return;
@@ -302,12 +355,14 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
 
     prevButton.el.hidden = false;
     nextButton.el.hidden = false;
-    prevButton.setDisabled(currentPageIndex <= 0);
-    nextButton.setDisabled(currentPageIndex >= pageItemIndices.length - 1);
+    prevButton.setDisabled(state.currentPageIndex <= 0);
+    nextButton.setDisabled(
+      state.currentPageIndex >= state.pageItemIndices.length - 1,
+    );
   };
 
   const render = (): void => {
-    if (destroyed) {
+    if (state.destroyed) {
       return;
     }
 
@@ -322,21 +377,23 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     viewport.style.height = "";
     viewport.style.maxHeight = "";
 
-    elRoot.dataset.mode = mode;
+    elRoot.dataset.mode = state.mode;
     // Structure is mounted once during setup; render updates only dynamic state.
     inlineHost.hidden = false;
     track.style.transform = "";
 
-    if (needsPaginationRecalc) {
+    if (state.needsPaginationRecalc) {
       listView.update(allModels);
       computePagination(items);
       syncSelectedPage(items);
-      needsPaginationRecalc = false;
+      updateState((draft) => {
+        draft.needsPaginationRecalc = false;
+      });
     } else {
       clampPageIndex();
     }
 
-    const currentPageItems = pageItemIndices[currentPageIndex] ?? [];
+    const currentPageItems = state.pageItemIndices[state.currentPageIndex] ?? [];
     const visibleModels =
       shouldPaginate() && items.length > 0
         ? currentPageItems
@@ -346,11 +403,11 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
             )
         : allModels;
 
-    if (shouldPaginate() && measuredViewportMainSize > 1) {
+    if (shouldPaginate() && state.measuredViewportMainSize > 1) {
       if (useHorizontalFlow()) {
-        viewport.style.width = `${measuredViewportMainSize}px`;
+        viewport.style.width = `${state.measuredViewportMainSize}px`;
       } else {
-        viewport.style.height = `${measuredViewportMainSize}px`;
+        viewport.style.height = `${state.measuredViewportMainSize}px`;
       }
     }
 
@@ -361,15 +418,19 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     const viewportMainSize = getViewportMainSize(horizontal);
     if (
       shouldPaginate() &&
-      mode === "mobile" &&
+      state.mode === "mobile" &&
       items.length > 1 &&
       viewportMainSize <= 1 &&
-      layoutRetryFrame === 0
+      state.layoutRetryFrame === 0
     ) {
-      layoutRetryFrame = window.requestAnimationFrame(() => {
-        layoutRetryFrame = 0;
-        needsPaginationRecalc = true;
-        render();
+      updateState((draft) => {
+        draft.layoutRetryFrame = window.requestAnimationFrame(() => {
+          updateState((nextDraft) => {
+            nextDraft.layoutRetryFrame = 0;
+            nextDraft.needsPaginationRecalc = true;
+          });
+          render();
+        });
       });
     }
   };
@@ -378,11 +439,13 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     if (!shouldPaginate()) {
       return;
     }
-    if (currentPageIndex >= pageItemIndices.length - 1) {
+    if (state.currentPageIndex >= state.pageItemIndices.length - 1) {
       return;
     }
 
-    currentPageIndex += 1;
+    updateState((draft) => {
+      draft.currentPageIndex += 1;
+    });
     render();
   };
 
@@ -390,16 +453,20 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     if (!shouldPaginate()) {
       return;
     }
-    if (currentPageIndex <= 0) {
+    if (state.currentPageIndex <= 0) {
       return;
     }
 
-    currentPageIndex -= 1;
+    updateState((draft) => {
+      draft.currentPageIndex -= 1;
+    });
     render();
   };
 
   const ensureVisibleInternal = (itemId: string): void => {
-    selectedItemId = itemId;
+    updateState((draft) => {
+      draft.selectedItemId = itemId;
+    });
     if (!shouldPaginate()) {
       return;
     }
@@ -410,10 +477,12 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       return;
     }
 
-    if (!needsPaginationRecalc) {
-      const resolvedPage = itemPageByIndex[itemIndex];
+    if (!state.needsPaginationRecalc) {
+      const resolvedPage = state.itemPageByIndex[itemIndex];
       if (typeof resolvedPage === "number" && Number.isFinite(resolvedPage)) {
-        currentPageIndex = resolvedPage;
+        updateState((draft) => {
+          draft.currentPageIndex = resolvedPage;
+        });
       }
     }
 
@@ -422,10 +491,12 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
 
   const onWindowResize = (): void => {
     const nextMode = resolveAutoMode();
-    if (nextMode !== mode) {
-      mode = nextMode;
-    }
-    needsPaginationRecalc = true;
+    updateState((draft) => {
+      if (nextMode !== draft.mode) {
+        draft.mode = nextMode;
+      }
+      draft.needsPaginationRecalc = true;
+    });
     render();
   };
 
@@ -439,44 +510,54 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     prevButton,
     nextButton,
     setLists(lists: ButtonGridList[]): void {
-      listsById.clear();
-      orderedListIds = [];
-      for (const listItem of lists) {
-        listsById.set(listItem.id, listItem.items);
-        orderedListIds.push(listItem.id);
-      }
-      if (!listsById.has(activeListId)) {
-        activeListId = orderedListIds[0] ?? "";
-      }
+      updateState((draft) => {
+        draft.listsById.clear();
+        draft.orderedListIds = [];
+        for (const listItem of lists) {
+          draft.listsById.set(listItem.id, listItem.items);
+          draft.orderedListIds.push(listItem.id);
+        }
+        if (!draft.listsById.has(draft.activeListId)) {
+          draft.activeListId = draft.orderedListIds[0] ?? "";
+        }
+      });
       resetPagination();
       render();
     },
     setActiveList(listId: string): void {
-      if (!listsById.has(listId)) {
+      if (!state.listsById.has(listId)) {
         return;
       }
-      activeListId = listId;
+      updateState((draft) => {
+        draft.activeListId = listId;
+      });
       resetPagination();
       render();
     },
     setMode(nextMode: ButtonGridMode): void {
-      if (nextMode === mode) {
+      if (nextMode === state.mode) {
         return;
       }
-      mode = nextMode;
+      updateState((draft) => {
+        draft.mode = nextMode;
+      });
       resetPagination();
       render();
     },
     bindSelection(store: ReadableAtom<string>): () => void {
-      selectionUnbind?.();
-      selectionUnbind = null;
+      state.selectionUnbind?.();
+      updateState((draft) => {
+        draft.selectionUnbind = null;
+      });
 
       const applySelection = (itemId: string): void => {
         if (itemId) {
           ensureVisibleInternal(itemId);
           return;
         }
-        selectedItemId = "";
+        updateState((draft) => {
+          draft.selectedItemId = "";
+        });
         render();
       };
 
@@ -485,11 +566,15 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       const unbind = store.subscribe((itemId) => {
         applySelection(itemId ?? "");
       });
-      selectionUnbind = unbind;
+      updateState((draft) => {
+        draft.selectionUnbind = unbind;
+      });
 
       return () => {
-        if (selectionUnbind === unbind) {
-          selectionUnbind = null;
+        if (state.selectionUnbind === unbind) {
+          updateState((draft) => {
+            draft.selectionUnbind = null;
+          });
         }
         unbind();
       };
@@ -498,20 +583,28 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       ensureVisibleInternal(itemId);
     },
     syncLayout(): void {
-      needsPaginationRecalc = true;
+      updateState((draft) => {
+        draft.needsPaginationRecalc = true;
+      });
       render();
     },
     destroy(): void {
-      if (destroyed) {
+      if (state.destroyed) {
         return;
       }
-      destroyed = true;
-      if (layoutRetryFrame !== 0) {
-        window.cancelAnimationFrame(layoutRetryFrame);
-        layoutRetryFrame = 0;
+      updateState((draft) => {
+        draft.destroyed = true;
+      });
+      if (state.layoutRetryFrame !== 0) {
+        window.cancelAnimationFrame(state.layoutRetryFrame);
+        updateState((draft) => {
+          draft.layoutRetryFrame = 0;
+        });
       }
-      selectionUnbind?.();
-      selectionUnbind = null;
+      state.selectionUnbind?.();
+      updateState((draft) => {
+        draft.selectionUnbind = null;
+      });
       window.removeEventListener("resize", onWindowResize);
       window.visualViewport?.removeEventListener("resize", onWindowResize);
     },

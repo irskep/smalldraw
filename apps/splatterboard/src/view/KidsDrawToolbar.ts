@@ -59,6 +59,33 @@ const COLOR_SWATCHES: ColorSwatchConfig[] = [
 
 export const STROKE_WIDTH_OPTIONS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
 
+export function resolveSelectedColorSwatchIndex(
+  strokeColor: string,
+  swatchColors: readonly string[],
+): number {
+  const normalizedStrokeColor = strokeColor.toLowerCase();
+  const selectedSwatchIndex = swatchColors.findIndex(
+    (swatchColor) => swatchColor.toLowerCase() === normalizedStrokeColor,
+  );
+  return Math.max(0, selectedSwatchIndex);
+}
+
+export function resolveNearestStrokeWidthOption(
+  strokeWidth: number,
+  strokeWidthOptions: readonly number[],
+): number {
+  let nearestStrokeWidth: number = strokeWidthOptions[0] ?? 1;
+  let nearestDelta = Math.abs(strokeWidth - nearestStrokeWidth);
+  for (const option of strokeWidthOptions) {
+    const delta = Math.abs(strokeWidth - option);
+    if (delta < nearestDelta) {
+      nearestStrokeWidth = option;
+      nearestDelta = delta;
+    }
+  }
+  return nearestStrokeWidth;
+}
+
 export function createKidsDrawToolbar(options: {
   tools: KidsToolConfig[];
   families: KidsToolFamilyConfig[];
@@ -422,10 +449,8 @@ export function createKidsDrawToolbar(options: {
   let unbindVariantSelections: Array<() => void> = [];
 
   const applyState = (state: ToolbarUiState): void => {
-    const normalizedStrokeColor = state.strokeColor.toLowerCase();
     const activeToolId = resolveActiveToolId(state.activeToolId);
     const activeFamilyId = resolveActiveFamilyId(activeToolId);
-
     for (const [familyId, button] of familyButtons) {
       const selected = familyId === activeFamilyId;
       button.setSelected(selected);
@@ -460,12 +485,12 @@ export function createKidsDrawToolbar(options: {
     redoButton.setDisabled(!state.canRedo);
     newDrawingButton.setDisabled(state.newDrawingPending);
 
-    const selectedSwatchIndex = Math.max(
-      0,
-      strokeColorSwatchButtons.findIndex(
-        (swatchButton) =>
-          swatchButton.dataset.color?.toLowerCase() === normalizedStrokeColor,
-      ),
+    const swatchColors = strokeColorSwatchButtons.map(
+      (swatchButton) => swatchButton.dataset.color ?? "",
+    );
+    const selectedSwatchIndex = resolveSelectedColorSwatchIndex(
+      state.strokeColor,
+      swatchColors,
     );
     for (const [index, swatchButton] of strokeColorSwatchButtons.entries()) {
       const selected = index === selectedSwatchIndex;
@@ -477,22 +502,19 @@ export function createKidsDrawToolbar(options: {
       !state.supportsStrokeColor,
     );
 
-    let nearestStrokeWidth: number = STROKE_WIDTH_OPTIONS[0];
-    let nearestDelta = Math.abs(state.strokeWidth - nearestStrokeWidth);
-    for (const strokeWidth of STROKE_WIDTH_OPTIONS) {
-      const delta = Math.abs(state.strokeWidth - strokeWidth);
-      if (delta < nearestDelta) {
-        nearestStrokeWidth = strokeWidth;
-        nearestDelta = delta;
-      }
-    }
-    const selectedWidthIndex = strokeWidthButtons.findIndex((widthButton) => {
-      const width = Number(widthButton.dataset.size);
-      return Number.isFinite(width) && width === nearestStrokeWidth;
-    });
-    const resolvedWidthIndex = Math.max(0, selectedWidthIndex);
+    const nearestStrokeWidth = resolveNearestStrokeWidthOption(
+      state.strokeWidth,
+      STROKE_WIDTH_OPTIONS,
+    );
+    const selectedWidthIndex = Math.max(
+      0,
+      strokeWidthButtons.findIndex((widthButton) => {
+        const width = Number(widthButton.dataset.size);
+        return Number.isFinite(width) && width === nearestStrokeWidth;
+      }),
+    );
     for (const [index, widthButton] of strokeWidthButtons.entries()) {
-      const selected = index === resolvedWidthIndex;
+      const selected = index === selectedWidthIndex;
       setRadioSelectedState(widthButton, selected);
       widthButton.disabled = !state.supportsStrokeWidth;
     }

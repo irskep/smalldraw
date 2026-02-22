@@ -413,7 +413,6 @@ export function createDocumentBrowserOverlay(options: {
     createVolumeId: null,
   });
   let longPressTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
-  let previewImageSrc: string | null = null;
 
   const updateState = (
     updater: (state: OverlayState) => OverlayState,
@@ -426,6 +425,18 @@ export function createDocumentBrowserOverlay(options: {
       clearTimeout(longPressTimeoutHandle);
       longPressTimeoutHandle = null;
     }
+  };
+
+  const startLongPressPreview = (docUrl: string): void => {
+    clearLongPressTimeout();
+    updateState((state) => ({ ...state, touchPressDocUrl: docUrl }));
+    longPressTimeoutHandle = setTimeout(() => {
+      longPressTimeoutHandle = null;
+      if ($state.get().touchPressDocUrl !== docUrl) {
+        return;
+      }
+      showPreview(docUrl);
+    }, LONG_PRESS_PREVIEW_MS);
   };
 
   const closePreview = (): void => {
@@ -451,6 +462,30 @@ export function createDocumentBrowserOverlay(options: {
       suppressNextOpenDocUrl: state.previewDocUrl,
       previewDocUrl: null,
     }));
+  };
+
+  const applyPreviewImage = (previewDocUrl: string | null): void => {
+    if (!previewDocUrl) {
+      previewImage.hidden = true;
+      if (previewImage.hasAttribute("src")) {
+        previewImage.removeAttribute("src");
+      }
+      return;
+    }
+    const state = $state.get();
+    const nextPreviewImageSrc = state.thumbnailUrlByDocUrl.get(previewDocUrl) ?? null;
+    const currentPreviewImageSrc = previewImage.getAttribute("src");
+    if (nextPreviewImageSrc) {
+      if (currentPreviewImageSrc !== nextPreviewImageSrc) {
+        previewImage.src = nextPreviewImageSrc;
+      }
+      previewImage.hidden = false;
+      return;
+    }
+    previewImage.hidden = true;
+    if (currentPreviewImageSrc !== null) {
+      previewImage.removeAttribute("src");
+    }
   };
 
   const renderCreateGrid = (state: OverlayState): void => {
@@ -516,21 +551,11 @@ export function createDocumentBrowserOverlay(options: {
       : null;
     preview.hidden = previewDocument === null;
     if (previewDocument) {
-      const previewThumbnailUrl = state.thumbnailUrlByDocUrl.get(
-        previewDocument.docUrl,
-      );
-      const nextPreviewImageSrc = previewThumbnailUrl ?? null;
-      if (nextPreviewImageSrc !== previewImageSrc) {
-        if (nextPreviewImageSrc) {
-          previewImage.src = nextPreviewImageSrc;
-        } else {
-          previewImage.removeAttribute("src");
-        }
-        previewImageSrc = nextPreviewImageSrc;
-      }
-      previewImage.hidden = nextPreviewImageSrc === null;
+      applyPreviewImage(previewDocument.docUrl);
       previewMetaTitle.textContent = toFallbackTitle(previewDocument);
       previewMetaTimestamp.textContent = `Last opened: ${formatTimestamp(previewDocument.lastOpenedAt)}`;
+    } else {
+      applyPreviewImage(null);
     }
 
     if (state.loading) {
@@ -554,8 +579,8 @@ export function createDocumentBrowserOverlay(options: {
   };
 
   const onBrowserPointerDown = (event: PointerEvent): void => {
-    const target = event.target as HTMLElement | null;
-    if (!target || event.pointerType === "mouse") {
+    const target = event.target as { closest?: (selector: string) => Element | null } | null;
+    if (!target?.closest || event.pointerType === "mouse") {
       return;
     }
     const openEl = target.closest("[data-doc-browser-open]");
@@ -566,15 +591,7 @@ export function createDocumentBrowserOverlay(options: {
     if (!docUrl) {
       return;
     }
-    clearLongPressTimeout();
-    updateState((nextState) => ({ ...nextState, touchPressDocUrl: docUrl }));
-    longPressTimeoutHandle = setTimeout(() => {
-      longPressTimeoutHandle = null;
-      if ($state.get().touchPressDocUrl !== docUrl) {
-        return;
-      }
-      showPreview(docUrl);
-    }, LONG_PRESS_PREVIEW_MS);
+    startLongPressPreview(docUrl);
   };
 
   const onBrowserPointerEnd = (): void => {
@@ -583,8 +600,8 @@ export function createDocumentBrowserOverlay(options: {
 
   const onBrowserClick = (event: MouseEvent): void => {
     const state = $state.get();
-    const target = event.target as HTMLElement | null;
-    if (!target) {
+    const target = event.target as { closest?: (selector: string) => Element | null } | null;
+    if (!target?.closest) {
       return;
     }
 
@@ -624,8 +641,8 @@ export function createDocumentBrowserOverlay(options: {
   };
 
   const onCreateClick = (event: MouseEvent): void => {
-    const target = event.target as HTMLElement | null;
-    if (!target) {
+    const target = event.target as { closest?: (selector: string) => Element | null } | null;
+    if (!target?.closest) {
       return;
     }
 
