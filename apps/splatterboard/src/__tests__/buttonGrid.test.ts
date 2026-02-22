@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { atom } from "nanostores";
-import { createButtonGrid } from "../view/ButtonGrid";
+import { ButtonGrid } from "../view/ButtonGrid";
 
 function createItems(
   count: number,
@@ -67,64 +67,90 @@ function mockGridRects(root: HTMLElement): void {
   }
 }
 
+function getPrevButton(root: HTMLElement): HTMLButtonElement {
+  const button = root.querySelector(
+    '[data-button-grid-nav="prev"]',
+  ) as HTMLButtonElement | null;
+  if (!button) {
+    throw new Error("Missing previous nav button");
+  }
+  return button;
+}
+
+function getNextButton(root: HTMLElement): HTMLButtonElement {
+  const button = root.querySelector(
+    '[data-button-grid-nav="next"]',
+  ) as HTMLButtonElement | null;
+  if (!button) {
+    throw new Error("Missing next nav button");
+  }
+  return button;
+}
+
 describe("ButtonGrid", () => {
   test("paginates and updates nav controls for medium mode", () => {
-    const grid = createButtonGrid({ orientation: "horizontal" });
+    const grid = new ButtonGrid({ orientation: "horizontal" });
     document.body.appendChild(grid.el);
     grid.setMode("medium");
     grid.setLists([{ id: "main", items: createItems(5) }]);
     mockGridRects(grid.el);
     grid.syncLayout();
+    const prevButton = getPrevButton(grid.el);
+    const nextButton = getNextButton(grid.el);
 
-    expect(grid.prevButton.el.hidden).toBeFalse();
-    expect(grid.nextButton.el.hidden).toBeFalse();
-    expect(grid.prevButton.el.disabled).toBeTrue();
-    expect(grid.nextButton.el.disabled).toBeFalse();
+    expect(prevButton.hidden).toBeFalse();
+    expect(nextButton.hidden).toBeFalse();
+    expect(prevButton.disabled).toBeTrue();
+    expect(nextButton.disabled).toBeFalse();
 
-    grid.nextButton.el.click();
+    nextButton.click();
 
-    expect(grid.prevButton.el.disabled).toBeFalse();
-    expect(grid.nextButton.el.disabled).toBeFalse();
+    expect(prevButton.disabled).toBeFalse();
+    expect(nextButton.disabled).toBeFalse();
 
     grid.destroy();
     grid.el.remove();
   });
 
   test("ensureItemVisible navigates to target item page", () => {
-    const grid = createButtonGrid({ orientation: "horizontal" });
+    const grid = new ButtonGrid({ orientation: "horizontal" });
     document.body.appendChild(grid.el);
     grid.setMode("medium");
     grid.setLists([{ id: "main", items: createItems(5) }]);
     mockGridRects(grid.el);
     grid.syncLayout();
+    const prevButton = getPrevButton(grid.el);
+    const nextButton = getNextButton(grid.el);
 
     grid.ensureItemVisible("item-4");
 
-    expect(grid.prevButton.el.disabled).toBeFalse();
-    expect(grid.nextButton.el.disabled).toBeTrue();
+    expect(prevButton.disabled).toBeFalse();
+    expect(nextButton.disabled).toBeTrue();
 
     grid.destroy();
     grid.el.remove();
   });
 
   test("bindSelection follows store updates and unbind stops updates", () => {
-    const grid = createButtonGrid({ orientation: "horizontal" });
+    const grid = new ButtonGrid({ orientation: "horizontal" });
     document.body.appendChild(grid.el);
     grid.setMode("medium");
     grid.setLists([{ id: "main", items: createItems(5) }]);
     mockGridRects(grid.el);
     grid.syncLayout();
+    const prevButton = getPrevButton(grid.el);
+    const nextButton = getNextButton(grid.el);
 
     const selectedItem = atom("item-0");
     const unbind = grid.bindSelection(selectedItem);
 
     selectedItem.set("item-3");
-    expect(grid.prevButton.el.disabled).toBeFalse();
-    expect(grid.nextButton.el.disabled).toBeFalse();
+    expect(prevButton.disabled).toBeFalse();
+    expect(nextButton.disabled).toBeFalse();
 
     unbind();
     selectedItem.set("item-0");
-    expect(grid.prevButton.el.disabled).toBeFalse();
+    expect(prevButton.disabled).toBeFalse();
 
     grid.destroy();
     grid.el.remove();

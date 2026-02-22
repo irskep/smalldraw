@@ -2,6 +2,7 @@ import "./ModalDialog.css";
 
 import type { IconNode } from "lucide";
 import { el, setChildren } from "redom";
+import type { ReDomLike } from "./ReDomLike";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const DIALOG_CLOSE_ANIMATION_MS = 220;
@@ -15,7 +16,7 @@ export interface ModalDialogOptions {
   icon?: IconNode;
 }
 
-export class ModalDialogView {
+export class ModalDialogView implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
 
   #dialog: HTMLDialogElement;

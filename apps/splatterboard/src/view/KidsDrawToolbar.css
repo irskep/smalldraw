@@ -14,9 +14,22 @@
   gap: var(--size-2);
 }
 
+.kids-draw-toolbar-style-pane {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+}
+
 .kids-draw-toolbar-bottom {
   padding-bottom: var(--size-2);
   width: 100%;
+}
+
+.kids-draw-toolbar-variant-strip {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
 }
 
 .kids-draw-toolbar-bottom,

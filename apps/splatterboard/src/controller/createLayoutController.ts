@@ -13,7 +13,7 @@ import {
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
+import type { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
 import type { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
 import type { RenderLoopController } from "./createRenderLoopController";
 import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
@@ -23,13 +23,13 @@ export const DEFAULT_MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX = 8;
 
 export type LayoutControllerDependencies = {
   stage: KidsDrawStage;
-  toolbar: KidsDrawToolbar;
+  toolbar: KidsDrawToolbarView;
   resolvePageSize: () => { width: number; height: number };
   getSize: () => { width: number; height: number };
   setSize: (size: DrawingDocumentSize) => void;
   runtimeStore: Pick<
     KidsDrawRuntimeStore,
-    "isDestroyed" | "setViewportMetrics"
+    "$destroyed" | "$layoutProfile" | "$viewportMetrics"
   >;
   pipeline: Pick<RasterPipeline, "updateViewport">;
   renderLoopController: Pick<
@@ -63,6 +63,12 @@ export class LayoutController {
       window.innerWidth,
       window.innerHeight,
     );
+    if (
+      this.options.runtimeStore.$layoutProfile.get() !==
+      this.currentLayoutProfile
+    ) {
+      this.options.runtimeStore.$layoutProfile.set(this.currentLayoutProfile);
+    }
   }
 
   getCurrentLayoutProfile(): ResponsiveLayoutProfile {
@@ -73,24 +79,23 @@ export class LayoutController {
     const { stage, toolbar } = this.options;
     const orientation =
       window.innerHeight > window.innerWidth ? "portrait" : "landscape";
-    stage.viewportHost.dataset.layoutProfile = profile;
-    stage.viewportHost.dataset.layoutMode = this.resolveModeForProfile(profile);
-    stage.viewportHost.dataset.layoutOrientation = orientation;
+    stage.setViewportLayout({
+      profile,
+      mode: this.resolveModeForProfile(profile),
+      orientation,
+    });
 
     if (profile === "mobile-portrait") {
       this.syncMobilePortraitTopPanel();
       const mobileActionsOpen =
         this.options.toolbarUiStore.get().mobileActionsOpen;
-      this.options.mobilePortraitActionsView.mountMobileLayout({
+      toolbar.mountMobilePortraitLayout({
         topSlot: stage.insetTopSlot,
         bottomSlot: stage.insetBottomSlot,
-        toolbarTopElement: toolbar.topElement,
-        toolbarBottomElement: toolbar.bottomElement,
-        toolSelectorElement: toolbar.toolSelectorElement,
+        mobilePortraitActionsView: this.options.mobilePortraitActionsView,
         actionsOpen: mobileActionsOpen,
       });
-      stage.insetLeftSlot.replaceChildren();
-      stage.insetRightSlot.replaceChildren();
+      stage.clearSideInsetSlots();
       toolbar.syncLayout();
       this.positionMobilePortraitActionsPopover();
       return;
@@ -99,22 +104,13 @@ export class LayoutController {
     this.options.toolbarUiStore.setMobileActionsOpen(false);
     this.options.toolbarUiStore.setMobileTopPanel("colors");
     this.options.mobilePortraitActionsView.unmountMobileLayout();
-    const colorsPanel = toolbar.topElement.querySelector(
-      ".kids-draw-toolbar-colors",
-    ) as HTMLDivElement | null;
-    const strokePanel = toolbar.topElement.querySelector(
-      ".kids-draw-toolbar-strokes",
-    ) as HTMLDivElement | null;
-    if (colorsPanel) {
-      colorsPanel.hidden = false;
-    }
-    if (strokePanel) {
-      strokePanel.hidden = false;
-    }
-    stage.insetTopSlot.replaceChildren(toolbar.topElement);
-    stage.insetLeftSlot.replaceChildren(toolbar.toolSelectorElement);
-    stage.insetRightSlot.replaceChildren(toolbar.actionPanelElement);
-    stage.insetBottomSlot.replaceChildren(toolbar.bottomElement);
+    toolbar.showDesktopTopPanels();
+    toolbar.mountDesktopLayout({
+      topSlot: stage.insetTopSlot,
+      leftSlot: stage.insetLeftSlot,
+      rightSlot: stage.insetRightSlot,
+      bottomSlot: stage.insetBottomSlot,
+    });
     toolbar.syncLayout();
   }
 
@@ -123,6 +119,12 @@ export class LayoutController {
       window.innerWidth,
       window.innerHeight,
     );
+    if (
+      this.options.runtimeStore.$layoutProfile.get() !==
+      this.currentLayoutProfile
+    ) {
+      this.options.runtimeStore.$layoutProfile.set(this.currentLayoutProfile);
+    }
     this.applyToolbarLayoutProfile(this.currentLayoutProfile);
   }
 
@@ -223,7 +225,7 @@ export class LayoutController {
     this.publishViewportMetrics(nextWidth, nextHeight);
     this.options.toolbar.syncLayout();
     this.scheduleAnimationFrame(() => {
-      if (this.options.runtimeStore.isDestroyed()) {
+      if (this.options.runtimeStore.$destroyed.get()) {
         return;
       }
       this.publishViewportMetrics(nextWidth, nextHeight);
@@ -258,7 +260,7 @@ export class LayoutController {
     this.options.renderLoopController.setTilePixelRatio(nextPixelRatio);
     this.options.toolbar.syncLayout();
     this.scheduleAnimationFrame(() => {
-      if (this.options.runtimeStore.isDestroyed()) {
+      if (this.options.runtimeStore.$destroyed.get()) {
         return;
       }
       const latestSize = this.options.getSize();
@@ -302,19 +304,8 @@ export class LayoutController {
 
   private syncMobilePortraitTopPanel(): void {
     const panel = this.getMobilePortraitTopPanel();
+    this.options.toolbar.setMobileTopPanel(panel);
     this.options.mobilePortraitActionsView.setTopPanel(panel);
-    const colorsPanel = this.options.toolbar.topElement.querySelector(
-      ".kids-draw-toolbar-colors",
-    ) as HTMLDivElement | null;
-    const strokePanel = this.options.toolbar.topElement.querySelector(
-      ".kids-draw-toolbar-strokes",
-    ) as HTMLDivElement | null;
-    if (colorsPanel) {
-      colorsPanel.hidden = panel !== "colors";
-    }
-    if (strokePanel) {
-      strokePanel.hidden = panel !== "strokes";
-    }
   }
 
   private getViewportPadding(): {
@@ -346,13 +337,25 @@ export class LayoutController {
     logicalHeight: number,
   ): void {
     const rect = this.options.stage.overlay.getBoundingClientRect();
-    this.options.runtimeStore.setViewportMetrics({
+    const nextMetrics = {
       overlayLeft: rect.left,
       overlayTop: rect.top,
       overlayWidth: rect.width,
       overlayHeight: rect.height,
       logicalWidth,
       logicalHeight,
-    });
+    };
+    const currentMetrics = this.options.runtimeStore.$viewportMetrics.get();
+    if (
+      currentMetrics.overlayLeft === nextMetrics.overlayLeft &&
+      currentMetrics.overlayTop === nextMetrics.overlayTop &&
+      currentMetrics.overlayWidth === nextMetrics.overlayWidth &&
+      currentMetrics.overlayHeight === nextMetrics.overlayHeight &&
+      currentMetrics.logicalWidth === nextMetrics.logicalWidth &&
+      currentMetrics.logicalHeight === nextMetrics.logicalHeight
+    ) {
+      return;
+    }
+    this.options.runtimeStore.$viewportMetrics.set(nextMetrics);
   }
 }

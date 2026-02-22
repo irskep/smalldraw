@@ -23,7 +23,7 @@ import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import { createDocumentBrowserOverlay } from "../view/DocumentBrowserOverlay";
 import { GlobalEventSurface } from "../view/GlobalEventSurface";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
+import type { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
 import { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
 import { createCursorOverlayController } from "./createCursorOverlayController";
 import { createDocumentBrowserCommands } from "./createDocumentBrowserCommands";
@@ -39,6 +39,7 @@ import { createLifecycleScope } from "./createLifecycleScope";
 import { SnapshotService } from "./createSnapshotService";
 import { ToolbarStateController } from "./createToolbarStateController";
 import { createKidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
+import type { UiIntentStore } from "./stores/createUiIntentStore";
 
 type ConfirmDialogRequest = {
   title: string;
@@ -62,11 +63,12 @@ export interface KidsDrawSizingPolicy {
 export function createKidsDrawController(options: {
   store: DrawingStore;
   core: SmalldrawCore;
-  toolbar: KidsDrawToolbar;
+  toolbar: KidsDrawToolbarView;
   catalog: KidsToolCatalog;
   shapeRendererRegistry: ShapeRendererRegistry;
   tools: KidsToolConfig[];
   families: KidsToolFamilyConfig[];
+  uiIntentStore: UiIntentStore;
   stage: KidsDrawStage;
   toolbarUiStore: ToolbarUiStore;
   pipeline: RasterPipeline;
@@ -86,6 +88,7 @@ export function createKidsDrawController(options: {
     shapeRendererRegistry,
     tools,
     families,
+    uiIntentStore,
     stage,
     toolbarUiStore,
     pipeline,
@@ -108,7 +111,7 @@ export function createKidsDrawController(options: {
 
   const perfSession = createKidsDrawPerfSession();
   const lifecycleScope = createLifecycleScope();
-  const { add, listen } = lifecycleScope;
+  const { add } = lifecycleScope;
 
   const runtimeStore = createKidsDrawRuntimeStore();
   const snapshotService = new SnapshotService({
@@ -131,7 +134,7 @@ export function createKidsDrawController(options: {
           : [],
       ),
     ),
-    runtimeStore,
+    viewportMetricsStore: runtimeStore.$viewportMetrics,
   });
   let toolbarStateController: ToolbarStateController;
   let toolbarUiPersistence: ToolbarUiPersistence;
@@ -277,18 +280,31 @@ export function createKidsDrawController(options: {
     openDocumentFromBrowser,
     deleteDocumentFromBrowser,
   } = documentBrowserCommands;
+  const unbindMobilePortraitActionsIntents =
+    mobilePortraitActionsUi.bindIntents({
+      uiIntentStore,
+      layoutController,
+    });
+  add(unbindMobilePortraitActionsIntents);
+  const unbindGlobalIntents = globalEventSurface.bindIntents({
+    windowTarget: window,
+    documentTarget: document,
+    getCurrentLayoutProfile: () => layoutController.getCurrentLayoutProfile(),
+    isMobileActionsOpen: () => toolbarUiStore.get().mobileActionsOpen,
+    isInMobilePortraitChrome: (target) =>
+      mobilePortraitActionsUi.containsTarget(target),
+    isDocumentPickerOpen: () => documentPickerController.isOpen(),
+    uiIntentStore,
+  });
+  add(unbindGlobalIntents);
   const { commandController } = createKidsDrawInteractionRuntime({
     store,
     toolbarUiStore,
     toolbarStateController,
     inputSessionController,
     cursorOverlay,
-    layoutController,
-    toolbar,
-    stage,
-    mobilePortraitActionsUi,
-    globalEventSurface,
-    lifecycle: { add, listen },
+    uiIntentStore,
+    lifecycle: { add },
     documentBrowserCommands: {
       closeDocumentPicker,
       openDocumentPicker,
@@ -331,6 +347,7 @@ export function createKidsDrawController(options: {
       layoutController.dispose();
       renderLoopController.dispose();
       cursorOverlay.dispose();
+      stage.destroy();
 
       lifecycleScope.disposeAll();
 

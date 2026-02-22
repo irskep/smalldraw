@@ -1,6 +1,7 @@
 import type { DrawingStore } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
 import type { IconNode } from "lucide";
+import type { ReadableAtom } from "nanostores";
 import type { KidsToolCursorMode } from "../tools/kidsTools";
 import { getAlphabetGlyph } from "../tools/stampGlyphs";
 import { computeImageStampSize } from "../tools/stamps/imageStamp";
@@ -18,7 +19,7 @@ import {
   toStampStrokeSize,
 } from "../tools/stampTool";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
+import type { ViewportMetrics } from "./stores/createKidsDrawRuntimeStore";
 
 export interface CursorOverlayController {
   dispose(): void;
@@ -38,17 +39,14 @@ export function createCursorOverlayController(options: {
   stage: KidsDrawStage;
   cursorModeByToolId: ReadonlyMap<string, KidsToolCursorMode>;
   cursorPreviewIconByToolId: ReadonlyMap<string, IconNode>;
-  runtimeStore: Pick<
-    KidsDrawRuntimeStore,
-    "subscribeViewportMetrics" | "getViewportMetrics"
-  >;
+  viewportMetricsStore: ReadableAtom<ViewportMetrics>;
 }): CursorOverlayController {
   const {
     store,
     stage,
     cursorModeByToolId,
     cursorPreviewIconByToolId,
-    runtimeStore,
+    viewportMetricsStore,
   } = options;
 
   const SVG_NS = "http://www.w3.org/2000/svg";
@@ -219,7 +217,7 @@ export function createCursorOverlayController(options: {
   };
 
   const applyViewportMetrics = (): void => {
-    const metrics = runtimeStore.getViewportMetrics();
+    const metrics = viewportMetricsStore.get();
     overlayLeft = metrics.overlayLeft;
     overlayTop = metrics.overlayTop;
     overlayWidthScale =
@@ -233,7 +231,7 @@ export function createCursorOverlayController(options: {
   };
   applyViewportMetrics();
   const unbindViewportMetrics =
-    runtimeStore.subscribeViewportMetrics(applyViewportMetrics);
+    viewportMetricsStore.subscribe(applyViewportMetrics);
 
   const sync = (): void => {
     const indicator = stage.cursorIndicator;

@@ -1,14 +1,16 @@
 import type { IconNode } from "lucide";
 import { el, setChildren } from "redom";
+import type { ReDomLike } from "./ReDomLike";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 export type SquareIconSource = IconNode | { kind: "image"; src: string };
 
-export class SquareIconButton {
+export class SquareIconButton implements ReDomLike<HTMLButtonElement> {
   readonly el: HTMLButtonElement;
-  readonly iconElement: HTMLSpanElement;
-  readonly labelElement: HTMLSpanElement;
+  private readonly iconElement: HTMLSpanElement;
+  private readonly labelElement: HTMLSpanElement;
+  private clickHandler: ((event: MouseEvent) => void) | null = null;
 
   constructor() {
     this.iconElement = el(
@@ -94,6 +96,24 @@ export class SquareIconButton {
       return;
     }
     this.el.setAttribute("layout", layout);
+  }
+
+  setOnPress(handler: ((event: MouseEvent) => void) | null): void {
+    if (this.clickHandler) {
+      this.el.removeEventListener("click", this.clickHandler);
+      this.clickHandler = null;
+    }
+    if (!handler) return;
+    this.clickHandler = (event: MouseEvent) => handler(event);
+    this.el.addEventListener("click", this.clickHandler);
+  }
+
+  setAriaExpanded(expanded: boolean): void {
+    this.el.setAttribute("aria-expanded", expanded ? "true" : "false");
+  }
+
+  getBoundingClientRect(): DOMRect {
+    return this.el.getBoundingClientRect();
   }
 }
 

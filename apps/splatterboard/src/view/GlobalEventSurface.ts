@@ -1,46 +1,54 @@
-import type { KidsDrawUiIntent } from "../controller/KidsDrawUiIntent";
-
-type ListenFn = (
-  target: EventTarget,
-  type: string,
-  handler: (event: Event) => void,
-) => void;
+import type { UiIntentStore } from "../controller/stores/createUiIntentStore";
 
 export class GlobalEventSurface {
   bindIntents(options: {
-    listen: ListenFn;
     windowTarget: Window;
     documentTarget: Document;
     getCurrentLayoutProfile: () => string;
     isMobileActionsOpen: () => boolean;
     isInMobilePortraitChrome: (target: Node) => boolean;
     isDocumentPickerOpen: () => boolean;
-    dispatch: (intent: KidsDrawUiIntent) => void;
-  }): void {
+    uiIntentStore: Pick<UiIntentStore, "publish">;
+  }): () => void {
     const {
-      listen,
       windowTarget,
       documentTarget,
       getCurrentLayoutProfile,
       isMobileActionsOpen,
       isInMobilePortraitChrome,
       isDocumentPickerOpen,
-      dispatch,
+      uiIntentStore,
     } = options;
+    const disposers: Array<() => void> = [];
+    const listen = (
+      target: EventTarget,
+      type: string,
+      handler: (event: Event) => void,
+    ): void => {
+      const listener: EventListener = (event) => handler(event);
+      target.addEventListener(type, listener);
+      disposers.push(() => target.removeEventListener(type, listener));
+    };
 
     listen(windowTarget, "resize", () => {
-      dispatch({ type: "window_resize" });
+      uiIntentStore.publish({ type: "window_resize" });
     });
     if (windowTarget.visualViewport) {
       listen(windowTarget.visualViewport, "resize", () => {
-        dispatch({ type: "window_resize" });
+        uiIntentStore.publish({ type: "window_resize" });
       });
     }
     listen(windowTarget, "pointerup", (event) => {
-      dispatch({ type: "pointer_up", event: event as PointerEvent });
+      uiIntentStore.publish({
+        type: "pointer_up",
+        event: event as PointerEvent,
+      });
     });
     listen(windowTarget, "pointercancel", (event) => {
-      dispatch({ type: "pointer_cancel", event: event as PointerEvent });
+      uiIntentStore.publish({
+        type: "pointer_cancel",
+        event: event as PointerEvent,
+      });
     });
     listen(windowTarget, "pointerdown", (event) => {
       if (
@@ -53,23 +61,23 @@ export class GlobalEventSurface {
       if (target && isInMobilePortraitChrome(target)) {
         return;
       }
-      dispatch({ type: "close_mobile_actions" });
+      uiIntentStore.publish({ type: "close_mobile_actions" });
     });
     listen(windowTarget, "blur", () => {
-      dispatch({ type: "force_cancel_pointer_session" });
+      uiIntentStore.publish({ type: "force_cancel_pointer_session" });
     });
     listen(windowTarget, "resize", () => {
-      dispatch({ type: "position_mobile_actions_popover" });
+      uiIntentStore.publish({ type: "position_mobile_actions_popover" });
     });
     listen(windowTarget, "scroll", () => {
-      dispatch({ type: "position_mobile_actions_popover" });
+      uiIntentStore.publish({ type: "position_mobile_actions_popover" });
     });
     if (windowTarget.visualViewport) {
       listen(windowTarget.visualViewport, "resize", () => {
-        dispatch({ type: "position_mobile_actions_popover" });
+        uiIntentStore.publish({ type: "position_mobile_actions_popover" });
       });
       listen(windowTarget.visualViewport, "scroll", () => {
-        dispatch({ type: "position_mobile_actions_popover" });
+        uiIntentStore.publish({ type: "position_mobile_actions_popover" });
       });
     }
     listen(windowTarget, "keydown", (event) => {
@@ -78,18 +86,23 @@ export class GlobalEventSurface {
       }
       if (isMobileActionsOpen()) {
         event.preventDefault();
-        dispatch({ type: "close_mobile_actions" });
+        uiIntentStore.publish({ type: "close_mobile_actions" });
         return;
       }
       if (isDocumentPickerOpen()) {
         event.preventDefault();
-        dispatch({ type: "close_document_picker" });
+        uiIntentStore.publish({ type: "close_document_picker" });
       }
     });
     listen(documentTarget, "visibilitychange", () => {
       if (documentTarget.visibilityState === "hidden") {
-        dispatch({ type: "force_cancel_pointer_session" });
+        uiIntentStore.publish({ type: "force_cancel_pointer_session" });
       }
     });
+    return () => {
+      for (const dispose of disposers) {
+        dispose();
+      }
+    };
   }
 }

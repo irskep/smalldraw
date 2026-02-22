@@ -12,22 +12,15 @@ import {
 } from "lucide";
 import type { ReadableAtom } from "nanostores";
 import { el, setChildren } from "redom";
+import type { LayoutController } from "../controller/createLayoutController";
+import type { KidsDrawUiIntent } from "../controller/KidsDrawUiIntent";
+import type { UiIntentStore } from "../controller/stores/createUiIntentStore";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
+import type { ReDomLike } from "./ReDomLike";
 import {
   createSquareIconButton,
   type SquareIconButton,
 } from "./SquareIconButton";
-
-export type MobilePortraitActionsIntent =
-  | "undo"
-  | "redo"
-  | "toggle_actions"
-  | "show_colors"
-  | "show_strokes"
-  | "clear"
-  | "export"
-  | "new_drawing"
-  | "browse";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -52,32 +45,47 @@ function createMenuIcon(iconNode: IconNode): SVGSVGElement {
   return svg;
 }
 
-function createMobilePortraitActionItem(
-  actionId: string,
-  label: string,
-  icon: IconNode,
-  options?: {
-    danger?: boolean;
-  },
-): HTMLButtonElement {
-  const item = el("button.kids-draw-mobile-actions-item.kd-button-unstyled", {
-    type: "button",
-    role: "menuitem",
-  }) as HTMLButtonElement;
-  item.dataset.mobileAction = actionId;
-  const iconElement = el(
-    "span.kids-draw-mobile-actions-item-icon",
-    createMenuIcon(icon),
-  ) as HTMLSpanElement;
-  const labelElement = el(
-    "span.kids-draw-mobile-actions-item-label",
-    label,
-  ) as HTMLSpanElement;
-  setChildren(item, [iconElement, labelElement]);
-  if (options?.danger) {
-    item.classList.add("is-danger");
+class MobilePortraitActionItemView implements ReDomLike<HTMLButtonElement> {
+  readonly el: HTMLButtonElement;
+
+  constructor(
+    actionId: string,
+    label: string,
+    icon: IconNode,
+    options?: {
+      danger?: boolean;
+    },
+  ) {
+    this.el = el("button.kids-draw-mobile-actions-item.kd-button-unstyled", {
+      type: "button",
+      role: "menuitem",
+    }) as HTMLButtonElement;
+    this.el.dataset.mobileAction = actionId;
+    const iconElement = el(
+      "span.kids-draw-mobile-actions-item-icon",
+      createMenuIcon(icon),
+    ) as HTMLSpanElement;
+    const labelElement = el(
+      "span.kids-draw-mobile-actions-item-label",
+      label,
+    ) as HTMLSpanElement;
+    setChildren(this.el, [iconElement, labelElement]);
+    if (options?.danger) {
+      this.el.classList.add("is-danger");
+    }
   }
-  return item;
+
+  setDisabled(disabled: boolean): void {
+    this.el.disabled = disabled;
+  }
+
+  bindClick(handler: () => void): () => void {
+    const listener = (): void => {
+      handler();
+    };
+    this.el.addEventListener("click", listener);
+    return () => this.el.removeEventListener("click", listener);
+  }
 }
 
 export class MobilePortraitActionsView {
@@ -89,13 +97,14 @@ export class MobilePortraitActionsView {
   private readonly actionsTrigger: SquareIconButton;
   private readonly actionsPopover: HTMLDivElement;
   private readonly actionsMenu: HTMLDivElement;
-  private readonly undoMenuItem: HTMLButtonElement;
-  private readonly redoMenuItem: HTMLButtonElement;
-  private readonly newMenuItem: HTMLButtonElement;
-  private readonly browseMenuItem: HTMLButtonElement;
-  private readonly exportMenuItem: HTMLButtonElement;
-  private readonly clearMenuItem: HTMLButtonElement;
+  private readonly undoMenuItem: MobilePortraitActionItemView;
+  private readonly redoMenuItem: MobilePortraitActionItemView;
+  private readonly newMenuItem: MobilePortraitActionItemView;
+  private readonly browseMenuItem: MobilePortraitActionItemView;
+  private readonly exportMenuItem: MobilePortraitActionItemView;
+  private readonly clearMenuItem: MobilePortraitActionItemView;
   private unbindUiState: (() => void) | null = null;
+  private unbindIntents: (() => void) | null = null;
 
   constructor() {
     this.bottomStrip = el(
@@ -148,14 +157,14 @@ export class MobilePortraitActionsView {
       "aria-label": "Actions",
     }) as HTMLDivElement;
 
-    this.undoMenuItem = createMobilePortraitActionItem("undo", "Undo", Undo2);
-    this.redoMenuItem = createMobilePortraitActionItem("redo", "Redo", Redo2);
+    this.undoMenuItem = new MobilePortraitActionItemView("undo", "Undo", Undo2);
+    this.redoMenuItem = new MobilePortraitActionItemView("redo", "Redo", Redo2);
     const undoRedoRow = el(
       "div.kids-draw-mobile-actions-row",
     ) as HTMLDivElement;
     undoRedoRow.setAttribute("role", "group");
     undoRedoRow.setAttribute("aria-label", "History");
-    setChildren(undoRedoRow, [this.undoMenuItem, this.redoMenuItem]);
+    setChildren(undoRedoRow, [this.undoMenuItem.el, this.redoMenuItem.el]);
 
     const menuDivider = el(
       "div.kids-draw-mobile-actions-divider",
@@ -165,22 +174,22 @@ export class MobilePortraitActionsView {
       "div.kids-draw-mobile-actions-divider",
     ) as HTMLDivElement;
     secondaryDivider.setAttribute("role", "separator");
-    this.newMenuItem = createMobilePortraitActionItem(
+    this.newMenuItem = new MobilePortraitActionItemView(
       "new-drawing",
       "New Drawing",
       FilePlus,
     );
-    this.browseMenuItem = createMobilePortraitActionItem(
+    this.browseMenuItem = new MobilePortraitActionItemView(
       "browse",
       "Browse Drawings",
       FolderOpen,
     );
-    this.exportMenuItem = createMobilePortraitActionItem(
+    this.exportMenuItem = new MobilePortraitActionItemView(
       "export",
       "Export PNG",
       Download,
     );
-    this.clearMenuItem = createMobilePortraitActionItem(
+    this.clearMenuItem = new MobilePortraitActionItemView(
       "clear",
       "Clear Canvas",
       Trash2,
@@ -189,11 +198,11 @@ export class MobilePortraitActionsView {
     setChildren(this.actionsMenu, [
       undoRedoRow,
       menuDivider,
-      this.newMenuItem,
-      this.browseMenuItem,
-      this.exportMenuItem,
+      this.newMenuItem.el,
+      this.browseMenuItem.el,
+      this.exportMenuItem.el,
       secondaryDivider,
-      this.clearMenuItem,
+      this.clearMenuItem.el,
     ]);
     this.colorsButton.setSelected(true);
     this.strokesButton.setSelected(false);
@@ -210,10 +219,7 @@ export class MobilePortraitActionsView {
     this.actionsPopover.replaceChildren(this.actionsMenu);
     this.actionsPopover.hidden = false;
     this.setActionsOpen(options.actionsOpen);
-    this.actionsTrigger.el.setAttribute(
-      "aria-expanded",
-      options.actionsOpen ? "true" : "false",
-    );
+    this.actionsTrigger.setAriaExpanded(options.actionsOpen);
     this.topControls.replaceChildren(
       this.colorsButton.el,
       this.strokesButton.el,
@@ -234,7 +240,7 @@ export class MobilePortraitActionsView {
 
   unmountMobileLayout(): void {
     this.actionsPopover.hidden = true;
-    this.actionsTrigger.el.setAttribute("aria-expanded", "false");
+    this.actionsTrigger.setAriaExpanded(false);
     this.setActionsOpen(false);
     this.clearPopoverPosition();
     this.setTopPanel("colors");
@@ -248,9 +254,9 @@ export class MobilePortraitActionsView {
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void {
     this.unbindUiState?.();
     const applyState = (next: ToolbarUiState): void => {
-      this.undoMenuItem.disabled = !next.canUndo;
-      this.redoMenuItem.disabled = !next.canRedo;
-      this.newMenuItem.disabled = next.newDrawingPending;
+      this.undoMenuItem.setDisabled(!next.canUndo);
+      this.redoMenuItem.setDisabled(!next.canRedo);
+      this.newMenuItem.setDisabled(next.newDrawingPending);
     };
     applyState(state.get());
     const unbind = state.subscribe(applyState);
@@ -261,40 +267,76 @@ export class MobilePortraitActionsView {
     return this.unbindUiState;
   }
 
-  bindViewEvents(options: {
-    listen: (
-      target: EventTarget,
-      type: string,
-      handler: (event: Event) => void,
-    ) => void;
-    getCurrentLayoutProfile: () => string;
-    onIntent: (intent: MobilePortraitActionsIntent) => void;
-  }): void {
-    const dispatchIntent = (intent: Parameters<typeof options.onIntent>[0]) => {
-      return () => options.onIntent(intent);
+  bindIntents(options: {
+    uiIntentStore: Pick<UiIntentStore, "publish">;
+    layoutController: Pick<LayoutController, "getCurrentLayoutProfile">;
+  }): () => void {
+    this.unbindIntents?.();
+    const disposers: Array<() => void> = [];
+
+    const bindActionIntent = (
+      item: MobilePortraitActionItemView,
+      intent: Extract<
+        KidsDrawUiIntent,
+        | { type: "undo" }
+        | { type: "redo" }
+        | { type: "clear" }
+        | { type: "export" }
+        | { type: "new_drawing" }
+        | { type: "browse" }
+      >,
+    ): void => {
+      disposers.push(
+        item.bindClick(() => {
+          options.uiIntentStore.publish(intent);
+        }),
+      );
     };
-    options.listen(this.undoMenuItem, "click", dispatchIntent("undo"));
-    options.listen(this.redoMenuItem, "click", dispatchIntent("redo"));
-    options.listen(this.clearMenuItem, "click", dispatchIntent("clear"));
-    options.listen(this.exportMenuItem, "click", dispatchIntent("export"));
-    options.listen(this.newMenuItem, "click", dispatchIntent("new_drawing"));
-    options.listen(this.browseMenuItem, "click", dispatchIntent("browse"));
-    options.listen(this.actionsTrigger.el, "click", (event) => {
+
+    bindActionIntent(this.undoMenuItem, { type: "undo" });
+    bindActionIntent(this.redoMenuItem, { type: "redo" });
+    bindActionIntent(this.clearMenuItem, { type: "clear" });
+    bindActionIntent(this.exportMenuItem, { type: "export" });
+    bindActionIntent(this.newMenuItem, { type: "new_drawing" });
+    bindActionIntent(this.browseMenuItem, { type: "browse" });
+
+    this.actionsTrigger.setOnPress((event) => {
       event.stopPropagation();
-      options.onIntent("toggle_actions");
+      options.uiIntentStore.publish({ type: "toggle_mobile_actions" });
     });
-    options.listen(this.colorsButton.el, "click", () => {
-      if (options.getCurrentLayoutProfile() !== "mobile-portrait") {
+    disposers.push(() => this.actionsTrigger.setOnPress(null));
+    this.colorsButton.setOnPress(() => {
+      if (
+        options.layoutController.getCurrentLayoutProfile() !== "mobile-portrait"
+      ) {
         return;
       }
-      options.onIntent("show_colors");
+      options.uiIntentStore.publish({
+        type: "set_mobile_top_panel",
+        panel: "colors",
+      });
     });
-    options.listen(this.strokesButton.el, "click", () => {
-      if (options.getCurrentLayoutProfile() !== "mobile-portrait") {
+    disposers.push(() => this.colorsButton.setOnPress(null));
+    this.strokesButton.setOnPress(() => {
+      if (
+        options.layoutController.getCurrentLayoutProfile() !== "mobile-portrait"
+      ) {
         return;
       }
-      options.onIntent("show_strokes");
+      options.uiIntentStore.publish({
+        type: "set_mobile_top_panel",
+        panel: "strokes",
+      });
     });
+    disposers.push(() => this.strokesButton.setOnPress(null));
+
+    this.unbindIntents = () => {
+      for (const dispose of disposers) {
+        dispose();
+      }
+      this.unbindIntents = null;
+    };
+    return this.unbindIntents;
   }
 
   containsTarget(target: Node): boolean {
@@ -304,7 +346,7 @@ export class MobilePortraitActionsView {
   }
 
   getActionsTriggerRect(): DOMRect {
-    return this.actionsTrigger.el.getBoundingClientRect();
+    return this.actionsTrigger.getBoundingClientRect();
   }
 
   getActionsPopoverRect(): DOMRect {

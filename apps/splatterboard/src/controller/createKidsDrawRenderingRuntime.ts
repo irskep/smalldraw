@@ -2,7 +2,7 @@ import { normalizePixelRatio } from "../layout/responsiveLayout";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
+import type { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
 import type { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
 import type { InputSessionController } from "./createInputSessionController";
 import {
@@ -10,13 +10,14 @@ import {
   type LayoutControllerDependencies,
 } from "./createLayoutController";
 import { RenderLoopController } from "./createRenderLoopController";
+import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 
 type RenderingRuntimeOptions = Omit<
   LayoutControllerDependencies,
   "renderLoopController"
 > & {
   stage: KidsDrawStage;
-  toolbar: KidsDrawToolbar;
+  toolbar: KidsDrawToolbarView;
   mobilePortraitActionsView: MobilePortraitActionsView;
   toolbarUiStore: Pick<
     ToolbarUiStore,
@@ -24,10 +25,13 @@ type RenderingRuntimeOptions = Omit<
   >;
   pipeline: RasterPipeline;
   backgroundColor: string;
-  runtimeStore: {
-    getPresentationIdentity: () => string;
-    isDestroyed: () => boolean;
-  };
+  runtimeStore: Pick<
+    KidsDrawRuntimeStore,
+    | "$destroyed"
+    | "$layoutProfile"
+    | "$viewportMetrics"
+    | "getPresentationIdentity"
+  >;
   resolvePageSize: () => { width: number; height: number };
   getSize: () => { width: number; height: number };
   setSize: (size: { width: number; height: number }) => void;

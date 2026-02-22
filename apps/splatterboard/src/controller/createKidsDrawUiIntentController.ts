@@ -1,6 +1,5 @@
 import type { DrawingStore } from "@smalldraw/core";
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
-import type { MobilePortraitActionsIntent } from "../view/MobilePortraitActionsView";
 import type { CursorOverlayController } from "./createCursorOverlayController";
 import type { InputSessionController } from "./createInputSessionController";
 import type { ToolbarStateController } from "./createToolbarStateController";
@@ -141,48 +140,7 @@ export function createKidsDrawUiIntentController(options: {
     }
   };
 
-  const handleMobilePortraitActionsIntent = (
-    intent: MobilePortraitActionsIntent,
-  ): void => {
-    switch (intent) {
-      case "undo":
-        handleUiIntent({ type: "undo" });
-        return;
-      case "redo":
-        handleUiIntent({ type: "redo" });
-        return;
-      case "toggle_actions":
-        handleUiIntent({ type: "toggle_mobile_actions" });
-        return;
-      case "show_colors":
-        handleUiIntent({ type: "set_mobile_top_panel", panel: "colors" });
-        return;
-      case "show_strokes":
-        handleUiIntent({ type: "set_mobile_top_panel", panel: "strokes" });
-        return;
-      case "clear":
-        handleUiIntent({ type: "clear" });
-        return;
-      case "export":
-        handleUiIntent({ type: "export" });
-        return;
-      case "new_drawing":
-        handleUiIntent({ type: "new_drawing" });
-        return;
-      case "browse":
-        handleUiIntent({ type: "browse" });
-        return;
-      default: {
-        const exhaustiveCheck: never = intent;
-        throw new Error(
-          `Unhandled MobilePortraitActionsIntent: ${exhaustiveCheck}`,
-        );
-      }
-    }
-  };
-
   return {
     handleUiIntent,
-    handleMobilePortraitActionsIntent,
   };
 }

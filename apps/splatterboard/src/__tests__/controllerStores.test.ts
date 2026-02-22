@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { createDocumentPickerStore } from "../controller/stores/createDocumentPickerStore";
 import { createDocumentSessionStore } from "../controller/stores/createDocumentSessionStore";
 import { createKidsDrawRuntimeStore } from "../controller/stores/createKidsDrawRuntimeStore";
+import { createUiIntentStore } from "../controller/stores/createUiIntentStore";
 
 describe("createKidsDrawRuntimeStore", () => {
   test("dedupes unchanged state updates", () => {
@@ -46,6 +47,72 @@ describe("createKidsDrawRuntimeStore", () => {
 
     unbind();
   });
+
+  test("viewport metrics channel dedupes and supports unsubscribe", () => {
+    const store = createKidsDrawRuntimeStore();
+    const seen: Array<{
+      overlayLeft: number;
+      overlayTop: number;
+      overlayWidth: number;
+      overlayHeight: number;
+      logicalWidth: number;
+      logicalHeight: number;
+    }> = [];
+    const unbind = store.subscribeViewportMetrics((metrics) => {
+      seen.push(metrics);
+    });
+
+    const baselineEvents = seen.length;
+    const firstMetrics = {
+      overlayLeft: 10,
+      overlayTop: 20,
+      overlayWidth: 300,
+      overlayHeight: 200,
+      logicalWidth: 900,
+      logicalHeight: 600,
+    };
+    store.setViewportMetrics(firstMetrics);
+    expect(seen.length).toBe(baselineEvents + 1);
+    expect(store.getViewportMetrics()).toEqual(firstMetrics);
+
+    store.setViewportMetrics({ ...firstMetrics });
+    expect(seen.length).toBe(baselineEvents + 1);
+
+    store.setDestroyed(true);
+    expect(seen.length).toBe(baselineEvents + 1);
+
+    unbind();
+
+    store.setViewportMetrics({
+      overlayLeft: 12,
+      overlayTop: 22,
+      overlayWidth: 320,
+      overlayHeight: 220,
+      logicalWidth: 960,
+      logicalHeight: 640,
+    });
+    expect(seen.length).toBe(baselineEvents + 1);
+  });
+
+  test("layout profile channel dedupes and supports unsubscribe", () => {
+    const store = createKidsDrawRuntimeStore();
+    const profiles: string[] = [];
+    const unbind = store.subscribeLayoutProfile((profile) => {
+      profiles.push(profile);
+    });
+
+    const baselineEvents = profiles.length;
+    store.setLayoutProfile("mobile-portrait");
+    expect(store.getLayoutProfile()).toBe("mobile-portrait");
+    expect(profiles.length).toBe(baselineEvents + 1);
+
+    store.setLayoutProfile("mobile-portrait");
+    expect(profiles.length).toBe(baselineEvents + 1);
+
+    unbind();
+    store.setLayoutProfile("large");
+    expect(profiles.length).toBe(baselineEvents + 1);
+  });
 });
 
 describe("createDocumentSessionStore intents", () => {
@@ -66,6 +133,22 @@ describe("createDocumentSessionStore intents", () => {
     ]);
     expect(store.consumeIntents()).toEqual([]);
 
+    unbind();
+  });
+});
+
+describe("createUiIntentStore", () => {
+  test("subscribeDrainedIntents drains each published batch", () => {
+    const store = createUiIntentStore();
+    const drained: string[][] = [];
+    const unbind = store.subscribeDrainedIntents((intents) => {
+      drained.push(intents.map((intent) => intent.type));
+    });
+
+    store.publish({ type: "undo" });
+    store.publish({ type: "redo" });
+
+    expect(drained).toEqual([["undo"], ["redo"]]);
     unbind();
   });
 });

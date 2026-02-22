@@ -1,9 +1,11 @@
 import { atom, computed } from "nanostores";
+import type { ResponsiveLayoutProfile } from "../../layout/responsiveLayout";
 import type { DocumentSessionPresentation } from "../createDocumentSessionController";
 
 export type RuntimeState = {
   destroyed: boolean;
   presentation: DocumentSessionPresentation;
+  layoutProfile: ResponsiveLayoutProfile;
   viewportMetrics: ViewportMetrics;
 };
 
@@ -30,35 +32,33 @@ const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
 };
 
 export function createKidsDrawRuntimeStore() {
-  const $state = atom<RuntimeState>({
-    destroyed: false,
-    presentation: { mode: "normal" },
-    viewportMetrics: DEFAULT_VIEWPORT_METRICS,
-  });
+  const $destroyed = atom(false);
+  const $presentation = atom<DocumentSessionPresentation>({ mode: "normal" });
+  const $layoutProfile = atom<ResponsiveLayoutProfile>("large");
+  const $viewportMetrics = atom<ViewportMetrics>(DEFAULT_VIEWPORT_METRICS);
+  const $state = computed(
+    [$destroyed, $presentation, $layoutProfile, $viewportMetrics],
+    (destroyed, presentation, layoutProfile, viewportMetrics) => ({
+      destroyed,
+      presentation,
+      layoutProfile,
+      viewportMetrics,
+    }),
+  );
 
-  const $presentationIdentity = computed($state, (state) => {
-    const presentation = state.presentation;
+  const $presentationIdentity = computed($presentation, (presentation) => {
     if (presentation.referenceImageSrc && presentation.referenceComposite) {
       return `${presentation.referenceComposite}:${presentation.referenceImageSrc}`;
     }
     return "normal";
   });
-  const $viewportMetrics = computed($state, (state) => state.viewportMetrics);
-
-  const setStateIfChanged = (next: RuntimeState): void => {
-    const current = $state.get();
-    if (
-      current.destroyed === next.destroyed &&
-      isSamePresentation(current.presentation, next.presentation) &&
-      isSameViewportMetrics(current.viewportMetrics, next.viewportMetrics)
-    ) {
-      return;
-    }
-    $state.set(next);
-  };
 
   return {
     $state,
+    $destroyed,
+    $presentation,
+    $layoutProfile,
+    $viewportMetrics,
     $presentationIdentity,
     subscribe(listener: (state: RuntimeState) => void): () => void {
       return $state.subscribe(listener);
@@ -73,24 +73,33 @@ export function createKidsDrawRuntimeStore() {
     ): () => void {
       return $viewportMetrics.subscribe(listener);
     },
+    subscribeLayoutProfile(
+      listener: (layoutProfile: ResponsiveLayoutProfile) => void,
+    ): () => void {
+      return $layoutProfile.subscribe(listener);
+    },
     isDestroyed(): boolean {
-      return $state.get().destroyed;
+      return $destroyed.get();
     },
     setDestroyed(destroyed: boolean): void {
-      const current = $state.get();
-      setStateIfChanged({ ...current, destroyed });
+      if ($destroyed.get() === destroyed) {
+        return;
+      }
+      $destroyed.set(destroyed);
     },
     getPresentation(): DocumentSessionPresentation {
-      return $state.get().presentation;
+      return $presentation.get();
     },
     setPresentation(presentation: DocumentSessionPresentation): void {
-      const current = $state.get();
-      setStateIfChanged({ ...current, presentation });
+      if (isSamePresentation($presentation.get(), presentation)) {
+        return;
+      }
+      $presentation.set(presentation);
     },
     getReferenceImageSrc(
       composite: "under-drawing" | "over-drawing",
     ): string | null {
-      const presentation = $state.get().presentation;
+      const presentation = $presentation.get();
       return presentation.referenceComposite === composite
         ? (presentation.referenceImageSrc ?? null)
         : null;
@@ -98,12 +107,23 @@ export function createKidsDrawRuntimeStore() {
     getPresentationIdentity(): string {
       return $presentationIdentity.get();
     },
+    getLayoutProfile(): ResponsiveLayoutProfile {
+      return $layoutProfile.get();
+    },
+    setLayoutProfile(layoutProfile: ResponsiveLayoutProfile): void {
+      if ($layoutProfile.get() === layoutProfile) {
+        return;
+      }
+      $layoutProfile.set(layoutProfile);
+    },
     getViewportMetrics(): ViewportMetrics {
-      return $state.get().viewportMetrics;
+      return $viewportMetrics.get();
     },
     setViewportMetrics(viewportMetrics: ViewportMetrics): void {
-      const current = $state.get();
-      setStateIfChanged({ ...current, viewportMetrics });
+      if (isSameViewportMetrics($viewportMetrics.get(), viewportMetrics)) {
+        return;
+      }
+      $viewportMetrics.set(viewportMetrics);
     },
   };
 }

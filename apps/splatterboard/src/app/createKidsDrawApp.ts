@@ -5,6 +5,7 @@ import {
 } from "@smalldraw/core";
 import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
+import { createUiIntentStore } from "../controller/stores/createUiIntentStore";
 import { createLocalDocumentBackend } from "../documents";
 import { resolveLayoutMode, resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
@@ -19,8 +20,8 @@ import {
 import { warmImageStampAssets } from "../tools/stamps/imageStampAssets";
 import { getImageStampAssets } from "../tools/stamps/imageStampCatalog";
 import { createToolbarUiStore } from "../ui/stores/toolbarUiStore";
-import { createKidsDrawStage } from "../view/KidsDrawStage";
-import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
+import { KidsDrawStageView } from "../view/KidsDrawStage";
+import { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
 import { createModalDialogView } from "../view/ModalDialog";
 import type { KidsDrawApp, KidsDrawAppOptions } from "./types";
 
@@ -87,24 +88,29 @@ export async function createKidsDrawApp(
   const element = el("div.kids-draw-app") as HTMLDivElement;
 
   const catalog = createKidsToolCatalog(shapeRendererRegistry);
+  const uiIntentStore = createUiIntentStore();
 
-  const toolbar = createKidsDrawToolbar({
+  const toolbar = new KidsDrawToolbarView({
     tools: catalog.tools,
     families: catalog.families,
     sidebarItems: catalog.sidebarItems,
+    uiIntentStore,
   });
-  const stage = createKidsDrawStage({
+  const stage = new KidsDrawStageView({
     width: initialSize.width,
     height: initialSize.height,
     backgroundColor,
+    uiIntentStore,
   });
   const modalDialog = createModalDialogView();
 
   mount(element, stage.element);
-  mount(stage.insetLeftSlot, toolbar.toolSelectorElement);
-  mount(stage.insetRightSlot, toolbar.actionPanelElement);
-  mount(stage.insetTopSlot, toolbar.topElement);
-  mount(stage.insetBottomSlot, toolbar.bottomElement);
+  toolbar.mountDesktopLayout({
+    topSlot: stage.insetTopSlot,
+    leftSlot: stage.insetLeftSlot,
+    rightSlot: stage.insetRightSlot,
+    bottomSlot: stage.insetBottomSlot,
+  });
   mount(element, modalDialog.el);
   mount(options.container, element);
 
@@ -148,6 +154,7 @@ export async function createKidsDrawApp(
     shapeRendererRegistry,
     tools: catalog.tools,
     families: catalog.families,
+    uiIntentStore,
     stage,
     toolbarUiStore,
     pipeline,

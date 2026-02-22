@@ -6,6 +6,7 @@ import { el, list, setChildren } from "redom";
 import { getColoringPages } from "../coloring/catalog";
 import type { KidsDocumentSummary } from "../documents";
 import { bindAtom, bindAttrs } from "./atomBindings";
+import type { ReDomLike } from "./ReDomLike";
 
 const LONG_PRESS_PREVIEW_MS = 320;
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -73,8 +74,7 @@ function getMetadataTooltip(document: KidsDocumentSummary): string {
   return `${toFallbackTitle(document)}\nLast opened: ${formatTimestamp(document.lastOpenedAt)}${mode}`;
 }
 
-export interface DocumentBrowserOverlay {
-  readonly el: HTMLDivElement;
+export interface DocumentBrowserOverlay extends ReDomLike<HTMLDivElement> {
   setOpen(open: boolean): void;
   isOpen(): boolean;
   openCreateDialog(): void;
@@ -99,7 +99,7 @@ type DocumentTileItem = {
 
 type ColoringVolumeId = "pdr-v1" | "pdr-v2";
 
-class DocumentTileView {
+class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
   readonly el: HTMLDivElement;
   private readonly openButton: HTMLButtonElement;
   private readonly thumbnailImage: HTMLImageElement;
