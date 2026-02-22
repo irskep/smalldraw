@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { atom } from "nanostores";
 import { createButtonGrid } from "../view/ButtonGrid";
 
-function createItems(count: number): Array<{ id: string; element: HTMLElement }> {
+function createItems(
+  count: number,
+): Array<{ id: string; element: HTMLElement }> {
   return Array.from({ length: count }, (_, index) => {
     const element = document.createElement("button");
     element.type = "button";

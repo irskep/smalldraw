@@ -46,20 +46,19 @@ export interface KidsDrawToolbar {
   destroy(): void;
 }
 
-export type KidsDrawToolbarIntent =
-  Extract<
-    KidsDrawUiIntent,
-    | { type: "activate_family_tool" }
-    | { type: "activate_tool_and_remember" }
-    | { type: "undo" }
-    | { type: "redo" }
-    | { type: "clear" }
-    | { type: "export" }
-    | { type: "new_drawing" }
-    | { type: "browse" }
-    | { type: "set_stroke_color" }
-    | { type: "set_stroke_width" }
-  >;
+export type KidsDrawToolbarIntent = Extract<
+  KidsDrawUiIntent,
+  | { type: "activate_family_tool" }
+  | { type: "activate_tool_and_remember" }
+  | { type: "undo" }
+  | { type: "redo" }
+  | { type: "clear" }
+  | { type: "export" }
+  | { type: "new_drawing" }
+  | { type: "browse" }
+  | { type: "set_stroke_color" }
+  | { type: "set_stroke_width" }
+>;
 
 interface ColorSwatchConfig {
   value: string;
@@ -452,8 +451,8 @@ export function createKidsDrawToolbar(options: {
     return toolById.has(activeToolId)
       ? activeToolId
       : (tools[0]?.id ??
-        familyById.get(families[0]?.id ?? "")?.defaultToolId ??
-        "");
+          familyById.get(families[0]?.id ?? "")?.defaultToolId ??
+          "");
   };
 
   const resolveToolSelectorSelectedItemId = (
@@ -546,7 +545,9 @@ export function createKidsDrawToolbar(options: {
 
   const bindUiState = (state: ReadableAtom<ToolbarUiState>): (() => void) => {
     unbindToolSelectorSelection?.();
-    unbindVariantSelections.forEach((unbind) => unbind());
+    unbindVariantSelections.forEach((unbind) => {
+      unbind();
+    });
     const selectedToolIdStore = computed(state, (nextState) =>
       resolveActiveToolId(nextState.activeToolId),
     );
@@ -555,8 +556,9 @@ export function createKidsDrawToolbar(options: {
       const activeFamilyId = resolveActiveFamilyId(activeToolId);
       return resolveToolSelectorSelectedItemId(activeToolId, activeFamilyId);
     });
-    unbindToolSelectorSelection =
-      toolSelectorGrid.bindSelection(toolSelectorSelectionStore);
+    unbindToolSelectorSelection = toolSelectorGrid.bindSelection(
+      toolSelectorSelectionStore,
+    );
     unbindVariantSelections = Array.from(familyVariantGrids.values(), (grid) =>
       grid.bindSelection(selectedToolIdStore),
     );
@@ -567,7 +569,9 @@ export function createKidsDrawToolbar(options: {
       unbindUiState();
       unbindToolSelectorSelection?.();
       unbindToolSelectorSelection = null;
-      unbindVariantSelections.forEach((unbind) => unbind());
+      unbindVariantSelections.forEach((unbind) => {
+        unbind();
+      });
       unbindVariantSelections = [];
     };
   };

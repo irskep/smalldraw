@@ -117,7 +117,10 @@ export class InputSessionController {
     if (!this.pointerIsDown) {
       return;
     }
-    if (this.activePointerId !== null && event.pointerId !== this.activePointerId) {
+    if (
+      this.activePointerId !== null &&
+      event.pointerId !== this.activePointerId
+    ) {
       return;
     }
     this.lastPointerPoint = this.options.toPoint(event);
@@ -139,9 +142,10 @@ export class InputSessionController {
     }
   }
 
-  private getPointerMoveSamples(
-    event: PointerEventWithCoalesced,
-  ): { samples: PointerEvent[]; usedCoalesced: boolean } {
+  private getPointerMoveSamples(event: PointerEventWithCoalesced): {
+    samples: PointerEvent[];
+    usedCoalesced: boolean;
+  } {
     const coalesced = ENABLE_COALESCED_POINTER_SAMPLES
       ? event.getCoalescedEvents?.()
       : undefined;

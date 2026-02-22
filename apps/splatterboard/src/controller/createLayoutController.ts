@@ -10,13 +10,13 @@ import {
   type ResponsiveLayoutProfile,
   resolveLayoutProfile,
 } from "../layout/responsiveLayout";
+import type { RasterPipeline } from "../render/createRasterPipeline";
+import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
-import { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
-import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
-import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
-import type { RasterPipeline } from "../render/createRasterPipeline";
+import type { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
 import type { RenderLoopController } from "./createRenderLoopController";
+import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 
 export const DEFAULT_MOBILE_ACTIONS_MENU_GAP_PX = 8;
 export const DEFAULT_MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX = 8;
@@ -79,7 +79,8 @@ export class LayoutController {
 
     if (profile === "mobile-portrait") {
       this.syncMobilePortraitTopPanel();
-      const mobileActionsOpen = this.options.toolbarUiStore.get().mobileActionsOpen;
+      const mobileActionsOpen =
+        this.options.toolbarUiStore.get().mobileActionsOpen;
       this.options.mobilePortraitActionsView.mountMobileLayout({
         topSlot: stage.insetTopSlot,
         bottomSlot: stage.insetBottomSlot,
@@ -132,8 +133,10 @@ export class LayoutController {
     ) {
       return;
     }
-    const triggerRect = this.options.mobilePortraitActionsView.getActionsTriggerRect();
-    const popoverRect = this.options.mobilePortraitActionsView.getActionsPopoverRect();
+    const triggerRect =
+      this.options.mobilePortraitActionsView.getActionsTriggerRect();
+    const popoverRect =
+      this.options.mobilePortraitActionsView.getActionsPopoverRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const viewportPaddingPx =
@@ -142,22 +145,16 @@ export class LayoutController {
     const gapPx =
       this.options.mobileActionsMenuGapPx ?? DEFAULT_MOBILE_ACTIONS_MENU_GAP_PX;
     const minLeft = viewportPaddingPx;
-    const maxLeft =
-      viewportWidth -
-      viewportPaddingPx -
-      popoverRect.width;
+    const maxLeft = viewportWidth - viewportPaddingPx - popoverRect.width;
     const left = Math.max(
       minLeft,
       Math.min(triggerRect.right - popoverRect.width, maxLeft),
     );
     const belowTop = triggerRect.bottom + gapPx;
-    const aboveTop =
-      triggerRect.top - gapPx - popoverRect.height;
-    const canPlaceAbove =
-      aboveTop >= viewportPaddingPx;
+    const aboveTop = triggerRect.top - gapPx - popoverRect.height;
+    const canPlaceAbove = aboveTop >= viewportPaddingPx;
     const wouldOverflowBottom =
-      belowTop + popoverRect.height >
-      viewportHeight - viewportPaddingPx;
+      belowTop + popoverRect.height > viewportHeight - viewportPaddingPx;
     const top =
       wouldOverflowBottom && canPlaceAbove
         ? aboveTop
@@ -165,9 +162,7 @@ export class LayoutController {
             viewportPaddingPx,
             Math.min(
               belowTop,
-              viewportHeight -
-                viewportPaddingPx -
-                popoverRect.height,
+              viewportHeight - viewportPaddingPx - popoverRect.height,
             ),
           );
     this.options.mobilePortraitActionsView.setPopoverPosition(left, top);

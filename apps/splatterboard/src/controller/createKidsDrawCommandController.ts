@@ -1,8 +1,4 @@
-import {
-  ClearCanvas,
-  getTopZIndex,
-  type DrawingStore,
-} from "@smalldraw/core";
+import { ClearCanvas, type DrawingStore, getTopZIndex } from "@smalldraw/core";
 import type { IconNode } from "lucide";
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { SnapshotService } from "./createSnapshotService";
@@ -41,7 +37,10 @@ export interface KidsDrawCommandController {
 
 export function createKidsDrawCommandController(options: {
   store: Pick<DrawingStore, "undo" | "redo" | "applyAction" | "getDocument">;
-  toolbarUiStore: Pick<ToolbarUiStore, "setMobileActionsOpen" | "setNewDrawingPending">;
+  toolbarUiStore: Pick<
+    ToolbarUiStore,
+    "setMobileActionsOpen" | "setNewDrawingPending"
+  >;
   snapshotService: Pick<SnapshotService, "createPngExport">;
   getSize: () => { width: number; height: number };
   openDocumentPicker: () => Promise<void>;

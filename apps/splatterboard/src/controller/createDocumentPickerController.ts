@@ -1,10 +1,7 @@
-import type {
-  KidsDocumentBackend,
-  KidsDocumentSummary,
-} from "../documents";
-import { createDocumentPickerStore } from "./stores/createDocumentPickerStore";
-import type { DocumentBrowserOverlay } from "../view/DocumentBrowserOverlay";
+import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 import { bindAtom } from "../view/atomBindings";
+import type { DocumentBrowserOverlay } from "../view/DocumentBrowserOverlay";
+import { createDocumentPickerStore } from "./stores/createDocumentPickerStore";
 
 export class DocumentPickerController {
   private browserRequestId = 0;

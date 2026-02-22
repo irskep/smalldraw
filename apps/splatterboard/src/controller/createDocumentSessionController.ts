@@ -10,11 +10,11 @@ import type {
   KidsDocumentMode,
   KidsDocumentSummary,
 } from "../documents";
+import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
 import {
   createDocumentSessionStore,
   type DocumentSessionIntent,
 } from "./stores/createDocumentSessionStore";
-import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
 
 export interface DocumentSessionPresentation {
   mode: KidsDocumentMode;
@@ -25,8 +25,10 @@ export interface DocumentSessionPresentation {
 
 export class DocumentSessionController {
   private unsubscribeCoreAdapter: (() => void) | null = null;
-  private metadataTouchTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
-  private thumbnailSaveTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  private metadataTouchTimeoutHandle: ReturnType<typeof setTimeout> | null =
+    null;
+  private thumbnailSaveTimeoutHandle: ReturnType<typeof setTimeout> | null =
+    null;
   readonly state = createDocumentSessionStore();
 
   constructor(
@@ -36,7 +38,9 @@ export class DocumentSessionController {
       documentBackend: KidsDocumentBackend;
       thumbnailSaveDebounceMs: number;
       createThumbnailBlob: () => Promise<Blob | null>;
-      getDocumentSizeForCreateRequest: (request: NewDocumentRequest) => DrawingDocumentSize;
+      getDocumentSizeForCreateRequest: (
+        request: NewDocumentRequest,
+      ) => DrawingDocumentSize;
     },
   ) {}
 
@@ -124,12 +128,14 @@ export class DocumentSessionController {
 
   subscribeToCoreAdapter(): void {
     this.unsubscribeCoreAdapter?.();
-    this.unsubscribeCoreAdapter = this.options.core.storeAdapter.subscribe((doc) => {
-      this.options.store.applyDocument(doc);
-      this.scheduleDocumentTouch();
-      this.scheduleThumbnailSave();
-      this.emitIntent({ type: "adapter_applied" });
-    });
+    this.unsubscribeCoreAdapter = this.options.core.storeAdapter.subscribe(
+      (doc) => {
+        this.options.store.applyDocument(doc);
+        this.scheduleDocumentTouch();
+        this.scheduleThumbnailSave();
+        this.emitIntent({ type: "adapter_applied" });
+      },
+    );
   }
 
   async switchToDocument(docUrl: string): Promise<void> {
@@ -140,7 +146,8 @@ export class DocumentSessionController {
     const resolvedPresentation = this.resolveDocumentPresentation(
       openedDocument.presentation,
     );
-    const persistedSummary = await this.options.documentBackend.getDocument(docUrl);
+    const persistedSummary =
+      await this.options.documentBackend.getDocument(docUrl);
     const presentation = this.resolvePresentationFromMetadata(
       resolvedPresentation,
       persistedSummary,
@@ -174,14 +181,17 @@ export class DocumentSessionController {
 
   async createNewDocument(request: NewDocumentRequest): Promise<void> {
     const requestPresentation = this.getPresentationForCreateRequest(request);
-    const nextDocumentSize = this.options.getDocumentSizeForCreateRequest(request);
+    const nextDocumentSize =
+      this.options.getDocumentSizeForCreateRequest(request);
     await this.flushThumbnailSave();
     const { adapter, url } = await this.options.core.createNew({
       documentSize: nextDocumentSize,
       documentPresentation: requestPresentation,
     });
     const createdDocument = adapter.getDoc();
-    const presentation = this.resolveDocumentPresentation(createdDocument.presentation);
+    const presentation = this.resolveDocumentPresentation(
+      createdDocument.presentation,
+    );
     await this.options.documentBackend.createDocument({
       docUrl: url,
       ...this.toDocumentMetadataFromPresentation(presentation),
@@ -279,9 +289,7 @@ export class DocumentSessionController {
     if (persistedSummary.mode === "normal") {
       return { mode: "normal" };
     }
-    if (
-      resolvedPresentation.mode === persistedSummary.mode
-    ) {
+    if (resolvedPresentation.mode === persistedSummary.mode) {
       return resolvedPresentation;
     }
     if (

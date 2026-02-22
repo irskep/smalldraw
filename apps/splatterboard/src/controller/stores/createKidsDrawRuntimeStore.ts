@@ -7,7 +7,9 @@ export type RuntimeState = {
   viewportMetrics: ViewportMetrics;
 };
 
-export type KidsDrawRuntimeStore = ReturnType<typeof createKidsDrawRuntimeStore>;
+export type KidsDrawRuntimeStore = ReturnType<
+  typeof createKidsDrawRuntimeStore
+>;
 
 export type ViewportMetrics = {
   overlayLeft: number;
@@ -61,7 +63,9 @@ export function createKidsDrawRuntimeStore() {
     subscribe(listener: (state: RuntimeState) => void): () => void {
       return $state.subscribe(listener);
     },
-    subscribePresentationIdentity(listener: (identity: string) => void): () => void {
+    subscribePresentationIdentity(
+      listener: (identity: string) => void,
+    ): () => void {
       return $presentationIdentity.subscribe(listener);
     },
     subscribeViewportMetrics(
@@ -88,7 +92,7 @@ export function createKidsDrawRuntimeStore() {
     ): string | null {
       const presentation = $state.get().presentation;
       return presentation.referenceComposite === composite
-        ? presentation.referenceImageSrc ?? null
+        ? (presentation.referenceImageSrc ?? null)
         : null;
     },
     getPresentationIdentity(): string {
@@ -116,7 +120,10 @@ function isSamePresentation(
   );
 }
 
-function isSameViewportMetrics(a: ViewportMetrics, b: ViewportMetrics): boolean {
+function isSameViewportMetrics(
+  a: ViewportMetrics,
+  b: ViewportMetrics,
+): boolean {
   return (
     a.overlayLeft === b.overlayLeft &&
     a.overlayTop === b.overlayTop &&

@@ -11,24 +11,23 @@ export interface ColoringPageSpec {
   size: DrawingDocumentSize;
 }
 
-const COLORING_PAGES: readonly ColoringPageSpec[] = GENERATED_COLORING_ASSETS.map(
-  (asset) => {
-  const page = `${asset.pageNumber}`.padStart(3, "0");
-  const size: DrawingDocumentSize = {
-    width: asset.width,
-    height: asset.height,
-  };
-  return {
-    id: asset.id,
-    volumeId: asset.volumeId,
-    volumeLabel: asset.volumeLabel,
-    pageNumber: asset.pageNumber,
-    label: `${asset.volumeLabel} Page ${page}`,
-    src: asset.src,
-    size,
-  } satisfies ColoringPageSpec;
-},
-);
+const COLORING_PAGES: readonly ColoringPageSpec[] =
+  GENERATED_COLORING_ASSETS.map((asset) => {
+    const page = `${asset.pageNumber}`.padStart(3, "0");
+    const size: DrawingDocumentSize = {
+      width: asset.width,
+      height: asset.height,
+    };
+    return {
+      id: asset.id,
+      volumeId: asset.volumeId,
+      volumeLabel: asset.volumeLabel,
+      pageNumber: asset.pageNumber,
+      label: `${asset.volumeLabel} Page ${page}`,
+      src: asset.src,
+      size,
+    } satisfies ColoringPageSpec;
+  });
 
 const COLORING_PAGE_BY_ID = new Map(
   COLORING_PAGES.map((page) => [page.id, page] as const),

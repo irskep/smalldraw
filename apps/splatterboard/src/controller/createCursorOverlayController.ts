@@ -223,9 +223,13 @@ export function createCursorOverlayController(options: {
     overlayLeft = metrics.overlayLeft;
     overlayTop = metrics.overlayTop;
     overlayWidthScale =
-      metrics.overlayWidth > 0 ? metrics.logicalWidth / metrics.overlayWidth : 1;
+      metrics.overlayWidth > 0
+        ? metrics.logicalWidth / metrics.overlayWidth
+        : 1;
     overlayHeightScale =
-      metrics.overlayHeight > 0 ? metrics.logicalHeight / metrics.overlayHeight : 1;
+      metrics.overlayHeight > 0
+        ? metrics.logicalHeight / metrics.overlayHeight
+        : 1;
   };
   applyViewportMetrics();
   const unbindViewportMetrics =

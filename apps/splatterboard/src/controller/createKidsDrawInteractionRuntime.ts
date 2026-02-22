@@ -1,20 +1,20 @@
 import type { DrawingStore } from "@smalldraw/core";
-import { Trash2, type IconNode } from "lucide";
+import { type IconNode, Trash2 } from "lucide";
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { GlobalEventSurface } from "../view/GlobalEventSurface";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
+import type { CursorOverlayController } from "./createCursorOverlayController";
+import type { DocumentPickerController } from "./createDocumentPickerController";
+import type { InputSessionController } from "./createInputSessionController";
 import { createKidsDrawCommandController } from "./createKidsDrawCommandController";
 import { createKidsDrawUiIntentController } from "./createKidsDrawUiIntentController";
-import type { ToolbarStateController } from "./createToolbarStateController";
-import type { InputSessionController } from "./createInputSessionController";
-import type { CursorOverlayController } from "./createCursorOverlayController";
 import type { LayoutController } from "./createLayoutController";
-import type { DocumentPickerController } from "./createDocumentPickerController";
-import type { SnapshotService } from "./createSnapshotService";
-import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 import type { LifecycleScope } from "./createLifecycleScope";
+import type { SnapshotService } from "./createSnapshotService";
+import type { ToolbarStateController } from "./createToolbarStateController";
+import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 
 type ConfirmDialogRequest = {
   title: string;
@@ -45,23 +45,25 @@ export function createKidsDrawInteractionRuntime(options: {
   getSize: () => { width: number; height: number };
   confirmDestructiveAction: (dialog: ConfirmDialogRequest) => Promise<boolean>;
   runtimeStore: Pick<KidsDrawRuntimeStore, "isDestroyed">;
-  documentPickerController: Pick<DocumentPickerController, "isOpen" | "openCreateDialog">;
+  documentPickerController: Pick<
+    DocumentPickerController,
+    "isOpen" | "openCreateDialog"
+  >;
   scheduleResponsiveLayout: () => void;
   positionMobilePortraitActionsPopover: () => void;
   applyToolbarLayoutProfile: () => void;
   debugLifecycle: (...args: unknown[]) => void;
 }) {
-  const {
-    closeDocumentPicker,
-    openDocumentPicker,
-  } = options.documentBrowserCommands;
+  const { closeDocumentPicker, openDocumentPicker } =
+    options.documentBrowserCommands;
   const commandController = createKidsDrawCommandController({
     store: options.store,
     toolbarUiStore: options.toolbarUiStore,
     snapshotService: options.snapshotService,
     getSize: options.getSize,
     openDocumentPicker,
-    openDocumentCreateDialog: () => options.documentPickerController.openCreateDialog(),
+    openDocumentCreateDialog: () =>
+      options.documentPickerController.openCreateDialog(),
     confirmDestructiveAction: options.confirmDestructiveAction,
     clearConfirmationIcon: Trash2,
     isDestroyed: () => options.runtimeStore.isDestroyed(),
@@ -72,7 +74,8 @@ export function createKidsDrawInteractionRuntime(options: {
   let lastMobileActionsOpen = options.toolbarUiStore.get().mobileActionsOpen;
   const unbindMobileLayoutState = options.toolbarUiStore.subscribe((state) => {
     const topPanelChanged = state.mobileTopPanel !== lastMobileTopPanel;
-    const actionsOpenChanged = state.mobileActionsOpen !== lastMobileActionsOpen;
+    const actionsOpenChanged =
+      state.mobileActionsOpen !== lastMobileActionsOpen;
     if (!topPanelChanged && !actionsOpenChanged) {
       return;
     }
@@ -101,14 +104,16 @@ export function createKidsDrawInteractionRuntime(options: {
       export: commandController.exportAndClose,
       newDrawing: commandController.newDrawingAndClose,
       browse: commandController.browseAndClose,
-      positionMobilePortraitActionsPopover: options.positionMobilePortraitActionsPopover,
+      positionMobilePortraitActionsPopover:
+        options.positionMobilePortraitActionsPopover,
       closeDocumentPicker,
     },
   });
 
   options.mobilePortraitActionsUi.bindViewEvents({
     listen: options.lifecycle.listen,
-    getCurrentLayoutProfile: () => options.layoutController.getCurrentLayoutProfile(),
+    getCurrentLayoutProfile: () =>
+      options.layoutController.getCurrentLayoutProfile(),
     onIntent: uiIntentController.handleMobilePortraitActionsIntent,
   });
   options.toolbar.bindIntents({
@@ -123,7 +128,8 @@ export function createKidsDrawInteractionRuntime(options: {
     listen: options.lifecycle.listen,
     windowTarget: window,
     documentTarget: document,
-    getCurrentLayoutProfile: () => options.layoutController.getCurrentLayoutProfile(),
+    getCurrentLayoutProfile: () =>
+      options.layoutController.getCurrentLayoutProfile(),
     isMobileActionsOpen: () => options.toolbarUiStore.get().mobileActionsOpen,
     isInMobilePortraitChrome: (target) =>
       options.mobilePortraitActionsUi.containsTarget(target),

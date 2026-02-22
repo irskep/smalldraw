@@ -4,25 +4,22 @@ import type {
   SmalldrawCore,
 } from "@smalldraw/core";
 import { getColoringPageById } from "../coloring/catalog";
-import type {
-  KidsDocumentBackend,
-  KidsDocumentSummary,
-} from "../documents";
+import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
+import type { RasterPipeline } from "../render/createRasterPipeline";
 import {
   getLoadedRasterImage,
   registerRasterImage,
   warmRasterImage,
 } from "../shapes/rasterImageCache";
-import type { ToolbarStateController } from "./createToolbarStateController";
+import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
 import {
   DocumentSessionController,
   type DocumentSessionPresentation,
 } from "./createDocumentSessionController";
-import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
-import type { SnapshotService } from "./createSnapshotService";
-import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 import type { RenderLoopController } from "./createRenderLoopController";
-import type { RasterPipeline } from "../render/createRasterPipeline";
+import type { SnapshotService } from "./createSnapshotService";
+import type { ToolbarStateController } from "./createToolbarStateController";
+import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 
 export const DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS = 1000;
 
@@ -51,9 +48,7 @@ export function createDocumentRuntimeController(options: {
   >;
   pipeline: Pick<
     RasterPipeline,
-    | "setReferenceOverlaySource"
-    | "scheduleBakeForClear"
-    | "bakePendingTiles"
+    "setReferenceOverlaySource" | "scheduleBakeForClear" | "bakePendingTiles"
   >;
   syncToolbarUi: () => void;
   applyCanvasSize: (width: number, height: number) => void;
@@ -86,7 +81,8 @@ export function createDocumentRuntimeController(options: {
 
   const getReferenceOverlaySrc = (
     presentation: DocumentSessionPresentation,
-  ): string | null => documentSessionController.getReferenceOverlaySrc(presentation);
+  ): string | null =>
+    documentSessionController.getReferenceOverlaySrc(presentation);
 
   const applyToolbarStateForCurrentDocument = (
     presentation: DocumentSessionPresentation,
@@ -100,13 +96,13 @@ export function createDocumentRuntimeController(options: {
     );
   };
 
-  const scheduleThumbnailSave = (
-    delayMs = thumbnailSaveDebounceMs,
-  ): void => {
+  const scheduleThumbnailSave = (delayMs = thumbnailSaveDebounceMs): void => {
     documentSessionController.scheduleThumbnailSave(delayMs);
   };
 
-  const queueColoringOverlayRebakeWhenLoaded = (overlaySrc: string | null): void => {
+  const queueColoringOverlayRebakeWhenLoaded = (
+    overlaySrc: string | null,
+  ): void => {
     coloringOverlayLoadRequestId += 1;
     if (!overlaySrc || typeof Image !== "function") {
       return;
@@ -149,7 +145,8 @@ export function createDocumentRuntimeController(options: {
   ): Pick<
     KidsDocumentSummary,
     "mode" | "coloringPageId" | "referenceImageSrc" | "referenceComposite"
-  > => documentSessionController.toDocumentMetadataFromPresentation(presentation);
+  > =>
+    documentSessionController.toDocumentMetadataFromPresentation(presentation);
 
   const unbindDocumentSessionIntents =
     documentSessionController.state.subscribeDrainedIntents((intents) => {

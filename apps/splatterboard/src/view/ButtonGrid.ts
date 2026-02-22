@@ -273,7 +273,8 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
     for (const container of containers) {
       const start = getItemMainStart(container, horizontal);
       const end =
-        start + getMainSizeFromRect(container.getBoundingClientRect(), horizontal);
+        start +
+        getMainSizeFromRect(container.getBoundingClientRect(), horizontal);
       starts.push(start);
       ends.push(end);
     }
@@ -393,14 +394,13 @@ export function createButtonGrid(options: ButtonGridOptions = {}): ButtonGrid {
       clampPageIndex();
     }
 
-    const currentPageItems = state.pageItemIndices[state.currentPageIndex] ?? [];
+    const currentPageItems =
+      state.pageItemIndices[state.currentPageIndex] ?? [];
     const visibleModels =
       shouldPaginate() && items.length > 0
         ? currentPageItems
             .map((itemIndex) => allModels[itemIndex])
-            .filter((model): model is ButtonGridItemViewModel =>
-              Boolean(model),
-            )
+            .filter((model): model is ButtonGridItemViewModel => Boolean(model))
         : allModels;
 
     if (shouldPaginate() && state.measuredViewportMainSize > 1) {

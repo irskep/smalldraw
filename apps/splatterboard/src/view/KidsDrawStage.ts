@@ -32,18 +32,17 @@ export interface KidsDrawStage {
   setSceneDimensions(width: number, height: number): void;
 }
 
-export type KidsDrawStageIntent =
-  Extract<
-    KidsDrawUiIntent,
-    | { type: "pointer_down" }
-    | { type: "pointer_move" }
-    | { type: "pointer_rawupdate" }
-    | { type: "pointer_enter" }
-    | { type: "pointer_up" }
-    | { type: "pointer_cancel" }
-    | { type: "lost_pointer_capture" }
-    | { type: "pointer_leave" }
-  >;
+export type KidsDrawStageIntent = Extract<
+  KidsDrawUiIntent,
+  | { type: "pointer_down" }
+  | { type: "pointer_move" }
+  | { type: "pointer_rawupdate" }
+  | { type: "pointer_enter" }
+  | { type: "pointer_up" }
+  | { type: "pointer_cancel" }
+  | { type: "lost_pointer_capture" }
+  | { type: "pointer_leave" }
+>;
 
 export function createKidsDrawStage(options: {
   width: number;
@@ -166,22 +165,37 @@ export function createKidsDrawStage(options: {
     dirtyRectShape,
     bindPointerIntents(options) {
       options.listen(overlay, "pointerdown", (event) => {
-        options.onIntent({ type: "pointer_down", event: event as PointerEvent });
+        options.onIntent({
+          type: "pointer_down",
+          event: event as PointerEvent,
+        });
       });
       options.listen(overlay, "pointermove", (event) => {
-        options.onIntent({ type: "pointer_move", event: event as PointerEvent });
+        options.onIntent({
+          type: "pointer_move",
+          event: event as PointerEvent,
+        });
       });
       options.listen(overlay, "pointerrawupdate", (event) => {
-        options.onIntent({ type: "pointer_rawupdate", event: event as PointerEvent });
+        options.onIntent({
+          type: "pointer_rawupdate",
+          event: event as PointerEvent,
+        });
       });
       options.listen(overlay, "pointerenter", (event) => {
-        options.onIntent({ type: "pointer_enter", event: event as PointerEvent });
+        options.onIntent({
+          type: "pointer_enter",
+          event: event as PointerEvent,
+        });
       });
       options.listen(overlay, "pointerup", (event) => {
         options.onIntent({ type: "pointer_up", event: event as PointerEvent });
       });
       options.listen(overlay, "pointercancel", (event) => {
-        options.onIntent({ type: "pointer_cancel", event: event as PointerEvent });
+        options.onIntent({
+          type: "pointer_cancel",
+          event: event as PointerEvent,
+        });
       });
       options.listen(overlay, "lostpointercapture", () => {
         options.onIntent({ type: "lost_pointer_capture" });

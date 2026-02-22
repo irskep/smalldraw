@@ -9,14 +9,14 @@ import {
   type KidsToolFamilyConfig,
 } from "../tools/kidsTools";
 import {
-  type ToolbarUiStore,
-  loadPersistedToolbarUiState,
-  type PersistedKidsUiStateV1,
-} from "../ui/stores/toolbarUiStore";
-import {
   getToolbarUiPersistSignature,
   toPersistedToolbarUiState,
 } from "../ui/stores/toolbarUiPersistence";
+import {
+  loadPersistedToolbarUiState,
+  type PersistedKidsUiStateV1,
+  type ToolbarUiStore,
+} from "../ui/stores/toolbarUiStore";
 import { STROKE_WIDTH_OPTIONS } from "../view/KidsDrawToolbar";
 
 export type ToolbarStatePolicy = {
@@ -104,7 +104,9 @@ export class ToolbarStateController {
     },
   ) {
     this.selectedToolIdByFamily = new Map(
-      options.families.map((family) => [family.id, family.defaultToolId] as const),
+      options.families.map(
+        (family) => [family.id, family.defaultToolId] as const,
+      ),
     );
     this.policy = {
       ...DEFAULT_TOOLBAR_STATE_POLICY,
@@ -114,7 +116,8 @@ export class ToolbarStateController {
 
   syncToolbarUi(): void {
     this.options.toolbarUiStore.syncFromDrawingStore(this.options.store, {
-      resolveActiveFamilyId: (toolId) => getFamilyIdForTool(toolId, this.options.catalog),
+      resolveActiveFamilyId: (toolId) =>
+        getFamilyIdForTool(toolId, this.options.catalog),
       resolveToolStyleSupport: (toolId) =>
         getToolStyleSupport(toolId, this.options.catalog),
     });
@@ -168,8 +171,8 @@ export class ToolbarStateController {
         : this.policy.normalDefaultToolId;
     const docUrl = this.options.getCurrentDocUrl();
     const shared = this.options.store.getSharedSettings();
-    const resolvedInitialToolbarUiState = resolveInitialToolbarUiStateFromPersistence(
-      {
+    const resolvedInitialToolbarUiState =
+      resolveInitialToolbarUiStateFromPersistence({
         catalog: this.options.catalog,
         current: {
           activeToolId: defaultToolId,
@@ -179,8 +182,7 @@ export class ToolbarStateController {
         persisted: options?.forceDefaults
           ? null
           : loadPersistedToolbarUiState(docUrl),
-      },
-    );
+      });
     this.activateToolAndRemember(resolvedInitialToolbarUiState.activeToolId);
     this.options.store.updateSharedSettings({
       strokeColor: resolvedInitialToolbarUiState.strokeColor,

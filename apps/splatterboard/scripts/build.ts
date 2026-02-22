@@ -1,5 +1,5 @@
-import { $ } from "bun";
 import { existsSync } from "node:fs";
+import { $ } from "bun";
 
 await $`rm -rf dist`;
 await $`mkdir -p dist`;

@@ -1,10 +1,10 @@
 import type { DrawingStore } from "@smalldraw/core";
-import type { KidsDrawUiIntent } from "./KidsDrawUiIntent";
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { MobilePortraitActionsIntent } from "../view/MobilePortraitActionsView";
-import type { ToolbarStateController } from "./createToolbarStateController";
-import type { InputSessionController } from "./createInputSessionController";
 import type { CursorOverlayController } from "./createCursorOverlayController";
+import type { InputSessionController } from "./createInputSessionController";
+import type { ToolbarStateController } from "./createToolbarStateController";
+import type { KidsDrawUiIntent } from "./KidsDrawUiIntent";
 
 export function createKidsDrawUiIntentController(options: {
   runtime: {
@@ -49,7 +49,9 @@ export function createKidsDrawUiIntentController(options: {
         options.commands.scheduleResponsiveLayout();
         return;
       case "activate_family_tool":
-        options.runtime.toolbarStateController.activateFamilyTool(intent.familyId);
+        options.runtime.toolbarStateController.activateFamilyTool(
+          intent.familyId,
+        );
         return;
       case "activate_tool_and_remember":
         options.runtime.toolbarStateController.activateToolAndRemember(
@@ -99,7 +101,9 @@ export function createKidsDrawUiIntentController(options: {
         options.runtime.inputSessionController.handlePointerMove(intent.event);
         return;
       case "pointer_rawupdate":
-        options.runtime.inputSessionController.handlePointerRawUpdate(intent.event);
+        options.runtime.inputSessionController.handlePointerRawUpdate(
+          intent.event,
+        );
         return;
       case "pointer_enter":
         options.runtime.cursorOverlay.handlePointerEnter(intent.event);
@@ -108,7 +112,9 @@ export function createKidsDrawUiIntentController(options: {
         options.runtime.inputSessionController.handlePointerUp(intent.event);
         return;
       case "pointer_cancel":
-        options.runtime.inputSessionController.handlePointerCancel(intent.event);
+        options.runtime.inputSessionController.handlePointerCancel(
+          intent.event,
+        );
         return;
       case "lost_pointer_capture":
         options.runtime.inputSessionController.forceCancelPointerSession();
@@ -130,7 +136,7 @@ export function createKidsDrawUiIntentController(options: {
         return;
       default: {
         const exhaustiveCheck: never = intent;
-        return exhaustiveCheck;
+        throw new Error(`Unhandled KidsDrawUiIntent: ${exhaustiveCheck}`);
       }
     }
   };
@@ -168,7 +174,9 @@ export function createKidsDrawUiIntentController(options: {
         return;
       default: {
         const exhaustiveCheck: never = intent;
-        return exhaustiveCheck;
+        throw new Error(
+          `Unhandled MobilePortraitActionsIntent: ${exhaustiveCheck}`,
+        );
       }
     }
   };

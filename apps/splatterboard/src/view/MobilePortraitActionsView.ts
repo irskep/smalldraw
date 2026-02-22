@@ -2,21 +2,21 @@ import {
   Download,
   FilePlus,
   FolderOpen,
+  type IconNode,
   MoreHorizontal,
   Palette,
   Redo2,
   SlidersHorizontal,
   Trash2,
-  type IconNode,
   Undo2,
 } from "lucide";
+import type { ReadableAtom } from "nanostores";
 import { el, setChildren } from "redom";
+import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 import {
   createSquareIconButton,
   type SquareIconButton,
 } from "./SquareIconButton";
-import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
-import type { ReadableAtom } from "nanostores";
 
 export type MobilePortraitActionsIntent =
   | "undo"
@@ -60,13 +60,10 @@ function createMobilePortraitActionItem(
     danger?: boolean;
   },
 ): HTMLButtonElement {
-  const item = el(
-    "button.kids-draw-mobile-actions-item.kd-button-unstyled",
-    {
-      type: "button",
-      role: "menuitem",
-    },
-  ) as HTMLButtonElement;
+  const item = el("button.kids-draw-mobile-actions-item.kd-button-unstyled", {
+    type: "button",
+    role: "menuitem",
+  }) as HTMLButtonElement;
   item.dataset.mobileAction = actionId;
   const iconElement = el(
     "span.kids-draw-mobile-actions-item-icon",
@@ -101,9 +98,13 @@ export class MobilePortraitActionsView {
   private unbindUiState: (() => void) | null = null;
 
   constructor() {
-    this.bottomStrip = el("div.kids-draw-mobile-portrait-bottom") as HTMLDivElement;
+    this.bottomStrip = el(
+      "div.kids-draw-mobile-portrait-bottom",
+    ) as HTMLDivElement;
     this.topStrip = el("div.kids-draw-mobile-portrait-top") as HTMLDivElement;
-    this.topControls = el("div.kids-draw-mobile-top-controls") as HTMLDivElement;
+    this.topControls = el(
+      "div.kids-draw-mobile-top-controls",
+    ) as HTMLDivElement;
     this.colorsButton = createSquareIconButton({
       className: "kids-draw-mobile-top-toggle kids-draw-tool-button",
       label: "Color",
@@ -136,31 +137,29 @@ export class MobilePortraitActionsView {
         "aria-expanded": "false",
       },
     });
-    this.actionsPopover = el(
-      "div.kids-draw-mobile-actions-popover",
-      {
-        "aria-hidden": "true",
-      },
-    ) as HTMLDivElement;
+    this.actionsPopover = el("div.kids-draw-mobile-actions-popover", {
+      "aria-hidden": "true",
+    }) as HTMLDivElement;
     this.actionsPopover.dataset.open = "false";
     this.actionsPopover.hidden = true;
-    this.actionsMenu = el(
-      "div.kids-draw-mobile-actions-menu",
-      {
-        id: "kids-draw-mobile-actions-menu",
-        role: "menu",
-        "aria-label": "Actions",
-      },
-    ) as HTMLDivElement;
+    this.actionsMenu = el("div.kids-draw-mobile-actions-menu", {
+      id: "kids-draw-mobile-actions-menu",
+      role: "menu",
+      "aria-label": "Actions",
+    }) as HTMLDivElement;
 
     this.undoMenuItem = createMobilePortraitActionItem("undo", "Undo", Undo2);
     this.redoMenuItem = createMobilePortraitActionItem("redo", "Redo", Redo2);
-    const undoRedoRow = el("div.kids-draw-mobile-actions-row") as HTMLDivElement;
+    const undoRedoRow = el(
+      "div.kids-draw-mobile-actions-row",
+    ) as HTMLDivElement;
     undoRedoRow.setAttribute("role", "group");
     undoRedoRow.setAttribute("aria-label", "History");
     setChildren(undoRedoRow, [this.undoMenuItem, this.redoMenuItem]);
 
-    const menuDivider = el("div.kids-draw-mobile-actions-divider") as HTMLDivElement;
+    const menuDivider = el(
+      "div.kids-draw-mobile-actions-divider",
+    ) as HTMLDivElement;
     menuDivider.setAttribute("role", "separator");
     const secondaryDivider = el(
       "div.kids-draw-mobile-actions-divider",
@@ -299,7 +298,9 @@ export class MobilePortraitActionsView {
   }
 
   containsTarget(target: Node): boolean {
-    return this.topStrip.contains(target) || this.actionsPopover.contains(target);
+    return (
+      this.topStrip.contains(target) || this.actionsPopover.contains(target)
+    );
   }
 
   getActionsTriggerRect(): DOMRect {

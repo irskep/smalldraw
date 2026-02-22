@@ -28,8 +28,7 @@ export const DEFAULT_DOCUMENT_SIZE: DrawingDocumentSize = {
   height: 600,
 };
 
-export const DEFAULT_DOCUMENT_PRESENTATION: DrawingDocumentPresentation = {
-};
+export const DEFAULT_DOCUMENT_PRESENTATION: DrawingDocumentPresentation = {};
 
 function normalizePresentation(
   presentation: DrawingDocumentPresentation | undefined,

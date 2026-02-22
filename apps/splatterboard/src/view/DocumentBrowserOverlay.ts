@@ -172,7 +172,10 @@ export function createDocumentBrowserOverlay(options: {
   onDeleteDocument: (docUrl: string) => void;
 }): DocumentBrowserOverlay {
   const pages = getColoringPages();
-  const pagesByVolume = new Map<ColoringVolumeId, Array<(typeof pages)[number]>>();
+  const pagesByVolume = new Map<
+    ColoringVolumeId,
+    Array<(typeof pages)[number]>
+  >();
   for (const page of pages) {
     const volumeId = page.volumeId;
     const volumePages = pagesByVolume.get(volumeId) ?? [];
@@ -473,7 +476,8 @@ export function createDocumentBrowserOverlay(options: {
       return;
     }
     const state = $state.get();
-    const nextPreviewImageSrc = state.thumbnailUrlByDocUrl.get(previewDocUrl) ?? null;
+    const nextPreviewImageSrc =
+      state.thumbnailUrlByDocUrl.get(previewDocUrl) ?? null;
     const currentPreviewImageSrc = previewImage.getAttribute("src");
     if (nextPreviewImageSrc) {
       if (currentPreviewImageSrc !== nextPreviewImageSrc) {
@@ -546,8 +550,9 @@ export function createDocumentBrowserOverlay(options: {
     }
 
     const previewDocument = state.previewDocUrl
-      ? (state.documents.find((document) => document.docUrl === state.previewDocUrl) ??
-        null)
+      ? (state.documents.find(
+          (document) => document.docUrl === state.previewDocUrl,
+        ) ?? null)
       : null;
     preview.hidden = previewDocument === null;
     if (previewDocument) {
@@ -579,7 +584,9 @@ export function createDocumentBrowserOverlay(options: {
   };
 
   const onBrowserPointerDown = (event: PointerEvent): void => {
-    const target = event.target as { closest?: (selector: string) => Element | null } | null;
+    const target = event.target as {
+      closest?: (selector: string) => Element | null;
+    } | null;
     if (!target?.closest || event.pointerType === "mouse") {
       return;
     }
@@ -600,7 +607,9 @@ export function createDocumentBrowserOverlay(options: {
 
   const onBrowserClick = (event: MouseEvent): void => {
     const state = $state.get();
-    const target = event.target as { closest?: (selector: string) => Element | null } | null;
+    const target = event.target as {
+      closest?: (selector: string) => Element | null;
+    } | null;
     if (!target?.closest) {
       return;
     }
@@ -641,7 +650,9 @@ export function createDocumentBrowserOverlay(options: {
   };
 
   const onCreateClick = (event: MouseEvent): void => {
-    const target = event.target as { closest?: (selector: string) => Element | null } | null;
+    const target = event.target as {
+      closest?: (selector: string) => Element | null;
+    } | null;
     if (!target?.closest) {
       return;
     }
@@ -719,7 +730,9 @@ export function createDocumentBrowserOverlay(options: {
   bindAtom($state, (state) => {
     if (
       state.previewDocUrl &&
-      !state.documents.some((document) => document.docUrl === state.previewDocUrl)
+      !state.documents.some(
+        (document) => document.docUrl === state.previewDocUrl,
+      )
     ) {
       closePreview();
       return;
@@ -738,8 +751,7 @@ export function createDocumentBrowserOverlay(options: {
         open: nextOpen,
         previewDocUrl: nextOpen ? nextState.previewDocUrl : null,
         touchPressDocUrl: nextOpen ? nextState.touchPressDocUrl : null,
-      }
-      ));
+      }));
     },
     isOpen() {
       return $state.get().open;

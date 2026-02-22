@@ -48,10 +48,7 @@ export function createDocumentPickerStore() {
     setThumbnailUrls(thumbnailUrlByDocUrl: Map<string, string>): void {
       const current = $state.get();
       if (
-        isSameThumbnailMap(
-          current.thumbnailUrlByDocUrl,
-          thumbnailUrlByDocUrl,
-        )
+        isSameThumbnailMap(current.thumbnailUrlByDocUrl, thumbnailUrlByDocUrl)
       ) {
         return;
       }

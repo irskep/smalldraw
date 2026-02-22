@@ -1,9 +1,7 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
 
 export type KidsDocumentMode = "normal" | "coloring" | "markup";
-export type KidsDocumentReferenceComposite =
-  | "under-drawing"
-  | "over-drawing";
+export type KidsDocumentReferenceComposite = "under-drawing" | "over-drawing";
 
 export interface KidsDocumentSummary {
   docUrl: string;

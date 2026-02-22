@@ -42,7 +42,8 @@ function normalizeDocumentSummary(
     title: value.title,
     mode: normalizeMode(value.mode),
     coloringPageId:
-      typeof value.coloringPageId === "string" && value.coloringPageId.length > 0
+      typeof value.coloringPageId === "string" &&
+      value.coloringPageId.length > 0
         ? value.coloringPageId
         : undefined,
     referenceImageSrc:
@@ -219,15 +220,15 @@ class IndexedDbDocumentRepository implements DocumentRepository {
       coloringPageId:
         input.mode === "normal"
           ? undefined
-          : input.coloringPageId ?? existing?.coloringPageId,
+          : (input.coloringPageId ?? existing?.coloringPageId),
       referenceImageSrc:
         input.mode === "normal"
           ? undefined
-          : input.referenceImageSrc ?? existing?.referenceImageSrc,
+          : (input.referenceImageSrc ?? existing?.referenceImageSrc),
       referenceComposite:
         input.mode === "normal"
           ? undefined
-          : input.referenceComposite ?? existing?.referenceComposite,
+          : (input.referenceComposite ?? existing?.referenceComposite),
       createdAt: existing?.createdAt ?? timestamp,
       updatedAt: timestamp,
       lastOpenedAt: timestamp,
@@ -302,15 +303,15 @@ class MemoryDocumentRepository implements DocumentRepository {
       coloringPageId:
         input.mode === "normal"
           ? undefined
-          : input.coloringPageId ?? existing?.coloringPageId,
+          : (input.coloringPageId ?? existing?.coloringPageId),
       referenceImageSrc:
         input.mode === "normal"
           ? undefined
-          : input.referenceImageSrc ?? existing?.referenceImageSrc,
+          : (input.referenceImageSrc ?? existing?.referenceImageSrc),
       referenceComposite:
         input.mode === "normal"
           ? undefined
-          : input.referenceComposite ?? existing?.referenceComposite,
+          : (input.referenceComposite ?? existing?.referenceComposite),
       createdAt: existing?.createdAt ?? timestamp,
       updatedAt: timestamp,
       lastOpenedAt: timestamp,

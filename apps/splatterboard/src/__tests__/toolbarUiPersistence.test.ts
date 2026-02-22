@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import { createToolbarUiPersistence } from "../ui/stores/toolbarUiPersistence";
 import {
   createToolbarUiStore,
   loadPersistedToolbarUiState,
   type ToolbarUiState,
   type ToolbarUiStore,
 } from "../ui/stores/toolbarUiStore";
-import { createToolbarUiPersistence } from "../ui/stores/toolbarUiPersistence";
 
 const wait = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -43,7 +43,8 @@ describe("toolbarUiPersistence", () => {
       toolbarUiStore,
       getCurrentDocUrl: () => docUrl,
       debounceMs: 10,
-      seedPersistedSignature: (_doc, signature) => persistedSignatures.push(signature),
+      seedPersistedSignature: (_doc, signature) =>
+        persistedSignatures.push(signature),
     });
 
     persistence.start();
@@ -75,7 +76,8 @@ describe("toolbarUiPersistence", () => {
       toolbarUiStore,
       getCurrentDocUrl: () => docUrl,
       debounceMs: 30,
-      seedPersistedSignature: (_doc, signature) => persistedSignatures.push(signature),
+      seedPersistedSignature: (_doc, signature) =>
+        persistedSignatures.push(signature),
     });
 
     persistence.start();
@@ -145,7 +147,8 @@ describe("toolbarUiPersistence", () => {
       strokeWidth: 2,
     });
     expect(
-      persistedEvents.filter((event) => event.docUrl === "automerge:doc-2").length,
+      persistedEvents.filter((event) => event.docUrl === "automerge:doc-2")
+        .length,
     ).toBe(1);
   });
 
@@ -157,7 +160,8 @@ describe("toolbarUiPersistence", () => {
       toolbarUiStore,
       getCurrentDocUrl: () => docUrl,
       debounceMs: 80,
-      seedPersistedSignature: (_doc, signature) => persistedSignatures.push(signature),
+      seedPersistedSignature: (_doc, signature) =>
+        persistedSignatures.push(signature),
     });
 
     persistence.start();

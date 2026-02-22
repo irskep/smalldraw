@@ -40,13 +40,16 @@ type RenderingRuntimeOptions = Omit<
   };
 };
 
-export function createKidsDrawRenderingRuntime(options: RenderingRuntimeOptions) {
+export function createKidsDrawRenderingRuntime(
+  options: RenderingRuntimeOptions,
+) {
   const renderLoopController = new RenderLoopController(
     {
       pipeline: options.pipeline,
       backgroundColor: options.backgroundColor,
       getSize: options.getSize,
-      getPresentationIdentity: () => options.runtimeStore.getPresentationIdentity(),
+      getPresentationIdentity: () =>
+        options.runtimeStore.getPresentationIdentity(),
       onRenderPass: () => {
         const startMs = options.perfSession.recordRenderPassStart();
         options.inputSessionController.onRenderPass();
@@ -80,8 +83,10 @@ export function createKidsDrawRenderingRuntime(options: RenderingRuntimeOptions)
         layoutController.getCurrentLayoutProfile(),
       );
     },
-    resolveImplicitDocumentSizeFromViewport: (): { width: number; height: number } =>
-      layoutController.resolveImplicitDocumentSizeFromViewport(),
+    resolveImplicitDocumentSizeFromViewport: (): {
+      width: number;
+      height: number;
+    } => layoutController.resolveImplicitDocumentSizeFromViewport(),
     applyCanvasSize: (nextWidth: number, nextHeight: number): void => {
       layoutController.applyCanvasSize(nextWidth, nextHeight);
     },

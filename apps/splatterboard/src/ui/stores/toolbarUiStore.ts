@@ -87,7 +87,8 @@ export function createToolbarUiStore(): ToolbarUiStore {
       const current = state.get();
       const activeToolId = drawingStore.getActiveToolId() ?? "";
       const activeFamilyId =
-        options?.resolveActiveFamilyId?.(activeToolId) ?? current.activeFamilyId;
+        options?.resolveActiveFamilyId?.(activeToolId) ??
+        current.activeFamilyId;
       const styleSupport =
         options?.resolveToolStyleSupport?.(activeToolId) ?? {};
       const next: ToolbarUiState = {
@@ -104,7 +105,8 @@ export function createToolbarUiStore(): ToolbarUiStore {
         supportsFillColor: styleSupport.fillColor ?? false,
         supportsTransparentStrokeColor:
           styleSupport.transparentStrokeColor ?? false,
-        supportsTransparentFillColor: styleSupport.transparentFillColor ?? false,
+        supportsTransparentFillColor:
+          styleSupport.transparentFillColor ?? false,
       };
       setIfChanged(next);
     },

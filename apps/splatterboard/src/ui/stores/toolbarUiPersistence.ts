@@ -1,6 +1,6 @@
 import {
-  savePersistedToolbarUiState,
   type PersistedKidsUiStateV1,
+  savePersistedToolbarUiState,
   type ToolbarUiState,
   type ToolbarUiStore,
 } from "./toolbarUiStore";
@@ -44,10 +44,7 @@ export function createToolbarUiPersistence(options: {
 }): ToolbarUiPersistence {
   const debounceMs = options.debounceMs ?? DEFAULT_UI_STATE_PERSIST_DEBOUNCE_MS;
   const savedSignatureByDocUrl = new Map<string, string>();
-  const seedPersistedSignature = (
-    docUrl: string,
-    signature: string,
-  ): void => {
+  const seedPersistedSignature = (docUrl: string, signature: string): void => {
     savedSignatureByDocUrl.set(docUrl, signature);
     options.seedPersistedSignature?.(docUrl, signature);
   };

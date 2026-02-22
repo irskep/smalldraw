@@ -10,8 +10,8 @@ import {
   type SmalldrawCore,
 } from "@smalldraw/core";
 import { getWorldPointsFromShape } from "@smalldraw/testing";
-import { createKidsDrawApp } from "../createKidsDrawApp";
 import { getColoringPageById } from "../coloring/catalog";
+import { createKidsDrawApp } from "../createKidsDrawApp";
 import type {
   KidsDocumentBackend,
   KidsDocumentCreateInput,
@@ -147,15 +147,15 @@ function createMockDocumentBackend(
         coloringPageId:
           input.mode === "normal"
             ? undefined
-            : input.coloringPageId ?? existing?.coloringPageId,
+            : (input.coloringPageId ?? existing?.coloringPageId),
         referenceImageSrc:
           input.mode === "normal"
             ? undefined
-            : input.referenceImageSrc ?? existing?.referenceImageSrc,
+            : (input.referenceImageSrc ?? existing?.referenceImageSrc),
         referenceComposite:
           input.mode === "normal"
             ? undefined
-            : input.referenceComposite ?? existing?.referenceComposite,
+            : (input.referenceComposite ?? existing?.referenceComposite),
         createdAt: existing?.createdAt ?? timestamp,
         updatedAt: timestamp,
         lastOpenedAt: timestamp,
@@ -262,7 +262,8 @@ function createMockCore(
     },
     async createNew(options) {
       const nextSize = options?.documentSize ?? doc.size;
-      const nextPresentation = options?.documentPresentation ?? doc.presentation;
+      const nextPresentation =
+        options?.documentPresentation ?? doc.presentation;
       currentDocUrl = createDocUrl();
       doc = createDocument(undefined, registry, nextSize, nextPresentation);
       docByUrl.set(currentDocUrl, doc);
@@ -1356,17 +1357,14 @@ describe("splatterboard shell", () => {
       expect(pageButton).not.toBeNull();
       pageButton!.click();
 
-      const presentationApplied = await waitUntil(
-        () => {
-          const presentation = core.storeAdapter.getDoc().presentation;
-          return (
-            presentation.documentType === "coloring" &&
-            presentation.referenceImage?.composite === "over-drawing" &&
-            (presentation.referenceImage?.src.length ?? 0) > 0
-          );
-        },
-        100,
-      );
+      const presentationApplied = await waitUntil(() => {
+        const presentation = core.storeAdapter.getDoc().presentation;
+        return (
+          presentation.documentType === "coloring" &&
+          presentation.referenceImage?.composite === "over-drawing" &&
+          (presentation.referenceImage?.src.length ?? 0) > 0
+        );
+      }, 100);
       expect(presentationApplied).toBeTrue();
 
       app.destroy();
@@ -1377,20 +1375,19 @@ describe("splatterboard shell", () => {
         confirmDestructiveAction: async () => true,
       });
 
-      const presentationRestored = await waitUntil(
-        () => {
-          const presentation = core.storeAdapter.getDoc().presentation;
-          return (
-            presentation.documentType === "coloring" &&
-            presentation.referenceImage?.composite === "over-drawing" &&
-            (presentation.referenceImage?.src.length ?? 0) > 0
-          );
-        },
-        100,
-      );
+      const presentationRestored = await waitUntil(() => {
+        const presentation = core.storeAdapter.getDoc().presentation;
+        return (
+          presentation.documentType === "coloring" &&
+          presentation.referenceImage?.composite === "over-drawing" &&
+          (presentation.referenceImage?.src.length ?? 0) > 0
+        );
+      }, 100);
       expect(presentationRestored).toBeTrue();
 
-      const stageOverlay = container.querySelector("img.kids-draw-coloring-overlay");
+      const stageOverlay = container.querySelector(
+        "img.kids-draw-coloring-overlay",
+      );
       expect(stageOverlay).toBeNull();
     } finally {
       app?.destroy();
@@ -1422,7 +1419,9 @@ describe("splatterboard shell", () => {
     const catalog = createKidsToolCatalog(createKidsShapeRendererRegistry());
     const defaultToolId =
       catalog.families.find((family) => family.id === catalog.defaultFamilyId)
-        ?.defaultToolId ?? catalog.tools[0]?.id ?? "";
+        ?.defaultToolId ??
+      catalog.tools[0]?.id ??
+      "";
     const persistedToolId =
       catalog.tools.find((tool) => tool.id !== defaultToolId)?.id ??
       defaultToolId;
@@ -1458,7 +1457,9 @@ describe("splatterboard shell", () => {
     const catalog = createKidsToolCatalog(createKidsShapeRendererRegistry());
     const defaultToolId =
       catalog.families.find((family) => family.id === catalog.defaultFamilyId)
-        ?.defaultToolId ?? catalog.tools[0]?.id ?? "";
+        ?.defaultToolId ??
+      catalog.tools[0]?.id ??
+      "";
 
     localStorage.setItem(
       getMockDocUiStateStorageKey(),
@@ -1612,7 +1613,9 @@ describe("splatterboard shell", () => {
 
       expect(app.store.getActiveToolId()).toBe("stamp.image.cat1");
       expect(toolSelectorStampFamilyButton).not.toBeNull();
-      expect(toolSelectorStampFamilyButton?.classList.contains("is-selected")).toBeTrue();
+      expect(
+        toolSelectorStampFamilyButton?.classList.contains("is-selected"),
+      ).toBeTrue();
       expect(selectorPrevButton).not.toBeNull();
       expect(selectorNextButton).not.toBeNull();
       expect(selectorPrevButton?.disabled).toBeFalse();
@@ -1639,7 +1642,8 @@ describe("splatterboard shell", () => {
       catalog.tools.find(
         (tool) => tool.familyId === "stamp.images" && tool.label === "Guitar",
       )?.id ??
-      catalog.families.find((family) => family.id === "stamp.images")?.toolIds[0] ??
+      catalog.families.find((family) => family.id === "stamp.images")
+        ?.toolIds[0] ??
       "";
     expect(selectedStampToolId).not.toBe("");
 

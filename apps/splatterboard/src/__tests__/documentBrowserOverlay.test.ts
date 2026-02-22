@@ -73,7 +73,11 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
 
     const doc = createDocument("doc://1");
     overlay.setOpen(true);
-    overlay.setDocuments([doc], doc.docUrl, new Map([[doc.docUrl, "blob://thumb"]]));
+    overlay.setDocuments(
+      [doc],
+      doc.docUrl,
+      new Map([[doc.docUrl, "blob://thumb"]]),
+    );
 
     const openButton = overlay.el.querySelector(
       `[data-doc-browser-open="${doc.docUrl}"]`,
@@ -111,7 +115,11 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
 
     const doc = createDocument("doc://2");
     overlay.setOpen(true);
-    overlay.setDocuments([doc], doc.docUrl, new Map([[doc.docUrl, "blob://thumb"]]));
+    overlay.setDocuments(
+      [doc],
+      doc.docUrl,
+      new Map([[doc.docUrl, "blob://thumb"]]),
+    );
 
     const openButton = overlay.el.querySelector(
       `[data-doc-browser-open="${doc.docUrl}"]`,
@@ -152,7 +160,11 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
 
     const doc = createDocument("doc://3");
     overlay.setOpen(true);
-    overlay.setDocuments([doc], doc.docUrl, new Map([[doc.docUrl, "blob://thumb"]]));
+    overlay.setDocuments(
+      [doc],
+      doc.docUrl,
+      new Map([[doc.docUrl, "blob://thumb"]]),
+    );
 
     const openButton = overlay.el.querySelector(
       `[data-doc-browser-open="${doc.docUrl}"]`,
