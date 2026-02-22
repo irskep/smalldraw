@@ -5,7 +5,6 @@ import {
 } from "@smalldraw/core";
 import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
-import { getColoringPageBySrc } from "../coloring/catalog";
 import { createLocalDocumentBackend } from "../documents";
 import { resolveLayoutMode, resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
@@ -19,9 +18,7 @@ import {
 } from "../tools/kidsTools";
 import { warmImageStampAssets } from "../tools/stamps/imageStampAssets";
 import { getImageStampAssets } from "../tools/stamps/imageStampCatalog";
-import {
-  createToolbarUiStore,
-} from "../ui/stores/toolbarUiStore";
+import { createToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import { createKidsDrawStage } from "../view/KidsDrawStage";
 import { createKidsDrawToolbar } from "../view/KidsDrawToolbar";
 import { createModalDialogView } from "../view/ModalDialog";
@@ -78,42 +75,9 @@ export async function createKidsDrawApp(
       documentSize: desiredInitialSize,
       shapeHandlers,
     }));
-  try {
-    const doc = core.storeAdapter.getDoc();
-    const presentation = doc.presentation;
-    const referenceImage = presentation?.referenceImage;
-    const coloringPage = referenceImage
-      ? getColoringPageBySrc(referenceImage.src)
-      : null;
-    const explicitDocumentType =
-      presentation?.documentType === "normal" ||
-      presentation?.documentType === "coloring" ||
-      presentation?.documentType === "markup"
-        ? presentation.documentType
-        : null;
-    const mode =
-      explicitDocumentType ??
-      (referenceImage?.composite === "under-drawing"
-        ? "markup"
-        : coloringPage
-          ? "coloring"
-          : "normal");
-    await documentBackend.createDocument({
-      docUrl: core.getCurrentDocUrl(),
-      mode,
-      coloringPageId: coloringPage?.id,
-      referenceImageSrc: referenceImage?.src,
-      referenceComposite: referenceImage?.composite,
-      documentSize: doc.size,
-    });
-  } catch (error) {
-    console.warn("[kids-draw:documents] failed to ensure current doc index", {
-      error,
-    });
-  }
 
   const docSize = core.storeAdapter.getDoc().size;
-  let size = {
+  const initialSize = {
     width: docSize.width,
     height: docSize.height,
   };
@@ -130,8 +94,8 @@ export async function createKidsDrawApp(
     sidebarItems: catalog.sidebarItems,
   });
   const stage = createKidsDrawStage({
-    width: size.width,
-    height: size.height,
+    width: initialSize.width,
+    height: initialSize.height,
     backgroundColor,
   });
   const modalDialog = createModalDialogView();
@@ -164,8 +128,8 @@ export async function createKidsDrawApp(
     store,
     stage,
     shapeRendererRegistry,
-    width: size.width,
-    height: size.height,
+    width: initialSize.width,
+    height: initialSize.height,
     backgroundColor,
     tilePixelRatio:
       typeof globalThis.devicePixelRatio === "number"
@@ -190,14 +154,13 @@ export async function createKidsDrawApp(
     appElement: element,
     documentBackend,
     backgroundColor,
-    hasExplicitSize,
-    providedCore: Boolean(providedCore),
-    resolvePageSize: resolveCurrentPageSize,
-    getExplicitSize,
-    getSize: () => ({ ...size }),
-    setSize: (nextSize) => {
-      size = nextSize;
+    initialSize,
+    sizingPolicy: {
+      hasExplicitSize,
+      getExplicitSize,
+      resolvePageSize: resolveCurrentPageSize,
     },
+    providedCore: Boolean(providedCore),
     confirmDestructiveAction:
       options.confirmDestructiveAction ??
       ((dialog) => modalDialog.showConfirm(dialog)),

@@ -108,6 +108,8 @@ describe("toolbarUiPersistence", () => {
       supportsTransparentStrokeColor: false,
       supportsTransparentFillColor: false,
       newDrawingPending: false,
+      mobileTopPanel: "colors",
+      mobileActionsOpen: false,
     };
     const changedState: ToolbarUiState = {
       ...initialState,

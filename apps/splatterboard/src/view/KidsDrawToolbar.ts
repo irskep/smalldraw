@@ -3,6 +3,7 @@ import "./KidsDrawToolbar.css";
 import { Download, FilePlus, FolderOpen, Redo2, Trash2, Undo2 } from "lucide";
 import { computed, type ReadableAtom } from "nanostores";
 import { el, mount } from "redom";
+import type { KidsDrawUiIntent } from "../controller/KidsDrawUiIntent";
 import type {
   KidsToolConfig,
   KidsToolFamilyConfig,
@@ -32,10 +33,33 @@ export interface KidsDrawToolbar {
   readonly browseButton: SquareIconButton;
   readonly strokeColorSwatchButtons: HTMLButtonElement[];
   readonly strokeWidthButtons: HTMLButtonElement[];
+  bindIntents(options: {
+    listen: (
+      target: EventTarget,
+      type: string,
+      handler: (event: Event) => void,
+    ) => void;
+    onIntent: (intent: KidsDrawToolbarIntent) => void;
+  }): void;
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
   syncLayout(): void;
   destroy(): void;
 }
+
+export type KidsDrawToolbarIntent =
+  Extract<
+    KidsDrawUiIntent,
+    | { type: "activate_family_tool" }
+    | { type: "activate_tool_and_remember" }
+    | { type: "undo" }
+    | { type: "redo" }
+    | { type: "clear" }
+    | { type: "export" }
+    | { type: "new_drawing" }
+    | { type: "browse" }
+    | { type: "set_stroke_color" }
+    | { type: "set_stroke_width" }
+  >;
 
 interface ColorSwatchConfig {
   value: string;
@@ -548,6 +572,67 @@ export function createKidsDrawToolbar(options: {
     };
   };
 
+  const bindIntents = (options: {
+    listen: (
+      target: EventTarget,
+      type: string,
+      handler: (event: Event) => void,
+    ) => void;
+    onIntent: (intent: KidsDrawToolbarIntent) => void;
+  }): void => {
+    for (const [familyId, button] of familyButtons) {
+      options.listen(button.el, "click", () => {
+        options.onIntent({ type: "activate_family_tool", familyId });
+      });
+    }
+    for (const [toolId, button] of directToolButtons) {
+      options.listen(button.el, "click", () => {
+        options.onIntent({ type: "activate_tool_and_remember", toolId });
+      });
+    }
+    for (const [toolId, button] of variantButtons) {
+      options.listen(button.el, "click", () => {
+        options.onIntent({ type: "activate_tool_and_remember", toolId });
+      });
+    }
+    options.listen(undoButton.el, "click", () => {
+      options.onIntent({ type: "undo" });
+    });
+    options.listen(redoButton.el, "click", () => {
+      options.onIntent({ type: "redo" });
+    });
+    options.listen(clearButton.el, "click", () => {
+      options.onIntent({ type: "clear" });
+    });
+    options.listen(exportButton.el, "click", () => {
+      options.onIntent({ type: "export" });
+    });
+    options.listen(newDrawingButton.el, "click", () => {
+      options.onIntent({ type: "new_drawing" });
+    });
+    options.listen(browseButton.el, "click", () => {
+      options.onIntent({ type: "browse" });
+    });
+    for (const colorButton of strokeColorSwatchButtons) {
+      options.listen(colorButton, "click", () => {
+        const strokeColor = colorButton.dataset.color;
+        if (!strokeColor) {
+          return;
+        }
+        options.onIntent({ type: "set_stroke_color", strokeColor });
+      });
+    }
+    for (const widthButton of strokeWidthButtons) {
+      options.listen(widthButton, "click", () => {
+        const strokeWidth = Number(widthButton.dataset.size);
+        if (!Number.isFinite(strokeWidth)) {
+          return;
+        }
+        options.onIntent({ type: "set_stroke_width", strokeWidth });
+      });
+    }
+  };
+
   return {
     topElement,
     bottomElement,
@@ -565,6 +650,7 @@ export function createKidsDrawToolbar(options: {
     browseButton,
     strokeColorSwatchButtons,
     strokeWidthButtons,
+    bindIntents,
     bindUiState,
     syncLayout() {
       toolSelectorGrid.syncLayout();

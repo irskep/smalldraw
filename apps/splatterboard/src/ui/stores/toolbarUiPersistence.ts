@@ -17,6 +17,8 @@ export interface ToolbarUiPersistence {
   flush(): void;
 }
 
+export const DEFAULT_UI_STATE_PERSIST_DEBOUNCE_MS = 150;
+
 export function getToolbarUiPersistSignature(
   state: PersistedKidsUiStateV1,
 ): string {
@@ -37,9 +39,10 @@ export function toPersistedToolbarUiState(
 export function createToolbarUiPersistence(options: {
   toolbarUiStore: ToolbarUiStore;
   getCurrentDocUrl: () => string;
-  debounceMs: number;
+  debounceMs?: number;
   seedPersistedSignature?: (docUrl: string, signature: string) => void;
 }): ToolbarUiPersistence {
+  const debounceMs = options.debounceMs ?? DEFAULT_UI_STATE_PERSIST_DEBOUNCE_MS;
   const savedSignatureByDocUrl = new Map<string, string>();
   const seedPersistedSignature = (
     docUrl: string,
@@ -84,7 +87,7 @@ export function createToolbarUiPersistence(options: {
     writeTimeoutHandle = setTimeout(() => {
       writeTimeoutHandle = null;
       flush();
-    }, options.debounceMs);
+    }, debounceMs);
   };
 
   const stop = (): void => {

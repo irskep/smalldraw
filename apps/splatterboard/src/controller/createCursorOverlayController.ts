@@ -18,9 +18,10 @@ import {
   toStampStrokeSize,
 } from "../tools/stampTool";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
+import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 
 export interface CursorOverlayController {
-  refreshMetrics(): void;
+  dispose(): void;
   setDrawingActive(active: boolean): void;
   sync(): void;
   playStampCommit(point: Vec2): void;
@@ -35,16 +36,19 @@ export interface CursorOverlayController {
 export function createCursorOverlayController(options: {
   store: DrawingStore;
   stage: KidsDrawStage;
-  getSize: () => { width: number; height: number };
   cursorModeByToolId: ReadonlyMap<string, KidsToolCursorMode>;
   cursorPreviewIconByToolId: ReadonlyMap<string, IconNode>;
+  runtimeStore: Pick<
+    KidsDrawRuntimeStore,
+    "subscribeViewportMetrics" | "getViewportMetrics"
+  >;
 }): CursorOverlayController {
   const {
     store,
     stage,
-    getSize,
     cursorModeByToolId,
     cursorPreviewIconByToolId,
+    runtimeStore,
   } = options;
 
   const SVG_NS = "http://www.w3.org/2000/svg";
@@ -214,14 +218,18 @@ export function createCursorOverlayController(options: {
     return true;
   };
 
-  const refreshMetrics = (): void => {
-    const size = getSize();
-    const rect = stage.overlay.getBoundingClientRect();
-    overlayLeft = rect.left;
-    overlayTop = rect.top;
-    overlayWidthScale = rect.width > 0 ? size.width / rect.width : 1;
-    overlayHeightScale = rect.height > 0 ? size.height / rect.height : 1;
+  const applyViewportMetrics = (): void => {
+    const metrics = runtimeStore.getViewportMetrics();
+    overlayLeft = metrics.overlayLeft;
+    overlayTop = metrics.overlayTop;
+    overlayWidthScale =
+      metrics.overlayWidth > 0 ? metrics.logicalWidth / metrics.overlayWidth : 1;
+    overlayHeightScale =
+      metrics.overlayHeight > 0 ? metrics.logicalHeight / metrics.overlayHeight : 1;
   };
+  applyViewportMetrics();
+  const unbindViewportMetrics =
+    runtimeStore.subscribeViewportMetrics(applyViewportMetrics);
 
   const sync = (): void => {
     const indicator = stage.cursorIndicator;
@@ -345,7 +353,9 @@ export function createCursorOverlayController(options: {
   };
 
   return {
-    refreshMetrics,
+    dispose() {
+      unbindViewportMetrics();
+    },
     setDrawingActive(active) {
       drawingActive = active;
       if (!active) {
@@ -358,7 +368,6 @@ export function createCursorOverlayController(options: {
     playStampCommit,
     toPoint,
     handlePointerDown(event) {
-      refreshMetrics();
       const activeToolId = store.getActiveToolId();
       if (
         event.pointerType === "mouse" &&
@@ -407,7 +416,6 @@ export function createCursorOverlayController(options: {
       updateMouseHoverPointFromEvent(event);
     },
     handlePointerEnter(event) {
-      refreshMetrics();
       if (event.pointerType !== "mouse") {
         return;
       }

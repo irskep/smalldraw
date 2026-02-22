@@ -2,18 +2,21 @@ import type { RasterPipeline } from "../render/createRasterPipeline";
 
 type RafRenderState = "idle" | "modelRequested" | "anticipatory";
 
+export const DEFAULT_RESIZE_BAKE_DEBOUNCE_MS = 120;
+
 export class RenderLoopController {
   private rafRenderState: RafRenderState = "idle";
   private rafHandle: number | null = null;
   private resizeBakeHandle: ReturnType<typeof setTimeout> | null = null;
   private tilePixelRatio: number;
   private currentRenderIdentity = "";
+  private readonly resizeBakeDebounceMs: number;
 
   constructor(
     private readonly options: {
       pipeline: RasterPipeline;
       backgroundColor: string;
-      resizeBakeDebounceMs: number;
+      resizeBakeDebounceMs?: number;
       getSize: () => { width: number; height: number };
       getPresentationIdentity: () => string;
       onRenderPass: () => void;
@@ -24,6 +27,8 @@ export class RenderLoopController {
     initialTilePixelRatio: number,
   ) {
     this.tilePixelRatio = initialTilePixelRatio;
+    this.resizeBakeDebounceMs =
+      options.resizeBakeDebounceMs ?? DEFAULT_RESIZE_BAKE_DEBOUNCE_MS;
   }
 
   getTilePixelRatio(): number {
@@ -68,7 +73,7 @@ export class RenderLoopController {
       this.options.pipeline.scheduleBakeForClear();
       this.options.pipeline.bakePendingTiles();
       this.requestRenderFromModel();
-    }, this.options.resizeBakeDebounceMs);
+    }, this.resizeBakeDebounceMs);
   }
 
   dispose(): void {

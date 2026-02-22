@@ -15,6 +15,8 @@ export interface ToolbarUiState {
   supportsTransparentStrokeColor: boolean;
   supportsTransparentFillColor: boolean;
   newDrawingPending: boolean;
+  mobileTopPanel: "colors" | "strokes";
+  mobileActionsOpen: boolean;
 }
 
 export const UI_STATE_STORAGE_KEY_PREFIX = "kids-draw:ui-state:v1";
@@ -40,6 +42,8 @@ const DEFAULT_STATE: ToolbarUiState = {
   supportsTransparentStrokeColor: false,
   supportsTransparentFillColor: false,
   newDrawingPending: false,
+  mobileTopPanel: "colors",
+  mobileActionsOpen: false,
 };
 
 export interface ToolbarUiStore {
@@ -55,6 +59,8 @@ export interface ToolbarUiStore {
   ): void;
   setStyleUi(strokeColor: string, fillColor: string, strokeWidth: number): void;
   setNewDrawingPending(newDrawingPending: boolean): void;
+  setMobileTopPanel(panel: "colors" | "strokes"): void;
+  setMobileActionsOpen(open: boolean): void;
 }
 
 export function createToolbarUiStore(): ToolbarUiStore {
@@ -117,6 +123,20 @@ export function createToolbarUiStore(): ToolbarUiStore {
         return;
       }
       state.set({ ...current, newDrawingPending });
+    },
+    setMobileTopPanel(panel): void {
+      const current = state.get();
+      if (current.mobileTopPanel === panel) {
+        return;
+      }
+      state.set({ ...current, mobileTopPanel: panel });
+    },
+    setMobileActionsOpen(open): void {
+      const current = state.get();
+      if (current.mobileActionsOpen === open) {
+        return;
+      }
+      state.set({ ...current, mobileActionsOpen: open });
     },
   };
 }
@@ -185,6 +205,8 @@ function isEqual(a: ToolbarUiState, b: ToolbarUiState): boolean {
     a.supportsFillColor === b.supportsFillColor &&
     a.supportsTransparentStrokeColor === b.supportsTransparentStrokeColor &&
     a.supportsTransparentFillColor === b.supportsTransparentFillColor &&
-    a.newDrawingPending === b.newDrawingPending
+    a.newDrawingPending === b.newDrawingPending &&
+    a.mobileTopPanel === b.mobileTopPanel &&
+    a.mobileActionsOpen === b.mobileActionsOpen
   );
 }

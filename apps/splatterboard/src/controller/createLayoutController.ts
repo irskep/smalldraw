@@ -12,14 +12,40 @@ import {
 } from "../layout/responsiveLayout";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
+import { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
+import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
+import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
+import type { RasterPipeline } from "../render/createRasterPipeline";
+import type { RenderLoopController } from "./createRenderLoopController";
 
-type ToggleButton = {
-  el: HTMLButtonElement;
-  setSelected(selected: boolean): void;
-};
+export const DEFAULT_MOBILE_ACTIONS_MENU_GAP_PX = 8;
+export const DEFAULT_MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX = 8;
 
-type TriggerButton = {
-  el: HTMLButtonElement;
+export type LayoutControllerDependencies = {
+  stage: KidsDrawStage;
+  toolbar: KidsDrawToolbar;
+  resolvePageSize: () => { width: number; height: number };
+  getSize: () => { width: number; height: number };
+  setSize: (size: DrawingDocumentSize) => void;
+  runtimeStore: Pick<
+    KidsDrawRuntimeStore,
+    "isDestroyed" | "setViewportMetrics"
+  >;
+  pipeline: Pick<RasterPipeline, "updateViewport">;
+  renderLoopController: Pick<
+    RenderLoopController,
+    | "updateRenderIdentity"
+    | "requestRenderFromModel"
+    | "scheduleResizeBake"
+    | "setTilePixelRatio"
+  >;
+  mobilePortraitActionsView: MobilePortraitActionsView;
+  toolbarUiStore: Pick<
+    ToolbarUiStore,
+    "get" | "setMobileTopPanel" | "setMobileActionsOpen"
+  >;
+  mobileActionsMenuGapPx?: number;
+  mobileActionsMenuViewportPaddingPx?: number;
 };
 
 export class LayoutController {
@@ -27,35 +53,9 @@ export class LayoutController {
   private displayWidth: number;
   private displayHeight: number;
   private currentLayoutProfile: ResponsiveLayoutProfile;
-  private mobilePortraitActionsOpen = false;
   private layoutRafHandle: number | null = null;
 
-  constructor(
-    private readonly options: {
-      stage: KidsDrawStage;
-      toolbar: KidsDrawToolbar;
-      resolvePageSize: () => { width: number; height: number };
-      getSize: () => { width: number; height: number };
-      setSize: (size: DrawingDocumentSize) => void;
-      getDestroyed: () => boolean;
-      onUpdateViewport: (width: number, height: number) => void;
-      onUpdateRenderIdentity: () => void;
-      onRequestRenderFromModel: () => void;
-      onScheduleResizeBake: () => void;
-      setTilePixelRatio: (pixelRatio: number) => void;
-      onRefreshCursorMetrics: () => void;
-      mobilePortraitBottomStrip: HTMLDivElement;
-      mobilePortraitTopStrip: HTMLDivElement;
-      mobilePortraitTopControls: HTMLDivElement;
-      mobilePortraitActionsPopover: HTMLDivElement;
-      mobilePortraitActionsMenu: HTMLDivElement;
-      mobilePortraitActionsTrigger: TriggerButton;
-      mobilePortraitColorsButton: ToggleButton;
-      mobilePortraitStrokesButton: ToggleButton;
-      mobileActionsMenuGapPx: number;
-      mobileActionsMenuViewportPaddingPx: number;
-    },
-  ) {
+  constructor(private readonly options: LayoutControllerDependencies) {
     const initialSize = options.getSize();
     this.displayWidth = initialSize.width;
     this.displayHeight = initialSize.height;
@@ -69,15 +69,6 @@ export class LayoutController {
     return this.currentLayoutProfile;
   }
 
-  isMobilePortraitActionsOpen(): boolean {
-    return this.mobilePortraitActionsOpen;
-  }
-
-  setMobilePortraitTopPanel(panel: "colors" | "strokes"): void {
-    this.options.mobilePortraitColorsButton.setSelected(panel === "colors");
-    this.options.mobilePortraitStrokesButton.setSelected(panel === "strokes");
-  }
-
   applyToolbarLayoutProfile(profile: ResponsiveLayoutProfile): void {
     const { stage, toolbar } = this.options;
     const orientation =
@@ -88,40 +79,25 @@ export class LayoutController {
 
     if (profile === "mobile-portrait") {
       this.syncMobilePortraitTopPanel();
-      this.options.mobilePortraitActionsPopover.replaceChildren(
-        this.options.mobilePortraitActionsMenu,
-      );
-      this.options.mobilePortraitActionsPopover.hidden = false;
-      this.setMobilePortraitActionsPopoverOpen(this.mobilePortraitActionsOpen);
-      this.options.mobilePortraitActionsTrigger.el.setAttribute(
-        "aria-expanded",
-        this.mobilePortraitActionsOpen ? "true" : "false",
-      );
-      this.options.mobilePortraitTopControls.replaceChildren(
-        this.options.mobilePortraitColorsButton.el,
-        this.options.mobilePortraitStrokesButton.el,
-        this.options.mobilePortraitActionsTrigger.el,
-      );
-      this.options.mobilePortraitTopStrip.replaceChildren(
-        this.options.mobilePortraitTopControls,
-        toolbar.topElement,
-        this.options.mobilePortraitActionsPopover,
-      );
-      this.options.mobilePortraitBottomStrip.replaceChildren(
-        toolbar.bottomElement,
-        toolbar.toolSelectorElement,
-      );
-      stage.insetTopSlot.replaceChildren(this.options.mobilePortraitTopStrip);
+      const mobileActionsOpen = this.options.toolbarUiStore.get().mobileActionsOpen;
+      this.options.mobilePortraitActionsView.mountMobileLayout({
+        topSlot: stage.insetTopSlot,
+        bottomSlot: stage.insetBottomSlot,
+        toolbarTopElement: toolbar.topElement,
+        toolbarBottomElement: toolbar.bottomElement,
+        toolSelectorElement: toolbar.toolSelectorElement,
+        actionsOpen: mobileActionsOpen,
+      });
       stage.insetLeftSlot.replaceChildren();
       stage.insetRightSlot.replaceChildren();
-      stage.insetBottomSlot.replaceChildren(this.options.mobilePortraitBottomStrip);
       toolbar.syncLayout();
       this.positionMobilePortraitActionsPopover();
       return;
     }
 
-    this.mobilePortraitActionsOpen = false;
-    this.setMobilePortraitTopPanel("colors");
+    this.options.toolbarUiStore.setMobileActionsOpen(false);
+    this.options.toolbarUiStore.setMobileTopPanel("colors");
+    this.options.mobilePortraitActionsView.unmountMobileLayout();
     const colorsPanel = toolbar.topElement.querySelector(
       ".kids-draw-toolbar-colors",
     ) as HTMLDivElement | null;
@@ -134,15 +110,6 @@ export class LayoutController {
     if (strokePanel) {
       strokePanel.hidden = false;
     }
-    this.options.mobilePortraitActionsPopover.hidden = true;
-    this.setMobilePortraitActionsPopoverOpen(false);
-    this.options.mobilePortraitActionsTrigger.el.setAttribute(
-      "aria-expanded",
-      "false",
-    );
-    this.options.mobilePortraitActionsPopover.style.removeProperty("left");
-    this.options.mobilePortraitActionsPopover.style.removeProperty("top");
-
     stage.insetTopSlot.replaceChildren(toolbar.topElement);
     stage.insetLeftSlot.replaceChildren(toolbar.toolSelectorElement);
     stage.insetRightSlot.replaceChildren(toolbar.actionPanelElement);
@@ -158,70 +125,52 @@ export class LayoutController {
     this.applyToolbarLayoutProfile(this.currentLayoutProfile);
   }
 
-  closeMobilePortraitActions(): void {
-    if (!this.mobilePortraitActionsOpen) {
-      return;
-    }
-    this.mobilePortraitActionsOpen = false;
-    if (this.currentLayoutProfile === "mobile-portrait") {
-      this.applyToolbarLayoutProfile(this.currentLayoutProfile);
-    }
-  }
-
-  toggleMobilePortraitActions(): void {
-    if (this.currentLayoutProfile !== "mobile-portrait") {
-      return;
-    }
-    this.mobilePortraitActionsOpen = !this.mobilePortraitActionsOpen;
-    this.applyToolbarLayoutProfile(this.currentLayoutProfile);
-    if (this.mobilePortraitActionsOpen) {
-      this.positionMobilePortraitActionsPopover();
-    }
-  }
-
   positionMobilePortraitActionsPopover(): void {
     if (
       this.currentLayoutProfile !== "mobile-portrait" ||
-      !this.mobilePortraitActionsOpen
+      !this.options.toolbarUiStore.get().mobileActionsOpen
     ) {
       return;
     }
-    const triggerRect =
-      this.options.mobilePortraitActionsTrigger.el.getBoundingClientRect();
-    const popoverRect = this.options.mobilePortraitActionsPopover.getBoundingClientRect();
+    const triggerRect = this.options.mobilePortraitActionsView.getActionsTriggerRect();
+    const popoverRect = this.options.mobilePortraitActionsView.getActionsPopoverRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const minLeft = this.options.mobileActionsMenuViewportPaddingPx;
+    const viewportPaddingPx =
+      this.options.mobileActionsMenuViewportPaddingPx ??
+      DEFAULT_MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX;
+    const gapPx =
+      this.options.mobileActionsMenuGapPx ?? DEFAULT_MOBILE_ACTIONS_MENU_GAP_PX;
+    const minLeft = viewportPaddingPx;
     const maxLeft =
       viewportWidth -
-      this.options.mobileActionsMenuViewportPaddingPx -
+      viewportPaddingPx -
       popoverRect.width;
     const left = Math.max(
       minLeft,
       Math.min(triggerRect.right - popoverRect.width, maxLeft),
     );
-    const belowTop = triggerRect.bottom + this.options.mobileActionsMenuGapPx;
+    const belowTop = triggerRect.bottom + gapPx;
     const aboveTop =
-      triggerRect.top - this.options.mobileActionsMenuGapPx - popoverRect.height;
+      triggerRect.top - gapPx - popoverRect.height;
     const canPlaceAbove =
-      aboveTop >= this.options.mobileActionsMenuViewportPaddingPx;
+      aboveTop >= viewportPaddingPx;
     const wouldOverflowBottom =
       belowTop + popoverRect.height >
-      viewportHeight - this.options.mobileActionsMenuViewportPaddingPx;
+      viewportHeight - viewportPaddingPx;
     const top =
       wouldOverflowBottom && canPlaceAbove
         ? aboveTop
         : Math.max(
-            this.options.mobileActionsMenuViewportPaddingPx,
+            viewportPaddingPx,
             Math.min(
               belowTop,
               viewportHeight -
-                this.options.mobileActionsMenuViewportPaddingPx -
+                viewportPaddingPx -
                 popoverRect.height,
             ),
           );
-    this.options.mobilePortraitActionsPopover.style.left = `${left}px`;
-    this.options.mobilePortraitActionsPopover.style.top = `${top}px`;
+    this.options.mobilePortraitActionsView.setPopoverPosition(left, top);
   }
 
   resolveImplicitDocumentSizeFromViewport(): {
@@ -260,8 +209,8 @@ export class LayoutController {
     }
     this.options.setSize({ width: nextWidth, height: nextHeight });
     this.options.stage.setSceneDimensions(nextWidth, nextHeight);
-    this.options.onUpdateViewport(nextWidth, nextHeight);
-    this.options.onUpdateRenderIdentity();
+    this.options.pipeline.updateViewport(nextWidth, nextHeight);
+    this.options.renderLoopController.updateRenderIdentity();
     const updated = applyResponsiveLayout({
       viewportHost: this.options.stage.viewportHost,
       canvasFrame: this.options.stage.canvasFrame,
@@ -276,15 +225,17 @@ export class LayoutController {
     this.displayScale = updated.displayScale;
     this.displayWidth = updated.displayWidth;
     this.displayHeight = updated.displayHeight;
+    this.publishViewportMetrics(nextWidth, nextHeight);
     this.options.toolbar.syncLayout();
     this.scheduleAnimationFrame(() => {
-      if (this.options.getDestroyed()) {
+      if (this.options.runtimeStore.isDestroyed()) {
         return;
       }
+      this.publishViewportMetrics(nextWidth, nextHeight);
       this.options.toolbar.syncLayout();
     });
-    this.options.onScheduleResizeBake();
-    this.options.onRequestRenderFromModel();
+    this.options.renderLoopController.scheduleResizeBake();
+    this.options.renderLoopController.requestRenderFromModel();
   }
 
   applyLayoutAndPixelRatio(): void {
@@ -304,18 +255,19 @@ export class LayoutController {
     this.displayScale = updated.displayScale;
     this.displayWidth = updated.displayWidth;
     this.displayHeight = updated.displayHeight;
+    this.publishViewportMetrics(size.width, size.height);
 
     const nextPixelRatio = normalizePixelRatio(
       (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
     );
-    this.options.setTilePixelRatio(nextPixelRatio);
-
-    this.options.onRefreshCursorMetrics();
+    this.options.renderLoopController.setTilePixelRatio(nextPixelRatio);
     this.options.toolbar.syncLayout();
     this.scheduleAnimationFrame(() => {
-      if (this.options.getDestroyed()) {
+      if (this.options.runtimeStore.isDestroyed()) {
         return;
       }
+      const latestSize = this.options.getSize();
+      this.publishViewportMetrics(latestSize.width, latestSize.height);
       this.options.toolbar.syncLayout();
     });
   }
@@ -350,15 +302,12 @@ export class LayoutController {
   }
 
   private getMobilePortraitTopPanel(): "colors" | "strokes" {
-    return this.options.mobilePortraitStrokesButton.el.classList.contains(
-      "is-selected",
-    )
-      ? "strokes"
-      : "colors";
+    return this.options.toolbarUiStore.get().mobileTopPanel;
   }
 
   private syncMobilePortraitTopPanel(): void {
     const panel = this.getMobilePortraitTopPanel();
+    this.options.mobilePortraitActionsView.setTopPanel(panel);
     const colorsPanel = this.options.toolbar.topElement.querySelector(
       ".kids-draw-toolbar-colors",
     ) as HTMLDivElement | null;
@@ -371,16 +320,6 @@ export class LayoutController {
     if (strokePanel) {
       strokePanel.hidden = panel !== "strokes";
     }
-  }
-
-  private setMobilePortraitActionsPopoverOpen(open: boolean): void {
-    this.options.mobilePortraitActionsPopover.dataset.open = open
-      ? "true"
-      : "false";
-    this.options.mobilePortraitActionsPopover.setAttribute(
-      "aria-hidden",
-      open ? "false" : "true",
-    );
   }
 
   private getViewportPadding(): {
@@ -405,5 +344,20 @@ export class LayoutController {
       return;
     }
     clearTimeout(handle);
+  }
+
+  private publishViewportMetrics(
+    logicalWidth: number,
+    logicalHeight: number,
+  ): void {
+    const rect = this.options.stage.overlay.getBoundingClientRect();
+    this.options.runtimeStore.setViewportMetrics({
+      overlayLeft: rect.left,
+      overlayTop: rect.top,
+      overlayWidth: rect.width,
+      overlayHeight: rect.height,
+      logicalWidth,
+      logicalHeight,
+    });
   }
 }

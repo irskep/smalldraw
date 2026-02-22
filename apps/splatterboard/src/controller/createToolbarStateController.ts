@@ -17,7 +17,25 @@ import {
   getToolbarUiPersistSignature,
   toPersistedToolbarUiState,
 } from "../ui/stores/toolbarUiPersistence";
-import { STROKE_WIDTH_OPTIONS, type KidsDrawToolbar } from "../view/KidsDrawToolbar";
+import { STROKE_WIDTH_OPTIONS } from "../view/KidsDrawToolbar";
+
+export type ToolbarStatePolicy = {
+  opaqueStrokeColor: string;
+  opaqueFillColor: string;
+  normalDefaultToolId: string;
+  coloringDefaultToolId: string;
+  normalDefaultStrokeWidth: number;
+  coloringDefaultStrokeWidth: number;
+};
+
+export const DEFAULT_TOOLBAR_STATE_POLICY: ToolbarStatePolicy = {
+  opaqueStrokeColor: "#000000",
+  opaqueFillColor: "#ffffff",
+  normalDefaultToolId: "brush.marker",
+  coloringDefaultToolId: "brush.marker",
+  normalDefaultStrokeWidth: 8,
+  coloringDefaultStrokeWidth: 24,
+};
 
 function getNearestStrokeWidthOption(strokeWidth: number): number {
   let nearest: number = STROKE_WIDTH_OPTIONS[0];
@@ -72,30 +90,26 @@ function resolveInitialToolbarUiStateFromPersistence(input: {
 
 export class ToolbarStateController {
   private selectedToolIdByFamily: Map<string, string>;
+  private readonly policy: ToolbarStatePolicy;
 
   constructor(
     private readonly options: {
       store: DrawingStore;
       toolbarUiStore: ToolbarUiStore;
-      toolbar: KidsDrawToolbar;
       catalog: KidsToolCatalog;
       families: KidsToolFamilyConfig[];
       getCurrentDocUrl: () => string;
       cursorOverlaySync: () => void;
-      mobilePortraitUndoMenuItem: HTMLButtonElement;
-      mobilePortraitRedoMenuItem: HTMLButtonElement;
-      mobilePortraitNewMenuItem: HTMLButtonElement;
-      opaqueStrokeColor: string;
-      opaqueFillColor: string;
-      normalDefaultToolId: string;
-      coloringDefaultToolId: string;
-      normalDefaultStrokeWidth: number;
-      coloringDefaultStrokeWidth: number;
+      policy?: Partial<ToolbarStatePolicy>;
     },
   ) {
     this.selectedToolIdByFamily = new Map(
       options.families.map((family) => [family.id, family.defaultToolId] as const),
     );
+    this.policy = {
+      ...DEFAULT_TOOLBAR_STATE_POLICY,
+      ...options.policy,
+    };
   }
 
   syncToolbarUi(): void {
@@ -104,11 +118,6 @@ export class ToolbarStateController {
       resolveToolStyleSupport: (toolId) =>
         getToolStyleSupport(toolId, this.options.catalog),
     });
-    const toolbarUiState = this.options.toolbarUiStore.get();
-    this.options.mobilePortraitUndoMenuItem.disabled = !toolbarUiState.canUndo;
-    this.options.mobilePortraitRedoMenuItem.disabled = !toolbarUiState.canRedo;
-    this.options.mobilePortraitNewMenuItem.disabled =
-      this.options.toolbar.newDrawingButton.el.disabled;
     this.options.cursorOverlaySync();
   }
 
@@ -151,12 +160,12 @@ export class ToolbarStateController {
   ): void {
     const defaultStrokeWidth =
       presentation.mode === "coloring"
-        ? this.options.coloringDefaultStrokeWidth
-        : this.options.normalDefaultStrokeWidth;
+        ? this.policy.coloringDefaultStrokeWidth
+        : this.policy.normalDefaultStrokeWidth;
     const defaultToolId =
       presentation.mode === "coloring"
-        ? this.options.coloringDefaultToolId
-        : this.options.normalDefaultToolId;
+        ? this.policy.coloringDefaultToolId
+        : this.policy.normalDefaultToolId;
     const docUrl = this.options.getCurrentDocUrl();
     const shared = this.options.store.getSharedSettings();
     const resolvedInitialToolbarUiState = resolveInitialToolbarUiStateFromPersistence(
@@ -164,7 +173,7 @@ export class ToolbarStateController {
         catalog: this.options.catalog,
         current: {
           activeToolId: defaultToolId,
-          strokeColor: this.options.opaqueStrokeColor,
+          strokeColor: this.policy.opaqueStrokeColor,
           strokeWidth: getNearestStrokeWidthOption(defaultStrokeWidth),
         },
         persisted: options?.forceDefaults
@@ -195,10 +204,10 @@ export class ToolbarStateController {
       shared.strokeColor === "transparent" &&
       !support.transparentStrokeColor
     ) {
-      nextSettings.strokeColor = this.options.opaqueStrokeColor;
+      nextSettings.strokeColor = this.policy.opaqueStrokeColor;
     }
     if (shared.fillColor === "transparent" && !support.transparentFillColor) {
-      nextSettings.fillColor = this.options.opaqueFillColor;
+      nextSettings.fillColor = this.policy.opaqueFillColor;
     }
     if (Object.keys(nextSettings).length > 0) {
       this.options.store.updateSharedSettings(nextSettings);
