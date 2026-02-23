@@ -5,7 +5,11 @@ import type {
   KidsToolConfig,
   KidsToolFamilyConfig,
 } from "../../tools/kidsTools";
-import { type ButtonGridItemSpec, PagedButtonGrid } from "../PagedButtonGrid";
+import {
+  type ButtonGridItemSpec,
+  PagedButtonGrid,
+  type PagedButtonGridMode,
+} from "../PagedButtonGrid";
 import type { ReDomLike } from "../ReDomLike";
 import {
   createSquareIconButton,
@@ -133,6 +137,12 @@ export class ToolbarVariantStripPane implements ReDomLike<HTMLDivElement> {
   syncLayout(): void {
     for (const grid of this.familyVariantGrids.values()) {
       grid.syncLayout();
+    }
+  }
+
+  setGridMode(mode: PagedButtonGridMode): void {
+    for (const grid of this.familyVariantGrids.values()) {
+      grid.setMode(mode);
     }
   }
 

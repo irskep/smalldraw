@@ -1,14 +1,14 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
+import { isLayoutDebugEnabled } from "../config/devFlags";
+import { resolveMobileActionsPopoverPosition } from "../layout/mobileActionsPopoverPosition";
 import {
   applyResponsiveLayout,
   getViewportPaddingForProfile,
-  IMPLICIT_DOC_VERTICAL_SLACK,
-  MIN_HEIGHT,
-  MIN_WIDTH,
   normalizePixelRatio,
   type ResponsiveLayoutMode,
   type ResponsiveLayoutProfile,
   resolveLayoutProfile,
+  resolveLogicalSizeFromViewportArea,
 } from "../layout/responsiveLayout";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
@@ -69,6 +69,11 @@ export class LayoutController {
     ) {
       this.options.runtimeStore.$layoutProfile.set(this.currentLayoutProfile);
     }
+    this.logLayoutTransition({
+      reason: "init",
+      previousProfile: null,
+      nextProfile: this.currentLayoutProfile,
+    });
   }
 
   getCurrentLayoutProfile(): ResponsiveLayoutProfile {
@@ -77,13 +82,11 @@ export class LayoutController {
 
   applyToolbarLayoutProfile(profile: ResponsiveLayoutProfile): void {
     const { stage, toolbar } = this.options;
-    const orientation =
-      window.innerHeight > window.innerWidth ? "portrait" : "landscape";
+    const mode = this.resolveModeForProfile(profile);
     stage.setViewportLayout({
       profile,
-      mode: this.resolveModeForProfile(profile),
-      orientation,
     });
+    toolbar.setGridMode(mode);
 
     if (profile === "mobile-portrait") {
       this.syncMobilePortraitTopPanel();
@@ -115,6 +118,7 @@ export class LayoutController {
   }
 
   syncLayoutProfile(): void {
+    const previousProfile = this.currentLayoutProfile;
     this.currentLayoutProfile = resolveLayoutProfile(
       window.innerWidth,
       window.innerHeight,
@@ -125,6 +129,11 @@ export class LayoutController {
     ) {
       this.options.runtimeStore.$layoutProfile.set(this.currentLayoutProfile);
     }
+    this.logLayoutTransition({
+      reason: "sync",
+      previousProfile,
+      nextProfile: this.currentLayoutProfile,
+    });
     this.applyToolbarLayoutProfile(this.currentLayoutProfile);
   }
 
@@ -146,27 +155,14 @@ export class LayoutController {
       DEFAULT_MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX;
     const gapPx =
       this.options.mobileActionsMenuGapPx ?? DEFAULT_MOBILE_ACTIONS_MENU_GAP_PX;
-    const minLeft = viewportPaddingPx;
-    const maxLeft = viewportWidth - viewportPaddingPx - popoverRect.width;
-    const left = Math.max(
-      minLeft,
-      Math.min(triggerRect.right - popoverRect.width, maxLeft),
-    );
-    const belowTop = triggerRect.bottom + gapPx;
-    const aboveTop = triggerRect.top - gapPx - popoverRect.height;
-    const canPlaceAbove = aboveTop >= viewportPaddingPx;
-    const wouldOverflowBottom =
-      belowTop + popoverRect.height > viewportHeight - viewportPaddingPx;
-    const top =
-      wouldOverflowBottom && canPlaceAbove
-        ? aboveTop
-        : Math.max(
-            viewportPaddingPx,
-            Math.min(
-              belowTop,
-              viewportHeight - viewportPaddingPx - popoverRect.height,
-            ),
-          );
+    const { left, top } = resolveMobileActionsPopoverPosition({
+      triggerRect,
+      popoverRect,
+      viewportWidth,
+      viewportHeight,
+      viewportPaddingPx,
+      gapPx,
+    });
     this.options.mobilePortraitActionsView.setPopoverPosition(left, top);
   }
 
@@ -181,22 +177,11 @@ export class LayoutController {
     if (hostWidth <= 0 || hostHeight <= 0) {
       return fallback;
     }
-    const styles = window.getComputedStyle(host);
-    const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
-    const paddingRight = Number.parseFloat(styles.paddingRight) || 0;
-    const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
-    const paddingLeft = Number.parseFloat(styles.paddingLeft) || 0;
-    const width = Math.max(
-      MIN_WIDTH,
-      Math.round(hostWidth - paddingLeft - paddingRight),
-    );
-    const height = Math.max(
-      MIN_HEIGHT,
-      Math.round(
-        hostHeight - paddingTop - paddingBottom - IMPLICIT_DOC_VERTICAL_SLACK,
-      ),
-    );
-    return { width, height };
+    return resolveLogicalSizeFromViewportArea({
+      viewportWidth: hostWidth,
+      viewportHeight: hostHeight,
+      padding: this.getViewportPadding(),
+    });
   }
 
   applyCanvasSize(nextWidth: number, nextHeight: number): void {
@@ -208,28 +193,9 @@ export class LayoutController {
     this.options.stage.setSceneDimensions(nextWidth, nextHeight);
     this.options.pipeline.updateViewport(nextWidth, nextHeight);
     this.options.renderLoopController.updateRenderIdentity();
-    const updated = applyResponsiveLayout({
-      viewportHost: this.options.stage.viewportHost,
-      canvasFrame: this.options.stage.canvasFrame,
-      sceneRoot: this.options.stage.sceneRoot,
-      width: nextWidth,
-      height: nextHeight,
-      displayScale: this.displayScale,
-      displayWidth: this.displayWidth,
-      displayHeight: this.displayHeight,
-      padding: this.getViewportPadding(),
-    });
-    this.displayScale = updated.displayScale;
-    this.displayWidth = updated.displayWidth;
-    this.displayHeight = updated.displayHeight;
-    this.publishViewportMetrics(nextWidth, nextHeight);
-    this.options.toolbar.syncLayout();
-    this.scheduleAnimationFrame(() => {
-      if (this.options.runtimeStore.$destroyed.get()) {
-        return;
-      }
-      this.publishViewportMetrics(nextWidth, nextHeight);
-      this.options.toolbar.syncLayout();
+    this.applyResponsiveLayoutForSize(nextWidth, nextHeight);
+    this.syncToolbarAndViewportMetrics(nextWidth, nextHeight, {
+      refreshWithLatestSizeOnNextFrame: false,
     });
     this.options.renderLoopController.scheduleResizeBake();
     this.options.renderLoopController.requestRenderFromModel();
@@ -238,34 +204,14 @@ export class LayoutController {
   applyLayoutAndPixelRatio(): void {
     this.syncLayoutProfile();
     const size = this.options.getSize();
-    const updated = applyResponsiveLayout({
-      viewportHost: this.options.stage.viewportHost,
-      canvasFrame: this.options.stage.canvasFrame,
-      sceneRoot: this.options.stage.sceneRoot,
-      width: size.width,
-      height: size.height,
-      displayScale: this.displayScale,
-      displayWidth: this.displayWidth,
-      displayHeight: this.displayHeight,
-      padding: this.getViewportPadding(),
-    });
-    this.displayScale = updated.displayScale;
-    this.displayWidth = updated.displayWidth;
-    this.displayHeight = updated.displayHeight;
-    this.publishViewportMetrics(size.width, size.height);
+    this.applyResponsiveLayoutForSize(size.width, size.height);
 
     const nextPixelRatio = normalizePixelRatio(
       (globalThis as { devicePixelRatio?: number }).devicePixelRatio,
     );
     this.options.renderLoopController.setTilePixelRatio(nextPixelRatio);
-    this.options.toolbar.syncLayout();
-    this.scheduleAnimationFrame(() => {
-      if (this.options.runtimeStore.$destroyed.get()) {
-        return;
-      }
-      const latestSize = this.options.getSize();
-      this.publishViewportMetrics(latestSize.width, latestSize.height);
-      this.options.toolbar.syncLayout();
+    this.syncToolbarAndViewportMetrics(size.width, size.height, {
+      refreshWithLatestSizeOnNextFrame: true,
     });
   }
 
@@ -357,5 +303,75 @@ export class LayoutController {
       return;
     }
     this.options.runtimeStore.$viewportMetrics.set(nextMetrics);
+  }
+
+  private applyResponsiveLayoutForSize(
+    logicalWidth: number,
+    logicalHeight: number,
+  ): void {
+    const updated = applyResponsiveLayout({
+      viewportHost: this.options.stage.viewportHost,
+      canvasFrame: this.options.stage.canvasFrame,
+      sceneRoot: this.options.stage.sceneRoot,
+      width: logicalWidth,
+      height: logicalHeight,
+      displayScale: this.displayScale,
+      displayWidth: this.displayWidth,
+      displayHeight: this.displayHeight,
+      padding: this.getViewportPadding(),
+    });
+    this.displayScale = updated.displayScale;
+    this.displayWidth = updated.displayWidth;
+    this.displayHeight = updated.displayHeight;
+  }
+
+  private syncToolbarAndViewportMetrics(
+    logicalWidth: number,
+    logicalHeight: number,
+    options: { refreshWithLatestSizeOnNextFrame: boolean },
+  ): void {
+    this.publishViewportMetrics(logicalWidth, logicalHeight);
+    this.options.toolbar.syncLayout();
+    if (!options.refreshWithLatestSizeOnNextFrame) {
+      return;
+    }
+    this.scheduleAnimationFrame(() => {
+      if (this.options.runtimeStore.$destroyed.get()) {
+        return;
+      }
+      const latestSize = this.options.getSize();
+      this.publishViewportMetrics(latestSize.width, latestSize.height);
+      this.options.toolbar.syncLayout();
+    });
+  }
+
+  private logLayoutTransition(params: {
+    reason: "init" | "sync";
+    previousProfile: ResponsiveLayoutProfile | null;
+    nextProfile: ResponsiveLayoutProfile;
+  }): void {
+    if (!isLayoutDebugEnabled()) {
+      return;
+    }
+    const visualViewport = window.visualViewport;
+    console.debug("[kids-draw:layout]", {
+      reason: params.reason,
+      previousProfile: params.previousProfile,
+      nextProfile: params.nextProfile,
+      mode: this.resolveModeForProfile(params.nextProfile),
+      orientation:
+        window.innerHeight > window.innerWidth ? "portrait" : "landscape",
+      innerWidth: window.innerWidth,
+      innerHeight: window.innerHeight,
+      visualViewport: visualViewport
+        ? {
+            width: Math.round(visualViewport.width),
+            height: Math.round(visualViewport.height),
+            offsetLeft: Math.round(visualViewport.offsetLeft),
+            offsetTop: Math.round(visualViewport.offsetTop),
+            scale: visualViewport.scale,
+          }
+        : null,
+    });
   }
 }

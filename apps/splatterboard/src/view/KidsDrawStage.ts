@@ -22,11 +22,7 @@ export interface KidsDrawStage extends ReDomLike<HTMLDivElement> {
   readonly cursorIndicator: HTMLDivElement;
   readonly dirtyRectOverlay: SVGSVGElement | null;
   readonly dirtyRectShape: SVGRectElement | null;
-  setViewportLayout(options: {
-    profile: string;
-    mode: string;
-    orientation: string;
-  }): void;
+  setViewportLayout(options: { profile: string }): void;
   clearSideInsetSlots(): void;
   setSceneDimensions(width: number, height: number): void;
   destroy(): void;
@@ -163,14 +159,8 @@ export class KidsDrawStageView implements KidsDrawStage {
     }
   }
 
-  setViewportLayout(options: {
-    profile: string;
-    mode: string;
-    orientation: string;
-  }): void {
+  setViewportLayout(options: { profile: string }): void {
     this.viewportHost.dataset.layoutProfile = options.profile;
-    this.viewportHost.dataset.layoutMode = options.mode;
-    this.viewportHost.dataset.layoutOrientation = options.orientation;
   }
 
   clearSideInsetSlots(): void {

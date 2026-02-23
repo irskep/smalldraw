@@ -5,7 +5,11 @@ import type {
   KidsToolFamilyConfig,
   ToolbarItem,
 } from "../../tools/kidsTools";
-import { type ButtonGridItemSpec, PagedButtonGrid } from "../PagedButtonGrid";
+import {
+  type ButtonGridItemSpec,
+  PagedButtonGrid,
+  type PagedButtonGridMode,
+} from "../PagedButtonGrid";
 import type { ReDomLike } from "../ReDomLike";
 import {
   createSquareIconButton,
@@ -29,7 +33,6 @@ export class ToolbarToolSelectorPane implements ReDomLike<HTMLDivElement> {
     this.toolSelectorGrid = new PagedButtonGrid<ToolSelectorItemSpec>({
       className: "kids-draw-tool-selector",
       orientation: "vertical",
-      mobilePortraitHorizontalFlow: true,
       createItemComponent: (item) => this.createToolSelectorItemComponent(item),
     });
     this.el = this.toolSelectorGrid.el;
@@ -101,6 +104,14 @@ export class ToolbarToolSelectorPane implements ReDomLike<HTMLDivElement> {
 
   syncLayout(): void {
     this.toolSelectorGrid.syncLayout();
+  }
+
+  setResolvedOrientation(orientation: "horizontal" | "vertical"): void {
+    this.toolSelectorGrid.setResolvedOrientation(orientation);
+  }
+
+  setGridMode(mode: PagedButtonGridMode): void {
+    this.toolSelectorGrid.setMode(mode);
   }
 
   destroy(): void {

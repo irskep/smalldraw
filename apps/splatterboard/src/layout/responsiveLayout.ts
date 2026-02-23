@@ -28,13 +28,13 @@ export type ViewportPadding = {
 const LAYOUT_PROFILE_PADDING: Record<ResponsiveLayoutProfile, ViewportPadding> =
   {
     large: {
-      top: 156,
+      top: 136,
       right: 140,
       bottom: 142,
       left: 140,
     },
     medium: {
-      top: 156,
+      top: 136,
       right: 96,
       bottom: 142,
       left: 80,
@@ -78,10 +78,6 @@ const applyViewportPaddingStyles = (
   viewportHost.style.setProperty("--kd-inset-right", right);
   viewportHost.style.setProperty("--kd-inset-bottom", bottom);
   viewportHost.style.setProperty("--kd-inset-left", left);
-  viewportHost.style.paddingTop = top;
-  viewportHost.style.paddingRight = right;
-  viewportHost.style.paddingBottom = bottom;
-  viewportHost.style.paddingLeft = left;
 };
 
 const getAppliedViewportPadding = (
@@ -96,6 +92,35 @@ const getAppliedViewportPadding = (
     left: parseCssPixels(styles.paddingLeft, fallbackPadding.left),
   };
 };
+
+export function resolveLogicalSizeFromViewportArea(params: {
+  viewportWidth: number;
+  viewportHeight: number;
+  padding: ViewportPadding;
+  verticalSlack?: number;
+}): {
+  width: number;
+  height: number;
+} {
+  const verticalSlack = params.verticalSlack ?? IMPLICIT_DOC_VERTICAL_SLACK;
+  const horizontalPadding = params.padding.left + params.padding.right;
+  const verticalPadding = params.padding.top + params.padding.bottom;
+  return {
+    width: Math.max(
+      MIN_WIDTH,
+      Math.round(params.viewportWidth - horizontalPadding),
+    ),
+    height: Math.max(
+      MIN_HEIGHT,
+      Math.round(
+        params.viewportHeight -
+          AUTO_HEIGHT_RESERVED -
+          verticalPadding -
+          verticalSlack,
+      ),
+    ),
+  };
+}
 
 export function normalizePixelRatio(value: number | undefined): number {
   if (!value || !Number.isFinite(value) || value <= 0) {
@@ -114,23 +139,11 @@ export function resolvePageSize(fallback: { width: number; height: number }): {
 
   const profile = resolveLayoutProfile(window.innerWidth, window.innerHeight);
   const padding = getViewportPaddingForProfile(profile);
-  const horizontalPadding = padding.left + padding.right;
-  const verticalPadding = padding.top + padding.bottom;
-  return {
-    width: Math.max(
-      MIN_WIDTH,
-      Math.round(window.innerWidth - horizontalPadding),
-    ),
-    height: Math.max(
-      MIN_HEIGHT,
-      Math.round(
-        window.innerHeight -
-          AUTO_HEIGHT_RESERVED -
-          verticalPadding -
-          IMPLICIT_DOC_VERTICAL_SLACK,
-      ),
-    ),
-  };
+  return resolveLogicalSizeFromViewportArea({
+    viewportWidth: window.innerWidth,
+    viewportHeight: window.innerHeight,
+    padding,
+  });
 }
 
 export function resolveLayoutMode(

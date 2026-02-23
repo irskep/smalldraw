@@ -19,11 +19,10 @@ export interface ButtonGridItemSpec {
 
 interface PagedButtonGridOptions<TItem extends ButtonGridItemSpec> {
   className?: string;
+  initialMode?: PagedButtonGridMode;
   orientation?: PagedButtonGridOrientation;
   largeLayout?: PagedButtonGridLargeLayout;
   paginateInLarge?: boolean;
-  autoMode?: boolean;
-  mobilePortraitHorizontalFlow?: boolean;
   rootAttributes?: Record<string, string>;
   navAttributes?: {
     prev?: Record<string, string>;
@@ -38,6 +37,7 @@ interface PagedButtonGridOptions<TItem extends ButtonGridItemSpec> {
 
 interface PagedButtonGridState<TItem extends ButtonGridItemSpec> {
   mode: PagedButtonGridMode;
+  resolvedOrientation: PagedButtonGridOrientation;
   destroyed: boolean;
   layoutRetryFrame: number;
   selectionUnbind: (() => void) | null;
@@ -50,40 +50,11 @@ interface PagedButtonGridState<TItem extends ButtonGridItemSpec> {
   itemPageByIndex: number[];
 }
 
-const LARGE_MODE_MIN = 1024;
-const MOBILE_MODE_MAX = 768;
-const SHORT_VIEWPORT_MAX = 540;
 const EPSILON = 1.5;
-
-const resolveAutoMode = (): PagedButtonGridMode => {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  if (
-    width <= MOBILE_MODE_MAX ||
-    (width <= LARGE_MODE_MIN && height <= SHORT_VIEWPORT_MAX)
-  ) {
-    return "mobile";
-  }
-  if (width < LARGE_MODE_MIN) {
-    return "medium";
-  }
-  return "large";
-};
 
 export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
   implements ReDomLike<HTMLDivElement>
 {
-  private static autoModeSubscribers = new Set<{
-    applyAutoMode: (mode: PagedButtonGridMode) => void;
-  }>();
-  private static autoModeListenersBound = false;
-  private static readonly onWindowResize = (): void => {
-    const nextMode = resolveAutoMode();
-    for (const grid of PagedButtonGrid.autoModeSubscribers) {
-      grid.applyAutoMode(nextMode);
-    }
-  };
-
   readonly el: HTMLDivElement;
 
   private readonly prevButton: SquareIconButton;
@@ -98,8 +69,6 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
   private readonly updateItemComponent?:
     | ((component: ReDomLike<HTMLElement | SVGElement>, item: TItem) => void)
     | undefined;
-  private readonly autoMode: boolean;
-  private readonly mobilePortraitHorizontalFlow: boolean;
 
   private readonly track: HTMLDivElement;
   private readonly viewport: HTMLDivElement;
@@ -115,14 +84,12 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     this.orientation = options.orientation ?? "horizontal";
     this.largeLayout = options.largeLayout ?? "two-row";
     this.paginateInLarge = options.paginateInLarge ?? false;
-    this.autoMode = options.autoMode ?? true;
-    this.mobilePortraitHorizontalFlow =
-      options.mobilePortraitHorizontalFlow ?? false;
     this.createItemComponent = options.createItemComponent;
     this.updateItemComponent = options.updateItemComponent;
 
     this.state = {
-      mode: resolveAutoMode(),
+      mode: options.initialMode ?? "large",
+      resolvedOrientation: this.orientation,
       destroyed: false,
       layoutRetryFrame: 0,
       selectionUnbind: null,
@@ -192,9 +159,6 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
 
     this.prevButton.setOnPress(() => this.goToPreviousPage());
     this.nextButton.setOnPress(() => this.goToNextPage());
-    if (this.autoMode) {
-      PagedButtonGrid.subscribeAutoMode(this);
-    }
   }
 
   setHidden(hidden: boolean): void {
@@ -213,6 +177,15 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
       return;
     }
     this.state.mode = nextMode;
+    this.resetPagination();
+    this.render();
+  }
+
+  setResolvedOrientation(nextOrientation: PagedButtonGridOrientation): void {
+    if (nextOrientation === this.state.resolvedOrientation) {
+      return;
+    }
+    this.state.resolvedOrientation = nextOrientation;
     this.resetPagination();
     this.render();
   }
@@ -273,9 +246,6 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     this.nextButton.setOnPress(null);
     this.itemComponentById.clear();
     this.itemContainerById.clear();
-    if (this.autoMode) {
-      PagedButtonGrid.unsubscribeAutoMode(this);
-    }
   }
 
   private setElementAttributes(
@@ -291,13 +261,7 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
   }
 
   private useHorizontalFlow(): boolean {
-    if (this.orientation === "horizontal") {
-      return true;
-    }
-    if (!this.mobilePortraitHorizontalFlow || this.state.mode !== "mobile") {
-      return false;
-    }
-    return window.innerHeight > window.innerWidth;
+    return this.state.resolvedOrientation === "horizontal";
   }
 
   private shouldPaginate(): boolean {
@@ -530,9 +494,7 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     this.viewport.style.maxHeight = "";
 
     this.el.dataset.mode = this.state.mode;
-    this.el.dataset.resolvedOrientation = this.useHorizontalFlow()
-      ? "horizontal"
-      : "vertical";
+    this.el.dataset.resolvedOrientation = this.state.resolvedOrientation;
     this.track.style.transform = "";
 
     if (this.state.needsPaginationRecalc) {
@@ -626,43 +588,5 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     }
 
     this.render();
-  }
-
-  applyAutoMode(nextMode: PagedButtonGridMode): void {
-    if (nextMode !== this.state.mode) {
-      this.state.mode = nextMode;
-    }
-    this.state.needsPaginationRecalc = true;
-    this.render();
-  }
-
-  private static subscribeAutoMode(grid: {
-    applyAutoMode: (mode: PagedButtonGridMode) => void;
-  }): void {
-    PagedButtonGrid.autoModeSubscribers.add(grid);
-    if (PagedButtonGrid.autoModeListenersBound) {
-      return;
-    }
-    window.addEventListener("resize", PagedButtonGrid.onWindowResize);
-    window.visualViewport?.addEventListener(
-      "resize",
-      PagedButtonGrid.onWindowResize,
-    );
-    PagedButtonGrid.autoModeListenersBound = true;
-  }
-
-  private static unsubscribeAutoMode(grid: {
-    applyAutoMode: (mode: PagedButtonGridMode) => void;
-  }): void {
-    PagedButtonGrid.autoModeSubscribers.delete(grid);
-    if (PagedButtonGrid.autoModeSubscribers.size > 0) {
-      return;
-    }
-    window.removeEventListener("resize", PagedButtonGrid.onWindowResize);
-    window.visualViewport?.removeEventListener(
-      "resize",
-      PagedButtonGrid.onWindowResize,
-    );
-    PagedButtonGrid.autoModeListenersBound = false;
   }
 }

@@ -177,4 +177,47 @@ describe("PagedButtonGrid", () => {
     grid.destroy();
     grid.el.remove();
   });
+
+  test("pagination only mounts current page items", () => {
+    const grid = new PagedButtonGrid<ButtonGridItemSpec>({
+      orientation: "horizontal",
+      createItemComponent: (item) => {
+        const element = document.createElement("button");
+        element.type = "button";
+        element.textContent = item.id;
+        element.setAttribute("data-item-id", item.id);
+        return { el: element };
+      },
+    });
+    document.body.appendChild(grid.el);
+    grid.setMode("medium");
+    grid.setItems(createItems(5));
+    mockGridRects(grid.el);
+    grid.syncLayout();
+    const prevButton = getPrevButton(grid.el);
+    const nextButton = getNextButton(grid.el);
+    const currentItemIds = () =>
+      Array.from(
+        grid.el.querySelectorAll(".button-grid-item [data-item-id]"),
+      ).map((node) => (node as HTMLElement).getAttribute("data-item-id"));
+
+    expect(currentItemIds()).toEqual(["item-0", "item-1"]);
+
+    expect(prevButton.hidden).toBeFalse();
+    expect(nextButton.hidden).toBeFalse();
+    expect(prevButton.disabled).toBeTrue();
+    expect(nextButton.disabled).toBeFalse();
+
+    nextButton.click();
+    expect(currentItemIds()).toEqual(["item-2", "item-3"]);
+    expect(prevButton.disabled).toBeFalse();
+    expect(nextButton.disabled).toBeFalse();
+
+    nextButton.click();
+    expect(currentItemIds()).toEqual(["item-4"]);
+    expect(nextButton.disabled).toBeTrue();
+
+    grid.destroy();
+    grid.el.remove();
+  });
 });

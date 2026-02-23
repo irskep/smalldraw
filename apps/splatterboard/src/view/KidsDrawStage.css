@@ -6,12 +6,20 @@
   --kd-edge-offset: 10px;
   --kd-toolbar-canvas-gap-top: 10px;
   --kd-toolbar-canvas-gap-bottom: 8px;
+  --kd-inset-grid-template-columns: var(--kd-inset-left) minmax(0, 1fr)
+    var(--kd-inset-right);
+  --kd-inset-grid-template-rows: var(--kd-inset-top) minmax(0, 1fr)
+    var(--kd-inset-bottom);
+  --kd-inset-grid-template-areas: "left top right" "left canvas right"
+    "left bottom right";
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--kd-inset-top) var(--kd-inset-right) var(--kd-inset-bottom)
+    var(--kd-inset-left);
   overflow: hidden;
   background: var(--kd-surface-viewport);
   box-sizing: border-box;
@@ -21,14 +29,28 @@
   --kd-edge-offset: 8px;
 }
 
+.kids-draw-viewport[data-layout-profile="mobile-landscape"],
+.kids-draw-viewport[data-layout-profile="mobile-portrait"] {
+  --kd-toolbar-cell-size: 46px;
+  --kd-toolbar-palette-cell-size: 40px;
+}
+
+.kids-draw-viewport[data-layout-profile="mobile-portrait"] {
+  --kd-toolbar-canvas-gap-top: 12px;
+  --kd-toolbar-canvas-gap-bottom: 10px;
+  --kd-inset-grid-template-columns: minmax(0, 1fr);
+  --kd-inset-grid-template-rows: var(--kd-inset-top) minmax(0, 1fr)
+    var(--kd-inset-bottom);
+  --kd-inset-grid-template-areas: "top" "canvas" "bottom";
+}
+
 .kids-draw-inset-ui {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns:
-    var(--kd-inset-left) minmax(0, 1fr)
-    var(--kd-inset-right);
-  grid-template-rows: var(--kd-inset-top) minmax(0, 1fr) var(--kd-inset-bottom);
+  grid-template-columns: var(--kd-inset-grid-template-columns);
+  grid-template-rows: var(--kd-inset-grid-template-rows);
+  grid-template-areas: var(--kd-inset-grid-template-areas);
   pointer-events: none;
   z-index: 20;
 }
@@ -43,8 +65,7 @@
 }
 
 .kids-draw-inset-slot-top {
-  grid-column: 2;
-  grid-row: 1;
+  grid-area: top;
   min-width: 0;
   align-items: flex-end;
   justify-content: center;
@@ -52,16 +73,14 @@
 }
 
 .kids-draw-inset-slot-right {
-  grid-column: 3;
-  grid-row: 1 / 4;
+  grid-area: right;
   align-items: center;
   justify-content: flex-end;
   padding-right: var(--kd-edge-offset);
 }
 
 .kids-draw-inset-slot-bottom {
-  grid-column: 2;
-  grid-row: 3;
+  grid-area: bottom;
   min-width: 0;
   align-items: flex-end;
   justify-content: center;
@@ -69,8 +88,7 @@
 }
 
 .kids-draw-inset-slot-left {
-  grid-column: 1;
-  grid-row: 1 / 4;
+  grid-area: left;
   align-items: center;
   justify-content: flex-start;
   padding-left: var(--kd-edge-offset);
@@ -84,7 +102,7 @@
   justify-content: flex-end;
   align-items: stretch;
   gap: var(--size-1);
-  padding-inline: 0;
+  padding-inline: var(--size-2);
   padding-bottom: var(--size-2);
   box-sizing: border-box;
 }
@@ -103,7 +121,7 @@
   align-items: stretch;
   gap: var(--size-1);
   padding-top: var(--size-2);
-  padding-inline: 0;
+  padding-inline: var(--size-2);
   box-sizing: border-box;
   position: relative;
 }
@@ -288,6 +306,13 @@
 .kids-draw-viewport[data-layout-profile="mobile-portrait"] {
   justify-content: center;
   align-items: center;
+}
+
+.kids-draw-viewport[data-layout-profile="mobile-portrait"]
+  .kids-draw-inset-slot-left,
+.kids-draw-viewport[data-layout-profile="mobile-portrait"]
+  .kids-draw-inset-slot-right {
+  display: none;
 }
 
 .kids-draw-frame {

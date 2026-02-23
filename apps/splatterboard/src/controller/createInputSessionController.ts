@@ -3,7 +3,6 @@ import type { Vec2 } from "@smalldraw/geometry";
 import type { CursorOverlayController } from "./createCursorOverlayController";
 
 const MAX_POINTER_SAMPLES_PER_EVENT = 64;
-const ENABLE_COALESCED_POINTER_SAMPLES = true;
 
 type PointerEventWithCoalesced = PointerEvent & {
   getCoalescedEvents?: () => PointerEvent[];
@@ -146,9 +145,7 @@ export class InputSessionController {
     samples: PointerEvent[];
     usedCoalesced: boolean;
   } {
-    const coalesced = ENABLE_COALESCED_POINTER_SAMPLES
-      ? event.getCoalescedEvents?.()
-      : undefined;
+    const coalesced = event.getCoalescedEvents?.();
     const rawSamples =
       coalesced && coalesced.length > 0 ? coalesced : [event as PointerEvent];
     const cappedSamples =

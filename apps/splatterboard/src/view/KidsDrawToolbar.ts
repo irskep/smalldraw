@@ -11,6 +11,7 @@ import type {
 } from "../tools/kidsTools";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 import type { MobilePortraitActionsView } from "./MobilePortraitActionsView";
+import type { PagedButtonGridMode } from "./PagedButtonGrid";
 import type { ReDomLike } from "./ReDomLike";
 import { ToolbarActionPane } from "./toolbar/ToolbarActionPane";
 import { ToolbarStylePane } from "./toolbar/ToolbarStylePane";
@@ -170,6 +171,7 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
     bottomSlot: HTMLElement;
     leftSlot: HTMLElement;
   }): void {
+    this.toolSelectorPane.setResolvedOrientation("vertical");
     options.topSlot.replaceChildren(this.topElement);
     options.leftSlot.replaceChildren(this.toolSelectorElement);
     options.rightSlot.replaceChildren(this.actionPanelElement);
@@ -182,6 +184,7 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
     mobilePortraitActionsView: MobilePortraitActionsView;
     actionsOpen: boolean;
   }): void {
+    this.toolSelectorPane.setResolvedOrientation("horizontal");
     options.mobilePortraitActionsView.mountMobileLayout({
       topSlot: options.topSlot,
       bottomSlot: options.bottomSlot,
@@ -198,6 +201,11 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
 
   showDesktopTopPanels(): void {
     this.stylePane.showDesktopPanels();
+  }
+
+  setGridMode(mode: PagedButtonGridMode): void {
+    this.toolSelectorPane.setGridMode(mode);
+    this.variantStripPane.setGridMode(mode);
   }
 
   syncLayout(): void {

@@ -1847,7 +1847,7 @@ describe("splatterboard shell", () => {
     expect(container.querySelector(".kids-draw-app")).toBeNull();
   });
 
-  test("pointer move samples honor coalesced-events feature flag", async () => {
+  test("pointer move samples use coalesced events when available", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
