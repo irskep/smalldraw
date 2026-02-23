@@ -69,6 +69,8 @@ RE:DOM has a component API. The term "view" should ~always mean "a RE:DOM compon
 
 Avoid having components that are a thin layer over some one-off abstration. The view is the view, it's not a portal to some other weird custom thing.
 
+Do not bypass re:dom's mount()/unmount() functions or you'll break lifecycle methods on re:dom components. Do not do direct DOM child manipulation.
+
 Pragmatic note:
 
 - Mixed imperative/reactive code is expected at DOM and I/O boundaries. The design goal is to keep imperative work at boundaries and keep state propagation declarative through stores.

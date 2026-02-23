@@ -5,7 +5,7 @@ import type {
   KidsToolConfig,
   KidsToolFamilyConfig,
 } from "../../tools/kidsTools";
-import { ButtonGrid } from "../ButtonGrid";
+import { type ButtonGridItemSpec, PagedButtonGrid } from "../PagedButtonGrid";
 import type { ReDomLike } from "../ReDomLike";
 import {
   createSquareIconButton,
@@ -14,8 +14,12 @@ import {
 
 export class ToolbarVariantStripPane implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
-  private readonly variantButtons = new Map<string, SquareIconButton>();
-  private readonly familyVariantGrids = new Map<string, ButtonGrid>();
+  private readonly uiIntentStore: Pick<UiIntentStore, "publish">;
+  private readonly variantButtons = new Map<string, VariantStripItemButton>();
+  private readonly familyVariantGrids = new Map<
+    string,
+    PagedButtonGrid<VariantStripItemSpec>
+  >();
   private ensureVisibleRafHandle: number | null = null;
 
   constructor(options: {
@@ -23,6 +27,7 @@ export class ToolbarVariantStripPane implements ReDomLike<HTMLDivElement> {
     toolById: Map<string, KidsToolConfig>;
     uiIntentStore: Pick<UiIntentStore, "publish">;
   }) {
+    this.uiIntentStore = options.uiIntentStore;
     this.el = el("div.kids-draw-toolbar-variant-strip") as HTMLDivElement;
 
     for (const family of options.families) {
@@ -30,46 +35,44 @@ export class ToolbarVariantStripPane implements ReDomLike<HTMLDivElement> {
         family.variantLayout === "two-row-single-height";
       const hideVariantLabels = family.id.startsWith("stamp.");
       const isStampImages = family.id === "stamp.images";
-      const variantItems: { id: string; element: HTMLElement }[] = [];
+      const variantItems: VariantStripItemSpec[] = [];
       for (const toolId of family.toolIds) {
         const tool = options.toolById.get(toolId);
         if (!tool) continue;
-        const variantButton = createSquareIconButton({
-          className: "kids-draw-tool-variant-button",
-          label: hideVariantLabels ? "" : tool.label,
-          icon: tool.icon,
-          attributes: {
-            "data-tool-variant": tool.id,
-            "data-tool-family": tool.familyId,
-            title: tool.label,
-            "aria-label": tool.label,
-            role: "radio",
-            "aria-checked": "false",
-            tabindex: "-1",
-          },
+        variantItems.push({
+          id: tool.id,
+          tool,
+          hideLabel: hideVariantLabels,
         });
-        variantButton.setOnPress(() =>
-          options.uiIntentStore.publish({
-            type: "activate_tool_and_remember",
-            toolId: tool.id,
-          }),
-        );
-        this.variantButtons.set(tool.id, variantButton);
-        variantItems.push({ id: tool.id, element: variantButton.el });
       }
-      const variantGrid = new ButtonGrid({
+      const variantGrid = new PagedButtonGrid<VariantStripItemSpec>({
         className: "kids-draw-family-variants",
         orientation: "horizontal",
         largeLayout: isTwoRowSingleHeight ? "two-row" : "two-row-xlarge",
         paginateInLarge: isStampImages,
+        rootAttributes: {
+          role: "radiogroup",
+          "aria-label": `${family.label} tools`,
+          "data-tool-family-toolbar": family.id,
+          "data-variant-layout": family.variantLayout ?? "default",
+        },
+        navAttributes:
+          family.id === "stamp.images"
+            ? {
+                prev: { "data-tool-family-prev": family.id },
+                next: { "data-tool-family-next": family.id },
+              }
+            : undefined,
+        createItemComponent: (item) => {
+          const component = new VariantStripItemButton({
+            item,
+            uiIntentStore: this.uiIntentStore,
+          });
+          this.variantButtons.set(item.tool.id, component);
+          return component;
+        },
       });
-      variantGrid.configureFamilyVariantStrip({
-        familyId: family.id,
-        familyLabel: family.label,
-        variantLayout: family.variantLayout ?? "default",
-        includeFamilyNavData: family.id === "stamp.images",
-      });
-      variantGrid.setLists([{ id: "main", items: variantItems }]);
+      variantGrid.setItems(variantItems);
       this.familyVariantGrids.set(family.id, variantGrid);
       mount(this.el, variantGrid);
     }
@@ -139,10 +142,56 @@ export class ToolbarVariantStripPane implements ReDomLike<HTMLDivElement> {
       this.ensureVisibleRafHandle = null;
     }
     for (const button of this.variantButtons.values()) {
-      button.setOnPress(null);
+      button.destroy();
     }
     for (const grid of this.familyVariantGrids.values()) {
       grid.destroy();
     }
+  }
+}
+
+type VariantStripItemSpec = ButtonGridItemSpec & {
+  tool: KidsToolConfig;
+  hideLabel: boolean;
+};
+
+class VariantStripItemButton implements ReDomLike<HTMLButtonElement> {
+  readonly el: HTMLButtonElement;
+  private readonly button: SquareIconButton;
+
+  constructor(options: {
+    item: VariantStripItemSpec;
+    uiIntentStore: Pick<UiIntentStore, "publish">;
+  }) {
+    const { item, uiIntentStore } = options;
+    this.button = createSquareIconButton({
+      className: "kids-draw-tool-variant-button",
+      label: item.hideLabel ? "" : item.tool.label,
+      icon: item.tool.icon,
+      attributes: {
+        "data-tool-variant": item.tool.id,
+        "data-tool-family": item.tool.familyId,
+        title: item.tool.label,
+        "aria-label": item.tool.label,
+        role: "radio",
+        "aria-checked": "false",
+        tabindex: "-1",
+      },
+    });
+    this.button.setOnPress(() =>
+      uiIntentStore.publish({
+        type: "activate_tool_and_remember",
+        toolId: item.tool.id,
+      }),
+    );
+    this.el = this.button.el;
+  }
+
+  setRadioSelected(selected: boolean): void {
+    this.button.setRadioSelected(selected);
+  }
+
+  destroy(): void {
+    this.button.setOnPress(null);
   }
 }

@@ -1,15 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import { atom } from "nanostores";
-import { ButtonGrid } from "../view/ButtonGrid";
+import {
+  type ButtonGridItemSpec,
+  PagedButtonGrid,
+} from "../view/PagedButtonGrid";
 
-function createItems(
-  count: number,
-): Array<{ id: string; element: HTMLElement }> {
+function createItems(count: number): ButtonGridItemSpec[] {
   return Array.from({ length: count }, (_, index) => {
-    const element = document.createElement("button");
-    element.type = "button";
-    element.textContent = `item-${index}`;
-    return { id: `item-${index}`, element };
+    return { id: `item-${index}` };
   });
 }
 
@@ -87,12 +85,20 @@ function getNextButton(root: HTMLElement): HTMLButtonElement {
   return button;
 }
 
-describe("ButtonGrid", () => {
+describe("PagedButtonGrid", () => {
   test("paginates and updates nav controls for medium mode", () => {
-    const grid = new ButtonGrid({ orientation: "horizontal" });
+    const grid = new PagedButtonGrid<ButtonGridItemSpec>({
+      orientation: "horizontal",
+      createItemComponent: (item) => {
+        const element = document.createElement("button");
+        element.type = "button";
+        element.textContent = item.id;
+        return { el: element };
+      },
+    });
     document.body.appendChild(grid.el);
     grid.setMode("medium");
-    grid.setLists([{ id: "main", items: createItems(5) }]);
+    grid.setItems(createItems(5));
     mockGridRects(grid.el);
     grid.syncLayout();
     const prevButton = getPrevButton(grid.el);
@@ -113,10 +119,18 @@ describe("ButtonGrid", () => {
   });
 
   test("ensureItemVisible navigates to target item page", () => {
-    const grid = new ButtonGrid({ orientation: "horizontal" });
+    const grid = new PagedButtonGrid<ButtonGridItemSpec>({
+      orientation: "horizontal",
+      createItemComponent: (item) => {
+        const element = document.createElement("button");
+        element.type = "button";
+        element.textContent = item.id;
+        return { el: element };
+      },
+    });
     document.body.appendChild(grid.el);
     grid.setMode("medium");
-    grid.setLists([{ id: "main", items: createItems(5) }]);
+    grid.setItems(createItems(5));
     mockGridRects(grid.el);
     grid.syncLayout();
     const prevButton = getPrevButton(grid.el);
@@ -132,10 +146,18 @@ describe("ButtonGrid", () => {
   });
 
   test("bindSelection follows store updates and unbind stops updates", () => {
-    const grid = new ButtonGrid({ orientation: "horizontal" });
+    const grid = new PagedButtonGrid<ButtonGridItemSpec>({
+      orientation: "horizontal",
+      createItemComponent: (item) => {
+        const element = document.createElement("button");
+        element.type = "button";
+        element.textContent = item.id;
+        return { el: element };
+      },
+    });
     document.body.appendChild(grid.el);
     grid.setMode("medium");
-    grid.setLists([{ id: "main", items: createItems(5) }]);
+    grid.setItems(createItems(5));
     mockGridRects(grid.el);
     grid.syncLayout();
     const prevButton = getPrevButton(grid.el);

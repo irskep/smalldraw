@@ -4,6 +4,8 @@
   --kd-inset-bottom: 0;
   --kd-inset-left: 0;
   --kd-edge-offset: 10px;
+  --kd-toolbar-canvas-gap-top: 10px;
+  --kd-toolbar-canvas-gap-bottom: 8px;
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
@@ -46,6 +48,7 @@
   min-width: 0;
   align-items: flex-end;
   justify-content: center;
+  padding-bottom: var(--kd-toolbar-canvas-gap-top);
 }
 
 .kids-draw-inset-slot-right {
@@ -62,6 +65,7 @@
   min-width: 0;
   align-items: flex-end;
   justify-content: center;
+  padding-top: var(--kd-toolbar-canvas-gap-bottom);
 }
 
 .kids-draw-inset-slot-left {

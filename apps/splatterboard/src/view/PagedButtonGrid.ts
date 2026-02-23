@@ -2,41 +2,42 @@ import "./ButtonGrid.css";
 
 import { ChevronLeft, ChevronRight } from "lucide";
 import type { ReadableAtom } from "nanostores";
-import { el, list, mount, setChildren } from "redom";
+import { el, mount, setChildren } from "redom";
 import type { ReDomLike } from "./ReDomLike";
 import {
   createSquareIconButton,
   type SquareIconButton,
 } from "./SquareIconButton";
 
-export type ButtonGridMode = "large" | "medium" | "mobile";
-export type ButtonGridOrientation = "horizontal" | "vertical";
-export type ButtonGridLargeLayout = "two-row" | "two-row-xlarge";
+export type PagedButtonGridMode = "large" | "medium" | "mobile";
+export type PagedButtonGridOrientation = "horizontal" | "vertical";
+export type PagedButtonGridLargeLayout = "two-row" | "two-row-xlarge";
 
-export interface ButtonGridItem {
+export interface ButtonGridItemSpec {
   id: string;
-  element: HTMLElement;
 }
 
-export interface ButtonGridList {
-  id: string;
-  items: ButtonGridItem[];
-}
-
-interface ButtonGridOptions {
+interface PagedButtonGridOptions<TItem extends ButtonGridItemSpec> {
   className?: string;
-  orientation?: ButtonGridOrientation;
-  largeLayout?: ButtonGridLargeLayout;
+  orientation?: PagedButtonGridOrientation;
+  largeLayout?: PagedButtonGridLargeLayout;
   paginateInLarge?: boolean;
+  autoMode?: boolean;
+  mobilePortraitHorizontalFlow?: boolean;
+  rootAttributes?: Record<string, string>;
+  navAttributes?: {
+    prev?: Record<string, string>;
+    next?: Record<string, string>;
+  };
+  createItemComponent: (item: TItem) => ReDomLike<HTMLElement | SVGElement>;
+  updateItemComponent?: (
+    component: ReDomLike<HTMLElement | SVGElement>,
+    item: TItem,
+  ) => void;
 }
 
-interface ButtonGridItemViewModel {
-  id: string;
-  element: HTMLElement;
-}
-
-interface ButtonGridState {
-  mode: ButtonGridMode;
+interface PagedButtonGridState<TItem extends ButtonGridItemSpec> {
+  mode: PagedButtonGridMode;
   destroyed: boolean;
   layoutRetryFrame: number;
   selectionUnbind: (() => void) | null;
@@ -44,34 +45,9 @@ interface ButtonGridState {
   selectedItemId: string;
   needsPaginationRecalc: boolean;
   measuredViewportMainSize: number;
-  listsById: Map<string, ButtonGridItem[]>;
-  orderedListIds: string[];
-  activeListId: string;
+  items: TItem[];
   pageItemIndices: number[][];
   itemPageByIndex: number[];
-}
-
-type ButtonGridListView = {
-  update(items: ButtonGridItemViewModel[]): void;
-};
-
-class ButtonGridItemView
-  implements ReDomLike<HTMLDivElement, ButtonGridItemViewModel>
-{
-  readonly el: HTMLDivElement;
-  private mountedElement: HTMLElement | null = null;
-
-  constructor() {
-    this.el = el("div.button-grid-item") as HTMLDivElement;
-  }
-
-  update(item: ButtonGridItemViewModel): void {
-    if (this.mountedElement === item.element) {
-      return;
-    }
-    this.mountedElement = item.element;
-    setChildren(this.el, [item.element]);
-  }
 }
 
 const LARGE_MODE_MIN = 1024;
@@ -79,7 +55,7 @@ const MOBILE_MODE_MAX = 768;
 const SHORT_VIEWPORT_MAX = 540;
 const EPSILON = 1.5;
 
-const resolveAutoMode = (): ButtonGridMode => {
+const resolveAutoMode = (): PagedButtonGridMode => {
   const width = window.innerWidth;
   const height = window.innerHeight;
   if (
@@ -94,25 +70,56 @@ const resolveAutoMode = (): ButtonGridMode => {
   return "large";
 };
 
-export class ButtonGrid implements ReDomLike<HTMLDivElement> {
+export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
+  implements ReDomLike<HTMLDivElement>
+{
+  private static autoModeSubscribers = new Set<{
+    applyAutoMode: (mode: PagedButtonGridMode) => void;
+  }>();
+  private static autoModeListenersBound = false;
+  private static readonly onWindowResize = (): void => {
+    const nextMode = resolveAutoMode();
+    for (const grid of PagedButtonGrid.autoModeSubscribers) {
+      grid.applyAutoMode(nextMode);
+    }
+  };
+
   readonly el: HTMLDivElement;
+
   private readonly prevButton: SquareIconButton;
   private readonly nextButton: SquareIconButton;
 
-  private readonly orientation: ButtonGridOrientation;
-  private readonly largeLayout: ButtonGridLargeLayout;
+  private readonly orientation: PagedButtonGridOrientation;
+  private readonly largeLayout: PagedButtonGridLargeLayout;
   private readonly paginateInLarge: boolean;
+  private readonly createItemComponent: (
+    item: TItem,
+  ) => ReDomLike<HTMLElement | SVGElement>;
+  private readonly updateItemComponent?:
+    | ((component: ReDomLike<HTMLElement | SVGElement>, item: TItem) => void)
+    | undefined;
+  private readonly autoMode: boolean;
+  private readonly mobilePortraitHorizontalFlow: boolean;
 
   private readonly track: HTMLDivElement;
   private readonly viewport: HTMLDivElement;
-  private readonly listView: ButtonGridListView;
+  private readonly itemContainerById = new Map<string, HTMLDivElement>();
+  private readonly itemComponentById = new Map<
+    string,
+    ReDomLike<HTMLElement | SVGElement>
+  >();
 
-  private readonly state: ButtonGridState;
+  private readonly state: PagedButtonGridState<TItem>;
 
-  constructor(options: ButtonGridOptions = {}) {
+  constructor(options: PagedButtonGridOptions<TItem>) {
     this.orientation = options.orientation ?? "horizontal";
     this.largeLayout = options.largeLayout ?? "two-row";
     this.paginateInLarge = options.paginateInLarge ?? false;
+    this.autoMode = options.autoMode ?? true;
+    this.mobilePortraitHorizontalFlow =
+      options.mobilePortraitHorizontalFlow ?? false;
+    this.createItemComponent = options.createItemComponent;
+    this.updateItemComponent = options.updateItemComponent;
 
     this.state = {
       mode: resolveAutoMode(),
@@ -123,9 +130,7 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
       selectedItemId: "",
       needsPaginationRecalc: true,
       measuredViewportMainSize: 0,
-      listsById: new Map<string, ButtonGridItem[]>(),
-      orderedListIds: [],
-      activeListId: "",
+      items: [],
       pageItemIndices: [[0]],
       itemPageByIndex: [],
     };
@@ -139,9 +144,11 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
       }
     }
     this.el.dataset.orientation = this.orientation;
+    this.el.dataset.resolvedOrientation = this.orientation;
     this.el.dataset.largeLayout = this.largeLayout;
     this.el.dataset.mode = this.state.mode;
     this.el.dataset.paginateLarge = this.paginateInLarge ? "true" : "false";
+    this.setElementAttributes(this.el, options.rootAttributes);
 
     this.prevButton = createSquareIconButton({
       className: "button-grid-nav button-grid-nav-prev",
@@ -163,13 +170,10 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
         "data-button-grid-nav": "next",
       },
     });
+    this.setElementAttributes(this.prevButton.el, options.navAttributes?.prev);
+    this.setElementAttributes(this.nextButton.el, options.navAttributes?.next);
 
     this.track = el("div.button-grid-track") as HTMLDivElement;
-    this.listView = list(
-      this.track,
-      ButtonGridItemView,
-      "id",
-    ) as ButtonGridListView;
     this.viewport = el(
       "div.button-grid-viewport",
       this.track,
@@ -188,65 +192,23 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
 
     this.prevButton.setOnPress(() => this.goToPreviousPage());
     this.nextButton.setOnPress(() => this.goToNextPage());
-    window.addEventListener("resize", this.onWindowResize);
-    window.visualViewport?.addEventListener("resize", this.onWindowResize);
-  }
-
-  configureFamilyVariantStrip(options: {
-    familyId: string;
-    familyLabel: string;
-    variantLayout: string;
-    includeFamilyNavData: boolean;
-  }): void {
-    this.el.setAttribute("role", "radiogroup");
-    this.el.setAttribute("aria-label", `${options.familyLabel} tools`);
-    this.el.setAttribute("data-tool-family-toolbar", options.familyId);
-    this.el.setAttribute("data-variant-layout", options.variantLayout);
-
-    if (options.includeFamilyNavData) {
-      this.prevButton.el.setAttribute(
-        "data-tool-family-prev",
-        options.familyId,
-      );
-      this.nextButton.el.setAttribute(
-        "data-tool-family-next",
-        options.familyId,
-      );
-      return;
+    if (this.autoMode) {
+      PagedButtonGrid.subscribeAutoMode(this);
     }
-
-    this.prevButton.el.removeAttribute("data-tool-family-prev");
-    this.nextButton.el.removeAttribute("data-tool-family-next");
   }
 
   setHidden(hidden: boolean): void {
     this.el.hidden = hidden;
   }
 
-  setLists(lists: ButtonGridList[]): void {
-    this.state.listsById.clear();
-    this.state.orderedListIds = [];
-    for (const listItem of lists) {
-      this.state.listsById.set(listItem.id, listItem.items);
-      this.state.orderedListIds.push(listItem.id);
-    }
-    if (!this.state.listsById.has(this.state.activeListId)) {
-      this.state.activeListId = this.state.orderedListIds[0] ?? "";
-    }
+  setItems(items: TItem[]): void {
+    this.pruneRemovedItems(items);
+    this.state.items = items;
     this.resetPagination();
     this.render();
   }
 
-  setActiveList(listId: string): void {
-    if (!this.state.listsById.has(listId)) {
-      return;
-    }
-    this.state.activeListId = listId;
-    this.resetPagination();
-    this.render();
-  }
-
-  setMode(nextMode: ButtonGridMode): void {
+  setMode(nextMode: PagedButtonGridMode): void {
     if (nextMode === this.state.mode) {
       return;
     }
@@ -309,20 +271,33 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
 
     this.prevButton.setOnPress(null);
     this.nextButton.setOnPress(null);
-
-    window.removeEventListener("resize", this.onWindowResize);
-    window.visualViewport?.removeEventListener("resize", this.onWindowResize);
+    this.itemComponentById.clear();
+    this.itemContainerById.clear();
+    if (this.autoMode) {
+      PagedButtonGrid.unsubscribeAutoMode(this);
+    }
   }
 
-  private getActiveItems(): ButtonGridItem[] {
-    if (!this.state.activeListId) {
-      return [];
+  private setElementAttributes(
+    node: HTMLElement,
+    attributes?: Record<string, string>,
+  ): void {
+    if (!attributes) {
+      return;
     }
-    return this.state.listsById.get(this.state.activeListId) ?? [];
+    for (const [key, value] of Object.entries(attributes)) {
+      node.setAttribute(key, value);
+    }
   }
 
   private useHorizontalFlow(): boolean {
-    return this.orientation === "horizontal" || this.state.mode === "mobile";
+    if (this.orientation === "horizontal") {
+      return true;
+    }
+    if (!this.mobilePortraitHorizontalFlow || this.state.mode !== "mobile") {
+      return false;
+    }
+    return window.innerHeight > window.innerWidth;
   }
 
   private shouldPaginate(): boolean {
@@ -331,6 +306,50 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
 
   private getItemContainers(): HTMLDivElement[] {
     return Array.from(this.track.children) as HTMLDivElement[];
+  }
+
+  private pruneRemovedItems(nextItems: TItem[]): void {
+    const nextIds = new Set(nextItems.map((item) => item.id));
+    for (const [id] of this.itemComponentById) {
+      if (nextIds.has(id)) {
+        continue;
+      }
+      this.itemComponentById.delete(id);
+      this.itemContainerById.delete(id);
+    }
+  }
+
+  private getOrCreateItemContainer(item: TItem): HTMLDivElement {
+    let container = this.itemContainerById.get(item.id);
+    if (!container) {
+      container = el("div.button-grid-item") as HTMLDivElement;
+      this.itemContainerById.set(item.id, container);
+    }
+
+    let itemComponent = this.itemComponentById.get(item.id);
+    if (!itemComponent) {
+      itemComponent = this.createItemComponent(item);
+      const maybeNode = itemComponent?.el as Node | undefined;
+      if (!maybeNode || maybeNode.nodeType !== 1) {
+        throw new Error(
+          `PagedButtonGrid.createItemComponent must return ReDomLike with Element el for item '${item.id}'`,
+        );
+      }
+      this.itemComponentById.set(item.id, itemComponent);
+      setChildren(container, [itemComponent]);
+      return container;
+    }
+
+    if (container.firstElementChild !== itemComponent.el) {
+      setChildren(container, [itemComponent]);
+    }
+    this.updateItemComponent?.(itemComponent, item);
+    return container;
+  }
+
+  private renderItems(items: TItem[]): void {
+    const containers = items.map((item) => this.getOrCreateItemContainer(item));
+    setChildren(this.track, containers);
   }
 
   private getMainSizeFromRect(rect: DOMRect, horizontal: boolean): number {
@@ -368,7 +387,7 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
     );
   }
 
-  private computePagination(items: ButtonGridItem[]): void {
+  private computePagination(items: TItem[]): void {
     const itemCount = items.length;
 
     if (itemCount === 0) {
@@ -454,7 +473,7 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
     this.state.itemPageByIndex = pageByItem;
   }
 
-  private syncSelectedPage(items: ButtonGridItem[]): void {
+  private syncSelectedPage(items: TItem[]): void {
     if (
       !this.shouldPaginate() ||
       items.length === 0 ||
@@ -479,7 +498,7 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
     this.clampPageIndex();
   }
 
-  private syncPagerControls(items: ButtonGridItem[]): void {
+  private syncPagerControls(items: TItem[]): void {
     if (
       !this.shouldPaginate() ||
       items.length === 0 ||
@@ -503,11 +522,7 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
       return;
     }
 
-    const items = this.getActiveItems();
-    const allModels = items.map((item) => ({
-      id: item.id,
-      element: item.element,
-    }));
+    const items = this.state.items;
 
     this.viewport.style.width = "";
     this.viewport.style.maxWidth = "";
@@ -515,10 +530,13 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
     this.viewport.style.maxHeight = "";
 
     this.el.dataset.mode = this.state.mode;
+    this.el.dataset.resolvedOrientation = this.useHorizontalFlow()
+      ? "horizontal"
+      : "vertical";
     this.track.style.transform = "";
 
     if (this.state.needsPaginationRecalc) {
-      this.listView.update(allModels);
+      this.renderItems(items);
       this.computePagination(items);
       this.syncSelectedPage(items);
       this.state.needsPaginationRecalc = false;
@@ -528,12 +546,12 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
 
     const currentPageItems =
       this.state.pageItemIndices[this.state.currentPageIndex] ?? [];
-    const visibleModels =
+    const visibleItems =
       this.shouldPaginate() && items.length > 0
         ? currentPageItems
-            .map((itemIndex) => allModels[itemIndex])
-            .filter((model): model is ButtonGridItemViewModel => Boolean(model))
-        : allModels;
+            .map((itemIndex) => items[itemIndex])
+            .filter((item): item is TItem => Boolean(item))
+        : items;
 
     if (this.shouldPaginate() && this.state.measuredViewportMainSize > 1) {
       if (this.useHorizontalFlow()) {
@@ -543,7 +561,7 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
       }
     }
 
-    this.listView.update(visibleModels);
+    this.renderItems(visibleItems);
     this.syncPagerControls(items);
 
     const horizontal = this.useHorizontalFlow();
@@ -594,7 +612,7 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
       return;
     }
 
-    const items = this.getActiveItems();
+    const items = this.state.items;
     const itemIndex = items.findIndex((item) => item.id === itemId);
     if (itemIndex < 0) {
       return;
@@ -610,12 +628,41 @@ export class ButtonGrid implements ReDomLike<HTMLDivElement> {
     this.render();
   }
 
-  private readonly onWindowResize = (): void => {
-    const nextMode = resolveAutoMode();
+  applyAutoMode(nextMode: PagedButtonGridMode): void {
     if (nextMode !== this.state.mode) {
       this.state.mode = nextMode;
     }
     this.state.needsPaginationRecalc = true;
     this.render();
-  };
+  }
+
+  private static subscribeAutoMode(grid: {
+    applyAutoMode: (mode: PagedButtonGridMode) => void;
+  }): void {
+    PagedButtonGrid.autoModeSubscribers.add(grid);
+    if (PagedButtonGrid.autoModeListenersBound) {
+      return;
+    }
+    window.addEventListener("resize", PagedButtonGrid.onWindowResize);
+    window.visualViewport?.addEventListener(
+      "resize",
+      PagedButtonGrid.onWindowResize,
+    );
+    PagedButtonGrid.autoModeListenersBound = true;
+  }
+
+  private static unsubscribeAutoMode(grid: {
+    applyAutoMode: (mode: PagedButtonGridMode) => void;
+  }): void {
+    PagedButtonGrid.autoModeSubscribers.delete(grid);
+    if (PagedButtonGrid.autoModeSubscribers.size > 0) {
+      return;
+    }
+    window.removeEventListener("resize", PagedButtonGrid.onWindowResize);
+    window.visualViewport?.removeEventListener(
+      "resize",
+      PagedButtonGrid.onWindowResize,
+    );
+    PagedButtonGrid.autoModeListenersBound = false;
+  }
 }

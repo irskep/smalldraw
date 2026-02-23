@@ -28,27 +28,27 @@ export type ViewportPadding = {
 const LAYOUT_PROFILE_PADDING: Record<ResponsiveLayoutProfile, ViewportPadding> =
   {
     large: {
-      top: 136,
+      top: 156,
       right: 140,
-      bottom: 132,
+      bottom: 142,
       left: 140,
     },
     medium: {
-      top: 136,
+      top: 156,
       right: 96,
-      bottom: 132,
+      bottom: 142,
       left: 80,
     },
     "mobile-landscape": {
-      top: 100,
+      top: 120,
       right: 84,
-      bottom: 58,
+      bottom: 70,
       left: 52,
     },
     "mobile-portrait": {
-      top: 152,
+      top: 170,
       right: 24,
-      bottom: 144,
+      bottom: 156,
       left: 24,
     },
   };
