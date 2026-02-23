@@ -23,6 +23,7 @@ import { createToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import { KidsDrawStageView } from "../view/KidsDrawStage";
 import { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
 import { createModalDialogView } from "../view/ModalDialog";
+import { installMobileGestureGuards } from "./installMobileGestureGuards";
 import type { KidsDrawApp, KidsDrawAppOptions } from "./types";
 
 const DEFAULT_WIDTH = 960;
@@ -31,6 +32,7 @@ const DEFAULT_HEIGHT = 600;
 export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
 ): Promise<KidsDrawApp> {
+  const uninstallMobileGestureGuards = installMobileGestureGuards();
   warmImageStampAssets(getImageStampAssets().map((asset) => asset.src));
 
   const hasExplicitSize =
@@ -183,6 +185,7 @@ export async function createKidsDrawApp(
       unbindToolbarUi();
       modalDialog.onunmount();
       unmount(options.container, element);
+      uninstallMobileGestureGuards();
     },
   };
 }

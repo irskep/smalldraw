@@ -44,11 +44,18 @@ body,
   height: 100%;
 }
 
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   background: var(--kd-surface-app);
   color: var(--kd-text-default);
   font-family: var(--kd-font-family);
+  touch-action: none;
 }
 
 .kids-draw-app {
