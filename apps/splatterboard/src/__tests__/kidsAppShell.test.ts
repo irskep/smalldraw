@@ -32,6 +32,7 @@ function dispatchPointer(
   y: number,
   buttons = 1,
   pointerType = "mouse",
+  pointerId = 1,
 ): void {
   const event = new PointerEvent(type, {
     bubbles: true,
@@ -39,7 +40,7 @@ function dispatchPointer(
     clientY: y,
     buttons,
     pointerType,
-    pointerId: 1,
+    pointerId,
   });
   overlay.dispatchEvent(event);
 }
@@ -1976,6 +1977,49 @@ describe("splatterboard shell", () => {
     expect(shapes).toHaveLength(1);
     const worldPoints = getWorldPointsFromShape(shapes[0]!);
     expect(worldPoints.length).toBeGreaterThan(1);
+
+    app.destroy();
+  });
+
+  test("ignores secondary touches while active touch stroke is in progress", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    dispatchPointer(overlay, "pointerdown", 80, 80, 1, "touch", 1);
+    dispatchPointer(overlay, "pointermove", 140, 120, 1, "touch", 1);
+    dispatchPointer(overlay, "pointermove", 420, 360, 1, "touch", 2);
+    dispatchPointer(overlay, "pointerup", 140, 120, 0, "touch", 1);
+
+    const shapes = Object.values(app.store.getDocument().shapes) as PenShape[];
+    expect(shapes).toHaveLength(1);
+    const worldPoints = getWorldPointsFromShape(shapes[0]!);
+    const maxX = Math.max(...worldPoints.map(([x]) => x));
+    const maxY = Math.max(...worldPoints.map(([, y]) => y));
+    expect(maxX).toBeLessThan(220);
+    expect(maxY).toBeLessThan(220);
 
     app.destroy();
   });

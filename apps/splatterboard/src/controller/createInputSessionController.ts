@@ -63,6 +63,9 @@ export class InputSessionController {
   }
 
   handlePointerMove(event: PointerEventWithCoalesced): void {
+    if (this.shouldIgnoreNonActivePointer(event)) {
+      return;
+    }
     this.options.cursorOverlay.handlePointerMove(event);
     const { samples, usedCoalesced } = this.getPointerMoveSamples(event);
     const pointerSamples = samples.map((sample) => ({
@@ -84,6 +87,9 @@ export class InputSessionController {
   }
 
   handlePointerRawUpdate(event: PointerEvent): void {
+    if (this.shouldIgnoreNonActivePointer(event)) {
+      return;
+    }
     this.options.cursorOverlay.handlePointerRawUpdate(event);
   }
 
@@ -171,5 +177,12 @@ export class InputSessionController {
       samples,
       usedCoalesced: Boolean(coalesced && coalesced.length > 0),
     };
+  }
+
+  private shouldIgnoreNonActivePointer(event: PointerEvent): boolean {
+    if (!this.pointerIsDown || this.activePointerId === null) {
+      return false;
+    }
+    return event.pointerId !== this.activePointerId;
   }
 }
