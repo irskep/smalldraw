@@ -65,3 +65,4 @@ typings/
 /apps/server/public
 
 *.diff.png
+/.rodney
