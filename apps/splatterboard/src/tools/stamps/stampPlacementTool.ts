@@ -94,7 +94,7 @@ export function createStampPlacementTool(
           onPointerDown(event) {
             if ((event.buttons ?? PRIMARY_BUTTON_MASK) & PRIMARY_BUTTON_MASK) {
               const stroke = options.resolveStroke(runtime);
-              const zIndex = runtime.getNextZIndex();
+              const zIndex = runtime.getNextZIndexInLayer();
               const draftId = runtime.generateShapeId(
                 `${options.shapeIdPrefix}-draft`,
               );

@@ -17,6 +17,7 @@ interface ActiveLineDraft {
   current: Vec2;
   stroke: StrokeStyle;
   zIndex: string;
+  layerId: string;
 }
 
 interface LineToolState {
@@ -62,6 +63,7 @@ function buildLineShape(params: {
   end: Vec2;
   stroke: StrokeStyle;
   zIndex: string;
+  layerId: string;
   draft: boolean;
 }): PenShape | null {
   const start = new Vec2(params.start);
@@ -78,7 +80,7 @@ function buildLineShape(params: {
       geometry: createPenJSONGeometry([toVec2Like(start), toVec2Like(end)]),
       style: { stroke: params.stroke },
       zIndex: params.zIndex,
-      layerId: "default",
+      layerId: params.layerId,
       temporalOrder: 0,
       interactions: {
         resizable: true,
@@ -102,7 +104,7 @@ function buildLineShape(params: {
     ]),
     style: { stroke: params.stroke },
     zIndex: params.zIndex,
-    layerId: "default",
+    layerId: params.layerId,
     temporalOrder: 0,
     interactions: {
       resizable: true,
@@ -145,7 +147,8 @@ export function createLineTool(options?: LineToolOptions): ToolDefinition {
               start,
               current: start,
               stroke,
-              zIndex: runtime.getNextZIndex(),
+              zIndex: runtime.getNextZIndexInLayer(),
+              layerId: runtime.getActiveLayerId(),
             };
             const draftShape = buildLineShape({
               id: state.draft.id,
@@ -153,6 +156,7 @@ export function createLineTool(options?: LineToolOptions): ToolDefinition {
               end: start,
               stroke,
               zIndex: state.draft.zIndex,
+              layerId: state.draft.layerId,
               draft: true,
             });
             if (draftShape) {
@@ -174,6 +178,7 @@ export function createLineTool(options?: LineToolOptions): ToolDefinition {
               end: state.draft.current,
               stroke: state.draft.stroke,
               zIndex: state.draft.zIndex,
+              layerId: state.draft.layerId,
               draft: true,
             });
             if (!draftShape) {
@@ -197,6 +202,7 @@ export function createLineTool(options?: LineToolOptions): ToolDefinition {
               end: state.draft.current,
               stroke: state.draft.stroke,
               zIndex: state.draft.zIndex,
+              layerId: state.draft.layerId,
               draft: false,
             });
             if (committed) {

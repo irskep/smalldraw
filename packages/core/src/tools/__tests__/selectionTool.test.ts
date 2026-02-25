@@ -66,6 +66,7 @@ function createRuntime(
   const runtime = new ToolRuntimeImpl({
     toolId: "selection",
     getDocument: () => docRef.current,
+    getActiveLayerId: () => "default",
     commitAction: (action) => {
       docRef.current = undoManager.apply(action, docRef.current, {
         registry,

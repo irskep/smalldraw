@@ -4,7 +4,9 @@ export {
   getOrderedShapesBounds,
   type OrderedShapeBounds,
   type RenderDocumentOptions,
+  type RenderLayerStackOptions,
   renderDocument,
+  renderLayerStack,
   renderOrderedShapes,
 } from "./document";
 

@@ -1,8 +1,10 @@
 import type {
   DrawingDocumentSize,
+  DrawingLayer,
   DrawingStore,
   SmalldrawCore,
 } from "@smalldraw/core";
+import { getOrderedLayers as getOrderedLayersFromDoc } from "@smalldraw/core";
 import { getColoringPageById } from "../coloring/catalog";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 import type { RasterPipeline } from "../render/createRasterPipeline";
@@ -48,7 +50,7 @@ export function createDocumentRuntimeController(options: {
   >;
   pipeline: Pick<
     RasterPipeline,
-    "setReferenceOverlaySource" | "scheduleBakeForClear" | "bakePendingTiles"
+    "setLayers" | "scheduleBakeForClear" | "bakePendingTiles"
   >;
   syncToolbarUi: () => void;
   applyCanvasSize: (width: number, height: number) => void;
@@ -59,7 +61,7 @@ export function createDocumentRuntimeController(options: {
 }) {
   const thumbnailSaveDebounceMs =
     options.thumbnailSaveDebounceMs ?? DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS;
-  let coloringOverlayLoadRequestId = 0;
+  let referenceImageLoadRequestId = 0;
   const documentSessionController = new DocumentSessionController({
     store: options.store,
     core: options.core,
@@ -79,11 +81,6 @@ export function createDocumentRuntimeController(options: {
     },
   });
 
-  const getReferenceOverlaySrc = (
-    presentation: DocumentSessionPresentation,
-  ): string | null =>
-    documentSessionController.getReferenceOverlaySrc(presentation);
-
   const applyToolbarStateForCurrentDocument = (
     presentation: DocumentSessionPresentation,
     applyOptions?: {
@@ -100,15 +97,15 @@ export function createDocumentRuntimeController(options: {
     documentSessionController.scheduleThumbnailSave(delayMs);
   };
 
-  const queueColoringOverlayRebakeWhenLoaded = (
-    overlaySrc: string | null,
+  const queueReferenceImageLoadWhenNeeded = (
+    referenceImageSrc: string,
   ): void => {
-    coloringOverlayLoadRequestId += 1;
-    if (!overlaySrc || typeof Image !== "function") {
+    referenceImageLoadRequestId += 1;
+    if (typeof Image !== "function") {
       return;
     }
-    const requestId = coloringOverlayLoadRequestId;
-    if (getLoadedRasterImage(overlaySrc)) {
+    const requestId = referenceImageLoadRequestId;
+    if (getLoadedRasterImage(referenceImageSrc)) {
       return;
     }
     const loader = new Image();
@@ -116,28 +113,35 @@ export function createDocumentRuntimeController(options: {
     loader.onload = () => {
       if (
         options.runtimeStore.isDestroyed() ||
-        requestId !== coloringOverlayLoadRequestId
+        requestId !== referenceImageLoadRequestId
       ) {
         return;
       }
-      registerRasterImage(overlaySrc, loader);
+      registerRasterImage(referenceImageSrc, loader);
       options.renderLoopController.requestRenderFromModel();
       scheduleThumbnailSave(0);
     };
-    loader.src = overlaySrc;
+    loader.src = referenceImageSrc;
+  };
+
+  const queueLayerImageLoads = (layers: DrawingLayer[]): void => {
+    for (const layer of layers) {
+      if (layer.kind !== "image" || !layer.image?.src) {
+        continue;
+      }
+      warmRasterImage(layer.image.src);
+      queueReferenceImageLoadWhenNeeded(layer.image.src);
+    }
   };
 
   const applyDocumentPresentation = (
     presentation: DocumentSessionPresentation,
   ): void => {
     options.runtimeStore.setPresentation(presentation);
-    const overlaySrc = getReferenceOverlaySrc(presentation);
-    options.pipeline.setReferenceOverlaySource(overlaySrc);
+    const layers = getOrderedLayersFromDoc(options.store.getDocument());
+    options.pipeline.setLayers(layers);
     options.renderLoopController.updateRenderIdentity();
-    if (overlaySrc) {
-      warmRasterImage(overlaySrc);
-    }
-    queueColoringOverlayRebakeWhenLoaded(overlaySrc);
+    queueLayerImageLoads(layers);
   };
 
   const toDocumentMetadataFromPresentation = (

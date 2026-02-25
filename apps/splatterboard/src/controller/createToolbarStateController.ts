@@ -125,6 +125,7 @@ export class ToolbarStateController {
   }
 
   activateToolAndRemember(toolId: string): void {
+    this.applyActiveLayerForTool(toolId);
     this.options.store.activateTool(toolId);
     this.sanitizeTransparentStylesForTool(toolId);
     const familyId = getFamilyIdForTool(toolId, this.options.catalog);
@@ -214,5 +215,45 @@ export class ToolbarStateController {
     if (Object.keys(nextSettings).length > 0) {
       this.options.store.updateSharedSettings(nextSettings);
     }
+  }
+
+  private applyActiveLayerForTool(toolId: string): void {
+    const mode = this.resolveCurrentMode();
+    const layerId = this.resolveLayerIdForTool(mode, toolId);
+    this.options.store.setActiveLayerId(layerId);
+  }
+
+  private resolveCurrentMode(): "normal" | "coloring" | "markup" {
+    const presentation = this.options.store.getDocument().presentation;
+    if (
+      presentation.documentType === "normal" ||
+      presentation.documentType === "coloring" ||
+      presentation.documentType === "markup"
+    ) {
+      return presentation.documentType;
+    }
+    const composite = presentation.referenceImage?.composite;
+    if (composite === "over-drawing") {
+      return "coloring";
+    }
+    if (composite === "under-drawing") {
+      return "markup";
+    }
+    return "normal";
+  }
+
+  private resolveLayerIdForTool(
+    mode: "normal" | "coloring" | "markup",
+    toolId: string,
+  ): string {
+    const familyId = getFamilyIdForTool(toolId, this.options.catalog);
+    const isStampFamily = familyId?.startsWith("stamp.") ?? false;
+    if (mode === "coloring") {
+      return isStampFamily ? "stickers-over" : "color-under";
+    }
+    if (mode === "markup") {
+      return isStampFamily ? "stickers-over" : "default";
+    }
+    return "default";
   }
 }

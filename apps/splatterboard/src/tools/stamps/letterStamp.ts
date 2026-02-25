@@ -82,6 +82,7 @@ export function createLetterStampShape(params: {
   stampSize: number;
   rotation: number;
   scale: number;
+  layerId: string;
 }): StampShape {
   const geometry = buildLetterStampGeometry({
     glyph: params.glyph,
@@ -99,7 +100,7 @@ export function createLetterStampShape(params: {
       },
     },
     zIndex: params.zIndex,
-    layerId: "default",
+    layerId: params.layerId,
     temporalOrder: 0,
     interactions: {
       resizable: false,
@@ -140,6 +141,7 @@ export function createLetterStampTool(
         stampSize,
         rotation,
         scale,
+        layerId: runtime.getActiveLayerId(),
       });
     },
   });

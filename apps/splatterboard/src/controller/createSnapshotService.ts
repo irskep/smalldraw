@@ -1,11 +1,9 @@
-import type { DrawingStore } from "@smalldraw/core";
+import { type DrawingStore, getOrderedLayers } from "@smalldraw/core";
 import {
-  renderOrderedShapes,
+  renderLayerStack,
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
 import { getLoadedRasterImage } from "../shapes/rasterImageCache";
-
-type ReferenceComposite = "under-drawing" | "over-drawing";
 
 export class SnapshotService {
   constructor(
@@ -13,26 +11,8 @@ export class SnapshotService {
       store: DrawingStore;
       shapeRendererRegistry: ShapeRendererRegistry;
       backgroundColor: string;
-      getReferenceImageSrc: (composite: ReferenceComposite) => string | null;
     },
   ) {}
-
-  private drawReferenceImage(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    composite: ReferenceComposite,
-  ): void {
-    const src = this.options.getReferenceImageSrc(composite);
-    if (!src) {
-      return;
-    }
-    const image = getLoadedRasterImage(src);
-    if (!image) {
-      return;
-    }
-    ctx.drawImage(image, 0, 0, width, height);
-  }
 
   async createThumbnailBlob(): Promise<Blob | null> {
     const { store, shapeRendererRegistry, backgroundColor } = this.options;
@@ -43,6 +23,7 @@ export class SnapshotService {
     const scale = Math.min(1, maxDimension / Math.max(width, height));
     const targetWidth = Math.max(1, Math.round(width * scale));
     const targetHeight = Math.max(1, Math.round(height * scale));
+    const layers = getOrderedLayers(doc);
     const canvas = document.createElement("canvas");
     canvas.width = targetWidth;
     canvas.height = targetHeight;
@@ -53,12 +34,14 @@ export class SnapshotService {
 
     ctx.save();
     ctx.scale(scale, scale);
-    this.drawReferenceImage(ctx, width, height, "under-drawing");
-    renderOrderedShapes(ctx, store.getOrderedShapes(), {
+    renderLayerStack(ctx, layers, store.getOrderedShapes(), {
       registry: shapeRendererRegistry,
       geometryHandlerRegistry: store.getShapeHandlers(),
+      clear: false,
+      resolveImage: (src) => getLoadedRasterImage(src) ?? null,
+      documentWidth: width,
+      documentHeight: height,
     });
-    this.drawReferenceImage(ctx, width, height, "over-drawing");
     ctx.restore();
 
     ctx.save();
@@ -77,6 +60,10 @@ export class SnapshotService {
     height: number;
   }): Promise<{ blob: Blob | null; dataUrl: string | null }> {
     const { store, shapeRendererRegistry, backgroundColor } = this.options;
+    const doc = store.getDocument();
+    const layers = getOrderedLayers(doc);
+    const docWidth = Math.max(1, Math.round(doc.size.width));
+    const docHeight = Math.max(1, Math.round(doc.size.height));
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, Math.round(input.width));
     canvas.height = Math.max(1, Math.round(input.height));
@@ -85,12 +72,14 @@ export class SnapshotService {
       return { blob: null, dataUrl: null };
     }
 
-    this.drawReferenceImage(ctx, canvas.width, canvas.height, "under-drawing");
-    renderOrderedShapes(ctx, store.getOrderedShapes(), {
+    renderLayerStack(ctx, layers, store.getOrderedShapes(), {
       registry: shapeRendererRegistry,
       geometryHandlerRegistry: store.getShapeHandlers(),
+      clear: false,
+      resolveImage: (src) => getLoadedRasterImage(src) ?? null,
+      documentWidth: docWidth,
+      documentHeight: docHeight,
     });
-    this.drawReferenceImage(ctx, canvas.width, canvas.height, "over-drawing");
     ctx.save();
     ctx.globalCompositeOperation = "destination-over";
     ctx.fillStyle = backgroundColor;

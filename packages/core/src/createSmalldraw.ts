@@ -15,6 +15,7 @@ import {
   type DrawingDocumentData,
   type DrawingDocumentPresentation,
   type DrawingDocumentSize,
+  normalizeDocumentLayers,
 } from "./model/document";
 import type { ShapeHandlerRegistry } from "./model/shapeHandlers";
 import type { DrawingStoreAdapter } from "./store/drawingStore";
@@ -232,6 +233,7 @@ function createEmptyDrawingDocumentData(
       height: Math.max(1, Math.round(size.height)),
     },
     presentation,
+    layers: normalizeDocumentLayers(undefined, presentation),
     shapes: {},
     temporalOrderCounter: 0,
   };

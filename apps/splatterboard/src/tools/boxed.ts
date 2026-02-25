@@ -119,7 +119,7 @@ export function createBoxedTool(
         fill: state.draft.style.fill,
       },
       zIndex: state.draft.zIndex,
-      layerId: "default",
+      layerId: runtime.getActiveLayerId(),
       temporalOrder: 0,
       interactions: {
         resizable: true,
@@ -148,7 +148,7 @@ export function createBoxedTool(
         stroke: resolveStroke(runtime),
         fill: resolveFill(runtime),
       },
-      zIndex: runtime.getNextZIndex(),
+      zIndex: runtime.getNextZIndexInLayer(),
     };
     state.draft = draft;
     updateDraft(runtime);
@@ -193,7 +193,7 @@ export function createBoxedTool(
         fill: state.draft.style.fill,
       },
       zIndex: state.draft.zIndex,
-      layerId: "default",
+      layerId: runtime.getActiveLayerId(),
       temporalOrder: 0,
       interactions: {
         resizable: true,

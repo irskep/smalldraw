@@ -4,8 +4,12 @@ import type {
   DrawingDocumentData,
   DrawingDocumentPresentation,
   DrawingDocumentSize,
+  DrawingLayer,
 } from "../model/document";
-import { DEFAULT_DOCUMENT_SIZE } from "../model/document";
+import {
+  DEFAULT_DOCUMENT_SIZE,
+  normalizeDocumentLayers,
+} from "../model/document";
 import type { AnyShape } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
@@ -13,6 +17,7 @@ import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
 export interface DrawingDocumentJSON {
   size: DrawingDocumentSize;
   presentation?: DrawingDocumentPresentation;
+  layers?: Record<string, DrawingLayer>;
   shapes: Record<string, AnyShape>;
   temporalOrderCounter?: number;
 }
@@ -33,6 +38,7 @@ export function toJSON(
   return {
     size: doc.size,
     presentation: doc.presentation,
+    layers: doc.layers,
     shapes,
     temporalOrderCounter: doc.temporalOrderCounter,
   };
@@ -86,6 +92,7 @@ export function fromJSON(
       }
       draft.presentation = nextPresentation;
     }
+    draft.layers = normalizeDocumentLayers(json.layers, draft.presentation);
     draft.shapes = {};
     draft.temporalOrderCounter = json.temporalOrderCounter ?? 0;
     for (const shape of Object.values(json.shapes)) {

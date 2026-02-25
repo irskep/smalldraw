@@ -3,13 +3,13 @@ import {
   type AnyShape,
   attachPointerHandlers,
   createDisposerBucket,
-  getOrderedShapes,
+  getOrderedLayers,
   type ToolDefinition,
   type ToolRuntime,
 } from "@smalldraw/core";
 import { getX, getY } from "@smalldraw/geometry";
 import {
-  renderOrderedShapes,
+  renderLayerStack,
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
 import { registerRasterImage } from "../shapes/rasterImageCache";
@@ -25,6 +25,7 @@ export interface FillToolOptions {
   tolerance?: number;
   featherRadius?: number;
   backgroundColor?: string;
+  resolveImage?: (src: string) => CanvasImageSource | null;
 }
 
 function parseHexColor(color: string): { r: number; g: number; b: number } {
@@ -56,6 +57,7 @@ function renderCurrentCanvas(
   height: number,
   backgroundColor: string,
   shapeRendererRegistry: ShapeRendererRegistry,
+  resolveImage: (src: string) => CanvasImageSource | null,
 ): HTMLCanvasElement | null {
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -64,9 +66,13 @@ function renderCurrentCanvas(
   if (!ctx) {
     return null;
   }
-  renderOrderedShapes(ctx, getOrderedShapes(runtime.getDocument()), {
+  const doc = runtime.getDocument();
+  renderLayerStack(ctx, getOrderedLayers(doc), runtime.getOrderedShapes(), {
     registry: shapeRendererRegistry,
     geometryHandlerRegistry: runtime.getShapeHandlers(),
+    resolveImage,
+    documentWidth: width,
+    documentHeight: height,
   });
   ctx.save();
   ctx.globalCompositeOperation = "destination-over";
@@ -178,6 +184,7 @@ export function createFillTool(options: FillToolOptions): ToolDefinition {
               documentSize.height,
               backgroundColor,
               shapeRendererRegistry,
+              fillOptions.resolveImage ?? (() => null),
             );
             if (!sourceCanvas) {
               return;
@@ -199,7 +206,8 @@ export function createFillTool(options: FillToolOptions): ToolDefinition {
             const fillShape = {
               id: runtime.generateShapeId("fill"),
               type: "raster-fill",
-              zIndex: runtime.getNextZIndex(),
+              zIndex: runtime.getNextZIndexInLayer(),
+              layerId: runtime.getActiveLayerId(),
               geometry: {
                 type: "raster-fill",
                 src: fillResult.dataUrl,

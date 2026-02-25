@@ -1,4 +1,4 @@
-import type { DirtyState, DrawingStore } from "@smalldraw/core";
+import type { DirtyState, DraftShape, DrawingStore } from "@smalldraw/core";
 import type { HotLayer } from "./hotLayer";
 import type { TileRenderer } from "./index";
 import {
@@ -13,6 +13,7 @@ export interface RasterSessionOptions {
   layerController?: {
     setMode: (mode: "tiles" | "hot") => void;
   };
+  getDrafts?: () => DraftShape[];
 }
 
 /**
@@ -27,6 +28,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   private readonly layerController?: {
     setMode: (mode: "tiles" | "hot") => void;
   };
+  private readonly getDraftsFn?: () => DraftShape[];
   private hasBackdropSnapshot = false;
   private captureInFlight: Promise<void> | null = null;
   private skipBackdropUntilStrokeEnd = false;
@@ -47,6 +49,7 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     this.hotLayer = hotLayer;
     this.onBakeError = options.onBakeError;
     this.layerController = options.layerController;
+    this.getDraftsFn = options.getDrafts;
     this.layerController?.setMode("tiles");
   }
 
@@ -64,7 +67,9 @@ export class RasterSession<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     );
     this.hadRenderableShapes = hasRenderableShapes;
     const previousClearShapeIds = new Set(this.knownClearShapeIds);
-    const drafts = this.store.getDrafts();
+    const drafts = this.getDraftsFn
+      ? this.getDraftsFn()
+      : this.store.getDrafts();
     const hasDrafts = drafts.length > 0;
     if (hasDrafts) {
       this.retainHotLayerUntilBakeComplete = false;

@@ -23,12 +23,91 @@ export interface DrawingDocumentPresentation {
   referenceImage?: DrawingDocumentReferenceImage;
 }
 
+export interface DrawingLayer {
+  id: string;
+  name?: string;
+  zIndex: string;
+  kind: "drawing" | "image";
+  visible?: boolean;
+  locked?: boolean;
+  opacity?: number;
+  image?: { src: string };
+}
+
 export const DEFAULT_DOCUMENT_SIZE: DrawingDocumentSize = {
   width: 960,
   height: 600,
 };
 
 export const DEFAULT_DOCUMENT_PRESENTATION: DrawingDocumentPresentation = {};
+export const DEFAULT_LAYER_ID = "default";
+export const DEFAULT_LAYER_Z_INDEX = "a0";
+
+export function getDefaultDrawingLayer(): DrawingLayer {
+  return {
+    id: DEFAULT_LAYER_ID,
+    kind: "drawing",
+    zIndex: DEFAULT_LAYER_Z_INDEX,
+  };
+}
+
+export function getDefaultLayersForPresentation(
+  presentation: DrawingDocumentPresentation | undefined,
+): Record<string, DrawingLayer> {
+  const referenceImage = presentation?.referenceImage;
+  if (
+    referenceImage &&
+    referenceImage.composite === "over-drawing" &&
+    referenceImage.src
+  ) {
+    return {
+      "color-under": {
+        id: "color-under",
+        kind: "drawing",
+        zIndex: "a0",
+      },
+      lineart: {
+        id: "lineart",
+        kind: "image",
+        zIndex: "a1",
+        locked: true,
+        image: { src: referenceImage.src },
+      },
+      "stickers-over": {
+        id: "stickers-over",
+        kind: "drawing",
+        zIndex: "a2",
+      },
+    };
+  }
+  if (
+    referenceImage &&
+    referenceImage.composite === "under-drawing" &&
+    referenceImage.src
+  ) {
+    return {
+      background: {
+        id: "background",
+        kind: "image",
+        zIndex: "a0",
+        locked: true,
+        image: { src: referenceImage.src },
+      },
+      [DEFAULT_LAYER_ID]: {
+        id: DEFAULT_LAYER_ID,
+        kind: "drawing" as const,
+        zIndex: "a1",
+      },
+      "stickers-over": {
+        id: "stickers-over",
+        kind: "drawing",
+        zIndex: "a2",
+      },
+    };
+  }
+  const layer = getDefaultDrawingLayer();
+  return { [layer.id]: layer };
+}
 
 function normalizePresentation(
   presentation: DrawingDocumentPresentation | undefined,
@@ -62,8 +141,19 @@ function normalizePresentation(
 export interface DrawingDocumentData {
   size: DrawingDocumentSize;
   presentation: DrawingDocumentPresentation;
+  layers: Record<string, DrawingLayer>;
   shapes: Record<string, AnyShape>;
   temporalOrderCounter: number;
+}
+
+export function normalizeDocumentLayers(
+  layers: Record<string, DrawingLayer> | undefined,
+  presentation?: DrawingDocumentPresentation,
+): Record<string, DrawingLayer> {
+  if (!layers || Object.keys(layers).length === 0) {
+    return getDefaultLayersForPresentation(presentation);
+  }
+  return layers;
 }
 
 export type DrawingDocument = Doc<DrawingDocumentData>;
@@ -81,6 +171,7 @@ export function createDocument(
       height: Math.max(1, Math.round(size.height)),
     };
     draft.presentation = normalizePresentation(presentation);
+    draft.layers = normalizeDocumentLayers(undefined, draft.presentation);
     draft.shapes = {};
     let maxTemporalOrder = -1;
     if (initialShapes) {

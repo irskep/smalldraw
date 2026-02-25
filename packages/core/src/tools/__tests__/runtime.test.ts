@@ -39,6 +39,7 @@ function createRuntime(overrides?: RuntimeOverrides) {
   const runtime = new ToolRuntimeImpl({
     toolId: "brush.freehand",
     getDocument: () => document,
+    getActiveLayerId: () => "default",
     commitAction: (action) => {
       document = undoManager.apply(action, document, ctx);
     },
@@ -162,6 +163,7 @@ describe("ToolRuntimeImpl", () => {
     const runtime = new ToolRuntimeImpl({
       toolId: "brush.freehand",
       getDocument: () => document,
+      getActiveLayerId: () => "default",
       commitAction: (action) => {
         document = undoManager.apply(action, document, {
           registry,

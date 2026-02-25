@@ -78,18 +78,6 @@ export class DocumentSessionController {
     return { mode: "normal" };
   }
 
-  getReferenceOverlaySrc(
-    presentation: DocumentSessionPresentation,
-  ): string | null {
-    if (
-      presentation.referenceComposite !== "over-drawing" ||
-      !presentation.referenceImageSrc
-    ) {
-      return null;
-    }
-    return presentation.referenceImageSrc;
-  }
-
   toDocumentMetadataFromPresentation(
     presentation: DocumentSessionPresentation,
   ): Pick<

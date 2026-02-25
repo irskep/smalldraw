@@ -2,7 +2,12 @@ import { change } from "@automerge/automerge/slim";
 import { type Box, BoxOperations } from "@smalldraw/geometry";
 import type { ActionContext, UndoableAction } from "../actions";
 import { filterShapesAfterClear } from "../model/clear";
-import { createDocument, type DrawingDocument } from "../model/document";
+import {
+  createDocument,
+  DEFAULT_LAYER_ID,
+  type DrawingDocument,
+  normalizeDocumentLayers,
+} from "../model/document";
 import type { Shape } from "../model/shape";
 import {
   getDefaultShapeHandlerRegistry,
@@ -63,6 +68,7 @@ export class DrawingStore {
   private tools = new Map<string, ToolDefinition>();
   private sharedSettings: SharedToolSettings;
   private selectionState: SelectionState = { ids: new Set<string>() };
+  private activeLayerId = DEFAULT_LAYER_ID;
   private toolStates = new Map<string, unknown>();
   private activeToolId: string | null = null;
   private activeToolDeactivate?: () => void;
@@ -111,6 +117,7 @@ export class DrawingStore {
     };
     this.document =
       options.document ?? createDocument(undefined, this.shapeHandlers);
+    this.syncActiveLayerId();
     this.undoManager = options.undoManager ?? new UndoManager();
     this.onRenderNeeded = options.onRenderNeeded;
     this.onDocumentChanged = options.onDocumentChanged;
@@ -226,6 +233,7 @@ export class DrawingStore {
     runtime = new ToolRuntimeImpl({
       toolId,
       getDocument: () => this.document,
+      getActiveLayerId: () => this.activeLayerId,
       commitAction: (action) => this.mutateDocument(action),
       shapeHandlers: this.shapeHandlers,
       sharedSettings: this.sharedSettings,
@@ -355,6 +363,7 @@ export class DrawingStore {
   applyDocument(nextDoc: DrawingDocument): void {
     const prevDoc = this.document;
     this.document = nextDoc;
+    this.syncActiveLayerId();
     this.orderedCache = null;
     this.dirtyShapeIds = new Set(Object.keys(nextDoc.shapes));
     this.deletedShapeIds = new Set(
@@ -367,6 +376,7 @@ export class DrawingStore {
   resetToDocument(nextDoc: DrawingDocument): void {
     const prevDoc = this.document;
     this.document = nextDoc;
+    this.syncActiveLayerId();
     this.undoManager.clear();
     this.orderedCache = null;
     this.dirtyShapeIds = new Set(Object.keys(nextDoc.shapes));
@@ -398,6 +408,7 @@ export class DrawingStore {
       this.document,
       this.actionContext,
     );
+    this.syncActiveLayerId();
     this.trackDirtyState(action);
     this.onAction?.({ type: "apply", action, doc: this.document });
     this.onDocumentChanged?.(this.document);
@@ -499,6 +510,22 @@ export class DrawingStore {
     return this.activeToolId;
   }
 
+  getActiveLayerId(): string {
+    return this.activeLayerId;
+  }
+
+  setActiveLayerId(layerId: string): void {
+    const layers = normalizeDocumentLayers(
+      this.document.layers,
+      this.document.presentation,
+    );
+    if (layers[layerId]) {
+      this.activeLayerId = layerId;
+      return;
+    }
+    this.activeLayerId = DEFAULT_LAYER_ID;
+  }
+
   getSharedSettings(): SharedToolSettings {
     return { ...this.sharedSettings };
   }
@@ -566,6 +593,7 @@ export class DrawingStore {
     const outcome = this.undoManager.undo(this.document, this.actionContext);
     if (outcome.action) {
       this.document = outcome.doc;
+      this.syncActiveLayerId();
       this.trackDirtyState(outcome.action);
       this.onAction?.({
         type: "undo",
@@ -596,6 +624,7 @@ export class DrawingStore {
     const outcome = this.undoManager.redo(this.document, this.actionContext);
     if (outcome.action) {
       this.document = outcome.doc;
+      this.syncActiveLayerId();
       this.trackDirtyState(outcome.action);
       this.onAction?.({
         type: "redo",
@@ -623,5 +652,18 @@ export class DrawingStore {
 
   getShapeHandlers(): ShapeHandlerRegistry {
     return this.shapeHandlers;
+  }
+
+  private syncActiveLayerId(): void {
+    const layers = normalizeDocumentLayers(
+      this.document.layers,
+      this.document.presentation,
+    );
+    if (layers[this.activeLayerId]) {
+      return;
+    }
+    this.activeLayerId = layers[DEFAULT_LAYER_ID]
+      ? DEFAULT_LAYER_ID
+      : (Object.keys(layers)[0] ?? DEFAULT_LAYER_ID);
   }
 }

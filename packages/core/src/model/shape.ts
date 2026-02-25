@@ -7,6 +7,7 @@ import {
   type Vec2Tuple,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+import { DEFAULT_LAYER_ID } from "./document";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 import type { ShapeStyle } from "./style";
 
@@ -99,18 +100,20 @@ export function canonicalizeShape(
   const transform = normalizeShapeTransform(shape.transform);
   const ops = registry.get(shape.type)?.geometry;
 
-  if (!ops) return { ...shape, transform };
+  if (!ops)
+    return { ...shape, layerId: shape.layerId ?? DEFAULT_LAYER_ID, transform };
 
   const bounds = ops.getBounds(shape);
 
   if (!bounds || !ops.canonicalize) {
     // No handler or no canonicalization - return with normalized transform
-    return { ...shape, transform };
+    return { ...shape, layerId: shape.layerId ?? DEFAULT_LAYER_ID, transform };
   }
   const center = new BoxOperations(bounds).center;
 
   return {
     ...shape,
+    layerId: shape.layerId ?? DEFAULT_LAYER_ID,
     geometry: ops.canonicalize(shape, center) as AnyGeometry,
     transform: {
       ...transform,

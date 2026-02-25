@@ -60,6 +60,7 @@ export function createImageStampShape(params: {
   stampSize: number;
   rotation: number;
   scale: number;
+  layerId: string;
 }): StampShape {
   const size = computeImageStampSize(params.asset, params.stampSize);
   const geometry: ImageStampGeometry = {
@@ -81,7 +82,7 @@ export function createImageStampShape(params: {
       },
     },
     zIndex: params.zIndex,
-    layerId: "default",
+    layerId: params.layerId,
     temporalOrder: 0,
     interactions: {
       resizable: false,
@@ -121,6 +122,7 @@ export function createImageStampTool(
         stampSize,
         rotation,
         scale,
+        layerId: runtime.getActiveLayerId(),
       });
     },
   });

@@ -9,7 +9,7 @@
     "build": "tsup src/index.ts --dts --format esm",
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "bunx biome check --write",
-    "test": "bun test --preload ./src/__tests__/setup.ts"
+    "test": "bun test"
   },
   "dependencies": {
     "@smalldraw/core": "workspace:*"

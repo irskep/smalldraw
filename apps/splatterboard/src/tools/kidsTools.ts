@@ -12,6 +12,7 @@ import {
   SprayCan,
   Square,
 } from "lucide";
+import { getLoadedRasterImage } from "../shapes/rasterImageCache";
 import type { SquareIconSource } from "../view/SquareIconButton";
 import {
   createAlphabetStampTool,
@@ -127,7 +128,10 @@ export function createKidsToolCatalog(
   const EVEN_SPRAYCAN_TOOL = createEvenSpraycanTool();
   const UNEVEN_SPRAYCAN_TOOL = createUnevenSpraycanTool();
   const ERASER_TOOL = createEraserTool();
-  const FILL_TOOL = createFillTool({ shapeRendererRegistry });
+  const FILL_TOOL = createFillTool({
+    shapeRendererRegistry,
+    resolveImage: (src) => getLoadedRasterImage(src) ?? null,
+  });
   const RECTANGLE_TOOL = createRectangleTool();
   const ELLIPSE_TOOL = createEllipseTool();
   const RECTANGLE_OUTLINE_TOOL = createRectangleOutlineTool();

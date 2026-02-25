@@ -70,6 +70,8 @@ export interface ToolRuntime {
   commit(action: UndoableAction): void;
   /** Helpers for generating ids and z-index keys. */
   generateShapeId(prefix?: string): string;
+  getActiveLayerId(): string;
+  getNextZIndexInLayer(layerId?: string): string;
   getNextZIndex(): string;
   /** Access tool configuration or settings passed in by the host application. */
   getOptions<TOptions = Record<string, unknown>>(): TOptions | undefined;

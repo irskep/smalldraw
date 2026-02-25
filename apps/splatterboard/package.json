@@ -7,7 +7,7 @@
     "dev": "bun ./src/index.html --watch --host=0.0.0.0:3000",
     "generate:coloring-assets": "bun run ./scripts/generate-coloring-assets.ts",
     "serve": "bunx serve dist",
-    "test": "bun test --preload ./src/__tests__/setup.ts --timeout 4000",
+    "test": "bun test --timeout 4000",
     "lint": "bunx biome check --write",
     "ts:check": "tsc -p tsconfig.json --noEmit"
   },

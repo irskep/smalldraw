@@ -118,8 +118,6 @@ export function createKidsDrawController(options: {
     store,
     shapeRendererRegistry,
     backgroundColor,
-    getReferenceImageSrc: (composite) =>
-      runtimeStore.getReferenceImageSrc(composite),
   });
   const cursorOverlay = createCursorOverlayController({
     store,

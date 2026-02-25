@@ -1,6 +1,14 @@
-import type { AnyShape, DrawingStore } from "@smalldraw/core";
+import type {
+  AnyShape,
+  DrawingLayer,
+  DrawingStore,
+  Shape,
+} from "@smalldraw/core";
 import { BoxOperations, Vec2 } from "@smalldraw/geometry";
-import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
+import {
+  renderLayerStack,
+  type ShapeRendererRegistry,
+} from "@smalldraw/renderer-canvas";
 import {
   createDomLayerController,
   createDomTileProvider,
@@ -20,7 +28,7 @@ export interface RasterPipeline {
   getTilePixelRatio(): number;
   setRenderIdentity(renderIdentity: string): void;
   bakeInitialShapes(shapes: AnyShape[]): void;
-  setReferenceOverlaySource(src: string | null): void;
+  setLayers(layers: DrawingLayer[]): void;
   scheduleBakeForClear(): void;
   bakePendingTiles(): void;
   dispose(): void;
@@ -40,8 +48,80 @@ export function createRasterPipeline(options: {
   let width = options.width;
   let height = options.height;
   let tilePixelRatio = options.tilePixelRatio;
-  let coloringOverlaySource: string | null = null;
-  let coloringOverlayNeedsRedraw = true;
+  let orderedLayers: DrawingLayer[] = [];
+  let overlayDirty = true;
+  let overlayOrderedShapesRef: unknown = null;
+  let overlayDraftSignature = "";
+
+  const getBaseDrawingLayer = (): DrawingLayer | null => {
+    for (const layer of orderedLayers) {
+      if (layer.kind === "drawing") {
+        return layer;
+      }
+    }
+    return null;
+  };
+
+  const getOverlayLayers = (): DrawingLayer[] => {
+    const baseLayer = getBaseDrawingLayer();
+    if (!baseLayer) {
+      return orderedLayers;
+    }
+    const baseIndex = orderedLayers.findIndex(
+      (layer) => layer.id === baseLayer.id,
+    );
+    if (baseIndex < 0 || baseIndex >= orderedLayers.length - 1) {
+      return [];
+    }
+    return orderedLayers.slice(baseIndex + 1);
+  };
+
+  const getOverlayLayerIdSet = (): Set<string> => {
+    return new Set(getOverlayLayers().map((layer) => layer.id));
+  };
+
+  const getBaseDrafts = () => {
+    const baseLayerId = getBaseDrawingLayer()?.id;
+    if (!baseLayerId) {
+      return [];
+    }
+    return store
+      .getDrafts()
+      .filter((draft) => (draft.layerId ?? "default") === baseLayerId);
+  };
+
+  const getOverlayDrafts = () => {
+    const overlayLayerIds = getOverlayLayerIdSet();
+    if (overlayLayerIds.size === 0) {
+      return [];
+    }
+    return store
+      .getDrafts()
+      .filter((draft) => overlayLayerIds.has(draft.layerId ?? "default"));
+  };
+
+  const getOrderedOverlayShapes = (): Shape[] => {
+    const overlayLayerIds = getOverlayLayerIdSet();
+    if (overlayLayerIds.size === 0) {
+      return [];
+    }
+    return store
+      .getOrderedShapes()
+      .filter((shape) => overlayLayerIds.has(shape.layerId ?? "default"));
+  };
+
+  const getOverlayDraftSignature = (
+    drafts: Array<{ id: string; zIndex: string; layerId?: string }>,
+  ): string => {
+    if (drafts.length === 0) {
+      return "";
+    }
+    return drafts
+      .map(
+        (draft) => `${draft.id}:${draft.zIndex}:${draft.layerId ?? "default"}`,
+      )
+      .join("|");
+  };
 
   const tileProvider = createDomTileProvider(stage.tileLayer, {
     getPixelRatio: () => tilePixelRatio,
@@ -79,7 +159,17 @@ export function createRasterPipeline(options: {
           -coord.x * TILE_SIZE * tileScaleX,
           -coord.y * TILE_SIZE * tileScaleY,
         );
-        tileRenderer.renderShapes(ctx, store.getOrderedShapes());
+        const baseLayer = getBaseDrawingLayer();
+        if (baseLayer) {
+          renderLayerStack(ctx, [baseLayer], store.getOrderedShapes(), {
+            registry: shapeRendererRegistry,
+            geometryHandlerRegistry: store.getShapeHandlers(),
+            clear: false,
+            resolveImage: (src) => getLoadedRasterImage(src) ?? null,
+            documentWidth: width,
+            documentHeight: height,
+          });
+        }
         ctx.restore();
       },
     },
@@ -105,6 +195,7 @@ export function createRasterPipeline(options: {
 
   const session = new RasterSession(store, tileRenderer, hotLayer, {
     layerController,
+    getDrafts: () => getBaseDrafts(),
   });
 
   const hotCtx = stage.hotCanvas.getContext("2d");
@@ -140,29 +231,66 @@ export function createRasterPipeline(options: {
       stage.hotOverlayCanvas.width,
       stage.hotOverlayCanvas.height,
     );
-    coloringOverlayNeedsRedraw = true;
+    overlayDirty = true;
   };
 
-  const renderColoringOverlay = (): void => {
-    if (!coloringOverlaySource) {
+  const hideHotOverlay = (): void => {
+    stage.hotOverlayCanvas.style.display = "none";
+    hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
+    hotOverlayCtx.clearRect(
+      0,
+      0,
+      stage.hotOverlayCanvas.width,
+      stage.hotOverlayCanvas.height,
+    );
+  };
+
+  const renderHotOverlay = (): void => {
+    const overlayLayers = getOverlayLayers();
+    const overlayDrafts = getOverlayDrafts();
+
+    if (overlayLayers.length === 0 && overlayDrafts.length === 0) {
+      hideHotOverlay();
+      return;
+    }
+
+    const allImagesReady = overlayLayers.every(
+      (layer) =>
+        layer.kind !== "image" ||
+        !layer.image?.src ||
+        getLoadedRasterImage(layer.image.src) != null,
+    );
+    if (!allImagesReady) {
       stage.hotOverlayCanvas.style.display = "none";
-      hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
-      hotOverlayCtx.clearRect(
-        0,
-        0,
-        stage.hotOverlayCanvas.width,
-        stage.hotOverlayCanvas.height,
-      );
       return;
     }
-    const overlayImage = getLoadedRasterImage(coloringOverlaySource);
-    if (!overlayImage) {
-      stage.hotOverlayCanvas.style.display = "none";
+
+    const orderedShapes = store.getOrderedShapes();
+    if (orderedShapes !== overlayOrderedShapesRef) {
+      overlayOrderedShapesRef = orderedShapes;
+      overlayDirty = true;
+    }
+
+    const draftSignature = getOverlayDraftSignature(overlayDrafts);
+    if (draftSignature !== overlayDraftSignature) {
+      overlayDraftSignature = draftSignature;
+      overlayDirty = true;
+    }
+
+    if (!overlayDirty) {
       return;
     }
-    if (!coloringOverlayNeedsRedraw) {
-      return;
-    }
+
+    const committedOverlayShapes = getOrderedOverlayShapes();
+    const overlayShapes = [...committedOverlayShapes, ...overlayDrafts].sort(
+      (a, b) => {
+        if (a.zIndex === b.zIndex) {
+          return 0;
+        }
+        return a.zIndex < b.zIndex ? -1 : 1;
+      },
+    );
+
     stage.hotOverlayCanvas.style.display = "block";
     hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
     hotOverlayCtx.clearRect(
@@ -171,14 +299,23 @@ export function createRasterPipeline(options: {
       stage.hotOverlayCanvas.width,
       stage.hotOverlayCanvas.height,
     );
-    hotOverlayCtx.drawImage(
-      overlayImage,
-      0,
-      0,
-      stage.hotOverlayCanvas.width,
-      stage.hotOverlayCanvas.height,
-    );
-    coloringOverlayNeedsRedraw = false;
+
+    const scaleX = stage.hotOverlayCanvas.width / width;
+    const scaleY = stage.hotOverlayCanvas.height / height;
+    hotOverlayCtx.save();
+    hotOverlayCtx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
+
+    renderLayerStack(hotOverlayCtx, overlayLayers, overlayShapes, {
+      registry: shapeRendererRegistry,
+      geometryHandlerRegistry: store.getShapeHandlers(),
+      clear: false,
+      resolveImage: (src) => getLoadedRasterImage(src) ?? null,
+      documentWidth: width,
+      documentHeight: height,
+    });
+
+    hotOverlayCtx.restore();
+    overlayDirty = false;
   };
 
   applyHotCanvasPixelRatio();
@@ -186,7 +323,7 @@ export function createRasterPipeline(options: {
   return {
     render() {
       session.render();
-      renderColoringOverlay();
+      renderHotOverlay();
     },
     updateDirtyRectOverlay() {
       if (!stage.dirtyRectOverlay || !stage.dirtyRectShape) {
@@ -236,22 +373,16 @@ export function createRasterPipeline(options: {
       tileRenderer.scheduleBakeForShapes(shapes.map((shape) => shape.id));
       void tileRenderer.bakePendingTiles();
     },
-    setReferenceOverlaySource(src) {
-      if (typeof src === "string" && src.length > 0) {
-        coloringOverlaySource = src;
-        coloringOverlayNeedsRedraw = true;
-        return;
-      }
-      coloringOverlaySource = null;
-      coloringOverlayNeedsRedraw = false;
-      stage.hotOverlayCanvas.style.display = "none";
-      hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
-      hotOverlayCtx.clearRect(
-        0,
-        0,
-        stage.hotOverlayCanvas.width,
-        stage.hotOverlayCanvas.height,
-      );
+    setLayers(layers) {
+      orderedLayers = [...layers].sort((a, b) => {
+        if (a.zIndex === b.zIndex) {
+          return 0;
+        }
+        return a.zIndex < b.zIndex ? -1 : 1;
+      });
+      overlayOrderedShapesRef = null;
+      overlayDraftSignature = "";
+      overlayDirty = true;
     },
     scheduleBakeForClear() {
       tileRenderer.scheduleBakeForClear();
@@ -264,15 +395,7 @@ export function createRasterPipeline(options: {
       layerController.setMode("tiles");
       hotLayer.clear();
       hotLayer.setBackdrop(null);
-      coloringOverlayNeedsRedraw = false;
-      stage.hotOverlayCanvas.style.display = "none";
-      hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
-      hotOverlayCtx.clearRect(
-        0,
-        0,
-        stage.hotOverlayCanvas.width,
-        stage.hotOverlayCanvas.height,
-      );
+      hideHotOverlay();
     },
   };
 }

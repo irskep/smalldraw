@@ -53,6 +53,7 @@ interface StrokeDraftState {
   };
   stroke: StrokeStyle;
   zIndex: string;
+  layerId: string;
   lastInputPoint: Vec2 | null;
   sprayDistanceRemainder: number;
   sprayClusterRemainder: number;
@@ -126,7 +127,7 @@ export function createStrokeTool(
       finishStroke(runtime);
     }
     const draftId = runtime.generateShapeId(options.draftIdPrefix);
-    const zIndex = runtime.getNextZIndex();
+    const zIndex = runtime.getNextZIndexInLayer();
     const stroke = resolveStroke(runtime);
     const sprayMode = getSprayMode(stroke.brushId);
     const drawing: StrokeDraftState = {
@@ -141,6 +142,7 @@ export function createStrokeTool(
       },
       stroke,
       zIndex,
+      layerId: runtime.getActiveLayerId(),
       lastInputPoint: new Vec2(point),
       sprayDistanceRemainder: 0,
       sprayClusterRemainder: 0,
@@ -648,7 +650,7 @@ function createStrokeShape(draft: StrokeDraftState): PenShape | undefined {
       stroke: draft.stroke,
     },
     zIndex: draft.zIndex,
-    layerId: "default",
+    layerId: draft.layerId,
     temporalOrder: 0,
     interactions: {
       resizable: true,
@@ -679,7 +681,7 @@ function createPreviewStrokeShape(
       stroke: draft.stroke,
     },
     zIndex: draft.zIndex,
-    layerId: "default",
+    layerId: draft.layerId,
     temporalOrder: 0,
     interactions: {
       resizable: true,

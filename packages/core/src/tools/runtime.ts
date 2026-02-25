@@ -3,7 +3,11 @@ import type { UndoableAction } from "../actions";
 import type { DrawingDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
 import type { ShapeHandlerRegistry } from "../model/shapeHandlers";
-import { getOrderedShapes, getZIndexBetween } from "../zindex";
+import {
+  getOrderedShapes,
+  getTopZIndexInLayer,
+  getZIndexBetween,
+} from "../zindex";
 import type {
   DraftShape,
   SelectionState,
@@ -19,6 +23,7 @@ import type {
 interface ToolRuntimeConfig<TOptions = unknown> {
   toolId: string;
   getDocument: () => DrawingDocument;
+  getActiveLayerId?: () => string;
   commitAction: (action: UndoableAction) => void;
   shapeHandlers: ShapeHandlerRegistry;
   options?: TOptions;
@@ -39,6 +44,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
   public readonly toolId: string;
   private readonly getDocumentFn: () => DrawingDocument;
   private readonly commitAction: (action: UndoableAction) => void;
+  private readonly getActiveLayerIdFn: () => string;
   private readonly shapeHandlers: ShapeHandlerRegistry;
   private readonly options?: TOptions;
   private readonly onDraftChange?: (drafts: DraftShape[]) => void;
@@ -55,6 +61,7 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
     this.toolId = config.toolId;
     this.shapeHandlers = config.shapeHandlers;
     this.getDocumentFn = config.getDocument;
+    this.getActiveLayerIdFn = config.getActiveLayerId ?? (() => "default");
     this.commitAction = config.commitAction;
     this.options = config.options;
     this.onDraftChange = config.onDraftChange;
@@ -159,10 +166,17 @@ export class ToolRuntimeImpl<TOptions = unknown> implements ToolRuntime {
     return `${prefix}-${nanoid()}`;
   }
 
-  getNextZIndex(): string {
-    const ordered = getOrderedShapes(this.getDocumentFn());
-    const last = ordered.length ? ordered[ordered.length - 1].zIndex : null;
+  getActiveLayerId(): string {
+    return this.getActiveLayerIdFn();
+  }
+
+  getNextZIndexInLayer(layerId = this.getActiveLayerId()): string {
+    const last = getTopZIndexInLayer(this.getDocumentFn(), layerId);
     return getZIndexBetween(last, null);
+  }
+
+  getNextZIndex(): string {
+    return this.getNextZIndexInLayer();
   }
 
   getOptions<T = TOptions>(): T | undefined {
