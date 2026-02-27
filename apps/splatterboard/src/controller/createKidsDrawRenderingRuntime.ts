@@ -10,6 +10,7 @@ import {
   type LayoutControllerDependencies,
 } from "./createLayoutController";
 import { RenderLoopController } from "./createRenderLoopController";
+import { logStartupEvent } from "./startup/startupLogger";
 import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 
 type RenderingRuntimeOptions = Omit<
@@ -54,6 +55,9 @@ export function createKidsDrawRenderingRuntime(
       getSize: options.getSize,
       getPresentationIdentity: () =>
         options.runtimeStore.getPresentationIdentity(),
+      onRenderIdentityChanged: (identity) => {
+        logStartupEvent("render_identity_changed", { identity });
+      },
       onRenderPass: () => {
         const startMs = options.perfSession.recordRenderPassStart();
         options.inputSessionController.onRenderPass();

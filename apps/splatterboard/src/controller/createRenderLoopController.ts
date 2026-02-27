@@ -19,6 +19,7 @@ export class RenderLoopController {
       resizeBakeDebounceMs?: number;
       getSize: () => { width: number; height: number };
       getPresentationIdentity: () => string;
+      onRenderIdentityChanged?: (identity: string) => void;
       onRenderPass: () => void;
       perfSession: {
         onRafFrameExecuted: () => void;
@@ -50,6 +51,7 @@ export class RenderLoopController {
     if (nextIdentity !== this.currentRenderIdentity) {
       this.currentRenderIdentity = nextIdentity;
       this.options.pipeline.setRenderIdentity(this.currentRenderIdentity);
+      this.options.onRenderIdentityChanged?.(this.currentRenderIdentity);
     }
   }
 

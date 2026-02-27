@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { createDocumentPickerStore } from "../controller/stores/createDocumentPickerStore";
 import { createDocumentSessionStore } from "../controller/stores/createDocumentSessionStore";
 import { createKidsDrawRuntimeStore } from "../controller/stores/createKidsDrawRuntimeStore";
+import { createStartupReadinessStore } from "../controller/stores/createStartupReadinessStore";
 import { createUiIntentStore } from "../controller/stores/createUiIntentStore";
 
 describe("createKidsDrawRuntimeStore", () => {
@@ -185,5 +186,52 @@ describe("createDocumentPickerStore", () => {
     expect(updates).toBe(baselineUpdates + 2);
 
     unbind();
+  });
+});
+
+describe("createStartupReadinessStore", () => {
+  test("tracks startup phases and asset counters", () => {
+    const store = createStartupReadinessStore();
+
+    store.startDocLoad("switch_document");
+    expect(store.getState()).toMatchObject({
+      phase: "doc_loading",
+      interactionEnabled: false,
+      lastBlockingReason: "switch_document",
+    });
+
+    store.setAssetsExpected(2);
+    store.markAssetLoaded();
+    store.markAssetFailed();
+    expect(store.getState()).toMatchObject({
+      phase: "assets_loading",
+      assetsTotal: 2,
+      assetsLoaded: 1,
+      assetsFailed: 1,
+      interactionEnabled: false,
+    });
+
+    store.startFirstBake();
+    expect(store.getState().phase).toBe("first_bake");
+    expect(store.getState().interactionEnabled).toBeFalse();
+
+    store.markReady();
+    expect(store.getState()).toMatchObject({
+      phase: "ready",
+      interactionEnabled: true,
+      lastBlockingReason: undefined,
+    });
+  });
+
+  test("degraded state still enables interaction", () => {
+    const store = createStartupReadinessStore();
+    store.startDocLoad("switch_document");
+    store.markDegraded("asset_timeout");
+
+    expect(store.getState()).toMatchObject({
+      phase: "degraded",
+      interactionEnabled: true,
+      lastBlockingReason: "asset_timeout",
+    });
   });
 });

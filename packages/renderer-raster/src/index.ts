@@ -482,6 +482,12 @@ export {
   type DomTileProviderOptions,
 } from "./dom";
 export { HotLayer, type HotLayerOptions } from "./hotLayer";
+export {
+  createLayerStack,
+  type LayerRenderStrategy,
+  type LayerStack,
+  resolveLayerStrategy,
+} from "./layerStack";
 export { RasterSession, type RasterSessionOptions } from "./session";
 export { createInMemorySnapshotStore } from "./snapshots";
 export { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";

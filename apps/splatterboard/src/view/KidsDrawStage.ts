@@ -1,6 +1,7 @@
 import "./KidsDrawStage.css";
 
 import { el, mount } from "redom";
+import type { StartupPhase } from "../controller/stores/createStartupReadinessStore";
 import type { UiIntentStore } from "../controller/stores/createUiIntentStore";
 import type { ReDomLike } from "./ReDomLike";
 
@@ -19,12 +20,22 @@ export interface KidsDrawStage extends ReDomLike<HTMLDivElement> {
   readonly hotCanvas: HTMLCanvasElement;
   readonly hotOverlayCanvas: HTMLCanvasElement;
   readonly overlay: HTMLDivElement;
+  readonly startupOverlay: HTMLDivElement;
+  readonly startupOverlayText: HTMLParagraphElement;
   readonly cursorIndicator: HTMLDivElement;
   readonly dirtyRectOverlay: SVGSVGElement | null;
   readonly dirtyRectShape: SVGRectElement | null;
   setViewportLayout(options: { profile: string }): void;
   clearSideInsetSlots(): void;
   setSceneDimensions(width: number, height: number): void;
+  setInteractionEnabled(enabled: boolean): void;
+  setStartupStatus(status: {
+    visible: boolean;
+    phase: StartupPhase;
+    assetsLoaded: number;
+    assetsTotal: number;
+    assetsFailed: number;
+  }): void;
   destroy(): void;
 }
 
@@ -42,6 +53,8 @@ export class KidsDrawStageView implements KidsDrawStage {
   readonly hotCanvas: HTMLCanvasElement;
   readonly hotOverlayCanvas: HTMLCanvasElement;
   readonly overlay: HTMLDivElement;
+  readonly startupOverlay: HTMLDivElement;
+  readonly startupOverlayText: HTMLParagraphElement;
   readonly cursorIndicator: HTMLDivElement;
   readonly dirtyRectOverlay: SVGSVGElement | null;
   readonly dirtyRectShape: SVGRectElement | null;
@@ -113,6 +126,14 @@ export class KidsDrawStageView implements KidsDrawStage {
     this.overlay = el(
       "div.kids-draw-layer.kids-draw-overlay",
     ) as HTMLDivElement;
+    this.startupOverlay = el(
+      "div.kids-draw-layer.kids-draw-startup-overlay",
+    ) as HTMLDivElement;
+    this.startupOverlayText = el(
+      "p.kids-draw-startup-text",
+      "Loading drawing…",
+    ) as HTMLParagraphElement;
+    mount(this.startupOverlay, this.startupOverlayText);
     this.cursorIndicator = el(
       "div.kids-draw-cursor-indicator",
     ) as HTMLDivElement;
@@ -126,6 +147,7 @@ export class KidsDrawStageView implements KidsDrawStage {
       mount(this.sceneRoot, this.dirtyRectOverlay);
     }
     mount(this.sceneRoot, this.overlay);
+    mount(this.sceneRoot, this.startupOverlay);
     mount(this.sceneRoot, this.cursorIndicator);
     mount(this.canvasFrame, this.sceneRoot);
     mount(insetUi, this.insetTopSlot);
@@ -166,6 +188,37 @@ export class KidsDrawStageView implements KidsDrawStage {
   clearSideInsetSlots(): void {
     this.insetLeftSlot.replaceChildren();
     this.insetRightSlot.replaceChildren();
+  }
+
+  setInteractionEnabled(enabled: boolean): void {
+    this.overlay.style.pointerEvents = enabled ? "" : "none";
+  }
+
+  setStartupStatus(status: {
+    visible: boolean;
+    phase: StartupPhase;
+    assetsLoaded: number;
+    assetsTotal: number;
+    assetsFailed: number;
+  }): void {
+    this.startupOverlay.dataset.visible = status.visible ? "true" : "false";
+    if (!status.visible) {
+      this.startupOverlayText.textContent = "";
+      return;
+    }
+    const progressText =
+      status.assetsTotal > 0
+        ? ` (${status.assetsLoaded}/${status.assetsTotal}${
+            status.assetsFailed > 0 ? `, ${status.assetsFailed} failed` : ""
+          })`
+        : "";
+    const phaseText =
+      status.phase === "assets_loading"
+        ? "Loading drawing assets…"
+        : status.phase === "first_bake"
+          ? "Preparing drawing…"
+          : "Loading drawing…";
+    this.startupOverlayText.textContent = `${phaseText}${progressText}`;
   }
 
   destroy(): void {

@@ -39,6 +39,7 @@ import { createLifecycleScope } from "./createLifecycleScope";
 import { SnapshotService } from "./createSnapshotService";
 import { ToolbarStateController } from "./createToolbarStateController";
 import { createKidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
+import { createStartupReadinessStore } from "./stores/createStartupReadinessStore";
 import type { UiIntentStore } from "./stores/createUiIntentStore";
 
 type ConfirmDialogRequest = {
@@ -114,6 +115,7 @@ export function createKidsDrawController(options: {
   const { add } = lifecycleScope;
 
   const runtimeStore = createKidsDrawRuntimeStore();
+  const startupReadinessStore = createStartupReadinessStore();
   const snapshotService = new SnapshotService({
     store,
     shapeRendererRegistry,
@@ -236,6 +238,7 @@ export function createKidsDrawController(options: {
       documentBackend,
       snapshotService,
       runtimeStore,
+      startupReadinessStore,
       toolbarStateController,
       renderLoopController,
       pipeline,
@@ -325,6 +328,17 @@ export function createKidsDrawController(options: {
   });
 
   toolbarUiPersistence.start();
+  const unbindStartupReadiness = startupReadinessStore.subscribe((state) => {
+    stage.setInteractionEnabled(state.interactionEnabled);
+    stage.setStartupStatus({
+      visible: !state.interactionEnabled,
+      phase: state.phase,
+      assetsLoaded: state.assetsLoaded,
+      assetsTotal: state.assetsTotal,
+      assetsFailed: state.assetsFailed,
+    });
+  });
+  add(unbindStartupReadiness);
   documentRuntimeController.start();
   renderLoopController.updateRenderIdentity();
   applyLayoutAndPixelRatio();

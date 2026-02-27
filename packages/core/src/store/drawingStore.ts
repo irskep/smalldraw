@@ -89,9 +89,13 @@ export class DrawingStore {
   // Dirty tracking for incremental rendering
   private dirtyShapeIds = new Set<string>();
   private deletedShapeIds = new Set<string>();
+  private dirtyShapeIdsByLayer = new Map<string, Set<string>>();
+  private deletedShapeIdsByLayer = new Map<string, Set<string>>();
+  private shapeLayerById = new Map<string, string>();
 
   // Cached ordered shapes for performance
   private orderedCache: Shape[] | null = null;
+  private orderedCacheByLayer = new Map<string, Shape[]>();
 
   // Callback invoked whenever rendering is needed
   private onRenderNeeded?: () => void;
@@ -117,6 +121,7 @@ export class DrawingStore {
     };
     this.document =
       options.document ?? createDocument(undefined, this.shapeHandlers);
+    this.rebuildShapeLayerIndex();
     this.syncActiveLayerId();
     this.undoManager = options.undoManager ?? new UndoManager();
     this.onRenderNeeded = options.onRenderNeeded;
@@ -365,10 +370,29 @@ export class DrawingStore {
     this.document = nextDoc;
     this.syncActiveLayerId();
     this.orderedCache = null;
+    this.orderedCacheByLayer.clear();
     this.dirtyShapeIds = new Set(Object.keys(nextDoc.shapes));
-    this.deletedShapeIds = new Set(
-      Object.keys(prevDoc.shapes).filter((id) => !(id in nextDoc.shapes)),
-    );
+    this.deletedShapeIds = new Set();
+    this.dirtyShapeIdsByLayer = new Map();
+    this.deletedShapeIdsByLayer = new Map();
+    for (const shape of Object.values(nextDoc.shapes)) {
+      this.addShapeToLayerDirtyBucket(this.dirtyShapeIdsByLayer, shape);
+    }
+    for (const id of Object.keys(prevDoc.shapes)) {
+      if (id in nextDoc.shapes) {
+        continue;
+      }
+      this.deletedShapeIds.add(id);
+      const deletedLayerId = this.shapeLayerById.get(id);
+      if (deletedLayerId) {
+        this.addShapeIdToLayerBucket(
+          this.deletedShapeIdsByLayer,
+          deletedLayerId,
+          id,
+        );
+      }
+    }
+    this.rebuildShapeLayerIndex();
     this.onDocumentChanged?.(this.document);
     this.triggerRender();
   }
@@ -379,10 +403,29 @@ export class DrawingStore {
     this.syncActiveLayerId();
     this.undoManager.clear();
     this.orderedCache = null;
+    this.orderedCacheByLayer.clear();
     this.dirtyShapeIds = new Set(Object.keys(nextDoc.shapes));
-    this.deletedShapeIds = new Set(
-      Object.keys(prevDoc.shapes).filter((id) => !(id in nextDoc.shapes)),
-    );
+    this.deletedShapeIds = new Set();
+    this.dirtyShapeIdsByLayer = new Map();
+    this.deletedShapeIdsByLayer = new Map();
+    for (const shape of Object.values(nextDoc.shapes)) {
+      this.addShapeToLayerDirtyBucket(this.dirtyShapeIdsByLayer, shape);
+    }
+    for (const id of Object.keys(prevDoc.shapes)) {
+      if (id in nextDoc.shapes) {
+        continue;
+      }
+      this.deletedShapeIds.add(id);
+      const deletedLayerId = this.shapeLayerById.get(id);
+      if (deletedLayerId) {
+        this.addShapeIdToLayerBucket(
+          this.deletedShapeIdsByLayer,
+          deletedLayerId,
+          id,
+        );
+      }
+    }
+    this.rebuildShapeLayerIndex();
     this.selectionState.ids.clear();
     this.selectionState.primaryId = undefined;
     this.handles = [];
@@ -424,17 +467,32 @@ export class DrawingStore {
     // Invalidate ordered cache if action affects z-order
     if (action.affectsZOrder()) {
       this.orderedCache = null;
+      this.orderedCacheByLayer.clear();
     }
 
     for (const id of action.affectedShapeIds()) {
-      if (this.document.shapes[id]) {
+      const shape = this.document.shapes[id];
+      if (shape) {
         // Shape exists after action → it was modified
         this.dirtyShapeIds.add(id);
         this.deletedShapeIds.delete(id); // In case it was previously marked deleted
+        this.addShapeToLayerDirtyBucket(this.dirtyShapeIdsByLayer, shape);
+        this.removeShapeIdFromAllLayerBuckets(this.deletedShapeIdsByLayer, id);
+        this.shapeLayerById.set(id, shape.layerId ?? DEFAULT_LAYER_ID);
       } else {
         // Shape doesn't exist after action → it was deleted
         this.deletedShapeIds.add(id);
         this.dirtyShapeIds.delete(id); // No longer dirty, it's gone
+        this.removeShapeIdFromAllLayerBuckets(this.dirtyShapeIdsByLayer, id);
+        const deletedLayerId = this.shapeLayerById.get(id);
+        if (deletedLayerId) {
+          this.addShapeIdToLayerBucket(
+            this.deletedShapeIdsByLayer,
+            deletedLayerId,
+            id,
+          );
+        }
+        this.shapeLayerById.delete(id);
       }
     }
   }
@@ -450,7 +508,28 @@ export class DrawingStore {
     };
     this.dirtyShapeIds = new Set();
     this.deletedShapeIds = new Set();
+    this.dirtyShapeIdsByLayer = new Map();
+    this.deletedShapeIdsByLayer = new Map();
     return result;
+  }
+
+  /**
+   * Consume and clear dirty state grouped by layer. This API is consume-once.
+   */
+  consumeDirtyStateByLayer(): {
+    dirtyByLayer: Map<string, Set<string>>;
+    deletedByLayer: Map<string, Set<string>>;
+  } {
+    const dirtyByLayer = this.dirtyShapeIdsByLayer;
+    const deletedByLayer = this.deletedShapeIdsByLayer;
+    this.dirtyShapeIdsByLayer = new Map();
+    this.deletedShapeIdsByLayer = new Map();
+    this.dirtyShapeIds = new Set();
+    this.deletedShapeIds = new Set();
+    return {
+      dirtyByLayer,
+      deletedByLayer,
+    };
   }
 
   /**
@@ -504,6 +583,22 @@ export class DrawingStore {
       this.orderedCache = filterShapesAfterClear(ordered) as Shape[];
     }
     return this.orderedCache;
+  }
+
+  /**
+   * Returns cached, z-ordered committed shapes for the provided layer.
+   * Cache invalidates on add/delete/z-index/layer reassignment paths.
+   */
+  getOrderedShapesForLayer(layerId: string): Shape[] {
+    const cached = this.orderedCacheByLayer.get(layerId);
+    if (cached) {
+      return cached;
+    }
+    const ordered = this.getOrderedShapes().filter(
+      (shape) => (shape.layerId ?? DEFAULT_LAYER_ID) === layerId,
+    );
+    this.orderedCacheByLayer.set(layerId, ordered);
+    return ordered;
   }
 
   getActiveToolId(): string | null {
@@ -665,5 +760,45 @@ export class DrawingStore {
     this.activeLayerId = layers[DEFAULT_LAYER_ID]
       ? DEFAULT_LAYER_ID
       : (Object.keys(layers)[0] ?? DEFAULT_LAYER_ID);
+  }
+
+  private rebuildShapeLayerIndex(): void {
+    this.shapeLayerById.clear();
+    for (const shape of Object.values(this.document.shapes)) {
+      this.shapeLayerById.set(shape.id, shape.layerId ?? DEFAULT_LAYER_ID);
+    }
+  }
+
+  private addShapeToLayerDirtyBucket(
+    bucket: Map<string, Set<string>>,
+    shape: Shape,
+  ): void {
+    this.addShapeIdToLayerBucket(
+      bucket,
+      shape.layerId ?? DEFAULT_LAYER_ID,
+      shape.id,
+    );
+  }
+
+  private addShapeIdToLayerBucket(
+    bucket: Map<string, Set<string>>,
+    layerId: string,
+    shapeId: string,
+  ): void {
+    const existing = bucket.get(layerId);
+    if (existing) {
+      existing.add(shapeId);
+      return;
+    }
+    bucket.set(layerId, new Set([shapeId]));
+  }
+
+  private removeShapeIdFromAllLayerBuckets(
+    bucket: Map<string, Set<string>>,
+    shapeId: string,
+  ): void {
+    for (const ids of bucket.values()) {
+      ids.delete(shapeId);
+    }
   }
 }

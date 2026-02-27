@@ -26,6 +26,35 @@ function createTestShape(id: string) {
 }
 
 describe("Dirty tracking", () => {
+  test("consumeDirtyStateByLayer buckets dirty and deleted IDs by layer", () => {
+    const store = new DrawingStore({ tools: [] });
+    store.mutateDocument(
+      new AddShape({ ...createTestShape("shape-1"), layerId: "base" }),
+    );
+    store.mutateDocument(
+      new AddShape({ ...createTestShape("shape-2"), layerId: "stickers" }),
+    );
+    store.consumeDirtyStateByLayer();
+
+    store.mutateDocument(new DeleteShape("shape-1"));
+    const state = store.consumeDirtyStateByLayer();
+
+    expect(state.dirtyByLayer.get("base")?.size ?? 0).toBe(0);
+    expect(state.deletedByLayer.get("base")?.has("shape-1")).toBe(true);
+    expect(state.dirtyByLayer.get("stickers")?.size ?? 0).toBe(0);
+  });
+
+  test("consumeDirtyStateByLayer is consume-once", () => {
+    const store = new DrawingStore({ tools: [] });
+    store.mutateDocument(new AddShape(createTestShape("shape-1")));
+    const first = store.consumeDirtyStateByLayer();
+    expect(first.dirtyByLayer.get("default")?.has("shape-1")).toBe(true);
+
+    const second = store.consumeDirtyStateByLayer();
+    expect(second.dirtyByLayer.size).toBe(0);
+    expect(second.deletedByLayer.size).toBe(0);
+  });
+
   test("affectedShapeIds returns shape ID for AddShape", () => {
     const action = new AddShape(createTestShape("test-1"));
     expect(action.affectedShapeIds()).toEqual(["test-1"]);

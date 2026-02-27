@@ -1,22 +1,7 @@
-import type {
-  AnyShape,
-  DrawingLayer,
-  DrawingStore,
-  Shape,
-} from "@smalldraw/core";
+import type { AnyShape, DrawingLayer, DrawingStore } from "@smalldraw/core";
 import { BoxOperations, Vec2 } from "@smalldraw/geometry";
-import {
-  renderLayerStack,
-  type ShapeRendererRegistry,
-} from "@smalldraw/renderer-canvas";
-import {
-  createDomLayerController,
-  createDomTileProvider,
-  HotLayer,
-  RasterSession,
-  TILE_SIZE,
-  TileRenderer,
-} from "@smalldraw/renderer-raster";
+import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
+import { createLayerStack, HotLayer } from "@smalldraw/renderer-raster";
 import { getLoadedRasterImage } from "../shapes/rasterImageCache";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 
@@ -31,6 +16,7 @@ export interface RasterPipeline {
   setLayers(layers: DrawingLayer[]): void;
   scheduleBakeForClear(): void;
   bakePendingTiles(): void;
+  flushBakes(): Promise<void>;
   dispose(): void;
 }
 
@@ -49,159 +35,25 @@ export function createRasterPipeline(options: {
   let height = options.height;
   let tilePixelRatio = options.tilePixelRatio;
   let orderedLayers: DrawingLayer[] = [];
-  let overlayDirty = true;
-  let overlayOrderedShapesRef: unknown = null;
-  let overlayDraftSignature = "";
-
-  const getBaseDrawingLayer = (): DrawingLayer | null => {
-    for (const layer of orderedLayers) {
-      if (layer.kind === "drawing") {
-        return layer;
-      }
-    }
-    return null;
-  };
-
-  const getOverlayLayers = (): DrawingLayer[] => {
-    const baseLayer = getBaseDrawingLayer();
-    if (!baseLayer) {
-      return orderedLayers;
-    }
-    const baseIndex = orderedLayers.findIndex(
-      (layer) => layer.id === baseLayer.id,
-    );
-    if (baseIndex < 0 || baseIndex >= orderedLayers.length - 1) {
-      return [];
-    }
-    return orderedLayers.slice(baseIndex + 1);
-  };
-
-  const getOverlayLayerIdSet = (): Set<string> => {
-    return new Set(getOverlayLayers().map((layer) => layer.id));
-  };
-
-  const getBaseDrafts = () => {
-    const baseLayerId = getBaseDrawingLayer()?.id;
-    if (!baseLayerId) {
-      return [];
-    }
-    return store
-      .getDrafts()
-      .filter((draft) => (draft.layerId ?? "default") === baseLayerId);
-  };
-
-  const getOverlayDrafts = () => {
-    const overlayLayerIds = getOverlayLayerIdSet();
-    if (overlayLayerIds.size === 0) {
-      return [];
-    }
-    return store
-      .getDrafts()
-      .filter((draft) => overlayLayerIds.has(draft.layerId ?? "default"));
-  };
-
-  const getOrderedOverlayShapes = (): Shape[] => {
-    const overlayLayerIds = getOverlayLayerIdSet();
-    if (overlayLayerIds.size === 0) {
-      return [];
-    }
-    return store
-      .getOrderedShapes()
-      .filter((shape) => overlayLayerIds.has(shape.layerId ?? "default"));
-  };
-
-  const getOverlayDraftSignature = (
-    drafts: Array<{ id: string; zIndex: string; layerId?: string }>,
-  ): string => {
-    if (drafts.length === 0) {
-      return "";
-    }
-    return drafts
-      .map(
-        (draft) => `${draft.id}:${draft.zIndex}:${draft.layerId ?? "default"}`,
-      )
-      .join("|");
-  };
-
-  const tileProvider = createDomTileProvider(stage.tileLayer, {
-    getPixelRatio: () => tilePixelRatio,
-    getTileIdentity: () => currentRenderIdentity,
-  });
-
-  const tileRenderer = new TileRenderer(store, tileProvider, {
-    shapeRendererRegistry,
-    backgroundColor,
-    renderIdentity: options.renderIdentity,
-    baker: {
-      bakeTile: async (coord, canvas) => {
-        const expectedTilePixels = Math.max(
-          1,
-          Math.round(TILE_SIZE * tilePixelRatio),
-        );
-        if (canvas.width !== expectedTilePixels) {
-          canvas.width = expectedTilePixels;
-        }
-        if (canvas.height !== expectedTilePixels) {
-          canvas.height = expectedTilePixels;
-        }
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        const tileScaleX = canvas.width / TILE_SIZE;
-        const tileScaleY = canvas.height / TILE_SIZE;
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.save();
-        ctx.setTransform(
-          tileScaleX,
-          0,
-          0,
-          tileScaleY,
-          -coord.x * TILE_SIZE * tileScaleX,
-          -coord.y * TILE_SIZE * tileScaleY,
-        );
-        const baseLayer = getBaseDrawingLayer();
-        if (baseLayer) {
-          renderLayerStack(ctx, [baseLayer], store.getOrderedShapes(), {
-            registry: shapeRendererRegistry,
-            geometryHandlerRegistry: store.getShapeHandlers(),
-            clear: false,
-            resolveImage: (src) => getLoadedRasterImage(src) ?? null,
-            documentWidth: width,
-            documentHeight: height,
-          });
-        }
-        ctx.restore();
-      },
-    },
-  });
-
   let currentRenderIdentity = options.renderIdentity;
-  tileRenderer.updateViewport({ min: [0, 0], max: [width, height] });
+  let draftSessionActive = false;
+  let draftCaptureInFlight: Promise<void> | null = null;
+  const knownClearShapeIds = new Set<string>();
+
+  const layerStack = createLayerStack({
+    store,
+    host: stage.tileLayer,
+    hotCanvas: stage.hotCanvas,
+    shapeRendererRegistry,
+    resolveImage: (src) => getLoadedRasterImage(src) ?? null,
+    backgroundColor,
+  });
 
   const hotLayer = new HotLayer(stage.hotCanvas, {
     shapeRendererRegistry,
     backgroundColor: undefined,
   });
-  const layerController = createDomLayerController(
-    stage.tileLayer,
-    stage.hotCanvas,
-  );
-  hotLayer.setViewport({
-    width,
-    height,
-    center: new Vec2(width / 2, height / 2),
-    scale: 1,
-  });
 
-  const session = new RasterSession(store, tileRenderer, hotLayer, {
-    layerController,
-    getDrafts: () => getBaseDrafts(),
-  });
-
-  const hotCtx = stage.hotCanvas.getContext("2d");
-  if (!hotCtx) {
-    throw new Error("splatterboard hot canvas requires a 2D context");
-  }
   const hotOverlayCtx = stage.hotOverlayCanvas.getContext("2d");
   if (!hotOverlayCtx) {
     throw new Error("splatterboard hot overlay canvas requires a 2D context");
@@ -222,8 +74,6 @@ export function createRasterPipeline(options: {
     if (stage.hotOverlayCanvas.height !== nextHeight) {
       stage.hotOverlayCanvas.height = nextHeight;
     }
-    hotCtx.setTransform(1, 0, 0, 1, 0, 0);
-    hotCtx.clearRect(0, 0, stage.hotCanvas.width, stage.hotCanvas.height);
     hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
     hotOverlayCtx.clearRect(
       0,
@@ -231,106 +81,130 @@ export function createRasterPipeline(options: {
       stage.hotOverlayCanvas.width,
       stage.hotOverlayCanvas.height,
     );
-    overlayDirty = true;
-  };
-
-  const hideHotOverlay = (): void => {
     stage.hotOverlayCanvas.style.display = "none";
-    hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
-    hotOverlayCtx.clearRect(
-      0,
-      0,
-      stage.hotOverlayCanvas.width,
-      stage.hotOverlayCanvas.height,
-    );
+    layerStack.updateViewport(width, height, tilePixelRatio);
+    hotLayer.setViewport({
+      width,
+      height,
+      center: new Vec2(width / 2, height / 2),
+      scale: 1,
+    });
   };
 
-  const renderHotOverlay = (): void => {
-    const overlayLayers = getOverlayLayers();
-    const overlayDrafts = getOverlayDrafts();
+  const getActiveLayerDrafts = () => {
+    const activeLayerId = store.getActiveLayerId();
+    return store
+      .getDrafts()
+      .filter((draft) => (draft.layerId ?? "default") === activeLayerId);
+  };
 
-    if (overlayLayers.length === 0 && overlayDrafts.length === 0) {
-      hideHotOverlay();
+  const hasClearMutation = (
+    dirtyShapeIds: Iterable<string>,
+    deletedShapeIds: Iterable<string>,
+  ): boolean => {
+    const shapes = store.getDocument().shapes;
+    for (const shapeId of dirtyShapeIds) {
+      if (shapes[shapeId]?.type === "clear") {
+        return true;
+      }
+    }
+    for (const shapeId of deletedShapeIds) {
+      if (knownClearShapeIds.has(shapeId)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const updateKnownClearShapeIds = (): void => {
+    knownClearShapeIds.clear();
+    for (const [shapeId, shape] of Object.entries(store.getDocument().shapes)) {
+      if (shape.type === "clear") {
+        knownClearShapeIds.add(shapeId);
+      }
+    }
+  };
+
+  const beginDraftSession = (): void => {
+    if (draftSessionActive || draftCaptureInFlight) {
+      return;
+    }
+    draftCaptureInFlight = layerStack
+      .beginActiveLayerDraftSession()
+      .then(() => {
+        hotLayer.setBackdrop(layerStack.getActiveLayerBackdropSnapshot());
+        draftSessionActive = true;
+      })
+      .finally(() => {
+        draftCaptureInFlight = null;
+        renderInternal();
+      });
+  };
+
+  const endDraftSession = (): void => {
+    if (!draftSessionActive) {
+      return;
+    }
+    hotLayer.clear();
+    hotLayer.setBackdrop(null);
+    layerStack.endActiveLayerDraftSession();
+    draftSessionActive = false;
+    stage.hotCanvas.style.visibility = "hidden";
+  };
+
+  const renderInternal = (): void => {
+    layerStack.setActiveLayer(store.getActiveLayerId());
+    const dirtyByLayerState = store.consumeDirtyStateByLayer();
+    const dirtyShapeIds = new Set<string>();
+    const deletedShapeIds = new Set<string>();
+    for (const ids of dirtyByLayerState.dirtyByLayer.values()) {
+      for (const shapeId of ids) {
+        dirtyShapeIds.add(shapeId);
+      }
+    }
+    for (const ids of dirtyByLayerState.deletedByLayer.values()) {
+      for (const shapeId of ids) {
+        deletedShapeIds.add(shapeId);
+      }
+    }
+
+    if (hasClearMutation(dirtyShapeIds, deletedShapeIds)) {
+      layerStack.scheduleFullInvalidation();
+    } else {
+      layerStack.routeDirtyShapes(dirtyShapeIds, deletedShapeIds);
+    }
+
+    const drafts = getActiveLayerDrafts();
+    if (drafts.length === 0) {
+      endDraftSession();
+      updateKnownClearShapeIds();
       return;
     }
 
-    const allImagesReady = overlayLayers.every(
-      (layer) =>
-        layer.kind !== "image" ||
-        !layer.image?.src ||
-        getLoadedRasterImage(layer.image.src) != null,
-    );
-    if (!allImagesReady) {
-      stage.hotOverlayCanvas.style.display = "none";
+    if (!draftSessionActive) {
+      beginDraftSession();
+      updateKnownClearShapeIds();
       return;
     }
 
-    const orderedShapes = store.getOrderedShapes();
-    if (orderedShapes !== overlayOrderedShapesRef) {
-      overlayOrderedShapesRef = orderedShapes;
-      overlayDirty = true;
-    }
-
-    const draftSignature = getOverlayDraftSignature(overlayDrafts);
-    if (draftSignature !== overlayDraftSignature) {
-      overlayDraftSignature = draftSignature;
-      overlayDirty = true;
-    }
-
-    if (!overlayDirty) {
-      return;
-    }
-
-    const committedOverlayShapes = getOrderedOverlayShapes();
-    const overlayShapes = [...committedOverlayShapes, ...overlayDrafts].sort(
-      (a, b) => {
-        if (a.zIndex === b.zIndex) {
-          return 0;
-        }
-        return a.zIndex < b.zIndex ? -1 : 1;
-      },
-    );
-
-    stage.hotOverlayCanvas.style.display = "block";
-    hotOverlayCtx.setTransform(1, 0, 0, 1, 0, 0);
-    hotOverlayCtx.clearRect(
-      0,
-      0,
-      stage.hotOverlayCanvas.width,
-      stage.hotOverlayCanvas.height,
-    );
-
-    const scaleX = stage.hotOverlayCanvas.width / width;
-    const scaleY = stage.hotOverlayCanvas.height / height;
-    hotOverlayCtx.save();
-    hotOverlayCtx.setTransform(scaleX, 0, 0, scaleY, 0, 0);
-
-    renderLayerStack(hotOverlayCtx, overlayLayers, overlayShapes, {
-      registry: shapeRendererRegistry,
-      geometryHandlerRegistry: store.getShapeHandlers(),
-      clear: false,
-      resolveImage: (src) => getLoadedRasterImage(src) ?? null,
-      documentWidth: width,
-      documentHeight: height,
-    });
-
-    hotOverlayCtx.restore();
-    overlayDirty = false;
+    hotLayer.renderDrafts(drafts);
+    stage.hotCanvas.style.visibility = "";
+    updateKnownClearShapeIds();
   };
 
   applyHotCanvasPixelRatio();
+  layerStack.setRenderIdentity(currentRenderIdentity);
 
   return {
     render() {
-      session.render();
-      renderHotOverlay();
+      renderInternal();
     },
     updateDirtyRectOverlay() {
       if (!stage.dirtyRectOverlay || !stage.dirtyRectShape) {
         return;
       }
       const preview = store.getPreview();
-      const hasDrafts = store.getDrafts().length > 0;
+      const hasDrafts = getActiveLayerDrafts().length > 0;
       if (!hasDrafts || !preview?.dirtyBounds) {
         stage.dirtyRectOverlay.style.visibility = "hidden";
         return;
@@ -345,13 +219,6 @@ export function createRasterPipeline(options: {
     updateViewport(nextWidth, nextHeight) {
       width = nextWidth;
       height = nextHeight;
-      tileRenderer.updateViewport({ min: [0, 0], max: [width, height] });
-      hotLayer.setViewport({
-        width,
-        height,
-        center: new Vec2(width / 2, height / 2),
-        scale: 1,
-      });
       applyHotCanvasPixelRatio();
     },
     setTilePixelRatio(nextPixelRatio) {
@@ -363,15 +230,14 @@ export function createRasterPipeline(options: {
     },
     setRenderIdentity(renderIdentity) {
       currentRenderIdentity = renderIdentity;
-      tileRenderer.setRenderIdentity(renderIdentity);
+      layerStack.setRenderIdentity(renderIdentity);
     },
     bakeInitialShapes(shapes) {
-      if (!shapes.length) return;
-      for (const shape of shapes) {
-        tileRenderer.updateTouchedTilesForShape(shape);
+      if (!shapes.length) {
+        return;
       }
-      tileRenderer.scheduleBakeForShapes(shapes.map((shape) => shape.id));
-      void tileRenderer.bakePendingTiles();
+      const shapeIds = shapes.map((shape) => shape.id);
+      layerStack.routeDirtyShapes(shapeIds, []);
     },
     setLayers(layers) {
       orderedLayers = [...layers].sort((a, b) => {
@@ -380,22 +246,24 @@ export function createRasterPipeline(options: {
         }
         return a.zIndex < b.zIndex ? -1 : 1;
       });
-      overlayOrderedShapesRef = null;
-      overlayDraftSignature = "";
-      overlayDirty = true;
+      layerStack.setLayers(orderedLayers);
+      layerStack.setActiveLayer(store.getActiveLayerId());
     },
     scheduleBakeForClear() {
-      tileRenderer.scheduleBakeForClear();
+      layerStack.scheduleFullInvalidation();
     },
     bakePendingTiles() {
-      void tileRenderer.bakePendingTiles();
+      void layerStack.flushBakes();
+    },
+    flushBakes() {
+      return layerStack.flushBakes();
     },
     dispose() {
-      tileRenderer.dispose();
-      layerController.setMode("tiles");
+      endDraftSession();
+      layerStack.dispose();
       hotLayer.clear();
       hotLayer.setBackdrop(null);
-      hideHotOverlay();
+      stage.hotOverlayCanvas.style.display = "none";
     },
   };
 }
