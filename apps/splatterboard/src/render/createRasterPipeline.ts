@@ -2,6 +2,7 @@ import type { AnyShape, DrawingLayer, DrawingStore } from "@smalldraw/core";
 import { BoxOperations, Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { createLayerStack, HotLayer } from "@smalldraw/renderer-raster";
+import { logDiagnosticEvent } from "../controller/diagnostics/diagnosticLogger";
 import { getLoadedRasterImage } from "../shapes/rasterImageCache";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 
@@ -167,8 +168,21 @@ export function createRasterPipeline(options: {
         deletedShapeIds.add(shapeId);
       }
     }
+    if (dirtyShapeIds.size > 0 || deletedShapeIds.size > 0) {
+      logDiagnosticEvent("pipeline_dirty_consumed", {
+        dirtyCount: dirtyShapeIds.size,
+        deletedCount: deletedShapeIds.size,
+        dirtyLayerCount: dirtyByLayerState.dirtyByLayer.size,
+        deletedLayerCount: dirtyByLayerState.deletedByLayer.size,
+        activeLayerId: store.getActiveLayerId(),
+      });
+    }
 
     if (hasClearMutation(dirtyShapeIds, deletedShapeIds)) {
+      logDiagnosticEvent("pipeline_clear_invalidation_scheduled", {
+        dirtyCount: dirtyShapeIds.size,
+        deletedCount: deletedShapeIds.size,
+      });
       layerStack.scheduleFullInvalidation();
     } else {
       layerStack.routeDirtyShapes(dirtyShapeIds, deletedShapeIds);
@@ -230,6 +244,9 @@ export function createRasterPipeline(options: {
     },
     setRenderIdentity(renderIdentity) {
       currentRenderIdentity = renderIdentity;
+      logDiagnosticEvent("pipeline_render_identity_set", {
+        renderIdentity,
+      });
       layerStack.setRenderIdentity(renderIdentity);
     },
     bakeInitialShapes(shapes) {
@@ -246,16 +263,26 @@ export function createRasterPipeline(options: {
         }
         return a.zIndex < b.zIndex ? -1 : 1;
       });
+      logDiagnosticEvent("pipeline_layers_set", {
+        layerCount: orderedLayers.length,
+        layers: orderedLayers.map((layer) => ({
+          id: layer.id,
+          kind: layer.kind,
+        })),
+      });
       layerStack.setLayers(orderedLayers);
       layerStack.setActiveLayer(store.getActiveLayerId());
     },
     scheduleBakeForClear() {
+      logDiagnosticEvent("pipeline_schedule_bake_for_clear");
       layerStack.scheduleFullInvalidation();
     },
     bakePendingTiles() {
+      logDiagnosticEvent("pipeline_bake_pending_tiles_requested");
       void layerStack.flushBakes();
     },
     flushBakes() {
+      logDiagnosticEvent("pipeline_flush_bakes_requested");
       return layerStack.flushBakes();
     },
     dispose() {

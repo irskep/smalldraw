@@ -38,6 +38,7 @@ import { createKidsDrawRenderingRuntime } from "./createKidsDrawRenderingRuntime
 import { createLifecycleScope } from "./createLifecycleScope";
 import { SnapshotService } from "./createSnapshotService";
 import { ToolbarStateController } from "./createToolbarStateController";
+import { logDiagnosticEvent } from "./diagnostics/diagnosticLogger";
 import { createKidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 import { createStartupReadinessStore } from "./stores/createStartupReadinessStore";
 import type { UiIntentStore } from "./stores/createUiIntentStore";
@@ -326,6 +327,16 @@ export function createKidsDrawController(options: {
     syncToolbarUi();
     renderLoopController.requestRenderFromModel();
   });
+  store.setOnAction((event) => {
+    const affectedShapeIds = event.action.affectedShapeIds();
+    logDiagnosticEvent("store_action", {
+      actionType: event.type,
+      actionName: event.action.constructor?.name ?? "unknown_action",
+      affectedShapeCount: affectedShapeIds.length,
+      affectedShapeIds: affectedShapeIds.slice(0, 8),
+      documentShapeCount: Object.keys(event.doc.shapes).length,
+    });
+  });
 
   toolbarUiPersistence.start();
   const unbindStartupReadiness = startupReadinessStore.subscribe((state) => {
@@ -352,6 +363,7 @@ export function createKidsDrawController(options: {
       debugLifecycle("destroy");
 
       store.setOnRenderNeeded(undefined);
+      store.setOnAction(undefined);
       toolbarUiPersistence.stop();
       toolbarUiPersistence.flush();
       documentRuntimeController.dispose();

@@ -105,6 +105,7 @@ export class DrawingStore {
   private onUndoFailure?: (message: string) => void;
   private renderBatchDepth = 0;
   private renderQueuedDuringBatch = false;
+  private actionSequence = 0;
 
   // Shape handler registry
   private shapeHandlers: ShapeHandlerRegistry;
@@ -365,6 +366,10 @@ export class DrawingStore {
     this.mutateDocument(action);
   }
 
+  getActionSequence(): number {
+    return this.actionSequence;
+  }
+
   applyDocument(nextDoc: DrawingDocument): void {
     const prevDoc = this.document;
     this.document = nextDoc;
@@ -443,6 +448,8 @@ export class DrawingStore {
     if (this.actionDispatcher) {
       this.undoManager.record(action);
       this.actionDispatcher({ type: "apply", action, doc: this.document });
+      this.onAction?.({ type: "apply", action, doc: this.document });
+      this.actionSequence += 1;
       this.triggerRender();
       return;
     }
@@ -454,6 +461,7 @@ export class DrawingStore {
     this.syncActiveLayerId();
     this.trackDirtyState(action);
     this.onAction?.({ type: "apply", action, doc: this.document });
+    this.actionSequence += 1;
     this.onDocumentChanged?.(this.document);
     this.triggerRender();
   }
@@ -690,6 +698,7 @@ export class DrawingStore {
       this.document = outcome.doc;
       this.syncActiveLayerId();
       this.trackDirtyState(outcome.action);
+      this.actionSequence += 1;
       this.onAction?.({
         type: "undo",
         action: outcome.action,
@@ -721,6 +730,7 @@ export class DrawingStore {
       this.document = outcome.doc;
       this.syncActiveLayerId();
       this.trackDirtyState(outcome.action);
+      this.actionSequence += 1;
       this.onAction?.({
         type: "redo",
         action: outcome.action,

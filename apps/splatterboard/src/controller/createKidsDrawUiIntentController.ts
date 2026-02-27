@@ -3,6 +3,7 @@ import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { CursorOverlayController } from "./createCursorOverlayController";
 import type { InputSessionController } from "./createInputSessionController";
 import type { ToolbarStateController } from "./createToolbarStateController";
+import { logDiagnosticEvent } from "./diagnostics/diagnosticLogger";
 import type { KidsDrawUiIntent } from "./KidsDrawUiIntent";
 
 export function createKidsDrawUiIntentController(options: {
@@ -116,6 +117,7 @@ export function createKidsDrawUiIntentController(options: {
         );
         return;
       case "lost_pointer_capture":
+        logDiagnosticEvent("ui_intent_lost_pointer_capture", undefined, "warn");
         options.runtime.inputSessionController.forceCancelPointerSession();
         return;
       case "pointer_leave":
