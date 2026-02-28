@@ -67,6 +67,9 @@ export function getShapeBounds(
   registry: ShapeHandlerRegistry,
   transformOverride?: ShapeTransform | CanonicalShapeTransform | null,
 ): Box {
+  if (!registry.has(shape.type)) {
+    throw new Error(`No shape handler registered for type "${shape.type}"`);
+  }
   const transform = normalizeShapeTransform(
     transformOverride ?? shape.transform,
   );

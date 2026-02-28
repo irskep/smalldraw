@@ -18,6 +18,7 @@ export * from "./model/shapes/clearShape";
 export * from "./model/shapes/penShape";
 export * from "./model/shapeTypes";
 export * from "./model/style";
+export * from "./store/diffDocumentShapes";
 export * from "./store/drawingStore";
 export * from "./tools/disposerBucket";
 export * from "./tools/pointerDrag";

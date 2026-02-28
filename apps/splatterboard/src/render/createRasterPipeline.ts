@@ -3,8 +3,12 @@ import { BoxOperations, Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { createLayerStack, HotLayer } from "@smalldraw/renderer-raster";
 import { logDiagnosticEvent } from "../controller/diagnostics/diagnosticLogger";
-import { getLoadedRasterImage } from "../shapes/rasterImageCache";
+import {
+  getLoadedRasterImage,
+  onDeferredImageLoaded,
+} from "../shapes/rasterImageCache";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
+import { processApplyDocumentDiff } from "./processApplyDocumentDiff";
 
 export interface RasterPipeline {
   render(): void;
@@ -155,6 +159,10 @@ export function createRasterPipeline(options: {
 
   const renderInternal = (): void => {
     layerStack.setActiveLayer(store.getActiveLayerId());
+    const applyDiff = store.consumeApplyDocumentDiff();
+    if (applyDiff) {
+      processApplyDocumentDiff(applyDiff, layerStack, store.getShapeHandlers());
+    }
     const dirtyByLayerState = store.consumeDirtyStateByLayer();
     const dirtyShapeIds = new Set<string>();
     const deletedShapeIds = new Set<string>();
@@ -208,6 +216,11 @@ export function createRasterPipeline(options: {
 
   applyHotCanvasPixelRatio();
   layerStack.setRenderIdentity(currentRenderIdentity);
+
+  const disposeDeferredImageListener = onDeferredImageLoaded(() => {
+    logDiagnosticEvent("pipeline_deferred_image_loaded");
+    layerStack.scheduleFullInvalidation();
+  });
 
   return {
     render() {
@@ -286,6 +299,7 @@ export function createRasterPipeline(options: {
       return layerStack.flushBakes();
     },
     dispose() {
+      disposeDeferredImageListener();
       endDraftSession();
       layerStack.dispose();
       hotLayer.clear();

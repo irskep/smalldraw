@@ -13,7 +13,7 @@ describe("InputSessionController", () => {
 
     const controller = new InputSessionController({
       store: {
-        dispatch(type, payload) {
+        dispatch(type: string, payload: { buttons: number }) {
           dispatchEvents.push({ type, buttons: payload.buttons });
         },
         dispatchBatch() {},
@@ -35,7 +35,7 @@ describe("InputSessionController", () => {
       overlayElement: {
         setPointerCapture() {},
         releasePointerCapture() {},
-      } as HTMLElement,
+      } as unknown as HTMLElement,
       initialLastPointerPoint: point(0, 0),
       toPoint: (event) => point(event.clientX, event.clientY),
       onScheduleThumbnailSave() {},

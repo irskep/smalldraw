@@ -1,4 +1,5 @@
 import type { AnyShape, DrawingLayer, DrawingStore } from "@smalldraw/core";
+import type { Box } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import {
   renderLayerStack,
@@ -27,10 +28,23 @@ export interface LayerStack {
     dirtyShapeIds: Iterable<string>,
     deletedShapeIds: Iterable<string>,
   ): void;
+  routeDirtyRegions(regionsByLayer: Map<string, Box[]>): void;
+  routeDirtyShapeRegions(
+    changesByLayer: Map<string, ShapeRegionChange[]>,
+  ): void;
+  scheduleFullInvalidation(): void;
+  scheduleFullLayerInvalidation(layerId: string): void;
+  flushBakes(): Promise<void>;
   beginActiveLayerDraftSession(): Promise<void>;
   endActiveLayerDraftSession(): void;
   getActiveLayerBackdropSnapshot(): CanvasImageSource | null;
   dispose(): void;
+}
+
+export interface ShapeRegionChange {
+  shapeId: string;
+  prevBounds: Box | null;
+  nextBounds: Box | null;
 }
 
 interface LayerStackOptions {
@@ -57,6 +71,8 @@ interface LayerBackend {
     shapeIds: Iterable<string>,
     deletedShapeIds: Iterable<string>,
   ): void;
+  routeDirtyRegions(regions: Box[]): void;
+  routeDirtyShapeRegions(changes: ShapeRegionChange[]): void;
   scheduleFullInvalidation(): void;
   bakePending(): Promise<void>;
   captureBackdropSnapshot(): Promise<CanvasImageSource | null>;
@@ -242,6 +258,53 @@ class LayerStackImpl implements LayerStack {
     if (touchedLayerIds.size > 0) {
       this.enqueueBake();
     }
+  }
+
+  routeDirtyRegions(regionsByLayer: Map<string, Box[]>): void {
+    let touched = false;
+    for (const [layerId, regions] of regionsByLayer) {
+      if (regions.length === 0) {
+        continue;
+      }
+      const entry = this.layersById.get(layerId);
+      if (!entry) {
+        continue;
+      }
+      entry.backend.routeDirtyRegions(regions);
+      touched = true;
+    }
+    if (touched) {
+      this.enqueueBake();
+    }
+  }
+
+  routeDirtyShapeRegions(
+    changesByLayer: Map<string, ShapeRegionChange[]>,
+  ): void {
+    let touched = false;
+    for (const [layerId, changes] of changesByLayer) {
+      if (changes.length === 0) {
+        continue;
+      }
+      const entry = this.layersById.get(layerId);
+      if (!entry) {
+        continue;
+      }
+      entry.backend.routeDirtyShapeRegions(changes);
+      touched = true;
+    }
+    if (touched) {
+      this.enqueueBake();
+    }
+  }
+
+  scheduleFullLayerInvalidation(layerId: string): void {
+    const entry = this.layersById.get(layerId);
+    if (!entry) {
+      return;
+    }
+    entry.backend.scheduleFullInvalidation();
+    this.enqueueBake();
   }
 
   async beginActiveLayerDraftSession(): Promise<void> {
@@ -485,6 +548,22 @@ class TileLayerBackend implements LayerBackend {
     }
   }
 
+  routeDirtyRegions(regions: Box[]): void {
+    for (const region of regions) {
+      this.tileRenderer.markRegionDirty(region);
+    }
+  }
+
+  routeDirtyShapeRegions(changes: ShapeRegionChange[]): void {
+    for (const change of changes) {
+      this.tileRenderer.markShapeRegionDirty(
+        change.shapeId,
+        change.prevBounds,
+        change.nextBounds,
+      );
+    }
+  }
+
   scheduleFullInvalidation(): void {
     perfAddCounter(`layer.${this.layerId}.fullInvalidations`);
     this.tileRenderer.scheduleBakeForClear();
@@ -592,6 +671,14 @@ class CanvasLayerBackend implements LayerBackend {
     if (touchedCount > 0) {
       this.dirty = true;
     }
+  }
+
+  routeDirtyRegions(_regions: Box[]): void {
+    this.dirty = true;
+  }
+
+  routeDirtyShapeRegions(_changes: ShapeRegionChange[]): void {
+    this.dirty = true;
   }
 
   scheduleFullInvalidation(): void {

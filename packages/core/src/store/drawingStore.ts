@@ -26,6 +26,10 @@ import type {
   ToolPreview,
 } from "../tools/types";
 import { UndoManager } from "../undo";
+import {
+  type ApplyDocumentDiff,
+  diffDocumentShapes,
+} from "./diffDocumentShapes";
 
 export interface DrawingStoreOptions {
   document?: DrawingDocument;
@@ -92,6 +96,7 @@ export class DrawingStore {
   private dirtyShapeIdsByLayer = new Map<string, Set<string>>();
   private deletedShapeIdsByLayer = new Map<string, Set<string>>();
   private shapeLayerById = new Map<string, string>();
+  private pendingApplyDocumentDiff: ApplyDocumentDiff | null = null;
 
   // Cached ordered shapes for performance
   private orderedCache: Shape[] | null = null;
@@ -371,65 +376,42 @@ export class DrawingStore {
   }
 
   applyDocument(nextDoc: DrawingDocument): void {
-    const prevDoc = this.document;
+    const effectivePrev =
+      this.pendingApplyDocumentDiff?.prevDoc ?? this.document;
+    const prevRequiresFullInvalidation =
+      this.pendingApplyDocumentDiff?.requiresFullInvalidation ?? false;
     this.document = nextDoc;
     this.syncActiveLayerId();
     this.orderedCache = null;
     this.orderedCacheByLayer.clear();
-    this.dirtyShapeIds = new Set(Object.keys(nextDoc.shapes));
-    this.deletedShapeIds = new Set();
-    this.dirtyShapeIdsByLayer = new Map();
-    this.deletedShapeIdsByLayer = new Map();
-    for (const shape of Object.values(nextDoc.shapes)) {
-      this.addShapeToLayerDirtyBucket(this.dirtyShapeIdsByLayer, shape);
-    }
-    for (const id of Object.keys(prevDoc.shapes)) {
-      if (id in nextDoc.shapes) {
-        continue;
-      }
-      this.deletedShapeIds.add(id);
-      const deletedLayerId = this.shapeLayerById.get(id);
-      if (deletedLayerId) {
-        this.addShapeIdToLayerBucket(
-          this.deletedShapeIdsByLayer,
-          deletedLayerId,
-          id,
-        );
-      }
-    }
+    const diffResult = diffDocumentShapes(effectivePrev, nextDoc);
+    this.pendingApplyDocumentDiff = {
+      prevDoc: effectivePrev,
+      nextDoc,
+      ...diffResult,
+      requiresFullInvalidation:
+        prevRequiresFullInvalidation || diffResult.requiresFullInvalidation,
+    };
     this.rebuildShapeLayerIndex();
     this.onDocumentChanged?.(this.document);
     this.triggerRender();
   }
 
   resetToDocument(nextDoc: DrawingDocument): void {
-    const prevDoc = this.document;
+    const effectivePrev =
+      this.pendingApplyDocumentDiff?.prevDoc ?? this.document;
     this.document = nextDoc;
     this.syncActiveLayerId();
     this.undoManager.clear();
     this.orderedCache = null;
     this.orderedCacheByLayer.clear();
-    this.dirtyShapeIds = new Set(Object.keys(nextDoc.shapes));
-    this.deletedShapeIds = new Set();
-    this.dirtyShapeIdsByLayer = new Map();
-    this.deletedShapeIdsByLayer = new Map();
-    for (const shape of Object.values(nextDoc.shapes)) {
-      this.addShapeToLayerDirtyBucket(this.dirtyShapeIdsByLayer, shape);
-    }
-    for (const id of Object.keys(prevDoc.shapes)) {
-      if (id in nextDoc.shapes) {
-        continue;
-      }
-      this.deletedShapeIds.add(id);
-      const deletedLayerId = this.shapeLayerById.get(id);
-      if (deletedLayerId) {
-        this.addShapeIdToLayerBucket(
-          this.deletedShapeIdsByLayer,
-          deletedLayerId,
-          id,
-        );
-      }
-    }
+    const diffResult = diffDocumentShapes(effectivePrev, nextDoc);
+    this.pendingApplyDocumentDiff = {
+      prevDoc: effectivePrev,
+      nextDoc,
+      ...diffResult,
+      requiresFullInvalidation: true,
+    };
     this.rebuildShapeLayerIndex();
     this.selectionState.ids.clear();
     this.selectionState.primaryId = undefined;
@@ -545,6 +527,12 @@ export class DrawingStore {
       dirtyByLayer,
       deletedByLayer,
     };
+  }
+
+  consumeApplyDocumentDiff(): ApplyDocumentDiff | null {
+    const diff = this.pendingApplyDocumentDiff;
+    this.pendingApplyDocumentDiff = null;
+    return diff;
   }
 
   /**

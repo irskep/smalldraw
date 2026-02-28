@@ -195,6 +195,34 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     this.lastTilesByShape.set(shape.id, nextKeys);
   }
 
+  markRegionDirty(region: Box): void {
+    for (const tile of getVisibleTileCoords(region, this.tileSize)) {
+      const key = tileKey(tile);
+      this.pendingBakeTiles.add(key);
+      this.snapshotStore.deleteSnapshot(this.snapshotKeyForCoordKey(key));
+    }
+  }
+
+  markShapeRegionDirty(
+    shapeId: string,
+    prevBounds: Box | null,
+    nextBounds: Box | null,
+  ): void {
+    if (prevBounds) {
+      this.markRegionDirty(prevBounds);
+    }
+
+    if (nextBounds) {
+      this.markRegionDirty(nextBounds);
+      const nextTiles = getVisibleTileCoords(nextBounds, this.tileSize);
+      this.lastTilesByShape.set(shapeId, new Set(nextTiles.map(tileKey)));
+    } else {
+      this.lastTilesByShape.delete(shapeId);
+    }
+
+    this.touchedTilesByShape.delete(shapeId);
+  }
+
   markShapeTouched(shapeId: string, tile: TileCoord): void {
     const key = tileKey(tile);
     const existing = this.touchedTilesByShape.get(shapeId);
@@ -487,6 +515,7 @@ export {
   type LayerRenderStrategy,
   type LayerStack,
   resolveLayerStrategy,
+  type ShapeRegionChange,
 } from "./layerStack";
 export { RasterSession, type RasterSessionOptions } from "./session";
 export { createInMemorySnapshotStore } from "./snapshots";

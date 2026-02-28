@@ -278,11 +278,7 @@ export function createStrokeTool(
       return;
     }
     const lastPoint = state.drawing.lastInputPoint;
-    if (
-      lastPoint &&
-      lastPoint[0] === point[0] &&
-      lastPoint[1] === point[1]
-    ) {
+    if (lastPoint && lastPoint[0] === point[0] && lastPoint[1] === point[1]) {
       return;
     }
     appendPoint(runtime, point, pressure);
