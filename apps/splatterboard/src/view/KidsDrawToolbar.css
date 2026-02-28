@@ -11,9 +11,22 @@
 }
 
 .kids-draw-toolbar-top {
-  gap: clamp(var(--size-1), 1.5cqi, var(--size-2));
-  container-type: inline-size;
-  container-name: toolbar-top;
+  gap: var(--size-2);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.kids-draw-toolbar-top-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-2);
+  min-width: 0;
+}
+
+.kids-draw-toolbar-top .kids-toolbar-grid-panel {
+  gap: var(--size-2);
+  padding: var(--size-2);
 }
 
 .kids-draw-toolbar-style-pane {

@@ -41,6 +41,7 @@ export {
 export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
   private readonly topElement: HTMLDivElement;
+  private readonly topContentElement: HTMLDivElement;
   private readonly bottomElement: HTMLDivElement;
   private readonly toolSelectorElement: HTMLDivElement;
   private readonly actionPanelElement: HTMLDivElement;
@@ -81,6 +82,9 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
     this.topElement = el(
       "div.kids-draw-toolbar.kids-draw-toolbar-top",
     ) as HTMLDivElement;
+    this.topContentElement = el(
+      "div.kids-draw-toolbar-top-content",
+    ) as HTMLDivElement;
     this.bottomElement = el(
       "div.kids-draw-toolbar.kids-draw-toolbar-bottom",
     ) as HTMLDivElement;
@@ -103,7 +107,8 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
       toolById: this.toolById,
       uiIntentStore: options.uiIntentStore,
     });
-    mount(this.topElement, this.stylePane);
+    mount(this.topContentElement, this.stylePane);
+    mount(this.topElement, this.topContentElement);
     mount(this.bottomElement, this.variantStripPane);
     mount(this.el, this.topElement);
     mount(this.el, this.actionPanelElement);
