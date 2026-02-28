@@ -265,6 +265,29 @@ export function createStrokeTool(
     state.lastPreviewSegmentBounds = null;
   };
 
+  const appendPointerUpPointIfNeeded = (
+    runtime: ToolRuntime,
+    point: Vec2,
+    pressure?: number,
+  ): void => {
+    const state = runtimeState.get(runtime);
+    if (!state?.drawing) {
+      return;
+    }
+    if (getSprayMode(state.drawing.stroke.brushId)) {
+      return;
+    }
+    const lastPoint = state.drawing.lastInputPoint;
+    if (
+      lastPoint &&
+      lastPoint[0] === point[0] &&
+      lastPoint[1] === point[1]
+    ) {
+      return;
+    }
+    appendPoint(runtime, point, pressure);
+  };
+
   const cancelStroke = (runtime: ToolRuntime): void => {
     const state = runtimeState.get(runtime);
     if (state) {
@@ -321,7 +344,8 @@ export function createStrokeTool(
   };
 
   const createPointerUpHandler = (runtime: ToolRuntime): ToolEventHandler => {
-    return () => {
+    return (event) => {
+      appendPointerUpPointIfNeeded(runtime, event.point, event.pressure);
       finishStroke(runtime);
     };
   };
