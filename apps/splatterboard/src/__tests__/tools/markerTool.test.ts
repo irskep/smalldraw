@@ -76,6 +76,29 @@ describe("marker tool integration with runtime", () => {
     expect(shape.style.stroke?.brushId).toBe("marker");
   });
 
+  test("commits a short stroke using the pointer up position when no move was dispatched", () => {
+    const { runtime, getDocument } = setup();
+
+    runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    runtime.dispatch("pointerUp", { point: new Vec2(4, 3), buttons: 0 });
+
+    const shape = Object.values(getDocument().shapes)[0] as PenShape;
+    expect(shape).toBeDefined();
+    expectPointsClose(getWorldPointsFromShape(shape), [
+      [0, 0],
+      [4, 3],
+    ]);
+  });
+
+  test("still ignores taps that end at the same point", () => {
+    const { runtime, getDocument } = setup();
+
+    runtime.dispatch("pointerDown", { point: new Vec2(5, 5), buttons: 1 });
+    runtime.dispatch("pointerUp", { point: new Vec2(5, 5), buttons: 0 });
+
+    expect(Object.keys(getDocument().shapes)).toHaveLength(0);
+  });
+
   test("keeps preview dirty bounds local to the recent segment", () => {
     const { runtime } = setup({
       sharedSettings: {

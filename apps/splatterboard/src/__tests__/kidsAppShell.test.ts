@@ -2072,4 +2072,56 @@ describe("splatterboard shell", () => {
 
     app.destroy();
   });
+
+  test("secondary pointerdown during an active stroke is prevented and does not discard the stroke", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+    const overlay = app.overlay as HTMLElement;
+    overlay.getBoundingClientRect = () =>
+      ({
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        left: 0,
+        top: 0,
+        right: 640,
+        bottom: 480,
+        toJSON() {
+          return {};
+        },
+      }) as DOMRect;
+
+    dispatchPointer(overlay, "pointerdown", 100, 100, 1, "mouse", 1);
+    dispatchPointer(overlay, "pointermove", 180, 160, 1, "mouse", 1);
+
+    const secondaryDown = new PointerEvent("pointerdown", {
+      bubbles: true,
+      cancelable: true,
+      clientX: 180,
+      clientY: 160,
+      buttons: 2,
+      button: 2,
+      pointerType: "mouse",
+      pointerId: 2,
+    });
+    overlay.dispatchEvent(secondaryDown);
+
+    dispatchPointer(overlay, "pointerup", 180, 160, 0, "mouse", 1);
+
+    expect(secondaryDown.defaultPrevented).toBe(true);
+    const shapes = Object.values(app.store.getDocument().shapes) as PenShape[];
+    expect(shapes).toHaveLength(1);
+    expect(getWorldPointsFromShape(shapes[0]!).length).toBeGreaterThan(1);
+
+    app.destroy();
+  });
 });

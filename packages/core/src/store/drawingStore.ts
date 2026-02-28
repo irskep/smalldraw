@@ -1,4 +1,4 @@
-import { change } from "@automerge/automerge/slim";
+import { change, clone } from "@automerge/automerge/slim";
 import { type Box, BoxOperations } from "@smalldraw/geometry";
 import type { ActionContext, UndoableAction } from "../actions";
 import { filterShapesAfterClear } from "../model/clear";
@@ -447,9 +447,16 @@ export class DrawingStore {
   mutateDocument(action: UndoableAction): void {
     if (this.actionDispatcher) {
       this.undoManager.record(action);
-      this.actionDispatcher({ type: "apply", action, doc: this.document });
+      this.document = action.redo(
+        clone(this.document) as DrawingDocument,
+        this.actionContext,
+      );
+      this.syncActiveLayerId();
+      this.trackDirtyState(action);
       this.onAction?.({ type: "apply", action, doc: this.document });
       this.actionSequence += 1;
+      this.onDocumentChanged?.(this.document);
+      this.actionDispatcher({ type: "apply", action, doc: this.document });
       this.triggerRender();
       return;
     }
@@ -689,6 +696,19 @@ export class DrawingStore {
       if (!action) {
         return false;
       }
+      this.document = action.undo(
+        clone(this.document) as DrawingDocument,
+        this.actionContext,
+      );
+      this.syncActiveLayerId();
+      this.trackDirtyState(action);
+      this.actionSequence += 1;
+      this.onAction?.({
+        type: "undo",
+        action,
+        doc: this.document,
+      });
+      this.onDocumentChanged?.(this.document);
       this.actionDispatcher({ type: "undo", action, doc: this.document });
       this.triggerRender();
       return true;
@@ -721,6 +741,19 @@ export class DrawingStore {
       if (!action) {
         return false;
       }
+      this.document = action.redo(
+        clone(this.document) as DrawingDocument,
+        this.actionContext,
+      );
+      this.syncActiveLayerId();
+      this.trackDirtyState(action);
+      this.actionSequence += 1;
+      this.onAction?.({
+        type: "redo",
+        action,
+        doc: this.document,
+      });
+      this.onDocumentChanged?.(this.document);
       this.actionDispatcher({ type: "redo", action, doc: this.document });
       this.triggerRender();
       return true;

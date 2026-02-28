@@ -146,6 +146,29 @@ describe("pen tool integration with runtime", () => {
     expect(shape.style.stroke?.size).toBe(7);
   });
 
+  test("commits a short stroke using the pointer up position when no move was dispatched", () => {
+    const { runtime, getDocument } = setup();
+
+    runtime.dispatch("pointerDown", { point: new Vec2(0, 0), buttons: 1 });
+    runtime.dispatch("pointerUp", { point: new Vec2(3, 2), buttons: 0 });
+
+    const shape = Object.values(getDocument().shapes)[0] as PenShape;
+    expect(shape).toBeDefined();
+    expectPointsClose(getWorldPointsFromShape(shape), [
+      [0, 0],
+      [3, 2],
+    ]);
+  });
+
+  test("still ignores taps that end at the same point", () => {
+    const { runtime, getDocument } = setup();
+
+    runtime.dispatch("pointerDown", { point: new Vec2(8, 8), buttons: 1 });
+    runtime.dispatch("pointerUp", { point: new Vec2(8, 8), buttons: 0 });
+
+    expect(Object.keys(getDocument().shapes)).toHaveLength(0);
+  });
+
   test("deactivation clears drafts and prevents further commits", () => {
     const { runtime, getDocument, deactivate } = setup();
 

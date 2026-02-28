@@ -714,6 +714,34 @@ describe("DrawingStore", () => {
     expect(renderCount).toBeGreaterThan(0);
   });
 
+  test("actionDispatcher mode updates local document before external sync", () => {
+    const store = new DrawingStore({
+      tools: [createRectangleTool()],
+      actionDispatcher: () => {},
+    });
+
+    const zIndex = getZIndexBetween(null, null);
+    store.applyAction(
+      new AddShape({
+        id: "shape-1",
+        type: "boxed",
+        geometry: { type: "boxed", kind: "rect", size: v(10, 10) },
+        style: { fill: { type: "solid", color: "#fff" } },
+        zIndex,
+        transform: { translation: v(0, 0), scale: v(1, 1), rotation: 0 },
+      } as BoxedShape),
+    );
+
+    expect(store.getDocument().shapes["shape-1"]).toBeDefined();
+    expect(store.getRenderState().dirtyState.dirty.has("shape-1")).toBe(true);
+
+    expect(store.undo()).toBe(true);
+    expect(store.getDocument().shapes["shape-1"]).toBeUndefined();
+
+    expect(store.redo()).toBe(true);
+    expect(store.getDocument().shapes["shape-1"]).toBeDefined();
+  });
+
   test("resetToDocument replaces document and clears undo/redo history", () => {
     const store = new DrawingStore({ tools: [createRectangleTool()] });
     store.activateTool("rect");
