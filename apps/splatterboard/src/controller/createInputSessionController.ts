@@ -7,6 +7,7 @@ import {
 } from "./diagnostics/diagnosticLogger";
 
 const MAX_POINTER_SAMPLES_PER_EVENT = 64;
+const PRIMARY_BUTTON_MASK = 1;
 
 type PointerEventWithCoalesced = PointerEvent & {
   getCoalescedEvents?: () => PointerEvent[];
@@ -54,6 +55,10 @@ export class InputSessionController {
 
   handlePointerDown(event: PointerEvent): void {
     if (this.pointerIsDown) {
+      event.preventDefault();
+      return;
+    }
+    if ((event.buttons & PRIMARY_BUTTON_MASK) !== PRIMARY_BUTTON_MASK) {
       return;
     }
     event.preventDefault();
