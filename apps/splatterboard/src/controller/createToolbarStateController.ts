@@ -225,6 +225,9 @@ export class ToolbarStateController {
 
   private resolveCurrentMode(): "normal" | "coloring" | "markup" {
     const presentation = this.options.store.getDocument().presentation;
+    if (!presentation) {
+      return "normal";
+    }
     if (
       presentation.documentType === "normal" ||
       presentation.documentType === "coloring" ||
