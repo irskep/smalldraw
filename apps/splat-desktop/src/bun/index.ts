@@ -1,6 +1,10 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { ElectrobunEvent, ElectrobunRPCSchema, RPCSchema } from "electrobun";
+import type {
+  ElectrobunEvent,
+  ElectrobunRPCSchema,
+  RPCSchema,
+} from "electrobun";
 import {
   ApplicationMenu,
   type ApplicationMenuItemConfig,
@@ -13,6 +17,8 @@ import type {
   SavePngExportResponse,
 } from "../shared/desktopRpc";
 
+type EmptyRpcMap = Record<string, never>;
+
 type DesktopRpcSchema = ElectrobunRPCSchema & {
   bun: RPCSchema<{
     requests: {
@@ -23,20 +29,14 @@ type DesktopRpcSchema = ElectrobunRPCSchema & {
     };
   }>;
   webview: RPCSchema<{
-    requests: {};
-    messages: {};
+    requests: EmptyRpcMap;
+    messages: EmptyRpcMap;
   }>;
 };
 
 const runAppCommand = (
   windowRef: BrowserWindow,
-  command:
-    | "undo"
-    | "redo"
-    | "clear"
-    | "export"
-    | "newDrawing"
-    | "browse",
+  command: "undo" | "redo" | "clear" | "export" | "newDrawing" | "browse",
 ): void => {
   windowRef.webview.executeJavascript(
     `window.kidsDrawApp?.commands?.${command}?.()`,
@@ -168,7 +168,10 @@ const windowRef = new BrowserWindow({
 });
 
 ApplicationMenu.on("application-menu-clicked", (event) => {
-  const menuEvent = event as ElectrobunEvent<{ id: number; action: string }, never>;
+  const menuEvent = event as ElectrobunEvent<
+    { id: number; action: string },
+    never
+  >;
   switch (menuEvent.data.action) {
     case "file.newDrawing":
       runAppCommand(windowRef, "newDrawing");

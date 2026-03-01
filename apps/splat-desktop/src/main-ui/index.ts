@@ -7,6 +7,8 @@ import type {
   SavePngExportResponse,
 } from "../shared/desktopRpc";
 
+type EmptyRpcMap = Record<string, never>;
+
 type DesktopRpcSchema = ElectrobunRPCSchema & {
   bun: RPCSchema<{
     requests: {
@@ -17,8 +19,8 @@ type DesktopRpcSchema = ElectrobunRPCSchema & {
     };
   }>;
   webview: RPCSchema<{
-    requests: {};
-    messages: {};
+    requests: EmptyRpcMap;
+    messages: EmptyRpcMap;
   }>;
 };
 
@@ -39,40 +41,35 @@ if (!container) {
   throw new Error("Missing #app container");
 }
 
-let app;
-try {
-  app = await createKidsDrawApp({
-    container,
-    savePngExport: async ({ suggestedName, blob, dataUrl }) => {
-      let exportBlob = blob;
-      if (!exportBlob && dataUrl) {
-        exportBlob = await (await fetch(dataUrl)).blob();
-      }
+const app = await createKidsDrawApp({
+  container,
+  savePngExport: async ({ suggestedName, blob, dataUrl }) => {
+    let exportBlob = blob;
+    if (!exportBlob && dataUrl) {
+      exportBlob = await (await fetch(dataUrl)).blob();
+    }
 
-      if (!exportBlob || !desktopRpc.request?.savePngExport) {
-        return false;
-      }
+    if (!exportBlob || !desktopRpc.request?.savePngExport) {
+      return false;
+    }
 
-      const bytes = new Uint8Array(await exportBlob.arrayBuffer());
-      let binary = "";
-      const chunkSize = 0x8000;
-      for (let index = 0; index < bytes.length; index += chunkSize) {
-        const chunk = bytes.subarray(index, index + chunkSize);
-        binary += String.fromCharCode(...chunk);
-      }
-      try {
-        const result = await desktopRpc.request.savePngExport({
-          suggestedName,
-          bytesBase64: btoa(binary),
-        });
-        return result.saved;
-      } catch (error) {
-        return false;
-      }
-    },
-  });
-} catch (error) {
-  throw error;
-}
+    const bytes = new Uint8Array(await exportBlob.arrayBuffer());
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let index = 0; index < bytes.length; index += chunkSize) {
+      const chunk = bytes.subarray(index, index + chunkSize);
+      binary += String.fromCharCode(...chunk);
+    }
+    try {
+      const result = await desktopRpc.request.savePngExport({
+        suggestedName,
+        bytesBase64: btoa(binary),
+      });
+      return result.saved;
+    } catch {
+      return false;
+    }
+  },
+});
 
 (window as unknown as { kidsDrawApp?: typeof app }).kidsDrawApp = app;

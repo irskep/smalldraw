@@ -1,4 +1,11 @@
-import { existsSync, lstatSync, mkdirSync, symlinkSync, unlinkSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  symlinkSync,
+  unlinkSync,
+} from "node:fs";
 import { resolve } from "node:path";
 
 const appDir = resolve(import.meta.dir, "..");
@@ -18,7 +25,10 @@ if (!hasPathEntry(localNodeModulesDir)) {
   mkdirSync(localNodeModulesDir, { recursive: true });
 } else {
   const localNodeModulesStat = lstatSync(localNodeModulesDir);
-  if (localNodeModulesStat.isSymbolicLink() && !existsSync(localNodeModulesDir)) {
+  if (
+    localNodeModulesStat.isSymbolicLink() &&
+    !existsSync(localNodeModulesDir)
+  ) {
     unlinkSync(localNodeModulesDir);
     mkdirSync(localNodeModulesDir, { recursive: true });
   }
@@ -27,7 +37,11 @@ if (!hasPathEntry(localNodeModulesDir)) {
 const localElectrobunPackageDir = resolve(localNodeModulesDir, "electrobun");
 const rootElectrobunPackageDir = resolve(rootNodeModulesDir, "electrobun");
 if (!hasPathEntry(localElectrobunPackageDir)) {
-  symlinkSync(rootElectrobunPackageDir, localElectrobunPackageDir, "dir");
+  symlinkSync(
+    rootElectrobunPackageDir,
+    localElectrobunPackageDir,
+    process.platform === "win32" ? "junction" : "dir",
+  );
 }
 
 const localBinDir = resolve(localNodeModulesDir, ".bin");
@@ -35,10 +49,18 @@ if (!hasPathEntry(localBinDir)) {
   mkdirSync(localBinDir, { recursive: true });
 }
 
-const localElectrobunBinary = resolve(localNodeModulesDir, ".bin", "electrobun");
+const localElectrobunBinary = resolve(
+  localNodeModulesDir,
+  ".bin",
+  "electrobun",
+);
 const rootElectrobunBinary = resolve(rootNodeModulesDir, ".bin", "electrobun");
 if (!hasPathEntry(localElectrobunBinary)) {
-  symlinkSync(rootElectrobunBinary, localElectrobunBinary);
+  if (process.platform === "win32") {
+    copyFileSync(rootElectrobunBinary, localElectrobunBinary);
+  } else {
+    symlinkSync(rootElectrobunBinary, localElectrobunBinary);
+  }
 }
 
 const electrobunBinary = localElectrobunBinary;
