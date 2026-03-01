@@ -4,10 +4,6 @@ import {
   isWasmInitialized,
 } from "@automerge/automerge/slim";
 import type { AutomergeUrl, DocHandle, Repo } from "@automerge/automerge-repo";
-import { Repo as RepoClass } from "@automerge/automerge-repo/slim";
-import { BroadcastChannelNetworkAdapter } from "@automerge/automerge-repo-network-broadcastchannel";
-import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
-
 import { createAutomergeStoreAdapter } from "./automerge/storeAdapter";
 import {
   DEFAULT_DOCUMENT_PRESENTATION,
@@ -21,6 +17,7 @@ import type { ShapeHandlerRegistry } from "./model/shapeHandlers";
 import type { DrawingStoreAdapter } from "./store/drawingStore";
 
 export interface SmalldrawCoreOptions {
+  repo: Repo;
   shapeHandlers: ShapeHandlerRegistry;
   persistence?: {
     storageKey?: string;
@@ -52,13 +49,6 @@ async function initAutomerge(): Promise<void> {
   if (!isWasmInitialized()) {
     await initializeBase64Wasm(automergeWasmBase64);
   }
-}
-
-function createRepo(): Repo {
-  return new RepoClass({
-    storage: new IndexedDBStorageAdapter(),
-    network: [new BroadcastChannelNetworkAdapter()],
-  });
 }
 
 async function getOrCreateHandle(
@@ -103,6 +93,7 @@ export async function createSmalldraw(
   options: SmalldrawCoreOptions,
 ): Promise<SmalldrawCore> {
   const {
+    repo,
     shapeHandlers,
     persistence,
     documentSize = DEFAULT_DOCUMENT_SIZE,
@@ -114,8 +105,6 @@ export async function createSmalldraw(
   }
 
   await initAutomerge();
-
-  const repo = createRepo();
   const registry = shapeHandlers;
 
   const storageKey = persistence?.storageKey ?? "smalldraw-doc-url";

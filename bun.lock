@@ -125,8 +125,6 @@
       "dependencies": {
         "@automerge/automerge": "^3.2.3",
         "@automerge/automerge-repo": "2.5.1",
-        "@automerge/automerge-repo-network-broadcastchannel": "2.5.1",
-        "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
         "@smalldraw/geometry": "workspace:",
         "jittered-fractional-indexing": "^1.0.0",
         "nanoid": "^5.1.6",
@@ -171,6 +169,9 @@
       "name": "@smalldraw/splat",
       "version": "0.0.0",
       "dependencies": {
+        "@automerge/automerge-repo": "2.5.1",
+        "@automerge/automerge-repo-network-broadcastchannel": "2.5.1",
+        "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
         "@smalldraw/core": "workspace:*",
         "@smalldraw/geometry": "workspace:*",
         "@smalldraw/renderer-canvas": "workspace:*",

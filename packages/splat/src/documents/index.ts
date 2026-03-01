@@ -1,3 +1,4 @@
+export { createLocalSmalldrawRepo } from "./createLocalSmalldrawRepo";
 export {
   createLocalDocumentBackend,
   type LocalDocumentBackendOptions,

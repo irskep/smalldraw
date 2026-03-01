@@ -6,7 +6,10 @@ import {
 import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
 import { createUiIntentStore } from "../controller/stores/createUiIntentStore";
-import { createLocalDocumentBackend } from "../documents";
+import {
+  createLocalDocumentBackend,
+  createLocalSmalldrawRepo,
+} from "../documents";
 import { resolveLayoutMode, resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
@@ -74,6 +77,7 @@ export async function createKidsDrawApp(
   const core =
     providedCore ??
     (await createSmalldraw({
+      repo: createLocalSmalldrawRepo(),
       persistence: {
         mode: "reuse",
         getCurrentDocUrl: () => documentBackend.getCurrentDocument(),
