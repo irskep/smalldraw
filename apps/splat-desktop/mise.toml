@@ -1,0 +1,30 @@
+[tasks."ts:check"]
+run = "bun run ts:check"
+
+[tasks.lint]
+run = "bun run lint"
+
+[tasks.test]
+run = "bun run test"
+
+[tasks.build]
+run = "bun run build"
+sources = [
+  "src/**/*",
+  "scripts/**/*",
+  "electrobun.config",
+  "package.json",
+  "tsconfig.json",
+]
+outputs = ["build/**/*"]
+
+[tasks.package]
+run = "bun run package"
+sources = [
+  "src/**/*",
+  "scripts/**/*",
+  "electrobun.config",
+  "package.json",
+  "tsconfig.json",
+]
+outputs = ["artifacts/**/*"]

@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@smalldraw/splat/styles.css": ["packages/splat/src/main.css"],
+      "@smalldraw/core": ["packages/core/src/index.ts"],
+      "@smalldraw/geometry": ["packages/geometry/src/index.ts"],
+      "@smalldraw/*": ["packages/*/src/index.ts"]
+    }
+  }
+}

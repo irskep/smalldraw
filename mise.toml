@@ -4,7 +4,7 @@ experimental_monorepo_root = true
 experimental = true
 
 [tools]
-bun = "latest"
+bun = "1.3.10"
 node = "24"
 "pipx:persistproc" = "latest"
 
@@ -38,8 +38,9 @@ dir = "apps/server"
 env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db", FRONTEND_ORIGIN = "http://localhost:3030" }
 run = "bun src/index.ts"
 
-[tasks."splat:dev"]
-dir = "apps/splatterboard"
+[tasks."splat:web:dev"]
+alias = ["splat:dev"]
+dir = "apps/splat-web"
 run = "bun run dev"
 
 [tasks."db:push:prod"]
@@ -82,8 +83,18 @@ depends = ["docs:typedoc"]
 dir = "apps/docs-site"
 run = "bun run build"
 
-[tasks."splat:build"]
-run = "mise run //apps/splatterboard:build"
+[tasks."splat:web:build"]
+run = "mise run //apps/splat-web:build"
 
-[tasks."splat:deploy"]
-run = "mise run //apps/splatterboard:deploy"
+[tasks."splat:web:deploy"]
+run = "mise run //apps/splat-web:deploy"
+
+[tasks."splat:desktop:dev"]
+dir = "apps/splat-desktop"
+run = "bun run dev"
+
+[tasks."splat:desktop:build"]
+run = "mise run //apps/splat-desktop:build"
+
+[tasks."splat:desktop:package"]
+run = "mise run //apps/splat-desktop:package"

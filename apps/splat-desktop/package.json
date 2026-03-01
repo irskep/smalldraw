@@ -1,0 +1,19 @@
+{
+  "name": "splat-desktop",
+  "private": true,
+  "scripts": {
+    "dev": "bun run ./scripts/run-electrobun.ts build env=dev && bun run ./scripts/run-electrobun.ts dev env=dev",
+    "build": "bun run ./scripts/run-electrobun.ts build env=dev",
+    "package": "bun run ./scripts/run-electrobun.ts build env=stable",
+    "test": "bun test",
+    "lint": "bunx biome check --write",
+    "ts:check": "tsc -p tsconfig.typecheck.json --noEmit"
+  },
+  "dependencies": {
+    "@smalldraw/splat": "workspace:*",
+    "electrobun": "1.14.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
