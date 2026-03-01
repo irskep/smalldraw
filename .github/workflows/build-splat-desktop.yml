@@ -67,9 +67,12 @@ jobs:
       - name: List desktop build outputs
         run: find apps/splat-desktop/build -maxdepth 3 -mindepth 1 | sort
 
+      - name: List desktop artifacts
+        run: find apps/splat-desktop/artifacts -maxdepth 3 -mindepth 1 | sort
+
       - name: Upload desktop artifacts
         uses: actions/upload-artifact@v4
         with:
           name: splat-desktop-macos-${{ github.sha }}
-          path: apps/splat-desktop/build/stable*/**
+          path: apps/splat-desktop/artifacts/**
           if-no-files-found: error
