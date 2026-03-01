@@ -1,5 +1,12 @@
 import type { ElectrobunConfig } from "electrobun";
 
+const canCodesign = Boolean(process.env.ELECTROBUN_DEVELOPER_ID);
+const canNotarize =
+  canCodesign &&
+  Boolean(process.env.ELECTROBUN_TEAMID) &&
+  Boolean(process.env.ELECTROBUN_APPLEID) &&
+  Boolean(process.env.ELECTROBUN_APPLEIDPASS);
+
 export default {
   app: {
     name: "Splatterboard",
@@ -13,6 +20,10 @@ export default {
     bun: {
       entrypoint: "src/bun/index.ts",
       external: [],
+    },
+    mac: {
+      codesign: canCodesign,
+      notarize: canNotarize,
     },
     views: {},
     copy: {

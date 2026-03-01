@@ -1,20 +1,51 @@
-import { existsSync, lstatSync, symlinkSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, symlinkSync, unlinkSync } from "node:fs";
 import { resolve } from "node:path";
 
 const appDir = resolve(import.meta.dir, "..");
 const rootNodeModulesDir = resolve(appDir, "..", "..", "node_modules");
 const localNodeModulesDir = resolve(appDir, "node_modules");
-if (!existsSync(localNodeModulesDir)) {
-  symlinkSync(rootNodeModulesDir, localNodeModulesDir, "dir");
+
+const hasPathEntry = (path: string): boolean => {
+  try {
+    lstatSync(path);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+if (!hasPathEntry(localNodeModulesDir)) {
+  mkdirSync(localNodeModulesDir, { recursive: true });
+} else {
+  const localNodeModulesStat = lstatSync(localNodeModulesDir);
+  if (localNodeModulesStat.isSymbolicLink() && !existsSync(localNodeModulesDir)) {
+    unlinkSync(localNodeModulesDir);
+    mkdirSync(localNodeModulesDir, { recursive: true });
+  }
 }
 
-if (!lstatSync(localNodeModulesDir).isSymbolicLink()) {
-  throw new Error(
-    `Expected ${localNodeModulesDir} to be a symlink to the workspace node_modules`,
-  );
+const localElectrobunPackageDir = resolve(localNodeModulesDir, "electrobun");
+const rootElectrobunPackageDir = resolve(rootNodeModulesDir, "electrobun");
+if (!hasPathEntry(localElectrobunPackageDir)) {
+  symlinkSync(rootElectrobunPackageDir, localElectrobunPackageDir, "dir");
 }
 
-const electrobunBinary = resolve(localNodeModulesDir, ".bin", "electrobun");
+const localBinDir = resolve(localNodeModulesDir, ".bin");
+if (!hasPathEntry(localBinDir)) {
+  mkdirSync(localBinDir, { recursive: true });
+}
+
+const localElectrobunBinary = resolve(localNodeModulesDir, ".bin", "electrobun");
+const rootElectrobunBinary = resolve(rootNodeModulesDir, ".bin", "electrobun");
+if (!hasPathEntry(localElectrobunBinary)) {
+  symlinkSync(rootElectrobunBinary, localElectrobunBinary);
+}
+
+const electrobunBinary = localElectrobunBinary;
+
+if (!existsSync(electrobunBinary)) {
+  throw new Error(`Could not find electrobun binary at ${electrobunBinary}`);
+}
 const args = Bun.argv.slice(2);
 if (args.length === 0) {
   throw new Error("Expected electrobun command arguments");
