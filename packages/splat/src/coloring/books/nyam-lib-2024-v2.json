@@ -1,0 +1,90 @@
+{
+  "slug": "nyam-lib-2024-v2",
+  "title": "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+  "url": "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+  "source_pdf": "packages/splat/src/coloring/intake/nyam-lib-2024-v2/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+  "render_strategy": "auto",
+  "crop_dpi": 300,
+  "include_pages": null,
+  "page_count": 13,
+  "pages": [
+    {
+      "index": 0,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": false
+    },
+    {
+      "index": 1,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 2,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 3,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 4,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 5,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 6,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 7,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 8,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 9,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 10,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 11,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": true
+    },
+    {
+      "index": 12,
+      "rotationQuarterTurnsCcw": 0,
+      "crop": null,
+      "enabled": false
+    }
+  ]
+}

@@ -6,3 +6,15 @@ run = "bun run ts:check"
 
 [tasks.lint]
 run = "bun run lint"
+
+[tasks."coloring:pipeline"]
+run = "python3 ./scripts/coloring_pipeline.py"
+
+[tasks."coloring:prepare-input"]
+run = "python3 ./scripts/coloring_pipeline.py prepare-input"
+
+[tasks."coloring:inspect"]
+run = "python3 ./scripts/inspect_coloring_book.py"
+
+[tasks."coloring:postprocess-blacks"]
+run = "python3 ./scripts/postprocess_black_levels.py"

@@ -3,8 +3,9 @@ import { GENERATED_COLORING_ASSETS } from "./generatedColoringPageAssets";
 
 export interface ColoringPageSpec {
   id: string;
-  volumeId: "pdr-v1" | "pdr-v2";
+  volumeId: string;
   volumeLabel: string;
+  sourceUrl: string | null;
   pageNumber: number;
   label: string;
   src: string;
@@ -22,6 +23,7 @@ const COLORING_PAGES: readonly ColoringPageSpec[] =
       id: asset.id,
       volumeId: asset.volumeId,
       volumeLabel: asset.volumeLabel,
+      sourceUrl: asset.sourceUrl,
       pageNumber: asset.pageNumber,
       label: `${asset.volumeLabel} Page ${page}`,
       src: asset.src,

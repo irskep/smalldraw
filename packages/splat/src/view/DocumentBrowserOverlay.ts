@@ -97,7 +97,11 @@ type DocumentTileItem = {
   thumbnailUrl: string | null;
 };
 
-type ColoringVolumeId = "pdr-v1" | "pdr-v2";
+type ColoringVolume = {
+  id: string;
+  title: string;
+  thumbSrc: string | null;
+};
 
 class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
   readonly el: HTMLDivElement;
@@ -172,10 +176,7 @@ export function createDocumentBrowserOverlay(options: {
   onDeleteDocument: (docUrl: string) => void;
 }): DocumentBrowserOverlay {
   const pages = getColoringPages();
-  const pagesByVolume = new Map<
-    ColoringVolumeId,
-    Array<(typeof pages)[number]>
-  >();
+  const pagesByVolume = new Map<string, Array<(typeof pages)[number]>>();
   for (const page of pages) {
     const volumeId = page.volumeId;
     const volumePages = pagesByVolume.get(volumeId) ?? [];
@@ -183,26 +184,33 @@ export function createDocumentBrowserOverlay(options: {
     pagesByVolume.set(volumeId, volumePages);
   }
 
-  const rootChoices = [
+  const volumeChoices: ColoringVolume[] = Array.from(pagesByVolume.entries())
+    .map(([id, volumePages]) => ({
+      id,
+      title: volumePages[0]?.volumeLabel ?? id,
+      thumbSrc: volumePages[0]?.src ?? null,
+    }))
+    .sort((a, b) => a.title.localeCompare(b.title));
+  const volumeTitleById = new Map(volumeChoices.map((volume) => [volume.id, volume.title] as const));
+  const rootChoices: Array<{
+    id: string;
+    title: string;
+    subtitle: string;
+    thumbSrc: string | null;
+  }> = [
     {
       id: "normal",
       title: "Blank Page",
       subtitle: "Normal drawing",
       thumbSrc: null,
     },
-    {
-      id: "pdr-v1",
-      title: "Coloring Book 1",
+    ...volumeChoices.map((volume) => ({
+      id: volume.id,
+      title: volume.title,
       subtitle: "Open page picker",
-      thumbSrc: pagesByVolume.get("pdr-v1")?.[0]?.src ?? null,
-    },
-    {
-      id: "pdr-v2",
-      title: "Coloring Book 2",
-      subtitle: "Open page picker",
-      thumbSrc: pagesByVolume.get("pdr-v2")?.[0]?.src ?? null,
-    },
-  ] as const;
+      thumbSrc: volume.thumbSrc,
+    })),
+  ];
 
   const title = el(
     "h2.kids-draw-document-browser__title",
@@ -400,7 +408,7 @@ export function createDocumentBrowserOverlay(options: {
     touchPressDocUrl: string | null;
     suppressNextOpenDocUrl: string | null;
     createOpen: boolean;
-    createVolumeId: ColoringVolumeId | null;
+    createVolumeId: string | null;
   };
   const $state = atom<OverlayState>({
     open: false,
@@ -524,18 +532,18 @@ export function createDocumentBrowserOverlay(options: {
     const state = $state.get();
     const createBusy = state.busyDocUrl === "__new__";
     createBackButton.hidden = state.createVolumeId === null;
-    createSubtitle.textContent =
+    const selectedVolumeTitle =
       state.createVolumeId === null
+        ? null
+        : (volumeTitleById.get(state.createVolumeId) ?? state.createVolumeId);
+    createSubtitle.textContent =
+      selectedVolumeTitle === null
         ? "Choose how to start"
-        : `Choose a page from ${state.createVolumeId === "pdr-v1" ? "Coloring Book 1" : "Coloring Book 2"}`;
+        : `Choose a page from ${selectedVolumeTitle}`;
     createRootChoices.hidden = state.createVolumeId !== null;
     createPageView.hidden = state.createVolumeId === null;
     createTitle.textContent =
-      state.createVolumeId === null
-        ? "New Drawing"
-        : state.createVolumeId === "pdr-v1"
-          ? "Coloring Book 1"
-          : "Coloring Book 2";
+      selectedVolumeTitle === null ? "New Drawing" : selectedVolumeTitle;
 
     for (const button of rootButtons) {
       button.disabled = createBusy;
@@ -684,7 +692,7 @@ export function createDocumentBrowserOverlay(options: {
     const volumeEl = target.closest("[data-doc-create-volume]");
     if (volumeEl) {
       const volumeId = volumeEl.getAttribute("data-doc-create-volume");
-      if (volumeId === "pdr-v1" || volumeId === "pdr-v2") {
+      if (volumeId && pagesByVolume.has(volumeId)) {
         updateState((nextState) => ({
           ...nextState,
           createVolumeId: volumeId,
