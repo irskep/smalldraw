@@ -5,33 +5,36 @@ import {
 } from "@automerge/automerge-repo-network-websocket";
 import type WebSocket from "isomorphic-ws";
 import { getUserHasAccessToDocument } from "../db/getUserHasAccessToDocument.js";
+import { isValidAwarenessPayloadForAuth } from "./awarenessValidation.js";
+import { getSocketAuthContext } from "./socketAuthContext.js";
 
 const { decode } = cborHelpers;
 
 export class AuthAdapter extends NodeWSServerAdapter {
   async receiveMessage(messageBytes: Uint8Array, socket: WebSocket) {
     const message: FromClientMessage = decode(messageBytes);
+    const authContext = getSocketAuthContext(socket);
+    if (!authContext) return;
 
     if ("documentId" in message) {
-      const hasAccess = await getUserHasAccessToDocument({
-        // @ts-expect-error session is set on the socket
-        userId: socket.session.userId,
-        documentId: message.documentId as string,
-      });
-      if (!hasAccess) {
+      const messageDocumentId = message.documentId as string;
+      if (authContext.kind === "session") {
+        const hasAccess = await getUserHasAccessToDocument({
+          userId: authContext.userId,
+          documentId: messageDocumentId,
+        });
+        if (!hasAccess) return;
+      } else if (messageDocumentId !== authContext.documentId) {
         return;
       }
 
       // check for invalid awareness messages
       if (message.type === "ephemeral" && message.data) {
-        const data: { type: string; userId: string } = decode(message.data);
-        if (
-          data.type !== "awareness" ||
-          // @ts-expect-error session is set on the socket
-          data.userId !== socket.session.userId
-        ) {
-          return;
-        }
+        const data = decode(message.data) as {
+          type?: unknown;
+          userId?: unknown;
+        };
+        if (!isValidAwarenessPayloadForAuth(authContext, data)) return;
       }
     }
 

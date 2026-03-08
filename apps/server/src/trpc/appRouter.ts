@@ -2,7 +2,9 @@ import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { repo } from "../automergeRepo/automergeRepo.js";
+import { toAutomergeUrl } from "../automergeRepo/automergeUrl.js";
 import { addUserToDocument } from "../db/addUserToDocument.js";
+import { createAnonymousCollaborativeDocument } from "../db/createAnonymousCollaborativeDocument.js";
 import { createDocument } from "../db/createDocument.js";
 import { createLoginAttempt } from "../db/createLoginAttempt.js";
 import { createOrRefreshDocumentInvitation } from "../db/createOrRefreshDocumentInvitation.js";
@@ -78,6 +80,26 @@ export const appRouter = router({
         name: opts.input.name,
       });
       return { document: { id: document.id, name: document.name } };
+    }),
+
+  createAnonymousCollaborativeDocument: publicProcedure
+    .input(
+      z
+        .object({
+          name: z.string().optional(),
+        })
+        .optional(),
+    )
+    .mutation(async (opts) => {
+      const { documentId } = repo.create();
+      const result = await createAnonymousCollaborativeDocument({
+        documentId,
+        name: opts.input?.name,
+      });
+      return {
+        collabDocUrl: toAutomergeUrl(result.document.id),
+        joinSecret: result.joinSecret,
+      };
     }),
 
   createOrRefreshDocumentInvitation: protectedProcedure

@@ -35,7 +35,7 @@ run = "bun run ./scripts/prod-build.ts"
 
 [tasks."prod:serve"]
 dir = "apps/server"
-env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db", FRONTEND_ORIGIN = "http://localhost:3030" }
+env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db", FRONTEND_ORIGINS = "http://localhost:3030" }
 run = "bun src/index.ts"
 
 [tasks."splat:web:dev"]
@@ -76,7 +76,7 @@ run = [
 run = ["mise run '//packages/...:test'", "mise run '//apps/...:test'"]
 
 [tasks."validate:all"]
-run = ["mise run lint:all", "mise run ts:check:all", "mise run test:all"]
+run = ["mise run format", "mise run lint:all", "mise run ts:check:all", "mise run test:all"]
 
 [tasks."docs:typedoc"]
 run = """

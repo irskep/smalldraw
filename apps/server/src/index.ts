@@ -5,9 +5,12 @@ import * as trpcExpress from "@trpc/server/adapters/express";
 import cors, { type CorsOptions } from "cors";
 import express from "express";
 import { webSocketServer } from "./automergeRepo/automergeRepo.js";
+import type { AuthenticatedSocket } from "./automergeRepo/socketAuthContext.js";
+import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getSession } from "./db/getSession.js";
 import { appRouter } from "./trpc/appRouter.js";
 import { createContext } from "./trpc/trpc.js";
+import { resolveWebSocketUpgradeAuth } from "./wsUpgradeAuth.js";
 
 if (!process.env.OPAQUE_SERVER_SETUP) {
   throw new Error("OPAQUE_SERVER_SETUP is missing");
@@ -25,13 +28,19 @@ const app = express();
 
 app.use(express.json());
 
-const allowedOrigin =
+const defaultAllowedOrigins =
   process.env.NODE_ENV === "production"
-    ? (process.env.FRONTEND_ORIGIN ?? "https://automerge-jumpstart.vercel.app")
-    : "http://localhost:5100";
+    ? ["https://splatterboard.app"]
+    : ["http://localhost:3000"];
+const allowedOrigins = (process.env.FRONTEND_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const finalAllowedOrigins =
+  allowedOrigins.length > 0 ? allowedOrigins : defaultAllowedOrigins;
 
 const corsOptions: CorsOptions = {
-  origin: allowedOrigin,
+  origin: finalAllowedOrigins,
   credentials: true,
 };
 
@@ -69,36 +78,25 @@ const server = app.listen(PORT, () => {
 
 server.on("upgrade", async (request, socket, head) => {
   const origin = request.headers.origin;
-  if (origin && origin !== allowedOrigin) {
+  if (origin && !finalAllowedOrigins.includes(origin)) {
     socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
     socket.destroy();
     return;
   }
 
-  let sessionKey: null | string = null;
-  const queryStartPos = (request.url || "").indexOf("?");
-  if (queryStartPos !== -1) {
-    const queryString = request.url?.slice(queryStartPos + 1);
-    const queryParameters = new URLSearchParams(queryString);
-    sessionKey = queryParameters.get("sessionKey");
-  }
-
-  if (!sessionKey) {
-    socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
-    socket.destroy();
-    return;
-  }
-
-  const session = await getSession(sessionKey);
-  if (!session) {
+  const authContext = await resolveWebSocketUpgradeAuth({
+    requestUrl: request.url,
+    getSessionByKey: getSession,
+    getInvitationByToken: getDocumentInvitationByToken,
+  });
+  if (!authContext) {
     socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
     socket.destroy();
     return;
   }
 
   webSocketServer.handleUpgrade(request, socket, head, (currentSocket) => {
-    // @ts-expect-error adding the session to the socket so we can access it in the network adapter
-    currentSocket.session = session;
+    (currentSocket as AuthenticatedSocket).authContext = authContext;
     webSocketServer.emit("connection", currentSocket, request);
   });
 });

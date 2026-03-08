@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { eq } from "drizzle-orm";
 import "../test/setup.js";
 
 describe("Test environment", () => {
@@ -7,14 +8,19 @@ describe("Test environment", () => {
   });
 });
 
+import { db } from "./client.js";
+import { createAnonymousCollaborativeDocument } from "./createAnonymousCollaborativeDocument.js";
 import { createDocument } from "./createDocument.js";
+import { createOrRefreshDocumentInvitation } from "./createOrRefreshDocumentInvitation.js";
 import { createSession } from "./createSession.js";
 import { createUser } from "./createUser.js";
 import { deleteSession } from "./deleteSession.js";
+import { getDocumentInvitationByToken } from "./getDocumentInvitationByToken.js";
 import { getSession } from "./getSession.js";
 import { getUser } from "./getUser.js";
 import { getUserByUsername } from "./getUserByUsername.js";
 import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
+import { usersOnDocuments } from "./schema.js";
 
 describe("User operations", () => {
   it("createUser creates a user and returns it", async () => {
@@ -198,5 +204,53 @@ describe("Document operations", () => {
     expect(
       await getUserHasAccessToDocument({ userId: "user", documentId: "" }),
     ).toBe(false);
+  });
+
+  it("getDocumentInvitationByToken returns invitation by token", async () => {
+    const user = await createUser({
+      username: "owner-for-token",
+      registrationRecord: "test-registration-record",
+    });
+    const doc = await createDocument({
+      userId: user.id,
+      documentId: "doc-with-invite",
+      name: "Invitation Doc",
+    });
+
+    const invitation = await createOrRefreshDocumentInvitation({
+      userId: user.id,
+      documentId: doc.id,
+    });
+    expect(invitation).not.toBeNull();
+
+    const fetched = await getDocumentInvitationByToken(invitation!.token);
+    expect(fetched).not.toBeNull();
+    expect(fetched!.documentId).toBe(doc.id);
+    expect(fetched!.token).toBe(invitation!.token);
+  });
+
+  it("getDocumentInvitationByToken returns null for unknown token", async () => {
+    const invitation = await getDocumentInvitationByToken("missing-token");
+    expect(invitation).toBeNull();
+  });
+
+  it("createAnonymousCollaborativeDocument creates doc and join secret without membership", async () => {
+    const result = await createAnonymousCollaborativeDocument({
+      documentId: "anon-doc-1",
+    });
+
+    expect(result.document.id).toBe("anon-doc-1");
+    expect(result.document.name).toBe("Untitled");
+    expect(result.joinSecret.length).toBeGreaterThan(0);
+
+    const invitation = await getDocumentInvitationByToken(result.joinSecret);
+    expect(invitation).not.toBeNull();
+    expect(invitation!.documentId).toBe("anon-doc-1");
+
+    const memberships = await db
+      .select()
+      .from(usersOnDocuments)
+      .where(eq(usersOnDocuments.documentId, "anon-doc-1"));
+    expect(memberships).toHaveLength(0);
   });
 });
