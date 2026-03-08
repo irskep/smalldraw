@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import "../test/setup.js";
 
 describe("Test environment", () => {
@@ -6,13 +6,14 @@ describe("Test environment", () => {
     expect(process.env.DATABASE_URL).toBe(":memory:");
   });
 });
+
+import { createDocument } from "./createDocument.js";
+import { createSession } from "./createSession.js";
 import { createUser } from "./createUser.js";
+import { deleteSession } from "./deleteSession.js";
+import { getSession } from "./getSession.js";
 import { getUser } from "./getUser.js";
 import { getUserByUsername } from "./getUserByUsername.js";
-import { createSession } from "./createSession.js";
-import { getSession } from "./getSession.js";
-import { deleteSession } from "./deleteSession.js";
-import { createDocument } from "./createDocument.js";
 import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
 
 describe("User operations", () => {

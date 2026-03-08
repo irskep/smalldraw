@@ -1,7 +1,7 @@
-import { drizzle } from "drizzle-orm/bun-sqlite";
 import { Database } from "bun:sqlite";
-import { mkdirSync } from "fs";
-import path from "path";
+import { mkdirSync } from "node:fs";
+import path from "node:path";
+import { drizzle } from "drizzle-orm/bun-sqlite";
 import * as schema from "./schema.js";
 
 const serverRoot = path.resolve(process.cwd());

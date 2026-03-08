@@ -13,6 +13,7 @@
   "scripts": {
     "ts:check": "bun --filter '*' ts:check",
     "test": "bun --filter '*' test",
-    "lint": "bun --filter '*' lint"
+    "lint": "bun --filter '*' lint",
+    "format": "bunx biome format --write ."
   }
 }

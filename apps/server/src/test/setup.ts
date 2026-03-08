@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach } from "bun:test";
-import path from "path";
+import path from "node:path";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import { db } from "../db/client.js";
 import {

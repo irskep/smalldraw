@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
 import { db } from "./client.js";
+import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
 import { documentInvitations, usersOnDocuments } from "./schema.js";
 
 type Params = {

@@ -1,7 +1,7 @@
-import type { StorageAdapter, StorageKey } from "@automerge/automerge-repo";
 import { Database } from "bun:sqlite";
-import { dirname } from "path";
-import { mkdirSync } from "fs";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
+import type { StorageAdapter, StorageKey } from "@automerge/automerge-repo";
 
 export class SqliteStorageAdapter implements StorageAdapter {
   private db: Database;

@@ -11,108 +11,589 @@ export interface GeneratedColoringAsset {
   src: string;
 }
 
-import nyam_lib_2024_v2_page_002 from './assets/nyam-lib-2024-v2/page-002.png';
-import nyam_lib_2024_v2_page_003 from './assets/nyam-lib-2024-v2/page-003.png';
-import nyam_lib_2024_v2_page_004 from './assets/nyam-lib-2024-v2/page-004.png';
-import nyam_lib_2024_v2_page_005 from './assets/nyam-lib-2024-v2/page-005.png';
-import nyam_lib_2024_v2_page_006 from './assets/nyam-lib-2024-v2/page-006.png';
-import nyam_lib_2024_v2_page_007 from './assets/nyam-lib-2024-v2/page-007.png';
-import nyam_lib_2024_v2_page_008 from './assets/nyam-lib-2024-v2/page-008.png';
-import nyam_lib_2024_v2_page_009 from './assets/nyam-lib-2024-v2/page-009.png';
-import nyam_lib_2024_v2_page_010 from './assets/nyam-lib-2024-v2/page-010.png';
-import nyam_lib_2024_v2_page_011 from './assets/nyam-lib-2024-v2/page-011.png';
-import nyam_lib_2024_v2_page_012 from './assets/nyam-lib-2024-v2/page-012.png';
-import pdr_v1_page_001 from './assets/pdr-v1/page-001.png';
-import pdr_v1_page_002 from './assets/pdr-v1/page-002.png';
-import pdr_v1_page_003 from './assets/pdr-v1/page-003.png';
-import pdr_v1_page_004 from './assets/pdr-v1/page-004.png';
-import pdr_v1_page_005 from './assets/pdr-v1/page-005.png';
-import pdr_v1_page_006 from './assets/pdr-v1/page-006.png';
-import pdr_v1_page_007 from './assets/pdr-v1/page-007.png';
-import pdr_v1_page_008 from './assets/pdr-v1/page-008.png';
-import pdr_v1_page_009 from './assets/pdr-v1/page-009.png';
-import pdr_v1_page_010 from './assets/pdr-v1/page-010.png';
-import pdr_v1_page_011 from './assets/pdr-v1/page-011.png';
-import pdr_v1_page_012 from './assets/pdr-v1/page-012.png';
-import pdr_v1_page_013 from './assets/pdr-v1/page-013.png';
-import pdr_v1_page_014 from './assets/pdr-v1/page-014.png';
-import pdr_v1_page_015 from './assets/pdr-v1/page-015.png';
-import pdr_v1_page_016 from './assets/pdr-v1/page-016.png';
-import pdr_v1_page_017 from './assets/pdr-v1/page-017.png';
-import pdr_v1_page_018 from './assets/pdr-v1/page-018.png';
-import pdr_v1_page_019 from './assets/pdr-v1/page-019.png';
-import pdr_v1_page_020 from './assets/pdr-v1/page-020.png';
-import pdr_v2_page_001 from './assets/pdr-v2/page-001.png';
-import pdr_v2_page_002 from './assets/pdr-v2/page-002.png';
-import pdr_v2_page_003 from './assets/pdr-v2/page-003.png';
-import pdr_v2_page_004 from './assets/pdr-v2/page-004.png';
-import pdr_v2_page_005 from './assets/pdr-v2/page-005.png';
-import pdr_v2_page_006 from './assets/pdr-v2/page-006.png';
-import pdr_v2_page_007 from './assets/pdr-v2/page-007.png';
-import pdr_v2_page_008 from './assets/pdr-v2/page-008.png';
-import pdr_v2_page_009 from './assets/pdr-v2/page-009.png';
-import pdr_v2_page_010 from './assets/pdr-v2/page-010.png';
-import pdr_v2_page_011 from './assets/pdr-v2/page-011.png';
-import pdr_v2_page_012 from './assets/pdr-v2/page-012.png';
-import pdr_v2_page_013 from './assets/pdr-v2/page-013.png';
-import pdr_v2_page_014 from './assets/pdr-v2/page-014.png';
-import pdr_v2_page_015 from './assets/pdr-v2/page-015.png';
-import pdr_v2_page_016 from './assets/pdr-v2/page-016.png';
-import pdr_v2_page_017 from './assets/pdr-v2/page-017.png';
-import pdr_v2_page_018 from './assets/pdr-v2/page-018.png';
-import pdr_v2_page_019 from './assets/pdr-v2/page-019.png';
-import pdr_v2_page_020 from './assets/pdr-v2/page-020.png';
+import nyam_lib_2024_v2_page_002 from "./assets/nyam-lib-2024-v2/page-002.png";
+import nyam_lib_2024_v2_page_003 from "./assets/nyam-lib-2024-v2/page-003.png";
+import nyam_lib_2024_v2_page_004 from "./assets/nyam-lib-2024-v2/page-004.png";
+import nyam_lib_2024_v2_page_005 from "./assets/nyam-lib-2024-v2/page-005.png";
+import nyam_lib_2024_v2_page_006 from "./assets/nyam-lib-2024-v2/page-006.png";
+import nyam_lib_2024_v2_page_007 from "./assets/nyam-lib-2024-v2/page-007.png";
+import nyam_lib_2024_v2_page_008 from "./assets/nyam-lib-2024-v2/page-008.png";
+import nyam_lib_2024_v2_page_009 from "./assets/nyam-lib-2024-v2/page-009.png";
+import nyam_lib_2024_v2_page_010 from "./assets/nyam-lib-2024-v2/page-010.png";
+import nyam_lib_2024_v2_page_011 from "./assets/nyam-lib-2024-v2/page-011.png";
+import nyam_lib_2024_v2_page_012 from "./assets/nyam-lib-2024-v2/page-012.png";
+import pdr_v1_page_001 from "./assets/pdr-v1/page-001.png";
+import pdr_v1_page_002 from "./assets/pdr-v1/page-002.png";
+import pdr_v1_page_003 from "./assets/pdr-v1/page-003.png";
+import pdr_v1_page_004 from "./assets/pdr-v1/page-004.png";
+import pdr_v1_page_005 from "./assets/pdr-v1/page-005.png";
+import pdr_v1_page_006 from "./assets/pdr-v1/page-006.png";
+import pdr_v1_page_007 from "./assets/pdr-v1/page-007.png";
+import pdr_v1_page_008 from "./assets/pdr-v1/page-008.png";
+import pdr_v1_page_009 from "./assets/pdr-v1/page-009.png";
+import pdr_v1_page_010 from "./assets/pdr-v1/page-010.png";
+import pdr_v1_page_011 from "./assets/pdr-v1/page-011.png";
+import pdr_v1_page_012 from "./assets/pdr-v1/page-012.png";
+import pdr_v1_page_013 from "./assets/pdr-v1/page-013.png";
+import pdr_v1_page_014 from "./assets/pdr-v1/page-014.png";
+import pdr_v1_page_015 from "./assets/pdr-v1/page-015.png";
+import pdr_v1_page_016 from "./assets/pdr-v1/page-016.png";
+import pdr_v1_page_017 from "./assets/pdr-v1/page-017.png";
+import pdr_v1_page_018 from "./assets/pdr-v1/page-018.png";
+import pdr_v1_page_019 from "./assets/pdr-v1/page-019.png";
+import pdr_v1_page_020 from "./assets/pdr-v1/page-020.png";
+import pdr_v2_page_001 from "./assets/pdr-v2/page-001.png";
+import pdr_v2_page_002 from "./assets/pdr-v2/page-002.png";
+import pdr_v2_page_003 from "./assets/pdr-v2/page-003.png";
+import pdr_v2_page_004 from "./assets/pdr-v2/page-004.png";
+import pdr_v2_page_005 from "./assets/pdr-v2/page-005.png";
+import pdr_v2_page_006 from "./assets/pdr-v2/page-006.png";
+import pdr_v2_page_007 from "./assets/pdr-v2/page-007.png";
+import pdr_v2_page_008 from "./assets/pdr-v2/page-008.png";
+import pdr_v2_page_009 from "./assets/pdr-v2/page-009.png";
+import pdr_v2_page_010 from "./assets/pdr-v2/page-010.png";
+import pdr_v2_page_011 from "./assets/pdr-v2/page-011.png";
+import pdr_v2_page_012 from "./assets/pdr-v2/page-012.png";
+import pdr_v2_page_013 from "./assets/pdr-v2/page-013.png";
+import pdr_v2_page_014 from "./assets/pdr-v2/page-014.png";
+import pdr_v2_page_015 from "./assets/pdr-v2/page-015.png";
+import pdr_v2_page_016 from "./assets/pdr-v2/page-016.png";
+import pdr_v2_page_017 from "./assets/pdr-v2/page-017.png";
+import pdr_v2_page_018 from "./assets/pdr-v2/page-018.png";
+import pdr_v2_page_019 from "./assets/pdr-v2/page-019.png";
+import pdr_v2_page_020 from "./assets/pdr-v2/page-020.png";
 
 export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
-  { id: 'nyam-lib-2024-v2-002', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 2, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_002 },
-  { id: 'nyam-lib-2024-v2-003', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 3, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_003 },
-  { id: 'nyam-lib-2024-v2-004', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 4, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_004 },
-  { id: 'nyam-lib-2024-v2-005', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 5, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_005 },
-  { id: 'nyam-lib-2024-v2-006', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 6, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_006 },
-  { id: 'nyam-lib-2024-v2-007', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 7, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_007 },
-  { id: 'nyam-lib-2024-v2-008', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 8, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_008 },
-  { id: 'nyam-lib-2024-v2-009', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 9, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_009 },
-  { id: 'nyam-lib-2024-v2-010', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 10, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_010 },
-  { id: 'nyam-lib-2024-v2-011', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 11, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_011 },
-  { id: 'nyam-lib-2024-v2-012', volumeId: 'nyam-lib-2024-v2', volumeLabel: 'NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)', sourceUrl: 'https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf', pageNumber: 12, width: 2550, height: 3300, src: nyam_lib_2024_v2_page_012 },
-  { id: 'pdr-v1-001', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 1, width: 1240, height: 1754, src: pdr_v1_page_001 },
-  { id: 'pdr-v1-002', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 2, width: 1240, height: 1754, src: pdr_v1_page_002 },
-  { id: 'pdr-v1-003', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 3, width: 1754, height: 1240, src: pdr_v1_page_003 },
-  { id: 'pdr-v1-004', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 4, width: 1240, height: 1754, src: pdr_v1_page_004 },
-  { id: 'pdr-v1-005', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 5, width: 1240, height: 1754, src: pdr_v1_page_005 },
-  { id: 'pdr-v1-006', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 6, width: 1754, height: 1240, src: pdr_v1_page_006 },
-  { id: 'pdr-v1-007', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 7, width: 1240, height: 1754, src: pdr_v1_page_007 },
-  { id: 'pdr-v1-008', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 8, width: 1240, height: 1754, src: pdr_v1_page_008 },
-  { id: 'pdr-v1-009', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 9, width: 1754, height: 1240, src: pdr_v1_page_009 },
-  { id: 'pdr-v1-010', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 10, width: 1240, height: 1754, src: pdr_v1_page_010 },
-  { id: 'pdr-v1-011', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 11, width: 1240, height: 1754, src: pdr_v1_page_011 },
-  { id: 'pdr-v1-012', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 12, width: 1240, height: 1754, src: pdr_v1_page_012 },
-  { id: 'pdr-v1-013', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 13, width: 1240, height: 1754, src: pdr_v1_page_013 },
-  { id: 'pdr-v1-014', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 14, width: 1240, height: 1754, src: pdr_v1_page_014 },
-  { id: 'pdr-v1-015', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 15, width: 1754, height: 1240, src: pdr_v1_page_015 },
-  { id: 'pdr-v1-016', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 16, width: 1240, height: 1754, src: pdr_v1_page_016 },
-  { id: 'pdr-v1-017', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 17, width: 1240, height: 1754, src: pdr_v1_page_017 },
-  { id: 'pdr-v1-018', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 18, width: 1240, height: 1754, src: pdr_v1_page_018 },
-  { id: 'pdr-v1-019', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 19, width: 1240, height: 1754, src: pdr_v1_page_019 },
-  { id: 'pdr-v1-020', volumeId: 'pdr-v1', volumeLabel: 'PDR Volume 1', sourceUrl: null, pageNumber: 20, width: 1240, height: 1754, src: pdr_v1_page_020 },
-  { id: 'pdr-v2-001', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 1, width: 1240, height: 1754, src: pdr_v2_page_001 },
-  { id: 'pdr-v2-002', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 2, width: 1240, height: 1754, src: pdr_v2_page_002 },
-  { id: 'pdr-v2-003', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 3, width: 1240, height: 1754, src: pdr_v2_page_003 },
-  { id: 'pdr-v2-004', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 4, width: 1240, height: 1754, src: pdr_v2_page_004 },
-  { id: 'pdr-v2-005', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 5, width: 1754, height: 1240, src: pdr_v2_page_005 },
-  { id: 'pdr-v2-006', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 6, width: 1240, height: 1754, src: pdr_v2_page_006 },
-  { id: 'pdr-v2-007', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 7, width: 1754, height: 1240, src: pdr_v2_page_007 },
-  { id: 'pdr-v2-008', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 8, width: 1240, height: 1754, src: pdr_v2_page_008 },
-  { id: 'pdr-v2-009', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 9, width: 1754, height: 1240, src: pdr_v2_page_009 },
-  { id: 'pdr-v2-010', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 10, width: 1240, height: 1754, src: pdr_v2_page_010 },
-  { id: 'pdr-v2-011', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 11, width: 1754, height: 1240, src: pdr_v2_page_011 },
-  { id: 'pdr-v2-012', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 12, width: 1240, height: 1754, src: pdr_v2_page_012 },
-  { id: 'pdr-v2-013', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 13, width: 1240, height: 1754, src: pdr_v2_page_013 },
-  { id: 'pdr-v2-014', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 14, width: 1240, height: 1754, src: pdr_v2_page_014 },
-  { id: 'pdr-v2-015', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 15, width: 1240, height: 1754, src: pdr_v2_page_015 },
-  { id: 'pdr-v2-016', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 16, width: 1240, height: 1754, src: pdr_v2_page_016 },
-  { id: 'pdr-v2-017', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 17, width: 1240, height: 1754, src: pdr_v2_page_017 },
-  { id: 'pdr-v2-018', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 18, width: 1240, height: 1754, src: pdr_v2_page_018 },
-  { id: 'pdr-v2-019', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 19, width: 1240, height: 1754, src: pdr_v2_page_019 },
-  { id: 'pdr-v2-020', volumeId: 'pdr-v2', volumeLabel: 'PDR Volume 2', sourceUrl: null, pageNumber: 20, width: 1240, height: 1754, src: pdr_v2_page_020 },
+  {
+    id: "nyam-lib-2024-v2-002",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 2,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_002,
+  },
+  {
+    id: "nyam-lib-2024-v2-003",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 3,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_003,
+  },
+  {
+    id: "nyam-lib-2024-v2-004",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 4,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_004,
+  },
+  {
+    id: "nyam-lib-2024-v2-005",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 5,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_005,
+  },
+  {
+    id: "nyam-lib-2024-v2-006",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 6,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_006,
+  },
+  {
+    id: "nyam-lib-2024-v2-007",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 7,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_007,
+  },
+  {
+    id: "nyam-lib-2024-v2-008",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 8,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_008,
+  },
+  {
+    id: "nyam-lib-2024-v2-009",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 9,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_009,
+  },
+  {
+    id: "nyam-lib-2024-v2-010",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 10,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_010,
+  },
+  {
+    id: "nyam-lib-2024-v2-011",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 11,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_011,
+  },
+  {
+    id: "nyam-lib-2024-v2-012",
+    volumeId: "nyam-lib-2024-v2",
+    volumeLabel:
+      "NYAM#ColorOurCollections: Living Well in the 19th and 20th Century (The New York Academy of Medicine, 2024 Edition)",
+    sourceUrl:
+      "https://library.nyam.org/colorourcollections/wp-content/uploads/sites/5/2024/02/Coloring-Book_NYAM_LIB_2024_v2.pdf",
+    pageNumber: 12,
+    width: 2550,
+    height: 3300,
+    src: nyam_lib_2024_v2_page_012,
+  },
+  {
+    id: "pdr-v1-001",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 1,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_001,
+  },
+  {
+    id: "pdr-v1-002",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 2,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_002,
+  },
+  {
+    id: "pdr-v1-003",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 3,
+    width: 1754,
+    height: 1240,
+    src: pdr_v1_page_003,
+  },
+  {
+    id: "pdr-v1-004",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 4,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_004,
+  },
+  {
+    id: "pdr-v1-005",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 5,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_005,
+  },
+  {
+    id: "pdr-v1-006",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 6,
+    width: 1754,
+    height: 1240,
+    src: pdr_v1_page_006,
+  },
+  {
+    id: "pdr-v1-007",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 7,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_007,
+  },
+  {
+    id: "pdr-v1-008",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 8,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_008,
+  },
+  {
+    id: "pdr-v1-009",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 9,
+    width: 1754,
+    height: 1240,
+    src: pdr_v1_page_009,
+  },
+  {
+    id: "pdr-v1-010",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 10,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_010,
+  },
+  {
+    id: "pdr-v1-011",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 11,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_011,
+  },
+  {
+    id: "pdr-v1-012",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 12,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_012,
+  },
+  {
+    id: "pdr-v1-013",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 13,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_013,
+  },
+  {
+    id: "pdr-v1-014",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 14,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_014,
+  },
+  {
+    id: "pdr-v1-015",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 15,
+    width: 1754,
+    height: 1240,
+    src: pdr_v1_page_015,
+  },
+  {
+    id: "pdr-v1-016",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 16,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_016,
+  },
+  {
+    id: "pdr-v1-017",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 17,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_017,
+  },
+  {
+    id: "pdr-v1-018",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 18,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_018,
+  },
+  {
+    id: "pdr-v1-019",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 19,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_019,
+  },
+  {
+    id: "pdr-v1-020",
+    volumeId: "pdr-v1",
+    volumeLabel: "PDR Volume 1",
+    sourceUrl: null,
+    pageNumber: 20,
+    width: 1240,
+    height: 1754,
+    src: pdr_v1_page_020,
+  },
+  {
+    id: "pdr-v2-001",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 1,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_001,
+  },
+  {
+    id: "pdr-v2-002",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 2,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_002,
+  },
+  {
+    id: "pdr-v2-003",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 3,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_003,
+  },
+  {
+    id: "pdr-v2-004",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 4,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_004,
+  },
+  {
+    id: "pdr-v2-005",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 5,
+    width: 1754,
+    height: 1240,
+    src: pdr_v2_page_005,
+  },
+  {
+    id: "pdr-v2-006",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 6,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_006,
+  },
+  {
+    id: "pdr-v2-007",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 7,
+    width: 1754,
+    height: 1240,
+    src: pdr_v2_page_007,
+  },
+  {
+    id: "pdr-v2-008",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 8,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_008,
+  },
+  {
+    id: "pdr-v2-009",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 9,
+    width: 1754,
+    height: 1240,
+    src: pdr_v2_page_009,
+  },
+  {
+    id: "pdr-v2-010",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 10,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_010,
+  },
+  {
+    id: "pdr-v2-011",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 11,
+    width: 1754,
+    height: 1240,
+    src: pdr_v2_page_011,
+  },
+  {
+    id: "pdr-v2-012",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 12,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_012,
+  },
+  {
+    id: "pdr-v2-013",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 13,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_013,
+  },
+  {
+    id: "pdr-v2-014",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 14,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_014,
+  },
+  {
+    id: "pdr-v2-015",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 15,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_015,
+  },
+  {
+    id: "pdr-v2-016",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 16,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_016,
+  },
+  {
+    id: "pdr-v2-017",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 17,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_017,
+  },
+  {
+    id: "pdr-v2-018",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 18,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_018,
+  },
+  {
+    id: "pdr-v2-019",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 19,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_019,
+  },
+  {
+    id: "pdr-v2-020",
+    volumeId: "pdr-v2",
+    volumeLabel: "PDR Volume 2",
+    sourceUrl: null,
+    pageNumber: 20,
+    width: 1240,
+    height: 1754,
+    src: pdr_v2_page_020,
+  },
 ] as const;

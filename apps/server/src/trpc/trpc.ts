@@ -1,5 +1,5 @@
-import { TRPCError, initTRPC } from "@trpc/server";
-import * as trpcExpress from "@trpc/server/adapters/express";
+import { initTRPC, TRPCError } from "@trpc/server";
+import type * as trpcExpress from "@trpc/server/adapters/express";
 import { getSession } from "../db/getSession.js";
 
 // created for each request

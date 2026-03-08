@@ -48,16 +48,28 @@ env = { _.file = ".env", DATABASE_URL = "./sqlite/prod.db" }
 run = "bunx drizzle-kit push"
 
 [tasks."ts:check:all"]
+alias = ["typecheck"]
 # Run all ts:check tasks across the monorepo using wildcard pattern
 # also lint just so there's one easy command to run
-run = ["mise run '//packages/...:ts:check'", "mise run '//apps/...:ts:check'", 'mise run lint:all']
+run = [
+  "mise run '//packages/...:ts:check'",
+  "mise run '//apps/...:ts:check'",
+  'mise run lint:all',
+]
 
 [tasks."lint:all"]
 run = ["mise run '//packages/...:lint'", "mise run '//apps/...:lint'"]
 
+[tasks."format:all"]
+alias = ["format"]
+run = "bun run format"
+
 [tasks."test:all"]
 # Run all test tasks across the monorepo using wildcard pattern
-run = ["mise run '//packages/...:test' > /dev/null", "mise run '//apps/...:test' > /dev/null"]
+run = [
+  "mise run '//packages/...:test' > /dev/null",
+  "mise run '//apps/...:test' > /dev/null",
+]
 
 [tasks."test:all:with-output"]
 # Run all test tasks across the monorepo using wildcard pattern

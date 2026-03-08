@@ -69,7 +69,9 @@ const entries: GeneratedEntry[] = [];
 
 for (const manifestFile of manifestFiles) {
   const manifestPath = resolve(booksRootDir, manifestFile);
-  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as BookManifest;
+  const manifest = JSON.parse(
+    readFileSync(manifestPath, "utf8"),
+  ) as BookManifest;
 
   if (!manifest.slug || !manifest.title) {
     throw new Error(`Invalid book manifest: ${manifestPath}`);

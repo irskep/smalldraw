@@ -6,6 +6,7 @@
     "build": "bun build src/index.ts --outdir dist --target node",
     "start": "bun dist/index.js",
     "test": "bun test",
+    "lint": "bunx biome check --write",
     "ts:check": "tsc --noEmit"
   },
   "dependencies": {

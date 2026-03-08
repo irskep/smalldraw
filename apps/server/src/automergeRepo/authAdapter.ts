@@ -1,9 +1,9 @@
 import { cbor as cborHelpers } from "@automerge/automerge-repo";
 import {
-  FromClientMessage,
+  type FromClientMessage,
   NodeWSServerAdapter,
 } from "@automerge/automerge-repo-network-websocket";
-import WebSocket from "isomorphic-ws";
+import type WebSocket from "isomorphic-ws";
 import { getUserHasAccessToDocument } from "../db/getUserHasAccessToDocument.js";
 
 const { decode } = cborHelpers;

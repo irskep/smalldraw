@@ -1,8 +1,8 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import * as trpcExpress from "@trpc/server/adapters/express";
-import cors, { CorsOptions } from "cors";
+import cors, { type CorsOptions } from "cors";
 import express from "express";
 import { webSocketServer } from "./automergeRepo/automergeRepo.js";
 import { getSession } from "./db/getSession.js";
@@ -19,7 +19,8 @@ const serverRoot = path.resolve(__dirname, "..");
 const staticDir = path.resolve(serverRoot, "public");
 const indexHtmlPath = path.join(staticDir, "index.html");
 
-const PORT = process.env.PORT !== undefined ? parseInt(process.env.PORT) : 3030;
+const PORT =
+  process.env.PORT !== undefined ? parseInt(process.env.PORT, 10) : 3030;
 const app = express();
 
 app.use(express.json());

@@ -191,7 +191,9 @@ export function createDocumentBrowserOverlay(options: {
       thumbSrc: volumePages[0]?.src ?? null,
     }))
     .sort((a, b) => a.title.localeCompare(b.title));
-  const volumeTitleById = new Map(volumeChoices.map((volume) => [volume.id, volume.title] as const));
+  const volumeTitleById = new Map(
+    volumeChoices.map((volume) => [volume.id, volume.title] as const),
+  );
   const rootChoices: Array<{
     id: string;
     title: string;
