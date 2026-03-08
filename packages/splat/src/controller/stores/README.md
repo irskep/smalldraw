@@ -36,6 +36,17 @@ This folder contains store channels used by the `splatterboard` runtime.
 - Lifecycle owner:
   - `DocumentPickerController` owns subscription and thumbnail URL cleanup.
 
+## `createCollaborationStatusStore`
+
+- Purpose: derive collaboration status visibility and `online/offline` label from current document metadata + websocket connectivity state.
+- Publishers:
+  - multiplayer/session wiring (current doc summary)
+  - websocket lifecycle wiring (connected/disconnected)
+- Subscribers:
+  - collaboration status indicator view (future)
+- Lifecycle owner:
+  - multiplayer UI/controller that owns websocket/session lifecycle.
+
 ## Channel Rules
 
 - Keep channels narrow and explicit; avoid adding unrelated fields.

@@ -18,6 +18,9 @@ export interface KidsDrawAppOptions {
   backgroundColor?: string;
   core?: SmalldrawCore;
   documentBackend?: KidsDocumentBackend;
+  multiplayer?: {
+    syncServerWebSocketUrl?: string;
+  };
   confirmDestructiveAction?: (dialog: ConfirmDialogRequest) => Promise<boolean>;
   savePngExport?: (input: {
     suggestedName: string;

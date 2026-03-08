@@ -39,6 +39,7 @@ import { createLifecycleScope } from "./createLifecycleScope";
 import { SnapshotService } from "./createSnapshotService";
 import { ToolbarStateController } from "./createToolbarStateController";
 import { logDiagnosticEvent } from "./diagnostics/diagnosticLogger";
+import type { CollaborationStatusStore } from "./stores/createCollaborationStatusStore";
 import { createKidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 import { createStartupReadinessStore } from "./stores/createStartupReadinessStore";
 import type { UiIntentStore } from "./stores/createUiIntentStore";
@@ -76,6 +77,10 @@ export function createKidsDrawController(options: {
   pipeline: RasterPipeline;
   appElement: HTMLDivElement;
   documentBackend: KidsDocumentBackend;
+  collaborationStatusStore: Pick<
+    CollaborationStatusStore,
+    "setCurrentDocument"
+  >;
   backgroundColor: string;
   initialSize: DrawingDocumentSize;
   sizingPolicy: KidsDrawSizingPolicy;
@@ -101,6 +106,7 @@ export function createKidsDrawController(options: {
     pipeline,
     appElement,
     documentBackend,
+    collaborationStatusStore,
     backgroundColor,
     initialSize,
     sizingPolicy,
@@ -245,6 +251,9 @@ export function createKidsDrawController(options: {
       documentBackend,
       snapshotService,
       runtimeStore,
+      onCurrentDocumentSummaryChanged: (summary) => {
+        collaborationStatusStore.setCurrentDocument(summary);
+      },
       startupReadinessStore,
       toolbarStateController,
       renderLoopController,

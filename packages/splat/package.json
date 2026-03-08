@@ -18,6 +18,7 @@
   "dependencies": {
     "@automerge/automerge-repo": "2.5.1",
     "@automerge/automerge-repo-network-broadcastchannel": "2.5.1",
+    "@automerge/automerge-repo-network-websocket": "2.5.1",
     "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
     "@smalldraw/core": "workspace:*",
     "@smalldraw/geometry": "workspace:*",

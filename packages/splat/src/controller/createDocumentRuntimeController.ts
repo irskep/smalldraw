@@ -41,6 +41,9 @@ export function createDocumentRuntimeController(options: {
   store: DrawingStore;
   core: SmalldrawCore;
   documentBackend: KidsDocumentBackend;
+  onCurrentDocumentSummaryChanged?: (
+    summary: KidsDocumentSummary | null,
+  ) => void;
   snapshotService: Pick<SnapshotService, "createThumbnailBlob">;
   runtimeStore: Pick<KidsDrawRuntimeStore, "setPresentation" | "isDestroyed">;
   startupReadinessStore: Pick<
@@ -94,6 +97,17 @@ export function createDocumentRuntimeController(options: {
         : options.getDocumentSizeFromViewport();
     },
   });
+
+  const syncCurrentDocumentSummary = async (docUrl: string): Promise<void> => {
+    if (!options.onCurrentDocumentSummaryChanged) {
+      return;
+    }
+    const summary = await options.documentBackend.getDocument(docUrl);
+    if (options.runtimeStore.isDestroyed()) {
+      return;
+    }
+    options.onCurrentDocumentSummaryChanged(summary);
+  };
 
   const applyToolbarStateForCurrentDocument = (
     presentation: DocumentSessionPresentation,
@@ -312,6 +326,9 @@ export function createDocumentRuntimeController(options: {
           continue;
         }
         if (intent.type === "switch_or_create_completed") {
+          void syncCurrentDocumentSummary(
+            documentSessionController.getCurrentCatalogDocUrl(),
+          );
           logStartupEvent("document_load_switch_complete", {
             docUrl: options.core.getCurrentDocUrl(),
           });
@@ -335,6 +352,7 @@ export function createDocumentRuntimeController(options: {
       ...toDocumentMetadataFromPresentation(presentation),
       documentSize: options.store.getDocument().size,
     });
+    await syncCurrentDocumentSummary(docUrl);
     if (docUrl !== options.core.getCurrentDocUrl()) {
       return { presentation, stillCurrent: false };
     }

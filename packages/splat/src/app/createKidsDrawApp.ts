@@ -5,8 +5,10 @@ import {
 } from "@smalldraw/core";
 import { el, mount, unmount } from "redom";
 import { createKidsDrawController } from "../controller/KidsDrawController";
+import { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
 import { createUiIntentStore } from "../controller/stores/createUiIntentStore";
 import {
+  createCollaborativeDocumentIndex,
   createLocalDocumentBackend,
   createLocalSmalldrawRepo,
 } from "../documents";
@@ -74,10 +76,22 @@ export async function createKidsDrawApp(
     });
 
   const providedCore = options.core;
+  const collaborationStatusStore = createCollaborationStatusStore();
+  const collaborativeDocumentIndex = createCollaborativeDocumentIndex({
+    listDocuments: () => documentBackend.listDocuments(),
+  });
   const core =
     providedCore ??
     (await createSmalldraw({
-      repo: createLocalSmalldrawRepo(),
+      repo: createLocalSmalldrawRepo({
+        websocketUrl: options.multiplayer?.syncServerWebSocketUrl,
+        isCollaborativeDocumentId: async (documentId: string) => {
+          return await collaborativeDocumentIndex.hasDocumentId(documentId);
+        },
+        onWebsocketConnectedChange: (connected) => {
+          collaborationStatusStore.setWebsocketConnected(connected);
+        },
+      }),
       persistence: {
         mode: "reuse",
         getCurrentDocUrl: () => documentBackend.getCurrentDocument(),
@@ -170,6 +184,12 @@ export async function createKidsDrawApp(
     pipeline,
     appElement: element,
     documentBackend,
+    collaborationStatusStore: {
+      setCurrentDocument(summary) {
+        collaborationStatusStore.setCurrentDocument(summary);
+        collaborativeDocumentIndex.upsertSummary(summary);
+      },
+    },
     backgroundColor,
     initialSize,
     sizingPolicy: {

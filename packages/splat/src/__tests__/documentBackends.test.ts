@@ -39,4 +39,36 @@ describe("document backends", () => {
     expect(await backend.getDocument("automerge:test-local-doc")).toBeNull();
     expect(await backend.getCurrentDocument()).toBeNull();
   });
+
+  test("local backend stores collaboration metadata and maps current doc from collab url", async () => {
+    const currentDocStorageKey = `kids-draw-doc-url-test-${Math.random()}`;
+    const backend = createLocalDocumentBackend({
+      currentDocStorageKey,
+      databaseName: `kids-draw-documents-test-${Math.random()}`,
+    });
+
+    const created = await backend.createDocument({
+      docUrl: "automerge:local-2",
+      collaborative: true,
+      collabDocUrl: "automerge:collab-2",
+      joinSecret: "join-secret-2",
+      mode: "normal",
+    });
+    expect(created.collaborative).toBeTrue();
+    expect(created.collabDocUrl).toBe("automerge:collab-2");
+    expect(created.joinSecret).toBe("join-secret-2");
+
+    await backend.setCurrentDocument("automerge:collab-2");
+    expect(await backend.getCurrentDocument()).toBe("automerge:local-2");
+
+    await backend.createDocument({
+      docUrl: "automerge:local-2",
+      collaborative: false,
+      mode: "normal",
+    });
+    const updated = await backend.getDocument("automerge:local-2");
+    expect(updated?.collaborative).toBeFalse();
+    expect(updated?.collabDocUrl).toBeUndefined();
+    expect(updated?.joinSecret).toBeUndefined();
+  });
 });

@@ -5,6 +5,9 @@ export type KidsDocumentReferenceComposite = "under-drawing" | "over-drawing";
 
 export interface KidsDocumentSummary {
   docUrl: string;
+  collaborative?: boolean;
+  collabDocUrl?: string;
+  joinSecret?: string;
   title?: string;
   mode: KidsDocumentMode;
   coloringPageId?: string;
@@ -18,6 +21,9 @@ export interface KidsDocumentSummary {
 
 export interface KidsDocumentCreateInput {
   docUrl: string;
+  collaborative?: boolean;
+  collabDocUrl?: string;
+  joinSecret?: string;
   title?: string;
   mode?: KidsDocumentMode;
   coloringPageId?: string;

@@ -91,6 +91,9 @@ function isSameDocumentSummary(
 ): boolean {
   return (
     a.docUrl === b.docUrl &&
+    a.collaborative === b.collaborative &&
+    a.collabDocUrl === b.collabDocUrl &&
+    a.joinSecret === b.joinSecret &&
     a.title === b.title &&
     a.mode === b.mode &&
     a.coloringPageId === b.coloringPageId &&

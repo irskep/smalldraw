@@ -10,6 +10,7 @@ import type {
   KidsDocumentMode,
   KidsDocumentSummary,
 } from "../documents";
+import { resolveDocumentOpenUrl } from "../documents";
 import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
 import {
   createDocumentSessionStore,
@@ -29,6 +30,7 @@ export class DocumentSessionController {
     null;
   private thumbnailSaveTimeoutHandle: ReturnType<typeof setTimeout> | null =
     null;
+  private currentCatalogDocUrl: string;
   readonly state = createDocumentSessionStore();
 
   constructor(
@@ -42,7 +44,9 @@ export class DocumentSessionController {
         request: NewDocumentRequest,
       ) => DrawingDocumentSize;
     },
-  ) {}
+  ) {
+    this.currentCatalogDocUrl = this.options.core.getCurrentDocUrl();
+  }
 
   resolveDocumentPresentation(
     documentPresentation: DrawingDocumentPresentation | undefined,
@@ -127,15 +131,17 @@ export class DocumentSessionController {
   }
 
   async switchToDocument(docUrl: string): Promise<void> {
+    const persistedSummary =
+      await this.options.documentBackend.getDocument(docUrl);
+    const openDocUrl = resolveDocumentOpenUrl(docUrl, persistedSummary);
     await this.flushThumbnailSave();
-    const adapter = await this.options.core.open(docUrl);
+    const adapter = await this.options.core.open(openDocUrl);
+    this.currentCatalogDocUrl = docUrl;
     const openedDocument = adapter.getDoc();
     const docSize = openedDocument.size;
     const resolvedPresentation = this.resolveDocumentPresentation(
       openedDocument.presentation,
     );
-    const persistedSummary =
-      await this.options.documentBackend.getDocument(docUrl);
     const presentation = this.resolvePresentationFromMetadata(
       resolvedPresentation,
       persistedSummary,
@@ -176,6 +182,7 @@ export class DocumentSessionController {
       documentSize: nextDocumentSize,
       documentPresentation: requestPresentation,
     });
+    this.currentCatalogDocUrl = url;
     const createdDocument = adapter.getDoc();
     const presentation = this.resolveDocumentPresentation(
       createdDocument.presentation,
@@ -207,7 +214,7 @@ export class DocumentSessionController {
   }
 
   async flushDocumentTouch(): Promise<void> {
-    const docUrl = this.options.core.getCurrentDocUrl();
+    const docUrl = this.currentCatalogDocUrl;
     try {
       await this.options.documentBackend.touchDocument(docUrl);
     } catch (error) {
@@ -219,7 +226,7 @@ export class DocumentSessionController {
   }
 
   async flushThumbnailSave(): Promise<void> {
-    const docUrl = this.options.core.getCurrentDocUrl();
+    const docUrl = this.currentCatalogDocUrl;
     try {
       const thumbnailBlob = await this.options.createThumbnailBlob();
       if (!thumbnailBlob) {
@@ -265,6 +272,10 @@ export class DocumentSessionController {
       clearTimeout(this.thumbnailSaveTimeoutHandle);
       this.thumbnailSaveTimeoutHandle = null;
     }
+  }
+
+  getCurrentCatalogDocUrl(): string {
+    return this.currentCatalogDocUrl;
   }
 
   private resolvePresentationFromMetadata(

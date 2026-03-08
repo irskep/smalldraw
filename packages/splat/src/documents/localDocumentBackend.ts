@@ -37,8 +37,20 @@ function normalizeMode(mode: unknown): KidsDocumentMode {
 function normalizeDocumentSummary(
   value: Partial<KidsDocumentSummary> & Pick<KidsDocumentSummary, "docUrl">,
 ): KidsDocumentSummary {
+  const collabDocUrl =
+    typeof value.collabDocUrl === "string" && value.collabDocUrl.length > 0
+      ? value.collabDocUrl
+      : undefined;
+  const joinSecret =
+    typeof value.joinSecret === "string" && value.joinSecret.length > 0
+      ? value.joinSecret
+      : undefined;
+  const collaborative = Boolean(value.collaborative || collabDocUrl);
   return {
     docUrl: value.docUrl,
+    collaborative,
+    collabDocUrl: collaborative ? collabDocUrl : undefined,
+    joinSecret: collaborative ? joinSecret : undefined,
     title: value.title,
     mode: normalizeMode(value.mode),
     coloringPageId:
@@ -213,8 +225,21 @@ class IndexedDbDocumentRepository implements DocumentRepository {
               Pick<KidsDocumentSummary, "docUrl">,
           )
         : undefined;
+    const requestedCollaborative =
+      input.collaborative ?? existing?.collaborative;
+    const nextCollabDocUrl =
+      requestedCollaborative === false
+        ? undefined
+        : (input.collabDocUrl ?? existing?.collabDocUrl);
+    const collaborative = Boolean(requestedCollaborative && nextCollabDocUrl);
     const next: DocumentRecord = {
       docUrl: input.docUrl,
+      collaborative,
+      collabDocUrl: collaborative ? nextCollabDocUrl : undefined,
+      joinSecret:
+        collaborative === false
+          ? undefined
+          : (input.joinSecret ?? existing?.joinSecret),
       title: input.title ?? existing?.title,
       mode: input.mode ?? existing?.mode ?? "normal",
       coloringPageId:
@@ -296,8 +321,21 @@ class MemoryDocumentRepository implements DocumentRepository {
   ): Promise<KidsDocumentSummary> {
     const timestamp = nowIsoString();
     const existing = this.documents.get(input.docUrl);
+    const requestedCollaborative =
+      input.collaborative ?? existing?.collaborative;
+    const nextCollabDocUrl =
+      requestedCollaborative === false
+        ? undefined
+        : (input.collabDocUrl ?? existing?.collabDocUrl);
+    const collaborative = Boolean(requestedCollaborative && nextCollabDocUrl);
     const next: KidsDocumentSummary = {
       docUrl: input.docUrl,
+      collaborative,
+      collabDocUrl: collaborative ? nextCollabDocUrl : undefined,
+      joinSecret:
+        collaborative === false
+          ? undefined
+          : (input.joinSecret ?? existing?.joinSecret),
       title: input.title ?? existing?.title,
       mode: input.mode ?? existing?.mode ?? "normal",
       coloringPageId:
@@ -491,7 +529,19 @@ class LocalDocumentBackend implements KidsDocumentBackend {
   }
 
   async setCurrentDocument(docUrl: string): Promise<void> {
-    await this.currentDocumentRepository.setCurrentDocument(docUrl);
+    const persisted = await this.documentRepository.getDocument(docUrl);
+    if (persisted) {
+      await this.currentDocumentRepository.setCurrentDocument(persisted.docUrl);
+      return;
+    }
+
+    const documents = await this.documentRepository.listDocuments();
+    const byCollabUrl = documents.find((document) => {
+      return document.collaborative && document.collabDocUrl === docUrl;
+    });
+    await this.currentDocumentRepository.setCurrentDocument(
+      byCollabUrl?.docUrl ?? docUrl,
+    );
   }
 
   async getCurrentDocument(): Promise<string | null> {
