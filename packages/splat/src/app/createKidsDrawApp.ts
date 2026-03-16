@@ -98,36 +98,29 @@ export async function createKidsDrawApp(
   let joinedDocumentBinary: Uint8Array | null = null;
   let joinedCollabDocUrl: string | null = null;
   if (joinSecretFromUrl && multiplayerApiClient) {
-    try {
-      const resolved =
-        await multiplayerApiClient.resolveCollaborativeDocumentByJoinSecret(
-          joinSecretFromUrl,
-        );
-      if (resolved) {
-        if (resolved.content) {
-          joinedDocumentBinary = base64ToUint8Array(resolved.content);
-          joinedCollabDocUrl = resolved.collabDocUrl;
-        }
-        const existingSummaries = await documentBackend.listDocuments();
-        const existingSummary = existingSummaries.find(
-          (summary) => summary.collabDocUrl === resolved.collabDocUrl,
-        );
-        const catalogDocUrl =
-          existingSummary?.docUrl ??
-          buildJoinedCatalogDocUrl(resolved.collabDocUrl);
-        await documentBackend.createDocument({
-          docUrl: catalogDocUrl,
-          collaborative: true,
-          collabDocUrl: resolved.collabDocUrl,
-          joinSecret: resolved.joinSecret,
-        });
-        await documentBackend.setCurrentDocument(catalogDocUrl);
-      }
-    } catch (error) {
-      console.warn("[kids-draw:multiplayer] failed to resolve join secret", {
-        error,
-      });
+    const resolved =
+      await multiplayerApiClient.resolveCollaborativeDocumentByJoinSecret(
+        joinSecretFromUrl,
+      );
+    if (!resolved) {
+      throw new Error("This share link is no longer valid.");
     }
+    joinedDocumentBinary = base64ToUint8Array(resolved.content);
+    joinedCollabDocUrl = resolved.collabDocUrl;
+    const existingSummaries = await documentBackend.listDocuments();
+    const existingSummary = existingSummaries.find(
+      (summary) => summary.collabDocUrl === resolved.collabDocUrl,
+    );
+    const catalogDocUrl =
+      existingSummary?.docUrl ??
+      buildJoinedCatalogDocUrl(resolved.collabDocUrl);
+    await documentBackend.createDocument({
+      docUrl: catalogDocUrl,
+      collaborative: true,
+      collabDocUrl: resolved.collabDocUrl,
+      joinSecret: resolved.joinSecret,
+    });
+    await documentBackend.setCurrentDocument(catalogDocUrl);
   }
   const initialCatalogDocUrl = await documentBackend.getCurrentDocument();
   const initialCatalogSummary = initialCatalogDocUrl

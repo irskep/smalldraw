@@ -120,35 +120,42 @@ export const appRouter = router({
       if (!invitation) {
         return null;
       }
-      let content: string | undefined;
-      console.info("[resolve] attempting doc export", {
-        documentId: invitation.documentId,
-        handleCacheKeys: Object.keys(repo.handles),
-      });
       try {
         const abortController = new AbortController();
         const timeout = setTimeout(() => abortController.abort(), 3000);
+        let content: string;
         try {
           const handle = await repo.find(invitation.documentId as DocumentId, {
             signal: abortController.signal,
           });
           const doc = await handle.doc();
-          if (doc) {
-            const { save } = await import("@automerge/automerge");
-            const binary = save(doc);
-            content = Buffer.from(binary).toString("base64");
+          if (!doc) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Document not found in repository",
+            });
           }
+          const { save } = await import("@automerge/automerge");
+          const binary = save(doc);
+          content = Buffer.from(binary).toString("base64");
         } finally {
           clearTimeout(timeout);
         }
+        return {
+          collabDocUrl: toAutomergeUrl(invitation.documentId),
+          joinSecret: invitation.token,
+          content,
+        };
       } catch (err) {
-        console.warn("[resolve] failed to serialize doc content", err);
+        if (err instanceof TRPCError) {
+          throw err;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to serialize document",
+          cause: err,
+        });
       }
-      return {
-        collabDocUrl: toAutomergeUrl(invitation.documentId),
-        joinSecret: invitation.token,
-        content,
-      };
     }),
 
   createOrRefreshDocumentInvitation: protectedProcedure

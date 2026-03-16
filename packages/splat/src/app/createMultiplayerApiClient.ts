@@ -11,7 +11,7 @@ export interface MultiplayerApiClient {
   resolveCollaborativeDocumentByJoinSecret(joinSecret: string): Promise<{
     collabDocUrl: string;
     joinSecret: string;
-    content?: string;
+    content: string;
   } | null>;
 }
 
@@ -29,7 +29,7 @@ export function createMultiplayerApiClient(options: {
         documentId,
         content: contentBase64,
       });
-      const parsed = parseCollaborativeDocumentResult(result);
+      const parsed = parseRegisterResult(result);
       if (!parsed) {
         throw new Error("Invalid response from registerCollaborativeDocument");
       }
@@ -45,7 +45,7 @@ export function createMultiplayerApiClient(options: {
       if (result == null) {
         return null;
       }
-      const parsed = parseCollaborativeDocumentResult(result);
+      const parsed = parseResolveResult(result);
       if (!parsed) {
         throw new Error(
           "Invalid response from resolveAnonymousCollaborativeDocument",
@@ -56,9 +56,9 @@ export function createMultiplayerApiClient(options: {
   };
 }
 
-function parseCollaborativeDocumentResult(
+function parseRegisterResult(
   input: unknown,
-): { collabDocUrl: string; joinSecret: string; content?: string } | null {
+): { collabDocUrl: string; joinSecret: string } | null {
   if (
     !input ||
     typeof input !== "object" ||
@@ -67,11 +67,28 @@ function parseCollaborativeDocumentResult(
   ) {
     return null;
   }
-  const content = (input as { content?: unknown }).content;
   return {
     collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
     joinSecret: (input as { joinSecret: string }).joinSecret,
-    ...(typeof content === "string" ? { content } : {}),
+  };
+}
+
+function parseResolveResult(
+  input: unknown,
+): { collabDocUrl: string; joinSecret: string; content: string } | null {
+  if (
+    !input ||
+    typeof input !== "object" ||
+    typeof (input as { collabDocUrl?: unknown }).collabDocUrl !== "string" ||
+    typeof (input as { joinSecret?: unknown }).joinSecret !== "string" ||
+    typeof (input as { content?: unknown }).content !== "string"
+  ) {
+    return null;
+  }
+  return {
+    collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
+    joinSecret: (input as { joinSecret: string }).joinSecret,
+    content: (input as { content: string }).content,
   };
 }
 

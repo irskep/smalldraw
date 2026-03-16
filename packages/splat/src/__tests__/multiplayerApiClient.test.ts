@@ -101,6 +101,24 @@ describe("createMultiplayerApiClient", () => {
     );
   });
 
+  test("resolve throws when content is missing from response", async () => {
+    installFetchMock(async () => {
+      return mockJsonResponse({
+        collabDocUrl: "automerge:doc-3",
+        joinSecret: "token-3",
+      });
+    });
+
+    const client = createMultiplayerApiClient({
+      apiUrl: "http://localhost/api",
+    });
+    await expect(
+      client.resolveCollaborativeDocumentByJoinSecret("join-no-content"),
+    ).rejects.toThrow(
+      "Invalid response from resolveAnonymousCollaborativeDocument",
+    );
+  });
+
   test("throws when response payload is invalid", async () => {
     installFetchMock(async () => {
       return mockJsonResponse({ joinSecret: "token-only" });
