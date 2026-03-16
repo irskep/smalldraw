@@ -38,6 +38,7 @@ export class DocumentSessionController {
       store: DrawingStore;
       core: SmalldrawCore;
       documentBackend: KidsDocumentBackend;
+      initialCatalogDocUrl?: string;
       thumbnailSaveDebounceMs: number;
       createThumbnailBlob: () => Promise<Blob | null>;
       getDocumentSizeForCreateRequest: (
@@ -45,7 +46,8 @@ export class DocumentSessionController {
       ) => DrawingDocumentSize;
     },
   ) {
-    this.currentCatalogDocUrl = this.options.core.getCurrentDocUrl();
+    this.currentCatalogDocUrl =
+      this.options.initialCatalogDocUrl ?? this.options.core.getCurrentDocUrl();
   }
 
   resolveDocumentPresentation(

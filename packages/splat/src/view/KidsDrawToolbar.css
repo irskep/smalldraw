@@ -22,6 +22,17 @@
   justify-content: center;
   gap: var(--size-2);
   min-width: 0;
+  flex-wrap: wrap;
+}
+
+.kids-draw-collaboration-status {
+  margin: 0;
+  padding: var(--size-1) var(--size-2);
+  border-radius: var(--radius-2);
+  background: color-mix(in oklch, var(--blue-1) 70%, white);
+  color: color-mix(in oklch, var(--blue-9) 88%, black);
+  font-size: var(--font-size-0);
+  font-weight: var(--font-weight-6);
 }
 
 .kids-draw-toolbar-top .kids-toolbar-grid-panel {

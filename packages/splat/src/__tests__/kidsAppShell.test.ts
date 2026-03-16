@@ -160,6 +160,20 @@ function createMockDocumentBackend(
         createdAt: existing?.createdAt ?? timestamp,
         updatedAt: timestamp,
         lastOpenedAt: timestamp,
+        collaborative: Boolean(
+          (input.collaborative ?? existing?.collaborative) &&
+            (input.collabDocUrl ?? existing?.collabDocUrl),
+        ),
+        collabDocUrl:
+          (input.collaborative ?? existing?.collaborative) &&
+          (input.collabDocUrl ?? existing?.collabDocUrl)
+            ? (input.collabDocUrl ?? existing?.collabDocUrl)
+            : undefined,
+        joinSecret:
+          (input.collaborative ?? existing?.collaborative) &&
+          (input.collabDocUrl ?? existing?.collabDocUrl)
+            ? (input.joinSecret ?? existing?.joinSecret)
+            : undefined,
       };
       documentsByUrl.set(next.docUrl, next);
       return next;
@@ -279,6 +293,9 @@ function createMockCore(
     async reset(options) {
       const created = await this.createNew(options);
       return created.adapter;
+    },
+    createDocumentCopy() {
+      return { url: "automerge:copy-1", binary: new Uint8Array([1, 2, 3]) };
     },
     destroy() {},
   };
@@ -498,6 +515,137 @@ describe("splatterboard shell", () => {
     expect(resetSettled).toBeTrue();
 
     app.destroy();
+  });
+
+  test("shows offline collaboration status for collaborative current document", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const now = new Date().toISOString();
+    const backend = createMockDocumentBackend(
+      [
+        {
+          docUrl: "automerge:mock-1",
+          mode: "normal",
+          collaborative: true,
+          collabDocUrl: "automerge:collab-1",
+          joinSecret: "join-secret-1",
+          createdAt: now,
+          updatedAt: now,
+          lastOpenedAt: now,
+        },
+      ],
+      "automerge:mock-1",
+    );
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      documentBackend: backend,
+      confirmDestructiveAction: async () => true,
+    });
+
+    const status = container.querySelector(
+      ".kids-draw-collaboration-status",
+    ) as HTMLElement | null;
+    expect(status).not.toBeNull();
+    const statusVisible = await waitUntil(() => status?.hidden === false, 80);
+    expect(statusVisible).toBeTrue();
+    expect(status?.hidden).toBeFalse();
+    expect(status?.textContent).toBe("Collab drawing (offline)");
+
+    app.destroy();
+  });
+
+  test("share command fails gracefully when multiplayer api is not configured", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+
+    const shareButton = container.querySelector(
+      '[data-action="share"]',
+    ) as DisableableElement | null;
+    expect(shareButton).not.toBeNull();
+    expect(shareButton?.disabled).toBeFalse();
+
+    app.commands.share();
+    const settled = await waitUntil(() => shareButton?.disabled === false, 80);
+    expect(settled).toBeTrue();
+    expect(shareButton?.disabled).toBeFalse();
+
+    app.destroy();
+  });
+
+  test("join bootstrap stores a separate local catalog key for collaborative docs", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/resolveAnonymousCollaborativeDocument")) {
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: {
+                  collabDocUrl: "automerge:joined-doc",
+                  joinSecret: "join-seed",
+                },
+              },
+            },
+          ]),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const backend = createMockDocumentBackend([], null);
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          joinSecret: "join-seed",
+        },
+      });
+
+      const documents = await backend.listDocuments();
+      const joined = documents.find(
+        (summary) => summary.collabDocUrl === "automerge:joined-doc",
+      );
+      expect(joined).not.toBeUndefined();
+      expect(joined?.docUrl).toBe("catalog-collab:joined-doc");
+      expect(await backend.getCurrentDocument()).toBe(
+        "catalog-collab:joined-doc",
+      );
+
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
   });
 
   test("filled/outline shape families preserve sub-shape and draw boxed kinds", async () => {

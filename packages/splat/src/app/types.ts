@@ -20,6 +20,9 @@ export interface KidsDrawAppOptions {
   documentBackend?: KidsDocumentBackend;
   multiplayer?: {
     syncServerWebSocketUrl?: string;
+    syncServerHttpUrl?: string;
+    joinBaseUrl?: string;
+    joinSecret?: string;
   };
   confirmDestructiveAction?: (dialog: ConfirmDialogRequest) => Promise<boolean>;
   savePngExport?: (input: {
@@ -27,6 +30,7 @@ export interface KidsDrawAppOptions {
     blob?: Blob;
     dataUrl?: string;
   }) => Promise<boolean>;
+  onShareError?: (message: string) => void;
 }
 
 export interface KidsDrawAppCommands {
@@ -36,6 +40,7 @@ export interface KidsDrawAppCommands {
   export(): void;
   newDrawing(): void;
   browse(): void;
+  share(): void;
 }
 
 export interface KidsDrawApp {

@@ -29,7 +29,11 @@ export function createAutomergeStoreAdapter(
   return {
     getDoc: () => {
       try {
-        return handle.doc() as DrawingDocument;
+        const document = handle.doc() as DrawingDocument;
+        if (!document?.size?.width || !document?.size?.height) {
+          return createDocument(undefined, registry);
+        }
+        return document;
       } catch {
         return createDocument(undefined, registry);
       }

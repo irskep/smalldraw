@@ -2,8 +2,14 @@ import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64"
 import {
   initializeBase64Wasm,
   isWasmInitialized,
+  save,
 } from "@automerge/automerge/slim";
-import type { AutomergeUrl, DocHandle, Repo } from "@automerge/automerge-repo";
+import type {
+  AutomergeUrl,
+  DocHandle,
+  DocumentId,
+  Repo,
+} from "@automerge/automerge-repo";
 import { createAutomergeStoreAdapter } from "./automerge/storeAdapter";
 import {
   DEFAULT_DOCUMENT_PRESENTATION,
@@ -19,12 +25,18 @@ import type { DrawingStoreAdapter } from "./store/drawingStore";
 export interface SmalldrawCoreOptions {
   repo: Repo;
   shapeHandlers: ShapeHandlerRegistry;
+  initialOpenTimeoutMs?: number;
   persistence?: {
     storageKey?: string;
     mode?: "reuse" | "always-new";
     getCurrentDocUrl?: () => Promise<string | null> | string | null;
     setCurrentDocUrl?: (url: string) => Promise<void> | void;
     clearCurrentDocUrl?: () => Promise<void> | void;
+  };
+  /** Pre-import a document binary into the repo before opening. */
+  preImport?: {
+    binary: Uint8Array;
+    docId: string;
   };
   documentSize?: DrawingDocumentSize;
   debug?: boolean;
@@ -42,6 +54,7 @@ export interface SmalldrawCore {
     documentSize?: DrawingDocumentSize;
     documentPresentation?: DrawingDocumentPresentation;
   }): Promise<DrawingStoreAdapter>;
+  createDocumentCopy(): { url: string; binary: Uint8Array };
   destroy(): void;
 }
 
@@ -58,15 +71,17 @@ async function getOrCreateHandle(
   documentSize: DrawingDocumentSize,
   documentPresentation: DrawingDocumentPresentation,
   debug: boolean,
+  findTimeoutMs: number,
 ): Promise<DocHandle<DrawingDocumentData>> {
-  if (mode === "always-new") {
+  if (mode === "always-new" || !currentDocUrl) {
     const handle = repo.create<DrawingDocumentData>(
       createEmptyDrawingDocumentData(documentSize, documentPresentation),
     );
     if (debug) {
       console.debug(
-        "[createSmalldraw] created new doc (always-new):",
+        "[createSmalldraw] created new doc:",
         handle.url,
+        mode === "always-new" ? "(always-new)" : "(no stored url)",
       );
     }
     return handle;
@@ -76,17 +91,37 @@ async function getOrCreateHandle(
     console.debug("[createSmalldraw] stored doc url:", currentDocUrl);
   }
 
-  if (currentDocUrl) {
-    return await repo.find<DrawingDocumentData>(currentDocUrl as AutomergeUrl);
+  // Check handle cache first — pre-imported docs will be here already.
+  const docId = stripAutomergePrefix(currentDocUrl);
+  const cachedHandle = repo.handles[docId] as
+    | DocHandle<DrawingDocumentData>
+    | undefined;
+  if (cachedHandle) {
+    if (debug) {
+      console.debug("[createSmalldraw] found cached handle:", cachedHandle.url);
+    }
+    return cachedHandle;
   }
 
-  const handle = repo.create<DrawingDocumentData>(
-    createEmptyDrawingDocumentData(documentSize, documentPresentation),
-  );
-  if (debug) {
-    console.debug("[createSmalldraw] created new doc:", handle.url);
+  // Not in cache — load from storage via repo.find().
+  // Use an abort signal so we don't hang forever if the doc doesn't exist.
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), findTimeoutMs);
+  try {
+    return await repo.find<DrawingDocumentData>(currentDocUrl as AutomergeUrl, {
+      signal: abortController.signal,
+    });
+  } catch {
+    console.warn(
+      "[createSmalldraw] repo.find failed or timed out, creating new:",
+      currentDocUrl,
+    );
+    return repo.create<DrawingDocumentData>(
+      createEmptyDrawingDocumentData(documentSize, documentPresentation),
+    );
+  } finally {
+    clearTimeout(timeout);
   }
-  return handle;
 }
 
 export async function createSmalldraw(
@@ -96,8 +131,10 @@ export async function createSmalldraw(
     repo,
     shapeHandlers,
     persistence,
+    preImport,
     documentSize = DEFAULT_DOCUMENT_SIZE,
     debug = false,
+    initialOpenTimeoutMs = 8000,
   } = options;
 
   if (!shapeHandlers) {
@@ -105,6 +142,17 @@ export async function createSmalldraw(
   }
 
   await initAutomerge();
+
+  if (preImport) {
+    const docId = stripAutomergePrefix(preImport.docId);
+    repo.import(preImport.binary, { docId });
+    if (debug) {
+      console.debug("[createSmalldraw] pre-imported doc:", preImport.docId, {
+        bytes: preImport.binary.length,
+      });
+    }
+  }
+
   const registry = shapeHandlers;
 
   const storageKey = persistence?.storageKey ?? "smalldraw-doc-url";
@@ -138,9 +186,26 @@ export async function createSmalldraw(
     documentSize,
     DEFAULT_DOCUMENT_PRESENTATION,
     debug,
+    initialOpenTimeoutMs,
   );
+  const initialReady = await waitForHandleReady(handle, initialOpenTimeoutMs);
+  if (!initialReady && mode === "reuse" && initialCurrentDocUrl) {
+    console.warn("[createSmalldraw] timed out opening stored doc; resetting", {
+      initialCurrentDocUrl,
+      timeoutMs: initialOpenTimeoutMs,
+    });
+    handle = await getOrCreateHandle(
+      repo,
+      null,
+      "always-new",
+      documentSize,
+      DEFAULT_DOCUMENT_PRESENTATION,
+      debug,
+      initialOpenTimeoutMs,
+    );
+    await handle.whenReady();
+  }
   await writeCurrentDocUrl(handle.url);
-  await handle.whenReady();
 
   if (debug) {
     console.debug("[createSmalldraw] repo peer:", repo.peerId);
@@ -166,6 +231,7 @@ export async function createSmalldraw(
       nextDocumentSize,
       nextDocumentPresentation,
       debug,
+      initialOpenTimeoutMs,
     );
     await handle.whenReady();
     await writeCurrentDocUrl(handle.url);
@@ -198,6 +264,24 @@ export async function createSmalldraw(
       });
       return storeAdapter;
     },
+    createDocumentCopy() {
+      const sourceDoc = storeAdapter.getDoc();
+      const copyHandle = repo.create<DrawingDocumentData>();
+      copyHandle.change((doc) => {
+        doc.size = {
+          width: sourceDoc.size.width,
+          height: sourceDoc.size.height,
+        };
+        doc.presentation = sourceDoc.presentation
+          ? { ...sourceDoc.presentation }
+          : ({} as DrawingDocumentPresentation);
+        doc.layers = JSON.parse(JSON.stringify(sourceDoc.layers ?? {}));
+        doc.shapes = JSON.parse(JSON.stringify(sourceDoc.shapes ?? {}));
+        doc.temporalOrderCounter = sourceDoc.temporalOrderCounter ?? 0;
+      });
+      const binary = save(copyHandle.doc()!);
+      return { url: copyHandle.url, binary };
+    },
     async createNew(createOptions) {
       return await createNewDocument(createOptions);
     },
@@ -210,6 +294,30 @@ export async function createSmalldraw(
       // Reserved for future teardown (e.g. closing adapters).
     },
   };
+}
+
+async function waitForHandleReady(
+  handle: DocHandle<DrawingDocumentData>,
+  timeoutMs: number,
+): Promise<boolean> {
+  let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  try {
+    await Promise.race([
+      handle.whenReady(),
+      new Promise<void>((resolve) => {
+        timeoutHandle = setTimeout(resolve, timeoutMs);
+      }),
+    ]);
+    return handle.isReady();
+  } finally {
+    if (timeoutHandle !== null) {
+      clearTimeout(timeoutHandle);
+    }
+  }
+}
+
+function stripAutomergePrefix(url: string): DocumentId {
+  return url.replace(/^automerge:/, "") as DocumentId;
 }
 
 function createEmptyDrawingDocumentData(

@@ -10,6 +10,13 @@ export function createServerAnnouncePolicy(options: {
     if (!serverPeerId || peerId !== serverPeerId) {
       return true;
     }
-    return await options.isCollaborativeDocumentId(documentId);
+    const allowed = await options.isCollaborativeDocumentId(documentId);
+    console.info("[kids-draw:multiplayer] announce policy decision", {
+      peerId,
+      serverPeerId,
+      documentId,
+      allowed,
+    });
+    return allowed;
   };
 }

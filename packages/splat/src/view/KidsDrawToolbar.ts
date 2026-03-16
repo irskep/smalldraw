@@ -28,6 +28,7 @@ export type KidsDrawToolbarIntent = Extract<
   | { type: "export" }
   | { type: "new_drawing" }
   | { type: "browse" }
+  | { type: "share" }
   | { type: "set_stroke_color" }
   | { type: "set_stroke_width" }
 >;
@@ -45,6 +46,7 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
   private readonly bottomElement: HTMLDivElement;
   private readonly toolSelectorElement: HTMLDivElement;
   private readonly actionPanelElement: HTMLDivElement;
+  private readonly collaborationStatusEl: HTMLParagraphElement;
   private readonly actionPane: ToolbarActionPane;
   private readonly stylePane: ToolbarStylePane;
   private readonly toolSelectorPane: ToolbarToolSelectorPane;
@@ -95,6 +97,10 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
       uiIntentStore: options.uiIntentStore,
     });
     this.actionPanelElement = this.actionPane.el;
+    this.collaborationStatusEl = el(
+      "p.kids-draw-collaboration-status",
+    ) as HTMLParagraphElement;
+    this.collaborationStatusEl.hidden = true;
     this.toolSelectorPane = new ToolbarToolSelectorPane({
       sidebarItems: options.sidebarItems,
       families: options.families,
@@ -108,6 +114,7 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
       uiIntentStore: options.uiIntentStore,
     });
     mount(this.topContentElement, this.stylePane);
+    mount(this.topContentElement, this.collaborationStatusEl);
     mount(this.topElement, this.topContentElement);
     mount(this.bottomElement, this.variantStripPane);
     mount(this.el, this.topElement);
@@ -204,6 +211,13 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
     this.stylePane.setMobileTopPanel(panel);
   }
 
+  setCollaborationStatus(status: { visible: boolean; label?: string }): void {
+    this.collaborationStatusEl.hidden = !status.visible;
+    this.collaborationStatusEl.textContent = status.visible
+      ? (status.label ?? "")
+      : "";
+  }
+
   showDesktopTopPanels(): void {
     this.stylePane.showDesktopPanels();
   }
@@ -252,6 +266,7 @@ export class KidsDrawToolbarView implements ReDomLike<HTMLDivElement> {
       canUndo: state.canUndo,
       canRedo: state.canRedo,
       newDrawingPending: state.newDrawingPending,
+      sharePending: state.sharePending,
     });
 
     this.stylePane.update({

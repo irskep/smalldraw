@@ -49,6 +49,9 @@ describe("DocumentSessionController", () => {
       reset: async () => {
         throw new Error("unused");
       },
+      createDocumentCopy: () => {
+        throw new Error("unused");
+      },
       destroy: () => {},
     };
 

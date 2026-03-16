@@ -32,6 +32,7 @@ export function createKidsDrawInteractionRuntime(options: {
   documentBrowserCommands: {
     closeDocumentPicker: () => void;
     openDocumentPicker: () => Promise<void>;
+    shareCurrentDocument: () => Promise<void>;
   };
   snapshotService: SnapshotService;
   getSize: () => { width: number; height: number };
@@ -50,8 +51,9 @@ export function createKidsDrawInteractionRuntime(options: {
   positionMobilePortraitActionsPopover: () => void;
   applyToolbarLayoutProfile: () => void;
   debugLifecycle: (...args: unknown[]) => void;
+  onShareError?: (message: string) => void;
 }) {
-  const { closeDocumentPicker, openDocumentPicker } =
+  const { closeDocumentPicker, openDocumentPicker, shareCurrentDocument } =
     options.documentBrowserCommands;
   const commandController = createKidsDrawCommandController({
     store: options.store,
@@ -61,11 +63,13 @@ export function createKidsDrawInteractionRuntime(options: {
     openDocumentPicker,
     openDocumentCreateDialog: () =>
       options.documentPickerController.openCreateDialog(),
+    shareCurrentDocument,
     confirmDestructiveAction: options.confirmDestructiveAction,
     savePngExport: options.savePngExport,
     clearConfirmationIcon: Trash2,
     isDestroyed: () => options.runtimeStore.isDestroyed(),
     debugLifecycle: options.debugLifecycle,
+    onShareError: options.onShareError,
   });
 
   let lastMobileTopPanel = options.toolbarUiStore.get().mobileTopPanel;
@@ -102,6 +106,7 @@ export function createKidsDrawInteractionRuntime(options: {
       export: commandController.exportAndClose,
       newDrawing: commandController.newDrawingAndClose,
       browse: commandController.browseAndClose,
+      share: commandController.shareAndClose,
       positionMobilePortraitActionsPopover:
         options.positionMobilePortraitActionsPopover,
       closeDocumentPicker,

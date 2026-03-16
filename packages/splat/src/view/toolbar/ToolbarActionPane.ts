@@ -1,4 +1,12 @@
-import { Download, FilePlus, FolderOpen, Redo2, Trash2, Undo2 } from "lucide";
+import {
+  Download,
+  FilePlus,
+  FolderOpen,
+  Redo2,
+  Share2,
+  Trash2,
+  Undo2,
+} from "lucide";
 import { el, mount } from "redom";
 import type { UiIntentStore } from "../../controller/stores/createUiIntentStore";
 import type { ReDomLike } from "../ReDomLike";
@@ -11,7 +19,12 @@ export class ToolbarActionPane
   implements
     ReDomLike<
       HTMLDivElement,
-      { canUndo: boolean; canRedo: boolean; newDrawingPending: boolean }
+      {
+        canUndo: boolean;
+        canRedo: boolean;
+        newDrawingPending: boolean;
+        sharePending: boolean;
+      }
     >
 {
   readonly el: HTMLDivElement;
@@ -21,6 +34,7 @@ export class ToolbarActionPane
   private readonly exportButton: SquareIconButton;
   private readonly newDrawingButton: SquareIconButton;
   private readonly browseButton: SquareIconButton;
+  private readonly shareButton: SquareIconButton;
 
   constructor(options: {
     uiIntentStore: Pick<UiIntentStore, "publish">;
@@ -93,6 +107,17 @@ export class ToolbarActionPane
         layout: "row",
       },
     });
+    this.shareButton = createSquareIconButton({
+      className: "kids-draw-action-button kids-draw-action-share",
+      label: "Share",
+      icon: Share2,
+      attributes: {
+        title: "Share drawing",
+        "aria-label": "Share drawing",
+        "data-action": "share",
+        layout: "row",
+      },
+    });
 
     mount(this.el, this.undoButton);
     mount(this.el, this.redoButton);
@@ -104,6 +129,7 @@ export class ToolbarActionPane
     );
     mount(this.el, this.clearButton);
     mount(this.el, this.exportButton);
+    mount(this.el, this.shareButton);
     mount(this.el, this.newDrawingButton);
     mount(this.el, this.browseButton);
     this.undoButton.setOnPress(() =>
@@ -124,16 +150,21 @@ export class ToolbarActionPane
     this.browseButton.setOnPress(() =>
       options.uiIntentStore.publish({ type: "browse" }),
     );
+    this.shareButton.setOnPress(() =>
+      options.uiIntentStore.publish({ type: "share" }),
+    );
   }
 
   update(options: {
     canUndo: boolean;
     canRedo: boolean;
     newDrawingPending: boolean;
+    sharePending: boolean;
   }): void {
     this.undoButton.setDisabled(!options.canUndo);
     this.redoButton.setDisabled(!options.canRedo);
     this.newDrawingButton.setDisabled(options.newDrawingPending);
+    this.shareButton.setDisabled(options.sharePending);
   }
 
   destroy(): void {
@@ -143,5 +174,6 @@ export class ToolbarActionPane
     this.exportButton.setOnPress(null);
     this.newDrawingButton.setOnPress(null);
     this.browseButton.setOnPress(null);
+    this.shareButton.setOnPress(null);
   }
 }

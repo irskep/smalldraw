@@ -4,13 +4,20 @@ import {
   DrawingStore,
 } from "@smalldraw/core";
 import { el, mount, unmount } from "redom";
+import { createQrCodeDataUrl } from "../controller/createQrCodeDataUrl";
 import { createKidsDrawController } from "../controller/KidsDrawController";
 import { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
 import { createUiIntentStore } from "../controller/stores/createUiIntentStore";
+import type { KidsDocumentSummary } from "../documents";
 import {
+  automergeUrlToDocumentId,
+  buildJoinedCatalogDocUrl,
   createCollaborativeDocumentIndex,
   createLocalDocumentBackend,
   createLocalSmalldrawRepo,
+  type LocalSmalldrawRepo,
+  resolveDocumentOpenUrl,
+  resolveJoinBaseUrl,
 } from "../documents";
 import { resolveLayoutMode, resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
@@ -28,6 +35,8 @@ import { createToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import { KidsDrawStageView } from "../view/KidsDrawStage";
 import { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
 import { createModalDialogView } from "../view/ModalDialog";
+import { createShareQrDialog } from "../view/ShareQrDialog";
+import { createMultiplayerApiClient } from "./createMultiplayerApiClient";
 import { installMobileGestureGuards } from "./installMobileGestureGuards";
 import type {
   KidsDrawApp,
@@ -80,28 +89,111 @@ export async function createKidsDrawApp(
   const collaborativeDocumentIndex = createCollaborativeDocumentIndex({
     listDocuments: () => documentBackend.listDocuments(),
   });
-  const core =
-    providedCore ??
-    (await createSmalldraw({
-      repo: createLocalSmalldrawRepo({
-        websocketUrl: options.multiplayer?.syncServerWebSocketUrl,
-        isCollaborativeDocumentId: async (documentId: string) => {
-          return await collaborativeDocumentIndex.hasDocumentId(documentId);
-        },
-        onWebsocketConnectedChange: (connected) => {
-          collaborationStatusStore.setWebsocketConnected(connected);
-        },
-      }),
+  const multiplayerApiClient = options.multiplayer?.syncServerHttpUrl
+    ? createMultiplayerApiClient({
+        apiUrl: options.multiplayer.syncServerHttpUrl,
+      })
+    : null;
+  const joinSecretFromUrl = options.multiplayer?.joinSecret ?? null;
+  let joinedDocumentBinary: Uint8Array | null = null;
+  let joinedCollabDocUrl: string | null = null;
+  if (joinSecretFromUrl && multiplayerApiClient) {
+    try {
+      const resolved =
+        await multiplayerApiClient.resolveCollaborativeDocumentByJoinSecret(
+          joinSecretFromUrl,
+        );
+      if (resolved) {
+        if (resolved.content) {
+          joinedDocumentBinary = base64ToUint8Array(resolved.content);
+          joinedCollabDocUrl = resolved.collabDocUrl;
+        }
+        const existingSummaries = await documentBackend.listDocuments();
+        const existingSummary = existingSummaries.find(
+          (summary) => summary.collabDocUrl === resolved.collabDocUrl,
+        );
+        const catalogDocUrl =
+          existingSummary?.docUrl ??
+          buildJoinedCatalogDocUrl(resolved.collabDocUrl);
+        await documentBackend.createDocument({
+          docUrl: catalogDocUrl,
+          collaborative: true,
+          collabDocUrl: resolved.collabDocUrl,
+          joinSecret: resolved.joinSecret,
+        });
+        await documentBackend.setCurrentDocument(catalogDocUrl);
+      }
+    } catch (error) {
+      console.warn("[kids-draw:multiplayer] failed to resolve join secret", {
+        error,
+      });
+    }
+  }
+  const initialCatalogDocUrl = await documentBackend.getCurrentDocument();
+  const initialCatalogSummary = initialCatalogDocUrl
+    ? await documentBackend.getDocument(initialCatalogDocUrl)
+    : null;
+  const startupWebsocketToken = resolveStartupWebsocketToken(
+    joinSecretFromUrl,
+    initialCatalogSummary,
+  );
+  const startupAuthorizedCollaborativeDocumentId =
+    resolveAuthorizedCollaborativeDocumentId(
+      startupWebsocketToken,
+      initialCatalogSummary,
+    );
+  let localRepo: LocalSmalldrawRepo | null = null;
+  let core = providedCore;
+  if (!core) {
+    localRepo = createLocalSmalldrawRepo({
+      websocketUrl: options.multiplayer?.syncServerWebSocketUrl,
+      websocketAuthToken: startupWebsocketToken ?? undefined,
+      websocketAuthorizedDocumentId:
+        startupAuthorizedCollaborativeDocumentId ?? undefined,
+      isCollaborativeDocumentId: async (documentId: string) => {
+        const resolvedId = resolveCollaborativeDocumentId(documentId);
+        const allowed =
+          await collaborativeDocumentIndex.hasDocumentId(resolvedId);
+        console.info("[kids-draw:multiplayer] collaborative id lookup", {
+          documentId,
+          resolvedId,
+          allowed,
+        });
+        return allowed;
+      },
+      onWebsocketConnectedChange: (connected) => {
+        collaborationStatusStore.setWebsocketConnected(connected);
+      },
+    });
+    core = await createSmalldraw({
+      repo: localRepo,
+      preImport:
+        joinedDocumentBinary && joinedCollabDocUrl
+          ? { binary: joinedDocumentBinary, docId: joinedCollabDocUrl }
+          : undefined,
       persistence: {
         mode: "reuse",
-        getCurrentDocUrl: () => documentBackend.getCurrentDocument(),
+        getCurrentDocUrl: async () => {
+          const currentCatalogDocUrl =
+            await documentBackend.getCurrentDocument();
+          if (!currentCatalogDocUrl) {
+            return null;
+          }
+          const summary =
+            await documentBackend.getDocument(currentCatalogDocUrl);
+          return resolveDocumentOpenUrl(currentCatalogDocUrl, summary);
+        },
         setCurrentDocUrl: (url) => documentBackend.setCurrentDocument(url),
       },
       documentSize: desiredInitialSize,
       shapeHandlers,
-    }));
+    });
+  }
 
-  const docSize = core.storeAdapter.getDoc().size;
+  const docSize = resolveInitialDocumentSize(
+    core.storeAdapter.getDoc(),
+    desiredInitialSize,
+  );
   const initialSize = {
     width: docSize.width,
     height: docSize.height,
@@ -127,6 +219,7 @@ export async function createKidsDrawApp(
     uiIntentStore,
   });
   const modalDialog = createModalDialogView();
+  const shareQrDialog = createShareQrDialog();
 
   mount(element, stage.element);
   toolbar.mountDesktopLayout({
@@ -136,6 +229,7 @@ export async function createKidsDrawApp(
     bottomSlot: stage.insetBottomSlot,
   });
   mount(element, modalDialog.el);
+  mount(element, shareQrDialog.el);
   mount(options.container, element);
 
   const store = new DrawingStore({
@@ -189,6 +283,12 @@ export async function createKidsDrawApp(
         collaborationStatusStore.setCurrentDocument(summary);
         collaborativeDocumentIndex.upsertSummary(summary);
       },
+      subscribe(listener) {
+        return collaborationStatusStore.subscribe(listener);
+      },
+      getStatus() {
+        return collaborationStatusStore.getStatus();
+      },
     },
     backgroundColor,
     initialSize,
@@ -202,6 +302,50 @@ export async function createKidsDrawApp(
       options.confirmDestructiveAction ??
       ((dialog) => modalDialog.showConfirm(dialog)),
     savePngExport: options.savePngExport,
+    createDocumentCopy: multiplayerApiClient
+      ? () => core.createDocumentCopy()
+      : undefined,
+    registerCollaborativeDocument: multiplayerApiClient
+      ? async (documentId: string, content: Uint8Array) => {
+          console.info("[kids-draw:multiplayer] share upgrade: register start");
+          const result =
+            await multiplayerApiClient.registerCollaborativeDocument(
+              documentId,
+              content,
+            );
+          console.info(
+            "[kids-draw:multiplayer] share upgrade: register success",
+            {
+              documentId,
+              joinSecret: result.joinSecret,
+            },
+          );
+          if (localRepo) {
+            localRepo.setWebsocketAuthorizedDocumentId(
+              resolveCollaborativeDocumentId(documentId),
+            );
+            localRepo.setWebsocketAuthToken(result.joinSecret);
+          }
+          return result;
+        }
+      : undefined,
+    initialCatalogDocUrl: initialCatalogDocUrl ?? undefined,
+    resolveJoinBaseUrl: () =>
+      resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
+    showShareDialog: async (payload) => {
+      const qrDataUrl = await createQrCodeDataUrl(payload.joinUrl);
+      await shareQrDialog.show({ joinUrl: payload.joinUrl, qrDataUrl });
+    },
+    onShareError:
+      options.onShareError ??
+      ((message) => {
+        void modalDialog.showConfirm({
+          title: "Unable to share drawing",
+          message,
+          confirmLabel: "OK",
+          cancelLabel: "Dismiss",
+        });
+      }),
   });
 
   const commands: KidsDrawAppCommands = {
@@ -223,6 +367,9 @@ export async function createKidsDrawApp(
     browse(): void {
       uiIntentStore.publish({ type: "browse" });
     },
+    share(): void {
+      uiIntentStore.publish({ type: "share" });
+    },
   };
 
   return {
@@ -235,8 +382,70 @@ export async function createKidsDrawApp(
       controller.destroy();
       unbindToolbarUi();
       modalDialog.onunmount();
+      shareQrDialog.onunmount();
       unmount(options.container, element);
       uninstallMobileGestureGuards();
     },
   };
+}
+
+export function resolveStartupWebsocketToken(
+  joinSecretFromUrl: string | null,
+  initialCatalogSummary: Pick<KidsDocumentSummary, "joinSecret"> | null,
+): string | null {
+  return joinSecretFromUrl ?? initialCatalogSummary?.joinSecret ?? null;
+}
+
+export function resolveCollaborativeDocumentId(documentId: string): string {
+  return automergeUrlToDocumentId(documentId) ?? documentId;
+}
+
+export function resolveAuthorizedCollaborativeDocumentId(
+  websocketToken: string | null,
+  initialCatalogSummary: Pick<
+    KidsDocumentSummary,
+    "collabDocUrl" | "collaborative"
+  > | null,
+): string | null {
+  if (!websocketToken) {
+    return null;
+  }
+  if (
+    !initialCatalogSummary?.collaborative ||
+    !initialCatalogSummary.collabDocUrl
+  ) {
+    return null;
+  }
+  return resolveCollaborativeDocumentId(initialCatalogSummary.collabDocUrl);
+}
+
+export function resolveInitialDocumentSize(
+  doc: { size?: { width?: unknown; height?: unknown } } | null | undefined,
+  fallbackSize: DrawingDocumentSize,
+): DrawingDocumentSize {
+  const width = doc?.size?.width;
+  const height = doc?.size?.height;
+  if (
+    typeof width === "number" &&
+    Number.isFinite(width) &&
+    width > 0 &&
+    typeof height === "number" &&
+    Number.isFinite(height) &&
+    height > 0
+  ) {
+    return { width, height };
+  }
+  return {
+    width: Math.max(1, Math.round(fallbackSize.width)),
+    height: Math.max(1, Math.round(fallbackSize.height)),
+  };
+}
+
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
 }

@@ -32,6 +32,7 @@ export interface KidsDrawCommandController {
   exportAndClose(): void;
   newDrawingAndClose(): void;
   browseAndClose(): void;
+  shareAndClose(): void;
   destroy(): void;
 }
 
@@ -39,12 +40,14 @@ export function createKidsDrawCommandController(options: {
   store: Pick<DrawingStore, "undo" | "redo" | "applyAction" | "getDocument">;
   toolbarUiStore: Pick<
     ToolbarUiStore,
-    "setMobileActionsOpen" | "setNewDrawingPending"
+    "setMobileActionsOpen" | "setNewDrawingPending" | "setSharePending"
   >;
   snapshotService: Pick<SnapshotService, "createPngExport">;
   getSize: () => { width: number; height: number };
   openDocumentPicker: () => Promise<void>;
   openDocumentCreateDialog: () => void;
+  shareCurrentDocument: () => Promise<void>;
+  onShareError?: (message: string) => void;
   confirmDestructiveAction: (dialog: ConfirmDialogRequest) => Promise<boolean>;
   savePngExport?: (input: {
     suggestedName: string;
@@ -56,6 +59,7 @@ export function createKidsDrawCommandController(options: {
   debugLifecycle: (...args: unknown[]) => void;
 }) {
   let newDrawingRequestId = 0;
+  let shareRequestId = 0;
   let clearCounter = 0;
 
   const closeMobilePortraitActions = (): void => {
@@ -162,6 +166,42 @@ export function createKidsDrawCommandController(options: {
     link.click();
   };
 
+  const shareCurrentDocument = async (): Promise<void> => {
+    const requestId = ++shareRequestId;
+    const startedAt = Date.now();
+    if (options.isDestroyed() || requestId !== shareRequestId) {
+      return;
+    }
+    console.info("[kids-draw:multiplayer] command share start", {
+      requestId,
+    });
+    options.toolbarUiStore.setSharePending(true);
+    try {
+      await options.shareCurrentDocument();
+      console.info("[kids-draw:multiplayer] command share success", {
+        requestId,
+        elapsedMs: Date.now() - startedAt,
+      });
+    } catch (error) {
+      console.warn("[kids-draw:share] failed to share drawing", { error });
+      console.warn("[kids-draw:multiplayer] command share error detail", {
+        requestId,
+        elapsedMs: Date.now() - startedAt,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      const message =
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : "Failed to share this drawing.";
+      options.onShareError?.(message);
+    } finally {
+      if (!options.isDestroyed() && requestId === shareRequestId) {
+        options.toolbarUiStore.setSharePending(false);
+      }
+    }
+  };
+
   return {
     undo(): void {
       options.store.undo();
@@ -210,8 +250,13 @@ export function createKidsDrawCommandController(options: {
       void options.openDocumentPicker();
       closeMobilePortraitActions();
     },
+    shareAndClose(): void {
+      void shareCurrentDocument();
+      closeMobilePortraitActions();
+    },
     destroy(): void {
       newDrawingRequestId += 1;
+      shareRequestId += 1;
     },
   } satisfies KidsDrawCommandController;
 }

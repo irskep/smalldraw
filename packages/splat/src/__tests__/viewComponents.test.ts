@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { AlertTriangle } from "lucide";
 import { createModalDialogView } from "../view/ModalDialog";
+import { createShareQrDialog } from "../view/ShareQrDialog";
 import { createSquareIconButton } from "../view/SquareIconButton";
 
 describe("view components", () => {
@@ -89,5 +90,29 @@ describe("view components", () => {
     dialog.onunmount();
 
     expect(await pending).toBeFalse();
+  });
+
+  test("ShareQrDialog resolves previous show call when reopened", async () => {
+    const dialog = createShareQrDialog();
+    document.body.appendChild(dialog.el);
+
+    const first = dialog.show({
+      joinUrl: "https://splatterboard.app/?join=first",
+      qrDataUrl: "data:image/png;base64,first",
+    });
+    const second = dialog.show({
+      joinUrl: "https://splatterboard.app/?join=second",
+      qrDataUrl: "data:image/png;base64,second",
+    });
+
+    await first;
+    const doneButton = dialog.el.querySelector(
+      ".kids-share-dialog__button",
+    ) as HTMLButtonElement | null;
+    expect(doneButton).not.toBeNull();
+    doneButton!.click();
+    await second;
+
+    dialog.onunmount();
   });
 });

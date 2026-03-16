@@ -25,6 +25,7 @@ import { GlobalEventSurface } from "../view/GlobalEventSurface";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 import type { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
 import { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
+import type { SharePayload } from "./createCollaborativeUpgradeCoordinator";
 import { createCursorOverlayController } from "./createCursorOverlayController";
 import { createDocumentBrowserCommands } from "./createDocumentBrowserCommands";
 import { DocumentPickerController } from "./createDocumentPickerController";
@@ -39,7 +40,10 @@ import { createLifecycleScope } from "./createLifecycleScope";
 import { SnapshotService } from "./createSnapshotService";
 import { ToolbarStateController } from "./createToolbarStateController";
 import { logDiagnosticEvent } from "./diagnostics/diagnosticLogger";
-import type { CollaborationStatusStore } from "./stores/createCollaborationStatusStore";
+import type {
+  CollaborationStatus,
+  CollaborationStatusStore,
+} from "./stores/createCollaborationStatusStore";
 import { createKidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 import { createStartupReadinessStore } from "./stores/createStartupReadinessStore";
 import type { UiIntentStore } from "./stores/createUiIntentStore";
@@ -79,7 +83,7 @@ export function createKidsDrawController(options: {
   documentBackend: KidsDocumentBackend;
   collaborationStatusStore: Pick<
     CollaborationStatusStore,
-    "setCurrentDocument"
+    "setCurrentDocument" | "getStatus" | "subscribe"
   >;
   backgroundColor: string;
   initialSize: DrawingDocumentSize;
@@ -91,6 +95,15 @@ export function createKidsDrawController(options: {
     blob?: Blob;
     dataUrl?: string;
   }) => Promise<boolean>;
+  createDocumentCopy?: () => { url: string; binary: Uint8Array };
+  registerCollaborativeDocument?: (
+    documentId: string,
+    content: Uint8Array,
+  ) => Promise<{ joinSecret: string }>;
+  initialCatalogDocUrl?: string;
+  resolveJoinBaseUrl?: () => string;
+  showShareDialog: (payload: SharePayload) => Promise<void>;
+  onShareError?: (message: string) => void;
 }): KidsDrawController {
   const {
     store,
@@ -113,6 +126,12 @@ export function createKidsDrawController(options: {
     providedCore,
     confirmDestructiveAction,
     savePngExport,
+    createDocumentCopy,
+    registerCollaborativeDocument,
+    initialCatalogDocUrl,
+    resolveJoinBaseUrl,
+    showShareDialog,
+    onShareError,
   } = options;
   let size = {
     width: initialSize.width,
@@ -185,10 +204,13 @@ export function createKidsDrawController(options: {
     },
   });
   mount(appElement, documentPickerOverlay.el);
+  let documentRuntimeController: DocumentRuntimeController | null = null;
   const documentPickerController = new DocumentPickerController({
     pickerOverlay: documentPickerOverlay,
     documentBackend,
-    getCurrentDocUrl: () => core.getCurrentDocUrl(),
+    getCurrentDocUrl: () =>
+      documentRuntimeController?.getCurrentCatalogDocUrl() ??
+      core.getCurrentDocUrl(),
   });
   toolbarStateController = new ToolbarStateController({
     store,
@@ -244,39 +266,43 @@ export function createKidsDrawController(options: {
     perfSession,
   });
 
-  const documentRuntimeController: DocumentRuntimeController =
-    createDocumentRuntimeController({
-      store,
-      core,
-      documentBackend,
-      snapshotService,
-      runtimeStore,
-      onCurrentDocumentSummaryChanged: (summary) => {
-        collaborationStatusStore.setCurrentDocument(summary);
-      },
-      startupReadinessStore,
-      toolbarStateController,
-      renderLoopController,
-      pipeline,
-      syncToolbarUi,
-      applyCanvasSize,
-      getDocumentSizeFromViewport: () =>
-        resolveImplicitDocumentSizeFromViewport(),
-      hasExplicitSize: sizingPolicy.hasExplicitSize,
-      getExplicitSize: sizingPolicy.getExplicitSize,
-    });
+  documentRuntimeController = createDocumentRuntimeController({
+    store,
+    core,
+    documentBackend,
+    snapshotService,
+    runtimeStore,
+    onCurrentDocumentSummaryChanged: (summary) => {
+      collaborationStatusStore.setCurrentDocument(summary);
+    },
+    startupReadinessStore,
+    toolbarStateController,
+    renderLoopController,
+    pipeline,
+    syncToolbarUi,
+    applyCanvasSize,
+    getDocumentSizeFromViewport: () =>
+      resolveImplicitDocumentSizeFromViewport(),
+    hasExplicitSize: sizingPolicy.hasExplicitSize,
+    getExplicitSize: sizingPolicy.getExplicitSize,
+    createDocumentCopy,
+    registerCollaborativeDocument,
+    initialCatalogDocUrl,
+    resolveJoinBaseUrl,
+  });
+  const runtimeDocumentController = documentRuntimeController;
   scheduleThumbnailSaveForInput = (delayMs) => {
-    documentRuntimeController.scheduleThumbnailSave(delayMs);
+    runtimeDocumentController.scheduleThumbnailSave(delayMs);
   };
 
   const documentBrowserCommands = createDocumentBrowserCommands({
     documentPickerController,
-    getCurrentDocUrl: () => core.getCurrentDocUrl(),
+    getCurrentDocUrl: () => runtimeDocumentController.getCurrentCatalogDocUrl(),
     switchToDocument: (docUrl) =>
-      documentRuntimeController.switchToDocument(docUrl),
+      runtimeDocumentController.switchToDocument(docUrl),
     createNewDocument: (request) =>
-      documentRuntimeController.createNewDocument(request),
-    flushThumbnailSave: () => documentRuntimeController.flushThumbnailSave(),
+      runtimeDocumentController.createNewDocument(request),
+    flushThumbnailSave: () => runtimeDocumentController.flushThumbnailSave(),
     listDocuments: () => documentBackend.listDocuments(),
     deleteDocument: (docUrl) => documentBackend.deleteDocument(docUrl),
     confirmDelete: () =>
@@ -325,6 +351,17 @@ export function createKidsDrawController(options: {
     documentBrowserCommands: {
       closeDocumentPicker,
       openDocumentPicker,
+      shareCurrentDocument: async () => {
+        console.info("[kids-draw:multiplayer] ui share bridge start");
+        const payload = await runtimeDocumentController.shareCurrentDocument();
+        console.info("[kids-draw:multiplayer] ui share bridge payload ready", {
+          catalogDocUrl: payload.catalogDocUrl,
+          collabDocUrl: payload.collabDocUrl,
+          upgraded: payload.upgraded,
+        });
+        await showShareDialog(payload);
+        console.info("[kids-draw:multiplayer] ui share dialog shown");
+      },
     },
     snapshotService,
     getSize,
@@ -336,7 +373,20 @@ export function createKidsDrawController(options: {
     positionMobilePortraitActionsPopover,
     applyToolbarLayoutProfile,
     debugLifecycle,
+    onShareError,
   });
+
+  const applyCollaborationStatus = (status: CollaborationStatus): void => {
+    toolbar.setCollaborationStatus({
+      visible: status.visible,
+      label: status.visible ? status.label : undefined,
+    });
+  };
+  applyCollaborationStatus(collaborationStatusStore.getStatus());
+  const unbindCollaborationStatus = collaborationStatusStore.subscribe(
+    applyCollaborationStatus,
+  );
+  add(unbindCollaborationStatus);
 
   store.setOnRenderNeeded(() => {
     perfSession.onModelInvalidation();
@@ -366,7 +416,7 @@ export function createKidsDrawController(options: {
     });
   });
   add(unbindStartupReadiness);
-  documentRuntimeController.start();
+  runtimeDocumentController.start();
   renderLoopController.updateRenderIdentity();
   applyLayoutAndPixelRatio();
   renderLoopController.scheduleResizeBake();
@@ -382,7 +432,7 @@ export function createKidsDrawController(options: {
       store.setOnAction(undefined);
       toolbarUiPersistence.stop();
       toolbarUiPersistence.flush();
-      documentRuntimeController.dispose();
+      runtimeDocumentController.dispose();
       documentPickerController.dispose();
       layoutController.dispose();
       renderLoopController.dispose();

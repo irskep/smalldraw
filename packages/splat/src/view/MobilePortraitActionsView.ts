@@ -6,6 +6,7 @@ import {
   MoreHorizontal,
   Palette,
   Redo2,
+  Share2,
   SlidersHorizontal,
   Trash2,
   Undo2,
@@ -102,6 +103,7 @@ export class MobilePortraitActionsView {
   private readonly newMenuItem: MobilePortraitActionItemView;
   private readonly browseMenuItem: MobilePortraitActionItemView;
   private readonly exportMenuItem: MobilePortraitActionItemView;
+  private readonly shareMenuItem: MobilePortraitActionItemView;
   private readonly clearMenuItem: MobilePortraitActionItemView;
   private unbindUiState: (() => void) | null = null;
   private unbindIntents: (() => void) | null = null;
@@ -189,6 +191,11 @@ export class MobilePortraitActionsView {
       "Export PNG",
       Download,
     );
+    this.shareMenuItem = new MobilePortraitActionItemView(
+      "share",
+      "Share",
+      Share2,
+    );
     this.clearMenuItem = new MobilePortraitActionItemView(
       "clear",
       "Clear Canvas",
@@ -201,6 +208,7 @@ export class MobilePortraitActionsView {
       this.newMenuItem.el,
       this.browseMenuItem.el,
       this.exportMenuItem.el,
+      this.shareMenuItem.el,
       secondaryDivider,
       this.clearMenuItem.el,
     ]);
@@ -257,6 +265,7 @@ export class MobilePortraitActionsView {
       this.undoMenuItem.setDisabled(!next.canUndo);
       this.redoMenuItem.setDisabled(!next.canRedo);
       this.newMenuItem.setDisabled(next.newDrawingPending);
+      this.shareMenuItem.setDisabled(next.sharePending);
     };
     applyState(state.get());
     const unbind = state.subscribe(applyState);
@@ -284,6 +293,7 @@ export class MobilePortraitActionsView {
         | { type: "export" }
         | { type: "new_drawing" }
         | { type: "browse" }
+        | { type: "share" }
       >,
     ): void => {
       disposers.push(
@@ -299,6 +309,7 @@ export class MobilePortraitActionsView {
     bindActionIntent(this.exportMenuItem, { type: "export" });
     bindActionIntent(this.newMenuItem, { type: "new_drawing" });
     bindActionIntent(this.browseMenuItem, { type: "browse" });
+    bindActionIntent(this.shareMenuItem, { type: "share" });
 
     this.actionsTrigger.setOnPress((event) => {
       event.stopPropagation();

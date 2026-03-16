@@ -66,6 +66,10 @@ These already exist:
 - `createAnonymousCollaborativeDocument` (public): creates a collaborative doc without user membership and returns:
   - `collabDocUrl`: Automerge URL (`automerge:<documentId>`) to open in the client
   - `joinSecret`: invitation token to embed in QR/share payload
+- `resolveAnonymousCollaborativeDocument` (public): resolves a `joinSecret` and returns:
+  - `collabDocUrl`: Automerge URL to open on joiner device
+  - `joinSecret`: canonical token value
+  - `null` when token is unknown/expired
 - `createDocument` (protected): creates a document and an invitation token.
 - `createOrRefreshDocumentInvitation` (protected): returns `{ token }` for a doc admin.
 - `documentInvitation` (protected): reads current invitation token for a doc admin.
@@ -77,6 +81,7 @@ These already exist:
 - The server does not require a specific QR URL format.
 - The server contract is only:
   - frontend obtains `joinSecret` from `createAnonymousCollaborativeDocument`
+  - joiner frontend resolves `joinSecret` via `resolveAnonymousCollaborativeDocument`
   - frontend eventually connects to server WS with `?token=<joinSecret>`
 
 ## Frontend implementation notes
@@ -85,3 +90,13 @@ These already exist:
 - Use token-auth WS for anonymous collaborator devices.
 - Use session-auth WS only for authenticated/admin surfaces.
 - Keep QR payload format stable once chosen; server-side validation is token-based, not URL-shape-based.
+
+## Known deferrals
+
+- Joiner catalog key semantics:
+  - Current joiner bootstrap stores `docUrl` and `collabDocUrl` as the same Automerge URL on first join.
+  - This is intentional for now; strict dual-key semantics (`docUrl` as separate local catalog key) are deferred.
+
+- Server-side orphan cleanup:
+  - If anonymous collaborative creation succeeds but client upgrade flow fails before completion, server-side collaborative docs can be left unused.
+  - Client now reuses pending collaborative docs across retries in-session, but hard cleanup/revocation requires a dedicated server API and is deferred.

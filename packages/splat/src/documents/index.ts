@@ -1,7 +1,10 @@
 export {
   automergeUrlToDocumentId,
+  buildJoinedCatalogDocUrl,
+  buildJoinUrl,
   isCollaborativeDocument,
   resolveDocumentOpenUrl,
+  resolveJoinBaseUrl,
 } from "./collaboration";
 export {
   type CollaborativeDocumentIndex,
@@ -10,6 +13,7 @@ export {
 export {
   type CreateLocalSmalldrawRepoOptions,
   createLocalSmalldrawRepo,
+  type LocalSmalldrawRepo,
 } from "./createLocalSmalldrawRepo";
 export {
   createLocalDocumentBackend,

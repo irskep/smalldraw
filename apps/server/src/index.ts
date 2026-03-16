@@ -90,10 +90,19 @@ server.on("upgrade", async (request, socket, head) => {
     getInvitationByToken: getDocumentInvitationByToken,
   });
   if (!authContext) {
+    console.warn("[server:ws-upgrade] unauthorized upgrade rejected", {
+      url: request.url,
+      origin,
+    });
     socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
     socket.destroy();
     return;
   }
+  console.info("[server:ws-upgrade] authenticated websocket upgrade", {
+    url: request.url,
+    authKind: authContext.kind,
+    documentId: authContext.kind === "token" ? authContext.documentId : null,
+  });
 
   webSocketServer.handleUpgrade(request, socket, head, (currentSocket) => {
     (currentSocket as AuthenticatedSocket).authContext = authContext;

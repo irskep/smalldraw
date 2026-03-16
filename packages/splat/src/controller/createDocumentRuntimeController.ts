@@ -15,6 +15,10 @@ import {
 } from "../shapes/rasterImageCache";
 import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
 import {
+  createCollaborativeUpgradeCoordinator,
+  type SharePayload,
+} from "./createCollaborativeUpgradeCoordinator";
+import {
   DocumentSessionController,
   type DocumentSessionPresentation,
 } from "./createDocumentSessionController";
@@ -27,12 +31,15 @@ import type { StartupReadinessStore } from "./stores/createStartupReadinessStore
 
 export const DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS = 1000;
 const STARTUP_ASSET_TIMEOUT_MS = 2500;
+const SHARE_TIMEOUT_MS = 30000;
 
 export interface DocumentRuntimeController {
+  getCurrentCatalogDocUrl(): string;
   switchToDocument(docUrl: string): Promise<void>;
   createNewDocument(request: NewDocumentRequest): Promise<void>;
   flushThumbnailSave(): Promise<void>;
   scheduleThumbnailSave(delayMs?: number): void;
+  shareCurrentDocument(): Promise<SharePayload>;
   start(): void;
   dispose(): void;
 }
@@ -73,6 +80,13 @@ export function createDocumentRuntimeController(options: {
   getDocumentSizeFromViewport: () => DrawingDocumentSize;
   hasExplicitSize: boolean;
   getExplicitSize: () => DrawingDocumentSize;
+  createDocumentCopy?: () => { url: string; binary: Uint8Array };
+  registerCollaborativeDocument?: (
+    documentId: string,
+    content: Uint8Array,
+  ) => Promise<{ joinSecret: string }>;
+  initialCatalogDocUrl?: string;
+  resolveJoinBaseUrl?: () => string;
   thumbnailSaveDebounceMs?: number;
 }) {
   const thumbnailSaveDebounceMs =
@@ -83,6 +97,7 @@ export function createDocumentRuntimeController(options: {
     store: options.store,
     core: options.core,
     documentBackend: options.documentBackend,
+    initialCatalogDocUrl: options.initialCatalogDocUrl,
     thumbnailSaveDebounceMs,
     createThumbnailBlob: () => options.snapshotService.createThumbnailBlob(),
     getDocumentSizeForCreateRequest: (request) => {
@@ -124,6 +139,32 @@ export function createDocumentRuntimeController(options: {
   const scheduleThumbnailSave = (delayMs = thumbnailSaveDebounceMs): void => {
     documentSessionController.scheduleThumbnailSave(delayMs);
   };
+
+  const upgradeCoordinator = createCollaborativeUpgradeCoordinator({
+    documentBackend: options.documentBackend,
+    getCurrentCatalogDocUrl: () =>
+      documentSessionController.getCurrentCatalogDocUrl(),
+    createDocumentCopy: () => {
+      if (!options.createDocumentCopy) {
+        throw new Error("Multiplayer API is not configured");
+      }
+      return options.createDocumentCopy();
+    },
+    registerCollaborativeDocument: async (documentId, content) => {
+      if (!options.registerCollaborativeDocument) {
+        throw new Error("Multiplayer API is not configured");
+      }
+      return await options.registerCollaborativeDocument(documentId, content);
+    },
+    switchToDocument: async (catalogDocUrl) => {
+      await documentSessionController.switchToDocument(catalogDocUrl);
+    },
+    onCollaborativeMetadataPersisted: async (summary) => {
+      options.onCurrentDocumentSummaryChanged?.(summary);
+    },
+    resolveJoinBaseUrl: () =>
+      options.resolveJoinBaseUrl?.() ?? "https://splatterboard.app",
+  });
 
   const beginStartupCycle = (reason: string): number => {
     startupCycleId += 1;
@@ -361,6 +402,9 @@ export function createDocumentRuntimeController(options: {
   };
 
   return {
+    getCurrentCatalogDocUrl(): string {
+      return documentSessionController.getCurrentCatalogDocUrl();
+    },
     async switchToDocument(docUrl: string): Promise<void> {
       beginStartupCycle("switch_document");
       await documentSessionController.switchToDocument(docUrl);
@@ -373,6 +417,14 @@ export function createDocumentRuntimeController(options: {
       await documentSessionController.flushThumbnailSave();
     },
     scheduleThumbnailSave,
+    async shareCurrentDocument(): Promise<SharePayload> {
+      console.info("[kids-draw:multiplayer] share command start");
+      return await withTimeout(
+        upgradeCoordinator.ensureCollaborative(),
+        SHARE_TIMEOUT_MS,
+        "Share timed out while connecting to collaborative sync. Check server connection and try again.",
+      );
+    },
     start(): void {
       beginStartupCycle("app_start");
       applyDocumentPresentation({ mode: "normal" });
@@ -400,4 +452,35 @@ export function createDocumentRuntimeController(options: {
       documentSessionController.dispose();
     },
   } satisfies DocumentRuntimeController;
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string,
+): Promise<T> {
+  const startedAt = Date.now();
+  let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  try {
+    const result = await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutHandle = setTimeout(() => {
+          console.warn("[kids-draw:multiplayer] share timeout reached", {
+            timeoutMs,
+            elapsedMs: Date.now() - startedAt,
+          });
+          reject(new Error(message));
+        }, timeoutMs);
+      }),
+    ]);
+    console.info("[kids-draw:multiplayer] share command finished", {
+      elapsedMs: Date.now() - startedAt,
+    });
+    return result;
+  } finally {
+    if (timeoutHandle !== null) {
+      clearTimeout(timeoutHandle);
+    }
+  }
 }

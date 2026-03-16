@@ -14,7 +14,10 @@ export class AuthAdapter extends NodeWSServerAdapter {
   async receiveMessage(messageBytes: Uint8Array, socket: WebSocket) {
     const message: FromClientMessage = decode(messageBytes);
     const authContext = getSocketAuthContext(socket);
-    if (!authContext) return;
+    if (!authContext) {
+      console.warn("[server:automerge-auth] missing auth context; dropping");
+      return;
+    }
 
     if ("documentId" in message) {
       const messageDocumentId = message.documentId as string;
@@ -23,10 +26,27 @@ export class AuthAdapter extends NodeWSServerAdapter {
           userId: authContext.userId,
           documentId: messageDocumentId,
         });
-        if (!hasAccess) return;
+        if (!hasAccess) {
+          console.warn("[server:automerge-auth] session access denied", {
+            userId: authContext.userId,
+            messageDocumentId,
+            messageType: message.type,
+          });
+          return;
+        }
       } else if (messageDocumentId !== authContext.documentId) {
+        console.warn("[server:automerge-auth] token document mismatch", {
+          messageDocumentId,
+          allowedDocumentId: authContext.documentId,
+          messageType: message.type,
+        });
         return;
       }
+      console.info("[server:automerge-auth] message accepted", {
+        authKind: authContext.kind,
+        messageType: message.type,
+        messageDocumentId,
+      });
 
       // check for invalid awareness messages
       if (message.type === "ephemeral" && message.data) {
@@ -34,7 +54,13 @@ export class AuthAdapter extends NodeWSServerAdapter {
           type?: unknown;
           userId?: unknown;
         };
-        if (!isValidAwarenessPayloadForAuth(authContext, data)) return;
+        if (!isValidAwarenessPayloadForAuth(authContext, data)) {
+          console.warn("[server:automerge-auth] invalid awareness payload", {
+            authKind: authContext.kind,
+            messageDocumentId,
+          });
+          return;
+        }
       }
     }
 

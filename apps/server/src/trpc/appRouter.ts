@@ -1,3 +1,4 @@
+import type { DocumentId } from "@automerge/automerge-repo";
 import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -14,6 +15,7 @@ import { deleteLoginAttempt } from "../db/deleteLoginAttempt.js";
 import { deleteSession } from "../db/deleteSession.js";
 import { getDocument } from "../db/getDocument.js";
 import { getDocumentInvitation } from "../db/getDocumentInvitation.js";
+import { getDocumentInvitationByToken } from "../db/getDocumentInvitationByToken.js";
 import { getDocumentMembers } from "../db/getDocumentMembers.js";
 import { getDocumentsByUserId } from "../db/getDocumentsByUserId.js";
 import { getLoginAttempt } from "../db/getLoginAttempt.js";
@@ -82,23 +84,70 @@ export const appRouter = router({
       return { document: { id: document.id, name: document.name } };
     }),
 
-  createAnonymousCollaborativeDocument: publicProcedure
+  registerCollaborativeDocument: publicProcedure
     .input(
-      z
-        .object({
-          name: z.string().optional(),
-        })
-        .optional(),
+      z.object({
+        documentId: z.string().min(1),
+        content: z.string().min(1),
+      }),
     )
     .mutation(async (opts) => {
-      const { documentId } = repo.create();
+      const rawDocId = opts.input.documentId.replace(
+        /^automerge:/,
+        "",
+      ) as DocumentId;
+      const binary = new Uint8Array(Buffer.from(opts.input.content, "base64"));
+      repo.import(binary, { docId: rawDocId });
       const result = await createAnonymousCollaborativeDocument({
-        documentId,
-        name: opts.input?.name,
+        documentId: rawDocId,
       });
       return {
         collabDocUrl: toAutomergeUrl(result.document.id),
         joinSecret: result.joinSecret,
+      };
+    }),
+
+  resolveAnonymousCollaborativeDocument: publicProcedure
+    .input(
+      z.object({
+        joinSecret: z.string().min(1),
+      }),
+    )
+    .query(async (opts) => {
+      const invitation = await getDocumentInvitationByToken(
+        opts.input.joinSecret,
+      );
+      if (!invitation) {
+        return null;
+      }
+      let content: string | undefined;
+      console.info("[resolve] attempting doc export", {
+        documentId: invitation.documentId,
+        handleCacheKeys: Object.keys(repo.handles),
+      });
+      try {
+        const abortController = new AbortController();
+        const timeout = setTimeout(() => abortController.abort(), 3000);
+        try {
+          const handle = await repo.find(invitation.documentId as DocumentId, {
+            signal: abortController.signal,
+          });
+          const doc = await handle.doc();
+          if (doc) {
+            const { save } = await import("@automerge/automerge");
+            const binary = save(doc);
+            content = Buffer.from(binary).toString("base64");
+          }
+        } finally {
+          clearTimeout(timeout);
+        }
+      } catch (err) {
+        console.warn("[resolve] failed to serialize doc content", err);
+      }
+      return {
+        collabDocUrl: toAutomergeUrl(invitation.documentId),
+        joinSecret: invitation.token,
+        content,
       };
     }),
 

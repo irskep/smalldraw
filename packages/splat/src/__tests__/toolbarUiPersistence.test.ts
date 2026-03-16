@@ -110,6 +110,7 @@ describe("toolbarUiPersistence", () => {
       supportsTransparentStrokeColor: false,
       supportsTransparentFillColor: false,
       newDrawingPending: false,
+      sharePending: false,
       mobileTopPanel: "colors",
       mobileActionsOpen: false,
     };
