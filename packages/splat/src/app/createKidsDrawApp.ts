@@ -103,7 +103,7 @@ export async function createKidsDrawApp(
         joinSecretFromUrl,
       );
     if (!resolved) {
-      throw new Error("This share link is no longer valid.");
+      throw new Error("Invalid share link.");
     }
     joinedDocumentBinary = base64ToUint8Array(resolved.content);
     joinedCollabDocUrl = resolved.collabDocUrl;
