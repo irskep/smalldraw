@@ -58,7 +58,7 @@ export interface SmalldrawCore {
   destroy(): void;
 }
 
-async function initAutomerge(): Promise<void> {
+export async function initAutomerge(): Promise<void> {
   if (!isWasmInitialized()) {
     await initializeBase64Wasm(automergeWasmBase64);
   }

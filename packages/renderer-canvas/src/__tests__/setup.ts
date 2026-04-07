@@ -1,9 +1,3 @@
-import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64";
-import {
-  initializeBase64Wasm,
-  isWasmInitialized,
-} from "@automerge/automerge/slim";
+import { initAutomerge } from "@smalldraw/core";
 
-if (!isWasmInitialized()) {
-  await initializeBase64Wasm(automergeWasmBase64);
-}
+await initAutomerge();

@@ -1,14 +1,8 @@
 import { beforeEach } from "bun:test";
-import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64";
-import {
-  initializeBase64Wasm,
-  isWasmInitialized,
-} from "@automerge/automerge/slim";
+import { initAutomerge } from "@smalldraw/core";
 import { Window } from "happy-dom";
 
-if (!isWasmInitialized()) {
-  await initializeBase64Wasm(automergeWasmBase64);
-}
+await initAutomerge();
 
 const windowInstance = new Window();
 const { document } = windowInstance;
