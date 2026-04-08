@@ -38,13 +38,11 @@
   border: var(--border-size-1) solid color-mix(in oklch, var(--gray-7), white);
 }
 
-.kids-share-dialog__url {
-  margin: 0;
-  max-width: min(80vw, 320px);
-  font-size: var(--font-size-1);
-  color: var(--kd-text-default);
-  text-align: center;
-  word-break: break-all;
+.kids-share-dialog__url-row {
+  width: min(80vw, 320px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--size-2);
 }
 
 .kids-share-dialog__button {
@@ -56,4 +54,20 @@
   background: var(--blue-6);
   color: white;
   cursor: pointer;
+}
+
+.kids-share-dialog__button--secondary {
+  background: var(--gray-7);
+}
+
+.kids-share-dialog__url-input {
+  width: 100%;
+  min-width: 0;
+  padding: var(--size-2) var(--size-3);
+  border: var(--border-size-1) solid
+    color-mix(in oklch, var(--gray-7), white 30%);
+  border-radius: var(--radius-2);
+  background: white;
+  color: var(--kd-text-default);
+  font-size: var(--font-size-1);
 }

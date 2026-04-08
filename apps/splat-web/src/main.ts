@@ -1,5 +1,6 @@
 import "@smalldraw/splat/styles.css";
 import { createKidsDrawApp } from "@smalldraw/splat";
+import { createBrowserMultiplayerConfig } from "./multiplayerConfig";
 
 const container = document.getElementById("app");
 if (!container) {
@@ -7,12 +8,11 @@ if (!container) {
 }
 
 try {
+  const multiplayerConfig = createBrowserMultiplayerConfig(window.location);
   const app = await createKidsDrawApp({
     container,
     multiplayer: {
-      syncServerHttpUrl: "http://localhost:3030/api",
-      syncServerWebSocketUrl: "ws://localhost:3030",
-      joinBaseUrl: "http://localhost:3000",
+      ...multiplayerConfig,
       joinSecret:
         new URLSearchParams(window.location.search).get("join") ?? undefined,
     },

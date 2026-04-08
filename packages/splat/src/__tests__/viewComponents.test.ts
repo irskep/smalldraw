@@ -107,12 +107,87 @@ describe("view components", () => {
 
     await first;
     const doneButton = dialog.el.querySelector(
-      ".kids-share-dialog__button",
+      ".kids-share-dialog__button--done",
     ) as HTMLButtonElement | null;
     expect(doneButton).not.toBeNull();
     doneButton!.click();
     await second;
 
     dialog.onunmount();
+  });
+
+  test("ShareQrDialog copies the join URL", async () => {
+    const dialog = createShareQrDialog();
+    document.body.appendChild(dialog.el);
+
+    const writeText = async (value: string): Promise<void> => {
+      copied = value;
+    };
+    let copied = "";
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    const pending = dialog.show({
+      joinUrl: "https://splatterboard.app/?join=copy-me",
+      qrDataUrl: "data:image/png;base64,copy",
+    });
+
+    const copyButton = dialog.el.querySelector(
+      ".kids-share-dialog__button--secondary",
+    ) as HTMLButtonElement | null;
+    const urlInput = dialog.el.querySelector(
+      ".kids-share-dialog__url-input",
+    ) as HTMLInputElement | null;
+
+    expect(copyButton).not.toBeNull();
+    expect(urlInput).not.toBeNull();
+    expect(urlInput!.value).toBe("https://splatterboard.app/?join=copy-me");
+
+    copyButton!.click();
+    await Promise.resolve();
+
+    expect(copied).toBe("https://splatterboard.app/?join=copy-me");
+    expect(copyButton!.textContent).toBe("Copied");
+
+    dialog.onunmount();
+    await pending;
+  });
+
+  test("ShareQrDialog falls back to execCommand copy", async () => {
+    const dialog = createShareQrDialog();
+    document.body.appendChild(dialog.el);
+
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: undefined,
+    });
+    const originalExecCommand = document.execCommand;
+    let copiedCommand = "";
+    document.execCommand = ((command: string) => {
+      copiedCommand = command;
+      return true;
+    }) as typeof document.execCommand;
+
+    const pending = dialog.show({
+      joinUrl: "http://192.168.1.58:3000/?join=copy-me",
+      qrDataUrl: "data:image/png;base64,copy",
+    });
+
+    const copyButton = dialog.el.querySelector(
+      ".kids-share-dialog__button--secondary",
+    ) as HTMLButtonElement | null;
+    expect(copyButton).not.toBeNull();
+
+    copyButton!.click();
+    await Promise.resolve();
+
+    expect(copiedCommand).toBe("copy");
+    expect(copyButton!.textContent).toBe("Copied");
+
+    document.execCommand = originalExecCommand;
+    dialog.onunmount();
+    await pending;
   });
 });
