@@ -190,5 +190,4 @@ describe("view components", () => {
     dialog.onunmount();
     await pending;
   });
-
 });

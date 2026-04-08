@@ -4,10 +4,7 @@ import { el } from "redom";
 import type { ReDomLike } from "./ReDomLike";
 
 export interface ShareQrDialog extends ReDomLike<HTMLDivElement> {
-  show(input: {
-    joinUrl: string;
-    qrDataUrl: string;
-  }): Promise<void>;
+  show(input: { joinUrl: string; qrDataUrl: string }): Promise<void>;
   onunmount(): void;
 }
 
@@ -26,11 +23,7 @@ export function createShareQrDialog(): ShareQrDialog {
     { type: "button" },
     "Copy",
   ) as HTMLButtonElement;
-  const urlRow = el(
-    "div.kids-share-dialog__url-row",
-    urlInput,
-    copyButton,
-  );
+  const urlRow = el("div.kids-share-dialog__url-row", urlInput, copyButton);
   const doneButton = el(
     "button.kids-share-dialog__button kids-share-dialog__button--primary kids-share-dialog__button--done",
     { type: "button" },
@@ -38,13 +31,7 @@ export function createShareQrDialog(): ShareQrDialog {
   ) as HTMLButtonElement;
   const dialog = el(
     "dialog.kids-share-dialog",
-    el(
-      "div.kids-share-dialog__card",
-      title,
-      image,
-      urlRow,
-      doneButton,
-    ),
+    el("div.kids-share-dialog__card", title, image, urlRow, doneButton),
   ) as HTMLDialogElement;
   const elRoot = el("div.kids-share-dialog-host", dialog) as HTMLDivElement;
   let resolve: (() => void) | null = null;
