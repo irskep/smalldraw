@@ -5,6 +5,7 @@ import { z } from "zod";
 import { repo } from "../automergeRepo/automergeRepo.js";
 import { toAutomergeUrl } from "../automergeRepo/automergeUrl.js";
 import { addUserToDocument } from "../db/addUserToDocument.js";
+import { claimAnonymousCollaborativeDocument } from "../db/claimAnonymousCollaborativeDocument.js";
 import { createAnonymousCollaborativeDocument } from "../db/createAnonymousCollaborativeDocument.js";
 import { createDocument } from "../db/createDocument.js";
 import { createLoginAttempt } from "../db/createLoginAttempt.js";
@@ -288,6 +289,26 @@ export const appRouter = router({
         documentInvitationToken: opts.input.token,
       });
       return result ? { documentId: result.documentId } : null;
+    }),
+  claimCollaborativeDocument: protectedProcedure
+    .input(
+      z.object({
+        accessToken: z.string(),
+      }),
+    )
+    .mutation(async (opts) => {
+      try {
+        return await claimAnonymousCollaborativeDocument({
+          userId: opts.ctx.session.userId,
+          accessToken: opts.input.accessToken,
+        });
+      } catch (error) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Only a drawing owner can claim this drawing.",
+          cause: error,
+        });
+      }
     }),
 
   documentMembers: protectedProcedure.input(z.string()).query(async (opts) => {

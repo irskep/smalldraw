@@ -9,6 +9,7 @@ export interface KidsDocumentSummary {
   collabDocUrl?: string;
   joinSecret?: string;
   accessToken?: string;
+  accessTokenScope?: "owner" | "device";
   title?: string;
   mode: KidsDocumentMode;
   coloringPageId?: string;
@@ -26,6 +27,7 @@ export interface KidsDocumentCreateInput {
   collabDocUrl?: string;
   joinSecret?: string;
   accessToken?: string;
+  accessTokenScope?: "owner" | "device";
   title?: string;
   mode?: KidsDocumentMode;
   coloringPageId?: string;

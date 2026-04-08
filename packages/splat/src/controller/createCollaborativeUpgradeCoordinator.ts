@@ -7,6 +7,7 @@ export type SharePayload = {
   collabDocUrl: string;
   joinSecret: string;
   accessToken: string;
+  accessTokenScope: "owner";
   joinUrl: string;
   upgraded: boolean;
 };
@@ -21,7 +22,11 @@ export function createCollaborativeUpgradeCoordinator(options: {
   registerCollaborativeDocument: (
     documentId: string,
     content: Uint8Array,
-  ) => Promise<{ joinSecret: string; accessToken: string }>;
+  ) => Promise<{
+    joinSecret: string;
+    accessToken: string;
+    accessTokenScope: "owner";
+  }>;
   switchToDocument: (catalogDocUrl: string) => Promise<void>;
   resolveJoinBaseUrl: () => string;
   onCollaborativeMetadataPersisted?: (
@@ -63,6 +68,7 @@ export function createCollaborativeUpgradeCoordinator(options: {
         collabDocUrl: existing.collabDocUrl,
         joinSecret: existing.joinSecret,
         accessToken: existing.accessToken,
+        accessTokenScope: "owner",
         joinUrl: buildJoinUrl(
           existing.joinSecret,
           options.resolveJoinBaseUrl(),
@@ -124,6 +130,7 @@ export function createCollaborativeUpgradeCoordinator(options: {
       collabDocUrl,
       joinSecret,
       accessToken,
+      accessTokenScope: "owner",
     });
     await options.onCollaborativeMetadataPersisted?.(persistedSummary);
     console.info("[kids-draw:multiplayer] share flow: metadata persisted");
@@ -146,6 +153,7 @@ export function createCollaborativeUpgradeCoordinator(options: {
       collabDocUrl,
       joinSecret,
       accessToken,
+      accessTokenScope: "owner",
       joinUrl: buildJoinUrl(joinSecret, options.resolveJoinBaseUrl()),
       upgraded: true,
     };

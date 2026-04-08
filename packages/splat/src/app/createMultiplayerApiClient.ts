@@ -9,6 +9,7 @@ export interface MultiplayerApiClient {
     collabDocUrl: string;
     joinSecret: string;
     accessToken: string;
+    accessTokenScope: "owner";
   }>;
   resolveCollaborativeDocumentByJoinSecret(
     joinSecret: string,
@@ -17,15 +18,30 @@ export interface MultiplayerApiClient {
     collabDocUrl: string;
     joinSecret: string;
     accessToken: string;
+    accessTokenScope: "device";
     content: string;
   } | null>;
+  claimCollaborativeDocument(accessToken: string): Promise<{
+    documentId: string;
+    attached: boolean;
+    isAdmin: boolean;
+  }>;
 }
 
 export function createMultiplayerApiClient(options: {
   apiUrl: string;
+  getAuthorizationToken?: () => string | null;
 }): MultiplayerApiClient {
   const client = createTRPCUntypedClient({
-    links: [httpBatchLink({ url: options.apiUrl })],
+    links: [
+      httpBatchLink({
+        url: options.apiUrl,
+        headers() {
+          const authorization = options.getAuthorizationToken?.();
+          return authorization ? { Authorization: authorization } : {};
+        },
+      }),
+    ],
   });
 
   return {
@@ -61,12 +77,25 @@ export function createMultiplayerApiClient(options: {
       }
       return parsed;
     },
+    async claimCollaborativeDocument(accessToken) {
+      const result = await client.mutation("claimCollaborativeDocument", {
+        accessToken,
+      });
+      const parsed = parseClaimResult(result);
+      if (!parsed) {
+        throw new Error("Invalid response from claimCollaborativeDocument");
+      }
+      return parsed;
+    },
   };
 }
 
-function parseRegisterResult(
-  input: unknown,
-): { collabDocUrl: string; joinSecret: string; accessToken: string } | null {
+function parseRegisterResult(input: unknown): {
+  collabDocUrl: string;
+  joinSecret: string;
+  accessToken: string;
+  accessTokenScope: "owner";
+} | null {
   if (
     !input ||
     typeof input !== "object" ||
@@ -80,6 +109,7 @@ function parseRegisterResult(
     collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
     joinSecret: (input as { joinSecret: string }).joinSecret,
     accessToken: (input as { accessToken: string }).accessToken,
+    accessTokenScope: "owner",
   };
 }
 
@@ -87,6 +117,7 @@ function parseResolveResult(input: unknown): {
   collabDocUrl: string;
   joinSecret: string;
   accessToken: string;
+  accessTokenScope: "device";
   content: string;
 } | null {
   if (
@@ -103,7 +134,27 @@ function parseResolveResult(input: unknown): {
     collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
     joinSecret: (input as { joinSecret: string }).joinSecret,
     accessToken: (input as { accessToken: string }).accessToken,
+    accessTokenScope: "device",
     content: (input as { content: string }).content,
+  };
+}
+
+function parseClaimResult(
+  input: unknown,
+): { documentId: string; attached: boolean; isAdmin: boolean } | null {
+  if (
+    !input ||
+    typeof input !== "object" ||
+    typeof (input as { documentId?: unknown }).documentId !== "string" ||
+    typeof (input as { attached?: unknown }).attached !== "boolean" ||
+    typeof (input as { isAdmin?: unknown }).isAdmin !== "boolean"
+  ) {
+    return null;
+  }
+  return {
+    documentId: (input as { documentId: string }).documentId,
+    attached: (input as { attached: boolean }).attached,
+    isAdmin: (input as { isAdmin: boolean }).isAdmin,
   };
 }
 

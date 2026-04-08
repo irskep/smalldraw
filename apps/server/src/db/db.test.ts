@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import "../test/setup.js";
 
 describe("Test environment", () => {
@@ -8,6 +8,7 @@ describe("Test environment", () => {
   });
 });
 
+import { claimAnonymousCollaborativeDocument } from "./claimAnonymousCollaborativeDocument.js";
 import { db } from "./client.js";
 import { createAnonymousCollaborativeDocument } from "./createAnonymousCollaborativeDocument.js";
 import { createDocument } from "./createDocument.js";
@@ -377,5 +378,106 @@ describe("Document operations", () => {
       scopes: ["share"],
     });
     expect(activeShare?.documentId).toBe("anon-doc-rotate");
+  });
+
+  it("claimAnonymousCollaborativeDocument attaches owner to account as admin", async () => {
+    const owner = await createUser({
+      username: "owner-claimer",
+      registrationRecord: "test-registration-record",
+    });
+    const created = await createAnonymousCollaborativeDocument({
+      documentId: "anon-doc-claim",
+      ownerTag: "creator-device-claim",
+    });
+
+    const claimed = await claimAnonymousCollaborativeDocument({
+      userId: owner.id,
+      accessToken: created.accessToken,
+    });
+
+    expect(claimed).toEqual({
+      documentId: "anon-doc-claim",
+      attached: true,
+      isAdmin: true,
+    });
+
+    const memberships = await db
+      .select()
+      .from(usersOnDocuments)
+      .where(eq(usersOnDocuments.documentId, "anon-doc-claim"));
+    expect(memberships).toHaveLength(1);
+    expect(memberships[0]).toMatchObject({
+      userId: owner.id,
+      documentId: "anon-doc-claim",
+      isAdmin: true,
+    });
+  });
+
+  it("claimAnonymousCollaborativeDocument upgrades existing non-admin membership", async () => {
+    const owner = await createUser({
+      username: "owner-upgrader",
+      registrationRecord: "test-registration-record",
+    });
+    const collaborator = await createUser({
+      username: "collaborator-upgrader",
+      registrationRecord: "test-registration-record-2",
+    });
+    const created = await createAnonymousCollaborativeDocument({
+      documentId: "anon-doc-upgrade",
+      ownerTag: "creator-device-upgrade",
+    });
+
+    await db.insert(usersOnDocuments).values({
+      userId: collaborator.id,
+      documentId: "anon-doc-upgrade",
+      isAdmin: false,
+    });
+
+    const claimed = await claimAnonymousCollaborativeDocument({
+      userId: collaborator.id,
+      accessToken: created.accessToken,
+    });
+
+    expect(claimed).toEqual({
+      documentId: "anon-doc-upgrade",
+      attached: false,
+      isAdmin: true,
+    });
+
+    const [membership] = await db
+      .select()
+      .from(usersOnDocuments)
+      .where(
+        and(
+          eq(usersOnDocuments.userId, collaborator.id),
+          eq(usersOnDocuments.documentId, "anon-doc-upgrade"),
+        ),
+      )
+      .limit(1);
+    expect(membership?.isAdmin).toBe(true);
+
+    const ownerToken = await getDocumentInvitationByToken(created.accessToken, {
+      scopes: ["owner"],
+    });
+    expect(ownerToken?.tag).toBe("creator-device-upgrade");
+    expect(owner.id).not.toBe(collaborator.id);
+  });
+
+  it("claimAnonymousCollaborativeDocument rejects non-owner tokens", async () => {
+    const user = await createUser({
+      username: "invalid-claimer",
+      registrationRecord: "test-registration-record",
+    });
+    const created = await createAnonymousCollaborativeDocument({
+      documentId: "anon-doc-invalid-claim",
+      ownerTag: "creator-device-invalid",
+    });
+
+    await expect(
+      claimAnonymousCollaborativeDocument({
+        userId: user.id,
+        accessToken: created.joinSecret,
+      }),
+    ).rejects.toThrow("Owner token not found");
   });
 });

@@ -62,11 +62,15 @@ describe("document backends", () => {
       collaborative: true,
       collabDocUrl: "automerge:collab-2",
       joinSecret: "join-secret-2",
+      accessToken: "owner-token-2",
+      accessTokenScope: "owner",
       mode: "normal",
     });
     expect(created.collaborative).toBeTrue();
     expect(created.collabDocUrl).toBe("automerge:collab-2");
     expect(created.joinSecret).toBe("join-secret-2");
+    expect(created.accessToken).toBe("owner-token-2");
+    expect(created.accessTokenScope).toBe("owner");
 
     await backend.setCurrentDocument("automerge:collab-2");
     expect(await backend.getCurrentDocument()).toBe("automerge:local-2");
@@ -80,6 +84,8 @@ describe("document backends", () => {
     expect(updated?.collaborative).toBeFalse();
     expect(updated?.collabDocUrl).toBeUndefined();
     expect(updated?.joinSecret).toBeUndefined();
+    expect(updated?.accessToken).toBeUndefined();
+    expect(updated?.accessTokenScope).toBeUndefined();
   });
 
   test("local backend reopens after the indexeddb connection is closed by deleteDatabase", async () => {

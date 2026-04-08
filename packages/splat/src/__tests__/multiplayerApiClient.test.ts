@@ -59,6 +59,7 @@ describe("createMultiplayerApiClient", () => {
       collabDocUrl: "automerge:doc-1",
       joinSecret: "token-1",
       accessToken: "access-1",
+      accessTokenScope: "owner",
     });
     expect(requests[0].url).toContain("registerCollaborativeDocument");
     expect(requests[0].method).toBe("POST");
@@ -99,6 +100,7 @@ describe("createMultiplayerApiClient", () => {
       collabDocUrl: "automerge:doc-2",
       joinSecret: "token-2",
       accessToken: "access-2",
+      accessTokenScope: "device",
       content: btoa("fake-doc-binary"),
     });
     expect(missing).toBeNull();
@@ -148,5 +150,43 @@ describe("createMultiplayerApiClient", () => {
         "device-1",
       ),
     ).rejects.toThrow("Invalid response from registerCollaborativeDocument");
+  });
+
+  test("claimCollaborativeDocument sends auth header and parses response", async () => {
+    const requests: Array<{
+      url: string;
+      authorization: string | null;
+    }> = [];
+    installFetchMock(async (input, init) => {
+      requests.push({
+        url: input.toString(),
+        authorization:
+          init?.headers instanceof Headers
+            ? init.headers.get("authorization")
+            : init?.headers &&
+                "Authorization" in (init.headers as Record<string, unknown>)
+              ? String((init.headers as Record<string, unknown>).Authorization)
+              : null,
+      });
+      return mockJsonResponse({
+        documentId: "doc-claim-1",
+        attached: true,
+        isAdmin: true,
+      });
+    });
+
+    const client = createMultiplayerApiClient({
+      apiUrl: "http://localhost/api",
+      getAuthorizationToken: () => "session-key-1",
+    });
+    const result = await client.claimCollaborativeDocument("owner-access-1");
+
+    expect(result).toEqual({
+      documentId: "doc-claim-1",
+      attached: true,
+      isAdmin: true,
+    });
+    expect(requests[0]?.url).toContain("claimCollaborativeDocument");
+    expect(requests[0]?.authorization).toBe("session-key-1");
   });
 });
