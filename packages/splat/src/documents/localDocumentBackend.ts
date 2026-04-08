@@ -134,6 +134,24 @@ class IndexedDbConnection {
     this.databaseName = databaseName;
   }
 
+  private clearCachedDatabase(): void {
+    IndexedDbConnection.dbPromiseByName.delete(this.databaseName);
+  }
+
+  private bindLifetimeHandlers(db: IDBDatabase): void {
+    db.onclose = () => {
+      this.clearCachedDatabase();
+    };
+    db.onversionchange = () => {
+      this.clearCachedDatabase();
+      db.close();
+    };
+  }
+
+  private isRecoverableStateError(error: unknown): boolean {
+    return error instanceof DOMException && error.name === "InvalidStateError";
+  }
+
   async getDatabase(): Promise<IDBDatabase> {
     const existingPromise = IndexedDbConnection.dbPromiseByName.get(
       this.databaseName,
@@ -157,12 +175,56 @@ class IndexedDbConnection {
           });
         }
       };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        this.bindLifetimeHandlers(db);
+        resolve(db);
+      };
+      request.onerror = () => {
+        this.clearCachedDatabase();
+        reject(request.error);
+      };
+      request.onblocked = () => {
+        this.clearCachedDatabase();
+      };
     });
 
     IndexedDbConnection.dbPromiseByName.set(this.databaseName, nextPromise);
     return await nextPromise;
+  }
+
+  async runTransaction<T>(
+    storeName: string,
+    mode: IDBTransactionMode,
+    callback: (
+      store: IDBObjectStore,
+      transaction: IDBTransaction,
+    ) => Promise<T>,
+  ): Promise<T> {
+    return await this.runTransactionAttempt(storeName, mode, callback, true);
+  }
+
+  private async runTransactionAttempt<T>(
+    storeName: string,
+    mode: IDBTransactionMode,
+    callback: (
+      store: IDBObjectStore,
+      transaction: IDBTransaction,
+    ) => Promise<T>,
+    canRetry: boolean,
+  ): Promise<T> {
+    const db = await this.getDatabase();
+    try {
+      const transaction = db.transaction(storeName, mode);
+      const store = transaction.objectStore(storeName);
+      return await callback(store, transaction);
+    } catch (error) {
+      if (!canRetry || !this.isRecoverableStateError(error)) {
+        throw error;
+      }
+      this.clearCachedDatabase();
+      return await this.runTransactionAttempt(storeName, mode, callback, false);
+    }
   }
 }
 
@@ -174,11 +236,14 @@ class IndexedDbDocumentRepository implements DocumentRepository {
   }
 
   async listDocuments(): Promise<KidsDocumentSummary[]> {
-    const db = await this.connection.getDatabase();
-    const transaction = db.transaction(DOCUMENTS_STORE, "readonly");
-    const store = transaction.objectStore(DOCUMENTS_STORE);
-    const documents = (await toPromise(
-      store.getAll(),
+    const documents = (await this.connection.runTransaction(
+      DOCUMENTS_STORE,
+      "readonly",
+      async (store) => {
+        return (await toPromise(
+          store.getAll(),
+        )) as Partial<KidsDocumentSummary>[];
+      },
     )) as Partial<KidsDocumentSummary>[];
     return sortDocuments(
       documents
@@ -193,12 +258,15 @@ class IndexedDbDocumentRepository implements DocumentRepository {
   }
 
   async getDocument(docUrl: string): Promise<KidsDocumentSummary | null> {
-    const db = await this.connection.getDatabase();
-    const transaction = db.transaction(DOCUMENTS_STORE, "readonly");
-    const store = transaction.objectStore(DOCUMENTS_STORE);
-    const document = (await toPromise(store.get(docUrl))) as
-      | Partial<KidsDocumentSummary>
-      | undefined;
+    const document = (await this.connection.runTransaction(
+      DOCUMENTS_STORE,
+      "readonly",
+      async (store) => {
+        return (await toPromise(store.get(docUrl))) as
+          | Partial<KidsDocumentSummary>
+          | undefined;
+      },
+    )) as Partial<KidsDocumentSummary> | undefined;
     if (!document || typeof document.docUrl !== "string") {
       return null;
     }
@@ -212,96 +280,108 @@ class IndexedDbDocumentRepository implements DocumentRepository {
     input: KidsDocumentCreateInput,
   ): Promise<KidsDocumentSummary> {
     const timestamp = nowIsoString();
-    const db = await this.connection.getDatabase();
-    const transaction = db.transaction(DOCUMENTS_STORE, "readwrite");
-    const store = transaction.objectStore(DOCUMENTS_STORE);
-    const existingRaw = (await toPromise(store.get(input.docUrl))) as
-      | Partial<DocumentRecord>
-      | undefined;
-    const existing =
-      existingRaw && typeof existingRaw.docUrl === "string"
-        ? normalizeDocumentSummary(
-            existingRaw as Partial<KidsDocumentSummary> &
-              Pick<KidsDocumentSummary, "docUrl">,
-          )
-        : undefined;
-    const requestedCollaborative =
-      input.collaborative ?? existing?.collaborative;
-    const nextCollabDocUrl =
-      requestedCollaborative === false
-        ? undefined
-        : (input.collabDocUrl ?? existing?.collabDocUrl);
-    const collaborative = Boolean(requestedCollaborative && nextCollabDocUrl);
-    const next: DocumentRecord = {
-      docUrl: input.docUrl,
-      collaborative,
-      collabDocUrl: collaborative ? nextCollabDocUrl : undefined,
-      joinSecret:
-        collaborative === false
-          ? undefined
-          : (input.joinSecret ?? existing?.joinSecret),
-      title: input.title ?? existing?.title,
-      mode: input.mode ?? existing?.mode ?? "normal",
-      coloringPageId:
-        input.mode === "normal"
-          ? undefined
-          : (input.coloringPageId ?? existing?.coloringPageId),
-      referenceImageSrc:
-        input.mode === "normal"
-          ? undefined
-          : (input.referenceImageSrc ?? existing?.referenceImageSrc),
-      referenceComposite:
-        input.mode === "normal"
-          ? undefined
-          : (input.referenceComposite ?? existing?.referenceComposite),
-      createdAt: existing?.createdAt ?? timestamp,
-      updatedAt: timestamp,
-      lastOpenedAt: timestamp,
-      thumbnailKey: existing?.thumbnailKey,
-    };
-    store.put(next);
-    await transactionDone(transaction);
-    return next;
+    return await this.connection.runTransaction(
+      DOCUMENTS_STORE,
+      "readwrite",
+      async (store, transaction) => {
+        const existingRaw = (await toPromise(store.get(input.docUrl))) as
+          | Partial<DocumentRecord>
+          | undefined;
+        const existing =
+          existingRaw && typeof existingRaw.docUrl === "string"
+            ? normalizeDocumentSummary(
+                existingRaw as Partial<KidsDocumentSummary> &
+                  Pick<KidsDocumentSummary, "docUrl">,
+              )
+            : undefined;
+        const requestedCollaborative =
+          input.collaborative ?? existing?.collaborative;
+        const nextCollabDocUrl =
+          requestedCollaborative === false
+            ? undefined
+            : (input.collabDocUrl ?? existing?.collabDocUrl);
+        const collaborative = Boolean(
+          requestedCollaborative && nextCollabDocUrl,
+        );
+        const next: DocumentRecord = {
+          docUrl: input.docUrl,
+          collaborative,
+          collabDocUrl: collaborative ? nextCollabDocUrl : undefined,
+          joinSecret:
+            collaborative === false
+              ? undefined
+              : (input.joinSecret ?? existing?.joinSecret),
+          title: input.title ?? existing?.title,
+          mode: input.mode ?? existing?.mode ?? "normal",
+          coloringPageId:
+            input.mode === "normal"
+              ? undefined
+              : (input.coloringPageId ?? existing?.coloringPageId),
+          referenceImageSrc:
+            input.mode === "normal"
+              ? undefined
+              : (input.referenceImageSrc ?? existing?.referenceImageSrc),
+          referenceComposite:
+            input.mode === "normal"
+              ? undefined
+              : (input.referenceComposite ?? existing?.referenceComposite),
+          createdAt: existing?.createdAt ?? timestamp,
+          updatedAt: timestamp,
+          lastOpenedAt: timestamp,
+          thumbnailKey: existing?.thumbnailKey,
+        };
+        store.put(next);
+        await transactionDone(transaction);
+        return next;
+      },
+    );
   }
 
   async touchDocument(docUrl: string): Promise<KidsDocumentSummary> {
-    const db = await this.connection.getDatabase();
-    const transaction = db.transaction(DOCUMENTS_STORE, "readwrite");
-    const store = transaction.objectStore(DOCUMENTS_STORE);
-    const existingRaw = (await toPromise(store.get(docUrl))) as
-      | Partial<KidsDocumentSummary>
-      | undefined;
-    const existing =
-      existingRaw && typeof existingRaw.docUrl === "string"
-        ? normalizeDocumentSummary(
-            existingRaw as Partial<KidsDocumentSummary> &
-              Pick<KidsDocumentSummary, "docUrl">,
-          )
-        : undefined;
-    const timestamp = nowIsoString();
-    const next: KidsDocumentSummary = existing
-      ? {
-          ...existing,
-          updatedAt: timestamp,
-          lastOpenedAt: timestamp,
-        }
-      : {
-          docUrl,
-          mode: "normal",
-          createdAt: timestamp,
-          updatedAt: timestamp,
-          lastOpenedAt: timestamp,
-        };
-    store.put(next);
-    await transactionDone(transaction);
-    return next;
+    return await this.connection.runTransaction(
+      DOCUMENTS_STORE,
+      "readwrite",
+      async (store, transaction) => {
+        const existingRaw = (await toPromise(store.get(docUrl))) as
+          | Partial<KidsDocumentSummary>
+          | undefined;
+        const existing =
+          existingRaw && typeof existingRaw.docUrl === "string"
+            ? normalizeDocumentSummary(
+                existingRaw as Partial<KidsDocumentSummary> &
+                  Pick<KidsDocumentSummary, "docUrl">,
+              )
+            : undefined;
+        const timestamp = nowIsoString();
+        const next: KidsDocumentSummary = existing
+          ? {
+              ...existing,
+              updatedAt: timestamp,
+              lastOpenedAt: timestamp,
+            }
+          : {
+              docUrl,
+              mode: "normal",
+              createdAt: timestamp,
+              updatedAt: timestamp,
+              lastOpenedAt: timestamp,
+            };
+        store.put(next);
+        await transactionDone(transaction);
+        return next;
+      },
+    );
   }
 
   async deleteDocument(docUrl: string): Promise<void> {
-    const db = await this.connection.getDatabase();
-    const transaction = db.transaction(DOCUMENTS_STORE, "readwrite");
-    transaction.objectStore(DOCUMENTS_STORE).delete(docUrl);
-    await transactionDone(transaction);
+    await this.connection.runTransaction(
+      DOCUMENTS_STORE,
+      "readwrite",
+      async (store, transaction) => {
+        store.delete(docUrl);
+        await transactionDone(transaction);
+      },
+    );
   }
 }
 
@@ -387,33 +467,43 @@ class IndexedDbThumbnailRepository implements ThumbnailRepository {
   }
 
   async saveThumbnail(docUrl: string, blob: Blob): Promise<void> {
-    const db = await this.connection.getDatabase();
-    const transaction = db.transaction(THUMBNAILS_STORE, "readwrite");
-    const store = transaction.objectStore(THUMBNAILS_STORE);
-    const thumbnail: ThumbnailRecord = {
-      docUrl,
-      blob,
-      updatedAt: nowIsoString(),
-    };
-    store.put(thumbnail);
-    await transactionDone(transaction);
+    await this.connection.runTransaction(
+      THUMBNAILS_STORE,
+      "readwrite",
+      async (store, transaction) => {
+        const thumbnail: ThumbnailRecord = {
+          docUrl,
+          blob,
+          updatedAt: nowIsoString(),
+        };
+        store.put(thumbnail);
+        await transactionDone(transaction);
+      },
+    );
   }
 
   async getThumbnail(docUrl: string): Promise<Blob | null> {
-    const db = await this.connection.getDatabase();
-    const transaction = db.transaction(THUMBNAILS_STORE, "readonly");
-    const store = transaction.objectStore(THUMBNAILS_STORE);
-    const record = (await toPromise(store.get(docUrl))) as
-      | ThumbnailRecord
-      | undefined;
+    const record = (await this.connection.runTransaction(
+      THUMBNAILS_STORE,
+      "readonly",
+      async (store) => {
+        return (await toPromise(store.get(docUrl))) as
+          | ThumbnailRecord
+          | undefined;
+      },
+    )) as ThumbnailRecord | undefined;
     return record?.blob ?? null;
   }
 
   async deleteThumbnail(docUrl: string): Promise<void> {
-    const db = await this.connection.getDatabase();
-    const transaction = db.transaction(THUMBNAILS_STORE, "readwrite");
-    transaction.objectStore(THUMBNAILS_STORE).delete(docUrl);
-    await transactionDone(transaction);
+    await this.connection.runTransaction(
+      THUMBNAILS_STORE,
+      "readwrite",
+      async (store, transaction) => {
+        store.delete(docUrl);
+        await transactionDone(transaction);
+      },
+    );
   }
 }
 

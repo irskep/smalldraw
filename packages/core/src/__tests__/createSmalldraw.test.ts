@@ -2,12 +2,27 @@ import { describe, expect, test } from "bun:test";
 import type { DocHandle } from "@automerge/automerge-repo";
 import { createSmalldraw } from "../createSmalldraw";
 
-function createHandle(url: string, ready: boolean): DocHandle<any> {
+function createHandle(
+  url: string,
+  ready: boolean,
+  options?: { onAbort?: () => void },
+): DocHandle<any> {
   return {
     url,
     isReady: () => ready,
-    whenReady: () =>
-      ready ? Promise.resolve() : new Promise<void>(() => undefined),
+    whenReady: (_states?: unknown, whenReadyOptions?: { signal?: AbortSignal }) =>
+      ready
+        ? Promise.resolve()
+        : new Promise<void>((_, reject) => {
+            whenReadyOptions?.signal?.addEventListener(
+              "abort",
+              () => {
+                options?.onAbort?.();
+                reject(new DOMException("Aborted", "AbortError"));
+              },
+              { once: true },
+            );
+          }),
     doc: () => ({
       size: { width: 100, height: 100 },
       presentation: { documentType: "normal" },
@@ -24,7 +39,12 @@ function createHandle(url: string, ready: boolean): DocHandle<any> {
 
 describe("createSmalldraw", () => {
   test("falls back to a new document when stored document open times out", async () => {
-    const staleHandle = createHandle("automerge:stale-doc", false);
+    let aborted = false;
+    const staleHandle = createHandle("automerge:stale-doc", false, {
+      onAbort: () => {
+        aborted = true;
+      },
+    });
     const freshHandle = createHandle("automerge:fresh-doc", true);
     const writes: string[] = [];
 
@@ -49,5 +69,37 @@ describe("createSmalldraw", () => {
 
     expect(core.getCurrentDocUrl()).toBe("automerge:fresh-doc");
     expect(writes).toEqual(["automerge:fresh-doc"]);
+    expect(aborted).toBeTrue();
+  });
+
+  test("open aborts wait instead of leaking automerge timeout", async () => {
+    let aborted = false;
+    const readyHandle = createHandle("automerge:ready-doc", true);
+    const staleHandle = createHandle("automerge:stale-doc", false, {
+      onAbort: () => {
+        aborted = true;
+      },
+    });
+    const core = await createSmalldraw({
+      repo: {
+        peerId: "peer-1",
+        handles: {},
+        find: async (url: string) =>
+          url === "automerge:stale-doc" ? staleHandle : readyHandle,
+        create: () => readyHandle,
+      } as any,
+      shapeHandlers: {} as any,
+      initialOpenTimeoutMs: 5,
+      persistence: {
+        mode: "always-new",
+        getCurrentDocUrl: async () => null,
+        setCurrentDocUrl: async () => {},
+      },
+    });
+
+    await expect(core.open("automerge:stale-doc")).rejects.toThrow(
+      "Timed out opening document: automerge:stale-doc",
+    );
+    expect(aborted).toBeTrue();
   });
 });

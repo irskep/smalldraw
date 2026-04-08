@@ -255,7 +255,10 @@ export async function createSmalldraw(
     },
     async open(url) {
       handle = await repo.find<DrawingDocumentData>(url as AutomergeUrl);
-      await handle.whenReady();
+      const ready = await waitForHandleReady(handle, initialOpenTimeoutMs);
+      if (!ready) {
+        throw new Error(`Timed out opening document: ${url}`);
+      }
       await writeCurrentDocUrl(handle.url);
       storeAdapter = createAutomergeStoreAdapter({
         handle,
@@ -300,14 +303,25 @@ async function waitForHandleReady(
   handle: DocHandle<DrawingDocumentData>,
   timeoutMs: number,
 ): Promise<boolean> {
+  const abortController = new AbortController();
   let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
   try {
-    await Promise.race([
-      handle.whenReady(),
-      new Promise<void>((resolve) => {
-        timeoutHandle = setTimeout(resolve, timeoutMs);
-      }),
-    ]);
+    const timeoutPromise = new Promise<void>((resolve) => {
+      timeoutHandle = setTimeout(() => {
+        abortController.abort();
+        resolve();
+      }, timeoutMs);
+    });
+    try {
+      await Promise.race([
+        handle.whenReady(["ready"], { signal: abortController.signal }),
+        timeoutPromise,
+      ]);
+    } catch (error) {
+      if (!abortController.signal.aborted) {
+        throw error;
+      }
+    }
     return handle.isReady();
   } finally {
     if (timeoutHandle !== null) {

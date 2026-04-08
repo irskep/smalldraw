@@ -1,5 +1,15 @@
 import { describe, expect, test } from "bun:test";
+import { indexedDB as fakeIndexedDB } from "fake-indexeddb";
 import { createLocalDocumentBackend } from "../documents";
+
+async function deleteDatabase(databaseName: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(databaseName);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+    request.onblocked = () => reject(new Error("deleteDatabase blocked"));
+  });
+}
 
 describe("document backends", () => {
   test("local backend supports document CRUD, current document pointer, and thumbnails", async () => {
@@ -70,5 +80,36 @@ describe("document backends", () => {
     expect(updated?.collaborative).toBeFalse();
     expect(updated?.collabDocUrl).toBeUndefined();
     expect(updated?.joinSecret).toBeUndefined();
+  });
+
+  test("local backend reopens after the indexeddb connection is closed by deleteDatabase", async () => {
+    Object.defineProperty(globalThis, "indexedDB", {
+      configurable: true,
+      value: fakeIndexedDB,
+    });
+    const databaseName = `kids-draw-documents-test-${Math.random()}`;
+    const backend = createLocalDocumentBackend({
+      currentDocStorageKey: `kids-draw-doc-url-test-${Math.random()}`,
+      databaseName,
+    });
+
+    await backend.createDocument({
+      docUrl: "automerge:before-delete",
+      title: "Before delete",
+    });
+
+    await deleteDatabase(databaseName);
+
+    const recreated = await backend.createDocument({
+      docUrl: "automerge:after-delete",
+      title: "After delete",
+    });
+
+    expect(recreated.docUrl).toBe("automerge:after-delete");
+    expect(await backend.getDocument("automerge:after-delete")).not.toBeNull();
+    const listed = await backend.listDocuments();
+    expect(listed.map((document) => document.docUrl)).toEqual([
+      "automerge:after-delete",
+    ]);
   });
 });

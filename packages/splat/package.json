@@ -37,6 +37,7 @@
     "@types/qrcode": "^1.5.5",
     "@types/redom": "^3.2.4",
     "canvas": "^3.1.0",
+    "fake-indexeddb": "^6.2.5",
     "happy-dom": "^14.10.1"
   }
 }
