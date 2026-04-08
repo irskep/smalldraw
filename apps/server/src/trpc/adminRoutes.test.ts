@@ -8,6 +8,8 @@ import { appRouter } from "./appRouter.js";
 describe("admin routes", () => {
   it("rejects anonymous access to admin routes", async () => {
     const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
       session: null,
       serverAdmin: null,
     });
@@ -28,6 +30,8 @@ describe("admin routes", () => {
     });
 
     const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
       session: null,
       serverAdmin: {
         id: admin!.id,

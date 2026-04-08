@@ -8,7 +8,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { TRPCClientError } from "@trpc/client";
 import { useState } from "react";
 import { router } from "../../utils/router.js";
-import { clearAuthorizationToken, trpc, trpcClient } from "../../utils/trpc.js";
+import { trpc, trpcClient } from "../../utils/trpc.js";
 
 const handleError = (error: Error, queryClient: QueryClient) => {
   if (
@@ -17,20 +17,9 @@ const handleError = (error: Error, queryClient: QueryClient) => {
     window.location.pathname !== "/login" &&
     window.location.pathname !== "/register"
   ) {
-    clearAuthorizationToken();
     queryClient.clear();
 
-    // need to do a hard-reload of the page since it's not possible to
-    // properly cleanup automerge-repo and it will continue trying to reconnect
     window.location.href = `/login${window.location.pathname !== "/" ? `?redirect=${window.location.pathname}` : ""}`;
-
-    // router.navigate({
-    //   to: "/login",
-    //   search:
-    //     window.location.pathname !== "/"
-    //       ? { redirect: window.location.pathname }
-    //       : undefined,
-    // });
 
     return true;
   }

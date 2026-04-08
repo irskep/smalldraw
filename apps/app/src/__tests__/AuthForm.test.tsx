@@ -18,7 +18,9 @@ describe("AuthForm", () => {
     fireEvent.input(screen.getByPlaceholderText("Password"), {
       target: { value: "asdfjkl;" },
     });
-    fireEvent.submit(screen.getByRole("button", { name: "Login" }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: "Login" }).closest("form")!,
+    );
 
     expect(onSubmit).toHaveBeenCalledWith({
       username: "admin",

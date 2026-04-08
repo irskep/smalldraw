@@ -7,6 +7,8 @@ import { appRouter } from "./appRouter.js";
 describe("document claim routes", () => {
   it("rejects anonymous claim attempts", async () => {
     const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
       session: null,
       serverAdmin: null,
     });
@@ -27,6 +29,8 @@ describe("document claim routes", () => {
     });
 
     const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
       session: {
         sessionKey: "session-key",
         userId: user.id,

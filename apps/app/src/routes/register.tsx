@@ -18,15 +18,14 @@ const Register = () => {
     <div className="max-w-md mr-auto ml-auto">
       <AuthForm
         onSubmit={async ({ password, username }) => {
-          const sessionKey = await registerAndLogin({
+          const success = await registerAndLogin({
             userIdentifier: username,
             password,
           });
-          if (!sessionKey) {
+          if (!success) {
             setError("Failed to register");
             return;
           }
-          // Hard reload to ensure automerge repo initializes with the new sessionKey
           window.location.href = redirect || "/";
         }}
         children="Sign up"

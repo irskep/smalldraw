@@ -1,7 +1,7 @@
 import * as opaque from "@serenity-kit/opaque";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { setAuthorizationToken, trpc } from "../../utils/trpc";
+import { trpc } from "../../utils/trpc";
 
 type LoginParams = {
   userIdentifier: string;
@@ -34,21 +34,18 @@ export const useLogin = () => {
       if (!loginResult) {
         return null;
       }
-      const { sessionKey, finishLoginRequest } = loginResult;
+      const { finishLoginRequest } = loginResult;
 
       const { success } = await loginFinishMutation.mutateAsync({
         finishLoginRequest,
         userIdentifier,
       });
 
-      if (success) {
-        setAuthorizationToken(sessionKey);
-      }
       queryClient.invalidateQueries();
 
-      return success ? sessionKey : null;
+      return success;
     } catch (error) {
-      return null;
+      return false;
     } finally {
       setIsPending(false);
     }

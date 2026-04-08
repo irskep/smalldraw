@@ -18,15 +18,14 @@ const Login = () => {
     <div className="max-w-md mr-auto ml-auto">
       <AuthForm
         onSubmit={async ({ password, username }) => {
-          const sessionKey = await login({
+          const success = await login({
             userIdentifier: username,
             password,
           });
-          if (!sessionKey) {
+          if (!success) {
             setError("Failed to login");
             return;
           }
-          // Hard reload to ensure automerge repo initializes with the new sessionKey
           window.location.href = redirect || "/";
         }}
         children="Login"

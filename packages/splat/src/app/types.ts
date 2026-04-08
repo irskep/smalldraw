@@ -24,7 +24,6 @@ export interface KidsDrawAppOptions {
     joinBaseUrl?: string;
     joinSecret?: string;
     deviceTag?: string;
-    getAuthorizationToken?: () => string | null;
   };
   confirmDestructiveAction?: (dialog: ConfirmDialogRequest) => Promise<boolean>;
   savePngExport?: (input: {

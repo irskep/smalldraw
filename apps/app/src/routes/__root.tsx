@@ -7,8 +7,8 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { Shield } from "lucide-react";
-import { lazy, Suspense, useLayoutEffect } from "react";
-import { clearAuthorizationToken, trpc } from "../utils/trpc";
+import { lazy, Suspense, useEffect } from "react";
+import { trpc } from "../utils/trpc";
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === "production"
@@ -32,23 +32,6 @@ const getRedirectParam = () => {
 const Root = () => {
   const navigate = useNavigate();
 
-  // on page load immediately redirect to login
-  // if no sessionKey is available
-  useLayoutEffect(() => {
-    if (!localStorage.getItem("sessionKey")) {
-      navigate({
-        to: "/login",
-        search:
-          window.location.pathname !== "/" &&
-          window.location.pathname !== "/login" &&
-          window.location.pathname !== "/register"
-            ? { redirect: window.location.pathname }
-            : undefined,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const meQuery = trpc.me.useQuery(undefined, {
     // avoid lot's of retries in case of unauthorized blocking a page load
     retry: (failureCount, error) => {
@@ -63,6 +46,23 @@ const Root = () => {
   const queryClient = useQueryClient();
 
   const isNotAuthorized = meQuery.error?.data?.code === "UNAUTHORIZED";
+
+  useEffect(() => {
+    if (
+      !isNotAuthorized ||
+      window.location.pathname === "/login" ||
+      window.location.pathname === "/register"
+    ) {
+      return;
+    }
+    navigate({
+      to: "/login",
+      search:
+        window.location.pathname !== "/"
+          ? { redirect: window.location.pathname }
+          : undefined,
+    });
+  }, [isNotAuthorized, navigate]);
 
   return (
     <>
@@ -98,11 +98,7 @@ const Root = () => {
                 onClick={async () => {
                   logoutMutation.mutate(undefined, {
                     onSuccess: () => {
-                      clearAuthorizationToken();
                       queryClient.invalidateQueries();
-                      // navigate({ to: "/login" });
-                      // need to do a hard-reload of the page since it's not possible to
-                      // properly cleanup automerge-repo and it will continue trying to reconnect
                       window.location.href = `/login`;
                     },
                     onError: () => {

@@ -15,25 +15,15 @@ const apiUrl = import.meta.env.PROD
 
 export const trpc = createTRPCReact<AppRouter>();
 
-let authorizationToken: string | null = localStorage.getItem("sessionKey");
-
-export function setAuthorizationToken(newToken: string) {
-  authorizationToken = newToken;
-  localStorage.setItem("sessionKey", authorizationToken);
-}
-
-export function clearAuthorizationToken() {
-  authorizationToken = null;
-  localStorage.removeItem("sessionKey");
-}
-
 export const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
       url: apiUrl,
-      headers: () => {
-        const sessionKey = localStorage.getItem("sessionKey");
-        return sessionKey ? { Authorization: sessionKey } : {};
+      fetch(url, init) {
+        return fetch(url, {
+          ...init,
+          credentials: "include",
+        });
       },
     }),
   ],

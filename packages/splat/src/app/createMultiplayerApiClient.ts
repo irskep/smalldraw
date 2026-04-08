@@ -30,15 +30,16 @@ export interface MultiplayerApiClient {
 
 export function createMultiplayerApiClient(options: {
   apiUrl: string;
-  getAuthorizationToken?: () => string | null;
 }): MultiplayerApiClient {
   const client = createTRPCUntypedClient({
     links: [
       httpBatchLink({
         url: options.apiUrl,
-        headers() {
-          const authorization = options.getAuthorizationToken?.();
-          return authorization ? { Authorization: authorization } : {};
+        fetch(url, init) {
+          return fetch(url, {
+            ...init,
+            credentials: "include",
+          });
         },
       }),
     ],

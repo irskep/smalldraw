@@ -38,10 +38,9 @@ export const useRegisterAndLogin = () => {
         registrationRecord,
       });
 
-      const sessionKey = await login({ userIdentifier, password });
-      return sessionKey;
+      return await login({ userIdentifier, password });
     } catch (error) {
-      return null;
+      return false;
     } finally {
       setIsPending(false);
     }

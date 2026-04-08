@@ -1,8 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
-import {
-  DocumentInvitationView,
-} from "../components/DocumentInvitation/DocumentInvitation";
+import { DocumentInvitationView } from "../components/DocumentInvitation/DocumentInvitation";
 import { buildInvitationUrl } from "../components/DocumentInvitation/buildInvitationUrl";
 
 describe("DocumentInvitation", () => {

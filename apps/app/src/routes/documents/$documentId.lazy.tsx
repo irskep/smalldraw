@@ -1,10 +1,5 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { DocumentMembers } from "@/components/DocumentMembers/DocumentMembers";
 import { trpc } from "../../utils/trpc";

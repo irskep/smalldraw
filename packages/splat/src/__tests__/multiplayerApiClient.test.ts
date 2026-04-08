@@ -152,21 +152,15 @@ describe("createMultiplayerApiClient", () => {
     ).rejects.toThrow("Invalid response from registerCollaborativeDocument");
   });
 
-  test("claimCollaborativeDocument sends auth header and parses response", async () => {
+  test("claimCollaborativeDocument includes browser credentials and parses response", async () => {
     const requests: Array<{
       url: string;
-      authorization: string | null;
+      credentials: RequestCredentials | undefined;
     }> = [];
     installFetchMock(async (input, init) => {
       requests.push({
         url: input.toString(),
-        authorization:
-          init?.headers instanceof Headers
-            ? init.headers.get("authorization")
-            : init?.headers &&
-                "Authorization" in (init.headers as Record<string, unknown>)
-              ? String((init.headers as Record<string, unknown>).Authorization)
-              : null,
+        credentials: init?.credentials,
       });
       return mockJsonResponse({
         documentId: "doc-claim-1",
@@ -177,7 +171,6 @@ describe("createMultiplayerApiClient", () => {
 
     const client = createMultiplayerApiClient({
       apiUrl: "http://localhost/api",
-      getAuthorizationToken: () => "session-key-1",
     });
     const result = await client.claimCollaborativeDocument("owner-access-1");
 
@@ -187,6 +180,6 @@ describe("createMultiplayerApiClient", () => {
       isAdmin: true,
     });
     expect(requests[0]?.url).toContain("claimCollaborativeDocument");
-    expect(requests[0]?.authorization).toBe("session-key-1");
+    expect(requests[0]?.credentials).toBe("include");
   });
 });

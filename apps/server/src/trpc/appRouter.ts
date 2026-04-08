@@ -2,6 +2,11 @@ import type { DocumentId } from "@automerge/automerge-repo";
 import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import {
+  appendSetCookieHeader,
+  buildClearedSessionCookie,
+  buildSessionCookie,
+} from "../auth/sessionCookie.js";
 import { repo } from "../automergeRepo/automergeRepo.js";
 import { toAutomergeUrl } from "../automergeRepo/automergeUrl.js";
 import { addUserToDocument } from "../db/addUserToDocument.js";
@@ -321,6 +326,7 @@ export const appRouter = router({
 
   logout: protectedProcedure.mutation(async (opts) => {
     await deleteSession(opts.ctx.session.sessionKey);
+    appendSetCookieHeader(opts.ctx.res, buildClearedSessionCookie());
   }),
 
   registerStart: publicProcedure
@@ -418,6 +424,7 @@ export const appRouter = router({
       }
       await createSession({ sessionKey, userId: user.id });
       await deleteLoginAttempt(user.id);
+      appendSetCookieHeader(opts.ctx.res, buildSessionCookie(sessionKey));
 
       return { success: true };
     }),
