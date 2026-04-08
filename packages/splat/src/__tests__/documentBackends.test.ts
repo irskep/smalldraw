@@ -88,6 +88,31 @@ describe("document backends", () => {
     expect(updated?.accessTokenScope).toBeUndefined();
   });
 
+  test("local backend suppresses raw collaborative duplicates when a catalog entry exists", async () => {
+    const backend = createLocalDocumentBackend({
+      currentDocStorageKey: `kids-draw-doc-url-test-${Math.random()}`,
+      databaseName: `kids-draw-documents-test-${Math.random()}`,
+    });
+
+    await backend.createDocument({
+      docUrl: "catalog-collab:doc-1",
+      collaborative: true,
+      collabDocUrl: "automerge:doc-1",
+      accessToken: "owner-token",
+      accessTokenScope: "owner",
+      mode: "normal",
+    });
+    await backend.createDocument({
+      docUrl: "automerge:doc-1",
+      mode: "normal",
+    });
+
+    const listed = await backend.listDocuments();
+    expect(listed.map((document) => document.docUrl)).toEqual([
+      "catalog-collab:doc-1",
+    ]);
+  });
+
   test("local backend reopens after the indexeddb connection is closed by deleteDatabase", async () => {
     Object.defineProperty(globalThis, "indexedDB", {
       configurable: true,

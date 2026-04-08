@@ -176,6 +176,57 @@
   box-shadow: var(--shadow-1);
 }
 
+.kids-draw-document-tile__status {
+  position: absolute;
+  top: var(--size-1);
+  left: var(--size-1);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: color-mix(in oklch, var(--gray-12) 68%, white);
+  color: white;
+  font-size: var(--font-size-0);
+  line-height: 1;
+  font-weight: 600;
+  box-shadow: var(--shadow-1);
+  pointer-events: none;
+}
+
+.kids-draw-document-tile__status.is-shared {
+  background: color-mix(in oklch, var(--green-7) 82%, white);
+}
+
+.kids-draw-document-tile__claim {
+  position: absolute;
+  left: var(--size-1);
+  bottom: var(--size-1);
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: color-mix(in oklch, var(--blue-6) 88%, white);
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-1);
+}
+
+.kids-draw-document-tile__claim:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--blue-6) 40%, white);
+}
+
+.kids-draw-document-tile__claim-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.kids-draw-document-tile__claim-label {
+  font-size: var(--font-size-0);
+  line-height: 1;
+}
+
 .kids-draw-document-tile__delete:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--blue-6) 40%, white);

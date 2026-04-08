@@ -846,7 +846,8 @@ describe("splatterboard shell", () => {
       ".kids-draw-document-browser",
     ) as HTMLDivElement | null;
     expect(browser).not.toBeNull();
-    expect(browser?.hidden).toBeFalse();
+    const browserOpened = await waitUntil(() => browser?.hidden === false);
+    expect(browserOpened).toBeTrue();
 
     const openButtonReady = await waitUntil(() => {
       return (

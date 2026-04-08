@@ -23,6 +23,7 @@ export class DocumentPickerController {
         state.documents,
         getCurrentDocUrl(),
         state.thumbnailUrlByDocUrl,
+        state.claimableDocUrls,
       );
     });
   }
@@ -47,27 +48,36 @@ export class DocumentPickerController {
     this.state.setBusyDocument(docUrl);
   }
 
+  setClaimableDocuments(docUrls: Iterable<string>): void {
+    this.state.setClaimableDocUrls(new Set(docUrls));
+  }
+
   close(): void {
     this.options.pickerOverlay.setOpen(false);
     this.state.setBusyDocument(null);
   }
 
-  async open(): Promise<void> {
-    this.options.pickerOverlay.setOpen(true);
-    this.state.setBusyDocument(null);
-    await this.reload();
+  getDocuments(): KidsDocumentSummary[] {
+    return this.state.get().documents;
   }
 
-  async reload(): Promise<void> {
+  async open(): Promise<KidsDocumentSummary[]> {
+    this.options.pickerOverlay.setOpen(true);
+    this.state.setBusyDocument(null);
+    return await this.reload();
+  }
+
+  async reload(): Promise<KidsDocumentSummary[]> {
     const requestId = ++this.browserRequestId;
     this.state.setLoading(true);
     try {
       const documents = await this.options.documentBackend.listDocuments();
       if (requestId !== this.browserRequestId) {
-        return;
+        return this.state.get().documents;
       }
       this.state.setDocuments(documents);
       await this.loadThumbnails(requestId, documents);
+      return documents;
     } finally {
       if (requestId === this.browserRequestId) {
         this.state.setLoading(false);

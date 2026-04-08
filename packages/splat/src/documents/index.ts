@@ -3,6 +3,7 @@ export {
   buildJoinedCatalogDocUrl,
   buildJoinUrl,
   isCollaborativeDocument,
+  resolveDocumentClaimState,
   resolveDocumentOpenUrl,
   resolveJoinBaseUrl,
 } from "./collaboration";

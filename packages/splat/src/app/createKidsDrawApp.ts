@@ -122,6 +122,7 @@ export async function createKidsDrawApp(
       collabDocUrl: resolved.collabDocUrl,
       joinSecret: resolved.joinSecret,
       accessToken: resolved.accessToken,
+      accessTokenScope: resolved.accessTokenScope,
     });
     await documentBackend.setCurrentDocument(catalogDocUrl);
   }
@@ -326,6 +327,11 @@ export async function createKidsDrawApp(
           return result;
         }
       : undefined,
+    claimCollaborativeDocument: multiplayerApiClient
+      ? async (accessToken: string) => {
+          await multiplayerApiClient.claimCollaborativeDocument(accessToken);
+        }
+      : undefined,
     initialCatalogDocUrl: initialCatalogDocUrl ?? undefined,
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
@@ -346,6 +352,14 @@ export async function createKidsDrawApp(
           cancelLabel: "Dismiss",
         });
       }),
+    onClaimError: (message) => {
+      void modalDialog.showConfirm({
+        title: "Unable to claim drawing",
+        message,
+        confirmLabel: "OK",
+        cancelLabel: "Dismiss",
+      });
+    },
   });
 
   const commands: KidsDrawAppCommands = {

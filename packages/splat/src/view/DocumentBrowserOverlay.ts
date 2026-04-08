@@ -1,6 +1,6 @@
 import "./DocumentBrowserOverlay.css";
 
-import { ArrowLeft, type IconNode, Trash2, X } from "lucide";
+import { ArrowLeft, type IconNode, KeyRound, Trash2, X } from "lucide";
 import { atom } from "nanostores";
 import { el, list, setChildren } from "redom";
 import { getColoringPages } from "../coloring/catalog";
@@ -85,6 +85,7 @@ export interface DocumentBrowserOverlay extends ReDomLike<HTMLDivElement> {
     documents: KidsDocumentSummary[],
     currentDocUrl: string,
     thumbnailUrlByDocUrl: Map<string, string>,
+    claimableDocUrls: Set<string>,
   ): void;
   setBusyDocument(docUrl: string | null): void;
 }
@@ -94,6 +95,7 @@ type DocumentTileItem = {
   document: KidsDocumentSummary;
   isCurrent: boolean;
   busy: boolean;
+  claimable: boolean;
   thumbnailUrl: string | null;
 };
 
@@ -108,6 +110,8 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
   private readonly openButton: HTMLButtonElement;
   private readonly thumbnailImage: HTMLImageElement;
   private readonly thumbnailFallback: HTMLDivElement;
+  private readonly statusBadge: HTMLSpanElement;
+  private readonly claimButton: HTMLButtonElement;
   private readonly deleteButton: HTMLButtonElement;
   private thumbnailUrl: string | null = null;
 
@@ -129,6 +133,9 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
       this.thumbnailImage,
       this.thumbnailFallback,
     ) as HTMLButtonElement;
+    this.statusBadge = el(
+      "span.kids-draw-document-tile__status",
+    ) as HTMLSpanElement;
     this.deleteButton = el(
       "button.kids-draw-document-tile__delete",
       {
@@ -137,15 +144,26 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
       },
       createLucideIcon(Trash2, "kids-draw-document-tile__delete-icon"),
     ) as HTMLButtonElement;
+    this.claimButton = el(
+      "button.kids-draw-document-tile__claim",
+      {
+        type: "button",
+        "aria-label": "Claim drawing to your account",
+      },
+      createLucideIcon(KeyRound, "kids-draw-document-tile__claim-icon"),
+      el("span.kids-draw-document-tile__claim-label", "Claim"),
+    ) as HTMLButtonElement;
     this.el = el(
       "div.kids-draw-document-tile",
       this.openButton,
+      this.statusBadge,
+      this.claimButton,
       this.deleteButton,
     ) as HTMLDivElement;
   }
 
   update(item: DocumentTileItem): void {
-    const { document, isCurrent, busy } = item;
+    const { document, isCurrent, busy, claimable } = item;
     const nextThumbnailUrl = item.thumbnailUrl;
 
     this.el.classList.toggle("is-current", isCurrent);
@@ -153,8 +171,23 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     this.openButton.dataset.docBrowserOpen = document.docUrl;
     this.openButton.title = getMetadataTooltip(document);
     this.openButton.disabled = busy;
+    this.statusBadge.textContent = document.collaborative ? "Shared" : "Local";
+    this.statusBadge.classList.toggle(
+      "is-shared",
+      Boolean(document.collaborative),
+    );
     this.deleteButton.dataset.docBrowserDelete = document.docUrl;
     this.deleteButton.disabled = busy;
+    this.claimButton.dataset.docBrowserClaim = document.docUrl;
+    this.claimButton.disabled = busy;
+    this.claimButton.hidden = !claimable;
+    this.claimButton.style.display = claimable ? "" : "none";
+    console.info("[kids-draw:documents] tile claim render", {
+      docUrl: document.docUrl,
+      claimable,
+      hidden: this.claimButton.hidden,
+      display: this.claimButton.style.display || "(default)",
+    });
 
     if (nextThumbnailUrl !== this.thumbnailUrl) {
       if (nextThumbnailUrl) {
@@ -173,6 +206,7 @@ export function createDocumentBrowserOverlay(options: {
   onClose: () => void;
   onNewDocument: (request: NewDocumentRequest) => void;
   onOpenDocument: (docUrl: string) => void;
+  onClaimDocument?: (docUrl: string) => void;
   onDeleteDocument: (docUrl: string) => void;
 }): DocumentBrowserOverlay {
   const pages = getColoringPages();
@@ -406,6 +440,7 @@ export function createDocumentBrowserOverlay(options: {
     currentDocUrl: string;
     documents: KidsDocumentSummary[];
     thumbnailUrlByDocUrl: Map<string, string>;
+    claimableDocUrls: Set<string>;
     previewDocUrl: string | null;
     touchPressDocUrl: string | null;
     suppressNextOpenDocUrl: string | null;
@@ -419,6 +454,7 @@ export function createDocumentBrowserOverlay(options: {
     currentDocUrl: "",
     documents: [],
     thumbnailUrlByDocUrl: new Map(),
+    claimableDocUrls: new Set(),
     previewDocUrl: null,
     touchPressDocUrl: null,
     suppressNextOpenDocUrl: null,
@@ -588,6 +624,7 @@ export function createDocumentBrowserOverlay(options: {
       document,
       isCurrent: document.docUrl === state.currentDocUrl,
       busy: state.busyDocUrl === document.docUrl,
+      claimable: state.claimableDocUrls.has(document.docUrl),
       thumbnailUrl: state.thumbnailUrlByDocUrl.get(document.docUrl) ?? null,
     }));
     tileList.update(items);
@@ -650,6 +687,15 @@ export function createDocumentBrowserOverlay(options: {
       const docUrl = deleteEl.getAttribute("data-doc-browser-delete");
       if (docUrl) {
         options.onDeleteDocument(docUrl);
+      }
+      return;
+    }
+
+    const claimEl = target.closest("[data-doc-browser-claim]");
+    if (claimEl) {
+      const docUrl = claimEl.getAttribute("data-doc-browser-claim");
+      if (docUrl && options.onClaimDocument) {
+        options.onClaimDocument(docUrl);
       }
       return;
     }
@@ -786,12 +832,18 @@ export function createDocumentBrowserOverlay(options: {
     setLoading(nextLoading) {
       updateState((state) => ({ ...state, loading: nextLoading }));
     },
-    setDocuments(nextDocuments, nextCurrentDocUrl, nextThumbnailUrlByDocUrl) {
+    setDocuments(
+      nextDocuments,
+      nextCurrentDocUrl,
+      nextThumbnailUrlByDocUrl,
+      nextClaimableDocUrls,
+    ) {
       updateState((state) => ({
         ...state,
         documents: [...nextDocuments],
         currentDocUrl: nextCurrentDocUrl,
         thumbnailUrlByDocUrl: new Map(nextThumbnailUrlByDocUrl),
+        claimableDocUrls: new Set(nextClaimableDocUrls),
       }));
     },
     setBusyDocument(docUrl) {

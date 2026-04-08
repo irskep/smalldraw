@@ -167,6 +167,9 @@ describe("createDocumentPickerStore", () => {
       {
         docUrl: "doc://1",
         mode: "normal" as const,
+        accessToken: "owner-token-1",
+        accessTokenScope: "owner" as const,
+        accountAttached: false,
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
         lastOpenedAt: "2026-01-01T00:00:00.000Z",
@@ -178,12 +181,21 @@ describe("createDocumentPickerStore", () => {
     store.setDocuments([...documents]);
     expect(updates).toBe(baselineUpdates + 1);
 
-    const thumbnails = new Map([["doc://1", "blob://thumb-1"]]);
-    store.setThumbnailUrls(thumbnails);
+    store.setDocuments([{ ...documents[0], accountAttached: true }]);
     expect(updates).toBe(baselineUpdates + 2);
 
+    const thumbnails = new Map([["doc://1", "blob://thumb-1"]]);
+    store.setThumbnailUrls(thumbnails);
+    expect(updates).toBe(baselineUpdates + 3);
+
     store.setThumbnailUrls(new Map([["doc://1", "blob://thumb-1"]]));
-    expect(updates).toBe(baselineUpdates + 2);
+    expect(updates).toBe(baselineUpdates + 3);
+
+    store.setClaimableDocUrls(new Set(["doc://1"]));
+    expect(updates).toBe(baselineUpdates + 4);
+
+    store.setClaimableDocUrls(new Set(["doc://1"]));
+    expect(updates).toBe(baselineUpdates + 4);
 
     unbind();
   });

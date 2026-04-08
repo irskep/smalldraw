@@ -61,6 +61,8 @@ function normalizeDocumentSummary(
     joinSecret: collaborative ? joinSecret : undefined,
     accessToken: collaborative ? accessToken : undefined,
     accessTokenScope: collaborative ? accessTokenScope : undefined,
+    accountAttached:
+      value.accountAttached === true ? true : undefined,
     title: value.title,
     mode: normalizeMode(value.mode),
     coloringPageId:
@@ -95,6 +97,28 @@ function sortDocuments(
       return lastOpenedDelta;
     }
     return Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
+  });
+}
+
+function dedupeDocumentSummaries(
+  documents: KidsDocumentSummary[],
+): KidsDocumentSummary[] {
+  const catalogDocUrlByCollabDocUrl = new Map<string, string>();
+  for (const document of documents) {
+    if (document.collabDocUrl && document.docUrl !== document.collabDocUrl) {
+      catalogDocUrlByCollabDocUrl.set(document.collabDocUrl, document.docUrl);
+    }
+  }
+
+  return documents.filter((document) => {
+    if (document.docUrl.startsWith("catalog-collab:")) {
+      return true;
+    }
+    if (!document.collabDocUrl) {
+      return !catalogDocUrlByCollabDocUrl.has(document.docUrl);
+    }
+    const catalogDocUrl = catalogDocUrlByCollabDocUrl.get(document.collabDocUrl);
+    return !catalogDocUrl || catalogDocUrl === document.docUrl;
   });
 }
 
@@ -256,7 +280,8 @@ class IndexedDbDocumentRepository implements DocumentRepository {
       },
     )) as Partial<KidsDocumentSummary>[];
     return sortDocuments(
-      documents
+      dedupeDocumentSummaries(
+        documents
         .filter((document) => typeof document.docUrl === "string")
         .map((document) =>
           normalizeDocumentSummary(
@@ -264,6 +289,7 @@ class IndexedDbDocumentRepository implements DocumentRepository {
               Pick<KidsDocumentSummary, "docUrl">,
           ),
         ),
+      ),
     );
   }
 
@@ -329,6 +355,7 @@ class IndexedDbDocumentRepository implements DocumentRepository {
             collaborative === false
               ? undefined
               : (input.accessTokenScope ?? existing?.accessTokenScope),
+          accountAttached: input.accountAttached ?? existing?.accountAttached,
           title: input.title ?? existing?.title,
           mode: input.mode ?? existing?.mode ?? "normal",
           coloringPageId:
@@ -407,7 +434,7 @@ class MemoryDocumentRepository implements DocumentRepository {
   private readonly documents = new Map<string, KidsDocumentSummary>();
 
   async listDocuments(): Promise<KidsDocumentSummary[]> {
-    return sortDocuments(Array.from(this.documents.values()));
+    return sortDocuments(dedupeDocumentSummaries(Array.from(this.documents.values())));
   }
 
   async getDocument(docUrl: string): Promise<KidsDocumentSummary | null> {
@@ -442,6 +469,7 @@ class MemoryDocumentRepository implements DocumentRepository {
         collaborative === false
           ? undefined
           : (input.accessTokenScope ?? existing?.accessTokenScope),
+      accountAttached: input.accountAttached ?? existing?.accountAttached,
       title: input.title ?? existing?.title,
       mode: input.mode ?? existing?.mode ?? "normal",
       coloringPageId:

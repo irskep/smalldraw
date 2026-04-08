@@ -1,5 +1,19 @@
 import type { KidsDocumentSummary } from "./types";
 
+export type DocumentClaimState =
+  | {
+      claimable: true;
+      accessToken: string;
+    }
+  | {
+      claimable: false;
+      reason:
+        | "not_collaborative"
+        | "already_attached"
+        | "missing_access_token"
+        | "wrong_access_scope";
+    };
+
 export function resolveDocumentOpenUrl(
   docUrl: string,
   summary: KidsDocumentSummary | null,
@@ -49,4 +63,25 @@ export function buildJoinedCatalogDocUrl(collabDocUrl: string): string {
     return `catalog-collab:${documentId}`;
   }
   return `catalog-collab:${encodeURIComponent(collabDocUrl)}`;
+}
+
+export function resolveDocumentClaimState(
+  summary: KidsDocumentSummary,
+): DocumentClaimState {
+  if (!isCollaborativeDocument(summary)) {
+    return { claimable: false, reason: "not_collaborative" };
+  }
+  if (summary.accountAttached) {
+    return { claimable: false, reason: "already_attached" };
+  }
+  if (!summary.accessToken) {
+    return { claimable: false, reason: "missing_access_token" };
+  }
+  if (summary.accessTokenScope !== "owner") {
+    return { claimable: false, reason: "wrong_access_scope" };
+  }
+  return {
+    claimable: true,
+    accessToken: summary.accessToken,
+  };
 }

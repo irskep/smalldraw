@@ -8,6 +8,7 @@ import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { type IconNode, Trash2 } from "lucide";
 import { mount } from "redom";
 import type { KidsDocumentBackend } from "../documents";
+import { resolveDocumentClaimState } from "../documents";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import type {
@@ -67,6 +68,25 @@ export interface KidsDrawSizingPolicy {
   resolvePageSize: () => DrawingDocumentSize;
 }
 
+function toClaimErrorMessage(
+  reason:
+    | "not_collaborative"
+    | "already_attached"
+    | "missing_access_token"
+    | "wrong_access_scope",
+): string {
+  switch (reason) {
+    case "not_collaborative":
+      return "Only shared drawings can be claimed.";
+    case "already_attached":
+      return "This drawing is already attached to your account.";
+    case "missing_access_token":
+      return "This browser does not have a claim token for this drawing.";
+    case "wrong_access_scope":
+      return "This browser only has join access for this drawing.";
+  }
+}
+
 export function createKidsDrawController(options: {
   store: DrawingStore;
   core: SmalldrawCore;
@@ -99,11 +119,17 @@ export function createKidsDrawController(options: {
   registerCollaborativeDocument?: (
     documentId: string,
     content: Uint8Array,
-  ) => Promise<{ joinSecret: string; accessToken: string }>;
+  ) => Promise<{
+    joinSecret: string;
+    accessToken: string;
+    accessTokenScope: "owner";
+  }>;
+  claimCollaborativeDocument?: (accessToken: string) => Promise<void>;
   initialCatalogDocUrl?: string;
   resolveJoinBaseUrl?: () => string;
   showShareDialog: (payload: SharePayload) => Promise<void>;
   onShareError?: (message: string) => void;
+  onClaimError?: (message: string) => void;
 }): KidsDrawController {
   const {
     store,
@@ -132,6 +158,7 @@ export function createKidsDrawController(options: {
     resolveJoinBaseUrl,
     showShareDialog,
     onShareError,
+    onClaimError,
   } = options;
   let size = {
     width: initialSize.width,
@@ -198,6 +225,9 @@ export function createKidsDrawController(options: {
     },
     onOpenDocument: (docUrl) => {
       void openDocumentFromBrowser(docUrl);
+    },
+    onClaimDocument: (docUrl) => {
+      void claimDocumentFromBrowser(docUrl);
     },
     onDeleteDocument: (docUrl) => {
       void deleteDocumentFromBrowser(docUrl);
@@ -304,6 +334,33 @@ export function createKidsDrawController(options: {
       runtimeDocumentController.createNewDocument(request),
     flushThumbnailSave: () => runtimeDocumentController.flushThumbnailSave(),
     listDocuments: () => documentBackend.listDocuments(),
+    claimDocument: async (document) => {
+      if (!options.claimCollaborativeDocument) {
+        throw new Error("Account claim is not configured");
+      }
+      const claimState = resolveDocumentClaimState(document);
+      console.info("[kids-draw:documents] claim state evaluated", {
+        docUrl: document.docUrl,
+        collaborative: document.collaborative ?? false,
+        collabDocUrl: document.collabDocUrl ?? null,
+        accessToken: document.accessToken ? "<present>" : null,
+        accessTokenScope: document.accessTokenScope ?? null,
+        claimState,
+      });
+      if (!claimState.claimable) {
+        throw new Error(toClaimErrorMessage(claimState.reason));
+      }
+      await options.claimCollaborativeDocument(claimState.accessToken);
+      await documentBackend.createDocument({
+        docUrl: document.docUrl,
+        accountAttached: true,
+      });
+    },
+    isClaimableDocument: (document) =>
+      resolveDocumentClaimState(document).claimable,
+    describeClaimability: (document) => ({
+      claimState: resolveDocumentClaimState(document),
+    }),
     deleteDocument: (docUrl) => documentBackend.deleteDocument(docUrl),
     confirmDelete: () =>
       confirmDestructiveAction({
@@ -314,6 +371,7 @@ export function createKidsDrawController(options: {
         tone: "danger",
         icon: Trash2,
       }),
+    onClaimError,
     isDestroyed: () => runtimeStore.isDestroyed(),
   });
   const {
@@ -321,6 +379,7 @@ export function createKidsDrawController(options: {
     openDocumentPicker,
     createNewDocumentFromBrowser,
     openDocumentFromBrowser,
+    claimDocumentFromBrowser,
     deleteDocumentFromBrowser,
   } = documentBrowserCommands;
   const unbindMobilePortraitActionsIntents =

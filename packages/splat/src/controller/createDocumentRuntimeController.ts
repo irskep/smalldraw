@@ -388,7 +388,7 @@ export function createDocumentRuntimeController(options: {
     presentation: DocumentSessionPresentation;
     stillCurrent: boolean;
   }> => {
-    const docUrl = options.core.getCurrentDocUrl();
+    const docUrl = documentSessionController.getCurrentCatalogDocUrl();
     const presentation = documentSessionController.resolveDocumentPresentation(
       options.store.getDocument().presentation,
     );
@@ -398,7 +398,7 @@ export function createDocumentRuntimeController(options: {
       documentSize: options.store.getDocument().size,
     });
     await syncCurrentDocumentSummary(docUrl);
-    if (docUrl !== options.core.getCurrentDocUrl()) {
+    if (docUrl !== documentSessionController.getCurrentCatalogDocUrl()) {
       return { presentation, stillCurrent: false };
     }
     applyDocumentPresentation(presentation);

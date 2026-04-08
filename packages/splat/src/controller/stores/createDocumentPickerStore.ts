@@ -6,6 +6,7 @@ type DocumentPickerState = {
   busyDocUrl: string | null;
   documents: KidsDocumentSummary[];
   thumbnailUrlByDocUrl: Map<string, string>;
+  claimableDocUrls: Set<string>;
 };
 
 export function createDocumentPickerStore() {
@@ -14,6 +15,7 @@ export function createDocumentPickerStore() {
     busyDocUrl: null,
     documents: [],
     thumbnailUrlByDocUrl: new Map(),
+    claimableDocUrls: new Set(),
   });
 
   return {
@@ -64,6 +66,16 @@ export function createDocumentPickerStore() {
       }
       $state.set({ ...current, thumbnailUrlByDocUrl: new Map() });
     },
+    setClaimableDocUrls(claimableDocUrls: Set<string>): void {
+      const current = $state.get();
+      if (isSameStringSet(current.claimableDocUrls, claimableDocUrls)) {
+        return;
+      }
+      $state.set({
+        ...current,
+        claimableDocUrls: new Set(claimableDocUrls),
+      });
+    },
   };
 }
 
@@ -94,6 +106,9 @@ function isSameDocumentSummary(
     a.collaborative === b.collaborative &&
     a.collabDocUrl === b.collabDocUrl &&
     a.joinSecret === b.joinSecret &&
+    a.accessToken === b.accessToken &&
+    a.accessTokenScope === b.accessTokenScope &&
+    a.accountAttached === b.accountAttached &&
     a.title === b.title &&
     a.mode === b.mode &&
     a.coloringPageId === b.coloringPageId &&
@@ -104,6 +119,24 @@ function isSameDocumentSummary(
     a.lastOpenedAt === b.lastOpenedAt &&
     a.thumbnailKey === b.thumbnailKey
   );
+}
+
+function isSameStringSet(
+  a: ReadonlySet<string>,
+  b: ReadonlySet<string>,
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a.size !== b.size) {
+    return false;
+  }
+  for (const value of a) {
+    if (!b.has(value)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function isSameThumbnailMap(

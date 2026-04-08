@@ -22,13 +22,14 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
       onClose: () => {},
       onNewDocument: () => {},
       onOpenDocument: () => {},
+      onClaimDocument: () => {},
       onDeleteDocument: () => {},
     });
     document.body.appendChild(overlay.el);
 
     const doc = createDocument("doc://nested");
     overlay.setOpen(true);
-    overlay.setDocuments([doc], doc.docUrl, new Map());
+    overlay.setDocuments([doc], doc.docUrl, new Map(), new Set());
 
     const newButton = overlay.el.querySelector(
       ".kids-draw-document-browser__new",
@@ -67,6 +68,7 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
       onClose: () => {},
       onNewDocument: () => {},
       onOpenDocument: () => {},
+      onClaimDocument: () => {},
       onDeleteDocument: () => {},
     });
     document.body.appendChild(overlay.el);
@@ -77,6 +79,7 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
       [doc],
       doc.docUrl,
       new Map([[doc.docUrl, "blob://thumb"]]),
+      new Set(),
     );
 
     const openButton = overlay.el.querySelector(
@@ -109,6 +112,7 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
       onOpenDocument: (docUrl) => {
         opened.push(docUrl);
       },
+      onClaimDocument: () => {},
       onDeleteDocument: () => {},
     });
     document.body.appendChild(overlay.el);
@@ -119,6 +123,7 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
       [doc],
       doc.docUrl,
       new Map([[doc.docUrl, "blob://thumb"]]),
+      new Set(),
     );
 
     const openButton = overlay.el.querySelector(
@@ -154,6 +159,7 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
       onClose: () => {},
       onNewDocument: () => {},
       onOpenDocument: () => {},
+      onClaimDocument: () => {},
       onDeleteDocument: () => {},
     });
     document.body.appendChild(overlay.el);
@@ -164,6 +170,7 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
       [doc],
       doc.docUrl,
       new Map([[doc.docUrl, "blob://thumb"]]),
+      new Set(),
     );
 
     const openButton = overlay.el.querySelector(
@@ -186,5 +193,69 @@ describe("DocumentBrowserOverlay long-press behavior", () => {
     ) as HTMLElement | null;
     expect(preview).not.toBeNull();
     expect(preview!.hidden).toBeTrue();
+  });
+
+  test("claim button is shown for claimable drawings and dispatches callback", () => {
+    const claimed: string[] = [];
+    const overlay = createDocumentBrowserOverlay({
+      onClose: () => {},
+      onNewDocument: () => {},
+      onOpenDocument: () => {},
+      onClaimDocument: (docUrl) => {
+        claimed.push(docUrl);
+      },
+      onDeleteDocument: () => {},
+    });
+    document.body.appendChild(overlay.el);
+
+    const doc = createDocument("doc://claimable");
+    overlay.setOpen(true);
+    overlay.setDocuments([doc], doc.docUrl, new Map(), new Set([doc.docUrl]));
+
+    const claimButton = overlay.el.querySelector(
+      `[data-doc-browser-claim="${doc.docUrl}"]`,
+    ) as HTMLButtonElement | null;
+    expect(claimButton).not.toBeNull();
+    expect(claimButton?.hidden).toBeFalse();
+
+    claimButton?.click();
+    expect(claimed).toEqual([doc.docUrl]);
+  });
+
+  test("document tiles show shared vs local status", () => {
+    const overlay = createDocumentBrowserOverlay({
+      onClose: () => {},
+      onNewDocument: () => {},
+      onOpenDocument: () => {},
+      onClaimDocument: () => {},
+      onDeleteDocument: () => {},
+    });
+    document.body.appendChild(overlay.el);
+
+    const localDoc = createDocument("doc://local");
+    const sharedDoc = {
+      ...createDocument("doc://shared"),
+      collaborative: true,
+      collabDocUrl: "automerge:shared-1",
+    };
+    overlay.setOpen(true);
+    overlay.setDocuments(
+      [localDoc, sharedDoc],
+      localDoc.docUrl,
+      new Map(),
+      new Set(),
+    );
+
+    const statuses = Array.from(
+      overlay.el.querySelectorAll(".kids-draw-document-tile__status"),
+    ).map((element) => ({
+      text: element.textContent,
+      shared: element.classList.contains("is-shared"),
+    }));
+
+    expect(statuses).toEqual([
+      { text: "Local", shared: false },
+      { text: "Shared", shared: true },
+    ]);
   });
 });

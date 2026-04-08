@@ -4,11 +4,13 @@ import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
 type DocumentPickerControllerLike = {
   isOpen(): boolean;
   isCreateDialogOpen(): boolean;
+  getDocuments(): KidsDocumentSummary[];
   setBusyDocument(docUrl: string | null): void;
+  setClaimableDocuments(docUrls: Iterable<string>): void;
   close(): void;
   closeCreateDialog(): void;
-  open(): Promise<void>;
-  reload(): Promise<void>;
+  open(): Promise<KidsDocumentSummary[]>;
+  reload(): Promise<KidsDocumentSummary[]>;
 };
 
 export function createDocumentBrowserCommands(options: {
@@ -18,20 +20,54 @@ export function createDocumentBrowserCommands(options: {
   createNewDocument: (request: NewDocumentRequest) => Promise<void>;
   flushThumbnailSave: () => Promise<void>;
   listDocuments: () => Promise<KidsDocumentSummary[]>;
+  claimDocument: (document: KidsDocumentSummary) => Promise<void>;
+  isClaimableDocument: (document: KidsDocumentSummary) => boolean;
+  describeClaimability?: (document: KidsDocumentSummary) => unknown;
   deleteDocument: (docUrl: string) => Promise<void>;
   confirmDelete: () => Promise<boolean>;
+  onClaimError?: (message: string) => void;
   isDestroyed: () => boolean;
 }) {
+  const updateClaimableDocuments = (
+    documents: readonly KidsDocumentSummary[],
+  ): KidsDocumentSummary[] => {
+    const nextDocuments = [...documents];
+    const claimableDocUrls = nextDocuments
+      .filter((document) => options.isClaimableDocument(document))
+      .map((document) => document.docUrl);
+    console.info("[kids-draw:documents] picker claimability recompute", {
+      documents: nextDocuments.map((document) => ({
+        docUrl: document.docUrl,
+        collaborative: document.collaborative ?? false,
+        collabDocUrl: document.collabDocUrl ?? null,
+        accessToken: document.accessToken ? "<present>" : null,
+        accessTokenScope: document.accessTokenScope ?? null,
+        accountAttached: document.accountAttached ?? false,
+        claim: options.describeClaimability?.(document) ?? null,
+      })),
+      claimableDocUrls,
+    });
+    options.documentPickerController.setClaimableDocuments(claimableDocUrls);
+    return nextDocuments;
+  };
+
   const closeDocumentPicker = (): void => {
     options.documentPickerController.close();
   };
 
   const reloadDocumentPicker = async (): Promise<void> => {
-    await options.documentPickerController.reload();
+    console.info("[kids-draw:documents] picker reload start");
+    options.documentPickerController.setClaimableDocuments([]);
+    const documents = await options.documentPickerController.reload();
+    updateClaimableDocuments(documents);
   };
 
   const openDocumentPicker = async (): Promise<void> => {
-    await options.documentPickerController.open();
+    await options.flushThumbnailSave();
+    console.info("[kids-draw:documents] picker open start");
+    options.documentPickerController.setClaimableDocuments([]);
+    const documents = await options.documentPickerController.open();
+    updateClaimableDocuments(documents);
   };
 
   const createNewDocumentFromBrowser = async (
@@ -100,12 +136,43 @@ export function createDocumentBrowserCommands(options: {
     }
   };
 
+  const claimDocumentFromBrowser = async (docUrl: string): Promise<void> => {
+    if (!options.documentPickerController.isOpen()) {
+      return;
+    }
+    options.documentPickerController.setBusyDocument(docUrl);
+    try {
+      const document = options.documentPickerController
+        .getDocuments()
+        .find((item) => item.docUrl === docUrl);
+      if (!document) {
+        throw new Error("This drawing is no longer available.");
+      }
+      await options.claimDocument(document);
+      await reloadDocumentPicker();
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : "Failed to claim this drawing.";
+      console.warn("[kids-draw:documents] claim failed", {
+        docUrl,
+        message,
+        error,
+      });
+      options.onClaimError?.(message);
+    } finally {
+      options.documentPickerController.setBusyDocument(null);
+    }
+  };
+
   return {
     closeDocumentPicker,
     reloadDocumentPicker,
     openDocumentPicker,
     createNewDocumentFromBrowser,
     openDocumentFromBrowser,
+    claimDocumentFromBrowser,
     deleteDocumentFromBrowser,
   };
 }

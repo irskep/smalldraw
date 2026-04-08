@@ -10,6 +10,7 @@ export interface KidsDocumentSummary {
   joinSecret?: string;
   accessToken?: string;
   accessTokenScope?: "owner" | "device";
+  accountAttached?: boolean;
   title?: string;
   mode: KidsDocumentMode;
   coloringPageId?: string;
@@ -28,6 +29,7 @@ export interface KidsDocumentCreateInput {
   joinSecret?: string;
   accessToken?: string;
   accessTokenScope?: "owner" | "device";
+  accountAttached?: boolean;
   title?: string;
   mode?: KidsDocumentMode;
   coloringPageId?: string;
