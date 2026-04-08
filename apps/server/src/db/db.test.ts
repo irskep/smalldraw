@@ -23,7 +23,8 @@ import { getUserByUsername } from "./getUserByUsername.js";
 import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
 import { listDocumentAccessTokensForAdmin } from "./listDocumentAccessTokensForAdmin.js";
 import { revokeDocumentAccessTokenForAdmin } from "./revokeDocumentAccessTokenForAdmin.js";
-import { usersOnDocuments } from "./schema.js";
+import { rotateAnonymousCollaborativeDocumentShareToken } from "./rotateAnonymousCollaborativeDocumentShareToken.js";
+import { documentInvitations, usersOnDocuments } from "./schema.js";
 
 describe("User operations", () => {
   it("createUser creates a user and returns it", async () => {
@@ -347,5 +348,34 @@ describe("Document operations", () => {
         tokenId: ownerToken.id,
       }),
     ).toBe(false);
+  });
+
+  it("rotateAnonymousCollaborativeDocumentShareToken revokes prior share token and returns a new one", async () => {
+    const created = await createAnonymousCollaborativeDocument({
+      documentId: "anon-doc-rotate",
+      ownerTag: "creator-device-rotate",
+    });
+
+    const firstShare = await getDocumentInvitationByToken(created.joinSecret, {
+      scopes: ["share"],
+    });
+    expect(firstShare).not.toBeNull();
+
+    const rotated =
+      await rotateAnonymousCollaborativeDocumentShareToken("anon-doc-rotate");
+
+    expect(rotated.token).not.toBe(created.joinSecret);
+
+    const oldShareAfterRotate = await db
+      .select()
+      .from(documentInvitations)
+      .where(eq(documentInvitations.id, firstShare!.id))
+      .limit(1);
+    expect(oldShareAfterRotate[0]?.revokedAt).not.toBeNull();
+
+    const activeShare = await getDocumentInvitationByToken(rotated.token, {
+      scopes: ["share"],
+    });
+    expect(activeShare?.documentId).toBe("anon-doc-rotate");
   });
 });

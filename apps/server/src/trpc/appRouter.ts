@@ -24,6 +24,7 @@ import { getUser } from "../db/getUser.js";
 import { getUserByUsername } from "../db/getUserByUsername.js";
 import { listDocumentAccessTokensForAdmin } from "../db/listDocumentAccessTokensForAdmin.js";
 import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTokenForAdmin.js";
+import { rotateAnonymousCollaborativeDocumentShareToken } from "../db/rotateAnonymousCollaborativeDocumentShareToken.js";
 import { updateDocument } from "../db/updateDocument.js";
 import {
   LoginFinishParams,
@@ -171,6 +172,30 @@ export const appRouter = router({
           cause: err,
         });
       }
+    }),
+  rotateAnonymousCollaborativeShareLink: publicProcedure
+    .input(
+      z.object({
+        accessToken: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      const ownerToken = await getDocumentInvitationByToken(
+        opts.input.accessToken,
+        {
+          scopes: ["owner"],
+        },
+      );
+      if (!ownerToken) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Only the drawing owner can rotate the share link.",
+        });
+      }
+      const shareToken = await rotateAnonymousCollaborativeDocumentShareToken(
+        ownerToken.documentId,
+      );
+      return { joinSecret: shareToken.token };
     }),
 
   createOrRefreshDocumentInvitation: protectedProcedure

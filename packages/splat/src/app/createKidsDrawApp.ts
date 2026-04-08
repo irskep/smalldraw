@@ -331,7 +331,10 @@ export async function createKidsDrawApp(
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
     showShareDialog: async (payload) => {
       const qrDataUrl = await createQrCodeDataUrl(payload.joinUrl);
-      await shareQrDialog.show({ joinUrl: payload.joinUrl, qrDataUrl });
+      await shareQrDialog.show({
+        joinUrl: payload.joinUrl,
+        qrDataUrl,
+      });
     },
     onShareError:
       options.onShareError ??
