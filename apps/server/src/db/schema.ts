@@ -17,7 +17,20 @@ export const users = sqliteTable("users", {
     .$defaultFn(() => crypto.randomUUID()),
   username: text("username").notNull().unique(),
   registrationRecord: text("registration_record").notNull(),
+  isServerAdmin: integer("is_server_admin", { mode: "boolean" })
+    .notNull()
+    .default(false),
   createdAt: timestamp("created_at"),
+});
+
+export const serverAdminCredentials = sqliteTable("server_admin_credentials", {
+  userId: text("user_id")
+    .primaryKey()
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
 });
 
 export const sessions = sqliteTable("sessions", {

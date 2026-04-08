@@ -6,6 +6,7 @@ import {
   documentInvitations,
   documents,
   loginAttempts,
+  serverAdminCredentials,
   sessions,
   users,
   usersOnDocuments,
@@ -19,6 +20,7 @@ beforeAll(() => {
 
 beforeEach(async () => {
   await db.delete(documentInvitations);
+  await db.delete(serverAdminCredentials);
   await db.delete(usersOnDocuments);
   await db.delete(documents);
   await db.delete(loginAttempts);

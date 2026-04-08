@@ -15,6 +15,13 @@
       "when": 1775609000000,
       "tag": "0001_document_token_scopes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775611000000,
+      "tag": "0002_server_admin_credentials",
+      "breakpoints": true
     }
   ]
 }

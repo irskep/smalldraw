@@ -33,9 +33,34 @@ import {
   RegisterStartParams,
 } from "../schema.js";
 import { getOpaqueServerSetup } from "../utils/getOpaqueServerSetup.js";
-import { protectedProcedure, publicProcedure, router } from "./trpc.js";
+import {
+  protectedProcedure,
+  publicProcedure,
+  router,
+  serverAdminProcedure,
+} from "./trpc.js";
 
 export const appRouter = router({
+  adminMe: serverAdminProcedure.query(async (opts) => {
+    return {
+      id: opts.ctx.serverAdmin.id,
+      username: opts.ctx.serverAdmin.username,
+    };
+  }),
+  adminGetUserByUsername: serverAdminProcedure
+    .input(z.string())
+    .query(async (opts) => {
+      const user = await getUserByUsername(opts.input);
+      if (!user) {
+        return null;
+      }
+      return {
+        id: user.id,
+        username: user.username,
+        isServerAdmin: user.isServerAdmin,
+        createdAt: user.createdAt,
+      };
+    }),
   me: protectedProcedure.query(async (opts) => {
     const user = await getUser(opts.ctx.session.userId);
     if (!user) return null;

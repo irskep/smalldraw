@@ -25,6 +25,18 @@ printf 'server:dev FRONTEND_ORIGINS=%s\n' "$FRONTEND_ORIGINS"
 bun run dev
 """
 
+[tasks."server:bootstrap-admin:dev"]
+dir = "apps/server"
+env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db", ADMIN_USERNAME = "admin", ADMIN_PASSWORD = "asdfjkl;" }
+depends = ["db:push"]
+run = "bun run scripts/bootstrap-admin.ts"
+
+[tasks."server:bootstrap-admin:prod"]
+dir = "apps/server"
+env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db" }
+depends = ["db:push:prod"]
+run = "bun run scripts/bootstrap-admin.ts"
+
 [tasks."db:studio"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
 run = "bunx drizzle-kit studio"

@@ -1,0 +1,21 @@
+{
+  "name": "@smalldraw/server-cli",
+  "version": "0.0.0",
+  "private": false,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "bin": {
+    "smalldraw-server": "src/index.ts"
+  },
+  "scripts": {
+    "cli": "bun run src/index.ts",
+    "ts:check": "tsc -p tsconfig.json --noEmit",
+    "lint": "bunx biome check --write",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@serenity-kit/opaque": "^0.8.4",
+    "@trpc/client": "^11.8.1"
+  }
+}
