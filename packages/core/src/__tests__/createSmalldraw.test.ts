@@ -10,7 +10,10 @@ function createHandle(
   return {
     url,
     isReady: () => ready,
-    whenReady: (_states?: unknown, whenReadyOptions?: { signal?: AbortSignal }) =>
+    whenReady: (
+      _states?: unknown,
+      whenReadyOptions?: { signal?: AbortSignal },
+    ) =>
       ready
         ? Promise.resolve()
         : new Promise<void>((_, reject) => {

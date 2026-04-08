@@ -84,7 +84,7 @@ export function createDocumentRuntimeController(options: {
   registerCollaborativeDocument?: (
     documentId: string,
     content: Uint8Array,
-  ) => Promise<{ joinSecret: string }>;
+  ) => Promise<{ joinSecret: string; accessToken: string }>;
   initialCatalogDocUrl?: string;
   resolveJoinBaseUrl?: () => string;
   thumbnailSaveDebounceMs?: number;

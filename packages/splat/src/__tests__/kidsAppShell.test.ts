@@ -595,6 +595,7 @@ describe("splatterboard shell", () => {
                 data: {
                   collabDocUrl: "automerge:joined-doc",
                   joinSecret: "join-seed",
+                  accessToken: "access-seed",
                   content: btoa("fake-doc-binary"),
                 },
               },

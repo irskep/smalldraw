@@ -42,6 +42,7 @@ describe("createMultiplayerApiClient", () => {
       return mockJsonResponse({
         collabDocUrl: "automerge:doc-1",
         joinSecret: "token-1",
+        accessToken: "access-1",
       });
     });
 
@@ -51,11 +52,13 @@ describe("createMultiplayerApiClient", () => {
     const result = await client.registerCollaborativeDocument(
       "automerge:doc-1",
       new Uint8Array([1, 2, 3]),
+      "device-1",
     );
 
     expect(result).toEqual({
       collabDocUrl: "automerge:doc-1",
       joinSecret: "token-1",
+      accessToken: "access-1",
     });
     expect(requests[0].url).toContain("registerCollaborativeDocument");
     expect(requests[0].method).toBe("POST");
@@ -73,6 +76,7 @@ describe("createMultiplayerApiClient", () => {
         return mockJsonResponse({
           collabDocUrl: "automerge:doc-2",
           joinSecret: "token-2",
+          accessToken: "access-2",
           content: btoa("fake-doc-binary"),
         });
       }
@@ -82,14 +86,19 @@ describe("createMultiplayerApiClient", () => {
     const client = createMultiplayerApiClient({
       apiUrl: "http://localhost/api",
     });
-    const resolved =
-      await client.resolveCollaborativeDocumentByJoinSecret("join-abc");
-    const missing =
-      await client.resolveCollaborativeDocumentByJoinSecret("join-missing");
+    const resolved = await client.resolveCollaborativeDocumentByJoinSecret(
+      "join-abc",
+      "device-1",
+    );
+    const missing = await client.resolveCollaborativeDocumentByJoinSecret(
+      "join-missing",
+      "device-1",
+    );
 
     expect(resolved).toEqual({
       collabDocUrl: "automerge:doc-2",
       joinSecret: "token-2",
+      accessToken: "access-2",
       content: btoa("fake-doc-binary"),
     });
     expect(missing).toBeNull();
@@ -99,6 +108,7 @@ describe("createMultiplayerApiClient", () => {
     expect(decodeURIComponent(requests[0])).toContain(
       '"joinSecret":"join-abc"',
     );
+    expect(decodeURIComponent(requests[0])).toContain('"deviceTag":"device-1"');
   });
 
   test("resolve throws when content is missing from response", async () => {
@@ -106,6 +116,7 @@ describe("createMultiplayerApiClient", () => {
       return mockJsonResponse({
         collabDocUrl: "automerge:doc-3",
         joinSecret: "token-3",
+        accessToken: "access-3",
       });
     });
 
@@ -113,7 +124,10 @@ describe("createMultiplayerApiClient", () => {
       apiUrl: "http://localhost/api",
     });
     await expect(
-      client.resolveCollaborativeDocumentByJoinSecret("join-no-content"),
+      client.resolveCollaborativeDocumentByJoinSecret(
+        "join-no-content",
+        "device-1",
+      ),
     ).rejects.toThrow(
       "Invalid response from resolveAnonymousCollaborativeDocument",
     );
@@ -131,6 +145,7 @@ describe("createMultiplayerApiClient", () => {
       client.registerCollaborativeDocument(
         "automerge:doc-1",
         new Uint8Array([1]),
+        "device-1",
       ),
     ).rejects.toThrow("Invalid response from registerCollaborativeDocument");
   });

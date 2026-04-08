@@ -7,22 +7,16 @@ import {
 } from "../app/createKidsDrawApp";
 
 describe("resolveStartupWebsocketToken", () => {
-  test("prefers URL join secret", () => {
+  test("uses stored access token", () => {
     expect(
-      resolveStartupWebsocketToken("url-secret", {
-        joinSecret: "stored-secret",
+      resolveStartupWebsocketToken({
+        accessToken: "stored-access-token",
       }),
-    ).toBe("url-secret");
-  });
-
-  test("falls back to stored document join secret", () => {
-    expect(
-      resolveStartupWebsocketToken(null, { joinSecret: "stored-secret" }),
-    ).toBe("stored-secret");
+    ).toBe("stored-access-token");
   });
 
   test("returns null when neither source has a token", () => {
-    expect(resolveStartupWebsocketToken(null, null)).toBeNull();
+    expect(resolveStartupWebsocketToken(null)).toBeNull();
   });
 });
 

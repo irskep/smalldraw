@@ -6,6 +6,7 @@ export type SharePayload = {
   catalogDocUrl: string;
   collabDocUrl: string;
   joinSecret: string;
+  accessToken: string;
   joinUrl: string;
   upgraded: boolean;
 };
@@ -20,7 +21,7 @@ export function createCollaborativeUpgradeCoordinator(options: {
   registerCollaborativeDocument: (
     documentId: string,
     content: Uint8Array,
-  ) => Promise<{ joinSecret: string }>;
+  ) => Promise<{ joinSecret: string; accessToken: string }>;
   switchToDocument: (catalogDocUrl: string) => Promise<void>;
   resolveJoinBaseUrl: () => string;
   onCollaborativeMetadataPersisted?: (
@@ -29,7 +30,12 @@ export function createCollaborativeUpgradeCoordinator(options: {
 }) {
   const pendingCollaborativeByCatalogDocUrl = new Map<
     string,
-    { collabDocUrl: string; binary: Uint8Array; joinSecret?: string }
+    {
+      collabDocUrl: string;
+      binary: Uint8Array;
+      joinSecret?: string;
+      accessToken?: string;
+    }
   >();
 
   const ensureCollaborative = async (): Promise<SharePayload> => {
@@ -40,6 +46,11 @@ export function createCollaborativeUpgradeCoordinator(options: {
     });
     const existing = await options.documentBackend.getDocument(catalogDocUrl);
     if (isCollaborativeDocument(existing) && existing.joinSecret) {
+      if (!existing.accessToken) {
+        throw new Error(
+          "Collaborative document metadata is missing its access token.",
+        );
+      }
       console.info(
         "[kids-draw:multiplayer] share flow: already collaborative",
         {
@@ -51,6 +62,7 @@ export function createCollaborativeUpgradeCoordinator(options: {
         catalogDocUrl,
         collabDocUrl: existing.collabDocUrl,
         joinSecret: existing.joinSecret,
+        accessToken: existing.accessToken,
         joinUrl: buildJoinUrl(
           existing.joinSecret,
           options.resolveJoinBaseUrl(),
@@ -63,11 +75,13 @@ export function createCollaborativeUpgradeCoordinator(options: {
     let collabDocUrl: string;
     let binary: Uint8Array;
     let joinSecret: string | undefined;
+    let accessToken: string | undefined;
 
     if (pending) {
       collabDocUrl = pending.collabDocUrl;
       binary = pending.binary;
       joinSecret = pending.joinSecret;
+      accessToken = pending.accessToken;
     } else {
       console.info(
         "[kids-draw:multiplayer] share flow: creating document copy",
@@ -91,11 +105,17 @@ export function createCollaborativeUpgradeCoordinator(options: {
         binary,
       );
       joinSecret = registered.joinSecret;
+      accessToken = registered.accessToken;
       pendingCollaborativeByCatalogDocUrl.set(catalogDocUrl, {
         collabDocUrl,
         binary,
         joinSecret,
+        accessToken,
       });
+    }
+
+    if (!joinSecret || !accessToken) {
+      throw new Error("Collaborative registration did not return both tokens.");
     }
 
     const persistedSummary = await options.documentBackend.createDocument({
@@ -103,6 +123,7 @@ export function createCollaborativeUpgradeCoordinator(options: {
       collaborative: true,
       collabDocUrl,
       joinSecret,
+      accessToken,
     });
     await options.onCollaborativeMetadataPersisted?.(persistedSummary);
     console.info("[kids-draw:multiplayer] share flow: metadata persisted");
@@ -124,6 +145,7 @@ export function createCollaborativeUpgradeCoordinator(options: {
       catalogDocUrl,
       collabDocUrl,
       joinSecret,
+      accessToken,
       joinUrl: buildJoinUrl(joinSecret, options.resolveJoinBaseUrl()),
       upgraded: true,
     };

@@ -95,12 +95,14 @@ export async function createKidsDrawApp(
       })
     : null;
   const joinSecretFromUrl = options.multiplayer?.joinSecret ?? null;
+  const deviceTag = options.multiplayer?.deviceTag ?? "unknown-device";
   let joinedDocumentBinary: Uint8Array | null = null;
   let joinedCollabDocUrl: string | null = null;
   if (joinSecretFromUrl && multiplayerApiClient) {
     const resolved =
       await multiplayerApiClient.resolveCollaborativeDocumentByJoinSecret(
         joinSecretFromUrl,
+        deviceTag,
       );
     if (!resolved) {
       throw new Error("Invalid share link.");
@@ -119,6 +121,7 @@ export async function createKidsDrawApp(
       collaborative: true,
       collabDocUrl: resolved.collabDocUrl,
       joinSecret: resolved.joinSecret,
+      accessToken: resolved.accessToken,
     });
     await documentBackend.setCurrentDocument(catalogDocUrl);
   }
@@ -127,7 +130,6 @@ export async function createKidsDrawApp(
     ? await documentBackend.getDocument(initialCatalogDocUrl)
     : null;
   const startupWebsocketToken = resolveStartupWebsocketToken(
-    joinSecretFromUrl,
     initialCatalogSummary,
   );
   const startupAuthorizedCollaborativeDocumentId =
@@ -305,19 +307,21 @@ export async function createKidsDrawApp(
             await multiplayerApiClient.registerCollaborativeDocument(
               documentId,
               content,
+              deviceTag,
             );
           console.info(
             "[kids-draw:multiplayer] share upgrade: register success",
             {
               documentId,
               joinSecret: result.joinSecret,
+              accessToken: result.accessToken,
             },
           );
           if (localRepo) {
             localRepo.setWebsocketAuthorizedDocumentId(
               resolveCollaborativeDocumentId(documentId),
             );
-            localRepo.setWebsocketAuthToken(result.joinSecret);
+            localRepo.setWebsocketAuthToken(result.accessToken);
           }
           return result;
         }
@@ -383,10 +387,9 @@ export async function createKidsDrawApp(
 }
 
 export function resolveStartupWebsocketToken(
-  joinSecretFromUrl: string | null,
-  initialCatalogSummary: Pick<KidsDocumentSummary, "joinSecret"> | null,
+  initialCatalogSummary: Pick<KidsDocumentSummary, "accessToken"> | null,
 ): string | null {
-  return joinSecretFromUrl ?? initialCatalogSummary?.joinSecret ?? null;
+  return initialCatalogSummary?.accessToken ?? null;
 }
 
 export function resolveCollaborativeDocumentId(documentId: string): string {

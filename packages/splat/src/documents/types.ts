@@ -8,6 +8,7 @@ export interface KidsDocumentSummary {
   collaborative?: boolean;
   collabDocUrl?: string;
   joinSecret?: string;
+  accessToken?: string;
   title?: string;
   mode: KidsDocumentMode;
   coloringPageId?: string;
@@ -24,6 +25,7 @@ export interface KidsDocumentCreateInput {
   collaborative?: boolean;
   collabDocUrl?: string;
   joinSecret?: string;
+  accessToken?: string;
   title?: string;
   mode?: KidsDocumentMode;
   coloringPageId?: string;

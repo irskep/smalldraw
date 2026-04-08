@@ -45,12 +45,17 @@ function normalizeDocumentSummary(
     typeof value.joinSecret === "string" && value.joinSecret.length > 0
       ? value.joinSecret
       : undefined;
+  const accessToken =
+    typeof value.accessToken === "string" && value.accessToken.length > 0
+      ? value.accessToken
+      : undefined;
   const collaborative = Boolean(value.collaborative || collabDocUrl);
   return {
     docUrl: value.docUrl,
     collaborative,
     collabDocUrl: collaborative ? collabDocUrl : undefined,
     joinSecret: collaborative ? joinSecret : undefined,
+    accessToken: collaborative ? accessToken : undefined,
     title: value.title,
     mode: normalizeMode(value.mode),
     coloringPageId:
@@ -311,6 +316,10 @@ class IndexedDbDocumentRepository implements DocumentRepository {
             collaborative === false
               ? undefined
               : (input.joinSecret ?? existing?.joinSecret),
+          accessToken:
+            collaborative === false
+              ? undefined
+              : (input.accessToken ?? existing?.accessToken),
           title: input.title ?? existing?.title,
           mode: input.mode ?? existing?.mode ?? "normal",
           coloringPageId:
@@ -416,6 +425,10 @@ class MemoryDocumentRepository implements DocumentRepository {
         collaborative === false
           ? undefined
           : (input.joinSecret ?? existing?.joinSecret),
+      accessToken:
+        collaborative === false
+          ? undefined
+          : (input.accessToken ?? existing?.accessToken),
       title: input.title ?? existing?.title,
       mode: input.mode ?? existing?.mode ?? "normal",
       coloringPageId:

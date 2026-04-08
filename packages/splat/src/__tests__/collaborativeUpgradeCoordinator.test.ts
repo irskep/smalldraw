@@ -36,6 +36,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
             collaborative: input.collaborative,
             collabDocUrl: input.collabDocUrl,
             joinSecret: input.joinSecret,
+            accessToken: input.accessToken,
             createdAt: "2026-01-01T00:00:00.000Z",
             updatedAt: "2026-01-01T00:00:00.000Z",
             lastOpenedAt: "2026-01-01T00:00:00.000Z",
@@ -56,7 +57,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
           documentId,
           contentLength: content.length,
         });
-        return { joinSecret: "join-secret-1" };
+        return { joinSecret: "join-secret-1", accessToken: "access-token-1" };
       },
       onCollaborativeMetadataPersisted(summary) {
         callOrder.push("onCollaborativeMetadataPersisted");
@@ -77,6 +78,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
       catalogDocUrl: "automerge:catalog-doc",
       collabDocUrl: "automerge:collab-doc",
       joinSecret: "join-secret-1",
+      accessToken: "access-token-1",
       joinUrl: "https://splatterboard.app/draw?join=join-secret-1",
       upgraded: true,
     });
@@ -101,6 +103,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
         collaborative: true,
         collabDocUrl: "automerge:collab-doc",
         joinSecret: "join-secret-1",
+        accessToken: "access-token-1",
       },
     ]);
     expect(switched).toEqual(["automerge:catalog-doc"]);
@@ -120,6 +123,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
             collaborative: true,
             collabDocUrl: "automerge:existing-collab",
             joinSecret: "existing-secret",
+            accessToken: "existing-access",
             createdAt: "2026-01-01T00:00:00.000Z",
             updatedAt: "2026-01-01T00:00:00.000Z",
             lastOpenedAt: "2026-01-01T00:00:00.000Z",
@@ -149,6 +153,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
       catalogDocUrl: "automerge:catalog-doc",
       collabDocUrl: "automerge:existing-collab",
       joinSecret: "existing-secret",
+      accessToken: "existing-access",
       joinUrl: "https://splatterboard.app/?join=existing-secret",
       upgraded: false,
     });
@@ -178,6 +183,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
             collaborative: input.collaborative,
             collabDocUrl: input.collabDocUrl,
             joinSecret: input.joinSecret,
+            accessToken: input.accessToken,
             createdAt: "2026-01-01T00:00:00.000Z",
             updatedAt: "2026-01-01T00:00:00.000Z",
             lastOpenedAt: "2026-01-01T00:00:00.000Z",
@@ -192,6 +198,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
       }),
       registerCollaborativeDocument: async () => ({
         joinSecret: "join-secret-1",
+        accessToken: "access-token-1",
       }),
       switchToDocument: async () => {
         throw new Error("switch failed");
@@ -208,6 +215,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
         collaborative: true,
         collabDocUrl: "automerge:collab-doc",
         joinSecret: "join-secret-1",
+        accessToken: "access-token-1",
       },
     ]);
   });
@@ -235,6 +243,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
             collaborative: input.collaborative,
             collabDocUrl: input.collabDocUrl,
             joinSecret: input.joinSecret,
+            accessToken: input.accessToken,
             createdAt: "2026-01-01T00:00:00.000Z",
             updatedAt: "2026-01-01T00:00:00.000Z",
             lastOpenedAt: "2026-01-01T00:00:00.000Z",
@@ -256,7 +265,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
           shouldFailRegister = false;
           throw new Error("register failed");
         }
-        return { joinSecret: "join-secret-1" };
+        return { joinSecret: "join-secret-1", accessToken: "access-token-1" };
       },
       switchToDocument: async () => {},
       resolveJoinBaseUrl: () => "https://splatterboard.app",
@@ -268,6 +277,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
     const result = await coordinator.ensureCollaborative();
     expect(result.collabDocUrl).toBe("automerge:collab-doc");
     expect(result.joinSecret).toBe("join-secret-1");
+    expect(result.accessToken).toBe("access-token-1");
     expect(createDocumentCopyCalls).toBe(1);
     expect(registerCalls).toBe(2);
   });
