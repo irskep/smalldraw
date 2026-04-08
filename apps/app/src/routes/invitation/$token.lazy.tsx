@@ -18,7 +18,10 @@ const Invitation: React.FC = () => {
         },
         onSuccess: (data) => {
           if (data?.documentId) {
-            navigate({ to: `/list/${data.documentId}` });
+            navigate({
+              to: "/documents/$documentId",
+              params: { documentId: data.documentId },
+            });
           }
         },
       },

@@ -2,16 +2,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RefreshCcw } from "lucide-react";
 import React, { useId } from "react";
+import { buildInvitationUrl } from "./buildInvitationUrl";
 import { trpc } from "../../utils/trpc";
 
 type Props = {
   documentId: string;
 };
 
-export const DocumentInvitation: React.FC<Props> = ({ documentId }) => {
-  const documentInvitationQuery = trpc.documentInvitation.useQuery(documentId);
-  const createOrRefreshDocumentInvitationMutation =
-    trpc.createOrRefreshDocumentInvitation.useMutation();
+type DocumentInvitationViewProps = {
+  invitationUrl: string;
+  isPending: boolean;
+  onRotate: () => void;
+};
+
+export const DocumentInvitationView: React.FC<DocumentInvitationViewProps> = ({
+  invitationUrl,
+  isPending,
+  onRotate,
+}) => {
   const id = useId();
 
   return (
@@ -22,28 +30,39 @@ export const DocumentInvitation: React.FC<Props> = ({ documentId }) => {
       <div className="flex gap-2 pt-2">
         <Input
           id={id}
-          value={`${window.location.origin}/invitation/${documentInvitationQuery.data?.token}`}
+          value={invitationUrl}
           readOnly
           onFocus={(event) => event.target.select()}
           className="w-72"
         />
-        <Button
-          disabled={createOrRefreshDocumentInvitationMutation.isPending}
-          onClick={() =>
-            createOrRefreshDocumentInvitationMutation.mutate(
-              { documentId },
-              {
-                onSuccess: () => {
-                  documentInvitationQuery.refetch();
-                },
-              },
-            )
-          }
-        >
+        <Button disabled={isPending} onClick={onRotate}>
           <RefreshCcw className="mr-2 h-4 w-4" />
           Rotate
         </Button>
       </div>
     </div>
+  );
+};
+
+export const DocumentInvitation: React.FC<Props> = ({ documentId }) => {
+  const documentInvitationQuery = trpc.documentInvitation.useQuery(documentId);
+  const createOrRefreshDocumentInvitationMutation =
+    trpc.createOrRefreshDocumentInvitation.useMutation();
+
+  return (
+    <DocumentInvitationView
+      invitationUrl={buildInvitationUrl(documentInvitationQuery.data?.token)}
+      isPending={createOrRefreshDocumentInvitationMutation.isPending}
+      onRotate={() =>
+        createOrRefreshDocumentInvitationMutation.mutate(
+          { documentId },
+          {
+            onSuccess: () => {
+              documentInvitationQuery.refetch();
+            },
+          },
+        )
+      }
+    />
   );
 };

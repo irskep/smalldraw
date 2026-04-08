@@ -15,8 +15,10 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 
 const IndexLazyRouteImport = createFileRoute('/')()
-const ListDocumentIdLazyRouteImport = createFileRoute('/list/$documentId')()
 const InvitationTokenLazyRouteImport = createFileRoute('/invitation/$token')()
+const DocumentsDocumentIdLazyRouteImport = createFileRoute(
+  '/documents/$documentId',
+)()
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -33,13 +35,6 @@ const IndexLazyRoute = IndexLazyRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
-const ListDocumentIdLazyRoute = ListDocumentIdLazyRouteImport.update({
-  id: '/list/$documentId',
-  path: '/list/$documentId',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() =>
-  import('./routes/list/$documentId.lazy').then((d) => d.Route),
-)
 const InvitationTokenLazyRoute = InvitationTokenLazyRouteImport.update({
   id: '/invitation/$token',
   path: '/invitation/$token',
@@ -47,28 +42,35 @@ const InvitationTokenLazyRoute = InvitationTokenLazyRouteImport.update({
 } as any).lazy(() =>
   import('./routes/invitation/$token.lazy').then((d) => d.Route),
 )
+const DocumentsDocumentIdLazyRoute = DocumentsDocumentIdLazyRouteImport.update({
+  id: '/documents/$documentId',
+  path: '/documents/$documentId',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./routes/documents/$documentId.lazy').then((d) => d.Route),
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/documents/$documentId': typeof DocumentsDocumentIdLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
-  '/list/$documentId': typeof ListDocumentIdLazyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexLazyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/documents/$documentId': typeof DocumentsDocumentIdLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
-  '/list/$documentId': typeof ListDocumentIdLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexLazyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/documents/$documentId': typeof DocumentsDocumentIdLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
-  '/list/$documentId': typeof ListDocumentIdLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -76,25 +78,30 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/documents/$documentId'
     | '/invitation/$token'
-    | '/list/$documentId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/invitation/$token' | '/list/$documentId'
+  to:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/documents/$documentId'
+    | '/invitation/$token'
   id:
     | '__root__'
     | '/'
     | '/login'
     | '/register'
+    | '/documents/$documentId'
     | '/invitation/$token'
-    | '/list/$documentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  DocumentsDocumentIdLazyRoute: typeof DocumentsDocumentIdLazyRoute
   InvitationTokenLazyRoute: typeof InvitationTokenLazyRoute
-  ListDocumentIdLazyRoute: typeof ListDocumentIdLazyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -120,18 +127,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/list/$documentId': {
-      id: '/list/$documentId'
-      path: '/list/$documentId'
-      fullPath: '/list/$documentId'
-      preLoaderRoute: typeof ListDocumentIdLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/invitation/$token': {
       id: '/invitation/$token'
       path: '/invitation/$token'
       fullPath: '/invitation/$token'
       preLoaderRoute: typeof InvitationTokenLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documents/$documentId': {
+      id: '/documents/$documentId'
+      path: '/documents/$documentId'
+      fullPath: '/documents/$documentId'
+      preLoaderRoute: typeof DocumentsDocumentIdLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -141,8 +148,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  DocumentsDocumentIdLazyRoute: DocumentsDocumentIdLazyRoute,
   InvitationTokenLazyRoute: InvitationTokenLazyRoute,
-  ListDocumentIdLazyRoute: ListDocumentIdLazyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -75,6 +75,6 @@ const Document = () => {
   );
 };
 
-export const Route = createLazyFileRoute("/list/$documentId")({
+export const Route = createLazyFileRoute("/documents/$documentId")({
   component: Document,
 });

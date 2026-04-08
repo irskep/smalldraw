@@ -7,13 +7,22 @@ import wasm from "vite-plugin-wasm";
 export default defineConfig({
   plugins: [wasm(), react(), TanStackRouterVite()],
   server: {
+    host: "0.0.0.0",
     port: 3001,
+  },
+  test: {
+    environment: "happy-dom",
+    globals: true,
+    setupFiles: ["./test/setup.ts"],
   },
 
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      react: path.resolve(__dirname, "../../node_modules/react"),
+      "react-dom": path.resolve(__dirname, "../../node_modules/react-dom"),
     },
+    dedupe: ["react", "react-dom"],
   },
 
   worker: {

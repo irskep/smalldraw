@@ -46,7 +46,7 @@ function Index() {
             {
               onSuccess: ({ document }) => {
                 navigate({
-                  to: "/list/$documentId",
+                  to: "/documents/$documentId",
                   params: { documentId: document.id },
                 });
                 documentsQuery.refetch();
@@ -73,7 +73,7 @@ function Index() {
       <div className="flex flex-col gap-2 pt-4">
         {documentsQuery.data?.map((doc) => (
           <Link
-            to="/list/$documentId"
+            to="/documents/$documentId"
             params={{ documentId: doc.id }}
             key={doc.id}
           >
