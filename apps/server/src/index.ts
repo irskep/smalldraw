@@ -6,6 +6,7 @@ import cors, { type CorsOptions } from "cors";
 import express from "express";
 import { webSocketServer } from "./automergeRepo/automergeRepo.js";
 import type { AuthenticatedSocket } from "./automergeRepo/socketAuthContext.js";
+import { touchDocumentToken } from "./db/documentTokens.js";
 import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getSession } from "./db/getSession.js";
 import { appRouter } from "./trpc/appRouter.js";
@@ -87,7 +88,8 @@ server.on("upgrade", async (request, socket, head) => {
   const authContext = await resolveWebSocketUpgradeAuth({
     requestUrl: request.url,
     getSessionByKey: getSession,
-    getInvitationByToken: getDocumentInvitationByToken,
+    getInvitationByToken: (token) =>
+      getDocumentInvitationByToken(token, { scopes: ["owner", "device"] }),
   });
   if (!authContext) {
     console.warn("[server:ws-upgrade] unauthorized upgrade rejected", {
@@ -102,7 +104,12 @@ server.on("upgrade", async (request, socket, head) => {
     url: request.url,
     authKind: authContext.kind,
     documentId: authContext.kind === "token" ? authContext.documentId : null,
+    tokenScope: authContext.kind === "token" ? authContext.scope : null,
+    tokenTag: authContext.kind === "token" ? authContext.tag : null,
   });
+  if (authContext.kind === "token") {
+    void touchDocumentToken({ tokenId: authContext.tokenId });
+  }
 
   webSocketServer.handleUpgrade(request, socket, head, (currentSocket) => {
     (currentSocket as AuthenticatedSocket).authContext = authContext;

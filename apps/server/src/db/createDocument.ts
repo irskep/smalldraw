@@ -28,7 +28,9 @@ export const createDocument = async ({ userId, documentId, name }: Params) => {
     await tx.insert(documentInvitations).values({
       documentId,
       token: generateId(16),
+      scope: "share",
       createdAt: now,
+      lastUsedAt: now,
     });
 
     return document;

@@ -46,6 +46,8 @@ export class AuthAdapter extends NodeWSServerAdapter {
         authKind: authContext.kind,
         messageType: message.type,
         messageDocumentId,
+        tokenScope: authContext.kind === "token" ? authContext.scope : null,
+        tokenTag: authContext.kind === "token" ? authContext.tag : null,
       });
 
       // check for invalid awareness messages

@@ -13,6 +13,7 @@ import { createSession } from "../db/createSession.js";
 import { createUser } from "../db/createUser.js";
 import { deleteLoginAttempt } from "../db/deleteLoginAttempt.js";
 import { deleteSession } from "../db/deleteSession.js";
+import { findOrCreateDocumentToken } from "../db/documentTokens.js";
 import { getDocument } from "../db/getDocument.js";
 import { getDocumentInvitation } from "../db/getDocumentInvitation.js";
 import { getDocumentInvitationByToken } from "../db/getDocumentInvitationByToken.js";
@@ -21,6 +22,8 @@ import { getDocumentsByUserId } from "../db/getDocumentsByUserId.js";
 import { getLoginAttempt } from "../db/getLoginAttempt.js";
 import { getUser } from "../db/getUser.js";
 import { getUserByUsername } from "../db/getUserByUsername.js";
+import { listDocumentAccessTokensForAdmin } from "../db/listDocumentAccessTokensForAdmin.js";
+import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTokenForAdmin.js";
 import { updateDocument } from "../db/updateDocument.js";
 import {
   LoginFinishParams,
@@ -89,6 +92,7 @@ export const appRouter = router({
       z.object({
         documentId: z.string().min(1),
         content: z.string().min(1),
+        deviceTag: z.string().min(1).max(128),
       }),
     )
     .mutation(async (opts) => {
@@ -100,10 +104,12 @@ export const appRouter = router({
       repo.import(binary, { docId: rawDocId });
       const result = await createAnonymousCollaborativeDocument({
         documentId: rawDocId,
+        ownerTag: opts.input.deviceTag,
       });
       return {
         collabDocUrl: toAutomergeUrl(result.document.id),
         joinSecret: result.joinSecret,
+        accessToken: result.accessToken,
       };
     }),
 
@@ -111,11 +117,13 @@ export const appRouter = router({
     .input(
       z.object({
         joinSecret: z.string().min(1),
+        deviceTag: z.string().min(1).max(128),
       }),
     )
     .query(async (opts) => {
       const invitation = await getDocumentInvitationByToken(
         opts.input.joinSecret,
+        { scopes: ["share"] },
       );
       if (!invitation) {
         return null;
@@ -144,6 +152,13 @@ export const appRouter = router({
         return {
           collabDocUrl: toAutomergeUrl(invitation.documentId),
           joinSecret: invitation.token,
+          accessToken: (
+            await findOrCreateDocumentToken({
+              documentId: invitation.documentId,
+              scope: "device",
+              tag: opts.input.deviceTag,
+            })
+          ).token,
           content,
         };
       } catch (err) {
@@ -181,6 +196,30 @@ export const appRouter = router({
       });
       if (!documentInvitation) return null;
       return { token: documentInvitation.token };
+    }),
+  documentAccessTokens: protectedProcedure
+    .input(z.string())
+    .query(async (opts) => {
+      return await listDocumentAccessTokensForAdmin({
+        userId: opts.ctx.session.userId,
+        documentId: opts.input,
+      });
+    }),
+
+  revokeDocumentAccessToken: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        tokenId: z.string(),
+      }),
+    )
+    .mutation(async (opts) => {
+      const revoked = await revokeDocumentAccessTokenForAdmin({
+        userId: opts.ctx.session.userId,
+        documentId: opts.input.documentId,
+        tokenId: opts.input.tokenId,
+      });
+      return { revoked };
     }),
 
   acceptDocumentInvitation: protectedProcedure

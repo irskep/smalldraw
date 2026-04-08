@@ -28,6 +28,10 @@ describe("resolveWebSocketUpgradeAuth", () => {
               id: "inv-1",
               documentId: "doc-1",
               token: "join-abc",
+              scope: "device",
+              tag: "device-1",
+              revokedAt: null,
+              lastUsedAt: new Date(),
               createdAt: new Date(),
             }
           : null,
@@ -35,7 +39,10 @@ describe("resolveWebSocketUpgradeAuth", () => {
 
     expect(auth).toEqual({
       kind: "token",
+      tokenId: "inv-1",
       documentId: "doc-1",
+      scope: "device",
+      tag: "device-1",
     });
   });
 

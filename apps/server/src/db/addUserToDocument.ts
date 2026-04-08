@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
 import { db } from "./client.js";
+import { getActiveDocumentTokenByToken } from "./documentTokens.js";
 import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
-import { documentInvitations, usersOnDocuments } from "./schema.js";
+import { usersOnDocuments } from "./schema.js";
 
 type Params = {
   userId: string;
@@ -12,11 +12,10 @@ export const addUserToDocument = async ({
   userId,
   documentInvitationToken,
 }: Params) => {
-  const [documentInvitation] = await db
-    .select()
-    .from(documentInvitations)
-    .where(eq(documentInvitations.token, documentInvitationToken))
-    .limit(1);
+  const documentInvitation = await getActiveDocumentTokenByToken({
+    token: documentInvitationToken,
+    scopes: ["share"],
+  });
 
   if (!documentInvitation) {
     throw new Error("Invitation not found");

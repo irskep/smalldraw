@@ -15,11 +15,14 @@ import { createOrRefreshDocumentInvitation } from "./createOrRefreshDocumentInvi
 import { createSession } from "./createSession.js";
 import { createUser } from "./createUser.js";
 import { deleteSession } from "./deleteSession.js";
+import { createDocumentToken } from "./documentTokens.js";
 import { getDocumentInvitationByToken } from "./getDocumentInvitationByToken.js";
 import { getSession } from "./getSession.js";
 import { getUser } from "./getUser.js";
 import { getUserByUsername } from "./getUserByUsername.js";
 import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
+import { listDocumentAccessTokensForAdmin } from "./listDocumentAccessTokensForAdmin.js";
+import { revokeDocumentAccessTokenForAdmin } from "./revokeDocumentAccessTokenForAdmin.js";
 import { usersOnDocuments } from "./schema.js";
 
 describe("User operations", () => {
@@ -237,20 +240,112 @@ describe("Document operations", () => {
   it("createAnonymousCollaborativeDocument creates doc and join secret without membership", async () => {
     const result = await createAnonymousCollaborativeDocument({
       documentId: "anon-doc-1",
+      ownerTag: "creator-device-1",
     });
 
     expect(result.document.id).toBe("anon-doc-1");
     expect(result.document.name).toBe("Untitled");
     expect(result.joinSecret.length).toBeGreaterThan(0);
+    expect(result.accessToken.length).toBeGreaterThan(0);
 
-    const invitation = await getDocumentInvitationByToken(result.joinSecret);
+    const invitation = await getDocumentInvitationByToken(result.joinSecret, {
+      scopes: ["share"],
+    });
     expect(invitation).not.toBeNull();
     expect(invitation!.documentId).toBe("anon-doc-1");
+    expect(invitation!.scope).toBe("share");
+
+    const ownerToken = await getDocumentInvitationByToken(result.accessToken, {
+      scopes: ["owner"],
+    });
+    expect(ownerToken).not.toBeNull();
+    expect(ownerToken!.tag).toBe("creator-device-1");
 
     const memberships = await db
       .select()
       .from(usersOnDocuments)
       .where(eq(usersOnDocuments.documentId, "anon-doc-1"));
     expect(memberships).toHaveLength(0);
+  });
+
+  it("listDocumentAccessTokensForAdmin returns owner and device tokens but not share tokens", async () => {
+    const user = await createUser({
+      username: "doc-admin",
+      registrationRecord: "test-registration-record",
+    });
+    const doc = await createDocument({
+      userId: user.id,
+      documentId: "token-doc",
+      name: "Token Doc",
+    });
+
+    await createDocumentToken({
+      documentId: doc.id,
+      scope: "owner",
+      tag: "owner-device",
+    });
+    await createDocumentToken({
+      documentId: doc.id,
+      scope: "device",
+      tag: "joiner-ipad",
+    });
+
+    const tokens = await listDocumentAccessTokensForAdmin({
+      userId: user.id,
+      documentId: doc.id,
+    });
+
+    expect(tokens.map((token) => token.scope).sort()).toEqual([
+      "device",
+      "owner",
+    ]);
+    expect(tokens.find((token) => token.scope === "device")?.tag).toBe(
+      "joiner-ipad",
+    );
+  });
+
+  it("revokeDocumentAccessTokenForAdmin revokes only device tokens", async () => {
+    const user = await createUser({
+      username: "doc-admin-2",
+      registrationRecord: "test-registration-record",
+    });
+    const doc = await createDocument({
+      userId: user.id,
+      documentId: "token-doc-2",
+      name: "Token Doc 2",
+    });
+    const deviceToken = await createDocumentToken({
+      documentId: doc.id,
+      scope: "device",
+      tag: "joiner-phone",
+    });
+    const ownerToken = await createDocumentToken({
+      documentId: doc.id,
+      scope: "owner",
+      tag: "owner-laptop",
+    });
+
+    expect(
+      await revokeDocumentAccessTokenForAdmin({
+        userId: user.id,
+        documentId: doc.id,
+        tokenId: deviceToken.id,
+      }),
+    ).toBe(true);
+    expect(
+      (
+        await getDocumentInvitationByToken(deviceToken.token, {
+          scopes: ["device"],
+        })
+      )?.revokedAt,
+    ).not.toBeNull();
+
+    expect(
+      await revokeDocumentAccessTokenForAdmin({
+        userId: user.id,
+        documentId: doc.id,
+        tokenId: ownerToken.id,
+      }),
+    ).toBe(false);
   });
 });

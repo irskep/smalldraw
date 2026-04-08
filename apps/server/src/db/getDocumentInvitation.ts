@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "./client.js";
 import { documentInvitations, usersOnDocuments } from "./schema.js";
 
@@ -25,7 +25,13 @@ export const getDocumentInvitation = async ({ documentId, userId }: Params) => {
   const [invitation] = await db
     .select()
     .from(documentInvitations)
-    .where(eq(documentInvitations.documentId, documentId))
+    .where(
+      and(
+        eq(documentInvitations.documentId, documentId),
+        eq(documentInvitations.scope, "share"),
+        isNull(documentInvitations.revokedAt),
+      ),
+    )
     .limit(1);
 
   return invitation ?? null;

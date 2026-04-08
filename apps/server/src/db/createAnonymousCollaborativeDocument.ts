@@ -5,11 +5,13 @@ import { documentInvitations, documents } from "./schema.js";
 type Params = {
   documentId: string;
   name?: string;
+  ownerTag: string;
 };
 
 export const createAnonymousCollaborativeDocument = async ({
   documentId,
   name,
+  ownerTag,
 }: Params) => {
   return db.transaction(async (tx) => {
     const now = new Date();
@@ -23,18 +25,32 @@ export const createAnonymousCollaborativeDocument = async ({
       })
       .returning();
 
-    const [invitation] = await tx
+    const [shareToken] = await tx
       .insert(documentInvitations)
       .values({
         documentId,
         token: generateId(16),
+        scope: "share",
         createdAt: now,
+        lastUsedAt: now,
+      })
+      .returning();
+    const [ownerToken] = await tx
+      .insert(documentInvitations)
+      .values({
+        documentId,
+        token: generateId(16),
+        scope: "owner",
+        tag: ownerTag,
+        createdAt: now,
+        lastUsedAt: now,
       })
       .returning();
 
     return {
       document,
-      joinSecret: invitation.token,
+      joinSecret: shareToken.token,
+      accessToken: ownerToken.token,
     };
   });
 };

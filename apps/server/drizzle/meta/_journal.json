@@ -8,6 +8,13 @@
       "when": 1768368307511,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775609000000,
+      "tag": "0001_document_token_scopes",
+      "breakpoints": true
     }
   ]
 }

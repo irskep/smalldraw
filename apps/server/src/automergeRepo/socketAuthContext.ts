@@ -7,7 +7,10 @@ export type SessionAuthContext = {
 
 export type TokenAuthContext = {
   kind: "token";
+  tokenId: string;
   documentId: string;
+  scope: "owner" | "device";
+  tag: string | null;
 };
 
 export type SocketAuthContext = SessionAuthContext | TokenAuthContext;

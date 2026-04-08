@@ -6,7 +6,10 @@ describe("isValidAwarenessPayloadForAuth", () => {
     const allowed = isValidAwarenessPayloadForAuth(
       {
         kind: "token",
+        tokenId: "token-1",
         documentId: "doc-1",
+        scope: "device",
+        tag: "device-1",
       },
       { type: "not-awareness" },
     );
@@ -18,7 +21,10 @@ describe("isValidAwarenessPayloadForAuth", () => {
     const allowed = isValidAwarenessPayloadForAuth(
       {
         kind: "token",
+        tokenId: "token-1",
         documentId: "doc-1",
+        scope: "device",
+        tag: "device-1",
       },
       { type: "awareness" },
     );

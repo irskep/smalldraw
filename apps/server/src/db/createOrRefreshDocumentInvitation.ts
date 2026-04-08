@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { generateId } from "../utils/generateId.js";
 import { db } from "./client.js";
 import { documentInvitations, usersOnDocuments } from "./schema.js";
@@ -31,11 +31,23 @@ export const createOrRefreshDocumentInvitation = async ({
 
     await tx
       .delete(documentInvitations)
-      .where(eq(documentInvitations.documentId, documentId));
+      .where(
+        and(
+          eq(documentInvitations.documentId, documentId),
+          eq(documentInvitations.scope, "share"),
+          isNull(documentInvitations.revokedAt),
+        ),
+      );
 
     const [invitation] = await tx
       .insert(documentInvitations)
-      .values({ documentId, token: generateId() })
+      .values({
+        documentId,
+        token: generateId(),
+        scope: "share",
+        createdAt: new Date(),
+        lastUsedAt: new Date(),
+      })
       .returning();
 
     return invitation;

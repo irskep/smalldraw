@@ -1,15 +1,12 @@
-import { eq } from "drizzle-orm";
-import { db } from "./client.js";
-import { documentInvitations } from "./schema.js";
+import { getActiveDocumentTokenByToken } from "./documentTokens.js";
+import type { DocumentTokenScope } from "./schema.js";
 
-export const getDocumentInvitationByToken = async (token: string) => {
-  if (!token) return null;
-
-  const [invitation] = await db
-    .select()
-    .from(documentInvitations)
-    .where(eq(documentInvitations.token, token))
-    .limit(1);
-
-  return invitation ?? null;
+export const getDocumentInvitationByToken = async (
+  token: string,
+  options?: { scopes?: readonly DocumentTokenScope[] },
+) => {
+  return await getActiveDocumentTokenByToken({
+    token,
+    scopes: options?.scopes,
+  });
 };

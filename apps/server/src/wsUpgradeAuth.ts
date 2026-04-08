@@ -28,7 +28,10 @@ export const resolveWebSocketUpgradeAuth = async ({
     if (!invitation) return null;
     return {
       kind: "token",
+      tokenId: invitation.id,
       documentId: invitation.documentId,
+      scope: invitation.scope === "owner" ? "owner" : "device",
+      tag: invitation.tag ?? null,
     };
   }
 
