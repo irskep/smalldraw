@@ -7,7 +7,6 @@ import {
 import { RouterProvider } from "@tanstack/react-router";
 import { TRPCClientError } from "@trpc/client";
 import { useState } from "react";
-import { removeLocalDb } from "../../utils/removeLocalDb.js";
 import { router } from "../../utils/router.js";
 import { clearAuthorizationToken, trpc, trpcClient } from "../../utils/trpc.js";
 
@@ -19,7 +18,6 @@ const handleError = (error: Error, queryClient: QueryClient) => {
     window.location.pathname !== "/register"
   ) {
     clearAuthorizationToken();
-    removeLocalDb();
     queryClient.clear();
 
     // need to do a hard-reload of the page since it's not possible to

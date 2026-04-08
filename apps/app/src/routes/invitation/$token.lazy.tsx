@@ -27,12 +27,12 @@ const Invitation: React.FC = () => {
 
   return (
     <Card className="p-4">
-      <p className="mb-4">Accept the invitation to this list.</p>
+      <p className="mb-4">Accept the invitation to this document.</p>
       <Button
         disabled={acceptDocumentInvitationMutation.isPending}
         onClick={acceptInvitation}
       >
-        Accept Invitation
+        Accept Document Invitation
       </Button>
     </Card>
   );

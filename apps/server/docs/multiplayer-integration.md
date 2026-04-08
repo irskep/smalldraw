@@ -11,9 +11,11 @@ This document is the source of truth for integrating `apps/splat-web` with `apps
 
 - The server allows these origins by default:
   - Production: `https://splatterboard.app`
-  - Local dev: `http://localhost:3000`
+  - Local dev:
+    - `http://localhost:3000` for `splat-web`
+    - `http://localhost:3001` for `account-web`
 - Override with `FRONTEND_ORIGINS` as a comma-separated list.
-  - Example: `FRONTEND_ORIGINS=https://splatterboard.app,http://localhost:3000`
+  - Example: `FRONTEND_ORIGINS=https://splatterboard.app,http://localhost:3000,http://localhost:3001`
 
 If origin is not allowed, WS upgrade is rejected with `403 Forbidden`.
 

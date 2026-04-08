@@ -64,7 +64,11 @@ export const appRouter = router({
   me: protectedProcedure.query(async (opts) => {
     const user = await getUser(opts.ctx.session.userId);
     if (!user) return null;
-    return { id: user.id, username: user.username };
+    return {
+      id: user.id,
+      username: user.username,
+      isServerAdmin: user.isServerAdmin,
+    };
   }),
   documents: protectedProcedure.query(async (opts) => {
     const documents = await getDocumentsByUserId(opts.ctx.session.userId);

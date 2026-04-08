@@ -17,7 +17,7 @@ export const DocumentInvitation: React.FC<Props> = ({ documentId }) => {
   return (
     <div>
       <label htmlFor={id} className="text-sm">
-        Invitation link
+        Share link
       </label>
       <div className="flex gap-2 pt-2">
         <Input
@@ -40,7 +40,8 @@ export const DocumentInvitation: React.FC<Props> = ({ documentId }) => {
             )
           }
         >
-          <RefreshCcw />
+          <RefreshCcw className="mr-2 h-4 w-4" />
+          Rotate
         </Button>
       </div>
     </div>

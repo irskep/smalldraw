@@ -6,9 +6,8 @@ import {
   Outlet,
   useNavigate,
 } from "@tanstack/react-router";
-import { CircleCheckBig } from "lucide-react";
+import { Shield } from "lucide-react";
 import { lazy, Suspense, useLayoutEffect } from "react";
-import { removeLocalDb } from "../utils/removeLocalDb";
 import { clearAuthorizationToken, trpc } from "../utils/trpc";
 
 const TanStackRouterDevtools =
@@ -69,9 +68,8 @@ const Root = () => {
     <>
       <div className="p-5 flex gap-4 items-center justify-between border-b">
         <Link to="/" className="text-xl flex items-center gap-2">
-          <CircleCheckBig />
-          Automerge Jumpstart
-          <span>(Demo)</span>
+          <Shield />
+          Smalldraw Server
         </Link>
         <div className="flex gap-4 items-center justify-between">
           {(!meQuery.data && !meQuery.isLoading) || isNotAuthorized ? (
@@ -88,17 +86,19 @@ const Root = () => {
           {meQuery.data && !isNotAuthorized ? (
             <>
               <div>{meQuery.data.username}</div>
+              {meQuery.data.isServerAdmin ? (
+                <div className="text-xs text-muted-foreground">
+                  server admin
+                </div>
+              ) : null}
 
               <Button
                 // not perfect but good enough since the local changes are fast
                 disabled={logoutMutation.isPending}
                 onClick={async () => {
-                  removeLocalDb();
                   logoutMutation.mutate(undefined, {
                     onSuccess: () => {
                       clearAuthorizationToken();
-                      // delete again to verify in case new info came in during the logout request
-                      removeLocalDb();
                       queryClient.invalidateQueries();
                       // navigate({ to: "/login" });
                       // need to do a hard-reload of the page since it's not possible to

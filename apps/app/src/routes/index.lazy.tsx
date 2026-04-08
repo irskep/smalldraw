@@ -29,6 +29,12 @@ function Index() {
 
   return (
     <>
+      <div className="pb-6 text-center">
+        <h1 className="text-2xl font-semibold">Your documents</h1>
+        <p className="pt-2 text-sm text-muted-foreground">
+          Account-attached documents you can manage from this server.
+        </p>
+      </div>
       <form
         className="flex justify-center items-center gap-4 py-4"
         onSubmit={(event) => {
@@ -46,7 +52,7 @@ function Index() {
                 documentsQuery.refetch();
               },
               onError: () => {
-                alert("Failed to create the list");
+                alert("Failed to create the document");
               },
             },
           );
@@ -55,12 +61,12 @@ function Index() {
         <Input
           type="text"
           name="name"
-          placeholder="List name"
+          placeholder="Document name"
           className="max-w-48"
           autoComplete="off"
         />
         <Button type="submit" disabled={createDocumentMutation.isPending}>
-          Create List
+          Create Document
         </Button>
       </form>
 
@@ -73,6 +79,7 @@ function Index() {
           >
             <Card className="flex flex-col items-start gap-2 rounded-lg border p-5 text-left text-xl transition-all hover:bg-accent">
               {doc.name}
+              <span className="text-xs text-muted-foreground">{doc.id}</span>
             </Card>
           </Link>
         ))}

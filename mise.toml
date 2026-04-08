@@ -41,7 +41,7 @@ run = "bun run scripts/bootstrap-admin.ts"
 env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
 run = "bunx drizzle-kit studio"
 
-[tasks."app:dev"]
+[tasks."account:web:dev"]
 dir = "apps/app"
 run = "bun run dev"
 
