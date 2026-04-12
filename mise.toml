@@ -126,3 +126,6 @@ run = "mise run //apps/splat-desktop:build"
 
 [tasks."splat:desktop:package"]
 run = "mise run //apps/splat-desktop:package"
+
+[tasks."server:deploy"]
+run = "fly deploy -c apps/server/fly.toml"

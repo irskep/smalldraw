@@ -9,11 +9,15 @@ swap_size_mb = 2048
 
 [build]
 
-[deploy]
-release_command = 'bunx drizzle-kit push'
-
 [env]
 PORT = '3000'
+NODE_ENV = 'production'
+DATABASE_URL = '/data/app.db'
+AUTOMERGE_DB_PATH = '/data/automerge.db'
+
+[mounts]
+source = 'data'
+destination = '/data'
 
 [http_service]
 internal_port = 3000
