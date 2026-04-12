@@ -64,6 +64,13 @@ export class SqliteStorageAdapter implements StorageAdapter {
       .run(`${prefix}%`);
   }
 
+  hasDocumentData(documentId: string): boolean {
+    const row = this.db
+      .query("SELECT 1 FROM automerge_data WHERE key LIKE ? LIMIT 1")
+      .get(`${documentId}/%`) as { 1: number } | undefined;
+    return row !== undefined;
+  }
+
   private serializeKey(key: StorageKey): string {
     return key.join("/");
   }

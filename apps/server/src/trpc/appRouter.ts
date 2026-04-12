@@ -7,7 +7,10 @@ import {
   buildClearedSessionCookie,
   buildSessionCookie,
 } from "../auth/sessionCookie.js";
-import { repo } from "../automergeRepo/automergeRepo.js";
+import {
+  repo,
+  repoStorage,
+} from "../automergeRepo/automergeRepo.js";
 import { toAutomergeUrl } from "../automergeRepo/automergeUrl.js";
 import { addUserToDocument } from "../db/addUserToDocument.js";
 import { claimAnonymousCollaborativeDocument } from "../db/claimAnonymousCollaborativeDocument.js";
@@ -69,24 +72,22 @@ const listAccountDocumentSummaries = async (userId: string) => {
 };
 
 const serializeRepoDocument = async (documentId: string): Promise<string> => {
-  const abortController = new AbortController();
-  const timeout = setTimeout(() => abortController.abort(), 3000);
-  try {
-    const handle = await repo.find(documentId as DocumentId, {
-      signal: abortController.signal,
+  if (!repoStorage.hasDocumentData(documentId)) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Document has no data in repository storage",
     });
-    const doc = await handle.doc();
-    if (!doc) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Document not found in repository",
-      });
-    }
-    const { save } = await import("@automerge/automerge");
-    return Buffer.from(save(doc)).toString("base64");
-  } finally {
-    clearTimeout(timeout);
   }
+  const handle = await repo.find(documentId as DocumentId);
+  const doc = await handle.doc();
+  if (!doc) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Document not found in repository",
+    });
+  }
+  const { save } = await import("@automerge/automerge");
+  return Buffer.from(save(doc)).toString("base64");
 };
 
 export const appRouter = router({

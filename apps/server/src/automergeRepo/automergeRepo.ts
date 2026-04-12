@@ -17,9 +17,11 @@ export async function serverSharePolicy(
   return Boolean(documentId);
 }
 
+export const repoStorage = new SqliteStorageAdapter(automergeDbPath);
+
 const config: RepoConfig = {
   network: [new AuthAdapter(webSocketServer)],
-  storage: new SqliteStorageAdapter(automergeDbPath),
+  storage: repoStorage,
   // @ts-expect-error
   peerId: `storage-server-${hostname}`,
   sharePolicy: serverSharePolicy,
