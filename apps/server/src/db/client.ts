@@ -6,7 +6,11 @@ import * as schema from "./schema.js";
 
 const serverRoot = path.resolve(process.cwd());
 
-const rawDatabaseUrl = process.env.DATABASE_URL ?? "./sqlite/dev.db";
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is required");
+}
+
+const rawDatabaseUrl = process.env.DATABASE_URL;
 const isInMemory = rawDatabaseUrl === ":memory:";
 const databasePath = isInMemory
   ? ":memory:"

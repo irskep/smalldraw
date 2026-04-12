@@ -27,6 +27,51 @@ function installFetchMock(
 }
 
 describe("createMultiplayerApiClient", () => {
+  test("listAccountCollaborativeDocuments includes browser credentials and parses metadata", async () => {
+    const requests: Array<{
+      url: string;
+      credentials: RequestCredentials | undefined;
+    }> = [];
+    installFetchMock(async (input, init) => {
+      requests.push({
+        url: input.toString(),
+        credentials: init?.credentials,
+      });
+      return mockJsonResponse([
+        {
+          documentId: "account-doc-1",
+          name: "Kitchen sketch",
+          thumbnailUrl: "https://cdn.example.com/thumb.png",
+        },
+        {
+          documentId: "account-doc-2",
+          name: "Untitled",
+          thumbnailUrl: null,
+        },
+      ]);
+    });
+
+    const client = createMultiplayerApiClient({
+      apiUrl: "http://localhost/api",
+    });
+    const result = await client.listAccountCollaborativeDocuments();
+
+    expect(result).toEqual([
+      {
+        documentId: "account-doc-1",
+        name: "Kitchen sketch",
+        thumbnailUrl: "https://cdn.example.com/thumb.png",
+      },
+      {
+        documentId: "account-doc-2",
+        name: "Untitled",
+        thumbnailUrl: null,
+      },
+    ]);
+    expect(requests[0]?.url).toContain("listAccountCollaborativeDocuments");
+    expect(requests[0]?.credentials).toBe("include");
+  });
+
   test("registerCollaborativeDocument sends mutation with base64 content", async () => {
     const requests: Array<{
       url: string;

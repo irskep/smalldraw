@@ -90,6 +90,9 @@ export function createDocumentRuntimeController(options: {
     accessTokenScope: "owner";
   }>;
   initialCatalogDocUrl?: string;
+  beforeOpenDocument?: (
+    summary: KidsDocumentSummary | null,
+  ) => Promise<void> | void;
   resolveJoinBaseUrl?: () => string;
   thumbnailSaveDebounceMs?: number;
   onThumbnailSaved?: (docUrl: string, blob: Blob) => Promise<void> | void;
@@ -103,6 +106,7 @@ export function createDocumentRuntimeController(options: {
     core: options.core,
     documentBackend: options.documentBackend,
     initialCatalogDocUrl: options.initialCatalogDocUrl,
+    beforeOpenDocument: options.beforeOpenDocument,
     thumbnailSaveDebounceMs,
     createThumbnailBlob: () => options.snapshotService.createThumbnailBlob(),
     onThumbnailSaved: options.onThumbnailSaved,

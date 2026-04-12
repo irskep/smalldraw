@@ -39,6 +39,9 @@ export class DocumentSessionController {
       core: SmalldrawCore;
       documentBackend: KidsDocumentBackend;
       initialCatalogDocUrl?: string;
+      beforeOpenDocument?: (
+        summary: KidsDocumentSummary | null,
+      ) => Promise<void> | void;
       thumbnailSaveDebounceMs: number;
       createThumbnailBlob: () => Promise<Blob | null>;
       onThumbnailSaved?: (docUrl: string, blob: Blob) => Promise<void> | void;
@@ -138,6 +141,7 @@ export class DocumentSessionController {
       await this.options.documentBackend.getDocument(docUrl);
     const openDocUrl = resolveDocumentOpenUrl(docUrl, persistedSummary);
     await this.flushThumbnailSave();
+    await this.options.beforeOpenDocument?.(persistedSummary);
     const adapter = await this.options.core.open(openDocUrl);
     this.currentCatalogDocUrl = docUrl;
     const openedDocument = adapter.getDoc();

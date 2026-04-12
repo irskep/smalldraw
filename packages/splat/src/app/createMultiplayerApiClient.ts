@@ -1,6 +1,13 @@
 import { createTRPCUntypedClient, httpBatchLink } from "@trpc/client";
 
 export interface MultiplayerApiClient {
+  listAccountCollaborativeDocuments(): Promise<
+    Array<{
+      documentId: string;
+      name: string;
+      thumbnailUrl: string | null;
+    }>
+  >;
   registerCollaborativeDocument(
     documentId: string,
     content: Uint8Array,
@@ -62,6 +69,16 @@ export function createMultiplayerApiClient(options: {
   });
 
   return {
+    async listAccountCollaborativeDocuments() {
+      const result = await client.query("listAccountCollaborativeDocuments");
+      const parsed = parseAccountDocumentListResult(result);
+      if (!parsed) {
+        throw new Error(
+          "Invalid response from listAccountCollaborativeDocuments",
+        );
+      }
+      return parsed;
+    },
     async registerCollaborativeDocument(documentId, content, deviceTag) {
       const contentBase64 = uint8ArrayToBase64(content);
       const result = await client.mutation("registerCollaborativeDocument", {
@@ -134,6 +151,41 @@ export function createMultiplayerApiClient(options: {
       return parsed;
     },
   };
+}
+
+function parseAccountDocumentListResult(input: unknown): Array<{
+  documentId: string;
+  name: string;
+  thumbnailUrl: string | null;
+}> | null {
+  if (!Array.isArray(input)) {
+    return null;
+  }
+  const documents: Array<{
+    documentId: string;
+    name: string;
+    thumbnailUrl: string | null;
+  }> = [];
+  for (const item of input) {
+    if (
+      !item ||
+      typeof item !== "object" ||
+      typeof (item as { documentId?: unknown }).documentId !== "string" ||
+      typeof (item as { name?: unknown }).name !== "string"
+    ) {
+      return null;
+    }
+    const thumbnailUrl = (item as { thumbnailUrl?: unknown }).thumbnailUrl;
+    if (thumbnailUrl != null && typeof thumbnailUrl !== "string") {
+      return null;
+    }
+    documents.push({
+      documentId: (item as { documentId: string }).documentId,
+      name: (item as { name: string }).name,
+      thumbnailUrl: thumbnailUrl ?? null,
+    });
+  }
+  return documents;
 }
 
 function parseRegisterResult(input: unknown): {

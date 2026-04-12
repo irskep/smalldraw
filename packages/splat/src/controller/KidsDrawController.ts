@@ -131,6 +131,9 @@ export function createKidsDrawController(options: {
   ) => Promise<void>;
   onThumbnailSaved?: (docUrl: string, thumbnail: Blob) => Promise<void> | void;
   initialCatalogDocUrl?: string;
+  beforeOpenDocument?: (
+    summary: KidsDocumentSummary | null,
+  ) => Promise<void> | void;
   resolveJoinBaseUrl?: () => string;
   showShareDialog: (payload: SharePayload) => Promise<void>;
   onShareError?: (message: string) => void;
@@ -164,6 +167,7 @@ export function createKidsDrawController(options: {
     registerCollaborativeDocument,
     onThumbnailSaved,
     initialCatalogDocUrl,
+    beforeOpenDocument,
     resolveJoinBaseUrl,
     showShareDialog,
     onShareError,
@@ -329,6 +333,7 @@ export function createKidsDrawController(options: {
     registerCollaborativeDocument,
     onThumbnailSaved,
     initialCatalogDocUrl,
+    beforeOpenDocument,
     resolveJoinBaseUrl,
   });
   const runtimeDocumentController = documentRuntimeController;

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { afterEach, describe, expect, it } from "bun:test";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { db } from "../db/client.js";
@@ -8,6 +8,41 @@ import { documentInvitations } from "../db/schema.js";
 import { appRouter } from "./appRouter.js";
 
 describe("account document open routes", () => {
+  afterEach(() => {
+    delete process.env.R2_PUBLIC_BASE_URL;
+  });
+
+  it("lists account collaborative document metadata without serializing document content", async () => {
+    process.env.R2_PUBLIC_BASE_URL = "https://cdn.example.com";
+    const user = await createUser({
+      username: "account-list-admin",
+      registrationRecord: "registration-record",
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "account-list-admin-session",
+        userId: user.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+    const { document } = await caller.createDocument({
+      name: "Listed Account Doc",
+    });
+
+    const result = await caller.listAccountCollaborativeDocuments();
+
+    expect(result).toEqual([
+      {
+        documentId: document.id,
+        name: "Listed Account Doc",
+        thumbnailUrl: null,
+      },
+    ]);
+  });
+
   it("returns an owner-scoped bootstrap payload for account document admins", async () => {
     const user = await createUser({
       username: "account-open-admin",

@@ -601,6 +601,11 @@ describe("splatterboard shell", () => {
     const originalFetch = globalThis.fetch;
     const fetchMock = (async (input: RequestInfo | URL) => {
       const url = input.toString();
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(JSON.stringify([{ result: { data: [] } }]), {
+          headers: { "content-type": "application/json" },
+        });
+      }
       if (url.includes("/resolveAnonymousCollaborativeDocument")) {
         return new Response(
           JSON.stringify([
@@ -671,6 +676,11 @@ describe("splatterboard shell", () => {
     const originalFetch = globalThis.fetch;
     const fetchMock = (async (input: RequestInfo | URL) => {
       const url = input.toString();
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(JSON.stringify([{ result: { data: [] } }]), {
+          headers: { "content-type": "application/json" },
+        });
+      }
       if (url.includes("/resolveAccountCollaborativeDocument")) {
         expect(decodeURIComponent(url)).toContain('"documentId":"account-doc"');
         expect(decodeURIComponent(url)).toContain('"deviceTag":"device-1"');
@@ -746,6 +756,343 @@ describe("splatterboard shell", () => {
     }
   });
 
+  test("empty local catalog syncs account document metadata and loads only the selected drawing", async () => {
+    const originalFetch = globalThis.fetch;
+    const resolvedDocumentIds: string[] = [];
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: [
+                  {
+                    documentId: "account-doc-a",
+                    name: "Account Doc A",
+                    thumbnailUrl: null,
+                  },
+                  {
+                    documentId: "account-doc-b",
+                    name: "Account Doc B",
+                    thumbnailUrl: null,
+                  },
+                ],
+              },
+            },
+          ]),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      if (url.includes("/resolveAccountCollaborativeDocument")) {
+        const decodedUrl = decodeURIComponent(url);
+        if (decodedUrl.includes('"documentId":"account-doc-a"')) {
+          resolvedDocumentIds.push("account-doc-a");
+          return new Response(
+            JSON.stringify([
+              {
+                result: {
+                  data: {
+                    collabDocUrl: "automerge:account-doc-a",
+                    accessToken: "account-access-a",
+                    accessTokenScope: "owner",
+                    content: btoa("fake-account-doc-a-binary"),
+                  },
+                },
+              },
+            ]),
+            {
+              headers: { "content-type": "application/json" },
+            },
+          );
+        }
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const backend = createMockDocumentBackend([], null);
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          startupIntent: {
+            kind: "open-last-local",
+          },
+          deviceTag: "device-1",
+        },
+      });
+
+      const documents = await backend.listDocuments();
+      expect(documents).toHaveLength(2);
+      expect(documents.map((document) => document.docUrl).sort()).toEqual([
+        "catalog-collab:account-doc-a",
+        "catalog-collab:account-doc-b",
+      ]);
+      expect(await backend.getCurrentDocument()).toBe(
+        "catalog-collab:account-doc-a",
+      );
+      expect(
+        documents.find(
+          (document) => document.docUrl === "catalog-collab:account-doc-a",
+        ),
+      ).toMatchObject({
+        title: "Account Doc A",
+        collaborative: true,
+        collabDocUrl: "automerge:account-doc-a",
+        accessToken: "account-access-a",
+        accessTokenScope: "owner",
+        accountAttached: true,
+      });
+      expect(
+        documents.find(
+          (document) => document.docUrl === "catalog-collab:account-doc-b",
+        ),
+      ).toMatchObject({
+        title: "Account Doc B",
+        collaborative: true,
+        collabDocUrl: "automerge:account-doc-b",
+        accessToken: undefined,
+        accountAttached: true,
+      });
+      expect(resolvedDocumentIds).toEqual(["account-doc-a"]);
+
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
+  });
+
+  test("default startup refreshes account metadata without loading non-current drawings", async () => {
+    const originalFetch = globalThis.fetch;
+    const resolvedDocumentIds: string[] = [];
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: [
+                  {
+                    documentId: "account-doc-b",
+                    name: "Renamed Account Doc B",
+                    thumbnailUrl: null,
+                  },
+                  {
+                    documentId: "account-doc-c",
+                    name: "New Account Doc C",
+                    thumbnailUrl: null,
+                  },
+                ],
+              },
+            },
+          ]),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      if (url.includes("/resolveAccountCollaborativeDocument")) {
+        const decodedUrl = decodeURIComponent(url);
+        const match = decodedUrl.match(/"documentId":"([^"]+)"/);
+        resolvedDocumentIds.push(match?.[1] ?? "unknown");
+        throw new Error(`Unexpected account content load: ${url}`);
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const now = new Date().toISOString();
+      const backend = createMockDocumentBackend(
+        [
+          {
+            docUrl: "automerge:local-doc",
+            mode: "normal",
+            createdAt: now,
+            updatedAt: now,
+            lastOpenedAt: now,
+          },
+          {
+            docUrl: "catalog-collab:account-doc-b",
+            mode: "normal",
+            title: "Old Account Doc B",
+            collaborative: true,
+            collabDocUrl: "automerge:account-doc-b",
+            accountAttached: true,
+            createdAt: now,
+            updatedAt: now,
+            lastOpenedAt: now,
+          },
+        ],
+        "automerge:local-doc",
+      );
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          startupIntent: {
+            kind: "open-last-local",
+          },
+          deviceTag: "device-1",
+        },
+      });
+
+      const documents = await backend.listDocuments();
+      expect(await backend.getCurrentDocument()).toBe("automerge:local-doc");
+      expect(
+        documents.find(
+          (document) => document.docUrl === "catalog-collab:account-doc-b",
+        ),
+      ).toMatchObject({
+        title: "Renamed Account Doc B",
+        collaborative: true,
+        collabDocUrl: "automerge:account-doc-b",
+        accountAttached: true,
+        accessToken: undefined,
+      });
+      expect(
+        documents.find(
+          (document) => document.docUrl === "catalog-collab:account-doc-c",
+        ),
+      ).toMatchObject({
+        title: "New Account Doc C",
+        collaborative: true,
+        collabDocUrl: "automerge:account-doc-c",
+        accountAttached: true,
+        accessToken: undefined,
+      });
+      expect(resolvedDocumentIds).toEqual([]);
+
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
+  });
+
+  test("default startup ignores stale current localStorage and selects an account document", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: [
+                  {
+                    documentId: "account-doc-a",
+                    name: "Account Doc A",
+                    thumbnailUrl: null,
+                  },
+                ],
+              },
+            },
+          ]),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      if (url.includes("/resolveAccountCollaborativeDocument")) {
+        expect(decodeURIComponent(url)).toContain(
+          '"documentId":"account-doc-a"',
+        );
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: {
+                  collabDocUrl: "automerge:account-doc-a",
+                  accessToken: "account-access-a",
+                  accessTokenScope: "owner",
+                  content: btoa("fake-account-doc-a-binary"),
+                },
+              },
+            },
+          ]),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const backend = createMockDocumentBackend([], "automerge:stale-local");
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          startupIntent: {
+            kind: "open-last-local",
+          },
+          deviceTag: "device-1",
+        },
+      });
+
+      expect(await backend.getCurrentDocument()).toBe(
+        "catalog-collab:account-doc-a",
+      );
+      expect(
+        (await backend.getDocument("catalog-collab:account-doc-a"))
+          ?.accessToken,
+      ).toBe("account-access-a");
+
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
+  });
+
   test("local document startup opens an existing browser catalog entry", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
@@ -781,6 +1128,192 @@ describe("splatterboard shell", () => {
     expect(await backend.getCurrentDocument()).toBe("automerge:local-doc");
 
     app.destroy();
+  });
+
+  test("local document startup still refreshes account metadata", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: [
+                  {
+                    documentId: "account-doc-a",
+                    name: "Account Doc A",
+                    thumbnailUrl: null,
+                  },
+                ],
+              },
+            },
+          ]),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      if (url.includes("/resolveAccountCollaborativeDocument")) {
+        throw new Error(`Unexpected account content load: ${url}`);
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const now = new Date().toISOString();
+      const backend = createMockDocumentBackend(
+        [
+          {
+            docUrl: "automerge:local-doc",
+            mode: "normal",
+            createdAt: now,
+            updatedAt: now,
+            lastOpenedAt: now,
+          },
+        ],
+        null,
+      );
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          startupIntent: {
+            kind: "open-local-document",
+            docUrl: "automerge:local-doc",
+          },
+          deviceTag: "device-1",
+        },
+      });
+
+      const documents = await backend.listDocuments();
+      expect(await backend.getCurrentDocument()).toBe("automerge:local-doc");
+      expect(
+        documents.find(
+          (document) => document.docUrl === "catalog-collab:account-doc-a",
+        ),
+      ).toMatchObject({
+        title: "Account Doc A",
+        collaborative: true,
+        collabDocUrl: "automerge:account-doc-a",
+        accountAttached: true,
+        accessToken: undefined,
+      });
+
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
+  });
+
+  test("stale local document URL after local data reset falls back to account catalog", async () => {
+    const originalFetch = globalThis.fetch;
+    const requests: string[] = [];
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      requests.push(url);
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: [
+                  {
+                    documentId: "account-doc-a",
+                    name: "Account Doc A",
+                    thumbnailUrl: null,
+                  },
+                ],
+              },
+            },
+          ]),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      if (url.includes("/resolveAccountCollaborativeDocument")) {
+        expect(decodeURIComponent(url)).toContain(
+          '"documentId":"account-doc-a"',
+        );
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: {
+                  collabDocUrl: "automerge:account-doc-a",
+                  accessToken: "account-access-a",
+                  accessTokenScope: "owner",
+                  content: btoa("fake-account-doc-a-binary"),
+                },
+              },
+            },
+          ]),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const backend = createMockDocumentBackend([], null);
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          startupIntent: {
+            kind: "open-local-document",
+            docUrl: "automerge:stale-local-doc",
+          },
+          deviceTag: "device-1",
+        },
+      });
+
+      expect(requests.some((url) => url.includes("/listAccount"))).toBe(true);
+      expect(await backend.getCurrentDocument()).toBe(
+        "catalog-collab:account-doc-a",
+      );
+      expect(
+        (await backend.getDocument("catalog-collab:account-doc-a"))
+          ?.accessToken,
+      ).toBe("account-access-a");
+
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
   });
 
   test("local document startup rejects missing browser catalog entries", async () => {

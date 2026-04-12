@@ -59,6 +59,15 @@ const resolveThumbnailUrl = (
     ? buildDocumentThumbnailUrl(storageKey, process.env.R2_PUBLIC_BASE_URL)
     : null;
 
+const listAccountDocumentSummaries = async (userId: string) => {
+  const documents = await getDocumentsByUserId(userId);
+  return documents.map((doc) => ({
+    id: doc.id,
+    name: doc.name,
+    thumbnailUrl: resolveThumbnailUrl(doc.thumbnailStorageKey),
+  }));
+};
+
 const serializeRepoDocument = async (documentId: string): Promise<string> => {
   const abortController = new AbortController();
   const timeout = setTimeout(() => abortController.abort(), 3000);
@@ -111,11 +120,16 @@ export const appRouter = router({
     };
   }),
   documents: protectedProcedure.query(async (opts) => {
-    const documents = await getDocumentsByUserId(opts.ctx.session.userId);
+    return await listAccountDocumentSummaries(opts.ctx.session.userId);
+  }),
+  listAccountCollaborativeDocuments: protectedProcedure.query(async (opts) => {
+    const documents = await listAccountDocumentSummaries(
+      opts.ctx.session.userId,
+    );
     return documents.map((doc) => ({
-      id: doc.id,
+      documentId: doc.id,
       name: doc.name,
-      thumbnailUrl: resolveThumbnailUrl(doc.thumbnailStorageKey),
+      thumbnailUrl: doc.thumbnailUrl,
     }));
   }),
   getDocument: protectedProcedure.input(z.string()).query(async (opts) => {

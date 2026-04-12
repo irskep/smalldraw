@@ -1,3 +1,4 @@
+import type { DocumentId } from "@automerge/automerge-repo";
 import {
   createSmalldraw,
   type DrawingDocumentSize,
@@ -16,6 +17,7 @@ import {
   createLocalDocumentBackend,
   createLocalSmalldrawRepo,
   isCollaborativeDocument,
+  type KidsDocumentBackend,
   type LocalSmalldrawRepo,
   resolveDocumentOpenUrl,
   resolveJoinBaseUrl,
@@ -37,7 +39,10 @@ import { KidsDrawStageView } from "../view/KidsDrawStage";
 import { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
 import { createModalDialogView } from "../view/ModalDialog";
 import { createShareQrDialog } from "../view/ShareQrDialog";
-import { createMultiplayerApiClient } from "./createMultiplayerApiClient";
+import {
+  createMultiplayerApiClient,
+  type MultiplayerApiClient,
+} from "./createMultiplayerApiClient";
 import { installMobileGestureGuards } from "./installMobileGestureGuards";
 import type {
   KidsDrawApp,
@@ -99,8 +104,7 @@ export async function createKidsDrawApp(
     kind: "open-last-local",
   };
   const deviceTag = options.multiplayer?.deviceTag ?? "unknown-device";
-  let joinedDocumentBinary: Uint8Array | null = null;
-  let joinedCollabDocUrl: string | null = null;
+  const startupPreImports: Array<{ binary: Uint8Array; docId: string }> = [];
   if (
     (startupIntent.kind === "open-share-link" ||
       startupIntent.kind === "open-account-document") &&
@@ -108,11 +112,36 @@ export async function createKidsDrawApp(
   ) {
     throw new Error("Multiplayer API is not configured.");
   }
+  const syncedAccountDocument = await syncAccountCatalog({
+    documentBackend,
+    multiplayerApiClient,
+    selectFirstIfNoCurrent:
+      startupIntent.kind === "open-last-local" ||
+      startupIntent.kind === "open-local-document",
+  });
 
   switch (startupIntent.kind) {
     case "open-local-document": {
       const existing = await documentBackend.getDocument(startupIntent.docUrl);
       if (!existing) {
+        if (syncedAccountDocument) {
+          const resolved = multiplayerApiClient
+            ? await resolveAccountDocumentForLocalOpen({
+                documentBackend,
+                multiplayerApiClient,
+                localRepo: null,
+                deviceTag,
+                summary: syncedAccountDocument,
+              })
+            : null;
+          if (resolved) {
+            startupPreImports.push({
+              binary: resolved.binary,
+              docId: resolved.collabDocUrl,
+            });
+            break;
+          }
+        }
         throw new Error("This drawing is not stored in this browser.");
       }
       await documentBackend.setCurrentDocument(startupIntent.docUrl);
@@ -130,8 +159,10 @@ export async function createKidsDrawApp(
       if (!resolved) {
         throw new Error("Invalid share link.");
       }
-      joinedDocumentBinary = base64ToUint8Array(resolved.content);
-      joinedCollabDocUrl = resolved.collabDocUrl;
+      startupPreImports.push({
+        binary: base64ToUint8Array(resolved.content),
+        docId: resolved.collabDocUrl,
+      });
       const existingSummaries = await documentBackend.listDocuments();
       const existingSummary = existingSummaries.find(
         (summary) => summary.collabDocUrl === resolved.collabDocUrl,
@@ -159,8 +190,10 @@ export async function createKidsDrawApp(
           startupIntent.documentId,
           deviceTag,
         );
-      joinedDocumentBinary = base64ToUint8Array(resolved.content);
-      joinedCollabDocUrl = resolved.collabDocUrl;
+      startupPreImports.push({
+        binary: base64ToUint8Array(resolved.content),
+        docId: resolved.collabDocUrl,
+      });
       const existingSummaries = await documentBackend.listDocuments();
       const existingSummary = existingSummaries.find(
         (summary) => summary.collabDocUrl === resolved.collabDocUrl,
@@ -179,9 +212,26 @@ export async function createKidsDrawApp(
       await documentBackend.setCurrentDocument(catalogDocUrl);
       break;
     }
-    case "open-last-local":
+    case "open-last-local": {
+      if (syncedAccountDocument && multiplayerApiClient) {
+        const resolved = await resolveAccountDocumentForLocalOpen({
+          documentBackend,
+          multiplayerApiClient,
+          localRepo: null,
+          deviceTag,
+          summary: syncedAccountDocument,
+        });
+        if (resolved) {
+          startupPreImports.push({
+            binary: resolved.binary,
+            docId: resolved.collabDocUrl,
+          });
+        }
+      }
       break;
+    }
   }
+
   const initialCatalogDocUrl = await documentBackend.getCurrentDocument();
   const initialCatalogSummary = initialCatalogDocUrl
     ? await documentBackend.getDocument(initialCatalogDocUrl)
@@ -219,10 +269,7 @@ export async function createKidsDrawApp(
     });
     core = await createSmalldraw({
       repo: localRepo,
-      preImport:
-        joinedDocumentBinary && joinedCollabDocUrl
-          ? { binary: joinedDocumentBinary, docId: joinedCollabDocUrl }
-          : undefined,
+      preImports: startupPreImports,
       persistence: {
         mode: "reuse",
         getCurrentDocUrl: async () => {
@@ -241,6 +288,18 @@ export async function createKidsDrawApp(
       shapeHandlers,
     });
   }
+
+  const prepareDocumentOpen = multiplayerApiClient
+    ? async (summary: KidsDocumentSummary | null) => {
+        await resolveAccountDocumentForLocalOpen({
+          documentBackend,
+          multiplayerApiClient,
+          localRepo,
+          deviceTag,
+          summary,
+        });
+      }
+    : undefined;
 
   const docSize = resolveInitialDocumentSize(
     core.storeAdapter.getDoc(),
@@ -380,6 +439,7 @@ export async function createKidsDrawApp(
       setCurrentDocument(summary) {
         collaborationStatusStore.setCurrentDocument(summary);
         collaborativeDocumentIndex.upsertSummary(summary);
+        updateRepoWebsocketAuthorization(localRepo, summary);
       },
       subscribe(listener) {
         return collaborationStatusStore.subscribe(listener);
@@ -442,6 +502,7 @@ export async function createKidsDrawApp(
       await uploadAccountThumbnail(summary, thumbnail);
     },
     initialCatalogDocUrl: initialCatalogDocUrl ?? undefined,
+    beforeOpenDocument: prepareDocumentOpen,
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
     showShareDialog: async (payload) => {
@@ -562,6 +623,124 @@ export function resolveInitialDocumentSize(
     width: Math.max(1, Math.round(fallbackSize.width)),
     height: Math.max(1, Math.round(fallbackSize.height)),
   };
+}
+
+async function syncAccountCatalog(options: {
+  documentBackend: KidsDocumentBackend;
+  multiplayerApiClient: MultiplayerApiClient | null;
+  selectFirstIfNoCurrent: boolean;
+}): Promise<KidsDocumentSummary | null> {
+  if (!options.multiplayerApiClient) {
+    return null;
+  }
+  const existingDocuments = await options.documentBackend.listDocuments();
+  const existingCurrentDocUrl =
+    await options.documentBackend.getCurrentDocument();
+  const existingCurrentDocument = existingCurrentDocUrl
+    ? await options.documentBackend.getDocument(existingCurrentDocUrl)
+    : null;
+  const existingByCollabDocUrl = new Map(
+    existingDocuments
+      .filter(isCollaborativeDocument)
+      .map((document) => [document.collabDocUrl, document] as const),
+  );
+
+  let accountDocuments: Awaited<
+    ReturnType<MultiplayerApiClient["listAccountCollaborativeDocuments"]>
+  >;
+  try {
+    accountDocuments =
+      await options.multiplayerApiClient.listAccountCollaborativeDocuments();
+  } catch (error) {
+    console.info("[kids-draw:documents] account catalog sync skipped", {
+      reason: "account_unavailable",
+      error,
+    });
+    return null;
+  }
+
+  let selectedDocument: KidsDocumentSummary | null = null;
+  for (const accountDocument of accountDocuments) {
+    const collabDocUrl = `automerge:${accountDocument.documentId}`;
+    const catalogDocUrl =
+      existingByCollabDocUrl.get(collabDocUrl)?.docUrl ??
+      buildJoinedCatalogDocUrl(collabDocUrl);
+    const summary = await options.documentBackend.createDocument({
+      docUrl: catalogDocUrl,
+      title: accountDocument.name,
+      collaborative: true,
+      collabDocUrl,
+      accountAttached: true,
+    });
+    selectedDocument ??= summary;
+  }
+
+  if (
+    options.selectFirstIfNoCurrent &&
+    !existingCurrentDocument &&
+    selectedDocument
+  ) {
+    await options.documentBackend.setCurrentDocument(selectedDocument.docUrl);
+  }
+  if (existingCurrentDocument) {
+    return existingCurrentDocument;
+  }
+  return selectedDocument;
+}
+
+async function resolveAccountDocumentForLocalOpen(options: {
+  documentBackend: KidsDocumentBackend;
+  multiplayerApiClient: MultiplayerApiClient;
+  localRepo: LocalSmalldrawRepo | null;
+  deviceTag: string;
+  summary: KidsDocumentSummary | null;
+}): Promise<{ binary: Uint8Array; collabDocUrl: string } | null> {
+  const summary = options.summary;
+  if (!summary?.accountAttached || !isCollaborativeDocument(summary)) {
+    return null;
+  }
+
+  const documentId = resolveCollaborativeDocumentId(summary.collabDocUrl);
+  const resolved =
+    await options.multiplayerApiClient.resolveCollaborativeDocumentByAccountDocumentId(
+      documentId,
+      options.deviceTag,
+    );
+  const binary = base64ToUint8Array(resolved.content);
+  const automergeDocumentId = documentId as DocumentId;
+  options.localRepo?.setWebsocketAuthorizedDocumentId(documentId);
+  options.localRepo?.setWebsocketAuthToken(resolved.accessToken);
+  if (options.localRepo && !options.localRepo.handles[automergeDocumentId]) {
+    options.localRepo.import(binary, { docId: automergeDocumentId });
+  }
+  await options.documentBackend.createDocument({
+    docUrl: summary.docUrl,
+    title: summary.title,
+    collaborative: true,
+    collabDocUrl: resolved.collabDocUrl,
+    accessToken: resolved.accessToken,
+    accessTokenScope: resolved.accessTokenScope,
+    accountAttached: true,
+  });
+  return { binary, collabDocUrl: resolved.collabDocUrl };
+}
+
+function updateRepoWebsocketAuthorization(
+  localRepo: LocalSmalldrawRepo | null,
+  summary: KidsDocumentSummary | null,
+): void {
+  if (!localRepo) {
+    return;
+  }
+  if (!summary?.accessToken || !isCollaborativeDocument(summary)) {
+    localRepo.setWebsocketAuthorizedDocumentId(null);
+    localRepo.setWebsocketAuthToken(null);
+    return;
+  }
+  localRepo.setWebsocketAuthorizedDocumentId(
+    resolveCollaborativeDocumentId(summary.collabDocUrl),
+  );
+  localRepo.setWebsocketAuthToken(summary.accessToken);
 }
 
 function base64ToUint8Array(base64: string): Uint8Array {

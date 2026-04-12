@@ -33,11 +33,11 @@ export interface SmalldrawCoreOptions {
     setCurrentDocUrl?: (url: string) => Promise<void> | void;
     clearCurrentDocUrl?: () => Promise<void> | void;
   };
-  /** Pre-import a document binary into the repo before opening. */
-  preImport?: {
+  /** Pre-import document binaries into the repo before opening. */
+  preImports?: Array<{
     binary: Uint8Array;
     docId: string;
-  };
+  }>;
   documentSize?: DrawingDocumentSize;
   debug?: boolean;
 }
@@ -131,7 +131,7 @@ export async function createSmalldraw(
     repo,
     shapeHandlers,
     persistence,
-    preImport,
+    preImports = [],
     documentSize = DEFAULT_DOCUMENT_SIZE,
     debug = false,
     initialOpenTimeoutMs = 8000,
@@ -143,7 +143,7 @@ export async function createSmalldraw(
 
   await initAutomerge();
 
-  if (preImport) {
+  for (const preImport of preImports) {
     const docId = stripAutomergePrefix(preImport.docId);
     repo.import(preImport.binary, { docId });
     if (debug) {
