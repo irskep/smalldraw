@@ -92,6 +92,7 @@ export function createDocumentRuntimeController(options: {
   initialCatalogDocUrl?: string;
   resolveJoinBaseUrl?: () => string;
   thumbnailSaveDebounceMs?: number;
+  onThumbnailSaved?: (docUrl: string, blob: Blob) => Promise<void> | void;
 }) {
   const thumbnailSaveDebounceMs =
     options.thumbnailSaveDebounceMs ?? DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS;
@@ -104,6 +105,7 @@ export function createDocumentRuntimeController(options: {
     initialCatalogDocUrl: options.initialCatalogDocUrl,
     thumbnailSaveDebounceMs,
     createThumbnailBlob: () => options.snapshotService.createThumbnailBlob(),
+    onThumbnailSaved: options.onThumbnailSaved,
     getDocumentSizeForCreateRequest: (request) => {
       if (request.mode === "coloring") {
         const page = getColoringPageById(request.coloringPageId);

@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "./client.js";
-import { documents, usersOnDocuments } from "./schema.js";
+import { documents, documentThumbnails, usersOnDocuments } from "./schema.js";
 
 type Params = {
   documentId: string;
@@ -15,6 +15,8 @@ export const getDocument = async ({ documentId, userId }: Params) => {
       createdAt: documents.createdAt,
       updatedAt: documents.updatedAt,
       isAdmin: usersOnDocuments.isAdmin,
+      thumbnailStorageKey: documentThumbnails.storageKey,
+      thumbnailContentType: documentThumbnails.contentType,
     })
     .from(documents)
     .innerJoin(
@@ -23,6 +25,10 @@ export const getDocument = async ({ documentId, userId }: Params) => {
         eq(usersOnDocuments.documentId, documents.id),
         eq(usersOnDocuments.userId, userId),
       ),
+    )
+    .leftJoin(
+      documentThumbnails,
+      eq(documentThumbnails.documentId, documents.id),
     )
     .where(eq(documents.id, documentId))
     .limit(1);
@@ -35,5 +41,7 @@ export const getDocument = async ({ documentId, userId }: Params) => {
     createdAt: rows[0].createdAt,
     updatedAt: rows[0].updatedAt,
     isAdmin: !!rows[0].isAdmin,
+    thumbnailStorageKey: rows[0].thumbnailStorageKey,
+    thumbnailContentType: rows[0].thumbnailContentType,
   };
 };

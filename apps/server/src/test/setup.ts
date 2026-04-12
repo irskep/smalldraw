@@ -5,6 +5,7 @@ import { db } from "../db/client.js";
 import {
   documentInvitations,
   documents,
+  documentThumbnails,
   loginAttempts,
   serverAdminCredentials,
   sessions,
@@ -20,6 +21,7 @@ beforeAll(() => {
 
 beforeEach(async () => {
   await db.delete(documentInvitations);
+  await db.delete(documentThumbnails);
   await db.delete(serverAdminCredentials);
   await db.delete(usersOnDocuments);
   await db.delete(documents);

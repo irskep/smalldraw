@@ -41,6 +41,7 @@ export class DocumentSessionController {
       initialCatalogDocUrl?: string;
       thumbnailSaveDebounceMs: number;
       createThumbnailBlob: () => Promise<Blob | null>;
+      onThumbnailSaved?: (docUrl: string, blob: Blob) => Promise<void> | void;
       getDocumentSizeForCreateRequest: (
         request: NewDocumentRequest,
       ) => DrawingDocumentSize;
@@ -235,6 +236,7 @@ export class DocumentSessionController {
         return;
       }
       await this.options.documentBackend.saveThumbnail(docUrl, thumbnailBlob);
+      void this.options.onThumbnailSaved?.(docUrl, thumbnailBlob);
     } catch (error) {
       console.warn("[kids-draw:documents] failed to save thumbnail", {
         docUrl,

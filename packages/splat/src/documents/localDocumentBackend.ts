@@ -61,8 +61,7 @@ function normalizeDocumentSummary(
     joinSecret: collaborative ? joinSecret : undefined,
     accessToken: collaborative ? accessToken : undefined,
     accessTokenScope: collaborative ? accessTokenScope : undefined,
-    accountAttached:
-      value.accountAttached === true ? true : undefined,
+    accountAttached: value.accountAttached === true ? true : undefined,
     title: value.title,
     mode: normalizeMode(value.mode),
     coloringPageId:
@@ -117,7 +116,9 @@ function dedupeDocumentSummaries(
     if (!document.collabDocUrl) {
       return !catalogDocUrlByCollabDocUrl.has(document.docUrl);
     }
-    const catalogDocUrl = catalogDocUrlByCollabDocUrl.get(document.collabDocUrl);
+    const catalogDocUrl = catalogDocUrlByCollabDocUrl.get(
+      document.collabDocUrl,
+    );
     return !catalogDocUrl || catalogDocUrl === document.docUrl;
   });
 }
@@ -282,13 +283,13 @@ class IndexedDbDocumentRepository implements DocumentRepository {
     return sortDocuments(
       dedupeDocumentSummaries(
         documents
-        .filter((document) => typeof document.docUrl === "string")
-        .map((document) =>
-          normalizeDocumentSummary(
-            document as Partial<KidsDocumentSummary> &
-              Pick<KidsDocumentSummary, "docUrl">,
+          .filter((document) => typeof document.docUrl === "string")
+          .map((document) =>
+            normalizeDocumentSummary(
+              document as Partial<KidsDocumentSummary> &
+                Pick<KidsDocumentSummary, "docUrl">,
+            ),
           ),
-        ),
       ),
     );
   }
@@ -434,7 +435,9 @@ class MemoryDocumentRepository implements DocumentRepository {
   private readonly documents = new Map<string, KidsDocumentSummary>();
 
   async listDocuments(): Promise<KidsDocumentSummary[]> {
-    return sortDocuments(dedupeDocumentSummaries(Array.from(this.documents.values())));
+    return sortDocuments(
+      dedupeDocumentSummaries(Array.from(this.documents.values())),
+    );
   }
 
   async getDocument(docUrl: string): Promise<KidsDocumentSummary | null> {

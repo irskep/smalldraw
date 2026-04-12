@@ -15,6 +15,7 @@ import {
   createCollaborativeDocumentIndex,
   createLocalDocumentBackend,
   createLocalSmalldrawRepo,
+  isCollaborativeDocument,
   type LocalSmalldrawRepo,
   resolveDocumentOpenUrl,
   resolveJoinBaseUrl,
@@ -217,6 +218,52 @@ export async function createKidsDrawApp(
   const modalDialog = createModalDialogView();
   const shareQrDialog = createShareQrDialog();
 
+  const uploadAccountThumbnail = async (
+    summary: KidsDocumentSummary | null,
+    thumbnail: Blob,
+  ): Promise<void> => {
+    if (!multiplayerApiClient || !summary?.accountAttached) {
+      console.info("[kids-draw:documents] account thumbnail upload skipped", {
+        reason: !multiplayerApiClient ? "missing_api_client" : "not_attached",
+        docUrl: summary?.docUrl ?? null,
+        collaborative: summary?.collaborative ?? false,
+        collabDocUrl: summary?.collabDocUrl ?? null,
+        accountAttached: summary?.accountAttached ?? false,
+      });
+      return;
+    }
+    if (!isCollaborativeDocument(summary)) {
+      console.info("[kids-draw:documents] account thumbnail upload skipped", {
+        reason: "not_collaborative",
+        docUrl: summary.docUrl,
+        collaborative: summary.collaborative ?? false,
+        collabDocUrl: summary.collabDocUrl ?? null,
+        accountAttached: summary.accountAttached ?? false,
+      });
+      return;
+    }
+    const documentId = resolveCollaborativeDocumentId(summary.collabDocUrl);
+    try {
+      console.info("[kids-draw:documents] account thumbnail upload start", {
+        docUrl: summary.docUrl,
+        documentId,
+        sizeBytes: thumbnail.size,
+        type: thumbnail.type || "application/octet-stream",
+      });
+      await multiplayerApiClient.uploadDocumentThumbnail(documentId, thumbnail);
+      console.info("[kids-draw:documents] account thumbnail upload complete", {
+        docUrl: summary.docUrl,
+        documentId,
+      });
+    } catch (error) {
+      console.warn("[kids-draw:documents] account thumbnail upload failed", {
+        docUrl: summary.docUrl,
+        documentId,
+        error,
+      });
+    }
+  };
+
   mount(element, stage.element);
   toolbar.mountDesktopLayout({
     topSlot: stage.insetTopSlot,
@@ -332,6 +379,13 @@ export async function createKidsDrawApp(
           await multiplayerApiClient.claimCollaborativeDocument(accessToken);
         }
       : undefined,
+    uploadDocumentThumbnail: async (document, thumbnail) => {
+      await uploadAccountThumbnail(document, thumbnail);
+    },
+    onThumbnailSaved: async (docUrl, thumbnail) => {
+      const summary = await documentBackend.getDocument(docUrl);
+      await uploadAccountThumbnail(summary, thumbnail);
+    },
     initialCatalogDocUrl: initialCatalogDocUrl ?? undefined,
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),

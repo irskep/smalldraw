@@ -31,13 +31,19 @@ import { getUserByUsername } from "../db/getUserByUsername.js";
 import { listDocumentAccessTokensForAdmin } from "../db/listDocumentAccessTokensForAdmin.js";
 import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTokenForAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "../db/rotateAnonymousCollaborativeDocumentShareToken.js";
+import {
+  buildDocumentThumbnailStorageKey,
+  buildDocumentThumbnailUrl,
+} from "../db/thumbnailStorage.js";
 import { updateDocument } from "../db/updateDocument.js";
+import { upsertDocumentThumbnail } from "../db/upsertDocumentThumbnail.js";
 import {
   LoginFinishParams,
   LoginStartParams,
   RegisterFinishParams,
   RegisterStartParams,
 } from "../schema.js";
+import { getDocumentThumbnailStore } from "../storage/documentThumbnailStore.js";
 import { getOpaqueServerSetup } from "../utils/getOpaqueServerSetup.js";
 import {
   protectedProcedure,
@@ -45,6 +51,13 @@ import {
   router,
   serverAdminProcedure,
 } from "./trpc.js";
+
+const resolveThumbnailUrl = (
+  storageKey: string | null | undefined,
+): string | null =>
+  storageKey
+    ? buildDocumentThumbnailUrl(storageKey, process.env.R2_PUBLIC_BASE_URL)
+    : null;
 
 export const appRouter = router({
   adminMe: serverAdminProcedure.query(async (opts) => {
@@ -78,7 +91,11 @@ export const appRouter = router({
   }),
   documents: protectedProcedure.query(async (opts) => {
     const documents = await getDocumentsByUserId(opts.ctx.session.userId);
-    return documents.map((doc) => ({ id: doc.id, name: doc.name }));
+    return documents.map((doc) => ({
+      id: doc.id,
+      name: doc.name,
+      thumbnailUrl: resolveThumbnailUrl(doc.thumbnailStorageKey),
+    }));
   }),
   getDocument: protectedProcedure.input(z.string()).query(async (opts) => {
     const document = await getDocument({
@@ -90,8 +107,57 @@ export const appRouter = router({
       id: document.id,
       name: document.name,
       isAdmin: document.isAdmin,
+      thumbnailUrl: resolveThumbnailUrl(document.thumbnailStorageKey),
     };
   }),
+  uploadDocumentThumbnail: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string().min(1),
+        contentType: z.string().min(1),
+        contentBase64: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      const document = await getDocument({
+        documentId: opts.input.documentId,
+        userId: opts.ctx.session.userId,
+      });
+      if (!document) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Document not found",
+        });
+      }
+      if (!document.isAdmin) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only document admins can upload thumbnails",
+        });
+      }
+
+      const storageKey = buildDocumentThumbnailStorageKey(
+        opts.input.documentId,
+      );
+      const content = new Uint8Array(
+        Buffer.from(opts.input.contentBase64, "base64"),
+      );
+      await getDocumentThumbnailStore().putObject({
+        key: storageKey,
+        body: content,
+        contentType: opts.input.contentType,
+      });
+      await upsertDocumentThumbnail({
+        documentId: opts.input.documentId,
+        storageKey,
+        contentType: opts.input.contentType,
+      });
+
+      return {
+        documentId: opts.input.documentId,
+        thumbnailUrl: resolveThumbnailUrl(storageKey),
+      };
+    }),
   updateDocument: protectedProcedure
     .input(
       z.object({

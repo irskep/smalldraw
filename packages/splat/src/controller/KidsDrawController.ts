@@ -7,7 +7,7 @@ import { Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { type IconNode, Trash2 } from "lucide";
 import { mount } from "redom";
-import type { KidsDocumentBackend } from "../documents";
+import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 import { resolveDocumentClaimState } from "../documents";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
@@ -125,6 +125,11 @@ export function createKidsDrawController(options: {
     accessTokenScope: "owner";
   }>;
   claimCollaborativeDocument?: (accessToken: string) => Promise<void>;
+  uploadDocumentThumbnail?: (
+    document: KidsDocumentSummary,
+    thumbnail: Blob,
+  ) => Promise<void>;
+  onThumbnailSaved?: (docUrl: string, thumbnail: Blob) => Promise<void> | void;
   initialCatalogDocUrl?: string;
   resolveJoinBaseUrl?: () => string;
   showShareDialog: (payload: SharePayload) => Promise<void>;
@@ -154,6 +159,7 @@ export function createKidsDrawController(options: {
     savePngExport,
     createDocumentCopy,
     registerCollaborativeDocument,
+    onThumbnailSaved,
     initialCatalogDocUrl,
     resolveJoinBaseUrl,
     showShareDialog,
@@ -317,6 +323,7 @@ export function createKidsDrawController(options: {
     getExplicitSize: sizingPolicy.getExplicitSize,
     createDocumentCopy,
     registerCollaborativeDocument,
+    onThumbnailSaved,
     initialCatalogDocUrl,
     resolveJoinBaseUrl,
   });
@@ -351,10 +358,14 @@ export function createKidsDrawController(options: {
         throw new Error(toClaimErrorMessage(claimState.reason));
       }
       await options.claimCollaborativeDocument(claimState.accessToken);
-      await documentBackend.createDocument({
+      const attachedDocument = await documentBackend.createDocument({
         docUrl: document.docUrl,
         accountAttached: true,
       });
+      const thumbnail = await documentBackend.getThumbnail(document.docUrl);
+      if (thumbnail && options.uploadDocumentThumbnail) {
+        await options.uploadDocumentThumbnail(attachedDocument, thumbnail);
+      }
     },
     isClaimableDocument: (document) =>
       resolveDocumentClaimState(document).claimable,

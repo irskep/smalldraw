@@ -9,6 +9,7 @@ import type { AuthenticatedSocket } from "./automergeRepo/socketAuthContext.js";
 import { touchDocumentToken } from "./db/documentTokens.js";
 import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getSession } from "./db/getSession.js";
+import { getR2ThumbnailConfig } from "./storage/documentThumbnailStore.js";
 import { appRouter } from "./trpc/appRouter.js";
 import { createContext } from "./trpc/trpc.js";
 import { resolveWebSocketUpgradeAuth } from "./wsUpgradeAuth.js";
@@ -75,6 +76,15 @@ app.get("*", (req, res, next) => {
 
 const server = app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
+  const r2ThumbnailConfig = getR2ThumbnailConfig();
+  if (!r2ThumbnailConfig.ready || !r2ThumbnailConfig.publicBaseUrl) {
+    console.warn("[server:thumbnails] R2 config incomplete", {
+      missing: [
+        ...r2ThumbnailConfig.missing,
+        r2ThumbnailConfig.publicBaseUrl ? null : "R2_PUBLIC_BASE_URL",
+      ].filter((name): name is string => Boolean(name)),
+    });
+  }
 });
 
 server.on("upgrade", async (request, socket, head) => {

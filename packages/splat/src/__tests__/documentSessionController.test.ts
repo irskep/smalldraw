@@ -112,4 +112,67 @@ describe("DocumentSessionController", () => {
     expect(createdUrls).toEqual(["automerge:local-doc"]);
     expect(touchedUrls).toEqual(["automerge:local-doc", "automerge:local-doc"]);
   });
+
+  test("flushThumbnailSave notifies after local thumbnail persistence", async () => {
+    const store = createTestStore();
+    const saved: Array<{ docUrl: string; size: number }> = [];
+    const uploaded: Array<{ docUrl: string; size: number }> = [];
+    const thumbnailBlob = new Blob(["thumbnail-bytes"], { type: "image/png" });
+
+    const controller = new DocumentSessionController({
+      store,
+      core: {
+        storeAdapter: {
+          getDoc: () => store.getDocument(),
+          applyAction: () => {},
+          subscribe: () => () => {},
+        },
+        getCurrentDocUrl: () => "automerge:test-doc",
+        open: async () => {
+          throw new Error("unused");
+        },
+        createNew: async () => {
+          throw new Error("unused");
+        },
+        reset: async () => {
+          throw new Error("unused");
+        },
+        createDocumentCopy: () => {
+          throw new Error("unused");
+        },
+        destroy: () => {},
+      },
+      documentBackend: {
+        mode: "local",
+        listDocuments: async () => [],
+        getDocument: async () => null,
+        createDocument: async (input) => ({
+          docUrl: input.docUrl,
+          mode: input.mode ?? "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        touchDocument: async () => null,
+        deleteDocument: async () => {},
+        saveThumbnail: async (docUrl, blob) => {
+          saved.push({ docUrl, size: blob.size });
+        },
+        getThumbnail: async () => null,
+        setCurrentDocument: async () => {},
+        getCurrentDocument: async () => null,
+      },
+      thumbnailSaveDebounceMs: 1,
+      createThumbnailBlob: async () => thumbnailBlob,
+      onThumbnailSaved: async (docUrl, blob) => {
+        uploaded.push({ docUrl, size: blob.size });
+      },
+      getDocumentSizeForCreateRequest: () => ({ width: 640, height: 480 }),
+    });
+
+    await controller.flushThumbnailSave();
+
+    expect(saved).toEqual([{ docUrl: "automerge:test-doc", size: 15 }]);
+    expect(uploaded).toEqual([{ docUrl: "automerge:test-doc", size: 15 }]);
+  });
 });

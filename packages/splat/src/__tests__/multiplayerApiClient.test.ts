@@ -182,4 +182,42 @@ describe("createMultiplayerApiClient", () => {
     expect(requests[0]?.url).toContain("claimCollaborativeDocument");
     expect(requests[0]?.credentials).toBe("include");
   });
+
+  test("uploadDocumentThumbnail includes browser credentials and parses response", async () => {
+    const requests: Array<{
+      url: string;
+      credentials: RequestCredentials | undefined;
+      body: string | null;
+    }> = [];
+    installFetchMock(async (input, init) => {
+      requests.push({
+        url: input.toString(),
+        credentials: init?.credentials,
+        body: typeof init?.body === "string" ? init.body : null,
+      });
+      return mockJsonResponse({
+        documentId: "doc-thumb-1",
+        thumbnailUrl:
+          "https://cdn.example.com/documents/doc-thumb-1/thumbnail.png",
+      });
+    });
+
+    const client = createMultiplayerApiClient({
+      apiUrl: "http://localhost/api",
+    });
+    const result = await client.uploadDocumentThumbnail(
+      "doc-thumb-1",
+      new Blob(["thumbnail-bytes"], { type: "image/png" }),
+    );
+
+    expect(result).toEqual({
+      documentId: "doc-thumb-1",
+      thumbnailUrl:
+        "https://cdn.example.com/documents/doc-thumb-1/thumbnail.png",
+    });
+    expect(requests[0]?.url).toContain("uploadDocumentThumbnail");
+    expect(requests[0]?.credentials).toBe("include");
+    expect(requests[0]?.body).toContain("doc-thumb-1");
+    expect(requests[0]?.body).toContain("image/png");
+  });
 });

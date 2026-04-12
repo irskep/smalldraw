@@ -66,6 +66,16 @@ export const documents = sqliteTable("documents", {
   updatedAt: timestamp("updated_at"),
 });
 
+export const documentThumbnails = sqliteTable("document_thumbnails", {
+  documentId: text("document_id")
+    .primaryKey()
+    .notNull()
+    .references(() => documents.id, { onDelete: "cascade" }),
+  storageKey: text("storage_key").notNull().unique(),
+  contentType: text("content_type").notNull(),
+  updatedAt: timestamp("updated_at"),
+});
+
 export const usersOnDocuments = sqliteTable(
   "users_on_documents",
   {
@@ -103,5 +113,6 @@ export type DocumentTokenScope = (typeof documentTokenScopes)[number];
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type Document = typeof documents.$inferSelect;
+export type DocumentThumbnail = typeof documentThumbnails.$inferSelect;
 export type DocumentInvitation = typeof documentInvitations.$inferSelect;
 export type LoginAttempt = typeof loginAttempts.$inferSelect;

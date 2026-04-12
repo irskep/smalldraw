@@ -18,6 +18,8 @@ import { createUser } from "./createUser.js";
 import { deleteSession } from "./deleteSession.js";
 import { createDocumentToken } from "./documentTokens.js";
 import { getDocumentInvitationByToken } from "./getDocumentInvitationByToken.js";
+import { getDocumentsByUserId } from "./getDocumentsByUserId.js";
+import { getDocumentThumbnail } from "./getDocumentThumbnail.js";
 import { getSession } from "./getSession.js";
 import { getUser } from "./getUser.js";
 import { getUserByUsername } from "./getUserByUsername.js";
@@ -26,6 +28,11 @@ import { listDocumentAccessTokensForAdmin } from "./listDocumentAccessTokensForA
 import { revokeDocumentAccessTokenForAdmin } from "./revokeDocumentAccessTokenForAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "./rotateAnonymousCollaborativeDocumentShareToken.js";
 import { documentInvitations, usersOnDocuments } from "./schema.js";
+import {
+  buildDocumentThumbnailStorageKey,
+  buildDocumentThumbnailUrl,
+} from "./thumbnailStorage.js";
+import { upsertDocumentThumbnail } from "./upsertDocumentThumbnail.js";
 
 describe("User operations", () => {
   it("createUser creates a user and returns it", async () => {
@@ -479,5 +486,85 @@ describe("Document operations", () => {
         accessToken: created.joinSecret,
       }),
     ).rejects.toThrow("Owner token not found");
+  });
+
+  it("upsertDocumentThumbnail creates and updates thumbnail metadata", async () => {
+    const user = await createUser({
+      username: "thumb-owner",
+      registrationRecord: "test-registration-record",
+    });
+    await createDocument({
+      userId: user.id,
+      documentId: "thumb-doc-1",
+      name: "Thumb Doc",
+    });
+
+    const first = await upsertDocumentThumbnail({
+      documentId: "thumb-doc-1",
+      storageKey: buildDocumentThumbnailStorageKey("thumb-doc-1"),
+      contentType: "image/png",
+    });
+    expect(first?.documentId).toBe("thumb-doc-1");
+    expect(first?.storageKey).toBe("documents/thumb-doc-1/thumbnail.png");
+    expect(first?.contentType).toBe("image/png");
+
+    const second = await upsertDocumentThumbnail({
+      documentId: "thumb-doc-1",
+      storageKey: "documents/thumb-doc-1/thumbnail.webp",
+      contentType: "image/webp",
+    });
+    expect(second?.storageKey).toBe("documents/thumb-doc-1/thumbnail.webp");
+    expect(second?.contentType).toBe("image/webp");
+
+    const fetched = await getDocumentThumbnail("thumb-doc-1");
+    expect(fetched?.storageKey).toBe("documents/thumb-doc-1/thumbnail.webp");
+  });
+
+  it("getDocumentsByUserId returns thumbnail metadata when present", async () => {
+    const user = await createUser({
+      username: "thumb-list-owner",
+      registrationRecord: "test-registration-record",
+    });
+    await createDocument({
+      userId: user.id,
+      documentId: "thumb-doc-2",
+      name: "Thumb List Doc",
+    });
+    await upsertDocumentThumbnail({
+      documentId: "thumb-doc-2",
+      storageKey: buildDocumentThumbnailStorageKey("thumb-doc-2"),
+      contentType: "image/png",
+    });
+
+    const documents = await getDocumentsByUserId(user.id);
+    expect(documents).toEqual([
+      {
+        id: "thumb-doc-2",
+        name: "Thumb List Doc",
+        thumbnailStorageKey: "documents/thumb-doc-2/thumbnail.png",
+        thumbnailContentType: "image/png",
+      },
+    ]);
+  });
+
+  it("buildDocumentThumbnailUrl joins public base url and storage key", () => {
+    expect(
+      buildDocumentThumbnailUrl(
+        "documents/thumb-doc-3/thumbnail.png",
+        "https://cdn.example.com",
+      ),
+    ).toBe("https://cdn.example.com/documents/thumb-doc-3/thumbnail.png");
+    expect(
+      buildDocumentThumbnailUrl(
+        "/documents/thumb-doc-3/thumbnail.png",
+        "https://cdn.example.com/",
+      ),
+    ).toBe("https://cdn.example.com/documents/thumb-doc-3/thumbnail.png");
+    expect(
+      buildDocumentThumbnailUrl(
+        "documents/thumb-doc-3/thumbnail.png",
+        undefined,
+      ),
+    ).toBeNull();
   });
 });

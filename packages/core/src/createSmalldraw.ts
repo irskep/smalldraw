@@ -282,7 +282,11 @@ export async function createSmalldraw(
         doc.shapes = JSON.parse(JSON.stringify(sourceDoc.shapes ?? {}));
         doc.temporalOrderCounter = sourceDoc.temporalOrderCounter ?? 0;
       });
-      const binary = save(copyHandle.doc()!);
+      const copiedDoc = copyHandle.doc();
+      if (!copiedDoc) {
+        throw new Error("Document copy was not available after creation");
+      }
+      const binary = save(copiedDoc);
       return { url: copyHandle.url, binary };
     },
     async createNew(createOptions) {

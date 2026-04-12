@@ -26,6 +26,13 @@ export interface MultiplayerApiClient {
     attached: boolean;
     isAdmin: boolean;
   }>;
+  uploadDocumentThumbnail(
+    documentId: string,
+    thumbnail: Blob,
+  ): Promise<{
+    documentId: string;
+    thumbnailUrl: string | null;
+  }>;
 }
 
 export function createMultiplayerApiClient(options: {
@@ -85,6 +92,19 @@ export function createMultiplayerApiClient(options: {
       const parsed = parseClaimResult(result);
       if (!parsed) {
         throw new Error("Invalid response from claimCollaborativeDocument");
+      }
+      return parsed;
+    },
+    async uploadDocumentThumbnail(documentId, thumbnail) {
+      const content = new Uint8Array(await thumbnail.arrayBuffer());
+      const result = await client.mutation("uploadDocumentThumbnail", {
+        documentId,
+        contentType: thumbnail.type || "application/octet-stream",
+        contentBase64: uint8ArrayToBase64(content),
+      });
+      const parsed = parseUploadThumbnailResult(result);
+      if (!parsed) {
+        throw new Error("Invalid response from uploadDocumentThumbnail");
       }
       return parsed;
     },
@@ -156,6 +176,26 @@ function parseClaimResult(
     documentId: (input as { documentId: string }).documentId,
     attached: (input as { attached: boolean }).attached,
     isAdmin: (input as { isAdmin: boolean }).isAdmin,
+  };
+}
+
+function parseUploadThumbnailResult(
+  input: unknown,
+): { documentId: string; thumbnailUrl: string | null } | null {
+  if (
+    !input ||
+    typeof input !== "object" ||
+    typeof (input as { documentId?: unknown }).documentId !== "string"
+  ) {
+    return null;
+  }
+  const thumbnailUrl = (input as { thumbnailUrl?: unknown }).thumbnailUrl;
+  if (thumbnailUrl != null && typeof thumbnailUrl !== "string") {
+    return null;
+  }
+  return {
+    documentId: (input as { documentId: string }).documentId,
+    thumbnailUrl: thumbnailUrl ?? null,
   };
 }
 
