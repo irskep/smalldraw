@@ -1,6 +1,6 @@
 import type { DrawingStore, SmalldrawCore } from "@smalldraw/core";
 import type { IconNode } from "lucide";
-import type { KidsDocumentBackend } from "../documents";
+import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 
 export interface ConfirmDialogRequest {
   title: string;
@@ -24,6 +24,7 @@ export interface KidsDrawAppOptions {
     joinBaseUrl?: string;
     startupIntent?:
       | { kind: "open-last-local" }
+      | { kind: "open-local-document"; docUrl: string }
       | { kind: "open-share-link"; joinSecret: string }
       | { kind: "open-account-document"; documentId: string };
     deviceTag?: string;
@@ -35,6 +36,9 @@ export interface KidsDrawAppOptions {
     dataUrl?: string;
   }) => Promise<boolean>;
   onShareError?: (message: string) => void;
+  onCurrentDocumentSummaryChanged?: (
+    summary: KidsDocumentSummary | null,
+  ) => void;
 }
 
 export interface KidsDrawAppCommands {

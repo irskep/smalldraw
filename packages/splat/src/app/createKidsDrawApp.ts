@@ -101,11 +101,23 @@ export async function createKidsDrawApp(
   const deviceTag = options.multiplayer?.deviceTag ?? "unknown-device";
   let joinedDocumentBinary: Uint8Array | null = null;
   let joinedCollabDocUrl: string | null = null;
-  if (startupIntent.kind !== "open-last-local" && !multiplayerApiClient) {
+  if (
+    (startupIntent.kind === "open-share-link" ||
+      startupIntent.kind === "open-account-document") &&
+    !multiplayerApiClient
+  ) {
     throw new Error("Multiplayer API is not configured.");
   }
 
   switch (startupIntent.kind) {
+    case "open-local-document": {
+      const existing = await documentBackend.getDocument(startupIntent.docUrl);
+      if (!existing) {
+        throw new Error("This drawing is not stored in this browser.");
+      }
+      await documentBackend.setCurrentDocument(startupIntent.docUrl);
+      break;
+    }
     case "open-share-link": {
       if (!multiplayerApiClient) {
         throw new Error("Multiplayer API is not configured.");
@@ -457,6 +469,7 @@ export async function createKidsDrawApp(
         cancelLabel: "Dismiss",
       });
     },
+    onCurrentDocumentSummaryChanged: options.onCurrentDocumentSummaryChanged,
   });
 
   const commands: KidsDrawAppCommands = {

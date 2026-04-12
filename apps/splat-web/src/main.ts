@@ -1,5 +1,6 @@
 import "@smalldraw/splat/styles.css";
 import { createKidsDrawApp } from "@smalldraw/splat";
+import { buildSplatCurrentDocumentUrl } from "./documentUrl";
 import {
   createBrowserMultiplayerConfig,
   resolveSplatStartupIntent,
@@ -21,6 +22,15 @@ try {
     multiplayer: {
       ...multiplayerConfig,
       startupIntent,
+    },
+    onCurrentDocumentSummaryChanged: (summary) => {
+      const nextUrl = buildSplatCurrentDocumentUrl(
+        window.location.href,
+        summary,
+      );
+      if (nextUrl !== window.location.href) {
+        window.history.replaceState(null, "", nextUrl);
+      }
     },
   });
 

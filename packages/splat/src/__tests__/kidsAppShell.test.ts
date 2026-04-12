@@ -746,6 +746,65 @@ describe("splatterboard shell", () => {
     }
   });
 
+  test("local document startup opens an existing browser catalog entry", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const now = new Date().toISOString();
+    const backend = createMockDocumentBackend(
+      [
+        {
+          docUrl: "automerge:local-doc",
+          mode: "normal",
+          createdAt: now,
+          updatedAt: now,
+          lastOpenedAt: now,
+        },
+      ],
+      null,
+    );
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      documentBackend: backend,
+      confirmDestructiveAction: async () => true,
+      multiplayer: {
+        startupIntent: {
+          kind: "open-local-document",
+          docUrl: "automerge:local-doc",
+        },
+      },
+    });
+
+    expect(await backend.getCurrentDocument()).toBe("automerge:local-doc");
+
+    app.destroy();
+  });
+
+  test("local document startup rejects missing browser catalog entries", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    await expect(
+      createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: createMockDocumentBackend([], null),
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          startupIntent: {
+            kind: "open-local-document",
+            docUrl: "automerge:missing-doc",
+          },
+        },
+      }),
+    ).rejects.toThrow("This drawing is not stored in this browser.");
+  });
+
   test("filled/outline shape families preserve sub-shape and draw boxed kinds", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
@@ -922,6 +981,7 @@ describe("splatterboard shell", () => {
       ],
       firstDocUrl,
     );
+    const currentDocumentSummaries: Array<KidsDocumentSummary | null> = [];
 
     const app = await createKidsDrawApp({
       container,
@@ -930,6 +990,9 @@ describe("splatterboard shell", () => {
       core,
       documentBackend,
       confirmDestructiveAction: async () => true,
+      onCurrentDocumentSummaryChanged: (summary) => {
+        currentDocumentSummaries.push(summary);
+      },
     });
 
     const browseButton = container.querySelector(
@@ -961,6 +1024,10 @@ describe("splatterboard shell", () => {
       () => core.getCurrentDocUrl() === secondDocUrl,
     );
     expect(switched).toBeTrue();
+    const summaryChanged = await waitUntil(
+      () => currentDocumentSummaries.at(-1)?.docUrl === secondDocUrl,
+    );
+    expect(summaryChanged).toBeTrue();
     const browserClosed = await waitUntil(() => browser?.hidden === true);
     expect(browserClosed).toBeTrue();
 

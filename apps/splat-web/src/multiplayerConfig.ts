@@ -30,10 +30,12 @@ export interface BrowserMultiplayerConfig {
 export interface StartupOpenParams {
   joinSecret?: string;
   accountDocumentId?: string;
+  localDocUrl?: string;
 }
 
 export type SplatStartupIntent =
   | { kind: "open-last-local" }
+  | { kind: "open-local-document"; docUrl: string }
   | { kind: "open-share-link"; joinSecret: string }
   | { kind: "open-account-document"; documentId: string }
   | { kind: "startup-error"; message: string };
@@ -71,6 +73,8 @@ export function resolveStartupOpenParams(search: string): StartupOpenParams {
       return { joinSecret: intent.joinSecret };
     case "open-account-document":
       return { accountDocumentId: intent.documentId };
+    case "open-local-document":
+      return { localDocUrl: intent.docUrl };
     case "startup-error":
       throw new Error(intent.message);
   }
@@ -80,10 +84,16 @@ export function resolveSplatStartupIntent(search: string): SplatStartupIntent {
   const params = new URLSearchParams(search);
   const joinSecret = params.get("join") ?? undefined;
   const accountDocumentId = params.get("doc") ?? undefined;
-  if (joinSecret && accountDocumentId) {
+  const localDocUrl = params.get("local") ?? undefined;
+  const requestedDocumentCount = [
+    joinSecret,
+    accountDocumentId,
+    localDocUrl,
+  ].filter((value) => value !== undefined).length;
+  if (requestedDocumentCount > 1) {
     return {
       kind: "startup-error",
-      message: "Open either a share link or an account document, not both.",
+      message: "Open only one drawing URL at a time.",
     };
   }
   if (joinSecret) {
@@ -91,6 +101,9 @@ export function resolveSplatStartupIntent(search: string): SplatStartupIntent {
   }
   if (accountDocumentId) {
     return { kind: "open-account-document", documentId: accountDocumentId };
+  }
+  if (localDocUrl) {
+    return { kind: "open-local-document", docUrl: localDocUrl };
   }
   return { kind: "open-last-local" };
 }

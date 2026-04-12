@@ -127,6 +127,9 @@ export function createDocumentRuntimeController(options: {
     if (options.runtimeStore.isDestroyed()) {
       return;
     }
+    if (docUrl !== documentSessionController.getCurrentCatalogDocUrl()) {
+      return;
+    }
     options.onCurrentDocumentSummaryChanged(summary);
   };
 

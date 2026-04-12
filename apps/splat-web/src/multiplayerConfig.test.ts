@@ -118,20 +118,27 @@ describe("createBrowserMultiplayerConfig", () => {
 });
 
 describe("resolveStartupOpenParams", () => {
-  test("parses share links and account document links", () => {
+  test("parses share, account, and local document links", () => {
     expect(resolveStartupOpenParams("?join=share-token")).toEqual({
       joinSecret: "share-token",
       accountDocumentId: undefined,
+      localDocUrl: undefined,
     });
     expect(resolveStartupOpenParams("?doc=document-id")).toEqual({
       joinSecret: undefined,
       accountDocumentId: "document-id",
+      localDocUrl: undefined,
+    });
+    expect(resolveStartupOpenParams("?local=automerge%3Alocal-doc")).toEqual({
+      joinSecret: undefined,
+      accountDocumentId: undefined,
+      localDocUrl: "automerge:local-doc",
     });
   });
 
   test("rejects ambiguous startup URLs", () => {
     expect(() => resolveStartupOpenParams("?join=share&doc=document")).toThrow(
-      "Open either a share link or an account document, not both.",
+      "Open only one drawing URL at a time.",
     );
   });
 });
@@ -149,12 +156,16 @@ describe("resolveSplatStartupIntent", () => {
       kind: "open-account-document",
       documentId: "document-id",
     });
+    expect(resolveSplatStartupIntent("?local=automerge%3Alocal-doc")).toEqual({
+      kind: "open-local-document",
+      docUrl: "automerge:local-doc",
+    });
   });
 
   test("represents invalid startup query as data", () => {
     expect(resolveSplatStartupIntent("?join=share&doc=document")).toEqual({
       kind: "startup-error",
-      message: "Open either a share link or an account document, not both.",
+      message: "Open only one drawing URL at a time.",
     });
   });
 });

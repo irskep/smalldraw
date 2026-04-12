@@ -135,6 +135,9 @@ export function createKidsDrawController(options: {
   showShareDialog: (payload: SharePayload) => Promise<void>;
   onShareError?: (message: string) => void;
   onClaimError?: (message: string) => void;
+  onCurrentDocumentSummaryChanged?: (
+    summary: KidsDocumentSummary | null,
+  ) => void;
 }): KidsDrawController {
   const {
     store,
@@ -310,6 +313,7 @@ export function createKidsDrawController(options: {
     runtimeStore,
     onCurrentDocumentSummaryChanged: (summary) => {
       collaborationStatusStore.setCurrentDocument(summary);
+      options.onCurrentDocumentSummaryChanged?.(summary);
     },
     startupReadinessStore,
     toolbarStateController,
