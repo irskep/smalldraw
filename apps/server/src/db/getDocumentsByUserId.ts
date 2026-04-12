@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "./client.js";
 import { documents, documentThumbnails, usersOnDocuments } from "./schema.js";
 
@@ -16,5 +16,6 @@ export const getDocumentsByUserId = async (userId: string) => {
       documentThumbnails,
       eq(documentThumbnails.documentId, documents.id),
     )
-    .where(eq(usersOnDocuments.userId, userId));
+    .where(eq(usersOnDocuments.userId, userId))
+    .orderBy(desc(documents.createdAt));
 };

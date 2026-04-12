@@ -336,24 +336,15 @@ export async function createKidsDrawApp(
     summary: KidsDocumentSummary | null,
     thumbnail: Blob,
   ): Promise<void> => {
-    if (!multiplayerApiClient || !summary?.accountAttached) {
-      console.info("[kids-draw:documents] account thumbnail upload skipped", {
-        reason: !multiplayerApiClient ? "missing_api_client" : "not_attached",
-        docUrl: summary?.docUrl ?? null,
-        collaborative: summary?.collaborative ?? false,
-        collabDocUrl: summary?.collabDocUrl ?? null,
-        accountAttached: summary?.accountAttached ?? false,
-      });
+    if (!multiplayerApiClient) {
       return;
     }
     if (!isCollaborativeDocument(summary)) {
-      console.info("[kids-draw:documents] account thumbnail upload skipped", {
-        reason: "not_collaborative",
-        docUrl: summary.docUrl,
-        collaborative: summary.collaborative ?? false,
-        collabDocUrl: summary.collabDocUrl ?? null,
-        accountAttached: summary.accountAttached ?? false,
-      });
+      return;
+    }
+    const isAttached =
+      summary.accountAttached || summary.accessTokenScope === "owner";
+    if (!isAttached) {
       return;
     }
     const documentId = resolveCollaborativeDocumentId(summary.collabDocUrl);

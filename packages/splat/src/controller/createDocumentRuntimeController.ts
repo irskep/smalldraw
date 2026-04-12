@@ -174,6 +174,11 @@ export function createDocumentRuntimeController(options: {
     },
     onCollaborativeMetadataPersisted: async (summary) => {
       options.onCurrentDocumentSummaryChanged?.(summary);
+      const blob = await options.snapshotService.createThumbnailBlob();
+      if (blob) {
+        await options.documentBackend.saveThumbnail(summary.docUrl, blob);
+        await options.onThumbnailSaved?.(summary.docUrl, blob);
+      }
     },
     resolveJoinBaseUrl: () =>
       options.resolveJoinBaseUrl?.() ?? "https://splatterboard.app",

@@ -7,10 +7,7 @@ import {
   buildClearedSessionCookie,
   buildSessionCookie,
 } from "../auth/sessionCookie.js";
-import {
-  repo,
-  repoStorage,
-} from "../automergeRepo/automergeRepo.js";
+import { repo, repoStorage } from "../automergeRepo/automergeRepo.js";
 import { toAutomergeUrl } from "../automergeRepo/automergeUrl.js";
 import { addUserToDocument } from "../db/addUserToDocument.js";
 import { claimAnonymousCollaborativeDocument } from "../db/claimAnonymousCollaborativeDocument.js";
@@ -289,6 +286,12 @@ export const appRouter = router({
         documentId: rawDocId,
         ownerTag: opts.input.deviceTag,
       });
+      if (opts.ctx.session) {
+        await claimAnonymousCollaborativeDocument({
+          userId: opts.ctx.session.userId,
+          accessToken: result.accessToken,
+        });
+      }
       return {
         collabDocUrl: toAutomergeUrl(result.document.id),
         joinSecret: result.joinSecret,
