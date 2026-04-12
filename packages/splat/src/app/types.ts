@@ -22,8 +22,10 @@ export interface KidsDrawAppOptions {
     syncServerWebSocketUrl?: string;
     syncServerHttpUrl?: string;
     joinBaseUrl?: string;
-    joinSecret?: string;
-    accountDocumentId?: string;
+    startupIntent?:
+      | { kind: "open-last-local" }
+      | { kind: "open-share-link"; joinSecret: string }
+      | { kind: "open-account-document"; documentId: string };
     deviceTag?: string;
   };
   confirmDestructiveAction?: (dialog: ConfirmDialogRequest) => Promise<boolean>;

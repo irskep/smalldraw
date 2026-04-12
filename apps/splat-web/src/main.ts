@@ -2,7 +2,7 @@ import "@smalldraw/splat/styles.css";
 import { createKidsDrawApp } from "@smalldraw/splat";
 import {
   createBrowserMultiplayerConfig,
-  resolveStartupOpenParams,
+  resolveSplatStartupIntent,
 } from "./multiplayerConfig";
 
 const container = document.getElementById("app");
@@ -12,12 +12,15 @@ if (!container) {
 
 try {
   const multiplayerConfig = createBrowserMultiplayerConfig(window.location);
-  const startupOpenParams = resolveStartupOpenParams(window.location.search);
+  const startupIntent = resolveSplatStartupIntent(window.location.search);
+  if (startupIntent.kind === "startup-error") {
+    throw new Error(startupIntent.message);
+  }
   const app = await createKidsDrawApp({
     container,
     multiplayer: {
       ...multiplayerConfig,
-      ...startupOpenParams,
+      startupIntent,
     },
   });
 

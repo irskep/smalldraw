@@ -2,7 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { DocumentListCard } from "@/components/DocumentListCard/DocumentListCard";
-import { buildDrawingDocumentUrl } from "@/utils/drawingAppLinks";
+import {
+  buildDrawingDocumentUrl,
+  createAccountWebRuntimeConfig,
+} from "@/utils/drawingAppLinks";
 import { trpc } from "../utils/trpc";
 
 export const Route = createLazyFileRoute("/")({
@@ -14,6 +17,7 @@ function Index() {
     refetchInterval: 5000,
   });
   const createDocumentMutation = trpc.createDocument.useMutation();
+  const runtimeConfig = createAccountWebRuntimeConfig();
 
   if (documentsQuery.isLoading) {
     return <div className="p-4 text-center">Loading...</div>;
@@ -45,7 +49,9 @@ function Index() {
             { name: event.target.name.value },
             {
               onSuccess: ({ document }) => {
-                window.location.assign(buildDrawingDocumentUrl(document.id));
+                window.location.assign(
+                  buildDrawingDocumentUrl(document.id, runtimeConfig),
+                );
                 documentsQuery.refetch();
               },
               onError: () => {
@@ -73,7 +79,7 @@ function Index() {
             key={doc.id}
             id={doc.id}
             name={doc.name}
-            drawingUrl={buildDrawingDocumentUrl(doc.id)}
+            drawingUrl={buildDrawingDocumentUrl(doc.id, runtimeConfig)}
             thumbnailUrl={doc.thumbnailUrl}
           />
         ))}

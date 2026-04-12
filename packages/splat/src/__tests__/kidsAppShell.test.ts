@@ -641,7 +641,10 @@ describe("splatterboard shell", () => {
         confirmDestructiveAction: async () => true,
         multiplayer: {
           syncServerHttpUrl: "http://localhost:3030/api",
-          joinSecret: "join-seed",
+          startupIntent: {
+            kind: "open-share-link",
+            joinSecret: "join-seed",
+          },
         },
       });
 
@@ -710,7 +713,10 @@ describe("splatterboard shell", () => {
         confirmDestructiveAction: async () => true,
         multiplayer: {
           syncServerHttpUrl: "http://localhost:3030/api",
-          accountDocumentId: "account-doc",
+          startupIntent: {
+            kind: "open-account-document",
+            documentId: "account-doc",
+          },
           deviceTag: "device-1",
         },
       });

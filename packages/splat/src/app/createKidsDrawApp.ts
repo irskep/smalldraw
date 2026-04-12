@@ -95,75 +95,80 @@ export async function createKidsDrawApp(
         apiUrl: options.multiplayer.syncServerHttpUrl,
       })
     : null;
-  const joinSecretFromUrl = options.multiplayer?.joinSecret ?? null;
-  const accountDocumentIdFromUrl =
-    options.multiplayer?.accountDocumentId ?? null;
-  if (joinSecretFromUrl && accountDocumentIdFromUrl) {
-    throw new Error(
-      "Open either a share link or an account document, not both.",
-    );
-  }
+  const startupIntent = options.multiplayer?.startupIntent ?? {
+    kind: "open-last-local",
+  };
   const deviceTag = options.multiplayer?.deviceTag ?? "unknown-device";
   let joinedDocumentBinary: Uint8Array | null = null;
   let joinedCollabDocUrl: string | null = null;
-  if (
-    (joinSecretFromUrl || accountDocumentIdFromUrl) &&
-    !multiplayerApiClient
-  ) {
+  if (startupIntent.kind !== "open-last-local" && !multiplayerApiClient) {
     throw new Error("Multiplayer API is not configured.");
   }
-  if (joinSecretFromUrl && multiplayerApiClient) {
-    const resolved =
-      await multiplayerApiClient.resolveCollaborativeDocumentByJoinSecret(
-        joinSecretFromUrl,
-        deviceTag,
+
+  switch (startupIntent.kind) {
+    case "open-share-link": {
+      if (!multiplayerApiClient) {
+        throw new Error("Multiplayer API is not configured.");
+      }
+      const resolved =
+        await multiplayerApiClient.resolveCollaborativeDocumentByJoinSecret(
+          startupIntent.joinSecret,
+          deviceTag,
+        );
+      if (!resolved) {
+        throw new Error("Invalid share link.");
+      }
+      joinedDocumentBinary = base64ToUint8Array(resolved.content);
+      joinedCollabDocUrl = resolved.collabDocUrl;
+      const existingSummaries = await documentBackend.listDocuments();
+      const existingSummary = existingSummaries.find(
+        (summary) => summary.collabDocUrl === resolved.collabDocUrl,
       );
-    if (!resolved) {
-      throw new Error("Invalid share link.");
+      const catalogDocUrl =
+        existingSummary?.docUrl ??
+        buildJoinedCatalogDocUrl(resolved.collabDocUrl);
+      await documentBackend.createDocument({
+        docUrl: catalogDocUrl,
+        collaborative: true,
+        collabDocUrl: resolved.collabDocUrl,
+        joinSecret: resolved.joinSecret,
+        accessToken: resolved.accessToken,
+        accessTokenScope: resolved.accessTokenScope,
+      });
+      await documentBackend.setCurrentDocument(catalogDocUrl);
+      break;
     }
-    joinedDocumentBinary = base64ToUint8Array(resolved.content);
-    joinedCollabDocUrl = resolved.collabDocUrl;
-    const existingSummaries = await documentBackend.listDocuments();
-    const existingSummary = existingSummaries.find(
-      (summary) => summary.collabDocUrl === resolved.collabDocUrl,
-    );
-    const catalogDocUrl =
-      existingSummary?.docUrl ??
-      buildJoinedCatalogDocUrl(resolved.collabDocUrl);
-    await documentBackend.createDocument({
-      docUrl: catalogDocUrl,
-      collaborative: true,
-      collabDocUrl: resolved.collabDocUrl,
-      joinSecret: resolved.joinSecret,
-      accessToken: resolved.accessToken,
-      accessTokenScope: resolved.accessTokenScope,
-    });
-    await documentBackend.setCurrentDocument(catalogDocUrl);
-  }
-  if (accountDocumentIdFromUrl && multiplayerApiClient) {
-    const resolved =
-      await multiplayerApiClient.resolveCollaborativeDocumentByAccountDocumentId(
-        accountDocumentIdFromUrl,
-        deviceTag,
+    case "open-account-document": {
+      if (!multiplayerApiClient) {
+        throw new Error("Multiplayer API is not configured.");
+      }
+      const resolved =
+        await multiplayerApiClient.resolveCollaborativeDocumentByAccountDocumentId(
+          startupIntent.documentId,
+          deviceTag,
+        );
+      joinedDocumentBinary = base64ToUint8Array(resolved.content);
+      joinedCollabDocUrl = resolved.collabDocUrl;
+      const existingSummaries = await documentBackend.listDocuments();
+      const existingSummary = existingSummaries.find(
+        (summary) => summary.collabDocUrl === resolved.collabDocUrl,
       );
-    joinedDocumentBinary = base64ToUint8Array(resolved.content);
-    joinedCollabDocUrl = resolved.collabDocUrl;
-    const existingSummaries = await documentBackend.listDocuments();
-    const existingSummary = existingSummaries.find(
-      (summary) => summary.collabDocUrl === resolved.collabDocUrl,
-    );
-    const catalogDocUrl =
-      existingSummary?.docUrl ??
-      buildJoinedCatalogDocUrl(resolved.collabDocUrl);
-    await documentBackend.createDocument({
-      docUrl: catalogDocUrl,
-      collaborative: true,
-      collabDocUrl: resolved.collabDocUrl,
-      accessToken: resolved.accessToken,
-      accessTokenScope: resolved.accessTokenScope,
-      accountAttached: true,
-    });
-    await documentBackend.setCurrentDocument(catalogDocUrl);
+      const catalogDocUrl =
+        existingSummary?.docUrl ??
+        buildJoinedCatalogDocUrl(resolved.collabDocUrl);
+      await documentBackend.createDocument({
+        docUrl: catalogDocUrl,
+        collaborative: true,
+        collabDocUrl: resolved.collabDocUrl,
+        accessToken: resolved.accessToken,
+        accessTokenScope: resolved.accessTokenScope,
+        accountAttached: true,
+      });
+      await documentBackend.setCurrentDocument(catalogDocUrl);
+      break;
+    }
+    case "open-last-local":
+      break;
   }
   const initialCatalogDocUrl = await documentBackend.getCurrentDocument();
   const initialCatalogSummary = initialCatalogDocUrl

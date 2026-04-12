@@ -4,6 +4,12 @@ export interface BrowserLocationLike {
   hostname: string;
 }
 
+export interface SplatWebRuntimeEnvLike {
+  VITE_SYNC_SERVER_HTTP_URL?: string;
+  VITE_SYNC_SERVER_WEBSOCKET_URL?: string;
+  VITE_JOIN_BASE_URL?: string;
+}
+
 export interface StorageLike {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
@@ -26,10 +32,17 @@ export interface StartupOpenParams {
   accountDocumentId?: string;
 }
 
+export type SplatStartupIntent =
+  | { kind: "open-last-local" }
+  | { kind: "open-share-link"; joinSecret: string }
+  | { kind: "open-account-document"; documentId: string }
+  | { kind: "startup-error"; message: string };
+
 export function createBrowserMultiplayerConfig(
   location: BrowserLocationLike,
   storage: StorageLike = localStorage,
   cryptoImpl: CryptoLike | undefined = globalThis.crypto,
+  env: SplatWebRuntimeEnvLike = import.meta.env as SplatWebRuntimeEnvLike,
 ): BrowserMultiplayerConfig {
   const httpProtocol = location.protocol === "https:" ? "https:" : "http:";
   const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
@@ -37,23 +50,49 @@ export function createBrowserMultiplayerConfig(
   const websocketOrigin = `${wsProtocol}//${location.hostname}:3030`;
 
   return {
-    syncServerHttpUrl: `${apiOrigin}/api`,
-    syncServerWebSocketUrl: websocketOrigin,
-    joinBaseUrl: location.origin,
+    syncServerHttpUrl:
+      normalizeOptionalBaseUrl(env.VITE_SYNC_SERVER_HTTP_URL) ??
+      `${apiOrigin}/api`,
+    syncServerWebSocketUrl:
+      normalizeOptionalBaseUrl(env.VITE_SYNC_SERVER_WEBSOCKET_URL) ??
+      websocketOrigin,
+    joinBaseUrl:
+      normalizeOptionalBaseUrl(env.VITE_JOIN_BASE_URL) ?? location.origin,
     deviceTag: getOrCreateDeviceTag(storage, cryptoImpl),
   };
 }
 
 export function resolveStartupOpenParams(search: string): StartupOpenParams {
+  const intent = resolveSplatStartupIntent(search);
+  switch (intent.kind) {
+    case "open-last-local":
+      return {};
+    case "open-share-link":
+      return { joinSecret: intent.joinSecret };
+    case "open-account-document":
+      return { accountDocumentId: intent.documentId };
+    case "startup-error":
+      throw new Error(intent.message);
+  }
+}
+
+export function resolveSplatStartupIntent(search: string): SplatStartupIntent {
   const params = new URLSearchParams(search);
   const joinSecret = params.get("join") ?? undefined;
   const accountDocumentId = params.get("doc") ?? undefined;
   if (joinSecret && accountDocumentId) {
-    throw new Error(
-      "Open either a share link or an account document, not both.",
-    );
+    return {
+      kind: "startup-error",
+      message: "Open either a share link or an account document, not both.",
+    };
   }
-  return { joinSecret, accountDocumentId };
+  if (joinSecret) {
+    return { kind: "open-share-link", joinSecret };
+  }
+  if (accountDocumentId) {
+    return { kind: "open-account-document", documentId: accountDocumentId };
+  }
+  return { kind: "open-last-local" };
 }
 
 const DEVICE_TAG_STORAGE_KEY = "kids-draw-device-tag";
@@ -91,4 +130,9 @@ function generateDeviceTag(cryptoImpl: CryptoLike | undefined): string {
   return `device-${Date.now().toString(36)}-${Math.random()
     .toString(36)
     .slice(2, 12)}`;
+}
+
+function normalizeOptionalBaseUrl(value: string | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed.replace(/\/+$/, "") : null;
 }

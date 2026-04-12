@@ -1,13 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { buildDrawingDocumentUrl } from "@/utils/drawingAppLinks";
+import {
+  buildDrawingDocumentUrl,
+  createAccountWebRuntimeConfig,
+} from "@/utils/drawingAppLinks";
 import { trpc } from "../../utils/trpc";
 
 const Invitation: React.FC = () => {
   const acceptDocumentInvitationMutation =
     trpc.acceptDocumentInvitation.useMutation();
   const { token } = Route.useParams();
+  const runtimeConfig = createAccountWebRuntimeConfig();
 
   const acceptInvitation = () => {
     acceptDocumentInvitationMutation.mutate(
@@ -18,7 +22,9 @@ const Invitation: React.FC = () => {
         },
         onSuccess: (data) => {
           if (data?.documentId) {
-            window.location.assign(buildDrawingDocumentUrl(data.documentId));
+            window.location.assign(
+              buildDrawingDocumentUrl(data.documentId, runtimeConfig),
+            );
           }
         },
       },
