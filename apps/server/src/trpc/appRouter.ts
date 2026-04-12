@@ -148,7 +148,6 @@ export const appRouter = router({
       z.object({
         documentId: z.string().min(1),
         contentType: z.string().min(1),
-        contentBase64: z.string().min(1),
       }),
     )
     .mutation(async (opts) => {
@@ -172,12 +171,8 @@ export const appRouter = router({
       const storageKey = buildDocumentThumbnailStorageKey(
         opts.input.documentId,
       );
-      const content = new Uint8Array(
-        Buffer.from(opts.input.contentBase64, "base64"),
-      );
-      await getDocumentThumbnailStore().putObject({
+      const uploadUrl = getDocumentThumbnailStore().presignPutUrl({
         key: storageKey,
-        body: content,
         contentType: opts.input.contentType,
       });
       await upsertDocumentThumbnail({
@@ -187,8 +182,7 @@ export const appRouter = router({
       });
 
       return {
-        documentId: opts.input.documentId,
-        thumbnailUrl: resolveThumbnailUrl(storageKey),
+        uploadUrl,
       };
     }),
   updateDocument: protectedProcedure

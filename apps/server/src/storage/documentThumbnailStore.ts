@@ -6,6 +6,11 @@ export interface DocumentThumbnailStore {
     body: Blob | Uint8Array | ArrayBuffer | string;
     contentType: string;
   }): Promise<void>;
+  presignPutUrl(input: {
+    key: string;
+    contentType: string;
+    expiresIn?: number;
+  }): string;
 }
 
 class R2DocumentThumbnailStore implements DocumentThumbnailStore {
@@ -35,6 +40,17 @@ class R2DocumentThumbnailStore implements DocumentThumbnailStore {
   }): Promise<void> {
     await this.client.write(input.key, input.body, {
       type: input.contentType,
+    });
+  }
+
+  presignPutUrl(input: {
+    key: string;
+    contentType: string;
+    expiresIn?: number;
+  }): string {
+    return this.client.presign(input.key, {
+      method: "PUT",
+      expiresIn: input.expiresIn ?? 300,
     });
   }
 }

@@ -42,13 +42,7 @@ export interface MultiplayerApiClient {
     attached: boolean;
     isAdmin: boolean;
   }>;
-  uploadDocumentThumbnail(
-    documentId: string,
-    thumbnail: Blob,
-  ): Promise<{
-    documentId: string;
-    thumbnailUrl: string | null;
-  }>;
+  uploadDocumentThumbnail(documentId: string, thumbnail: Blob): Promise<void>;
 }
 
 export function createMultiplayerApiClient(options: {
@@ -138,17 +132,25 @@ export function createMultiplayerApiClient(options: {
       return parsed;
     },
     async uploadDocumentThumbnail(documentId, thumbnail) {
-      const content = new Uint8Array(await thumbnail.arrayBuffer());
+      const contentType = thumbnail.type || "application/octet-stream";
       const result = await client.mutation("uploadDocumentThumbnail", {
         documentId,
-        contentType: thumbnail.type || "application/octet-stream",
-        contentBase64: uint8ArrayToBase64(content),
+        contentType,
       });
       const parsed = parseUploadThumbnailResult(result);
       if (!parsed) {
         throw new Error("Invalid response from uploadDocumentThumbnail");
       }
-      return parsed;
+      const response = await fetch(parsed.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": contentType },
+        body: thumbnail,
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Thumbnail upload to storage failed: ${response.status}`,
+        );
+      }
     },
   };
 }
@@ -288,21 +290,16 @@ function parseClaimResult(
 
 function parseUploadThumbnailResult(
   input: unknown,
-): { documentId: string; thumbnailUrl: string | null } | null {
+): { uploadUrl: string } | null {
   if (
     !input ||
     typeof input !== "object" ||
-    typeof (input as { documentId?: unknown }).documentId !== "string"
+    typeof (input as { uploadUrl?: unknown }).uploadUrl !== "string"
   ) {
     return null;
   }
-  const thumbnailUrl = (input as { thumbnailUrl?: unknown }).thumbnailUrl;
-  if (thumbnailUrl != null && typeof thumbnailUrl !== "string") {
-    return null;
-  }
   return {
-    documentId: (input as { documentId: string }).documentId,
-    thumbnailUrl: thumbnailUrl ?? null,
+    uploadUrl: (input as { uploadUrl: string }).uploadUrl,
   };
 }
 

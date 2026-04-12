@@ -271,41 +271,48 @@ describe("createMultiplayerApiClient", () => {
     expect(requests[0]?.credentials).toBe("include");
   });
 
-  test("uploadDocumentThumbnail includes browser credentials and parses response", async () => {
+  test("uploadDocumentThumbnail gets presigned URL and uploads directly", async () => {
     const requests: Array<{
       url: string;
+      method: string | undefined;
       credentials: RequestCredentials | undefined;
       body: string | null;
+      contentType: string | null;
     }> = [];
     installFetchMock(async (input, init) => {
+      const url = input.toString();
+      const method = init?.method?.toUpperCase() ?? "POST";
+      const headers = new Headers(init?.headers as HeadersInit);
       requests.push({
-        url: input.toString(),
+        url,
+        method,
         credentials: init?.credentials,
         body: typeof init?.body === "string" ? init.body : null,
+        contentType: headers.get("Content-Type"),
       });
+      if (url.includes("presigned.example.com")) {
+        return new Response(null, { status: 200 });
+      }
       return mockJsonResponse({
-        documentId: "doc-thumb-1",
-        thumbnailUrl:
-          "https://cdn.example.com/documents/doc-thumb-1/thumbnail.png",
+        uploadUrl:
+          "https://presigned.example.com/documents/doc-thumb-1/thumbnail.png",
       });
     });
 
     const client = createMultiplayerApiClient({
       apiUrl: "http://localhost/api",
     });
-    const result = await client.uploadDocumentThumbnail(
+    await client.uploadDocumentThumbnail(
       "doc-thumb-1",
       new Blob(["thumbnail-bytes"], { type: "image/png" }),
     );
 
-    expect(result).toEqual({
-      documentId: "doc-thumb-1",
-      thumbnailUrl:
-        "https://cdn.example.com/documents/doc-thumb-1/thumbnail.png",
-    });
     expect(requests[0]?.url).toContain("uploadDocumentThumbnail");
     expect(requests[0]?.credentials).toBe("include");
-    expect(requests[0]?.body).toContain("doc-thumb-1");
-    expect(requests[0]?.body).toContain("image/png");
+    expect(requests[1]?.url).toBe(
+      "https://presigned.example.com/documents/doc-thumb-1/thumbnail.png",
+    );
+    expect(requests[1]?.method).toBe("PUT");
+    expect(requests[1]?.contentType).toBe("image/png");
   });
 });

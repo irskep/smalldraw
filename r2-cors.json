@@ -1,0 +1,18 @@
+{
+  "rules": [
+    {
+      "id": "thumbnail-upload",
+      "allowed": {
+        "origins": [
+          "http://localhost:3000",
+          "http://localhost:3001",
+          "http://localhost:3030",
+          "https://splatterboard.app"
+        ],
+        "methods": ["PUT"],
+        "headers": ["Content-Type"]
+      },
+      "maxAgeSeconds": 3600
+    }
+  ]
+}

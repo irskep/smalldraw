@@ -49,33 +49,16 @@ describe("document thumbnail routes", () => {
       caller.uploadDocumentThumbnail({
         documentId: "thumbnail-doc-1",
         contentType: "image/png",
-        contentBase64: Buffer.from("png-bytes").toString("base64"),
       }),
     ).rejects.toBeInstanceOf(TRPCError);
   });
 
-  it("uploads thumbnail metadata and exposes thumbnail URLs", async () => {
+  it("returns presigned upload URL and persists thumbnail metadata", async () => {
     process.env.R2_PUBLIC_BASE_URL = "https://cdn.example.com";
-    const uploaded: Array<{
-      key: string;
-      contentType: string;
-      size: number;
-    }> = [];
     setDocumentThumbnailStoreForTests({
-      async putObject(input) {
-        const bytes =
-          typeof input.body === "string"
-            ? new TextEncoder().encode(input.body)
-            : input.body instanceof Uint8Array
-              ? input.body
-              : input.body instanceof ArrayBuffer
-                ? new Uint8Array(input.body)
-                : new Uint8Array(await input.body.arrayBuffer());
-        uploaded.push({
-          key: input.key,
-          contentType: input.contentType,
-          size: bytes.byteLength,
-        });
+      async putObject() {},
+      presignPutUrl(input) {
+        return `https://presigned.example.com/${input.key}?type=${input.contentType}`;
       },
     });
 
@@ -103,21 +86,12 @@ describe("document thumbnail routes", () => {
     const result = await caller.uploadDocumentThumbnail({
       documentId: "thumbnail-doc-2",
       contentType: "image/png",
-      contentBase64: Buffer.from("png-bytes").toString("base64"),
     });
 
     expect(result).toEqual({
-      documentId: "thumbnail-doc-2",
-      thumbnailUrl:
-        "https://cdn.example.com/documents/thumbnail-doc-2/thumbnail.png",
+      uploadUrl:
+        "https://presigned.example.com/documents/thumbnail-doc-2/thumbnail.png?type=image/png",
     });
-    expect(uploaded).toEqual([
-      {
-        key: "documents/thumbnail-doc-2/thumbnail.png",
-        contentType: "image/png",
-        size: 9,
-      },
-    ]);
 
     const [thumbnail] = await db
       .select()
