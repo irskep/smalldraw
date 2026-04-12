@@ -21,6 +21,15 @@ export interface MultiplayerApiClient {
     accessTokenScope: "device";
     content: string;
   } | null>;
+  resolveCollaborativeDocumentByAccountDocumentId(
+    documentId: string,
+    deviceTag: string,
+  ): Promise<{
+    collabDocUrl: string;
+    accessToken: string;
+    accessTokenScope: "owner" | "device";
+    content: string;
+  }>;
   claimCollaborativeDocument(accessToken: string): Promise<{
     documentId: string;
     attached: boolean;
@@ -81,6 +90,22 @@ export function createMultiplayerApiClient(options: {
       if (!parsed) {
         throw new Error(
           "Invalid response from resolveAnonymousCollaborativeDocument",
+        );
+      }
+      return parsed;
+    },
+    async resolveCollaborativeDocumentByAccountDocumentId(
+      documentId,
+      deviceTag,
+    ) {
+      const result = await client.query("resolveAccountCollaborativeDocument", {
+        documentId,
+        deviceTag,
+      });
+      const parsed = parseAccountResolveResult(result);
+      if (!parsed) {
+        throw new Error(
+          "Invalid response from resolveAccountCollaborativeDocument",
         );
       }
       return parsed;
@@ -156,6 +181,36 @@ function parseResolveResult(input: unknown): {
     joinSecret: (input as { joinSecret: string }).joinSecret,
     accessToken: (input as { accessToken: string }).accessToken,
     accessTokenScope: "device",
+    content: (input as { content: string }).content,
+  };
+}
+
+function parseAccountResolveResult(input: unknown): {
+  collabDocUrl: string;
+  accessToken: string;
+  accessTokenScope: "owner" | "device";
+  content: string;
+} | null {
+  if (
+    !input ||
+    typeof input !== "object" ||
+    typeof (input as { collabDocUrl?: unknown }).collabDocUrl !== "string" ||
+    typeof (input as { accessToken?: unknown }).accessToken !== "string" ||
+    typeof (input as { accessTokenScope?: unknown }).accessTokenScope !==
+      "string" ||
+    typeof (input as { content?: unknown }).content !== "string"
+  ) {
+    return null;
+  }
+  const accessTokenScope = (input as { accessTokenScope: string })
+    .accessTokenScope;
+  if (accessTokenScope !== "owner" && accessTokenScope !== "device") {
+    return null;
+  }
+  return {
+    collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
+    accessToken: (input as { accessToken: string }).accessToken,
+    accessTokenScope,
     content: (input as { content: string }).content,
   };
 }

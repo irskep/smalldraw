@@ -1,6 +1,9 @@
 import "@smalldraw/splat/styles.css";
 import { createKidsDrawApp } from "@smalldraw/splat";
-import { createBrowserMultiplayerConfig } from "./multiplayerConfig";
+import {
+  createBrowserMultiplayerConfig,
+  resolveStartupOpenParams,
+} from "./multiplayerConfig";
 
 const container = document.getElementById("app");
 if (!container) {
@@ -9,12 +12,12 @@ if (!container) {
 
 try {
   const multiplayerConfig = createBrowserMultiplayerConfig(window.location);
+  const startupOpenParams = resolveStartupOpenParams(window.location.search);
   const app = await createKidsDrawApp({
     container,
     multiplayer: {
       ...multiplayerConfig,
-      joinSecret:
-        new URLSearchParams(window.location.search).get("join") ?? undefined,
+      ...startupOpenParams,
     },
   });
 

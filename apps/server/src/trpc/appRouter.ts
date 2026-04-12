@@ -59,6 +59,27 @@ const resolveThumbnailUrl = (
     ? buildDocumentThumbnailUrl(storageKey, process.env.R2_PUBLIC_BASE_URL)
     : null;
 
+const serializeRepoDocument = async (documentId: string): Promise<string> => {
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), 3000);
+  try {
+    const handle = await repo.find(documentId as DocumentId, {
+      signal: abortController.signal,
+    });
+    const doc = await handle.doc();
+    if (!doc) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Document not found in repository",
+      });
+    }
+    const { save } = await import("@automerge/automerge");
+    return Buffer.from(save(doc)).toString("base64");
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
 export const appRouter = router({
   adminMe: serverAdminProcedure.query(async (opts) => {
     return {
@@ -189,6 +210,51 @@ export const appRouter = router({
       return { document: { id: document.id, name: document.name } };
     }),
 
+  resolveAccountCollaborativeDocument: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string().min(1),
+        deviceTag: z.string().min(1).max(128),
+      }),
+    )
+    .query(async (opts) => {
+      const document = await getDocument({
+        documentId: opts.input.documentId,
+        userId: opts.ctx.session.userId,
+      });
+      if (!document) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Document not found",
+        });
+      }
+
+      try {
+        const content = await serializeRepoDocument(opts.input.documentId);
+        const accessTokenScope = document.isAdmin ? "owner" : "device";
+        const accessToken = await findOrCreateDocumentToken({
+          documentId: opts.input.documentId,
+          scope: accessTokenScope,
+          tag: `account:${opts.ctx.session.userId}:device:${opts.input.deviceTag}`,
+        });
+        return {
+          collabDocUrl: toAutomergeUrl(opts.input.documentId),
+          accessToken: accessToken.token,
+          accessTokenScope,
+          content,
+        };
+      } catch (err) {
+        if (err instanceof TRPCError) {
+          throw err;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to serialize document",
+          cause: err,
+        });
+      }
+    }),
+
   registerCollaborativeDocument: publicProcedure
     .input(
       z.object({
@@ -231,26 +297,7 @@ export const appRouter = router({
         return null;
       }
       try {
-        const abortController = new AbortController();
-        const timeout = setTimeout(() => abortController.abort(), 3000);
-        let content: string;
-        try {
-          const handle = await repo.find(invitation.documentId as DocumentId, {
-            signal: abortController.signal,
-          });
-          const doc = await handle.doc();
-          if (!doc) {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: "Document not found in repository",
-            });
-          }
-          const { save } = await import("@automerge/automerge");
-          const binary = save(doc);
-          content = Buffer.from(binary).toString("base64");
-        } finally {
-          clearTimeout(timeout);
-        }
+        const content = await serializeRepoDocument(invitation.documentId);
         return {
           collabDocUrl: toAutomergeUrl(invitation.documentId),
           joinSecret: invitation.token,

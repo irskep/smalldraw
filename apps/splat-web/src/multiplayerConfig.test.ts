@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { createBrowserMultiplayerConfig } from "./multiplayerConfig";
+import {
+  createBrowserMultiplayerConfig,
+  resolveStartupOpenParams,
+} from "./multiplayerConfig";
 
 describe("createBrowserMultiplayerConfig", () => {
   test("uses the active browser origin for join links and API host", () => {
@@ -83,6 +86,25 @@ describe("createBrowserMultiplayerConfig", () => {
       },
     );
     expect(config.deviceTag).toBe("00010203-0405-4607-8809-0a0b0c0d0e0f");
+  });
+});
+
+describe("resolveStartupOpenParams", () => {
+  test("parses share links and account document links", () => {
+    expect(resolveStartupOpenParams("?join=share-token")).toEqual({
+      joinSecret: "share-token",
+      accountDocumentId: undefined,
+    });
+    expect(resolveStartupOpenParams("?doc=document-id")).toEqual({
+      joinSecret: undefined,
+      accountDocumentId: "document-id",
+    });
+  });
+
+  test("rejects ambiguous startup URLs", () => {
+    expect(() => resolveStartupOpenParams("?join=share&doc=document")).toThrow(
+      "Open either a share link or an account document, not both.",
+    );
   });
 });
 

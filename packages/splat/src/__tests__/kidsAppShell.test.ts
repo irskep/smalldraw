@@ -174,6 +174,20 @@ function createMockDocumentBackend(
           (input.collabDocUrl ?? existing?.collabDocUrl)
             ? (input.joinSecret ?? existing?.joinSecret)
             : undefined,
+        accessToken:
+          (input.collaborative ?? existing?.collaborative) &&
+          (input.collabDocUrl ?? existing?.collabDocUrl)
+            ? (input.accessToken ?? existing?.accessToken)
+            : undefined,
+        accessTokenScope:
+          (input.collaborative ?? existing?.collaborative) &&
+          (input.collabDocUrl ?? existing?.collabDocUrl)
+            ? (input.accessTokenScope ?? existing?.accessTokenScope)
+            : undefined,
+        accountAttached:
+          input.accountAttached === true || existing?.accountAttached === true
+            ? true
+            : undefined,
       };
       documentsByUrl.set(next.docUrl, next);
       return next;
@@ -639,6 +653,82 @@ describe("splatterboard shell", () => {
       expect(joined?.docUrl).toBe("catalog-collab:joined-doc");
       expect(await backend.getCurrentDocument()).toBe(
         "catalog-collab:joined-doc",
+      );
+
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
+  });
+
+  test("account document bootstrap stores an account-attached collaborative catalog entry", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/resolveAccountCollaborativeDocument")) {
+        expect(decodeURIComponent(url)).toContain('"documentId":"account-doc"');
+        expect(decodeURIComponent(url)).toContain('"deviceTag":"device-1"');
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: {
+                  collabDocUrl: "automerge:account-doc",
+                  accessToken: "account-access",
+                  accessTokenScope: "owner",
+                  content: btoa("fake-account-doc-binary"),
+                },
+              },
+            },
+          ]),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const backend = createMockDocumentBackend([], null);
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          accountDocumentId: "account-doc",
+          deviceTag: "device-1",
+        },
+      });
+
+      const documents = await backend.listDocuments();
+      const accountDoc = documents.find(
+        (summary) => summary.collabDocUrl === "automerge:account-doc",
+      );
+      expect(accountDoc).toMatchObject({
+        docUrl: "catalog-collab:account-doc",
+        collaborative: true,
+        collabDocUrl: "automerge:account-doc",
+        accessToken: "account-access",
+        accessTokenScope: "owner",
+        accountAttached: true,
+      });
+      expect(await backend.getCurrentDocument()).toBe(
+        "catalog-collab:account-doc",
       );
 
       app.destroy();

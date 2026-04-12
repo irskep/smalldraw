@@ -135,6 +135,49 @@ describe("createMultiplayerApiClient", () => {
     );
   });
 
+  test("resolveCollaborativeDocumentByAccountDocumentId includes credentials and parses response", async () => {
+    const requests: Array<{
+      url: string;
+      credentials: RequestCredentials | undefined;
+    }> = [];
+    installFetchMock(async (input, init) => {
+      requests.push({
+        url: input.toString(),
+        credentials: init?.credentials,
+      });
+      return mockJsonResponse({
+        collabDocUrl: "automerge:account-doc-1",
+        accessToken: "account-access-1",
+        accessTokenScope: "owner",
+        content: btoa("fake-account-doc-binary"),
+      });
+    });
+
+    const client = createMultiplayerApiClient({
+      apiUrl: "http://localhost/api",
+    });
+    const resolved =
+      await client.resolveCollaborativeDocumentByAccountDocumentId(
+        "account-doc-1",
+        "device-1",
+      );
+
+    expect(resolved).toEqual({
+      collabDocUrl: "automerge:account-doc-1",
+      accessToken: "account-access-1",
+      accessTokenScope: "owner",
+      content: btoa("fake-account-doc-binary"),
+    });
+    expect(requests[0]?.url).toContain("resolveAccountCollaborativeDocument");
+    expect(requests[0]?.credentials).toBe("include");
+    expect(decodeURIComponent(requests[0]?.url ?? "")).toContain(
+      '"documentId":"account-doc-1"',
+    );
+    expect(decodeURIComponent(requests[0]?.url ?? "")).toContain(
+      '"deviceTag":"device-1"',
+    );
+  });
+
   test("throws when response payload is invalid", async () => {
     installFetchMock(async () => {
       return mockJsonResponse({ joinSecret: "token-only" });

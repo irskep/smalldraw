@@ -96,9 +96,22 @@ export async function createKidsDrawApp(
       })
     : null;
   const joinSecretFromUrl = options.multiplayer?.joinSecret ?? null;
+  const accountDocumentIdFromUrl =
+    options.multiplayer?.accountDocumentId ?? null;
+  if (joinSecretFromUrl && accountDocumentIdFromUrl) {
+    throw new Error(
+      "Open either a share link or an account document, not both.",
+    );
+  }
   const deviceTag = options.multiplayer?.deviceTag ?? "unknown-device";
   let joinedDocumentBinary: Uint8Array | null = null;
   let joinedCollabDocUrl: string | null = null;
+  if (
+    (joinSecretFromUrl || accountDocumentIdFromUrl) &&
+    !multiplayerApiClient
+  ) {
+    throw new Error("Multiplayer API is not configured.");
+  }
   if (joinSecretFromUrl && multiplayerApiClient) {
     const resolved =
       await multiplayerApiClient.resolveCollaborativeDocumentByJoinSecret(
@@ -124,6 +137,31 @@ export async function createKidsDrawApp(
       joinSecret: resolved.joinSecret,
       accessToken: resolved.accessToken,
       accessTokenScope: resolved.accessTokenScope,
+    });
+    await documentBackend.setCurrentDocument(catalogDocUrl);
+  }
+  if (accountDocumentIdFromUrl && multiplayerApiClient) {
+    const resolved =
+      await multiplayerApiClient.resolveCollaborativeDocumentByAccountDocumentId(
+        accountDocumentIdFromUrl,
+        deviceTag,
+      );
+    joinedDocumentBinary = base64ToUint8Array(resolved.content);
+    joinedCollabDocUrl = resolved.collabDocUrl;
+    const existingSummaries = await documentBackend.listDocuments();
+    const existingSummary = existingSummaries.find(
+      (summary) => summary.collabDocUrl === resolved.collabDocUrl,
+    );
+    const catalogDocUrl =
+      existingSummary?.docUrl ??
+      buildJoinedCatalogDocUrl(resolved.collabDocUrl);
+    await documentBackend.createDocument({
+      docUrl: catalogDocUrl,
+      collaborative: true,
+      collabDocUrl: resolved.collabDocUrl,
+      accessToken: resolved.accessToken,
+      accessTokenScope: resolved.accessTokenScope,
+      accountAttached: true,
     });
     await documentBackend.setCurrentDocument(catalogDocUrl);
   }

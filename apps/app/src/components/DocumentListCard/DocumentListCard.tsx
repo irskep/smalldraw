@@ -1,15 +1,20 @@
 import { Card } from "@/components/ui/card";
-import { Link } from "@tanstack/react-router";
 
 type Props = {
   id: string;
   name: string;
+  drawingUrl: string;
   thumbnailUrl?: string | null;
 };
 
-export function DocumentListCard({ id, name, thumbnailUrl }: Props) {
+export function DocumentListCard({
+  id,
+  name,
+  drawingUrl,
+  thumbnailUrl,
+}: Props) {
   return (
-    <Link to="/documents/$documentId" params={{ documentId: id }}>
+    <a href={drawingUrl}>
       <Card className="flex items-start gap-4 rounded-lg border p-4 text-left transition-all hover:bg-accent">
         <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted">
           {thumbnailUrl ? (
@@ -27,6 +32,6 @@ export function DocumentListCard({ id, name, thumbnailUrl }: Props) {
           <div className="pt-1 text-xs text-muted-foreground">{id}</div>
         </div>
       </Card>
-    </Link>
+    </a>
   );
 }

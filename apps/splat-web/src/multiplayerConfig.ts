@@ -21,6 +21,11 @@ export interface BrowserMultiplayerConfig {
   deviceTag: string;
 }
 
+export interface StartupOpenParams {
+  joinSecret?: string;
+  accountDocumentId?: string;
+}
+
 export function createBrowserMultiplayerConfig(
   location: BrowserLocationLike,
   storage: StorageLike = localStorage,
@@ -37,6 +42,18 @@ export function createBrowserMultiplayerConfig(
     joinBaseUrl: location.origin,
     deviceTag: getOrCreateDeviceTag(storage, cryptoImpl),
   };
+}
+
+export function resolveStartupOpenParams(search: string): StartupOpenParams {
+  const params = new URLSearchParams(search);
+  const joinSecret = params.get("join") ?? undefined;
+  const accountDocumentId = params.get("doc") ?? undefined;
+  if (joinSecret && accountDocumentId) {
+    throw new Error(
+      "Open either a share link or an account document, not both.",
+    );
+  }
+  return { joinSecret, accountDocumentId };
 }
 
 const DEVICE_TAG_STORAGE_KEY = "kids-draw-device-tag";

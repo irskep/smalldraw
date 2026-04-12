@@ -23,6 +23,7 @@ export interface KidsDrawAppOptions {
     syncServerHttpUrl?: string;
     joinBaseUrl?: string;
     joinSecret?: string;
+    accountDocumentId?: string;
     deviceTag?: string;
   };
   confirmDestructiveAction?: (dialog: ConfirmDialogRequest) => Promise<boolean>;
