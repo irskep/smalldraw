@@ -83,6 +83,11 @@ function normalizeDocumentSummary(
     updatedAt: value.updatedAt ?? nowIsoString(),
     lastOpenedAt: value.lastOpenedAt ?? nowIsoString(),
     thumbnailKey: value.thumbnailKey,
+    remoteThumbnailUrl:
+      typeof value.remoteThumbnailUrl === "string" &&
+      value.remoteThumbnailUrl.length > 0
+        ? value.remoteThumbnailUrl
+        : undefined,
   };
 }
 
@@ -375,6 +380,8 @@ class IndexedDbDocumentRepository implements DocumentRepository {
           updatedAt: timestamp,
           lastOpenedAt: timestamp,
           thumbnailKey: existing?.thumbnailKey,
+          remoteThumbnailUrl:
+            input.remoteThumbnailUrl ?? existing?.remoteThumbnailUrl,
         };
         store.put(next);
         await transactionDone(transaction);
@@ -491,6 +498,8 @@ class MemoryDocumentRepository implements DocumentRepository {
       updatedAt: timestamp,
       lastOpenedAt: timestamp,
       thumbnailKey: existing?.thumbnailKey,
+      remoteThumbnailUrl:
+        input.remoteThumbnailUrl ?? existing?.remoteThumbnailUrl,
     };
     this.documents.set(input.docUrl, next);
     return next;

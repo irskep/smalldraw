@@ -88,7 +88,9 @@ export class DocumentPickerController {
   clearThumbnails(): void {
     const thumbnailUrlByDocUrl = this.state.get().thumbnailUrlByDocUrl;
     for (const url of thumbnailUrlByDocUrl.values()) {
-      URL.revokeObjectURL(url);
+      if (url.startsWith("blob:")) {
+        URL.revokeObjectURL(url);
+      }
     }
     this.state.clearThumbnailUrls();
   }
@@ -109,13 +111,17 @@ export class DocumentPickerController {
         const thumbnailBlob = await this.options.documentBackend.getThumbnail(
           document.docUrl,
         );
-        if (!thumbnailBlob) {
-          continue;
+        if (thumbnailBlob) {
+          nextThumbnailUrlByDocUrl.set(
+            document.docUrl,
+            URL.createObjectURL(thumbnailBlob),
+          );
+        } else if (document.remoteThumbnailUrl) {
+          nextThumbnailUrlByDocUrl.set(
+            document.docUrl,
+            document.remoteThumbnailUrl,
+          );
         }
-        nextThumbnailUrlByDocUrl.set(
-          document.docUrl,
-          URL.createObjectURL(thumbnailBlob),
-        );
       } catch (error) {
         console.warn("[kids-draw:documents] failed to load thumbnail", {
           docUrl: document.docUrl,
@@ -125,7 +131,9 @@ export class DocumentPickerController {
     }
     if (requestId !== this.browserRequestId) {
       for (const url of nextThumbnailUrlByDocUrl.values()) {
-        URL.revokeObjectURL(url);
+        if (url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
       }
       return;
     }

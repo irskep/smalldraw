@@ -671,6 +671,7 @@ async function syncAccountCatalog(options: {
       collaborative: true,
       collabDocUrl,
       accountAttached: true,
+      remoteThumbnailUrl: accountDocument.thumbnailUrl ?? undefined,
     });
     selectedDocument ??= summary;
   }
@@ -701,28 +702,36 @@ async function resolveAccountDocumentForLocalOpen(options: {
   }
 
   const documentId = resolveCollaborativeDocumentId(summary.collabDocUrl);
-  const resolved =
-    await options.multiplayerApiClient.resolveCollaborativeDocumentByAccountDocumentId(
+  try {
+    const resolved =
+      await options.multiplayerApiClient.resolveCollaborativeDocumentByAccountDocumentId(
+        documentId,
+        options.deviceTag,
+      );
+    const binary = base64ToUint8Array(resolved.content);
+    const automergeDocumentId = documentId as DocumentId;
+    options.localRepo?.setWebsocketAuthorizedDocumentId(documentId);
+    options.localRepo?.setWebsocketAuthToken(resolved.accessToken);
+    if (options.localRepo && !options.localRepo.handles[automergeDocumentId]) {
+      options.localRepo.import(binary, { docId: automergeDocumentId });
+    }
+    await options.documentBackend.createDocument({
+      docUrl: summary.docUrl,
+      title: summary.title,
+      collaborative: true,
+      collabDocUrl: resolved.collabDocUrl,
+      accessToken: resolved.accessToken,
+      accessTokenScope: resolved.accessTokenScope,
+      accountAttached: true,
+    });
+    return { binary, collabDocUrl: resolved.collabDocUrl };
+  } catch (error) {
+    console.warn("[kids-draw:documents] failed to resolve account document", {
       documentId,
-      options.deviceTag,
-    );
-  const binary = base64ToUint8Array(resolved.content);
-  const automergeDocumentId = documentId as DocumentId;
-  options.localRepo?.setWebsocketAuthorizedDocumentId(documentId);
-  options.localRepo?.setWebsocketAuthToken(resolved.accessToken);
-  if (options.localRepo && !options.localRepo.handles[automergeDocumentId]) {
-    options.localRepo.import(binary, { docId: automergeDocumentId });
+      error,
+    });
+    return null;
   }
-  await options.documentBackend.createDocument({
-    docUrl: summary.docUrl,
-    title: summary.title,
-    collaborative: true,
-    collabDocUrl: resolved.collabDocUrl,
-    accessToken: resolved.accessToken,
-    accessTokenScope: resolved.accessTokenScope,
-    accountAttached: true,
-  });
-  return { binary, collabDocUrl: resolved.collabDocUrl };
 }
 
 function updateRepoWebsocketAuthorization(

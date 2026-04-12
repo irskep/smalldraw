@@ -20,6 +20,7 @@ export interface KidsDocumentSummary {
   updatedAt: string;
   lastOpenedAt: string;
   thumbnailKey?: string;
+  remoteThumbnailUrl?: string;
 }
 
 export interface KidsDocumentCreateInput {
@@ -35,6 +36,7 @@ export interface KidsDocumentCreateInput {
   coloringPageId?: string;
   referenceImageSrc?: string;
   referenceComposite?: KidsDocumentReferenceComposite;
+  remoteThumbnailUrl?: string;
   documentSize?: DrawingDocumentSize;
 }
 

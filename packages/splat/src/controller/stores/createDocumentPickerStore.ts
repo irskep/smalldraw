@@ -117,7 +117,8 @@ function isSameDocumentSummary(
     a.createdAt === b.createdAt &&
     a.updatedAt === b.updatedAt &&
     a.lastOpenedAt === b.lastOpenedAt &&
-    a.thumbnailKey === b.thumbnailKey
+    a.thumbnailKey === b.thumbnailKey &&
+    a.remoteThumbnailUrl === b.remoteThumbnailUrl
   );
 }
 
