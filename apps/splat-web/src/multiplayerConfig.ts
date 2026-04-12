@@ -5,9 +5,9 @@ export interface BrowserLocationLike {
 }
 
 export interface SplatWebRuntimeEnvLike {
-  VITE_SYNC_SERVER_HTTP_URL?: string;
-  VITE_SYNC_SERVER_WEBSOCKET_URL?: string;
-  VITE_JOIN_BASE_URL?: string;
+  SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL?: string;
+  SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL?: string;
+  SPLATTERBOARD_PUBLIC_JOIN_BASE_URL?: string;
 }
 
 export interface StorageLike {
@@ -41,25 +41,24 @@ export type SplatStartupIntent =
   | { kind: "startup-error"; message: string };
 
 export function createBrowserMultiplayerConfig(
-  location: BrowserLocationLike,
+  _location: BrowserLocationLike,
   storage: StorageLike = localStorage,
   cryptoImpl: CryptoLike | undefined = globalThis.crypto,
-  env: SplatWebRuntimeEnvLike = import.meta.env as SplatWebRuntimeEnvLike,
+  env: SplatWebRuntimeEnvLike = readSplatWebRuntimeEnv(),
 ): BrowserMultiplayerConfig {
-  const httpProtocol = location.protocol === "https:" ? "https:" : "http:";
-  const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-  const apiOrigin = `${httpProtocol}//${location.hostname}:3030`;
-  const websocketOrigin = `${wsProtocol}//${location.hostname}:3030`;
-
   return {
-    syncServerHttpUrl:
-      normalizeOptionalBaseUrl(env.VITE_SYNC_SERVER_HTTP_URL) ??
-      `${apiOrigin}/api`,
-    syncServerWebSocketUrl:
-      normalizeOptionalBaseUrl(env.VITE_SYNC_SERVER_WEBSOCKET_URL) ??
-      websocketOrigin,
-    joinBaseUrl:
-      normalizeOptionalBaseUrl(env.VITE_JOIN_BASE_URL) ?? location.origin,
+    syncServerHttpUrl: requireConfiguredBaseUrl(
+      env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL,
+      "SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL",
+    ),
+    syncServerWebSocketUrl: requireConfiguredBaseUrl(
+      env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL,
+      "SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL",
+    ),
+    joinBaseUrl: requireConfiguredBaseUrl(
+      env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL,
+      "SPLATTERBOARD_PUBLIC_JOIN_BASE_URL",
+    ),
     deviceTag: getOrCreateDeviceTag(storage, cryptoImpl),
   };
 }
@@ -145,7 +144,21 @@ function generateDeviceTag(cryptoImpl: CryptoLike | undefined): string {
     .slice(2, 12)}`;
 }
 
-function normalizeOptionalBaseUrl(value: string | undefined): string | null {
+export function readSplatWebRuntimeEnv(): SplatWebRuntimeEnvLike {
+  return {
+    SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL:
+      process.env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL,
+    SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL:
+      process.env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL,
+    SPLATTERBOARD_PUBLIC_JOIN_BASE_URL:
+      process.env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL,
+  };
+}
+
+function requireConfiguredBaseUrl(value: string | undefined, name: string) {
   const trimmed = value?.trim();
-  return trimmed && trimmed.length > 0 ? trimmed.replace(/\/+$/, "") : null;
+  if (!trimmed) {
+    throw new Error(`${name} is required`);
+  }
+  return trimmed.replace(/\/+$/, "");
 }

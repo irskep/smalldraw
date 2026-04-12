@@ -1,0 +1,2 @@
+[serve.static]
+env = "SPLATTERBOARD_PUBLIC_*"

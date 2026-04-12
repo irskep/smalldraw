@@ -57,6 +57,7 @@ run = "bun src/index.ts"
 [tasks."splat:web:dev"]
 alias = ["splat:dev"]
 dir = "apps/splat-web"
+env = { _.file = ".env", SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL = "http://localhost:3030/api", SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL = "ws://localhost:3030", SPLATTERBOARD_PUBLIC_JOIN_BASE_URL = "http://localhost:3000" }
 run = "bun run dev"
 
 [tasks."db:push:prod"]

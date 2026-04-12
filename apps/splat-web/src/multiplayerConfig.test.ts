@@ -6,7 +6,13 @@ import {
 } from "./multiplayerConfig";
 
 describe("createBrowserMultiplayerConfig", () => {
-  test("uses the active browser origin for join links and API host", () => {
+  const configuredEnv = {
+    SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: "http://192.168.1.25:3030/api",
+    SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL: "ws://192.168.1.25:3030",
+    SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: "http://192.168.1.25:3000",
+  };
+
+  test("uses required Bun public runtime config", () => {
     const storage = createMemoryStorage();
     expect(
       createBrowserMultiplayerConfig(
@@ -19,6 +25,7 @@ describe("createBrowserMultiplayerConfig", () => {
         {
           randomUUID: () => "device-uuid-1",
         },
+        configuredEnv,
       ),
     ).toEqual({
       syncServerHttpUrl: "http://192.168.1.25:3030/api",
@@ -28,7 +35,7 @@ describe("createBrowserMultiplayerConfig", () => {
     });
   });
 
-  test("uses secure protocols when served over https", () => {
+  test("normalizes configured public base urls", () => {
     const storage = createMemoryStorage();
     expect(
       createBrowserMultiplayerConfig(
@@ -41,10 +48,17 @@ describe("createBrowserMultiplayerConfig", () => {
         {
           randomUUID: () => "device-uuid-2",
         },
+        {
+          SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL:
+            "https://api.splatterboard.app/api/",
+          SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL:
+            "wss://sync.splatterboard.app/",
+          SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: "https://splatterboard.app/",
+        },
       ),
     ).toEqual({
-      syncServerHttpUrl: "https://splatterboard.app:3030/api",
-      syncServerWebSocketUrl: "wss://splatterboard.app:3030",
+      syncServerHttpUrl: "https://api.splatterboard.app/api",
+      syncServerWebSocketUrl: "wss://sync.splatterboard.app",
       joinBaseUrl: "https://splatterboard.app",
       deviceTag: "device-uuid-2",
     });
@@ -63,6 +77,7 @@ describe("createBrowserMultiplayerConfig", () => {
         },
         storage,
         {},
+        configuredEnv,
       ).deviceTag,
     ).toBe("stored-device-tag");
   });
@@ -85,13 +100,14 @@ describe("createBrowserMultiplayerConfig", () => {
           return array;
         },
       },
+      configuredEnv,
     );
     expect(config.deviceTag).toBe("00010203-0405-4607-8809-0a0b0c0d0e0f");
   });
 
-  test("maps Vite env names into domain runtime config", () => {
+  test("requires every public runtime config value", () => {
     const storage = createMemoryStorage();
-    expect(
+    expect(() =>
       createBrowserMultiplayerConfig(
         {
           origin: "http://localhost:3000",
@@ -103,17 +119,11 @@ describe("createBrowserMultiplayerConfig", () => {
           randomUUID: () => "device-uuid-3",
         },
         {
-          VITE_SYNC_SERVER_HTTP_URL: "https://api.example.com/api/",
-          VITE_SYNC_SERVER_WEBSOCKET_URL: "wss://api.example.com/",
-          VITE_JOIN_BASE_URL: "https://draw.example.com/",
+          SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: "https://api.example.com",
+          SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: "https://draw.example.com",
         },
       ),
-    ).toEqual({
-      syncServerHttpUrl: "https://api.example.com/api",
-      syncServerWebSocketUrl: "wss://api.example.com",
-      joinBaseUrl: "https://draw.example.com",
-      deviceTag: "device-uuid-3",
-    });
+    ).toThrow("SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL is required");
   });
 });
 
