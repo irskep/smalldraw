@@ -21,7 +21,7 @@ if (!process.env.OPAQUE_SERVER_SETUP) {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const serverRoot = path.resolve(__dirname, "..");
-const staticDir = path.resolve(serverRoot, "public");
+const staticDir = path.resolve(serverRoot, "build");
 const indexHtmlPath = path.join(staticDir, "index.html");
 
 const PORT =
@@ -30,10 +30,7 @@ const app = express();
 
 app.use(express.json());
 
-const defaultAllowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? ["https://splatterboard.app"]
-    : ["http://localhost:3000"];
+const defaultAllowedOrigins: string[] = [];
 const allowedOrigins = (process.env.FRONTEND_ORIGINS ?? "")
   .split(",")
   .map((origin) => origin.trim())
@@ -49,7 +46,7 @@ const corsOptions: CorsOptions = {
 app.use(cors(corsOptions));
 
 app.use(
-  "/api",
+  "/api/v1",
   trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext,
@@ -63,8 +60,16 @@ app.get("/healthz", (_req, res) => {
 });
 
 app.get("*", (req, res, next) => {
-  if (req.method !== "GET" || req.path.startsWith("/api")) {
+  if (req.method !== "GET" || req.path.startsWith("/api/")) {
     return next();
+  }
+
+  if (req.path.startsWith("/account")) {
+    const accountIndexPath = path.join(staticDir, "account", "index.html");
+    if (!fs.existsSync(accountIndexPath)) {
+      return res.status(404).send("Account app build not found");
+    }
+    return res.sendFile(accountIndexPath);
   }
 
   if (!fs.existsSync(indexHtmlPath)) {

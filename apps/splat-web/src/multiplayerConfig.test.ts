@@ -12,19 +12,12 @@ describe("createBrowserMultiplayerConfig", () => {
     SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: "http://192.168.1.25:3000",
   };
 
-  test("uses required Bun public runtime config", () => {
+  test("uses env vars", () => {
     const storage = createMemoryStorage();
     expect(
       createBrowserMultiplayerConfig(
-        {
-          origin: "http://192.168.1.25:3000",
-          protocol: "http:",
-          hostname: "192.168.1.25",
-        },
         storage,
-        {
-          randomUUID: () => "device-uuid-1",
-        },
+        { randomUUID: () => "device-uuid-1" },
         configuredEnv,
       ),
     ).toEqual({
@@ -35,19 +28,12 @@ describe("createBrowserMultiplayerConfig", () => {
     });
   });
 
-  test("normalizes configured public base urls", () => {
+  test("strips trailing slashes from configured urls", () => {
     const storage = createMemoryStorage();
     expect(
       createBrowserMultiplayerConfig(
-        {
-          origin: "https://splatterboard.app",
-          protocol: "https:",
-          hostname: "splatterboard.app",
-        },
         storage,
-        {
-          randomUUID: () => "device-uuid-2",
-        },
+        { randomUUID: () => "device-uuid-2" },
         {
           SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL:
             "https://api.splatterboard.app/api/",
@@ -69,27 +55,13 @@ describe("createBrowserMultiplayerConfig", () => {
       "kids-draw-device-tag": "stored-device-tag",
     });
     expect(
-      createBrowserMultiplayerConfig(
-        {
-          origin: "http://localhost:3000",
-          protocol: "http:",
-          hostname: "localhost",
-        },
-        storage,
-        {},
-        configuredEnv,
-      ).deviceTag,
+      createBrowserMultiplayerConfig(storage, {}, configuredEnv).deviceTag,
     ).toBe("stored-device-tag");
   });
 
   test("falls back when randomUUID is unavailable", () => {
     const storage = createMemoryStorage();
     const config = createBrowserMultiplayerConfig(
-      {
-        origin: "http://localhost:3000",
-        protocol: "http:",
-        hostname: "localhost",
-      },
       storage,
       {
         getRandomValues(array) {
@@ -103,27 +75,6 @@ describe("createBrowserMultiplayerConfig", () => {
       configuredEnv,
     );
     expect(config.deviceTag).toBe("00010203-0405-4607-8809-0a0b0c0d0e0f");
-  });
-
-  test("requires every public runtime config value", () => {
-    const storage = createMemoryStorage();
-    expect(() =>
-      createBrowserMultiplayerConfig(
-        {
-          origin: "http://localhost:3000",
-          protocol: "http:",
-          hostname: "localhost",
-        },
-        storage,
-        {
-          randomUUID: () => "device-uuid-3",
-        },
-        {
-          SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: "https://api.example.com",
-          SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: "https://draw.example.com",
-        },
-      ),
-    ).toThrow("SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL is required");
   });
 });
 

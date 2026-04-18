@@ -12,7 +12,7 @@ if (!container) {
 }
 
 try {
-  const multiplayerConfig = createBrowserMultiplayerConfig(window.location);
+  const multiplayerConfig = createBrowserMultiplayerConfig();
   const startupIntent = resolveSplatStartupIntent(window.location.search);
   if (startupIntent.kind === "startup-error") {
     throw new Error(startupIntent.message);

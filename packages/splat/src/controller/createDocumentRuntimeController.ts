@@ -180,8 +180,13 @@ export function createDocumentRuntimeController(options: {
         await options.onThumbnailSaved?.(summary.docUrl, blob);
       }
     },
-    resolveJoinBaseUrl: () =>
-      options.resolveJoinBaseUrl?.() ?? "https://splatterboard.app",
+    resolveJoinBaseUrl: () => {
+      const url = options.resolveJoinBaseUrl?.();
+      if (!url) {
+        throw new Error("resolveJoinBaseUrl is required");
+      }
+      return url;
+    },
   });
 
   const beginStartupCycle = (reason: string): number => {

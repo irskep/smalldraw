@@ -1,17 +1,10 @@
 import { createTRPCReact, httpBatchLink } from "@trpc/react-query";
 import type { AppRouter } from "../../../server/src/trpc/appRouter.js";
-import { apiProductionHost } from "../constants.js";
 
-const getProdApiUrl = () => {
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}/api`;
-  }
-  return `https://${apiProductionHost}/api`;
-};
-
-const apiUrl = import.meta.env.PROD
-  ? getProdApiUrl()
-  : "http://localhost:3030/api";
+const apiUrl = import.meta.env.VITE_API_URL;
+if (!apiUrl) {
+  throw new Error("Missing required env var: VITE_API_URL");
+}
 
 export const trpc = createTRPCReact<AppRouter>();
 

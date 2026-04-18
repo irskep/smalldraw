@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'splatterboard-server'
+app = 'splatterboard'
 primary_region = 'ams'
 swap_size_mb = 2048
 

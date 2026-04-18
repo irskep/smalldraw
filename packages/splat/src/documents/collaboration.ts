@@ -50,11 +50,10 @@ export function buildJoinUrl(joinSecret: string, baseUrl: string): string {
 export function resolveJoinBaseUrl(
   configuredBaseUrl: string | undefined,
 ): string {
-  return (
-    configuredBaseUrl ??
-    globalThis.location?.origin ??
-    "https://splatterboard.app"
-  );
+  if (!configuredBaseUrl) {
+    throw new Error("joinBaseUrl is required");
+  }
+  return configuredBaseUrl;
 }
 
 export function buildJoinedCatalogDocUrl(collabDocUrl: string): string {

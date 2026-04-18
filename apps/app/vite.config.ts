@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
+  base: process.env.VITE_BASE,
   plugins: [wasm(), react(), TanStackRouterVite()],
   server: {
     host: "0.0.0.0",

@@ -1,13 +1,7 @@
-export interface BrowserLocationLike {
-  origin: string;
-  protocol: string;
-  hostname: string;
-}
-
 export interface SplatWebRuntimeEnvLike {
-  SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL?: string;
-  SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL?: string;
-  SPLATTERBOARD_PUBLIC_JOIN_BASE_URL?: string;
+  SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: string;
+  SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL: string;
+  SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: string;
 }
 
 export interface StorageLike {
@@ -41,24 +35,18 @@ export type SplatStartupIntent =
   | { kind: "startup-error"; message: string };
 
 export function createBrowserMultiplayerConfig(
-  _location: BrowserLocationLike,
   storage: StorageLike = localStorage,
   cryptoImpl: CryptoLike | undefined = globalThis.crypto,
   env: SplatWebRuntimeEnvLike = readSplatWebRuntimeEnv(),
 ): BrowserMultiplayerConfig {
   return {
-    syncServerHttpUrl: requireConfiguredBaseUrl(
+    syncServerHttpUrl: stripTrailingSlashes(
       env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL,
-      "SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL",
     ),
-    syncServerWebSocketUrl: requireConfiguredBaseUrl(
+    syncServerWebSocketUrl: stripTrailingSlashes(
       env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL,
-      "SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL",
     ),
-    joinBaseUrl: requireConfiguredBaseUrl(
-      env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL,
-      "SPLATTERBOARD_PUBLIC_JOIN_BASE_URL",
-    ),
+    joinBaseUrl: stripTrailingSlashes(env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL),
     deviceTag: getOrCreateDeviceTag(storage, cryptoImpl),
   };
 }
@@ -144,21 +132,28 @@ function generateDeviceTag(cryptoImpl: CryptoLike | undefined): string {
     .slice(2, 12)}`;
 }
 
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required env var: ${name}`);
+  }
+  return value;
+}
+
 export function readSplatWebRuntimeEnv(): SplatWebRuntimeEnvLike {
   return {
-    SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL:
-      process.env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL,
-    SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL:
-      process.env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL,
-    SPLATTERBOARD_PUBLIC_JOIN_BASE_URL:
-      process.env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL,
+    SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: requireEnv(
+      "SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL",
+    ),
+    SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL: requireEnv(
+      "SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL",
+    ),
+    SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: requireEnv(
+      "SPLATTERBOARD_PUBLIC_JOIN_BASE_URL",
+    ),
   };
 }
 
-function requireConfiguredBaseUrl(value: string | undefined, name: string) {
-  const trimmed = value?.trim();
-  if (!trimmed) {
-    throw new Error(`${name} is required`);
-  }
-  return trimmed.replace(/\/+$/, "");
+function stripTrailingSlashes(value: string): string {
+  return value.replace(/\/+$/, "");
 }

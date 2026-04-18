@@ -1,6 +1,18 @@
 import { $ } from "bun";
 
-await $`bun run --cwd apps/app build`;
-await $`rm -rf apps/server/public`;
-await $`mkdir -p apps/server/public`;
-await $`cp -R apps/app/dist/. apps/server/public/`;
+const deployHost = process.env.DEPLOY_HOST;
+if (!deployHost) {
+  throw new Error("DEPLOY_HOST is required (e.g. splatterboard.fly.dev)");
+}
+
+// Build splat-web (paint app) with prod env vars baked in
+await $`SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL=https://${deployHost}/api/v1 SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL=wss://${deployHost} SPLATTERBOARD_PUBLIC_JOIN_BASE_URL=https://${deployHost} bun run --cwd apps/splat-web build`;
+
+// Build account app with /account/ base path and API URL baked in
+await $`VITE_API_URL=https://${deployHost}/api/v1 VITE_BASE=/account/ bun run --cwd apps/app build`;
+
+// Assemble into server build directory
+await $`rm -rf apps/server/build`;
+await $`mkdir -p apps/server/build/account`;
+await $`cp -R apps/splat-web/dist/. apps/server/build/`;
+await $`cp -R apps/app/dist/. apps/server/build/account/`;
