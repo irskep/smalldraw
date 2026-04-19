@@ -16,6 +16,7 @@ export interface KidsDrawAppOptions {
   width?: number;
   height?: number;
   backgroundColor?: string;
+  assetBaseUrl?: string;
   core?: SmalldrawCore;
   documentBackend?: KidsDocumentBackend;
   multiplayer?: {

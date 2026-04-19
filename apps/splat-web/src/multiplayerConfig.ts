@@ -2,6 +2,7 @@ export interface SplatWebRuntimeEnvLike {
   SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: string;
   SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL: string;
   SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: string;
+  SPLATTERBOARD_PUBLIC_ASSET_BASE_URL?: string;
 }
 
 export interface StorageLike {
@@ -18,6 +19,7 @@ export interface BrowserMultiplayerConfig {
   syncServerHttpUrl: string;
   syncServerWebSocketUrl: string;
   joinBaseUrl: string;
+  assetBaseUrl?: string;
   deviceTag: string;
 }
 
@@ -47,6 +49,9 @@ export function createBrowserMultiplayerConfig(
       env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL,
     ),
     joinBaseUrl: stripTrailingSlashes(env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL),
+    assetBaseUrl: env.SPLATTERBOARD_PUBLIC_ASSET_BASE_URL
+      ? stripTrailingSlashes(env.SPLATTERBOARD_PUBLIC_ASSET_BASE_URL)
+      : undefined,
     deviceTag: getOrCreateDeviceTag(storage, cryptoImpl),
   };
 }
@@ -140,8 +145,13 @@ export function readSplatWebRuntimeEnv(): SplatWebRuntimeEnvLike {
       process.env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL,
     SPLATTERBOARD_PUBLIC_JOIN_BASE_URL:
       process.env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL,
+    SPLATTERBOARD_PUBLIC_ASSET_BASE_URL:
+      process.env.SPLATTERBOARD_PUBLIC_ASSET_BASE_URL,
   };
   for (const [key, value] of Object.entries(env)) {
+    if (key === "SPLATTERBOARD_PUBLIC_ASSET_BASE_URL") {
+      continue;
+    }
     if (!value) {
       throw new Error(`Missing required env var: ${key}`);
     }

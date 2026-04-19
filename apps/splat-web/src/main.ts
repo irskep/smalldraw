@@ -19,6 +19,7 @@ try {
   }
   const app = await createKidsDrawApp({
     container,
+    assetBaseUrl: multiplayerConfig.assetBaseUrl,
     multiplayer: {
       ...multiplayerConfig,
       startupIntent,

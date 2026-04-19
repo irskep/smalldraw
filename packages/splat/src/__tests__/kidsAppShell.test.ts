@@ -1571,7 +1571,7 @@ describe("splatterboard shell", () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
-    const page = getColoringPageById("pdr-v1-001");
+    const page = getColoringPageById("coloring/pdr-v1/page-001.png");
     expect(page).not.toBeNull();
 
     const core = createMockCore({ width: 640, height: 480 });
@@ -1604,8 +1604,7 @@ describe("splatterboard shell", () => {
         {
           docUrl: coloringDocUrl,
           mode: "coloring",
-          coloringPageId: "pdr-v1-001",
-          referenceImageSrc: page!.src,
+          coloringPageId: page!.id,
           referenceComposite: "over-drawing",
           createdAt: "2026-02-16T00:00:00.000Z",
           updatedAt: "2026-02-16T00:00:00.000Z",
@@ -2130,6 +2129,8 @@ describe("splatterboard shell", () => {
   test("landscape coloring pages create landscape documents", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
+    const landscapePage = getColoringPageById("coloring/pdr-v1/page-009.png");
+    expect(landscapePage).not.toBeNull();
 
     const app = await createKidsDrawApp({
       container,
@@ -2157,15 +2158,15 @@ describe("splatterboard shell", () => {
       volumeButton!.click();
 
       const pageButton = container.querySelector(
-        '[data-doc-create-page="pdr-v1-009"]',
+        '[data-doc-create-page="coloring/pdr-v1/page-009.png"]',
       ) as HTMLButtonElement | null;
       expect(pageButton).not.toBeNull();
       pageButton!.click();
 
       const resized = await waitUntil(() => {
         return (
-          hotCanvas!.style.width === "1754px" &&
-          hotCanvas!.style.height === "1240px"
+          hotCanvas!.style.width === `${landscapePage!.size.width}px` &&
+          hotCanvas!.style.height === `${landscapePage!.size.height}px`
         );
       }, 100);
       expect(resized).toBeTrue();
@@ -2200,7 +2201,7 @@ describe("splatterboard shell", () => {
       expect(volumeButton).not.toBeNull();
       volumeButton!.click();
       const pageButton = container.querySelector(
-        '[data-doc-create-page="pdr-v1-009"]',
+        '[data-doc-create-page="coloring/pdr-v1/page-009.png"]',
       ) as HTMLButtonElement | null;
       expect(pageButton).not.toBeNull();
       pageButton!.click();

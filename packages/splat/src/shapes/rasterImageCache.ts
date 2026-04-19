@@ -1,8 +1,20 @@
 type CacheEntry = HTMLImageElement | HTMLCanvasElement;
+type ImageSourceResolver = (src: string) => string;
 
 const imageCache = new Map<string, CacheEntry>();
 const failedImageSources = new Set<string>();
 const deferredLoadListeners = new Set<() => void>();
+let imageSourceResolver: ImageSourceResolver = (src) => src;
+
+export function configureRasterImageSourceResolver(
+  resolver: ImageSourceResolver,
+): void {
+  imageSourceResolver = resolver;
+}
+
+export function resolveRasterImageSource(src: string): string {
+  return imageSourceResolver(src);
+}
 
 /**
  * Register a callback that fires whenever a deferred image finishes loading.
@@ -38,6 +50,7 @@ export function getLoadedRasterImage(src: string): CacheEntry | null {
 
   const image = new Image();
   image.decoding = "async";
+  image.crossOrigin = "anonymous";
   image.onload = () => {
     for (const listener of deferredLoadListeners) {
       listener();
@@ -46,7 +59,7 @@ export function getLoadedRasterImage(src: string): CacheEntry | null {
   image.onerror = () => {
     failedImageSources.add(src);
   };
-  image.src = src;
+  image.src = resolveRasterImageSource(src);
   imageCache.set(src, image);
   return isImageReady(image) ? image : null;
 }
@@ -70,4 +83,5 @@ export function resetRasterImageCache(): void {
   imageCache.clear();
   failedImageSources.clear();
   deferredLoadListeners.clear();
+  imageSourceResolver = (src) => src;
 }

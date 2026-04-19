@@ -11,6 +11,7 @@ import type { RasterPipeline } from "../render/createRasterPipeline";
 import {
   getLoadedRasterImage,
   registerRasterImage,
+  resolveRasterImageSource,
   warmRasterImage,
 } from "../shapes/rasterImageCache";
 import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
@@ -228,6 +229,7 @@ export function createDocumentRuntimeController(options: {
       }, STARTUP_ASSET_TIMEOUT_MS);
       const loader = new Image();
       loader.decoding = "async";
+      loader.crossOrigin = "anonymous";
       loader.onload = () => {
         clearTimeout(timeoutHandle);
         registerRasterImage(referenceImageSrc, loader);
@@ -243,7 +245,7 @@ export function createDocumentRuntimeController(options: {
         clearTimeout(timeoutHandle);
         settle(false);
       };
-      loader.src = referenceImageSrc;
+      loader.src = resolveRasterImageSource(referenceImageSrc);
     }).finally(() => {
       pendingImageLoads.delete(referenceImageSrc);
     });

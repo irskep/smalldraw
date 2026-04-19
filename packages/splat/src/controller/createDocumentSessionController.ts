@@ -4,7 +4,10 @@ import type {
   DrawingStore,
   SmalldrawCore,
 } from "@smalldraw/core";
-import { getColoringPageById, getColoringPageBySrc } from "../coloring/catalog";
+import {
+  extractColoringPageId,
+  getColoringPageById,
+} from "../coloring/catalog";
 import type {
   KidsDocumentBackend,
   KidsDocumentMode,
@@ -71,14 +74,20 @@ export class DocumentSessionController {
       (referenceImage.composite === "under-drawing" ||
         referenceImage.composite === "over-drawing")
     ) {
-      const coloringPage = getColoringPageBySrc(referenceImage.src);
+      const coloringPageId = extractColoringPageId(referenceImage.src);
+      const coloringPage = coloringPageId
+        ? getColoringPageById(coloringPageId)
+        : null;
       const mode: KidsDocumentMode =
         explicitDocumentType ??
         (referenceImage.composite === "under-drawing" ? "markup" : "coloring");
+      if (!coloringPage) {
+        return explicitDocumentType ? { mode: explicitDocumentType } : { mode };
+      }
       return {
         mode,
-        coloringPageId: coloringPage?.id,
-        referenceImageSrc: referenceImage.src,
+        coloringPageId: coloringPage.id,
+        referenceImageSrc: coloringPage.id,
         referenceComposite: referenceImage.composite,
       };
     }
@@ -100,7 +109,6 @@ export class DocumentSessionController {
     return {
       mode: presentation.mode,
       coloringPageId: presentation.coloringPageId,
-      referenceImageSrc: presentation.referenceImageSrc,
       referenceComposite: presentation.referenceComposite,
     };
   }
@@ -118,7 +126,7 @@ export class DocumentSessionController {
     return {
       documentType: "coloring",
       referenceImage: {
-        src: page.src,
+        src: page.id,
         composite: "over-drawing",
       },
     };
@@ -296,18 +304,30 @@ export class DocumentSessionController {
     if (persistedSummary.mode === "normal") {
       return { mode: "normal" };
     }
+    const coloringPageId =
+      persistedSummary.coloringPageId ??
+      (persistedSummary.referenceImageSrc
+        ? extractColoringPageId(persistedSummary.referenceImageSrc)
+        : null) ??
+      resolvedPresentation.coloringPageId;
+    const catalogPage = coloringPageId
+      ? getColoringPageById(coloringPageId)
+      : null;
     if (resolvedPresentation.mode === persistedSummary.mode) {
+      if (catalogPage) {
+        return {
+          ...resolvedPresentation,
+          coloringPageId: catalogPage.id,
+          referenceImageSrc: catalogPage.id,
+        };
+      }
       return resolvedPresentation;
     }
-    if (
-      persistedSummary.referenceImageSrc &&
-      (persistedSummary.referenceComposite === "under-drawing" ||
-        persistedSummary.referenceComposite === "over-drawing")
-    ) {
+    if (catalogPage && persistedSummary.referenceComposite) {
       return {
         mode: persistedSummary.mode,
-        coloringPageId: persistedSummary.coloringPageId,
-        referenceImageSrc: persistedSummary.referenceImageSrc,
+        coloringPageId: catalogPage.id,
+        referenceImageSrc: catalogPage.id,
         referenceComposite: persistedSummary.referenceComposite,
       };
     }

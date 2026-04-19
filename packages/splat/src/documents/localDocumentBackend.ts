@@ -1,3 +1,4 @@
+import { extractColoringPageId } from "../coloring/catalog";
 import type {
   KidsDocumentBackend,
   KidsDocumentCreateInput,
@@ -54,6 +55,12 @@ function normalizeDocumentSummary(
       ? value.accessTokenScope
       : undefined;
   const collaborative = Boolean(value.collaborative || collabDocUrl);
+  const coloringPageId =
+    typeof value.coloringPageId === "string" && value.coloringPageId.length > 0
+      ? value.coloringPageId
+      : typeof value.referenceImageSrc === "string"
+        ? (extractColoringPageId(value.referenceImageSrc) ?? undefined)
+        : undefined;
   return {
     docUrl: value.docUrl,
     collaborative,
@@ -64,16 +71,8 @@ function normalizeDocumentSummary(
     accountAttached: value.accountAttached === true ? true : undefined,
     title: value.title,
     mode: normalizeMode(value.mode),
-    coloringPageId:
-      typeof value.coloringPageId === "string" &&
-      value.coloringPageId.length > 0
-        ? value.coloringPageId
-        : undefined,
-    referenceImageSrc:
-      typeof value.referenceImageSrc === "string" &&
-      value.referenceImageSrc.length > 0
-        ? value.referenceImageSrc
-        : undefined,
+    coloringPageId,
+    referenceImageSrc: undefined,
     referenceComposite:
       value.referenceComposite === "under-drawing" ||
       value.referenceComposite === "over-drawing"
@@ -368,10 +367,7 @@ class IndexedDbDocumentRepository implements DocumentRepository {
             input.mode === "normal"
               ? undefined
               : (input.coloringPageId ?? existing?.coloringPageId),
-          referenceImageSrc:
-            input.mode === "normal"
-              ? undefined
-              : (input.referenceImageSrc ?? existing?.referenceImageSrc),
+          referenceImageSrc: undefined,
           referenceComposite:
             input.mode === "normal"
               ? undefined
@@ -486,10 +482,7 @@ class MemoryDocumentRepository implements DocumentRepository {
         input.mode === "normal"
           ? undefined
           : (input.coloringPageId ?? existing?.coloringPageId),
-      referenceImageSrc:
-        input.mode === "normal"
-          ? undefined
-          : (input.referenceImageSrc ?? existing?.referenceImageSrc),
+      referenceImageSrc: undefined,
       referenceComposite:
         input.mode === "normal"
           ? undefined

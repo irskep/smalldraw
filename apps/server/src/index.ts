@@ -21,7 +21,12 @@ if (!process.env.OPAQUE_SERVER_SETUP) {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const serverRoot = path.resolve(__dirname, "..");
+const repoRoot = path.resolve(serverRoot, "..", "..");
 const staticDir = path.resolve(serverRoot, "build");
+const sourceColoringDir = path.resolve(
+  repoRoot,
+  "packages/splat/src/coloring/assets",
+);
 const indexHtmlPath = path.join(staticDir, "index.html");
 
 const PORT =
@@ -54,28 +59,27 @@ app.use(
 );
 
 app.use(express.static(staticDir, { index: false }));
+if (fs.existsSync(sourceColoringDir)) {
+  app.use("/coloring", express.static(sourceColoringDir, { index: false }));
+}
 
 app.get("/healthz", (_req, res) => {
   res.send("ok");
 });
 
-app.get("*", (req, res, next) => {
-  if (req.method !== "GET" || req.path.startsWith("/api/")) {
-    return next();
+// SPA fallback only for known app routes
+app.get("/account/*", (_req, res) => {
+  const accountIndexPath = path.join(staticDir, "account", "index.html");
+  if (!fs.existsSync(accountIndexPath)) {
+    return res.status(404).send("Account app build not found");
   }
+  res.sendFile(accountIndexPath);
+});
 
-  if (req.path.startsWith("/account")) {
-    const accountIndexPath = path.join(staticDir, "account", "index.html");
-    if (!fs.existsSync(accountIndexPath)) {
-      return res.status(404).send("Account app build not found");
-    }
-    return res.sendFile(accountIndexPath);
-  }
-
+app.get("/", (_req, res) => {
   if (!fs.existsSync(indexHtmlPath)) {
     return res.status(404).send("Frontend build not found");
   }
-
   res.sendFile(indexHtmlPath);
 });
 

@@ -10,6 +10,7 @@ describe("createBrowserMultiplayerConfig", () => {
     SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: "http://192.168.1.25:3030/api",
     SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL: "ws://192.168.1.25:3030",
     SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: "http://192.168.1.25:3000",
+    SPLATTERBOARD_PUBLIC_ASSET_BASE_URL: "http://192.168.1.25:3030",
   };
 
   test("uses env vars", () => {
@@ -24,6 +25,7 @@ describe("createBrowserMultiplayerConfig", () => {
       syncServerHttpUrl: "http://192.168.1.25:3030/api",
       syncServerWebSocketUrl: "ws://192.168.1.25:3030",
       joinBaseUrl: "http://192.168.1.25:3000",
+      assetBaseUrl: "http://192.168.1.25:3030",
       deviceTag: "device-uuid-1",
     });
   });
@@ -40,12 +42,15 @@ describe("createBrowserMultiplayerConfig", () => {
           SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL:
             "wss://sync.splatterboard.app/",
           SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: "https://splatterboard.app/",
+          SPLATTERBOARD_PUBLIC_ASSET_BASE_URL:
+            "https://assets.splatterboard.app/",
         },
       ),
     ).toEqual({
       syncServerHttpUrl: "https://api.splatterboard.app/api",
       syncServerWebSocketUrl: "wss://sync.splatterboard.app",
       joinBaseUrl: "https://splatterboard.app",
+      assetBaseUrl: "https://assets.splatterboard.app",
       deviceTag: "device-uuid-2",
     });
   });

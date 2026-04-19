@@ -5,6 +5,7 @@ import {
   DrawingStore,
 } from "@smalldraw/core";
 import { el, mount, unmount } from "redom";
+import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
 import { createQrCodeDataUrl } from "../controller/createQrCodeDataUrl";
 import { createKidsDrawController } from "../controller/KidsDrawController";
 import { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
@@ -26,6 +27,7 @@ import { resolveLayoutMode, resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
+import { configureRasterImageSourceResolver } from "../shapes/rasterImageCache";
 import {
   createKidsToolCatalog,
   getDefaultToolIdForFamily,
@@ -57,6 +59,9 @@ export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
 ): Promise<KidsDrawApp> {
   const uninstallMobileGestureGuards = installMobileGestureGuards();
+  configureRasterImageSourceResolver(
+    createColoringAssetUrlResolver(options.assetBaseUrl),
+  );
   warmImageStampAssets(getImageStampAssets().map((asset) => asset.src));
 
   const hasExplicitSize =
