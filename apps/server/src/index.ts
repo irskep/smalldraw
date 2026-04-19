@@ -94,10 +94,14 @@ const server = app.listen(PORT, () => {
 
 server.on("upgrade", async (request, socket, head) => {
   const origin = request.headers.origin;
-  if (origin && !finalAllowedOrigins.includes(origin)) {
-    socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
-    socket.destroy();
-    return;
+  if (origin) {
+    const originHost = new URL(origin).host;
+    const isSameOrigin = originHost === request.headers.host;
+    if (!isSameOrigin && !finalAllowedOrigins.includes(origin)) {
+      socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+      socket.destroy();
+      return;
+    }
   }
 
   const authContext = await resolveWebSocketUpgradeAuth({

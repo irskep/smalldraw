@@ -145,3 +145,6 @@ fly secrets set \
 
 [tasks."server:deploy"]
 run = "fly deploy -c apps/server/fly.toml"
+
+[tasks.deploy]
+run = ["mise run prod:build", "mise run server:deploy"]
