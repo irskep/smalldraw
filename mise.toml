@@ -48,7 +48,7 @@ env = { VITE_API_URL = "http://localhost:3030/api/v1", VITE_BASE = "/" }
 run = "bun run dev"
 
 [tasks."prod:build"]
-env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db" }
+env = { _.file = ".env", NODE_ENV = "production", DATABASE_URL = "./sqlite/prod.db", DEPLOY_HOST = "splatterboard.fly.dev" }
 run = "bun run ./scripts/prod-build.ts"
 
 [tasks."prod:serve"]
@@ -129,6 +129,19 @@ run = "mise run //apps/splat-desktop:build"
 
 [tasks."splat:desktop:package"]
 run = "mise run //apps/splat-desktop:package"
+
+[tasks."server:secrets"]
+env = { _.file = ".env.prod" }
+run = """
+fly secrets set \
+  OPAQUE_SERVER_SETUP="$OPAQUE_SERVER_SETUP" \
+  R2_ACCOUNT_ID="$R2_ACCOUNT_ID" \
+  R2_BUCKET="$R2_BUCKET" \
+  R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
+  R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+  R2_PUBLIC_BASE_URL="$R2_PUBLIC_BASE_URL" \
+  -a splatterboard
+"""
 
 [tasks."server:deploy"]
 run = "fly deploy -c apps/server/fly.toml"

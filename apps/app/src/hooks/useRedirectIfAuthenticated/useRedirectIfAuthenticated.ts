@@ -1,11 +1,10 @@
 import { useEffect, useMemo } from "react";
+import { basePath } from "@/config";
 import { trpc } from "@/utils/trpc";
 
-const authRoutes = new Set(["/login", "/register"]);
-
 const getSafeRedirectTarget = (redirect?: string) => {
-  if (!redirect || authRoutes.has(redirect)) {
-    return "/";
+  if (!redirect || redirect.endsWith("/login") || redirect.endsWith("/register")) {
+    return basePath;
   }
 
   return redirect;

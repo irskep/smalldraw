@@ -52,6 +52,7 @@ typings/
 
 # dotenv environment variables file
 .env
+.env.prod
 .env.test
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -62,7 +63,6 @@ typings/
 
 # Next.js build output
 .next
-/apps/server/public
 
 *.diff.png
 /.rodney

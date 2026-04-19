@@ -7,6 +7,7 @@ import {
 import { RouterProvider } from "@tanstack/react-router";
 import { TRPCClientError } from "@trpc/client";
 import { useState } from "react";
+import { appPath, basePath, isAppRoute } from "../../config.js";
 import { router } from "../../utils/router.js";
 import { trpc, trpcClient } from "../../utils/trpc.js";
 
@@ -14,12 +15,12 @@ const handleError = (error: Error, queryClient: QueryClient) => {
   if (
     error instanceof TRPCClientError &&
     error.data?.code === "UNAUTHORIZED" &&
-    window.location.pathname !== "/login" &&
-    window.location.pathname !== "/register"
+    !isAppRoute("login") &&
+    !isAppRoute("register")
   ) {
     queryClient.clear();
 
-    window.location.href = `/login${window.location.pathname !== "/" ? `?redirect=${window.location.pathname}` : ""}`;
+    window.location.href = appPath(`login${window.location.pathname !== basePath ? `?redirect=${window.location.pathname}` : ""}`);
 
     return true;
   }

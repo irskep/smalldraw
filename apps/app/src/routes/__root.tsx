@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { Shield } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
+import { appPath, basePath, isAppRoute } from "../config";
 import { trpc } from "../utils/trpc";
 
 const TanStackRouterDevtools =
@@ -48,17 +49,13 @@ const Root = () => {
   const isNotAuthorized = meQuery.error?.data?.code === "UNAUTHORIZED";
 
   useEffect(() => {
-    if (
-      !isNotAuthorized ||
-      window.location.pathname === "/login" ||
-      window.location.pathname === "/register"
-    ) {
+    if (!isNotAuthorized || isAppRoute("login") || isAppRoute("register")) {
       return;
     }
     navigate({
       to: "/login",
       search:
-        window.location.pathname !== "/"
+        window.location.pathname !== basePath
           ? { redirect: window.location.pathname }
           : undefined,
     });
@@ -99,7 +96,7 @@ const Root = () => {
                   logoutMutation.mutate(undefined, {
                     onSuccess: () => {
                       queryClient.invalidateQueries();
-                      window.location.href = `/login`;
+                      window.location.href = appPath("login");
                     },
                     onError: () => {
                       alert("Failed to logout");

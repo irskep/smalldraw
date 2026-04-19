@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { AuthForm } from "../components/AuthForm/AuthForm";
+import { basePath } from "../config";
 import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated/useRedirectIfAuthenticated";
 import { useRegisterAndLogin } from "../hooks/useRegisterAndLogin/useRegisterAndLogin";
 import { authenticationSearchParams } from "../schema";
@@ -26,7 +27,7 @@ const Register = () => {
             setError("Failed to register");
             return;
           }
-          window.location.href = redirect || "/";
+          window.location.href = redirect || basePath;
         }}
         children="Sign up"
         isPending={isPending}

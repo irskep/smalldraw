@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { AuthForm } from "../components/AuthForm/AuthForm.js";
+import { basePath } from "../config.js";
 import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated/useRedirectIfAuthenticated";
 import { useLogin } from "../hooks/useLogin/useLogin.js";
 import { authenticationSearchParams } from "../schema.js";
@@ -26,7 +27,7 @@ const Login = () => {
             setError("Failed to login");
             return;
           }
-          window.location.href = redirect || "/";
+          window.location.href = redirect || basePath;
         }}
         children="Login"
         isPending={isPending}
