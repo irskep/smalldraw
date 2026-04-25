@@ -16,10 +16,13 @@
     "lint": "bunx biome check --write",
     "test": "bun test ./tests",
     "test:ui": "playwright test",
-    "test:ui:headed": "playwright test --headed"
+    "test:ui:headed": "playwright test --headed",
+    "test:ui:live": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3002 playwright test",
+    "test:ui:install": "bunx playwright install chromium"
   },
   "dependencies": {
     "lucide": "catalog:ui",
+    "nanostores": "^0.11.4",
     "open-props": "catalog:ui",
     "redom": "catalog:ui"
   },

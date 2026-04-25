@@ -1,6 +1,5 @@
 import { el } from "redom";
 import "../src/styles.css";
-import { createButton } from "../src";
 import { stories } from "./stories/index";
 
 function getStoryIdFromHash(): string {
@@ -24,19 +23,19 @@ document.body.append(app);
 function renderNav(activeStoryId: string): void {
   storyList.replaceChildren();
   for (const story of stories) {
-    const link = createButton({
-      label: story.title,
-      className: "ds-harness__story-link",
-      tone: story.id === activeStoryId ? "primary" : "neutral",
-      attributes: {
+    const link = el(
+      "button.ds-harness__story-link",
+      {
+        type: "button",
         "data-story-id": story.id,
       },
-    });
-    link.el.classList.toggle("is-active", story.id === activeStoryId);
-    link.setOnPress(() => {
+      story.title,
+    ) as HTMLButtonElement;
+    link.classList.toggle("is-active", story.id === activeStoryId);
+    link.addEventListener("click", () => {
       window.location.hash = story.id;
     });
-    storyList.append(link.el);
+    storyList.append(link);
   }
 }
 

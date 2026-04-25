@@ -1,0 +1,130 @@
+/*
+ * IconButton
+ *
+ * Ported from packages/splat KidsDrawToolbar.css square-icon-button styles.
+ * Uses ds-icon-button class names and design-system custom properties.
+ */
+
+.ds-icon-button {
+  --sq-border-width: var(--border-size-1);
+  --sq-border: color-mix(in oklch, var(--gray-7) 28%, white);
+  --sq-bg: var(--ds-icon-button-bg, var(--gray-1));
+  --sq-color: var(--ds-icon-button-color, var(--gray-8));
+  --sq-shadow: var(--shadow-2);
+  --sq-hover-lift: -2px;
+  --sq-hover-scale: 1.01;
+  --sq-shadow-selected: var(--shadow-3);
+  --sq-border-selected: color-mix(in oklch, var(--blue-6) 60%, black);
+
+  width: var(--ds-icon-button-size, 3.5rem);
+  height: var(--ds-icon-button-size, 3.5rem);
+  box-sizing: border-box;
+  border: var(--sq-border-width) solid var(--sq-border);
+  border-radius: var(--sq-radius, var(--radius-3));
+  background: var(--sq-bg);
+  color: var(--sq-color);
+  font-weight: var(--sq-font-weight, var(--font-weight-5));
+  box-shadow: var(--sq-shadow);
+  padding: 0;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-3),
+    box-shadow 120ms var(--ease-out-3),
+    background-color 120ms var(--ease-out-3);
+}
+
+/* ---- content layout ---- */
+
+.ds-icon-button__content {
+  display: grid;
+  grid-template-rows: auto auto;
+  align-items: center;
+  justify-items: center;
+  justify-content: center;
+  align-content: center;
+  row-gap: var(--sq-content-gap, var(--size-px-1));
+  width: 100%;
+  height: 100%;
+  padding-block: var(--sq-content-padding-block, 0);
+}
+
+.ds-icon-button[data-layout="row"] .ds-icon-button__content {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: var(--sq-content-gap, var(--size-px-1));
+}
+
+/* ---- icon ---- */
+
+.ds-icon-button__icon {
+  width: var(--size-px-5);
+  height: var(--size-px-5);
+  min-width: var(--size-px-5);
+  min-height: var(--size-px-5);
+  flex: 0 0 var(--size-px-5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(var(--sq-icon-offset-y, 0));
+}
+
+.ds-icon-button__icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ds-icon-button__icon-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---- label ---- */
+
+.ds-icon-button__label {
+  font-size: var(--sq-label-size, 11px);
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateY(var(--sq-label-offset-y, 0));
+}
+
+.ds-icon-button__label[hidden] {
+  display: none;
+}
+
+/* ---- interaction states ---- */
+
+.ds-icon-button:active {
+  transform: scale(0.96);
+}
+
+.ds-icon-button:hover:not(:disabled) {
+  transform: translateY(var(--sq-hover-lift, -2px))
+    scale(var(--sq-hover-scale, 1.01));
+  box-shadow: var(--sq-shadow-selected, var(--shadow-3));
+}
+
+.ds-icon-button.is-selected {
+  background: var(--sq-bg-selected, var(--blue-2));
+  color: var(--sq-color-selected, var(--gray-10));
+  box-shadow: var(--sq-shadow-selected, var(--shadow-3));
+  border-color: var(
+    --sq-border-selected,
+    color-mix(in oklch, var(--blue-6) 60%, black)
+  );
+}
+
+.ds-icon-button:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--blue-5) 60%, black);
+  outline-offset: -2px;
+}
+
+.ds-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

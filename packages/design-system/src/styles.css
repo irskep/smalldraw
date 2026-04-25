@@ -56,6 +56,7 @@ body {
 .ds-harness__story-link {
   width: 100%;
   text-align: left;
+  font: inherit;
 }
 
 .ds-harness__story-link.is-active {
@@ -83,6 +84,24 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.ds-story-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.ds-story-heading {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.ds-story-output {
+  align-self: center;
+}
+
+.ds-story-frame {
+  width: min(100%, 24rem);
 }
 
 @media (max-width: 900px) {
