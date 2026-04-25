@@ -513,7 +513,6 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     const viewportMainSize = this.getViewportMainSize(horizontal);
     if (
       this.shouldPaginate() &&
-      this.state.mode === "mobile" &&
       items.length > 1 &&
       viewportMainSize <= 1 &&
       this.state.layoutRetryFrame === 0

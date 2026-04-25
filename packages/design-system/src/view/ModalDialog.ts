@@ -3,9 +3,8 @@ import "./ModalDialog.css";
 import type { IconNode } from "lucide";
 import { el, setChildren } from "redom";
 import { Button } from "./Button";
+import { renderIcon } from "./renderIcon";
 import type { ReDomLike } from "./ReDomLike";
-
-const SVG_NS = "http://www.w3.org/2000/svg";
 const DIALOG_CLOSE_ANIMATION_MS = 220;
 
 export interface ModalDialogOptions {
@@ -121,26 +120,7 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
   }
 
   #createIcon(iconNode: IconNode): SVGSVGElement {
-    const svg = document.createElementNS(SVG_NS, "svg");
-    svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("fill", "none");
-    svg.setAttribute("stroke", "currentColor");
-    svg.setAttribute("stroke-width", "2");
-    svg.setAttribute("stroke-linecap", "round");
-    svg.setAttribute("stroke-linejoin", "round");
-
-    for (const [tag, attrs] of iconNode) {
-      const node = document.createElementNS(SVG_NS, tag);
-      for (const [attr, value] of Object.entries(attrs)) {
-        if (value !== undefined) {
-          node.setAttribute(attr, `${value}`);
-        }
-      }
-      svg.appendChild(node);
-    }
-
-    return svg;
+    return renderIcon(iconNode);
   }
 
   async #finish(value: boolean): Promise<void> {

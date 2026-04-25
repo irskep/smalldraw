@@ -132,3 +132,38 @@ The fundamental bug: **pagination measures viewport with nav buttons hidden, but
 - Page 0 = [0, 1] → 2 items. Track content = 72 + 8 + 72 = 152px ≤ 206px ✓ No clipping.
 
 **Conclusion:** The fix ensures nav buttons are visible during measurement, so the viewport width reflects actual available space. All 4 grid stories verified via Chrome measurements — zero clipping. All unit and UI tests pass.
+
+---
+
+## Experiment 5: Multi-row/column grid stories
+
+### Experiment 5a: rAF retry only fires in mobile mode
+
+**Hypothesis:** The rAF layout retry (which re-runs pagination after the grid is mounted in the DOM) only fires when `this.state.mode === "mobile"`. A grid with `paginateInLarge: true` in `"large"` mode will fail to paginate on initial load because the viewport measures 0 (not in DOM), bails, and never retries.
+
+**Procedure:** Add a "Grid: Two-Row XLarge" story with `paginateInLarge: true` in large mode. Load the page and check if pagination activates.
+
+**Observation:** Confirmed. No nav buttons, only 4 of 12 items visible (viewport clips the rest). The rAF retry condition checked `this.state.mode === "mobile"`, excluding large mode.
+
+**Fix:** Removed the `mode === "mobile"` guard from the rAF retry condition. Now retries for any mode where `shouldPaginate()` is true.
+
+### Experiment 5b: Nav buttons inherit doubled cell size in xlarge
+
+**Hypothesis:** In `two-row-xlarge` layout, `.button-grid` sets `--button-grid-cell-size` to `2×`. Nav buttons use this variable for sizing, so they become 144px instead of 72px — consuming excessive space.
+
+**Observation:** Confirmed via screenshot. Nav buttons are as tall as the doubled grid cells.
+
+**Fix:** Introduced `--button-grid-nav-size` (set to the base cell size, not doubled). Nav button CSS now uses `--button-grid-nav-size` instead of `--button-grid-cell-size`.
+
+### Experiment 5c: Vertical two-column grid overflows in large mode
+
+**Hypothesis:** Setting `grid.el.style.height = "24rem"` in a vertical grid story causes overflow in large mode (no pagination). The shell renders all 12 items at full size, exceeding the 24rem constraint, and overflows because large mode sets `overflow: visible` on the viewport.
+
+**Observation:** Confirmed. Items spill below the card boundary.
+
+**Fix:** Only apply the height constraint when paginating (mobile mode). Remove it in large mode.
+
+**Test coverage:** All three fixes covered by new UI tests:
+- "Grid: Two-Row" — large mode all visible, mobile paginates
+- "Grid: Two-Row XLarge" — paginates in large mode with doubled cells
+- "Grid: Vertical Two-Column" — large mode all visible, mobile paginates

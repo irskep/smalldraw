@@ -196,6 +196,112 @@ test.describe("Grid: Vertical", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Grid: Two-Row
+// ---------------------------------------------------------------------------
+
+test.describe("Grid: Two-Row", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/#grid-two-row");
+    await expect(page.getByRole("heading", { name: "Grid: Two-Row" })).toBeVisible();
+  });
+
+  test("large mode shows all items without pagination", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeHidden();
+  });
+
+  test("switching to mobile paginates to single row", async ({ page }) => {
+    await page.getByRole("button", { name: "mobile" }).click();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
+    // Not all items visible
+    await expect(page.getByRole("button", { name: "Rows" })).not.toBeVisible();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Grid: Two-Row XLarge
+// ---------------------------------------------------------------------------
+
+test.describe("Grid: Two-Row XLarge", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/#grid-two-row-xlarge");
+    await expect(
+      page.getByRole("heading", { name: "Grid: Two-Row XLarge" }),
+    ).toBeVisible();
+  });
+
+  test("paginates in large mode with doubled cell size", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+    // With doubled cells in a constrained frame, pagination should be active
+    await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeDisabled();
+  });
+
+  test("navigating forward reveals more items", async ({ page }) => {
+    await page.getByRole("button", { name: "Next page" }).click();
+    await expect(page.getByRole("button", { name: "Pencil" })).not.toBeVisible();
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeEnabled();
+  });
+
+  test("visible items are not clipped by nav buttons", async ({ page }) => {
+    // Regression: nav buttons previously inherited doubled cell size, clipping items
+    const clipped = await page.evaluate(() => {
+      const viewport = document.querySelector(".button-grid-viewport");
+      const items = document.querySelectorAll(".button-grid-item");
+      if (!viewport || items.length === 0) return true;
+      const vpRect = viewport.getBoundingClientRect();
+      for (const item of items) {
+        const r = item.getBoundingClientRect();
+        if (r.right > vpRect.right + 2 || r.bottom > vpRect.bottom + 2) return true;
+      }
+      return false;
+    });
+    expect(clipped).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Grid: Vertical Two-Column
+// ---------------------------------------------------------------------------
+
+test.describe("Grid: Vertical Two-Column", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/#grid-vertical-two-col");
+    await expect(
+      page.getByRole("heading", { name: "Grid: Vertical Two-Column" }),
+    ).toBeVisible();
+  });
+
+  test("large mode shows all items in two columns without pagination", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeHidden();
+  });
+
+  test("large mode grid does not overflow its container", async ({ page }) => {
+    // Regression: grid with fixed height overflowed in large mode
+    const overflows = await page.evaluate(() => {
+      const stage = document.querySelector(".ds-harness__stage");
+      const grid = document.querySelector(".button-grid");
+      if (!stage || !grid) return true;
+      const stageRect = stage.getBoundingClientRect();
+      const gridRect = grid.getBoundingClientRect();
+      return gridRect.bottom > stageRect.bottom + 2;
+    });
+    expect(overflows).toBe(false);
+  });
+
+  test("switching to mobile shows single-column paginated", async ({ page }) => {
+    await page.getByRole("button", { name: "mobile" }).click();
+    // Wait for rAF layout
+    await page.waitForTimeout(100);
+    await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Button
 // ---------------------------------------------------------------------------
 

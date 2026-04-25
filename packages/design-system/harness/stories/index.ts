@@ -59,6 +59,8 @@ function buildGridDemo(options: {
   items?: DemoGridItem[];
   mode?: "large" | "medium" | "mobile";
   orientation?: "horizontal" | "vertical";
+  largeLayout?: "two-row" | "two-row-xlarge";
+  paginateInLarge?: boolean;
   frameWidth?: string;
   frameHeight?: string;
 }): {
@@ -75,6 +77,8 @@ function buildGridDemo(options: {
   const grid = new PagedButtonGrid<DemoGridItem>({
     initialMode: options.mode ?? "mobile",
     orientation: options.orientation ?? "horizontal",
+    largeLayout: options.largeLayout,
+    paginateInLarge: options.paginateInLarge,
     createItemComponent: (item) => {
       const button = createIconButton({ label: item.label, icon: item.icon });
       itemButtons.set(item.id, button);
@@ -337,6 +341,101 @@ export const stories: HarnessStory[] = [
         el("div.ds-story-row", addBtn, removeBtn, resetBtn),
         el("h2.ds-story-heading", "Grid"),
         frame,
+        status,
+      );
+      container.replaceChildren(canvas);
+    },
+  },
+  {
+    id: "grid-two-row",
+    title: "Grid: Two-Row",
+    description:
+      "Large mode with a 2-row grid layout, showing all items without pagination. Switch to medium/mobile to paginate.",
+    mount: (container) => {
+      const canvas = el("div.ds-story-stack") as HTMLDivElement;
+      const frame = el("div.ds-story-frame") as HTMLDivElement;
+      const status = el("output.ds-story-output", "Mode: large") as HTMLOutputElement;
+      const { grid } = buildGridDemo({ mode: "large", largeLayout: "two-row" });
+
+      const modes = ["large", "medium", "mobile"] as const;
+      const modeRow = el("div.ds-story-row") as HTMLDivElement;
+      for (const mode of modes) {
+        const btn = el("button", { type: "button" }, mode) as HTMLButtonElement;
+        btn.addEventListener("click", () => {
+          grid.setMode(mode);
+          status.textContent = `Mode: ${mode}`;
+        });
+        modeRow.append(btn);
+      }
+
+      frame.append(grid.el);
+      canvas.append(
+        el("h2.ds-story-heading", "Mode"),
+        modeRow,
+        el("h2.ds-story-heading", "Grid"),
+        frame,
+        status,
+      );
+      container.replaceChildren(canvas);
+    },
+  },
+  {
+    id: "grid-two-row-xlarge",
+    title: "Grid: Two-Row XLarge",
+    description:
+      "Large mode with two-row-xlarge layout (doubled cell size). Paginated in large mode to demonstrate stamp-image-style grids.",
+    mount: (container) => {
+      const canvas = el("div.ds-story-stack") as HTMLDivElement;
+      const frame = el("div.ds-story-frame") as HTMLDivElement;
+      frame.style.width = "min(100%, 36rem)";
+      const { grid } = buildGridDemo({
+        mode: "large",
+        largeLayout: "two-row-xlarge",
+        paginateInLarge: true,
+      });
+
+      frame.append(grid.el);
+      canvas.append(
+        el("h2.ds-story-heading", "Grid"),
+        frame,
+      );
+      container.replaceChildren(canvas);
+    },
+  },
+  {
+    id: "grid-vertical-two-col",
+    title: "Grid: Vertical Two-Column",
+    description:
+      "Vertical orientation in large mode showing a 2-column grid. Switch to mobile for single-column paginated.",
+    mount: (container) => {
+      const canvas = el("div.ds-story-stack") as HTMLDivElement;
+      const status = el("output.ds-story-output", "Mode: large") as HTMLOutputElement;
+      const { grid } = buildGridDemo({
+        mode: "large",
+        orientation: "vertical",
+      });
+
+      const applyMode = (mode: "large" | "mobile"): void => {
+        // Height constraint only needed for vertical pagination
+        grid.el.style.height = mode === "large" ? "" : "24rem";
+        grid.setMode(mode);
+        status.textContent = `Mode: ${mode}`;
+        requestAnimationFrame(() => grid.syncLayout());
+      };
+
+      const modes = ["large", "mobile"] as const;
+      const modeRow = el("div.ds-story-row") as HTMLDivElement;
+      for (const mode of modes) {
+        const btn = el("button", { type: "button" }, mode) as HTMLButtonElement;
+        btn.addEventListener("click", () => applyMode(mode));
+        modeRow.append(btn);
+      }
+
+      canvas.append(
+        el("h2.ds-story-heading", "Mode"),
+        modeRow,
+        el("h2.ds-story-heading", "Grid"),
+        grid.el,
         status,
       );
       container.replaceChildren(canvas);

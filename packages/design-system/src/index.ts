@@ -1,4 +1,5 @@
 export type { ReDomLike } from "./view/ReDomLike";
+export { renderIcon } from "./view/renderIcon";
 export {
   createButton,
   Button,

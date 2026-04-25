@@ -1,5 +1,6 @@
 .button-grid {
   --button-grid-cell-size: var(--ds-button-grid-cell-size, 4.5rem);
+  --button-grid-nav-size: var(--ds-button-grid-cell-size, 4.5rem);
   display: block;
   max-width: 100%;
 }
@@ -130,13 +131,13 @@
 }
 
 .button-grid-nav {
-  width: var(--button-grid-cell-size);
-  height: var(--button-grid-cell-size);
-  min-width: var(--button-grid-cell-size);
-  min-height: var(--button-grid-cell-size);
-  max-width: var(--button-grid-cell-size);
-  max-height: var(--button-grid-cell-size);
-  flex: 0 0 var(--button-grid-cell-size);
+  width: var(--button-grid-nav-size);
+  height: var(--button-grid-nav-size);
+  min-width: var(--button-grid-nav-size);
+  min-height: var(--button-grid-nav-size);
+  max-width: var(--button-grid-nav-size);
+  max-height: var(--button-grid-nav-size);
+  flex: 0 0 var(--button-grid-nav-size);
   align-self: center;
   padding: 0;
 }
