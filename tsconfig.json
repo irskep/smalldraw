@@ -14,7 +14,9 @@
     "jsx": "react",
     "baseUrl": ".",
     "paths": {
+      "@smalldraw/design-system/styles.css": ["packages/design-system/src/styles.css"],
       "@smalldraw/splat/styles.css": ["packages/splat/src/main.css"],
+      "@smalldraw/design-system": ["packages/design-system/src/index.ts"],
       "@smalldraw/core": ["packages/core/src/index.ts"],
       "@smalldraw/geometry": ["packages/geometry/src/index.ts"],
       "@smalldraw/*": ["packages/*/src/index.ts"]

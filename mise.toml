@@ -62,6 +62,11 @@ dir = "apps/splat-web"
 env = { _.file = ".env", SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL = "http://localhost:3030/api/v1", SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL = "ws://localhost:3030", SPLATTERBOARD_PUBLIC_JOIN_BASE_URL = "http://localhost:3000", SPLATTERBOARD_PUBLIC_ASSET_BASE_URL = "http://localhost:3030" }
 run = "bun run dev"
 
+[tasks."design-system:dev"]
+alias = ["ds:dev"]
+dir = "packages/design-system"
+run = "bun run dev"
+
 [tasks."db:push:prod"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/prod.db" }
 run = "bunx drizzle-kit push"
