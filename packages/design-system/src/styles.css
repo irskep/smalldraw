@@ -1,5 +1,11 @@
 @import "open-props/style";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   --ds-font-sans: system-ui, sans-serif;
   --ds-surface: #ffffff;
@@ -23,44 +29,29 @@ body {
 
 .ds-harness {
   min-height: 100vh;
-  padding: 1.5rem;
+  padding: 1rem;
   box-sizing: border-box;
-}
-
-.ds-harness__shell {
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+  align-content: start;
 }
 
-.ds-harness__nav,
+.ds-harness__picker {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.5rem;
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  background: var(--ds-surface);
+  width: 100%;
+  max-width: 24rem;
+}
+
 .ds-harness__stage {
   background: var(--ds-surface);
   border: 1px solid var(--ds-border);
   border-radius: 12px;
-}
-
-.ds-harness__nav {
-  padding: 1rem;
-}
-
-.ds-harness__stage {
   padding: 1.5rem;
-}
-
-.ds-harness__story-list {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.ds-harness__story-link {
-  width: 100%;
-  text-align: left;
-  font: inherit;
-}
-
-.ds-harness__story-link.is-active {
-  outline: 2px solid rgba(31, 111, 235, 0.2);
 }
 
 .ds-harness__story-title {
@@ -74,7 +65,7 @@ body {
 }
 
 .ds-harness__canvas {
-  min-height: 20rem;
+  min-height: 10rem;
   display: grid;
   align-content: start;
   gap: 1rem;
@@ -104,12 +95,3 @@ body {
   width: min(100%, 24rem);
 }
 
-@media (max-width: 900px) {
-  .ds-harness {
-    padding: 1rem;
-  }
-
-  .ds-harness__shell {
-    grid-template-columns: 1fr;
-  }
-}

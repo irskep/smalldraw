@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+// ---------------------------------------------------------------------------
+// Icon Button
+// ---------------------------------------------------------------------------
+
 test("renders the default story", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Icon Button" })).toBeVisible();
@@ -10,13 +14,217 @@ test("renders the default story", async ({ page }) => {
   );
 });
 
-test("paginates to the selected grid item", async ({ page }) => {
-  await page.goto("/#paged-button-grid");
-  await expect(page.getByRole("heading", { name: "Paged Button Grid" })).toBeVisible();
-  await page.getByRole("button", { name: "Show Last Item" }).click();
-  await expect(page.getByRole("button", { name: "Row D" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(page.getByRole("button", { name: "Next page" })).toBeDisabled();
+// ---------------------------------------------------------------------------
+// Grid: Pagination
+// ---------------------------------------------------------------------------
+
+test.describe("Grid: Pagination", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/#grid-pagination");
+    await expect(page.getByRole("heading", { name: "Grid: Pagination" })).toBeVisible();
+  });
+
+  test("shows first page with prev disabled and next enabled", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeEnabled();
+  });
+
+  test("navigates forward and back via nav buttons", async ({ page }) => {
+    const next = page.getByRole("button", { name: "Next page" });
+    const prev = page.getByRole("button", { name: "Previous page" });
+
+    // Go forward — Pencil should disappear, later items should appear
+    await next.click();
+    await expect(page.getByRole("button", { name: "Pencil" })).not.toBeVisible();
+    await expect(prev).toBeEnabled();
+
+    // Go back — Pencil should reappear
+    await prev.click();
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+    await expect(prev).toBeDisabled();
+  });
+
+  test("jumping to last item pages to the final page", async ({ page }) => {
+    await page.getByRole("button", { name: "Last" }).click();
+    await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeEnabled();
+  });
+
+  test("jumping to middle item shows that item", async ({ page }) => {
+    await page.getByRole("button", { name: "Middle" }).click();
+    // The middle item (index 6) is "Circle"
+    await expect(page.getByRole("button", { name: "Circle" })).toBeVisible();
+  });
+
+  test("jumping to first from last pages back to start", async ({ page }) => {
+    await page.getByRole("button", { name: "Last" }).click();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeDisabled();
+    await page.getByRole("button", { name: "First" }).click();
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeDisabled();
+  });
+
+  test("clicking a grid item selects it", async ({ page }) => {
+    const fill = page.getByRole("button", { name: "Fill" });
+    await fill.click();
+    await expect(fill).toHaveAttribute("aria-pressed", "true");
+    // Previously selected item should be deselected
+    await expect(page.getByRole("button", { name: "Pencil" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Grid: Mode Switching
+// ---------------------------------------------------------------------------
+
+test.describe("Grid: Mode Switching", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/#grid-mode-switching");
+    await expect(page.getByRole("heading", { name: "Grid: Mode Switching" })).toBeVisible();
+  });
+
+  test("starts in mobile mode with pagination", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
+    // Not all items visible — pagination is active
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+  });
+
+  test("switching to large mode shows all items without pagination", async ({ page }) => {
+    await page.getByRole("button", { name: "large" }).click();
+    // All 12 items should be visible
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
+    // Nav buttons should be hidden
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeHidden();
+  });
+
+  test("switching from large back to mobile restores pagination", async ({ page }) => {
+    await page.getByRole("button", { name: "large" }).click();
+    await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
+
+    await page.getByRole("button", { name: "mobile" }).click();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
+    // Last item should no longer be visible (paginated away)
+    await expect(page.getByRole("button", { name: "Rows" })).not.toBeVisible();
+  });
+
+  test("switching to medium mode still paginates", async ({ page }) => {
+    await page.getByRole("button", { name: "medium" }).click();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Grid: Dynamic Items
+// ---------------------------------------------------------------------------
+
+test.describe("Grid: Dynamic Items", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/#grid-dynamic-items");
+    await expect(page.getByRole("heading", { name: "Grid: Dynamic Items" })).toBeVisible();
+  });
+
+  test("adding an item increases the count", async ({ page }) => {
+    await expect(page.getByText("Items: 12")).toBeVisible();
+    await page.getByRole("button", { name: "Add item" }).click();
+    await expect(page.getByText("Items: 13")).toBeVisible();
+  });
+
+  test("removing all but one item hides nav buttons", async ({ page }) => {
+    const remove = page.getByRole("button", { name: "Remove last" });
+    for (let i = 0; i < 11; i++) {
+      await remove.click();
+    }
+    await expect(page.getByText("Items: 1")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeHidden();
+  });
+
+  test("reset restores the original item set", async ({ page }) => {
+    await page.getByRole("button", { name: "Remove last" }).click();
+    await expect(page.getByText("Items: 11")).toBeVisible();
+    await page.getByRole("button", { name: "Reset" }).click();
+    await expect(page.getByText("Items: 12")).toBeVisible();
+  });
+
+  test("added items are reachable by paging forward", async ({ page }) => {
+    // Add a few items
+    const add = page.getByRole("button", { name: "Add item" });
+    await add.click();
+    await add.click();
+
+    // Page to the end
+    const next = page.getByRole("button", { name: "Next page" });
+    while (await next.isEnabled()) {
+      await next.click();
+    }
+    // One of the new items should be visible on the last page
+    await expect(page.getByRole("button", { name: /New \d+/ }).first()).toBeVisible();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Grid: Vertical
+// ---------------------------------------------------------------------------
+
+test.describe("Grid: Vertical", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/#grid-vertical");
+    await expect(page.getByRole("heading", { name: "Grid: Vertical" })).toBeVisible();
+    // Wait for rAF-based layout to settle
+    await page.waitForTimeout(100);
+  });
+
+  test("paginates vertically with nav buttons", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Previous page" })).toBeDisabled();
+  });
+
+  test("jump to last navigates to final page", async ({ page }) => {
+    await page.getByRole("button", { name: "Jump to last" }).click();
+    await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Next page" })).toBeDisabled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Button
+// ---------------------------------------------------------------------------
+
+test.describe("Button", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/#button");
+    await expect(page.getByRole("heading", { name: "Button" })).toBeVisible();
+  });
+
+  test("renders all three tone variants", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Delete" }).first()).toBeVisible();
+  });
+
+  test("renders buttons with icons", async ({ page }) => {
+    // Buttons with icons should have visible SVG elements
+    const deleteWithIcon = page.getByRole("button", { name: "Delete" }).nth(1);
+    await expect(deleteWithIcon).toBeVisible();
+    await expect(deleteWithIcon.locator("svg")).toBeVisible();
+  });
+
+  test("disabled buttons are not interactive", async ({ page }) => {
+    const disabled = page.getByRole("button", { name: "Disabled" }).first();
+    await expect(disabled).toBeDisabled();
+  });
+
+  test("click handler fires on press", async ({ page }) => {
+    await page.getByRole("button", { name: "Click Me" }).click();
+    await expect(page.getByText("Button clicked.")).toBeVisible();
+  });
 });

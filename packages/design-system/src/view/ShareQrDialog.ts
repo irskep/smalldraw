@@ -9,31 +9,31 @@ export interface ShareQrDialog extends ReDomLike<HTMLDivElement> {
 }
 
 export function createShareQrDialog(): ShareQrDialog {
-  const title = el("h2.kids-share-dialog__title", "Share drawing");
-  const image = el("img.kids-share-dialog__qr", {
+  const title = el("h2.ds-share-dialog__title", "Share drawing");
+  const image = el("img.ds-share-dialog__qr", {
     alt: "QR code for joining this drawing",
   }) as HTMLImageElement;
-  const urlInput = el("input.kids-share-dialog__url-input", {
+  const urlInput = el("input.ds-share-dialog__url-input", {
     type: "text",
     readOnly: true,
     "aria-label": "Share URL",
   }) as HTMLInputElement;
   const copyButton = el(
-    "button.kids-share-dialog__button kids-share-dialog__button--secondary",
+    "button.ds-share-dialog__button ds-share-dialog__button--secondary",
     { type: "button" },
     "Copy",
   ) as HTMLButtonElement;
-  const urlRow = el("div.kids-share-dialog__url-row", urlInput, copyButton);
+  const urlRow = el("div.ds-share-dialog__url-row", urlInput, copyButton);
   const doneButton = el(
-    "button.kids-share-dialog__button kids-share-dialog__button--primary kids-share-dialog__button--done",
+    "button.ds-share-dialog__button ds-share-dialog__button--primary ds-share-dialog__button--done",
     { type: "button" },
     "Done",
   ) as HTMLButtonElement;
   const dialog = el(
-    "dialog.kids-share-dialog",
-    el("div.kids-share-dialog__card", title, image, urlRow, doneButton),
+    "dialog.ds-share-dialog",
+    el("div.ds-share-dialog__card", title, image, urlRow, doneButton),
   ) as HTMLDialogElement;
-  const elRoot = el("div.kids-share-dialog-host", dialog) as HTMLDivElement;
+  const elRoot = el("div.ds-share-dialog-host", dialog) as HTMLDivElement;
   let resolve: (() => void) | null = null;
   let currentJoinUrl = "";
 

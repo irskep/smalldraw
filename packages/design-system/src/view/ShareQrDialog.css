@@ -1,36 +1,36 @@
-.kids-share-dialog-host {
+.ds-share-dialog-host {
   pointer-events: none;
 }
 
-.kids-share-dialog {
+.ds-share-dialog {
   border: none;
   padding: 0;
   background: transparent;
   pointer-events: auto;
 }
 
-.kids-share-dialog::backdrop {
+.ds-share-dialog::backdrop {
   background: color-mix(in oklch, black 44%, transparent);
 }
 
-.kids-share-dialog__card {
+.ds-share-dialog__card {
   min-width: min(90vw, 360px);
   display: grid;
   gap: var(--size-3);
   justify-items: center;
   padding: var(--size-5);
   border-radius: var(--radius-3);
-  background: var(--kd-surface-toolbar-panel);
+  background: var(--ds-surface);
   box-shadow: var(--shadow-4);
 }
 
-.kids-share-dialog__title {
+.ds-share-dialog__title {
   margin: 0;
   font-size: var(--font-size-4);
-  color: var(--kd-text-strong);
+  color: var(--ds-ink);
 }
 
-.kids-share-dialog__qr {
+.ds-share-dialog__qr {
   width: min(68vw, 256px);
   height: min(68vw, 256px);
   border-radius: var(--radius-2);
@@ -38,14 +38,14 @@
   border: var(--border-size-1) solid color-mix(in oklch, var(--gray-7), white);
 }
 
-.kids-share-dialog__url-row {
+.ds-share-dialog__url-row {
   width: min(80vw, 320px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--size-2);
 }
 
-.kids-share-dialog__button {
+.ds-share-dialog__button {
   border: none;
   border-radius: var(--radius-2);
   padding: var(--size-2) var(--size-4);
@@ -56,11 +56,11 @@
   cursor: pointer;
 }
 
-.kids-share-dialog__button--secondary {
+.ds-share-dialog__button--secondary {
   background: var(--gray-7);
 }
 
-.kids-share-dialog__url-input {
+.ds-share-dialog__url-input {
   width: 100%;
   min-width: 0;
   padding: var(--size-2) var(--size-3);
@@ -68,6 +68,6 @@
     color-mix(in oklch, var(--gray-7), white 30%);
   border-radius: var(--radius-2);
   background: white;
-  color: var(--kd-text-default);
+  color: var(--ds-ink);
   font-size: var(--font-size-1);
 }

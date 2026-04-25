@@ -473,6 +473,14 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     this.track.style.transform = "";
 
     if (this.state.needsPaginationRecalc) {
+      // Ensure nav buttons are visible during measurement so the viewport
+      // reflects the space they consume. Without this, a prior bail-out may
+      // have hidden them, giving the viewport too much room and causing the
+      // algorithm to fit too many items per page.
+      if (this.shouldPaginate() && items.length > 1) {
+        this.prevButton.el.hidden = false;
+        this.nextButton.el.hidden = false;
+      }
       this.renderItems(items);
       this.computePagination(items);
       this.syncSelectedPage(items);

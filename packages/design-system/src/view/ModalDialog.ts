@@ -2,6 +2,7 @@ import "./ModalDialog.css";
 
 import type { IconNode } from "lucide";
 import { el, setChildren } from "redom";
+import { Button } from "./Button";
 import type { ReDomLike } from "./ReDomLike";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -23,47 +24,39 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
   #title: HTMLHeadingElement;
   #message: HTMLParagraphElement;
   #icon: HTMLSpanElement;
-  #cancelButton: HTMLButtonElement;
-  #confirmButton: HTMLButtonElement;
+  #cancelButton: Button;
+  #confirmButton: Button;
   #resolve: ((value: boolean) => void) | null = null;
   #isClosing = false;
   #closeTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
-    this.#icon = el("span.kids-modal-dialog__icon") as HTMLSpanElement;
-    this.#title = el("h2.kids-modal-dialog__title") as HTMLHeadingElement;
-    this.#message = el("p.kids-modal-dialog__message") as HTMLParagraphElement;
-    this.#cancelButton = el(
-      "button.kids-modal-dialog__button.kids-modal-dialog__button--cancel",
-      { type: "button" },
-      "Cancel",
-    ) as HTMLButtonElement;
-    this.#confirmButton = el(
-      "button.kids-modal-dialog__button.kids-modal-dialog__button--confirm",
-      { type: "button" },
-      "Confirm",
-    ) as HTMLButtonElement;
+    this.#icon = el("span.ds-modal-dialog__icon") as HTMLSpanElement;
+    this.#title = el("h2.ds-modal-dialog__title") as HTMLHeadingElement;
+    this.#message = el("p.ds-modal-dialog__message") as HTMLParagraphElement;
+    this.#cancelButton = new Button({ label: "Cancel", tone: "neutral" });
+    this.#confirmButton = new Button({ label: "Confirm", tone: "primary" });
 
     this.#dialog = el(
-      "dialog.kids-modal-dialog",
+      "dialog.ds-modal-dialog",
       el(
-        "div.kids-modal-dialog__shell",
-        el("div.kids-modal-dialog__header", this.#icon, this.#title),
+        "div.ds-modal-dialog__shell",
+        el("div.ds-modal-dialog__header", this.#icon, this.#title),
         this.#message,
         el(
-          "div.kids-modal-dialog__actions",
+          "div.ds-modal-dialog__actions",
           this.#cancelButton,
           this.#confirmButton,
         ),
       ),
     ) as HTMLDialogElement;
 
-    this.el = el("div.kids-modal-dialog-host", this.#dialog) as HTMLDivElement;
+    this.el = el("div.ds-modal-dialog-host", this.#dialog) as HTMLDivElement;
 
-    this.#cancelButton.addEventListener("click", () => {
+    this.#cancelButton.setOnPress(() => {
       void this.#finish(false);
     });
-    this.#confirmButton.addEventListener("click", () => {
+    this.#confirmButton.setOnPress(() => {
       void this.#finish(true);
     });
     this.#dialog.addEventListener("cancel", (event) => {
@@ -87,11 +80,11 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
       icon,
     } = options;
 
-    this.el.dataset.tone = tone;
     this.#title.textContent = title;
     this.#message.textContent = message;
-    this.#confirmButton.textContent = confirmLabel;
-    this.#cancelButton.textContent = cancelLabel;
+    this.#confirmButton.setLabel(confirmLabel);
+    this.#confirmButton.setTone(tone === "danger" ? "danger" : "primary");
+    this.#cancelButton.setLabel(cancelLabel);
     if (icon) {
       setChildren(this.#icon, [this.#createIcon(icon)]);
     } else {

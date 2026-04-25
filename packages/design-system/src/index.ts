@@ -1,4 +1,10 @@
-export type { ReDomLike } from "./ReDomLike";
+export type { ReDomLike } from "./view/ReDomLike";
+export {
+  createButton,
+  Button,
+  type ButtonOptions,
+  type ButtonTone,
+} from "./view/Button";
 export {
   createModalDialogView,
   ModalDialogView,

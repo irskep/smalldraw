@@ -1,0 +1,87 @@
+/*
+ * Button — text button with optional leading icon.
+ *
+ * Tones: neutral (default), primary, danger.
+ * Shares interaction feel (hover lift, active scale, focus ring, disabled)
+ * with IconButton via common custom properties.
+ */
+
+.ds-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-1);
+  border: none;
+  border-radius: var(--radius-3);
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: var(--font-weight-5);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out-3),
+    box-shadow 120ms var(--ease-out-3),
+    background-color 120ms var(--ease-out-3);
+}
+
+/* ---- tones ---- */
+
+.ds-button[data-tone="neutral"],
+.ds-button:not([data-tone]) {
+  background: var(--gray-2);
+  color: var(--gray-9);
+}
+
+.ds-button[data-tone="primary"] {
+  background: var(--blue-6);
+  color: white;
+}
+
+.ds-button[data-tone="danger"] {
+  background: var(--red-7);
+  color: white;
+}
+
+/* ---- interaction states ---- */
+
+.ds-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+}
+
+.ds-button:active {
+  transform: scale(0.97);
+}
+
+.ds-button:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--blue-5) 60%, black);
+  outline-offset: -2px;
+}
+
+.ds-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ---- icon ---- */
+
+.ds-button__icon[hidden] {
+  display: none;
+}
+
+.ds-button__icon {
+  width: 1em;
+  height: 1em;
+  min-width: 1em;
+  min-height: 1em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-button__icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

@@ -1,106 +1,85 @@
-.kids-modal-dialog-host {
+.ds-modal-dialog-host {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 1000;
 }
 
-.kids-modal-dialog {
+.ds-modal-dialog {
   border: none;
   border-radius: var(--radius-3);
   padding: 0;
   width: min(460px, calc(100vw - var(--size-px-7)));
-  background: var(--kd-surface-canvas);
-  color: var(--kd-text-default);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
   box-shadow: var(--shadow-6);
   pointer-events: auto;
   opacity: 0;
   transform: translateY(12px) scale(0.98);
 }
 
-.kids-modal-dialog[open] {
-  animation: kids-dialog-in 180ms var(--ease-out-3) forwards;
+.ds-modal-dialog[open] {
+  animation: ds-dialog-in 180ms var(--ease-out-3) forwards;
 }
 
-.kids-modal-dialog.is-closing {
-  animation: kids-dialog-out 140ms var(--ease-in-3) forwards;
+.ds-modal-dialog.is-closing {
+  animation: ds-dialog-out 140ms var(--ease-in-3) forwards;
 }
 
-.kids-modal-dialog::backdrop {
+.ds-modal-dialog::backdrop {
   background: rgb(15 23 42 / 45%);
-  animation: kids-dialog-backdrop-in 180ms var(--ease-out-2) forwards;
+  animation: ds-dialog-backdrop-in 180ms var(--ease-out-2) forwards;
 }
 
-.kids-modal-dialog.is-closing::backdrop {
-  animation: kids-dialog-backdrop-out 140ms var(--ease-in-2) forwards;
+.ds-modal-dialog.is-closing::backdrop {
+  animation: ds-dialog-backdrop-out 140ms var(--ease-in-2) forwards;
 }
 
-.kids-modal-dialog__shell {
+.ds-modal-dialog__shell {
   padding: var(--size-px-4);
   display: grid;
   gap: var(--size-px-3);
 }
 
-.kids-modal-dialog__header {
+.ds-modal-dialog__header {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.kids-modal-dialog__icon {
+.ds-modal-dialog__icon {
   width: var(--size-px-5);
   height: var(--size-px-5);
   min-width: var(--size-px-5);
   min-height: var(--size-px-5);
 }
 
-.kids-modal-dialog__icon > svg {
+.ds-modal-dialog__icon > svg {
   width: 100%;
   height: 100%;
   display: block;
 }
 
-.kids-modal-dialog__title {
+.ds-modal-dialog__title {
   margin: 0;
   font-size: 18px;
   line-height: 1.2;
 }
 
-.kids-modal-dialog__message {
+.ds-modal-dialog__message {
   margin: 0;
   font-size: 14px;
   line-height: 1.35;
 }
 
-.kids-modal-dialog__actions {
+.ds-modal-dialog__actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--size-px-2);
 }
 
-.kids-modal-dialog__button {
-  border: none;
-  border-radius: var(--radius-3);
-  padding: 10px 14px;
-  cursor: pointer;
-}
 
-.kids-modal-dialog__button--cancel {
-  background: var(--gray-2);
-  color: var(--gray-9);
-}
-
-.kids-modal-dialog__button--confirm {
-  background: var(--blue-6);
-  color: white;
-}
-
-.kids-modal-dialog-host[data-tone="danger"]
-  .kids-modal-dialog__button--confirm {
-  background: var(--red-7);
-}
-
-@keyframes kids-dialog-in {
+@keyframes ds-dialog-in {
   from {
     opacity: 0;
     transform: translateY(12px) scale(0.98);
@@ -111,7 +90,7 @@
   }
 }
 
-@keyframes kids-dialog-out {
+@keyframes ds-dialog-out {
   from {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -122,7 +101,7 @@
   }
 }
 
-@keyframes kids-dialog-backdrop-in {
+@keyframes ds-dialog-backdrop-in {
   from {
     opacity: 0;
   }
@@ -131,7 +110,7 @@
   }
 }
 
-@keyframes kids-dialog-backdrop-out {
+@keyframes ds-dialog-backdrop-out {
   from {
     opacity: 1;
   }
