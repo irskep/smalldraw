@@ -14,7 +14,7 @@
 }
 
 .ds-share-dialog__card {
-  min-width: min(90vw, 360px);
+  min-width: min(90vw, var(--width-dialog-md));
   display: grid;
   gap: var(--size-3);
   justify-items: center;
@@ -31,15 +31,15 @@
 }
 
 .ds-share-dialog__qr {
-  width: min(68vw, 256px);
-  height: min(68vw, 256px);
+  width: min(68vw, var(--width-qr-md));
+  height: min(68vw, var(--width-qr-md));
   border-radius: var(--radius-2);
   background: white;
   border: var(--border-size-1) solid color-mix(in oklch, var(--gray-7), white);
 }
 
 .ds-share-dialog__url-row {
-  width: min(80vw, 320px);
+  width: min(80vw, var(--width-dialog-sm));
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--size-2);

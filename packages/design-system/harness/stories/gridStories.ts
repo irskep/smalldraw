@@ -63,7 +63,7 @@ export const gridStories: HarnessStory[] = [
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
       const frame = el("div.ds-story-frame") as HTMLDivElement;
-      frame.style.width = "min(100%, 36rem)";
+      frame.style.width = "min(100%, var(--height-frame-md))";
       const status = el(
         "output.ds-story-output",
         "Mode: mobile",
@@ -106,7 +106,7 @@ export const gridStories: HarnessStory[] = [
         mode: "mobile",
         orientation: "vertical",
       });
-      grid.el.style.height = "24rem";
+      grid.el.style.height = "var(--width-frame-sm)";
 
       const jumpLast = el(
         "button",
@@ -232,7 +232,7 @@ export const gridStories: HarnessStory[] = [
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
       const frame = el("div.ds-story-frame") as HTMLDivElement;
-      frame.style.width = "min(100%, 36rem)";
+      frame.style.width = "min(100%, var(--height-frame-md))";
       const { grid } = buildGridDemo({
         mode: "large",
         largeLayout: "two-row-xlarge",
@@ -261,7 +261,7 @@ export const gridStories: HarnessStory[] = [
       });
 
       const applyMode = (mode: "large" | "mobile"): void => {
-        grid.el.style.height = mode === "large" ? "" : "24rem";
+        grid.el.style.height = mode === "large" ? "" : "var(--width-frame-sm)";
         grid.setMode(mode);
         status.textContent = `Mode: ${mode}`;
         requestAnimationFrame(() => grid.syncLayout());

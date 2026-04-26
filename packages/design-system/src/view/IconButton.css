@@ -6,14 +6,14 @@
  */
 
 .ds-icon-button {
-  --ds-icon-button-size-default: 44px;
-  --ds-icon-button-size-large: 88px;
+  --ds-icon-button-size-default: var(--size-px-44x);
+  --ds-icon-button-size-large: var(--size-px-88x);
   --sq-border-width: var(--border-size-1);
   --sq-border: color-mix(in oklch, var(--gray-7) 28%, white);
   --sq-bg: var(--ds-icon-button-bg, var(--gray-1));
   --sq-color: var(--ds-icon-button-color, var(--gray-8));
   --sq-shadow: var(--shadow-2);
-  --sq-hover-lift: -2px;
+  --sq-hover-lift: calc(var(--size-px-2) * -1);
   --sq-hover-scale: 1.01;
   --sq-shadow-selected: var(--shadow-3);
   --sq-border-selected: color-mix(in oklch, var(--blue-6) 60%, black);
@@ -89,7 +89,7 @@
 /* ---- label ---- */
 
 .ds-icon-button__label {
-  font-size: var(--sq-label-size, 11px);
+  font-size: var(--sq-label-size, var(--font-size-toolbar-md));
   line-height: 1;
   white-space: nowrap;
   transform: translateY(var(--sq-label-offset-y, 0));
@@ -106,7 +106,7 @@
 }
 
 .ds-icon-button:hover:not(:disabled) {
-  transform: translateY(var(--sq-hover-lift, -2px))
+  transform: translateY(var(--sq-hover-lift, calc(var(--size-px-2) * -1)))
     scale(var(--sq-hover-scale, 1.01));
   box-shadow: var(--sq-shadow-selected, var(--shadow-3));
 }
@@ -122,8 +122,9 @@
 }
 
 .ds-icon-button:focus-visible {
-  outline: 3px solid color-mix(in oklch, var(--blue-5) 60%, black);
-  outline-offset: -2px;
+  outline: var(--border-size-3) solid
+    color-mix(in oklch, var(--blue-5) 60%, black);
+  outline-offset: calc(var(--border-size-2) * -1);
 }
 
 .ds-icon-button:disabled {

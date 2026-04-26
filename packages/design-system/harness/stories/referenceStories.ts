@@ -144,7 +144,10 @@ function parsePixelValue(value: string): number | null {
   return Number(match[1]);
 }
 
-function createPreview(token: string, preview: TokenFamily["preview"]): HTMLElement {
+function createPreview(
+  token: string,
+  preview: TokenFamily["preview"],
+): HTMLElement {
   const value = getTokenValue(token);
 
   if (preview === "color") {
@@ -219,7 +222,9 @@ function createPreview(token: string, preview: TokenFamily["preview"]): HTMLElem
   if (token.startsWith("--ease-")) {
     const demo = el("div.ds-reference__motion-preview") as HTMLDivElement;
     demo.style.setProperty("--ds-reference-easing", value);
-    demo.append(el("div.ds-reference__motion-track", el("div.ds-reference__motion-dot")));
+    demo.append(
+      el("div.ds-reference__motion-track", el("div.ds-reference__motion-dot")),
+    );
     return demo;
   }
 
@@ -279,10 +284,7 @@ export const referenceStories: HarnessStory[] = [
         }
         sectionEl.append(
           el("h2.ds-story-heading", family.title),
-          el(
-            "p.ds-reference__section-note",
-            `${tokens.length} tokens`,
-          ),
+          el("p.ds-reference__section-note", `${tokens.length} tokens`),
           rows,
         );
         canvas.append(sectionEl);

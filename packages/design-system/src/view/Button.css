@@ -13,9 +13,9 @@
   gap: var(--size-1);
   border: none;
   border-radius: var(--radius-3);
-  padding: 10px 14px;
+  padding: var(--space-control-gap-md) var(--size-px-3);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--font-size-button-md);
   font-weight: var(--font-weight-5);
   line-height: 1;
   cursor: pointer;
@@ -46,7 +46,7 @@
 /* ---- interaction states ---- */
 
 .ds-button:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(calc(var(--border-size-2) * -1));
   box-shadow: var(--shadow-2);
 }
 
@@ -55,8 +55,9 @@
 }
 
 .ds-button:focus-visible {
-  outline: 3px solid color-mix(in oklch, var(--blue-5) 60%, black);
-  outline-offset: -2px;
+  outline: var(--border-size-3) solid
+    color-mix(in oklch, var(--blue-5) 60%, black);
+  outline-offset: calc(var(--border-size-2) * -1);
 }
 
 .ds-button:disabled {

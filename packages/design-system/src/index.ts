@@ -1,16 +1,9 @@
-export type { ReDomLike } from "./view/ReDomLike";
-export { renderIcon } from "./view/renderIcon";
 export {
-  createButton,
   Button,
   type ButtonOptions,
   type ButtonTone,
+  createButton,
 } from "./view/Button";
-export {
-  createModalDialogView,
-  ModalDialogView,
-  type ModalDialogOptions,
-} from "./view/ModalDialog";
 export {
   createDropdownMenu,
   DropdownMenu,
@@ -20,7 +13,17 @@ export {
   type DropdownMenuRow,
   type DropdownMenuSeparator,
 } from "./view/DropdownMenu";
-export { PagedButtonGrid, type ButtonGridItemSpec } from "./view/PagedButtonGrid";
+export {
+  createModalDialogView,
+  type ModalDialogOptions,
+  ModalDialogView,
+} from "./view/ModalDialog";
+export {
+  type ButtonGridItemSpec,
+  PagedButtonGrid,
+} from "./view/PagedButtonGrid";
+export type { ReDomLike } from "./view/ReDomLike";
+export { renderIcon } from "./view/renderIcon";
 export { createShareQrDialog, type ShareQrDialog } from "./view/ShareQrDialog";
 export {
   createIconButton,

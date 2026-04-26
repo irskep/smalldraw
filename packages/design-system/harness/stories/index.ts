@@ -42,4 +42,6 @@ export const storyGroups: HarnessStoryGroup[] = [
   },
 ];
 
-export const stories: HarnessStory[] = storyGroups.flatMap((group) => group.stories);
+export const stories: HarnessStory[] = storyGroups.flatMap(
+  (group) => group.stories,
+);

@@ -1,6 +1,6 @@
 .button-grid {
-  --ds-button-grid-cell-size-default: 44px;
-  --ds-button-grid-cell-size-large: 88px;
+  --ds-button-grid-cell-size-default: var(--size-px-44x);
+  --ds-button-grid-cell-size-large: var(--size-px-88x);
   --button-grid-cell-size: var(
     --ds-button-grid-cell-size,
     var(--ds-button-grid-cell-size-default)
@@ -12,7 +12,6 @@
   display: block;
   max-width: 100%;
 }
-
 
 .button-grid[data-resolved-orientation="horizontal"] {
   width: 100%;
@@ -32,7 +31,9 @@
   justify-content: center;
 }
 
-.button-grid[data-mode="large"]:not([data-paginate-large="true"])[data-resolved-orientation="horizontal"]
+.button-grid[data-mode="large"]:not(
+    [data-paginate-large="true"]
+  )[data-resolved-orientation="horizontal"]
   .button-grid-inline-host {
   width: max-content;
   max-width: none;
@@ -45,7 +46,10 @@
 }
 
 .button-grid[data-large-layout="two-row-xlarge"] {
-  --button-grid-cell-size: calc(var(--ds-button-grid-cell-size, 4.5rem) * 2);
+  --button-grid-cell-size: calc(
+    var(--ds-button-grid-cell-size, var(--size-px-44x)) *
+    2
+  );
 }
 
 .button-grid-shell {
@@ -58,18 +62,18 @@
   border-radius: var(--radius-3);
   box-shadow: var(--ds-button-grid-shadow, none);
   width: max-content;
-  max-width: min(100%, calc(100vw - 24px));
+  max-width: min(100%, calc(100vw - var(--size-px-24x)));
 }
 
 .button-grid[data-resolved-orientation="vertical"] .button-grid-shell {
   flex-direction: column;
   width: auto;
   max-width: none;
-  max-height: min(100%, calc(100vh - 24px));
+  max-height: min(100%, calc(100vh - var(--size-px-24x)));
 }
 
 .button-grid-viewport {
-  --button-grid-viewport-bleed: 2px;
+  --button-grid-viewport-bleed: var(--border-size-2);
   overflow-x: clip;
   overflow-y: visible;
   min-width: 0;
@@ -93,7 +97,9 @@
   overflow: visible;
 }
 
-.button-grid[data-mode="large"]:not([data-paginate-large="true"])[data-resolved-orientation="horizontal"]
+.button-grid[data-mode="large"]:not(
+    [data-paginate-large="true"]
+  )[data-resolved-orientation="horizontal"]
   .button-grid-shell {
   max-width: none;
 }

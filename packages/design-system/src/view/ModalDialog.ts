@@ -3,8 +3,9 @@ import "./ModalDialog.css";
 import type { IconNode } from "lucide";
 import { el, setChildren } from "redom";
 import { Button } from "./Button";
-import { renderIcon } from "./renderIcon";
 import type { ReDomLike } from "./ReDomLike";
+import { renderIcon } from "./renderIcon";
+
 const DIALOG_CLOSE_ANIMATION_MS = 220;
 
 export interface ModalDialogOptions {

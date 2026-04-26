@@ -3,10 +3,7 @@ import "./ButtonGrid.css";
 import { ChevronLeft, ChevronRight } from "lucide";
 import { el, mount, setChildren } from "redom";
 import type { ReDomLike } from "./ReDomLike";
-import {
-  createIconButton,
-  type IconButton,
-} from "./SquareIconButton";
+import { createIconButton, type IconButton } from "./SquareIconButton";
 
 export type PagedButtonGridMode = "large" | "medium" | "mobile";
 export type PagedButtonGridOrientation = "horizontal" | "vertical";

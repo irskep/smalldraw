@@ -1,0 +1,28 @@
+:root {
+  --font-size-toolbar-sm: 10px;
+  --font-size-toolbar-md: 11px;
+  --font-size-toolbar-lg: 12px;
+  --font-size-button-md: 14px;
+  --font-size-dialog-title: 18px;
+
+  --space-control-gap-md: 10px;
+
+  --size-px-30x: 30px;
+  --size-px-40x: 40px;
+  --size-px-44x: 44px;
+  --size-px-88x: 88px;
+
+  --width-menu-md: 180px;
+  --width-qr-md: 256px;
+  --width-dialog-sm: 320px;
+  --width-dialog-md: 360px;
+  --width-frame-sm: 384px;
+  --width-modal-md: 460px;
+
+  --height-frame-md: 576px;
+
+  --inset-stage-edge: 10px;
+  --inset-stage-mobile-top: 118px;
+  --inset-stage-mobile-inline: 20px;
+  --inset-stage-mobile-bottom: 126px;
+}

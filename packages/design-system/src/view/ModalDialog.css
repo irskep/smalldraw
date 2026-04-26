@@ -9,13 +9,13 @@
   border: none;
   border-radius: var(--radius-3);
   padding: 0;
-  width: min(460px, calc(100vw - var(--size-px-7)));
+  width: min(var(--width-modal-md), calc(100vw - var(--size-px-7)));
   background: var(--ds-surface);
   color: var(--ds-ink);
   box-shadow: var(--shadow-6);
   pointer-events: auto;
   opacity: 0;
-  transform: translateY(12px) scale(0.98);
+  transform: translateY(var(--size-px-3)) scale(0.98);
 }
 
 .ds-modal-dialog[open] {
@@ -44,7 +44,7 @@
 .ds-modal-dialog__header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-control-gap-md);
 }
 
 .ds-modal-dialog__icon {
@@ -62,13 +62,13 @@
 
 .ds-modal-dialog__title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--font-size-dialog-title);
   line-height: 1.2;
 }
 
 .ds-modal-dialog__message {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-button-md);
   line-height: 1.35;
 }
 
@@ -78,11 +78,10 @@
   gap: var(--size-px-2);
 }
 
-
 @keyframes ds-dialog-in {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.98);
+    transform: translateY(var(--size-px-3)) scale(0.98);
   }
   to {
     opacity: 1;
@@ -97,7 +96,7 @@
   }
   to {
     opacity: 0;
-    transform: translateY(8px) scale(0.985);
+    transform: translateY(var(--size-px-8)) scale(0.985);
   }
 }
 

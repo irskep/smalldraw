@@ -1,10 +1,10 @@
 import "./DropdownMenu.css";
 
-import { MoreHorizontal, type IconNode } from "lucide";
+import { type IconNode, MoreHorizontal } from "lucide";
 import { el, setChildren } from "redom";
 import type { ReDomLike } from "./ReDomLike";
-import { createIconButton, type IconButton } from "./SquareIconButton";
 import { renderIcon } from "./renderIcon";
+import { createIconButton, type IconButton } from "./SquareIconButton";
 
 export interface DropdownMenuItem {
   type?: "item";
@@ -36,10 +36,6 @@ export interface DropdownMenuOptions {
   triggerAttributes?: Record<string, string>;
   menuLabel?: string;
   entries?: DropdownMenuEntry[];
-}
-
-function isDropdownMenuItem(entry: DropdownMenuEntry): entry is DropdownMenuItem {
-  return entry.type === undefined || entry.type === "item";
 }
 
 class DropdownMenuItemView implements ReDomLike<HTMLButtonElement> {
