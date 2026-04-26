@@ -11,6 +11,15 @@ export {
   ModalDialogView,
   type ModalDialogOptions,
 } from "./view/ModalDialog";
+export {
+  createDropdownMenu,
+  DropdownMenu,
+  type DropdownMenuEntry,
+  type DropdownMenuItem,
+  type DropdownMenuOptions,
+  type DropdownMenuRow,
+  type DropdownMenuSeparator,
+} from "./view/DropdownMenu";
 export { PagedButtonGrid, type ButtonGridItemSpec } from "./view/PagedButtonGrid";
 export { createShareQrDialog, type ShareQrDialog } from "./view/ShareQrDialog";
 export {

@@ -18,6 +18,15 @@ test("renders the default story", async ({ page }) => {
   );
 });
 
+test("renders the Open Props reference story", async ({ page }) => {
+  await page.goto(testStoryUrl("open-props-reference"));
+  await expect(
+    page.getByRole("heading", { name: "Open Props Reference" }),
+  ).toBeVisible();
+  await expect(page.getByText("--size-2")).toBeVisible();
+  await expect(page.getByText("--shadow-3")).toBeVisible();
+});
+
 // ---------------------------------------------------------------------------
 // Grid: Pagination
 // ---------------------------------------------------------------------------
@@ -350,5 +359,37 @@ test.describe("Button", () => {
   test("click handler fires on press", async ({ page }) => {
     await page.getByRole("button", { name: "Click Me" }).click();
     await expect(page.getByText("Button clicked.")).toBeVisible();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Dropdown Menu
+// ---------------------------------------------------------------------------
+
+test.describe("Dropdown Menu", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(testStoryUrl("dropdown-menu"));
+    await expect(page.getByRole("heading", { name: "Dropdown Menu" })).toBeVisible();
+  });
+
+  test("opens and renders mobile action menu items", async ({ page }) => {
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(page.getByRole("menu", { name: "Actions" })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "Undo" })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "Redo" })).toBeDisabled();
+    await expect(page.getByRole("menuitem", { name: "Clear Canvas" })).toBeVisible();
+  });
+
+  test("selecting an item updates the story status", async ({ page }) => {
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await page.getByRole("menuitem", { name: "Export PNG" }).click();
+    await expect(page.getByText("Selected: export")).toBeVisible();
+  });
+
+  test("clicking outside closes the menu", async ({ page }) => {
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(page.getByRole("menu", { name: "Actions" })).toBeVisible();
+    await page.getByRole("heading", { name: "Dropdown Menu" }).click();
+    await expect(page.getByRole("menu", { name: "Actions" })).toBeHidden();
   });
 });
