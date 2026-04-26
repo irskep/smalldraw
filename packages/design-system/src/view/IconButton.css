@@ -1,8 +1,8 @@
 /*
- * IconButton
+ * IconButton — flat System 7-inspired style
  *
- * Ported from packages/splat KidsDrawToolbar.css square-icon-button styles.
- * Uses ds-icon-button class names and design-system custom properties.
+ * No shadows, no rounded corners, no hover lift/scale.
+ * Labels hidden by default; shown at large (88px) size.
  */
 
 .ds-icon-button {
@@ -12,34 +12,25 @@
   --sq-border: color-mix(in oklch, var(--gray-7) 28%, white);
   --sq-bg: var(--ds-icon-button-bg, var(--gray-1));
   --sq-color: var(--ds-icon-button-color, var(--gray-8));
-  --sq-shadow: var(--shadow-2);
-  --sq-hover-lift: calc(var(--size-px-2) * -1);
-  --sq-hover-scale: 1.01;
-  --sq-shadow-selected: var(--shadow-3);
   --sq-border-selected: color-mix(in oklch, var(--blue-6) 60%, black);
 
   width: var(--ds-icon-button-size, var(--ds-icon-button-size-default));
   height: var(--ds-icon-button-size, var(--ds-icon-button-size-default));
   box-sizing: border-box;
   border: var(--sq-border-width) solid var(--sq-border);
-  border-radius: var(--sq-radius, var(--radius-3));
+  border-radius: 0;
   background: var(--sq-bg);
   color: var(--sq-color);
   font-weight: var(--sq-font-weight, var(--font-weight-5));
-  box-shadow: var(--sq-shadow);
   padding: 0;
   cursor: pointer;
-  transition:
-    transform 120ms var(--ease-out-3),
-    box-shadow 120ms var(--ease-out-3),
-    background-color 120ms var(--ease-out-3);
+  transition: background-color 120ms var(--ease-out-3);
 }
 
 /* ---- content layout ---- */
 
 .ds-icon-button__content {
   display: grid;
-  grid-template-rows: auto auto;
   align-items: center;
   justify-items: center;
   justify-content: center;
@@ -86,13 +77,14 @@
   user-select: none;
 }
 
-/* ---- label ---- */
+/* ---- label (hidden by default, shown at 88px) ---- */
 
 .ds-icon-button__label {
   font-size: var(--sq-label-size, var(--font-size-toolbar-md));
   line-height: 1;
   white-space: nowrap;
   transform: translateY(var(--sq-label-offset-y, 0));
+  display: none;
 }
 
 .ds-icon-button__label[hidden] {
@@ -101,20 +93,17 @@
 
 /* ---- interaction states ---- */
 
-.ds-icon-button:active {
-  transform: scale(0.96);
+.ds-icon-button:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--sq-bg) 85%, black);
 }
 
-.ds-icon-button:hover:not(:disabled) {
-  transform: translateY(var(--sq-hover-lift, calc(var(--size-px-2) * -1)))
-    scale(var(--sq-hover-scale, 1.01));
-  box-shadow: var(--sq-shadow-selected, var(--shadow-3));
+.ds-icon-button:active {
+  background: color-mix(in oklch, var(--sq-bg) 75%, black);
 }
 
 .ds-icon-button.is-selected {
   background: var(--sq-bg-selected, var(--blue-2));
   color: var(--sq-color-selected, var(--gray-10));
-  box-shadow: var(--sq-shadow-selected, var(--shadow-3));
   border-color: var(
     --sq-border-selected,
     color-mix(in oklch, var(--blue-6) 60%, black)

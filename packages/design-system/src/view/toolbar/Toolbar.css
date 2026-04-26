@@ -1,0 +1,10 @@
+.ds-toolbar {
+  display: flex;
+  padding: var(--size-2);
+  background: var(--ds-toolbar-bg, var(--gray-1));
+  border: none;
+}
+
+.ds-toolbar[data-orientation="vertical"] {
+  flex-direction: column;
+}

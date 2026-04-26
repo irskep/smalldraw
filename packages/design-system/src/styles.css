@@ -324,9 +324,6 @@ body {
   --kd-surface-button-selected: var(--amber-5);
   --kd-text-default: var(--gray-8);
   --kd-text-strong: var(--gray-10);
-  --kd-shadow-toolbar:
-    0 2px 6px color-mix(in oklch, var(--gray-9) 12%, transparent),
-    0 1px 0 color-mix(in oklch, var(--gray-7) 14%, white);
   --kd-toolbar-label-size-sm: var(--font-size-toolbar-sm);
   --kd-toolbar-label-size-md: var(--font-size-toolbar-md);
   --kd-toolbar-label-size-lg: var(--font-size-toolbar-lg);
@@ -350,11 +347,16 @@ body {
   grid-template-columns: auto 1fr auto;
   grid-template-rows: auto 1fr auto;
   gap: 0;
-  padding: var(--inset-stage-edge);
   min-height: var(--height-frame-md);
 }
 
 .ds-splat-context__scene--mobile {
+  display: grid;
+  grid-template-areas:
+    "mobile-top"
+    "mobile-canvas"
+    "mobile-bottom";
+  grid-template-rows: auto 1fr auto;
   width: min(var(--width-frame-sm), 100%);
   min-height: var(--height-frame-md);
 }
@@ -388,9 +390,8 @@ body {
 .ds-splat-context__panel,
 .ds-splat-context__grid-panel .button-grid-shell,
 .ds-splat-context__mobile-panel {
-  background: var(--kd-surface-toolbar-panel);
-  box-shadow: var(--kd-shadow-toolbar);
-  border-radius: var(--radius-3);
+  background: var(--gray-1);
+  border-radius: 0;
 }
 
 .ds-splat-context__panel {
@@ -399,13 +400,6 @@ body {
   padding: var(--size-2);
 }
 
-.ds-splat-context__palette-panel {
-  padding: var(--size-2);
-}
-
-.ds-splat-context__stroke-panel {
-  padding: var(--size-2);
-}
 
 .ds-splat-context__canvas-shell {
   grid-area: canvas;
@@ -417,9 +411,7 @@ body {
 }
 
 .ds-splat-context__canvas-shell--mobile {
-  position: absolute;
-  inset: var(--inset-stage-mobile-top) var(--inset-stage-mobile-inline)
-    var(--inset-stage-mobile-bottom);
+  grid-area: mobile-canvas;
 }
 
 .ds-splat-context__paper {
@@ -449,16 +441,13 @@ body {
   padding: 0;
   border: 2px solid
     color-mix(in oklch, var(--ds-splat-context-swatch) 70%, black);
-  border-radius: var(--radius-3);
+  border-radius: 0;
   background: var(--ds-splat-context-swatch);
-  box-shadow: var(--shadow-2);
 }
 
 .ds-splat-context__swatch[data-selected="true"] {
-  box-shadow:
-    inset 0 0 0 2px #ffffff,
-    inset 0 0 0 4px color-mix(in oklch, var(--gray-9) 30%, black),
-    var(--shadow-4);
+  outline: var(--border-size-2) solid color-mix(in oklch, var(--gray-9) 30%, black);
+  outline-offset: calc(var(--border-size-2) * -1);
 }
 
 .ds-splat-context__stroke-grid {
@@ -476,10 +465,9 @@ body {
   padding: 0;
   border: var(--border-size-1) solid
     color-mix(in oklch, var(--gray-7) 28%, white);
-  border-radius: var(--radius-3);
-  background: var(--kd-surface-button);
+  border-radius: 0;
+  background: var(--gray-1);
   color: var(--kd-text-default);
-  box-shadow: var(--shadow-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -520,11 +508,14 @@ body {
   --ds-icon-button-size: var(--size-px-88x);
 }
 
+.ds-splat-context__toolbar-scale-large .ds-icon-button__label {
+  display: block;
+}
+
 .ds-splat-context__action-panel {
   display: grid;
   grid-template-columns: repeat(2, var(--kd-toolbar-cell-size));
   gap: var(--size-2);
-  padding: var(--size-2);
 }
 
 .ds-splat-context__action-spacer {
@@ -552,7 +543,6 @@ body {
   display: flex;
   align-items: stretch;
   gap: var(--size-2);
-  padding: var(--size-2);
 }
 
 .ds-splat-context__variant-button {
@@ -566,21 +556,16 @@ body {
 .ds-splat-context__scene .button-grid-item > .ds-icon-button {
   --sq-border-width: var(--border-size-1);
   --sq-border: color-mix(in oklch, var(--gray-7) 28%, white);
-  --sq-bg: var(--kd-surface-button);
+  --sq-bg: var(--gray-1);
   --sq-color: var(--kd-text-default);
-  --sq-shadow: var(--shadow-2);
-  --sq-hover-lift: calc(var(--size-px-1) * -1);
-  --sq-hover-scale: 1.01;
-  --sq-shadow-selected: var(--shadow-3);
   --sq-border-selected: color-mix(in oklch, var(--blue-6) 60%, black);
-  --sq-bg-selected: var(--kd-surface-button-selected);
+  --sq-bg-selected: var(--blue-2);
   --sq-color-selected: var(--kd-text-strong);
 }
 
 .ds-splat-context__scene .button-grid-shell {
-  background: var(--kd-surface-toolbar-panel);
-  border: 0;
-  box-shadow: var(--kd-shadow-toolbar);
+  background: var(--gray-1);
+  border: none;
 }
 
 .ds-splat-context__tool-selector .ds-icon-button__label {
@@ -592,14 +577,9 @@ body {
 }
 
 .ds-splat-context__mobile-top {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
+  grid-area: mobile-top;
   display: grid;
   gap: var(--size-1);
-  padding: var(--size-2);
-  z-index: 1;
 }
 
 .ds-splat-context__mobile-top-controls {
@@ -626,10 +606,6 @@ body {
   background: var(--kd-surface-button);
 }
 
-.ds-splat-context__mobile-panel {
-  padding: var(--size-1);
-}
-
 .ds-splat-context__mobile-panel .ds-splat-context__swatch-grid {
   width: 100%;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -638,15 +614,9 @@ body {
 }
 
 .ds-splat-context__mobile-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  grid-area: mobile-bottom;
   display: grid;
   gap: var(--size-1);
-  padding-inline: var(--size-2);
-  padding-bottom: var(--size-2);
-  z-index: 1;
 }
 
 .ds-splat-context__variant-bar--mobile,
@@ -657,7 +627,6 @@ body {
 
 .ds-splat-context__variant-bar--mobile {
   width: 100%;
-  padding: var(--size-1);
 }
 
 .ds-splat-context__variant-bar--mobile .ds-splat-context__variant-button {
@@ -667,10 +636,8 @@ body {
   min-height: var(--kd-toolbar-cell-size);
 }
 
-.ds-splat-context__tool-selector--mobile .button-grid-shell,
 .ds-splat-context__tool-selector--mobile .button-grid-shell {
   width: 100%;
-  padding: var(--size-1);
 }
 
 .ds-splat-context__tool-selector--mobile .button-grid-item {

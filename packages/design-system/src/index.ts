@@ -32,3 +32,9 @@ export {
   type IconButtonOptions,
   type IconButtonSource,
 } from "./view/SquareIconButton";
+export {
+  createToolbar,
+  Toolbar,
+  type ToolbarOptions,
+  type ToolbarOrientation,
+} from "./view/toolbar/Toolbar";

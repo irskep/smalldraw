@@ -23,6 +23,7 @@ import { el } from "redom";
 import {
   createDropdownMenu,
   createIconButton,
+  createToolbar,
   type DropdownMenuEntry,
 } from "../../src";
 import { buildGridDemo, type DemoGridItem } from "./gridDemo";
@@ -175,9 +176,9 @@ function createVariantBar(options: {
   activeItemId: string;
   className?: string;
 }): HTMLDivElement {
-  const bar = createPanel(
-    `ds-splat-context__variant-bar${options.className ? ` ${options.className}` : ""}`,
-  );
+  const toolbar = createToolbar({
+    className: `ds-splat-context__variant-bar${options.className ? ` ${options.className}` : ""}`,
+  });
   for (const item of options.items) {
     const button = createIconButton({
       className: "ds-splat-context__variant-button",
@@ -185,9 +186,9 @@ function createVariantBar(options: {
       icon: item.icon,
     });
     button.setPressed(item.id === options.activeItemId);
-    bar.append(button.el);
+    toolbar.el.append(button.el);
   }
-  return bar;
+  return toolbar.el;
 }
 
 function createDesktopFrame(status: HTMLOutputElement): HTMLElement {

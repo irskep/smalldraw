@@ -56,11 +56,9 @@
   display: flex;
   align-items: center;
   gap: var(--size-2);
-  padding: var(--size-2);
-  background: var(--ds-button-grid-surface, #ffffff);
-  border: 1px solid var(--ds-border, #d0d7de);
-  border-radius: var(--radius-3);
-  box-shadow: var(--ds-button-grid-shadow, none);
+  background: var(--ds-button-grid-surface, var(--gray-1));
+  border: none;
+  border-radius: 0;
   width: max-content;
   max-width: min(100%, calc(100vw - var(--size-px-24x)));
 }
