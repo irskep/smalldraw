@@ -1,6 +1,14 @@
 .button-grid {
-  --button-grid-cell-size: var(--ds-button-grid-cell-size, 4.5rem);
-  --button-grid-nav-size: var(--ds-button-grid-cell-size, 4.5rem);
+  --ds-button-grid-cell-size-default: 44px;
+  --ds-button-grid-cell-size-large: 88px;
+  --button-grid-cell-size: var(
+    --ds-button-grid-cell-size,
+    var(--ds-button-grid-cell-size-default)
+  );
+  --button-grid-nav-size: var(
+    --ds-button-grid-nav-size,
+    var(--button-grid-cell-size)
+  );
   display: block;
   max-width: 100%;
 }

@@ -1,4 +1,5 @@
 import { buttonStories } from "./buttonStories";
+import { contextStories } from "./contextStories";
 import { dialogStories } from "./dialogStories";
 import { gridStories } from "./gridStories";
 import { iconButtonStories } from "./iconButtonStories";
@@ -13,6 +14,11 @@ export const storyGroups: HarnessStoryGroup[] = [
     id: "reference",
     title: "Reference",
     stories: referenceStories,
+  },
+  {
+    id: "contexts",
+    title: "Contexts",
+    stories: contextStories,
   },
   {
     id: "buttons",

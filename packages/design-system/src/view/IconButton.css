@@ -6,6 +6,8 @@
  */
 
 .ds-icon-button {
+  --ds-icon-button-size-default: 44px;
+  --ds-icon-button-size-large: 88px;
   --sq-border-width: var(--border-size-1);
   --sq-border: color-mix(in oklch, var(--gray-7) 28%, white);
   --sq-bg: var(--ds-icon-button-bg, var(--gray-1));
@@ -16,8 +18,8 @@
   --sq-shadow-selected: var(--shadow-3);
   --sq-border-selected: color-mix(in oklch, var(--blue-6) 60%, black);
 
-  width: var(--ds-icon-button-size, 3.5rem);
-  height: var(--ds-icon-button-size, 3.5rem);
+  width: var(--ds-icon-button-size, var(--ds-icon-button-size-default));
+  height: var(--ds-icon-button-size, var(--ds-icon-button-size-default));
   box-sizing: border-box;
   border: var(--sq-border-width) solid var(--sq-border);
   border-radius: var(--sq-radius, var(--radius-3));

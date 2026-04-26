@@ -27,6 +27,14 @@ test("renders the Open Props reference story", async ({ page }) => {
   await expect(page.getByText("--shadow-3")).toBeVisible();
 });
 
+test("renders the splat context story", async ({ page }) => {
+  await page.goto(testStoryUrl("splat-context"));
+  await expect(page.getByRole("heading", { name: "Splat Context" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Desktop" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mobile Portrait" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Actions" }).first()).toBeVisible();
+});
+
 // ---------------------------------------------------------------------------
 // Grid: Pagination
 // ---------------------------------------------------------------------------
