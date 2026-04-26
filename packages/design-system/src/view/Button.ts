@@ -2,8 +2,8 @@ import "./Button.css";
 
 import type { IconNode } from "lucide";
 import { el, setChildren } from "redom";
-import { renderIcon } from "./renderIcon";
 import type { ReDomLike } from "./ReDomLike";
+import { renderIcon } from "./renderIcon";
 
 export type ButtonTone = "neutral" | "primary" | "danger";
 
