@@ -31,20 +31,54 @@ body {
   min-height: 100vh;
   padding: 1rem;
   box-sizing: border-box;
+}
+
+.ds-harness--test {
   display: grid;
   gap: 1rem;
   align-content: start;
 }
 
-.ds-harness__picker {
-  font: inherit;
+.ds-harness__shell {
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.ds-harness__sidebar {
+  position: sticky;
+  top: 1rem;
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.ds-harness__sidebar-title {
+  margin: 0 0 1rem;
   font-size: 1rem;
-  padding: 0.5rem;
+}
+
+.ds-harness__group-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ds-harness__group-link {
+  font: inherit;
+  text-align: left;
+  padding: 0.625rem 0.75rem;
   border: 1px solid var(--ds-border);
   border-radius: 8px;
   background: var(--ds-surface);
-  width: 100%;
-  max-width: 24rem;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ds-harness__group-link.is-active {
+  border-color: var(--ds-accent);
+  background: color-mix(in srgb, var(--ds-accent) 10%, white);
 }
 
 .ds-harness__stage {
@@ -71,6 +105,23 @@ body {
   gap: 1rem;
 }
 
+.ds-harness__story-stack-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.ds-harness__story-card {
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--ds-surface) 92%, var(--ds-surface-muted));
+}
+
+.ds-harness__story-card-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+}
+
 .ds-story-row {
   display: flex;
   flex-wrap: wrap;
@@ -95,3 +146,12 @@ body {
   width: min(100%, 24rem);
 }
 
+@media (max-width: 900px) {
+  .ds-harness__shell {
+    grid-template-columns: 1fr;
+  }
+
+  .ds-harness__sidebar {
+    position: static;
+  }
+}

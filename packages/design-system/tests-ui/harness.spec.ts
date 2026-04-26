@@ -1,11 +1,15 @@
 import { expect, test } from "@playwright/test";
 
+function testStoryUrl(storyId: string): string {
+  return `/?test-story=${storyId}`;
+}
+
 // ---------------------------------------------------------------------------
 // Icon Button
 // ---------------------------------------------------------------------------
 
 test("renders the default story", async ({ page }) => {
-  await page.goto("/");
+  await page.goto(testStoryUrl("icon-button"));
   await expect(page.getByRole("heading", { name: "Icon Button" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Fill" })).toBeVisible();
   await expect(page.getByRole("radio", { name: "Option A" })).toHaveAttribute(
@@ -20,7 +24,7 @@ test("renders the default story", async ({ page }) => {
 
 test.describe("Grid: Pagination", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/#grid-pagination");
+    await page.goto(testStoryUrl("grid-pagination"));
     await expect(page.getByRole("heading", { name: "Grid: Pagination" })).toBeVisible();
   });
 
@@ -84,7 +88,7 @@ test.describe("Grid: Pagination", () => {
 
 test.describe("Grid: Mode Switching", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/#grid-mode-switching");
+    await page.goto(testStoryUrl("grid-mode-switching"));
     await expect(page.getByRole("heading", { name: "Grid: Mode Switching" })).toBeVisible();
   });
 
@@ -126,7 +130,7 @@ test.describe("Grid: Mode Switching", () => {
 
 test.describe("Grid: Dynamic Items", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/#grid-dynamic-items");
+    await page.goto(testStoryUrl("grid-dynamic-items"));
     await expect(page.getByRole("heading", { name: "Grid: Dynamic Items" })).toBeVisible();
   });
 
@@ -176,7 +180,7 @@ test.describe("Grid: Dynamic Items", () => {
 
 test.describe("Grid: Vertical", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/#grid-vertical");
+    await page.goto(testStoryUrl("grid-vertical"));
     await expect(page.getByRole("heading", { name: "Grid: Vertical" })).toBeVisible();
     // Wait for rAF-based layout to settle
     await page.waitForTimeout(100);
@@ -201,7 +205,7 @@ test.describe("Grid: Vertical", () => {
 
 test.describe("Grid: Two-Row", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/#grid-two-row");
+    await page.goto(testStoryUrl("grid-two-row"));
     await expect(page.getByRole("heading", { name: "Grid: Two-Row" })).toBeVisible();
   });
 
@@ -240,7 +244,7 @@ test.describe("Grid: Two-Row", () => {
 
 test.describe("Grid: Two-Row XLarge", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/#grid-two-row-xlarge");
+    await page.goto(testStoryUrl("grid-two-row-xlarge"));
     await expect(
       page.getByRole("heading", { name: "Grid: Two-Row XLarge" }),
     ).toBeVisible();
@@ -282,7 +286,7 @@ test.describe("Grid: Two-Row XLarge", () => {
 
 test.describe("Grid: Vertical Two-Column", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/#grid-vertical-two-col");
+    await page.goto(testStoryUrl("grid-vertical-two-col"));
     await expect(
       page.getByRole("heading", { name: "Grid: Vertical Two-Column" }),
     ).toBeVisible();
@@ -321,7 +325,7 @@ test.describe("Grid: Vertical Two-Column", () => {
 
 test.describe("Button", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/#button");
+    await page.goto(testStoryUrl("button"));
     await expect(page.getByRole("heading", { name: "Button" })).toBeVisible();
   });
 
