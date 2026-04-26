@@ -20,8 +20,8 @@ import {
   createIconButton,
   createModalDialogView,
   createShareQrDialog,
-  PagedButtonGrid,
   type IconButton,
+  PagedButtonGrid,
 } from "../../src";
 
 export interface HarnessStory {
@@ -51,7 +51,11 @@ const GRID_ITEMS: DemoGridItem[] = [
   { id: "square", label: "Square", icon: Square },
   { id: "triangle", label: "Triangle", icon: Triangle },
   { id: "zap", label: "Zap", icon: Zap },
-  { id: "image", label: "Image", icon: { kind: "image", src: DEMO_IMAGE_ICON } },
+  {
+    id: "image",
+    label: "Image",
+    icon: { kind: "image", src: DEMO_IMAGE_ICON },
+  },
   { id: "rows", label: "Rows", icon: Rows2 },
 ];
 
@@ -139,7 +143,10 @@ export const stories: HarnessStory[] = [
       const selectionRow = el("div.ds-story-row") as HTMLDivElement;
       const layoutRow = el("div.ds-story-row") as HTMLDivElement;
       const interactionRow = el("div.ds-story-row") as HTMLDivElement;
-      const status = el("output.ds-story-output", "No clicks yet.") as HTMLOutputElement;
+      const status = el(
+        "output.ds-story-output",
+        "No clicks yet.",
+      ) as HTMLOutputElement;
 
       const plain = createIconButton({ label: "Fill", icon: PaintBucket });
       const selected = createIconButton({ label: "Checked", icon: Check });
@@ -160,7 +167,10 @@ export const stories: HarnessStory[] = [
       const row = createIconButton({ label: "Row", icon: Shapes });
       row.setLayout("row");
 
-      const interactive = createIconButton({ label: "Click Me", icon: ImageIcon });
+      const interactive = createIconButton({
+        label: "Click Me",
+        icon: ImageIcon,
+      });
       interactive.setOnPress(() => {
         status.value = "Button clicked.";
         status.textContent = status.value;
@@ -206,9 +216,21 @@ export const stories: HarnessStory[] = [
       const status = el("output.ds-story-output", "") as HTMLOutputElement;
       const { grid, setActive } = buildGridDemo({ mode: "mobile" });
 
-      const jumpFirst = el("button", { type: "button" }, "First") as HTMLButtonElement;
-      const jumpLast = el("button", { type: "button" }, "Last") as HTMLButtonElement;
-      const jumpMiddle = el("button", { type: "button" }, "Middle") as HTMLButtonElement;
+      const jumpFirst = el(
+        "button",
+        { type: "button" },
+        "First",
+      ) as HTMLButtonElement;
+      const jumpLast = el(
+        "button",
+        { type: "button" },
+        "Last",
+      ) as HTMLButtonElement;
+      const jumpMiddle = el(
+        "button",
+        { type: "button" },
+        "Middle",
+      ) as HTMLButtonElement;
       jumpFirst.addEventListener("click", () => {
         setActive(GRID_ITEMS[0].id);
         status.textContent = `Active: ${GRID_ITEMS[0].label}`;
@@ -243,13 +265,20 @@ export const stories: HarnessStory[] = [
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
       const frame = el("div.ds-story-frame") as HTMLDivElement;
       frame.style.width = "min(100%, 36rem)";
-      const status = el("output.ds-story-output", "Mode: mobile") as HTMLOutputElement;
+      const status = el(
+        "output.ds-story-output",
+        "Mode: mobile",
+      ) as HTMLOutputElement;
       const { grid } = buildGridDemo({ mode: "mobile" });
 
       const modes = ["mobile", "medium", "large"] as const;
       const modeRow = el("div.ds-story-row") as HTMLDivElement;
       for (const mode of modes) {
-        const btn = el("button", { type: "button", "data-mode": mode }, mode) as HTMLButtonElement;
+        const btn = el(
+          "button",
+          { type: "button", "data-mode": mode },
+          mode,
+        ) as HTMLButtonElement;
         btn.addEventListener("click", () => {
           grid.setMode(mode);
           status.textContent = `Mode: ${mode}`;
@@ -281,7 +310,11 @@ export const stories: HarnessStory[] = [
       // The vertical shell needs a height constraint to trigger pagination.
       grid.el.style.height = "24rem";
 
-      const jumpLast = el("button", { type: "button" }, "Jump to last") as HTMLButtonElement;
+      const jumpLast = el(
+        "button",
+        { type: "button" },
+        "Jump to last",
+      ) as HTMLButtonElement;
       jumpLast.addEventListener("click", () => {
         setActive(GRID_ITEMS[GRID_ITEMS.length - 1].id);
       });
@@ -289,10 +322,7 @@ export const stories: HarnessStory[] = [
       // Force re-layout after mount so pagination can measure.
       requestAnimationFrame(() => grid.syncLayout());
 
-      canvas.append(
-        el("div.ds-story-row", jumpLast),
-        grid.el,
-      );
+      canvas.append(el("div.ds-story-row", jumpLast), grid.el);
       container.replaceChildren(canvas);
     },
   },
@@ -304,14 +334,29 @@ export const stories: HarnessStory[] = [
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
       const frame = el("div.ds-story-frame") as HTMLDivElement;
-      const status = el("output.ds-story-output", `Items: ${GRID_ITEMS.length}`) as HTMLOutputElement;
+      const status = el(
+        "output.ds-story-output",
+        `Items: ${GRID_ITEMS.length}`,
+      ) as HTMLOutputElement;
 
       const { grid, setItems } = buildGridDemo({ mode: "mobile" });
       let currentItems = [...GRID_ITEMS];
 
-      const addBtn = el("button", { type: "button" }, "Add item") as HTMLButtonElement;
-      const removeBtn = el("button", { type: "button" }, "Remove last") as HTMLButtonElement;
-      const resetBtn = el("button", { type: "button" }, "Reset") as HTMLButtonElement;
+      const addBtn = el(
+        "button",
+        { type: "button" },
+        "Add item",
+      ) as HTMLButtonElement;
+      const removeBtn = el(
+        "button",
+        { type: "button" },
+        "Remove last",
+      ) as HTMLButtonElement;
+      const resetBtn = el(
+        "button",
+        { type: "button" },
+        "Reset",
+      ) as HTMLButtonElement;
 
       let addCounter = 0;
       addBtn.addEventListener("click", () => {
@@ -354,7 +399,10 @@ export const stories: HarnessStory[] = [
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
       const frame = el("div.ds-story-frame") as HTMLDivElement;
-      const status = el("output.ds-story-output", "Mode: large") as HTMLOutputElement;
+      const status = el(
+        "output.ds-story-output",
+        "Mode: large",
+      ) as HTMLOutputElement;
       const { grid } = buildGridDemo({ mode: "large", largeLayout: "two-row" });
 
       const modes = ["large", "medium", "mobile"] as const;
@@ -395,10 +443,7 @@ export const stories: HarnessStory[] = [
       });
 
       frame.append(grid.el);
-      canvas.append(
-        el("h2.ds-story-heading", "Grid"),
-        frame,
-      );
+      canvas.append(el("h2.ds-story-heading", "Grid"), frame);
       container.replaceChildren(canvas);
     },
   },
@@ -409,7 +454,10 @@ export const stories: HarnessStory[] = [
       "Vertical orientation in large mode showing a 2-column grid. Switch to mobile for single-column paginated.",
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
-      const status = el("output.ds-story-output", "Mode: large") as HTMLOutputElement;
+      const status = el(
+        "output.ds-story-output",
+        "Mode: large",
+      ) as HTMLOutputElement;
       const { grid } = buildGridDemo({
         mode: "large",
         orientation: "vertical",
@@ -448,7 +496,10 @@ export const stories: HarnessStory[] = [
       "Text button with tone variants (neutral, primary, danger) and optional leading icon.",
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
-      const status = el("output.ds-story-output", "No clicks yet.") as HTMLOutputElement;
+      const status = el(
+        "output.ds-story-output",
+        "No clicks yet.",
+      ) as HTMLOutputElement;
 
       // Tones
       const tonesRow = el("div.ds-story-row") as HTMLDivElement;
@@ -461,9 +512,20 @@ export const stories: HarnessStory[] = [
 
       // With icons
       const iconsRow = el("div.ds-story-row") as HTMLDivElement;
-      const withIcon = createButton({ label: "Delete", tone: "danger", icon: Trash2 });
-      const withIconPrimary = createButton({ label: "Check", tone: "primary", icon: Check });
-      const withIconNeutral = createButton({ label: "Warning", icon: AlertTriangle });
+      const withIcon = createButton({
+        label: "Delete",
+        tone: "danger",
+        icon: Trash2,
+      });
+      const withIconPrimary = createButton({
+        label: "Check",
+        tone: "primary",
+        icon: Check,
+      });
+      const withIconNeutral = createButton({
+        label: "Warning",
+        icon: AlertTriangle,
+      });
       mount(iconsRow, withIcon);
       mount(iconsRow, withIconPrimary);
       mount(iconsRow, withIconNeutral);
@@ -472,14 +534,21 @@ export const stories: HarnessStory[] = [
       const disabledRow = el("div.ds-story-row") as HTMLDivElement;
       const disabledNeutral = createButton({ label: "Disabled" });
       disabledNeutral.setDisabled(true);
-      const disabledPrimary = createButton({ label: "Disabled", tone: "primary" });
+      const disabledPrimary = createButton({
+        label: "Disabled",
+        tone: "primary",
+      });
       disabledPrimary.setDisabled(true);
       mount(disabledRow, disabledNeutral);
       mount(disabledRow, disabledPrimary);
 
       // Interaction
       const interactionRow = el("div.ds-story-row") as HTMLDivElement;
-      const clickMe = createButton({ label: "Click Me", tone: "primary", icon: Zap });
+      const clickMe = createButton({
+        label: "Click Me",
+        tone: "primary",
+        icon: Zap,
+      });
       clickMe.setOnPress(() => {
         status.value = "Button clicked.";
         status.textContent = status.value;
@@ -507,10 +576,17 @@ export const stories: HarnessStory[] = [
     description: "Confirm/cancel dialog with optional icon and danger tone.",
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
-      const status = el("output.ds-story-output", "No result yet.") as HTMLOutputElement;
+      const status = el(
+        "output.ds-story-output",
+        "No result yet.",
+      ) as HTMLOutputElement;
       const dialog = createModalDialogView();
 
-      const openDefault = el("button", { type: "button" }, "Default confirm") as HTMLButtonElement;
+      const openDefault = el(
+        "button",
+        { type: "button" },
+        "Default confirm",
+      ) as HTMLButtonElement;
       openDefault.addEventListener("click", async () => {
         const result = await dialog.showConfirm({
           title: "Save changes?",
@@ -521,7 +597,11 @@ export const stories: HarnessStory[] = [
         status.textContent = result ? "Confirmed" : "Cancelled";
       });
 
-      const openDanger = el("button", { type: "button" }, "Danger confirm") as HTMLButtonElement;
+      const openDanger = el(
+        "button",
+        { type: "button" },
+        "Danger confirm",
+      ) as HTMLButtonElement;
       openDanger.addEventListener("click", async () => {
         const result = await dialog.showConfirm({
           title: "Delete drawing?",
@@ -530,10 +610,16 @@ export const stories: HarnessStory[] = [
           tone: "danger",
           icon: Trash2,
         });
-        status.textContent = result ? "Confirmed (danger)" : "Cancelled (danger)";
+        status.textContent = result
+          ? "Confirmed (danger)"
+          : "Cancelled (danger)";
       });
 
-      const openIcon = el("button", { type: "button" }, "With icon") as HTMLButtonElement;
+      const openIcon = el(
+        "button",
+        { type: "button" },
+        "With icon",
+      ) as HTMLButtonElement;
       openIcon.addEventListener("click", async () => {
         const result = await dialog.showConfirm({
           title: "Warning",
@@ -544,7 +630,12 @@ export const stories: HarnessStory[] = [
         status.textContent = result ? "Confirmed (icon)" : "Cancelled (icon)";
       });
 
-      const controls = el("div.ds-story-row", openDefault, openDanger, openIcon);
+      const controls = el(
+        "div.ds-story-row",
+        openDefault,
+        openDanger,
+        openIcon,
+      );
       canvas.append(controls, status);
       container.replaceChildren(canvas);
       mount(container, dialog);
@@ -556,14 +647,21 @@ export const stories: HarnessStory[] = [
     description: "Dialog showing a QR code and copyable URL for sharing.",
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
-      const status = el("output.ds-story-output", "Dialog not opened yet.") as HTMLOutputElement;
+      const status = el(
+        "output.ds-story-output",
+        "Dialog not opened yet.",
+      ) as HTMLOutputElement;
       const dialog = createShareQrDialog();
 
       // 1px blue dot as a placeholder QR image
       const PLACEHOLDER_QR =
         "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' fill='white'/%3E%3Ctext x='128' y='140' text-anchor='middle' font-size='24' fill='%23666'%3EQR placeholder%3C/text%3E%3C/svg%3E";
 
-      const openButton = el("button", { type: "button" }, "Open share dialog") as HTMLButtonElement;
+      const openButton = el(
+        "button",
+        { type: "button" },
+        "Open share dialog",
+      ) as HTMLButtonElement;
       openButton.addEventListener("click", async () => {
         status.textContent = "Dialog open…";
         await dialog.show({

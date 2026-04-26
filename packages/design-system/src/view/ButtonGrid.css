@@ -24,6 +24,12 @@
   justify-content: center;
 }
 
+.button-grid[data-mode="large"]:not([data-paginate-large="true"])[data-resolved-orientation="horizontal"]
+  .button-grid-inline-host {
+  width: max-content;
+  max-width: none;
+}
+
 .button-grid[data-resolved-orientation="vertical"] .button-grid-inline-host {
   display: flex;
   justify-content: flex-start;
@@ -77,6 +83,11 @@
 .button-grid[data-mode="large"]:not([data-paginate-large="true"])
   .button-grid-viewport {
   overflow: visible;
+}
+
+.button-grid[data-mode="large"]:not([data-paginate-large="true"])[data-resolved-orientation="horizontal"]
+  .button-grid-shell {
+  max-width: none;
 }
 
 .button-grid-track {

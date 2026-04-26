@@ -212,6 +212,20 @@ test.describe("Grid: Two-Row", () => {
     await expect(page.getByRole("button", { name: "Next page" })).toBeHidden();
   });
 
+  test("large mode shell grows to contain all visible items", async ({ page }) => {
+    const clipped = await page.evaluate(() => {
+      const shell = document.querySelector(".button-grid-shell");
+      const items = Array.from(document.querySelectorAll(".button-grid-item"));
+      if (!shell || items.length === 0) return true;
+      const shellRect = shell.getBoundingClientRect();
+      return items.some((item) => {
+        const rect = item.getBoundingClientRect();
+        return rect.right > shellRect.right + 2 || rect.bottom > shellRect.bottom + 2;
+      });
+    });
+    expect(clipped).toBe(false);
+  });
+
   test("switching to mobile paginates to single row", async ({ page }) => {
     await page.getByRole("button", { name: "mobile" }).click();
     await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
