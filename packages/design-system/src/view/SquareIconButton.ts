@@ -63,6 +63,11 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
     const hasLabel = label.trim().length > 0;
     this.labelElement.textContent = label;
     this.labelElement.hidden = !hasLabel;
+    if (hasLabel) {
+      this.el.setAttribute("aria-label", label);
+      return;
+    }
+    this.el.removeAttribute("aria-label");
   }
 
   setIcon(icon: IconButtonSource): void {

@@ -2,8 +2,7 @@
  * Button — text button with optional leading icon.
  *
  * Tones: neutral (default), primary, danger.
- * Shares interaction feel (hover lift, active scale, focus ring, disabled)
- * with IconButton via common custom properties.
+ * Flat interaction model: no hover lift, no shadow.
  */
 
 .ds-button {
@@ -19,10 +18,7 @@
   font-weight: var(--font-weight-5);
   line-height: 1;
   cursor: pointer;
-  transition:
-    transform 120ms var(--ease-out-3),
-    box-shadow 120ms var(--ease-out-3),
-    background-color 120ms var(--ease-out-3);
+  transition: background-color 120ms var(--ease-out-3);
 }
 
 /* ---- tones ---- */
@@ -46,12 +42,11 @@
 /* ---- interaction states ---- */
 
 .ds-button:hover:not(:disabled) {
-  transform: translateY(calc(var(--border-size-2) * -1));
-  box-shadow: var(--shadow-2);
+  filter: brightness(0.96);
 }
 
 .ds-button:active {
-  transform: scale(0.97);
+  filter: brightness(0.9);
 }
 
 .ds-button:focus-visible {

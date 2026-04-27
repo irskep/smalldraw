@@ -14,6 +14,12 @@ export {
   type DropdownMenuSeparator,
 } from "./view/DropdownMenu";
 export {
+  ColorPicker,
+  createColorPicker,
+  type ColorPickerOptions,
+  type ColorPickerSwatch,
+} from "./view/ColorPicker";
+export {
   createModalDialogView,
   type ModalDialogOptions,
   ModalDialogView,
@@ -32,6 +38,11 @@ export {
   type IconButtonOptions,
   type IconButtonSource,
 } from "./view/SquareIconButton";
+export {
+  createStrokePicker,
+  StrokePicker,
+  type StrokePickerOptions,
+} from "./view/StrokePicker";
 export {
   createToolbar,
   Toolbar,

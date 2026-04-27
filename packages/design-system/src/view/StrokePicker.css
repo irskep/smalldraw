@@ -1,0 +1,90 @@
+.ds-stroke-picker {
+  position: relative;
+  display: inline-flex;
+}
+
+.ds-stroke-picker__popover {
+  position: absolute;
+  top: calc(100% + var(--size-2));
+  left: 0;
+  z-index: 30;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(calc(var(--size-px-1) * -1));
+  transform-origin: top left;
+  will-change: transform, opacity;
+}
+
+.ds-stroke-picker__popover[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  animation: var(--animation-fade-in), var(--animation-slide-in-down);
+  animation-duration: 140ms, 140ms;
+  animation-timing-function: var(--ease-out-3), var(--ease-out-3);
+  animation-fill-mode: both, both;
+}
+
+.ds-stroke-picker__popover[data-open="false"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  animation: var(--animation-fade-out), var(--animation-slide-out-up);
+  animation-duration: 110ms, 110ms;
+  animation-timing-function: var(--ease-out-2), var(--ease-out-2);
+  animation-fill-mode: both, both;
+}
+
+.ds-stroke-picker__panel {
+  display: grid;
+  gap: var(--size-2);
+  padding: var(--size-2);
+  background: var(--gray-0);
+  border: var(--border-size-1) solid var(--gray-9);
+  box-shadow: var(--shadow-4);
+}
+
+.ds-stroke-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(4, var(--ds-stroke-picker-cell-size, var(--size-px-40x)));
+  gap: var(--size-2);
+  justify-content: start;
+}
+
+.ds-stroke-picker__button {
+  width: var(--ds-stroke-picker-cell-size, var(--size-px-40x));
+  height: var(--ds-stroke-picker-cell-size, var(--size-px-40x));
+  min-width: var(--ds-stroke-picker-cell-size, var(--size-px-40x));
+  min-height: var(--ds-stroke-picker-cell-size, var(--size-px-40x));
+  padding: 0;
+  border: var(--border-size-1) solid
+    color-mix(in oklch, var(--gray-7) 28%, white);
+  background: var(--gray-1);
+  color: var(--gray-9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-stroke-picker__button[data-selected="true"] {
+  outline: var(--border-size-3) solid
+    color-mix(in oklch, var(--blue-5) 60%, black);
+  outline-offset: calc(var(--border-size-2) * -1);
+}
+
+.ds-stroke-picker__line {
+  width: var(--size-px-30x);
+  height: var(--ds-stroke-picker-preview-size);
+  min-height: var(--border-size-2);
+  border-radius: var(--radius-round);
+  background: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-stroke-picker__popover[data-open="true"],
+  .ds-stroke-picker__popover[data-open="false"] {
+    animation: none;
+    transform: none;
+  }
+}

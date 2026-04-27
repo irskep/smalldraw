@@ -21,8 +21,12 @@ import {
 } from "lucide";
 import { el } from "redom";
 import {
+  Button,
+  createButton,
+  createColorPicker,
   createDropdownMenu,
   createIconButton,
+  createStrokePicker,
   createToolbar,
   type DropdownMenuEntry,
 } from "../../src";
@@ -89,7 +93,15 @@ const COLOR_SWATCHES = [
 
 const STROKE_WIDTHS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
 
-const ACTIONS_MENU_ENTRIES: DropdownMenuEntry[] = [
+const DESKTOP_MENU_ENTRIES: DropdownMenuEntry[] = [
+  { id: "new-drawing", label: "New Drawing", icon: FilePlus },
+  { id: "browse", label: "Browse Drawings", icon: FolderOpen },
+  { id: "export", label: "Export PNG", icon: Download },
+  { type: "separator" },
+  { id: "clear", label: "Clear Canvas", icon: Trash2, danger: true },
+];
+
+const MOBILE_ACTIONS_MENU_ENTRIES: DropdownMenuEntry[] = [
   {
     type: "row",
     label: "History",
@@ -107,68 +119,60 @@ const ACTIONS_MENU_ENTRIES: DropdownMenuEntry[] = [
   { id: "clear", label: "Clear Canvas", icon: Trash2, danger: true },
 ];
 
-function createPanel(className?: string): HTMLDivElement {
-  return el(
-    `div.ds-splat-context__panel${className ? ` ${className}` : ""}`,
-  ) as HTMLDivElement;
+function createColorPickerControl(options: {
+  className?: string;
+  triggerLabel?: string;
+  rowLayout?: boolean;
+  status: HTMLOutputElement;
+}): HTMLElement {
+  const picker = createColorPicker({
+    className: options.className,
+    colors: COLOR_SWATCHES.map((color) => ({ color })),
+    selectedColor: "#000000",
+    triggerLabel: options.triggerLabel ?? "Colors",
+    triggerAttributes: options.rowLayout ? { layout: "row" } : undefined,
+  });
+  picker.setOnSelect((color) => {
+    options.status.value = `Color: ${color}`;
+    options.status.textContent = options.status.value;
+  });
+  return picker.el;
 }
 
-function createColorSwatches(selectedColor: string): HTMLElement {
-  const grid = el("div.ds-splat-context__swatch-grid") as HTMLDivElement;
-  for (const color of COLOR_SWATCHES) {
-    grid.append(
-      el("button.ds-splat-context__swatch", {
-        type: "button",
-        title: color,
-        "aria-label": color,
-        "data-selected": color === selectedColor ? "true" : "false",
-        style: `--ds-splat-context-swatch:${color};`,
-      }),
-    );
-  }
-  return grid;
+function createStrokePickerControl(options: {
+  className?: string;
+  triggerLabel?: string;
+  rowLayout?: boolean;
+  status: HTMLOutputElement;
+}): HTMLElement {
+  const picker = createStrokePicker({
+    className: options.className,
+    strokeWidths: STROKE_WIDTHS,
+    selectedStrokeWidth: 16,
+    triggerLabel: options.triggerLabel ?? "Strokes",
+    triggerAttributes: options.rowLayout ? { layout: "row" } : undefined,
+  });
+  picker.setOnSelect((strokeWidth) => {
+    options.status.value = `Stroke width: ${strokeWidth}px`;
+    options.status.textContent = options.status.value;
+  });
+  return picker.el;
 }
 
-function createStrokeWidths(selectedStrokeWidth: number): HTMLElement {
-  const grid = el("div.ds-splat-context__stroke-grid") as HTMLDivElement;
-  for (const strokeWidth of STROKE_WIDTHS) {
-    const previewSize = Math.max(2, Math.min(18, Math.sqrt(strokeWidth) * 1.5));
-    grid.append(
-      el(
-        "button.ds-splat-context__stroke-button",
-        {
-          type: "button",
-          title: `${strokeWidth}px brush`,
-          "aria-label": `${strokeWidth}px brush`,
-          "data-selected":
-            strokeWidth === selectedStrokeWidth ? "true" : "false",
-        },
-        el("span.ds-splat-context__stroke-line", {
-          style: `--ds-splat-context-stroke-preview-size:${previewSize}px;`,
-        }),
-      ),
-    );
-  }
-  return grid;
-}
-
-function createActionButton(options: {
+function createTopActionButton(options: {
   label: string;
   icon: IconNode;
-  className?: string;
   status: HTMLOutputElement;
-}): HTMLButtonElement {
-  const button = createIconButton({
-    className: `ds-splat-context__action-button${options.className ? ` ${options.className}` : ""}`,
+}): Button {
+  const button = createButton({
     label: options.label,
     icon: options.icon,
-    attributes: { layout: "row" },
   });
   button.setOnPress(() => {
     options.status.value = `Desktop action: ${options.label}`;
     options.status.textContent = options.status.value;
   });
-  return button.el;
+  return button;
 }
 
 function createVariantBar(options: {
@@ -200,21 +204,45 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
   const top = el(
     "div.ds-splat-context__slot ds-splat-context__slot--top",
   ) as HTMLDivElement;
-  top.append(
-    (() => {
-      const row = el("div.ds-splat-context__top-row") as HTMLDivElement;
-      const palettePanel = createPanel("ds-splat-context__palette-panel");
-      palettePanel.append(createColorSwatches("#000000"));
-      const strokePanel = createPanel("ds-splat-context__stroke-panel");
-      strokePanel.append(createStrokeWidths(16));
-      row.append(palettePanel, strokePanel);
-      return row;
-    })(),
-  );
+  const topBar = createToolbar({ className: "ds-splat-context__top-actions" });
+  const undoButton = createTopActionButton({ label: "Undo", icon: Undo2, status });
+  const redoButton = createTopActionButton({ label: "Redo", icon: Redo2, status });
+  const shareButton = createTopActionButton({
+    label: "Share",
+    icon: Share2,
+    status,
+  });
+  const moreMenu = createDropdownMenu({
+    triggerLabel: "More",
+    triggerIcon: MoreHorizontal,
+    menuLabel: "More actions",
+    entries: DESKTOP_MENU_ENTRIES,
+  });
+  moreMenu.setOnSelect((itemId) => {
+    status.value = `Desktop menu: ${itemId}`;
+    status.textContent = status.value;
+    moreMenu.setOpen(false);
+  });
+  topBar.el.append(undoButton.el, redoButton.el, shareButton.el, moreMenu.el);
+  top.append(topBar.el);
 
   const left = el(
     "div.ds-splat-context__slot ds-splat-context__slot--left",
   ) as HTMLDivElement;
+  const leftRail = createToolbar({
+    orientation: "vertical",
+    className: "ds-splat-context__left-rail",
+  });
+  leftRail.el.append(
+    createColorPickerControl({
+      className: "ds-splat-context__left-picker",
+      status,
+    }),
+    createStrokePickerControl({
+      className: "ds-splat-context__left-picker",
+      status,
+    }),
+  );
   const selector = buildGridDemo({
     items: DESKTOP_TOOL_ITEMS,
     mode: "large",
@@ -225,43 +253,8 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     "ds-splat-context__tool-selector",
     "ds-splat-context__grid-panel",
   );
-  left.append(selector.grid.el);
-
-  const right = el(
-    "div.ds-splat-context__slot ds-splat-context__slot--right",
-  ) as HTMLDivElement;
-  const actionPanel = createPanel("ds-splat-context__action-panel");
-  actionPanel.append(
-    createActionButton({ label: "Undo", icon: Undo2, status }),
-    createActionButton({ label: "Redo", icon: Redo2, status }),
-    el("div.ds-splat-context__action-spacer", { "aria-hidden": "true" }),
-    createActionButton({
-      label: "Clear",
-      icon: Trash2,
-      className: "ds-splat-context__action-button--full",
-      status,
-    }),
-    createActionButton({
-      label: "Export",
-      icon: Download,
-      className: "ds-splat-context__action-button--full",
-      status,
-    }),
-    createActionButton({ label: "Share", icon: Share2, status }),
-    createActionButton({
-      label: "New",
-      icon: FilePlus,
-      className: "ds-splat-context__action-button--full",
-      status,
-    }),
-    createActionButton({
-      label: "Browse",
-      icon: FolderOpen,
-      className: "ds-splat-context__action-button--full",
-      status,
-    }),
-  );
-  right.append(actionPanel);
+  leftRail.el.append(selector.grid.el);
+  left.append(leftRail.el);
 
   const canvas = el("div.ds-splat-context__canvas-shell") as HTMLDivElement;
   canvas.append(el("div.ds-splat-context__paper"));
@@ -277,7 +270,7 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     }),
   );
 
-  stage.append(top, left, right, canvas, bottom);
+  stage.append(top, left, canvas, bottom);
   frame.append(el("h2.ds-story-heading", "Desktop"), stage);
   return frame;
 }
@@ -292,35 +285,31 @@ function createMobileFrame(status: HTMLOutputElement): HTMLElement {
   const topControls = el(
     "div.ds-splat-context__mobile-top-controls",
   ) as HTMLDivElement;
-  const colors = createIconButton({
-    className: "ds-splat-context__mobile-top-toggle",
-    label: "Color",
-    icon: Palette,
-    attributes: { layout: "row" },
+  const colors = createColorPickerControl({
+    className: "ds-splat-context__mobile-picker",
+    triggerLabel: "Color",
+    rowLayout: true,
+    status,
   });
-  colors.setPressed(true);
-  const strokes = createIconButton({
-    className: "ds-splat-context__mobile-top-toggle",
-    label: "Size",
-    icon: SlidersHorizontal,
-    attributes: { layout: "row" },
+  const strokes = createStrokePickerControl({
+    className: "ds-splat-context__mobile-picker",
+    triggerLabel: "Size",
+    rowLayout: true,
+    status,
   });
   const actionsMenu = createDropdownMenu({
     triggerLabel: "Actions",
     triggerIcon: MoreHorizontal,
     menuLabel: "Actions",
-    entries: ACTIONS_MENU_ENTRIES,
+    entries: MOBILE_ACTIONS_MENU_ENTRIES,
   });
   actionsMenu.setOnSelect((itemId) => {
     status.value = `Mobile action: ${itemId}`;
     status.textContent = status.value;
     actionsMenu.setOpen(false);
   });
-  topControls.append(colors.el, strokes.el, actionsMenu.el);
-
-  const mobilePalette = createPanel("ds-splat-context__mobile-panel");
-  mobilePalette.append(createColorSwatches("#000000"));
-  top.append(topControls, mobilePalette);
+  topControls.append(colors, strokes, actionsMenu.el);
+  top.append(topControls);
 
   const canvas = el(
     "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile",
