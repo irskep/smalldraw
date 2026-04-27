@@ -30,6 +30,7 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
   private selectHandler: ((color: string) => void) | null = null;
   private isOpen = false;
   private readonly documentPointerDownHandler: (event: PointerEvent) => void;
+  private readonly documentKeyDownHandler: (event: KeyboardEvent) => void;
 
   constructor(options: ColorPickerOptions = {}) {
     this.el = el("div.ds-color-picker") as HTMLDivElement;
@@ -71,6 +72,14 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
         return;
       }
       this.setOpen(false);
+    };
+    this.documentKeyDownHandler = (event: KeyboardEvent) => {
+      if (!this.isOpen || event.key !== "Escape") {
+        return;
+      }
+      event.preventDefault();
+      this.setOpen(false);
+      this.triggerButton.el.focus();
     };
 
     this.triggerButton.setOnPress(() => {
@@ -129,6 +138,7 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
         this.documentPointerDownHandler,
         true,
       );
+      document.addEventListener("keydown", this.documentKeyDownHandler, true);
       return;
     }
     document.removeEventListener(
@@ -136,6 +146,7 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
       this.documentPointerDownHandler,
       true,
     );
+    document.removeEventListener("keydown", this.documentKeyDownHandler, true);
   }
 
   setDisabled(disabled: boolean): void {

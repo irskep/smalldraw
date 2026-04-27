@@ -75,6 +75,8 @@
   object-fit: contain;
   pointer-events: none;
   user-select: none;
+  transform: scale(var(--sq-icon-image-scale, 1));
+  transform-origin: center;
 }
 
 /* ---- label (hidden by default, shown at 88px) ---- */

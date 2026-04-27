@@ -434,6 +434,7 @@ body {
 .ds-splat-context__toolbar-scale-large {
   --ds-button-grid-cell-size: var(--size-px-88x);
   --ds-icon-button-size: var(--size-px-88x);
+  --sq-icon-image-scale: 1.5;
 }
 
 .ds-splat-context__toolbar-scale-large .ds-icon-button__label {
@@ -475,6 +476,7 @@ body {
 
 .ds-splat-context__variant-bar {
   --ds-icon-button-size: var(--kd-toolbar-bottom-cell-size);
+  --sq-icon-image-scale: 1.5;
   display: flex;
   align-items: stretch;
   gap: var(--size-2);

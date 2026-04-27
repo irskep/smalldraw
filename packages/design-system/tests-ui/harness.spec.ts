@@ -400,4 +400,13 @@ test.describe("Dropdown Menu", () => {
     await page.getByRole("heading", { name: "Dropdown Menu" }).click();
     await expect(page.getByRole("menu", { name: "Actions" })).toBeHidden();
   });
+
+  test("pressing Escape closes the menu", async ({ page }) => {
+    const trigger = page.getByRole("button", { name: "Actions" });
+    await trigger.click();
+    await expect(page.getByRole("menu", { name: "Actions" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("menu", { name: "Actions" })).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
 });

@@ -25,6 +25,7 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
   private selectHandler: ((strokeWidth: number) => void) | null = null;
   private isOpen = false;
   private readonly documentPointerDownHandler: (event: PointerEvent) => void;
+  private readonly documentKeyDownHandler: (event: KeyboardEvent) => void;
 
   constructor(options: StrokePickerOptions = {}) {
     this.el = el("div.ds-stroke-picker") as HTMLDivElement;
@@ -66,6 +67,14 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
         return;
       }
       this.setOpen(false);
+    };
+    this.documentKeyDownHandler = (event: KeyboardEvent) => {
+      if (!this.isOpen || event.key !== "Escape") {
+        return;
+      }
+      event.preventDefault();
+      this.setOpen(false);
+      this.triggerButton.el.focus();
     };
 
     this.triggerButton.setOnPress(() => {
@@ -136,6 +145,7 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
         this.documentPointerDownHandler,
         true,
       );
+      document.addEventListener("keydown", this.documentKeyDownHandler, true);
       return;
     }
     document.removeEventListener(
@@ -143,6 +153,7 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
       this.documentPointerDownHandler,
       true,
     );
+    document.removeEventListener("keydown", this.documentKeyDownHandler, true);
   }
 
   setDisabled(disabled: boolean): void {

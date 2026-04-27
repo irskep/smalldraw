@@ -84,6 +84,7 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
   private selectHandler: ((itemId: string) => void) | null = null;
   private isOpen = false;
   private readonly documentPointerDownHandler: (event: PointerEvent) => void;
+  private readonly documentKeyDownHandler: (event: KeyboardEvent) => void;
 
   constructor(options: DropdownMenuOptions = {}) {
     this.el = el("div.ds-dropdown-menu") as HTMLDivElement;
@@ -123,6 +124,14 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
       }
       this.setOpen(false);
     };
+    this.documentKeyDownHandler = (event: KeyboardEvent) => {
+      if (!this.isOpen || event.key !== "Escape") {
+        return;
+      }
+      event.preventDefault();
+      this.setOpen(false);
+      this.triggerButton.el.focus();
+    };
 
     this.triggerButton.setOnPress(() => {
       this.setOpen(!this.isOpen);
@@ -149,6 +158,7 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
         this.documentPointerDownHandler,
         true,
       );
+      document.addEventListener("keydown", this.documentKeyDownHandler, true);
       return;
     }
     document.removeEventListener(
@@ -156,6 +166,7 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
       this.documentPointerDownHandler,
       true,
     );
+    document.removeEventListener("keydown", this.documentKeyDownHandler, true);
   }
 
   setEntries(entries: DropdownMenuEntry[]): void {
