@@ -11,29 +11,31 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(calc(var(--size-px-1) * -1));
+  transform: translateY(calc(var(--border-size-2) * -1));
   transform-origin: top left;
   will-change: transform, opacity;
+  transition:
+    opacity 90ms linear,
+    transform 90ms var(--ease-out-3),
+    visibility 0ms linear 90ms;
 }
 
 .ds-stroke-picker__popover[data-open="true"] {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  animation: var(--animation-fade-in), var(--animation-slide-in-down);
-  animation-duration: 140ms, 140ms;
-  animation-timing-function: var(--ease-out-3), var(--ease-out-3);
-  animation-fill-mode: both, both;
+  transform: translateY(0);
+  transition:
+    opacity 90ms linear,
+    transform 90ms var(--ease-out-3),
+    visibility 0ms linear 0ms;
 }
 
 .ds-stroke-picker__popover[data-open="false"] {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  animation: var(--animation-fade-out), var(--animation-slide-out-up);
-  animation-duration: 110ms, 110ms;
-  animation-timing-function: var(--ease-out-2), var(--ease-out-2);
-  animation-fill-mode: both, both;
+  transform: translateY(calc(var(--border-size-2) * -1));
 }
 
 .ds-stroke-picker__panel {

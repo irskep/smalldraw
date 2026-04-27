@@ -282,6 +282,16 @@ function createMobileFrame(status: HTMLOutputElement): HTMLElement {
   ) as HTMLDivElement;
 
   const top = el("div.ds-splat-context__mobile-top") as HTMLDivElement;
+  const selector = buildGridDemo({
+    items: MOBILE_TOOL_ITEMS,
+    mode: "mobile",
+  });
+  selector.setActive("brush");
+  selector.grid.el.classList.add(
+    "ds-splat-context__tool-selector",
+    "ds-splat-context__grid-panel",
+    "ds-splat-context__tool-selector--mobile",
+  );
   const topControls = el(
     "div.ds-splat-context__mobile-top-controls",
   ) as HTMLDivElement;
@@ -309,7 +319,7 @@ function createMobileFrame(status: HTMLOutputElement): HTMLElement {
     actionsMenu.setOpen(false);
   });
   topControls.append(colors, strokes, actionsMenu.el);
-  top.append(topControls);
+  top.append(topControls, selector.grid.el);
 
   const canvas = el(
     "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile",
@@ -319,23 +329,12 @@ function createMobileFrame(status: HTMLOutputElement): HTMLElement {
   );
 
   const bottom = el("div.ds-splat-context__mobile-bottom") as HTMLDivElement;
-  const selector = buildGridDemo({
-    items: MOBILE_TOOL_ITEMS,
-    mode: "mobile",
-  });
-  selector.setActive("brush");
-  selector.grid.el.classList.add(
-    "ds-splat-context__tool-selector",
-    "ds-splat-context__grid-panel",
-    "ds-splat-context__tool-selector--mobile",
-  );
   bottom.append(
     createVariantBar({
       items: BRUSH_VARIANT_ITEMS,
       activeItemId: "pen",
       className: "ds-splat-context__variant-bar--mobile",
     }),
-    selector.grid.el,
   );
 
   stage.append(top, canvas, bottom);
