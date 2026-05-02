@@ -233,7 +233,10 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     orientation: "vertical",
     className: "ds-splat-context__left-rail",
   });
-  leftRail.el.append(
+  const leftControls = el(
+    "div.ds-splat-context__left-controls",
+  ) as HTMLDivElement;
+  leftControls.append(
     createColorPickerControl({
       className: "ds-splat-context__left-picker",
       status,
@@ -243,6 +246,7 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
       status,
     }),
   );
+  leftRail.el.append(leftControls);
   const selector = buildGridDemo({
     items: DESKTOP_TOOL_ITEMS,
     mode: "large",

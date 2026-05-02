@@ -71,7 +71,7 @@
 .ds-dropdown-menu__divider {
   height: var(--border-size-1);
   margin: var(--size-px-1) 0;
-  background: color-mix(in oklch, var(--gray-6) 35%, white);
+  background: var(--gray-4);
 }
 
 .ds-dropdown-menu__item {
@@ -106,8 +106,7 @@
 }
 
 .ds-dropdown-menu__item:focus-visible {
-  outline: var(--border-size-2) solid
-    color-mix(in oklch, var(--blue-5) 60%, black);
+  outline: var(--border-size-2) solid var(--ds-focus-ring);
   outline-offset: calc(var(--border-size-1) * -1);
 }
 

@@ -209,6 +209,25 @@ test.describe("Grid: Vertical", () => {
     await expect(page.getByRole("button", { name: "Previous page" })).toBeDisabled();
   });
 
+  test("items remain contained within the grid root height", async ({ page }) => {
+    const overflows = await page.evaluate(() => {
+      const grid = document.querySelector(".button-grid");
+      const items = Array.from(document.querySelectorAll(".button-grid-item"));
+      if (!grid || items.length === 0) return true;
+      const gridRect = grid.getBoundingClientRect();
+      return items.some((item) => {
+        const rect = item.getBoundingClientRect();
+        return (
+          rect.left < gridRect.left - 2 ||
+          rect.right > gridRect.right + 2 ||
+          rect.top < gridRect.top - 2 ||
+          rect.bottom > gridRect.bottom + 2
+        );
+      });
+    });
+    expect(overflows).toBe(false);
+  });
+
   test("jump to last navigates to final page", async ({ page }) => {
     await page.getByRole("button", { name: "Jump to last" }).click();
     await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
@@ -294,6 +313,20 @@ test.describe("Grid: Two-Row XLarge", () => {
       return false;
     });
     expect(clipped).toBe(false);
+  });
+
+  test("items remain contained within the story frame width", async ({ page }) => {
+    const overflows = await page.evaluate(() => {
+      const frame = document.querySelector(".ds-story-frame");
+      const items = Array.from(document.querySelectorAll(".button-grid-item"));
+      if (!frame || items.length === 0) return true;
+      const frameRect = frame.getBoundingClientRect();
+      return items.some((item) => {
+        const rect = item.getBoundingClientRect();
+        return rect.left < frameRect.left - 2 || rect.right > frameRect.right + 2;
+      });
+    });
+    expect(overflows).toBe(false);
   });
 });
 

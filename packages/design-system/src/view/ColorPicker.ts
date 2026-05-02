@@ -1,7 +1,8 @@
 import "./ColorPicker.css";
 
 import { type IconNode, Palette } from "lucide";
-import { el, setChildren } from "redom";
+import { el } from "redom";
+import { ColorSwatchGrid } from "./ColorSwatchGrid";
 import type { ReDomLike } from "./ReDomLike";
 import { createIconButton, type IconButton } from "./SquareIconButton";
 
@@ -20,12 +21,32 @@ export interface ColorPickerOptions {
   panelLabel?: string;
 }
 
+function createColorTriggerIcon(color: string): IconNode {
+  return [
+    [
+      "rect",
+      {
+        x: "4",
+        y: "4",
+        width: "16",
+        height: "16",
+        rx: "2",
+        ry: "2",
+        fill: color || "#000000",
+        stroke: "currentColor",
+        "stroke-width": "1.25",
+      },
+    ],
+  ];
+}
+
 export class ColorPicker implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
   readonly triggerButton: IconButton;
 
   private readonly popover: HTMLDivElement;
   private readonly panel: HTMLDivElement;
+  private readonly swatchGrid: ColorSwatchGrid;
   private selectedColor = "";
   private selectHandler: ((color: string) => void) | null = null;
   private isOpen = false;
@@ -55,6 +76,9 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
       role: "dialog",
       "aria-label": options.panelLabel ?? "Color picker",
     }) as HTMLDivElement;
+    this.swatchGrid = new ColorSwatchGrid({
+      selectedColor: options.selectedColor ?? options.colors?.[0]?.color ?? "",
+    });
     this.popover = el(
       "div.ds-color-picker__popover",
       { "aria-hidden": "true" },
@@ -85,41 +109,28 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
     this.triggerButton.setOnPress(() => {
       this.setOpen(!this.isOpen);
     });
+    this.swatchGrid.setOnSelect((color) => {
+      this.setSelectedColor(color);
+      this.selectHandler?.(color);
+      this.setOpen(false);
+    });
 
+    this.panel.append(this.swatchGrid.el);
     this.el.append(this.triggerButton.el, this.popover);
     this.setSelectedColor(options.selectedColor ?? options.colors?.[0]?.color ?? "");
     this.setColors(options.colors ?? []);
   }
 
   setColors(colors: readonly ColorPickerSwatch[]): void {
-    const buttons = colors.map((swatch) => {
-      const color = swatch.color;
-      return el("button.ds-color-picker__swatch", {
-        type: "button",
-        title: swatch.label ?? color,
-        "aria-label": swatch.label ?? color,
-        "data-selected": color === this.selectedColor ? "true" : "false",
-        style: `--ds-color-picker-swatch-color:${color};`,
-        onclick: () => {
-          this.setSelectedColor(color);
-          this.selectHandler?.(color);
-          this.setOpen(false);
-        },
-      }) as HTMLButtonElement;
-    });
-
-    setChildren(this.panel, [el("div.ds-color-picker__grid", buttons)]);
+    this.swatchGrid.setColors(colors);
   }
 
   setSelectedColor(color: string): void {
     this.selectedColor = color;
-    for (const swatch of Array.from(this.panel.querySelectorAll(".ds-color-picker__swatch"))) {
-      const selected = swatch instanceof HTMLElement &&
-        swatch.style.getPropertyValue("--ds-color-picker-swatch-color") === color;
-      if (swatch instanceof HTMLElement) {
-        swatch.dataset.selected = selected ? "true" : "false";
-      }
-    }
+    this.triggerButton.setIcon(
+      color ? createColorTriggerIcon(color) : Palette,
+    );
+    this.swatchGrid.setSelectedColor(color);
   }
 
   setOpen(open: boolean): void {

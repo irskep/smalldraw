@@ -1,9 +1,10 @@
 import "./StrokePicker.css";
 
 import { type IconNode, SlidersHorizontal } from "lucide";
-import { el, setChildren } from "redom";
+import { el } from "redom";
 import type { ReDomLike } from "./ReDomLike";
 import { createIconButton, type IconButton } from "./SquareIconButton";
+import { StrokeWidthGrid } from "./StrokeWidthGrid";
 
 export interface StrokePickerOptions {
   className?: string;
@@ -15,12 +16,31 @@ export interface StrokePickerOptions {
   panelLabel?: string;
 }
 
+function createStrokeTriggerIcon(strokeWidth: number): IconNode {
+  const previewWidth = Math.max(1.5, Math.min(6.5, Math.sqrt(strokeWidth)));
+  return [
+    [
+      "line",
+      {
+        x1: "5",
+        y1: "12",
+        x2: "19",
+        y2: "12",
+        stroke: "currentColor",
+        "stroke-width": `${previewWidth}`,
+        "stroke-linecap": "round",
+      },
+    ],
+  ];
+}
+
 export class StrokePicker implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
   readonly triggerButton: IconButton;
 
   private readonly popover: HTMLDivElement;
   private readonly panel: HTMLDivElement;
+  private readonly strokeWidthGrid: StrokeWidthGrid;
   private selectedStrokeWidth = 0;
   private selectHandler: ((strokeWidth: number) => void) | null = null;
   private isOpen = false;
@@ -50,6 +70,10 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
       role: "dialog",
       "aria-label": options.panelLabel ?? "Stroke picker",
     }) as HTMLDivElement;
+    this.strokeWidthGrid = new StrokeWidthGrid({
+      selectedStrokeWidth:
+        options.selectedStrokeWidth ?? options.strokeWidths?.[0] ?? 0,
+    });
     this.popover = el(
       "div.ds-stroke-picker__popover",
       { "aria-hidden": "true" },
@@ -80,7 +104,13 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
     this.triggerButton.setOnPress(() => {
       this.setOpen(!this.isOpen);
     });
+    this.strokeWidthGrid.setOnSelect((strokeWidth) => {
+      this.setSelectedStrokeWidth(strokeWidth);
+      this.selectHandler?.(strokeWidth);
+      this.setOpen(false);
+    });
 
+    this.panel.append(this.strokeWidthGrid.el);
     this.el.append(this.triggerButton.el, this.popover);
     this.setSelectedStrokeWidth(
       options.selectedStrokeWidth ?? options.strokeWidths?.[0] ?? 0,
@@ -89,44 +119,15 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
   }
 
   setStrokeWidths(strokeWidths: readonly number[]): void {
-    const buttons = strokeWidths.map((strokeWidth) => {
-      const previewSize = Math.max(2, Math.min(18, Math.sqrt(strokeWidth) * 1.5));
-      return el(
-        "button.ds-stroke-picker__button",
-        {
-          type: "button",
-          title: `${strokeWidth}px brush`,
-          "aria-label": `${strokeWidth}px brush`,
-          "data-selected":
-            strokeWidth === this.selectedStrokeWidth ? "true" : "false",
-          onclick: () => {
-            this.setSelectedStrokeWidth(strokeWidth);
-            this.selectHandler?.(strokeWidth);
-            this.setOpen(false);
-          },
-        },
-        el("span.ds-stroke-picker__line", {
-          style: `--ds-stroke-picker-preview-size:${previewSize}px;`,
-        }),
-      ) as HTMLButtonElement;
-    });
-
-    setChildren(this.panel, [el("div.ds-stroke-picker__grid", buttons)]);
+    this.strokeWidthGrid.setStrokeWidths(strokeWidths);
   }
 
   setSelectedStrokeWidth(strokeWidth: number): void {
     this.selectedStrokeWidth = strokeWidth;
-    for (const button of Array.from(
-      this.panel.querySelectorAll(".ds-stroke-picker__button"),
-    )) {
-      if (!(button instanceof HTMLButtonElement)) {
-        continue;
-      }
-      button.dataset.selected =
-        button.getAttribute("aria-label") === `${strokeWidth}px brush`
-          ? "true"
-          : "false";
-    }
+    this.triggerButton.setIcon(
+      strokeWidth > 0 ? createStrokeTriggerIcon(strokeWidth) : SlidersHorizontal,
+    );
+    this.strokeWidthGrid.setSelectedStrokeWidth(strokeWidth);
   }
 
   setOpen(open: boolean): void {

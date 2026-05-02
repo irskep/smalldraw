@@ -43,6 +43,7 @@
   display: flex;
   justify-content: flex-start;
   height: 100%;
+  min-height: 0;
 }
 
 .button-grid[data-large-layout="two-row-xlarge"] {
@@ -65,15 +66,16 @@
 
 .button-grid[data-resolved-orientation="vertical"] .button-grid-shell {
   flex-direction: column;
-  width: auto;
+  align-self: flex-start;
+  width: max-content;
   max-width: none;
-  max-height: min(100%, calc(100vh - var(--size-px-24x)));
+  height: 100%;
+  max-height: 100%;
 }
 
 .button-grid-viewport {
   --button-grid-viewport-bleed: var(--border-size-2);
-  overflow-x: clip;
-  overflow-y: visible;
+  overflow: clip;
   min-width: 0;
   flex: 0 1 auto;
   padding: var(--button-grid-viewport-bleed);
@@ -87,7 +89,7 @@
 
 .button-grid[data-resolved-orientation="vertical"] .button-grid-viewport {
   flex: 1 1 auto;
-  min-height: var(--button-grid-cell-size);
+  min-height: 0;
 }
 
 .button-grid[data-mode="large"]:not([data-paginate-large="true"])
@@ -100,6 +102,25 @@
   )[data-resolved-orientation="horizontal"]
   .button-grid-shell {
   max-width: none;
+}
+
+.button-grid[data-paginate-large="true"][data-resolved-orientation="horizontal"]
+  .button-grid-inline-host {
+  width: 100%;
+  max-width: 100%;
+}
+
+.button-grid[data-paginate-large="true"][data-resolved-orientation="horizontal"]
+  .button-grid-shell {
+  width: 100%;
+  max-width: 100%;
+  justify-content: space-between;
+}
+
+.button-grid[data-paginate-large="true"][data-resolved-orientation="horizontal"]
+  .button-grid-viewport {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .button-grid-track {

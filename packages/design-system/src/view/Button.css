@@ -50,8 +50,7 @@
 }
 
 .ds-button:focus-visible {
-  outline: var(--border-size-3) solid
-    color-mix(in oklch, var(--blue-5) 60%, black);
+  outline: var(--border-size-3) solid var(--ds-focus-ring);
   outline-offset: calc(var(--border-size-2) * -1);
 }
 

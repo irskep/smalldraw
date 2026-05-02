@@ -20,6 +20,11 @@ export {
   type ColorPickerSwatch,
 } from "./view/ColorPicker";
 export {
+  createColorSwatchGrid,
+  ColorSwatchGrid,
+  type ColorSwatchGridOptions,
+} from "./view/ColorSwatchGrid";
+export {
   createModalDialogView,
   type ModalDialogOptions,
   ModalDialogView,
@@ -43,6 +48,11 @@ export {
   StrokePicker,
   type StrokePickerOptions,
 } from "./view/StrokePicker";
+export {
+  createStrokeWidthGrid,
+  StrokeWidthGrid,
+  type StrokeWidthGridOptions,
+} from "./view/StrokeWidthGrid";
 export {
   createToolbar,
   Toolbar,
