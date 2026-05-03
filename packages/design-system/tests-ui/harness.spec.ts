@@ -35,6 +35,35 @@ test("renders the splat context story", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Actions" }).first()).toBeVisible();
 });
 
+test.describe("Splat Context pickers", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(testStoryUrl("splat-context"));
+    await expect(page.getByRole("heading", { name: "Splat Context" })).toBeVisible();
+  });
+
+  test("color picker closes when the mouse leaves the trigger and panel union", async ({
+    page,
+  }) => {
+    const trigger = page.getByRole("button", { name: "Colors" }).first();
+    const panel = page.getByRole("dialog", { name: "Color picker" }).first();
+    await trigger.click();
+    await expect(panel).toBeVisible();
+    await page.mouse.move(4, 4);
+    await expect(panel).toBeHidden();
+  });
+
+  test("stroke picker closes when the mouse leaves the trigger and panel union", async ({
+    page,
+  }) => {
+    const trigger = page.getByRole("button", { name: "Strokes" }).first();
+    const panel = page.getByRole("dialog", { name: "Stroke picker" }).first();
+    await trigger.click();
+    await expect(panel).toBeVisible();
+    await page.mouse.move(4, 4);
+    await expect(panel).toBeHidden();
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Grid: Pagination
 // ---------------------------------------------------------------------------

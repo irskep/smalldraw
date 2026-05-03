@@ -320,22 +320,18 @@ function createMobileFrame(status: HTMLOutputElement): HTMLElement {
     "div.ds-splat-context__mobile-top-controls",
   ) as HTMLDivElement;
   const colors = createColorPickerControl({
-    className: "ds-splat-context__mobile-picker",
-    triggerLabel: "Color",
-    rowLayout: true,
+    className: "ds-splat-context__top-picker",
     status,
   });
   const strokes = createStrokePickerControl({
-    className: "ds-splat-context__mobile-picker",
-    triggerLabel: "Size",
-    rowLayout: true,
+    className: "ds-splat-context__top-picker",
     status,
   });
   const actionsMenu = createDropdownMenu({
-    triggerKind: "icon-button",
-    triggerLabel: "Actions",
-    triggerIcon: MoreHorizontal,
-    menuLabel: "Actions",
+    triggerKind: "button",
+    triggerLabel: "Menu",
+    triggerIcon: null,
+    menuLabel: "More actions",
     entries: MOBILE_ACTIONS_MENU_ENTRIES,
   });
   actionsMenu.setOnSelect((itemId) => {

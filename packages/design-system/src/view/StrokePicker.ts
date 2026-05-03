@@ -2,6 +2,7 @@ import "./StrokePicker.css";
 
 import { type IconNode, SlidersHorizontal } from "lucide";
 import { el } from "redom";
+import { AnchoredPopoverController } from "./AnchoredPopoverController";
 import type { ReDomLike } from "./ReDomLike";
 import { createIconButton, type IconButton } from "./SquareIconButton";
 import { StrokeWidthGrid } from "./StrokeWidthGrid";
@@ -41,11 +42,10 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
   private readonly popover: HTMLDivElement;
   private readonly panel: HTMLDivElement;
   private readonly strokeWidthGrid: StrokeWidthGrid;
+  private readonly popoverController: AnchoredPopoverController;
   private selectedStrokeWidth = 0;
   private selectHandler: ((strokeWidth: number) => void) | null = null;
   private isOpen = false;
-  private readonly documentPointerDownHandler: (event: PointerEvent) => void;
-  private readonly documentKeyDownHandler: (event: KeyboardEvent) => void;
 
   constructor(options: StrokePickerOptions = {}) {
     this.el = el("div.ds-stroke-picker") as HTMLDivElement;
@@ -82,25 +82,16 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
     ) as HTMLDivElement;
     this.popover.dataset.open = "false";
     this.popover.hidden = true;
-
-    this.documentPointerDownHandler = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node) || !this.isOpen) {
-        return;
-      }
-      if (this.el.contains(target)) {
-        return;
-      }
-      this.setOpen(false);
-    };
-    this.documentKeyDownHandler = (event: KeyboardEvent) => {
-      if (!this.isOpen || event.key !== "Escape") {
-        return;
-      }
-      event.preventDefault();
-      this.setOpen(false);
-      this.triggerButton.el.focus();
-    };
+    this.popoverController = new AnchoredPopoverController({
+      trigger: this.triggerButton,
+      root: this.el,
+      popover: this.popover,
+      panel: this.panel,
+      closeOnPointerLeave: true,
+      onOpenChange: (open) => {
+        this.isOpen = open;
+      },
+    });
 
     this.triggerButton.setOnPress(() => {
       this.setOpen(!this.isOpen);
@@ -132,30 +123,7 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
   }
 
   setOpen(open: boolean): void {
-    if (this.isOpen === open) {
-      return;
-    }
-    this.isOpen = open;
-    this.popover.hidden = false;
-    this.popover.dataset.open = open ? "true" : "false";
-    this.popover.setAttribute("aria-hidden", open ? "false" : "true");
-    this.triggerButton.setPressed(open);
-    this.triggerButton.setAriaExpanded(open);
-    if (open) {
-      document.addEventListener(
-        "pointerdown",
-        this.documentPointerDownHandler,
-        true,
-      );
-      document.addEventListener("keydown", this.documentKeyDownHandler, true);
-      return;
-    }
-    document.removeEventListener(
-      "pointerdown",
-      this.documentPointerDownHandler,
-      true,
-    );
-    document.removeEventListener("keydown", this.documentKeyDownHandler, true);
+    this.popoverController.setOpen(open);
   }
 
   setDisabled(disabled: boolean): void {

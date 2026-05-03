@@ -2,6 +2,10 @@ import "./DropdownMenu.css";
 
 import { type IconNode } from "lucide";
 import { el, setChildren } from "redom";
+import {
+  AnchoredPopoverController,
+  type AnchoredPopoverTrigger,
+} from "./AnchoredPopoverController";
 import { createButton, type Button } from "./Button";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
@@ -85,11 +89,9 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
   private readonly popover: HTMLDivElement;
   private readonly panel: HTMLDivElement;
   private readonly itemViewById = new Map<string, DropdownMenuItemView>();
+  private readonly popoverController: AnchoredPopoverController;
   private selectHandler: ((itemId: string) => void) | null = null;
   private isOpen = false;
-  private readonly documentPointerDownHandler: (event: PointerEvent) => void;
-  private readonly documentPointerMoveHandler: (event: PointerEvent) => void;
-  private readonly documentKeyDownHandler: (event: KeyboardEvent) => void;
 
   constructor(options: DropdownMenuOptions) {
     this.el = el("div.ds-dropdown-menu") as HTMLDivElement;
@@ -126,46 +128,16 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
     ) as HTMLDivElement;
     this.popover.dataset.open = "false";
     this.popover.hidden = true;
-    this.documentPointerDownHandler = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) {
-        return;
-      }
-      if (!this.isOpen) {
-        return;
-      }
-      if (this.el.contains(target)) {
-        return;
-      }
-      this.setOpen(false);
-    };
-    this.documentPointerMoveHandler = (event: PointerEvent) => {
-      if (!this.isOpen || event.pointerType !== "mouse") {
-        return;
-      }
-      const triggerRect = this.triggerButton.el.getBoundingClientRect();
-      const panelRect = this.panel.getBoundingClientRect();
-      const left = Math.min(triggerRect.left, panelRect.left);
-      const right = Math.max(triggerRect.right, panelRect.right);
-      const top = Math.min(triggerRect.top, panelRect.top);
-      const bottom = Math.max(triggerRect.bottom, panelRect.bottom);
-      const insideUnion =
-        event.clientX >= left &&
-        event.clientX <= right &&
-        event.clientY >= top &&
-        event.clientY <= bottom;
-      if (!insideUnion) {
-        this.setOpen(false);
-      }
-    };
-    this.documentKeyDownHandler = (event: KeyboardEvent) => {
-      if (!this.isOpen || event.key !== "Escape") {
-        return;
-      }
-      event.preventDefault();
-      this.setOpen(false);
-      this.triggerButton.el.focus();
-    };
+    this.popoverController = new AnchoredPopoverController({
+      trigger: this.triggerButton as AnchoredPopoverTrigger,
+      root: this.el,
+      popover: this.popover,
+      panel: this.panel,
+      closeOnPointerLeave: true,
+      onOpenChange: (open) => {
+        this.isOpen = open;
+      },
+    });
 
     this.triggerButton.setOnPress(() => {
       this.setOpen(!this.isOpen);
@@ -178,40 +150,7 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
   }
 
   setOpen(open: boolean): void {
-    if (this.isOpen === open) {
-      return;
-    }
-    this.isOpen = open;
-    this.popover.hidden = false;
-    this.popover.dataset.open = open ? "true" : "false";
-    this.popover.setAttribute("aria-hidden", open ? "false" : "true");
-    this.triggerButton.setPressed(open);
-    this.triggerButton.setAriaExpanded(open);
-    if (open) {
-      document.addEventListener(
-        "pointerdown",
-        this.documentPointerDownHandler,
-        true,
-      );
-      document.addEventListener(
-        "pointermove",
-        this.documentPointerMoveHandler,
-        true,
-      );
-      document.addEventListener("keydown", this.documentKeyDownHandler, true);
-      return;
-    }
-    document.removeEventListener(
-      "pointerdown",
-      this.documentPointerDownHandler,
-      true,
-    );
-    document.removeEventListener(
-      "pointermove",
-      this.documentPointerMoveHandler,
-      true,
-    );
-    document.removeEventListener("keydown", this.documentKeyDownHandler, true);
+    this.popoverController.setOpen(open);
   }
 
   setEntries(entries: DropdownMenuEntry[]): void {

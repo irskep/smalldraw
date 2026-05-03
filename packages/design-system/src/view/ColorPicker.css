@@ -81,6 +81,12 @@
   outline-offset: calc(var(--border-size-2) * -1);
 }
 
+.ds-color-picker__swatch:hover:active:not(:disabled) {
+  filter: brightness(0.82);
+  outline: var(--border-size-2) solid var(--gray-8);
+  outline-offset: calc(var(--border-size-2) * -1);
+}
+
 .ds-color-picker__swatch[data-selected="true"] {
   outline: var(--border-size-3) solid var(--ds-focus-ring);
   outline-offset: calc(var(--border-size-2) * -1);

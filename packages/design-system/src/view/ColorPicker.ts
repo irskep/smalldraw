@@ -2,6 +2,7 @@ import "./ColorPicker.css";
 
 import { type IconNode, Palette } from "lucide";
 import { el } from "redom";
+import { AnchoredPopoverController } from "./AnchoredPopoverController";
 import { ColorSwatchGrid } from "./ColorSwatchGrid";
 import type { ReDomLike } from "./ReDomLike";
 import { createIconButton, type IconButton } from "./SquareIconButton";
@@ -47,11 +48,10 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
   private readonly popover: HTMLDivElement;
   private readonly panel: HTMLDivElement;
   private readonly swatchGrid: ColorSwatchGrid;
+  private readonly popoverController: AnchoredPopoverController;
   private selectedColor = "";
   private selectHandler: ((color: string) => void) | null = null;
   private isOpen = false;
-  private readonly documentPointerDownHandler: (event: PointerEvent) => void;
-  private readonly documentKeyDownHandler: (event: KeyboardEvent) => void;
 
   constructor(options: ColorPickerOptions = {}) {
     this.el = el("div.ds-color-picker") as HTMLDivElement;
@@ -87,25 +87,16 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
     ) as HTMLDivElement;
     this.popover.dataset.open = "false";
     this.popover.hidden = true;
-
-    this.documentPointerDownHandler = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node) || !this.isOpen) {
-        return;
-      }
-      if (this.el.contains(target)) {
-        return;
-      }
-      this.setOpen(false);
-    };
-    this.documentKeyDownHandler = (event: KeyboardEvent) => {
-      if (!this.isOpen || event.key !== "Escape") {
-        return;
-      }
-      event.preventDefault();
-      this.setOpen(false);
-      this.triggerButton.el.focus();
-    };
+    this.popoverController = new AnchoredPopoverController({
+      trigger: this.triggerButton,
+      root: this.el,
+      popover: this.popover,
+      panel: this.panel,
+      closeOnPointerLeave: true,
+      onOpenChange: (open) => {
+        this.isOpen = open;
+      },
+    });
 
     this.triggerButton.setOnPress(() => {
       this.setOpen(!this.isOpen);
@@ -135,30 +126,7 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
   }
 
   setOpen(open: boolean): void {
-    if (this.isOpen === open) {
-      return;
-    }
-    this.isOpen = open;
-    this.popover.hidden = false;
-    this.popover.dataset.open = open ? "true" : "false";
-    this.popover.setAttribute("aria-hidden", open ? "false" : "true");
-    this.triggerButton.setPressed(open);
-    this.triggerButton.setAriaExpanded(open);
-    if (open) {
-      document.addEventListener(
-        "pointerdown",
-        this.documentPointerDownHandler,
-        true,
-      );
-      document.addEventListener("keydown", this.documentKeyDownHandler, true);
-      return;
-    }
-    document.removeEventListener(
-      "pointerdown",
-      this.documentPointerDownHandler,
-      true,
-    );
-    document.removeEventListener("keydown", this.documentKeyDownHandler, true);
+    this.popoverController.setOpen(open);
   }
 
   setDisabled(disabled: boolean): void {
