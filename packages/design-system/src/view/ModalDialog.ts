@@ -1,3 +1,4 @@
+import "./DialogChrome.css";
 import "./ModalDialog.css";
 
 import type { IconNode } from "lucide";
@@ -35,12 +36,16 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
     this.#title = el("h2.ds-modal-dialog__title") as HTMLHeadingElement;
     this.#message = el("p.ds-modal-dialog__message") as HTMLParagraphElement;
     this.#cancelButton = new Button({ label: "Cancel", tone: "neutral" });
-    this.#confirmButton = new Button({ label: "Confirm", tone: "primary" });
+    this.#confirmButton = new Button({
+      label: "Confirm",
+      tone: "primary",
+      autofocus: true,
+    });
 
     this.#dialog = el(
-      "dialog.ds-modal-dialog",
+      "dialog.ds-dialog ds-modal-dialog",
       el(
-        "div.ds-modal-dialog__shell",
+        "div.ds-dialog-surface ds-modal-dialog__shell",
         el("div.ds-modal-dialog__header", this.#icon, this.#title),
         this.#message,
         el(
@@ -51,7 +56,7 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
       ),
     ) as HTMLDialogElement;
 
-    this.el = el("div.ds-modal-dialog-host", this.#dialog) as HTMLDivElement;
+    this.el = el("div.ds-dialog-host ds-modal-dialog-host", this.#dialog) as HTMLDivElement;
 
     this.#cancelButton.setOnPress(() => {
       void this.#finish(false);
@@ -86,9 +91,11 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
     this.#confirmButton.setTone(tone === "danger" ? "danger" : "primary");
     this.#cancelButton.setLabel(cancelLabel);
     if (icon) {
+      this.#icon.hidden = false;
       setChildren(this.#icon, [this.#createIcon(icon)]);
     } else {
       setChildren(this.#icon, []);
+      this.#icon.hidden = true;
     }
 
     if (typeof this.#dialog.showModal !== "function") {

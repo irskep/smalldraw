@@ -19,7 +19,7 @@ export const dialogStories: HarnessStory[] = [
       const openDefault = el(
         "button",
         { type: "button" },
-        "Default confirm",
+        "No icon",
       ) as HTMLButtonElement;
       openDefault.addEventListener("click", async () => {
         const result = await dialog.showConfirm({
@@ -34,7 +34,7 @@ export const dialogStories: HarnessStory[] = [
       const openDanger = el(
         "button",
         { type: "button" },
-        "Danger confirm",
+        "Danger with icon",
       ) as HTMLButtonElement;
       openDanger.addEventListener("click", async () => {
         const result = await dialog.showConfirm({
@@ -52,7 +52,7 @@ export const dialogStories: HarnessStory[] = [
       const openIcon = el(
         "button",
         { type: "button" },
-        "With icon",
+        "Default with icon",
       ) as HTMLButtonElement;
       openIcon.addEventListener("click", async () => {
         const result = await dialog.showConfirm({

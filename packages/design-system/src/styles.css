@@ -19,7 +19,7 @@
   --ds-border: var(--gray-4);
   --ds-border-subtle: var(--gray-3);
   --ds-border-strong: var(--gray-5);
-  --ds-focus-ring: var(--blue-6);
+  --ds-focus-ring: var(--gray-12);
   --ds-cursor-interactive-hover: default; /* not pointer! */
 }
 

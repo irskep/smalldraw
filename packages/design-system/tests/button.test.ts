@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Pencil, Rows2 } from "lucide";
-import { createIconButton } from "../src";
+import { createButton, createIconButton } from "../src";
 
 describe("IconButton", () => {
   test("renders label, pressed state, and disabled state", () => {
@@ -36,5 +36,31 @@ describe("IconButton", () => {
     button.el.click();
 
     expect(presses).toBe(1);
+  });
+});
+
+describe("Button", () => {
+  test("applies additional classes without dropping base button styling", () => {
+    const button = createButton({
+      label: "Share",
+      className: "extra-button-class another-class",
+    });
+
+    expect(button.el.classList.contains("ds-button")).toBeTrue();
+    expect(button.el.classList.contains("extra-button-class")).toBeTrue();
+    expect(button.el.classList.contains("another-class")).toBeTrue();
+  });
+
+  test("can opt into autofocus semantics", () => {
+    const button = createButton({
+      label: "Primary action",
+      autofocus: true,
+    });
+
+    expect(button.el.hasAttribute("autofocus")).toBeTrue();
+
+    button.setAutofocus(false);
+
+    expect(button.el.hasAttribute("autofocus")).toBeFalse();
   });
 });

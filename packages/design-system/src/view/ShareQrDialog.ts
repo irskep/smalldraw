@@ -1,6 +1,8 @@
+import "./DialogChrome.css";
 import "./ShareQrDialog.css";
 
 import { el } from "redom";
+import { Button } from "./Button";
 import type { ReDomLike } from "./ReDomLike";
 
 export interface ShareQrDialog extends ReDomLike<HTMLDivElement> {
@@ -13,38 +15,56 @@ export function createShareQrDialog(): ShareQrDialog {
   const image = el("img.ds-share-dialog__qr", {
     alt: "QR code for joining this drawing",
   }) as HTMLImageElement;
+  const imageSlot = el("div.ds-share-dialog__media", image);
   const urlInput = el("input.ds-share-dialog__url-input", {
     type: "text",
     readOnly: true,
     "aria-label": "Share URL",
   }) as HTMLInputElement;
-  const copyButton = el(
-    "button.ds-share-dialog__button ds-share-dialog__button--secondary",
-    { type: "button" },
-    "Copy",
-  ) as HTMLButtonElement;
+  const copyButton = new Button({
+    label: "Copy",
+    tone: "neutral",
+    autofocus: true,
+    className: "ds-share-dialog__copy-button",
+  });
   const urlRow = el("div.ds-share-dialog__url-row", urlInput, copyButton);
-  const doneButton = el(
-    "button.ds-share-dialog__button ds-share-dialog__button--primary ds-share-dialog__button--done",
-    { type: "button" },
-    "Done",
-  ) as HTMLButtonElement;
+  const doneButton = new Button({
+    label: "Done",
+    tone: "primary",
+    className: "ds-share-dialog__done-button",
+  });
+  const actions = el("div.ds-share-dialog__actions", doneButton);
+  const body = el(
+    "div.ds-share-dialog__body",
+    title,
+    urlRow,
+    actions,
+  );
   const dialog = el(
-    "dialog.ds-share-dialog",
-    el("div.ds-share-dialog__card", title, image, urlRow, doneButton),
+    "dialog.ds-dialog ds-share-dialog",
+    el(
+      "div.ds-dialog-surface ds-share-dialog__card",
+      imageSlot,
+      body,
+    ),
   ) as HTMLDialogElement;
-  const elRoot = el("div.ds-share-dialog-host", dialog) as HTMLDivElement;
+  const elRoot = el(
+    "div.ds-dialog-host ds-share-dialog-host",
+    dialog,
+  ) as HTMLDivElement;
   let resolve: (() => void) | null = null;
   let currentJoinUrl = "";
 
-  const selectUrl = (): void => {
-    urlInput.focus();
+  const selectUrl = (focus = true): void => {
+    if (focus) {
+      urlInput.focus();
+    }
     urlInput.select();
     urlInput.setSelectionRange(0, urlInput.value.length);
   };
 
   const setCopyLabel = (label: string): void => {
-    copyButton.textContent = label;
+    copyButton.setLabel(label);
   };
 
   const tryLegacyCopy = (): boolean => {
@@ -59,7 +79,6 @@ export function createShareQrDialog(): ShareQrDialog {
   };
 
   const copyUrl = async (): Promise<void> => {
-    selectUrl();
     if (currentJoinUrl.length === 0) {
       return;
     }
@@ -68,6 +87,7 @@ export function createShareQrDialog(): ShareQrDialog {
       setCopyLabel("Copied");
       return;
     }
+    selectUrl();
     setCopyLabel(tryLegacyCopy() ? "Copied" : "Copy manually");
   };
 
@@ -80,12 +100,16 @@ export function createShareQrDialog(): ShareQrDialog {
     nextResolve?.();
   };
 
-  copyButton.addEventListener("click", () => {
+  copyButton.setOnPress(() => {
     void copyUrl();
   });
-  doneButton.addEventListener("click", close);
-  urlInput.addEventListener("focus", selectUrl);
-  urlInput.addEventListener("click", selectUrl);
+  doneButton.setOnPress(close);
+  urlInput.addEventListener("focus", () => {
+    selectUrl(false);
+  });
+  urlInput.addEventListener("click", () => {
+    selectUrl(false);
+  });
   dialog.addEventListener("cancel", (event) => {
     event.preventDefault();
     close();
@@ -112,7 +136,6 @@ export function createShareQrDialog(): ShareQrDialog {
       if (!dialog.open) {
         dialog.showModal();
       }
-      selectUrl();
       await new Promise<void>((nextResolve) => {
         resolve = nextResolve;
       });

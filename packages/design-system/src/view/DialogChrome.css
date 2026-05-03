@@ -1,0 +1,85 @@
+.ds-dialog-host {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.ds-dialog {
+  border: none;
+  padding: 0;
+  margin: auto;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  overflow: visible;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(var(--size-px-3)) scale(0.98);
+}
+
+.ds-dialog[open] {
+  animation: ds-dialog-in 180ms var(--ease-out-3) forwards;
+}
+
+.ds-dialog.is-closing {
+  animation: ds-dialog-out 140ms var(--ease-in-3) forwards;
+}
+
+.ds-dialog::backdrop {
+  background: rgb(15 23 42 / 45%);
+  animation: ds-dialog-backdrop-in 180ms var(--ease-out-2) forwards;
+}
+
+.ds-dialog.is-closing::backdrop {
+  animation: ds-dialog-backdrop-out 140ms var(--ease-in-2) forwards;
+}
+
+.ds-dialog-surface {
+  border-radius: var(--radius-3);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
+  box-shadow:
+    0 18px 36px rgb(15 23 42 / 0.16),
+    0 4px 12px rgb(15 23 42 / 0.08);
+}
+
+@keyframes ds-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--size-px-3)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ds-dialog-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(var(--size-px-8)) scale(0.985);
+  }
+}
+
+@keyframes ds-dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ds-dialog-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

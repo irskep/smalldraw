@@ -1,38 +1,5 @@
-.ds-modal-dialog-host {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1000;
-}
-
 .ds-modal-dialog {
-  border: none;
-  border-radius: var(--radius-3);
-  padding: 0;
   width: min(var(--width-modal-md), calc(100vw - var(--size-px-7)));
-  background: var(--ds-surface);
-  color: var(--ds-ink);
-  box-shadow: var(--shadow-6);
-  pointer-events: auto;
-  opacity: 0;
-  transform: translateY(var(--size-px-3)) scale(0.98);
-}
-
-.ds-modal-dialog[open] {
-  animation: ds-dialog-in 180ms var(--ease-out-3) forwards;
-}
-
-.ds-modal-dialog.is-closing {
-  animation: ds-dialog-out 140ms var(--ease-in-3) forwards;
-}
-
-.ds-modal-dialog::backdrop {
-  background: rgb(15 23 42 / 45%);
-  animation: ds-dialog-backdrop-in 180ms var(--ease-out-2) forwards;
-}
-
-.ds-modal-dialog.is-closing::backdrop {
-  animation: ds-dialog-backdrop-out 140ms var(--ease-in-2) forwards;
 }
 
 .ds-modal-dialog__shell {
@@ -52,6 +19,10 @@
   height: var(--size-px-5);
   min-width: var(--size-px-5);
   min-height: var(--size-px-5);
+}
+
+.ds-modal-dialog__icon[hidden] {
+  display: none;
 }
 
 .ds-modal-dialog__icon > svg {
@@ -76,44 +47,4 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--size-px-2);
-}
-
-@keyframes ds-dialog-in {
-  from {
-    opacity: 0;
-    transform: translateY(var(--size-px-3)) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes ds-dialog-out {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(var(--size-px-8)) scale(0.985);
-  }
-}
-
-@keyframes ds-dialog-backdrop-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes ds-dialog-backdrop-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
 }

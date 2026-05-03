@@ -1,64 +1,51 @@
-.ds-share-dialog-host {
-  pointer-events: none;
-}
-
-.ds-share-dialog {
-  border: none;
-  padding: 0;
-  background: transparent;
-  pointer-events: auto;
-}
-
-.ds-share-dialog::backdrop {
-  background: color-mix(in oklch, black 44%, transparent);
-}
-
 .ds-share-dialog__card {
-  min-width: min(90vw, var(--width-dialog-md));
+  width: min(92vw, 42rem);
   display: grid;
-  gap: var(--size-3);
-  justify-items: center;
+  grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
+  gap: var(--size-5);
   padding: var(--size-5);
-  border-radius: var(--radius-3);
-  background: var(--ds-surface);
-  box-shadow: var(--shadow-4);
+  align-items: start;
+}
+
+.ds-share-dialog__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ds-share-dialog__title {
   margin: 0;
-  font-size: var(--font-size-4);
-  color: var(--ds-ink);
+  font-size: var(--font-size-dialog-title);
+  line-height: 1.2;
 }
 
 .ds-share-dialog__qr {
-  width: min(68vw, var(--width-qr-md));
-  height: min(68vw, var(--width-qr-md));
+  width: 100%;
+  aspect-ratio: 1;
   border-radius: var(--radius-2);
   background: white;
   border: var(--border-size-1) solid var(--gray-5);
 }
 
+.ds-share-dialog__body {
+  min-width: 0;
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--size-3);
+  align-items: start;
+}
+
 .ds-share-dialog__url-row {
-  width: min(80vw, var(--width-dialog-sm));
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--size-2);
 }
 
-/* TODO: why is there a special button here? */
-.ds-share-dialog__button {
-  border: none;
-  border-radius: var(--radius-2);
-  padding: var(--size-2) var(--size-4);
-  font-size: var(--font-size-2);
-  font-weight: var(--font-weight-6);
-  background: var(--blue-6);
-  color: white;
-  cursor: pointer;
-}
-
-.ds-share-dialog__button--secondary {
-  background: var(--gray-7);
+.ds-share-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-self: end;
 }
 
 .ds-share-dialog__url-input {
@@ -70,4 +57,21 @@
   background: white;
   color: var(--ds-ink);
   font-size: var(--font-size-1);
+}
+
+@media (max-width: 720px) {
+  .ds-share-dialog__card {
+    width: min(92vw, 28rem);
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--size-4);
+  }
+
+  .ds-share-dialog__media {
+    justify-self: center;
+    width: min(100%, 14rem);
+  }
+
+  .ds-share-dialog__actions {
+    justify-content: stretch;
+  }
 }

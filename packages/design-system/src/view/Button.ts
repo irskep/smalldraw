@@ -12,6 +12,8 @@ export interface ButtonOptions {
   tone?: ButtonTone;
   icon?: IconNode;
   dropdown?: boolean;
+  autofocus?: boolean;
+  className?: string;
   attributes?: Record<string, string>;
 }
 
@@ -49,6 +51,10 @@ export class Button implements ReDomLike<HTMLButtonElement> {
     }
 
     this.setDropdown(options.dropdown ?? false);
+    this.setAutofocus(options.autofocus ?? false);
+    if (options.className) {
+      this.el.classList.add(...options.className.split(/\s+/).filter(Boolean));
+    }
 
     for (const [name, value] of Object.entries(options.attributes ?? {})) {
       this.el.setAttribute(name, value);
@@ -77,6 +83,10 @@ export class Button implements ReDomLike<HTMLButtonElement> {
   setDropdown(dropdown: boolean): void {
     this.el.toggleAttribute("data-dropdown", dropdown);
     this.dropdownElement.hidden = !dropdown;
+  }
+
+  setAutofocus(autofocus: boolean): void {
+    this.el.toggleAttribute("autofocus", autofocus);
   }
 
   setPressed(pressed: boolean): void {
