@@ -63,4 +63,45 @@ describe("Button", () => {
 
     expect(button.el.hasAttribute("autofocus")).toBeFalse();
   });
+
+  test("can reserve width for a set of possible labels", () => {
+    const button = createButton({
+      label: "Copy",
+      possibleLabels: ["Copy", "Copied"],
+    });
+
+    const reservedLabels = button.el.querySelector(".ds-button__reserved-labels");
+    const reservedLabelNodes = button.el.querySelectorAll(
+      ".ds-button__reserved-label",
+    );
+
+    expect(reservedLabels).not.toBeNull();
+    expect(reservedLabels?.getAttribute("aria-hidden")).toBe("true");
+    expect(reservedLabels?.hasAttribute("hidden")).toBeFalse();
+    expect([...reservedLabelNodes].map((node) => node.textContent)).toEqual([
+      "Copy",
+      "Copied",
+    ]);
+  });
+
+  test("can update reserved labels without changing the visible label", () => {
+    const button = createButton({
+      label: "Copy",
+      possibleLabels: ["Copy", "Copied"],
+    });
+
+    button.setPossibleLabels(["Copy", "Copy manually"]);
+    button.setLabel("Copied");
+
+    const reservedLabelNodes = button.el.querySelectorAll(
+      ".ds-button__reserved-label",
+    );
+    const visibleLabel = button.el.querySelector(".ds-button__label");
+
+    expect([...reservedLabelNodes].map((node) => node.textContent)).toEqual([
+      "Copy",
+      "Copy manually",
+    ]);
+    expect(visibleLabel?.textContent).toBe("Copied");
+  });
 });

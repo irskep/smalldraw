@@ -24,6 +24,7 @@ export function createShareQrDialog(): ShareQrDialog {
   const copyButton = new Button({
     label: "Copy",
     tone: "neutral",
+    possibleLabels: ["Copy", "Copied"],
     autofocus: true,
     className: "ds-share-dialog__copy-button",
   });

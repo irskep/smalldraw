@@ -102,7 +102,30 @@
   display: block;
 }
 
+.ds-button__label-container {
+  display: grid;
+}
+
+.ds-button__label-container > * {
+  grid-area: 1 / 1;
+}
+
 .ds-button__label {
+  white-space: nowrap;
+}
+
+.ds-button__reserved-labels[hidden] {
+  display: none;
+}
+
+.ds-button__reserved-labels {
+  display: grid;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ds-button__reserved-label {
+  grid-area: 1 / 1;
   white-space: nowrap;
 }
 

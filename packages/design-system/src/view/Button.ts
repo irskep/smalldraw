@@ -12,6 +12,7 @@ export interface ButtonOptions {
   tone?: ButtonTone;
   icon?: IconNode;
   dropdown?: boolean;
+  possibleLabels?: string[];
   autofocus?: boolean;
   className?: string;
   attributes?: Record<string, string>;
@@ -21,13 +22,24 @@ export class Button implements ReDomLike<HTMLButtonElement> {
   readonly el: HTMLButtonElement;
 
   private readonly iconElement: HTMLSpanElement;
+  private readonly labelContainerElement: HTMLSpanElement;
   private readonly labelElement: HTMLSpanElement;
+  private readonly reservedLabelsElement: HTMLSpanElement;
   private readonly dropdownElement: HTMLSpanElement;
   private clickHandler: ((event: MouseEvent) => void) | null = null;
 
   constructor(options: ButtonOptions) {
     this.iconElement = el("span.ds-button__icon") as HTMLSpanElement;
     this.labelElement = el("span.ds-button__label") as HTMLSpanElement;
+    this.reservedLabelsElement = el(
+      "span.ds-button__reserved-labels",
+      { "aria-hidden": "true" },
+    ) as HTMLSpanElement;
+    this.labelContainerElement = el(
+      "span.ds-button__label-container",
+      this.labelElement,
+      this.reservedLabelsElement,
+    ) as HTMLSpanElement;
     this.dropdownElement = el(
       "span.ds-button__dropdown",
       renderIcon(ChevronDown),
@@ -37,12 +49,13 @@ export class Button implements ReDomLike<HTMLButtonElement> {
       "button.ds-button",
       { type: "button" },
       this.iconElement,
-      this.labelElement,
+      this.labelContainerElement,
       this.dropdownElement,
     ) as HTMLButtonElement;
 
     this.setLabel(options.label);
     this.setTone(options.tone ?? "neutral");
+    this.setPossibleLabels(options.possibleLabels ?? []);
 
     if (options.icon) {
       this.setIcon(options.icon);
@@ -83,6 +96,20 @@ export class Button implements ReDomLike<HTMLButtonElement> {
   setDropdown(dropdown: boolean): void {
     this.el.toggleAttribute("data-dropdown", dropdown);
     this.dropdownElement.hidden = !dropdown;
+  }
+
+  setPossibleLabels(labels: string[]): void {
+    if (labels.length === 0) {
+      setChildren(this.reservedLabelsElement, []);
+      this.reservedLabelsElement.hidden = true;
+      return;
+    }
+
+    const reservedLabels = labels.map((label) =>
+      el("span.ds-button__reserved-label", label),
+    );
+    setChildren(this.reservedLabelsElement, reservedLabels);
+    this.reservedLabelsElement.hidden = false;
   }
 
   setAutofocus(autofocus: boolean): void {
