@@ -32,7 +32,112 @@ test("renders the splat context story", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Splat Context" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Desktop" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Mobile Portrait" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Actions" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Menu" }).first()).toBeVisible();
+});
+
+test.describe("Mobile Landscape story", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(testStoryUrl("mobile-landscape"));
+    await expect(
+      page.getByRole("heading", { name: "Mobile Landscape", level: 1 }),
+    ).toBeVisible();
+  });
+
+  test("starts in short landscape with dropdown tool picker visible", async ({
+    page,
+  }) => {
+    const scene = page.locator(".ds-splat-context__scene--mobile-responsive");
+    await expect(scene).toHaveAttribute(
+      "data-mobile-layout",
+      "mobile-landscape-short",
+    );
+    await expect(
+      page.locator(".ds-splat-context__mobile-tool-inline-host"),
+    ).toBeHidden();
+    await expect(page.getByRole("button", { name: "Tools" })).toBeVisible();
+  });
+
+  test("taller landscape restores inline tool picker", async ({ page }) => {
+    const scene = page.locator(".ds-splat-context__scene--mobile-responsive");
+    await scene.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "640px";
+      target.style.height = "420px";
+    });
+
+    await expect(scene).toHaveAttribute("data-mobile-layout", "mobile-standard");
+    await expect(
+      page.locator(".ds-splat-context__mobile-tool-inline-host"),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Tools" })).toBeHidden();
+  });
+
+  test("short landscape hides inline picker and shows dropdown picker", async ({
+    page,
+  }) => {
+    const scene = page.locator(".ds-splat-context__scene--mobile-responsive");
+    await scene.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "640px";
+      target.style.height = "320px";
+    });
+
+    await expect(scene).toHaveAttribute(
+      "data-mobile-layout",
+      "mobile-landscape-short",
+    );
+    await expect(
+      page.locator(".ds-splat-context__mobile-tool-inline-host"),
+    ).toBeHidden();
+
+    const toolsTrigger = page.getByRole("button", { name: "Tools" });
+    await expect(toolsTrigger).toBeVisible();
+    await toolsTrigger.click();
+    await expect(
+      page.locator(".ds-splat-context__tool-dropdown-panel"),
+    ).toBeVisible();
+
+    await page
+      .locator(".ds-splat-context__tool-dropdown-panel")
+      .getByRole("button", { name: "Fill", exact: true })
+      .click();
+    await expect(page.getByText("Tool: fill")).toBeVisible();
+
+    await scene.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.height = "420px";
+    });
+    await expect(scene).toHaveAttribute("data-mobile-layout", "mobile-standard");
+    await expect(
+      page.locator(".ds-splat-context__mobile-tool-inline-host"),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Fill" }).first(),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("short landscape actions menu stays within the viewport", async ({
+    page,
+  }) => {
+    const menuTrigger = page.getByRole("button", { name: "Menu" }).first();
+    await menuTrigger.click();
+
+    const panel = page.locator(".ds-dropdown-menu__panel").first();
+    await expect(panel).toBeVisible();
+
+    const metrics = await panel.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        bottom: rect.bottom,
+        viewportHeight: window.innerHeight,
+        scrollHeight: (element as HTMLElement).scrollHeight,
+        clientHeight: (element as HTMLElement).clientHeight,
+      };
+    });
+
+    expect(metrics.bottom).toBeLessThanOrEqual(metrics.viewportHeight);
+    expect(metrics.scrollHeight).toBeGreaterThanOrEqual(metrics.clientHeight);
+  });
 });
 
 test.describe("Splat Context pickers", () => {

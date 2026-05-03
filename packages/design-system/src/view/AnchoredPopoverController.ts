@@ -14,6 +14,7 @@ export interface AnchoredPopoverControllerOptions {
 }
 
 export class AnchoredPopoverController {
+  private static readonly VIEWPORT_PADDING_PX = 8;
   private readonly trigger: AnchoredPopoverTrigger;
   private readonly root: HTMLElement;
   private readonly popover: HTMLElement;
@@ -24,6 +25,9 @@ export class AnchoredPopoverController {
   private readonly documentPointerDownHandler: (event: PointerEvent) => void;
   private readonly documentPointerMoveHandler: (event: PointerEvent) => void;
   private readonly documentKeyDownHandler: (event: KeyboardEvent) => void;
+  private readonly windowResizeHandler: () => void;
+  private readonly windowScrollHandler: () => void;
+  private pendingAnimationFrame: number | null = null;
 
   constructor(options: AnchoredPopoverControllerOptions) {
     this.trigger = options.trigger;
@@ -78,6 +82,20 @@ export class AnchoredPopoverController {
       this.setOpen(false);
       this.trigger.el.focus();
     };
+
+    this.windowResizeHandler = () => {
+      if (!this.isOpen) {
+        return;
+      }
+      this.updatePanelViewportConstraints();
+    };
+
+    this.windowScrollHandler = () => {
+      if (!this.isOpen) {
+        return;
+      }
+      this.updatePanelViewportConstraints();
+    };
   }
 
   setOpen(open: boolean): void {
@@ -94,6 +112,11 @@ export class AnchoredPopoverController {
     this.onOpenChange?.(open);
 
     if (open) {
+      this.updatePanelViewportConstraints();
+      this.pendingAnimationFrame = requestAnimationFrame(() => {
+        this.pendingAnimationFrame = null;
+        this.updatePanelViewportConstraints();
+      });
       document.addEventListener(
         "pointerdown",
         this.documentPointerDownHandler,
@@ -105,9 +128,16 @@ export class AnchoredPopoverController {
         true,
       );
       document.addEventListener("keydown", this.documentKeyDownHandler, true);
+      window.addEventListener("resize", this.windowResizeHandler);
+      window.addEventListener("scroll", this.windowScrollHandler, true);
       return;
     }
 
+    if (this.pendingAnimationFrame !== null) {
+      cancelAnimationFrame(this.pendingAnimationFrame);
+      this.pendingAnimationFrame = null;
+    }
+    this.panel.style.removeProperty("max-height");
     document.removeEventListener(
       "pointerdown",
       this.documentPointerDownHandler,
@@ -119,5 +149,44 @@ export class AnchoredPopoverController {
       true,
     );
     document.removeEventListener("keydown", this.documentKeyDownHandler, true);
+    window.removeEventListener("resize", this.windowResizeHandler);
+    window.removeEventListener("scroll", this.windowScrollHandler, true);
+  }
+
+  private updatePanelViewportConstraints(): void {
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    let constraintBottom =
+      viewportHeight - AnchoredPopoverController.VIEWPORT_PADDING_PX;
+
+    for (
+      let current: HTMLElement | null = this.root.parentElement;
+      current;
+      current = current.parentElement
+    ) {
+      const styles = window.getComputedStyle(current);
+      const overflowY = styles.overflowY;
+      const overflow = styles.overflow;
+      const clipsVertically =
+        overflowY === "hidden" ||
+        overflowY === "auto" ||
+        overflowY === "scroll" ||
+        overflowY === "clip" ||
+        overflow === "hidden" ||
+        overflow === "auto" ||
+        overflow === "scroll" ||
+        overflow === "clip";
+      if (!clipsVertically) {
+        continue;
+      }
+      constraintBottom = Math.min(
+        constraintBottom,
+        current.getBoundingClientRect().bottom -
+          AnchoredPopoverController.VIEWPORT_PADDING_PX,
+      );
+    }
+
+    const triggerRect = this.trigger.el.getBoundingClientRect();
+    const availableBelow = constraintBottom - triggerRect.bottom;
+    this.panel.style.maxHeight = `${Math.max(0, Math.floor(availableBelow))}px`;
   }
 }
