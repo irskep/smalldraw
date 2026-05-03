@@ -265,9 +265,6 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
   const topBarHistory = el(
     "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--history",
   ) as HTMLDivElement;
-  const topBarShare = el(
-    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--share",
-  ) as HTMLDivElement;
   const topBarMenu = el(
     "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--menu",
   ) as HTMLDivElement;
@@ -310,9 +307,8 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     }),
   );
   topBarHistory.append(undoButton.el, redoButton.el);
-  topBarShare.append(shareButton.el, syncIndicator);
-  topBarMenu.append(moreMenu.el);
-  topBar.el.append(topBarStart, topBarHistory, topBarShare, topBarMenu);
+  topBarMenu.append(syncIndicator, shareButton.el, moreMenu.el);
+  topBar.el.append(topBarStart, topBarHistory, topBarMenu);
   top.append(topBar.el);
 
   const left = el(
@@ -363,7 +359,7 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
   bottom.append(variantBar.grid.el);
 
   stage.append(top, left, canvas, bottomLeft, bottom);
-  frame.append(el("h2.ds-story-heading", "Desktop"), stage);
+  frame.append(stage);
   return frame;
 }
 
@@ -439,10 +435,7 @@ function createMobilePortraitFrame(status: HTMLOutputElement): HTMLElement {
 
   stage.append(top, canvas, bottom);
   const resizer = createResizeHandle();
-  frame.append(
-    el("h2.ds-story-heading", "Mobile Portrait"),
-    resizer.wrap(stage),
-  );
+  frame.append(resizer.wrap(stage));
   return frame;
 }
 
@@ -593,29 +586,40 @@ function createResponsiveMobileLandscapeFrame(
   applyLayout();
 
   const resizer = createResizeHandle();
-  frame.append(
-    el("h2.ds-story-heading", "Mobile Landscape"),
-    resizer.wrap(stage),
-  );
+  frame.append(resizer.wrap(stage));
   return frame;
 }
 
 export const contextStories: HarnessStory[] = [
   {
-    id: "splat-context",
-    title: "Splat Context",
+    id: "desktop-context",
+    title: "Desktop",
     description:
-      "Composite reference scene that recreates the main splat UI shell in desktop and static mobile portrait layouts using the ported design-system pieces.",
+      "Reference desktop splat shell built from the ported design-system components.",
     mount: (container) => {
       const stack = el("div.ds-story-stack") as HTMLDivElement;
-      const gallery = el("div.ds-splat-context__gallery") as HTMLDivElement;
       const status = el(
         "output.ds-story-output",
-        "Use the scene controls to inspect the shell in context.",
+        "Use the scene controls to inspect the desktop shell in context.",
       ) as HTMLOutputElement;
 
-      gallery.append(createDesktopFrame(status), createMobilePortraitFrame(status));
-      stack.append(gallery, status);
+      stack.append(createDesktopFrame(status), status);
+      container.replaceChildren(stack);
+    },
+  },
+  {
+    id: "mobile-portrait",
+    title: "Mobile Portrait",
+    description:
+      "Reference mobile portrait splat shell built from the ported design-system components.",
+    mount: (container) => {
+      const stack = el("div.ds-story-stack") as HTMLDivElement;
+      const status = el(
+        "output.ds-story-output",
+        "Use the scene controls to inspect the mobile portrait shell in context.",
+      ) as HTMLOutputElement;
+
+      stack.append(createMobilePortraitFrame(status), status);
       container.replaceChildren(stack);
     },
   },

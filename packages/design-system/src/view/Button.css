@@ -32,6 +32,7 @@
   align-items: center;
   justify-content: start;
   column-gap: var(--size-1);
+  padding-inline-end: var(--size-2);
 }
 
 /* ---- tones ---- */
