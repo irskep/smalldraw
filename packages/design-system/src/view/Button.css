@@ -44,10 +44,10 @@
 }
 
 .ds-button[data-tone="primary"] {
-  --ds-control-bg-hover: var(--blue-5);
-  --ds-control-bg-active: var(--blue-3);
-  background: var(--blue-6);
-  border-color: var(--blue-5);
+  --ds-control-bg-hover: var(--ds-accent-fill-hover);
+  --ds-control-bg-active: var(--ds-accent-fill-pressed);
+  background: var(--ds-accent-fill);
+  border-color: var(--ds-accent-border);
   color: white;
 }
 
@@ -72,13 +72,13 @@
 }
 
 .ds-button.is-selected {
-  background: var(--blue-2);
+  background: var(--ds-accent-subtle-surface);
   color: var(--gray-10);
-  border-color: var(--blue-7);
+  border-color: var(--ds-accent-border);
 }
 
 .ds-button.is-selected:active {
-  background: var(--blue-3);
+  background: var(--ds-accent-fill-pressed);
 }
 
 /* ---- icon ---- */

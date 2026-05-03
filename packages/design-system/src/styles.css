@@ -13,8 +13,11 @@
   --ds-surface-muted: var(--gray-1);
   --ds-ink: var(--gray-9);
   --ds-text-muted: var(--gray-6);
-  --ds-accent: var(--blue-6);
-  --ds-accent-surface: var(--blue-1);
+  --ds-accent-fill: var(--blue-6);
+  --ds-accent-fill-hover: var(--blue-5);
+  --ds-accent-fill-pressed: var(--blue-3);
+  --ds-accent-border: var(--blue-7);
+  --ds-accent-subtle-surface: var(--blue-1);
   --ds-danger: var(--red-7);
   --ds-border: var(--gray-4);
   --ds-border-subtle: var(--gray-3);
@@ -166,8 +169,8 @@ body {
 }
 
 .ds-harness__group-link.is-active {
-  border-color: var(--ds-accent);
-  background: var(--ds-accent-surface);
+  border-color: var(--ds-accent-border);
+  background: var(--ds-accent-subtle-surface);
 }
 
 .ds-harness__stage {
@@ -330,7 +333,7 @@ body {
 
 .ds-reference__spacing-bar {
   height: var(--size-px-2);
-  background: var(--ds-accent);
+  background: var(--ds-accent-fill);
   border-radius: var(--radius-round);
 }
 
@@ -346,8 +349,8 @@ body {
   width: var(--size-3);
   height: var(--size-3);
   border-radius: var(--radius-1);
-  background: var(--blue-2);
-  border: 1px solid var(--blue-5);
+  background: var(--ds-accent-subtle-surface);
+  border: 1px solid var(--ds-accent-fill-hover);
   flex: 0 0 auto;
 }
 
@@ -386,7 +389,7 @@ body {
   width: 100%;
   height: var(--size-5);
   border-radius: var(--radius-round);
-  background: var(--blue-1);
+  background: var(--ds-accent-subtle-surface);
   overflow: hidden;
 }
 
@@ -397,7 +400,7 @@ body {
   width: var(--size-3);
   height: var(--size-3);
   border-radius: var(--radius-round);
-  background: var(--ds-accent);
+  background: var(--ds-accent-fill);
   transform: translateY(-50%);
   animation: ds-reference-motion-slide 1.6s infinite alternate;
   animation-timing-function: var(--ds-reference-easing, ease);
@@ -409,7 +412,7 @@ body {
   align-items: center;
   padding: var(--size-px-2) var(--size-3);
   border-radius: var(--radius-round);
-  background: var(--blue-1);
+  background: var(--ds-accent-subtle-surface);
   animation: var(--ds-reference-animation);
   animation-duration: 1.2s;
   animation-timing-function: var(--ease-out-3);

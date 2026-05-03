@@ -66,5 +66,5 @@
 .ds-resize-handle__wrapper.is-dragging .ds-resize-handle__right::after,
 .ds-resize-handle__wrapper.is-dragging .ds-resize-handle__bottom::after,
 .ds-resize-handle__wrapper.is-dragging .ds-resize-handle__corner::after {
-  background: var(--blue-6);
+  background: var(--ds-accent-fill);
 }

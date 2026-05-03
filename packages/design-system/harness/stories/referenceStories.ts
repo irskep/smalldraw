@@ -4,7 +4,8 @@ import type { HarnessStory } from "./types";
 interface TokenFamily {
   id: string;
   title: string;
-  prefixes: string[];
+  prefixes?: string[];
+  tokens?: string[];
   preview:
     | "color"
     | "spacing"
@@ -12,7 +13,8 @@ interface TokenFamily {
     | "radius"
     | "shadow"
     | "type"
-    | "motion";
+    | "motion"
+    | "none";
   previewColumns?: "narrow" | "wide";
 }
 
@@ -130,6 +132,10 @@ function collectTokens(prefixes: string[]): string[] {
   return Array.from(collected).sort(compareTokenNames);
 }
 
+function collectDefinedTokens(tokens: string[]): string[] {
+  return tokens.filter((token) => getTokenValue(token).length > 0);
+}
+
 function getTokenValue(token: string): string {
   return getComputedStyle(document.documentElement)
     .getPropertyValue(token)
@@ -149,6 +155,12 @@ function createPreview(
   preview: TokenFamily["preview"],
 ): HTMLElement {
   const value = getTokenValue(token);
+
+  if (preview === "none") {
+    return el("div.ds-reference__empty-preview", {
+      "aria-hidden": "true",
+    }) as HTMLDivElement;
+  }
 
   if (preview === "color") {
     return el("div.ds-reference__swatch", {
@@ -270,7 +282,87 @@ export const referenceStories: HarnessStory[] = [
       );
 
       for (const family of OPEN_PROPS_FAMILIES) {
-        const tokens = collectTokens(family.prefixes);
+        const tokens = family.tokens
+          ? collectDefinedTokens(family.tokens)
+          : collectTokens(family.prefixes ?? []);
+        if (tokens.length === 0) {
+          continue;
+        }
+
+        const sectionEl = el("section.ds-reference__section") as HTMLElement;
+        const rows = el("div.ds-reference__token-list") as HTMLDivElement;
+        for (const token of tokens) {
+          rows.append(
+            createTokenRow(token, family.preview, family.previewColumns),
+          );
+        }
+        sectionEl.append(
+          el("h2.ds-story-heading", family.title),
+          el("p.ds-reference__section-note", `${tokens.length} tokens`),
+          rows,
+        );
+        canvas.append(sectionEl);
+      }
+
+      container.replaceChildren(canvas);
+    },
+  },
+  {
+    id: "semantic-tokens",
+    title: "Semantic Tokens",
+    description:
+      "Reference for the design system's semantic `--ds-*` tokens defined at the root level.",
+    mount: (container) => {
+      const canvas = el("div.ds-story-stack") as HTMLDivElement;
+      canvas.append(
+        el(
+          "p",
+          "This page shows the semantic design-system tokens currently defined at `:root`, grouped by role rather than by raw Open Props scale.",
+        ),
+      );
+
+      const families: TokenFamily[] = [
+        {
+          id: "semantic-foundation",
+          title: "Foundation",
+          tokens: [
+            "--ds-surface",
+            "--ds-surface-muted",
+            "--ds-ink",
+            "--ds-text-muted",
+            "--ds-danger",
+            "--ds-border",
+            "--ds-border-subtle",
+            "--ds-border-strong",
+            "--ds-focus-ring",
+          ],
+          preview: "color",
+          previewColumns: "narrow",
+        },
+        {
+          id: "semantic-accent",
+          title: "Accent",
+          tokens: [
+            "--ds-accent-fill",
+            "--ds-accent-fill-hover",
+            "--ds-accent-fill-pressed",
+            "--ds-accent-border",
+            "--ds-accent-subtle-surface",
+          ],
+          preview: "color",
+          previewColumns: "narrow",
+        },
+        {
+          id: "semantic-misc",
+          title: "Miscellaneous",
+          tokens: ["--ds-font-sans", "--ds-cursor-interactive-hover"],
+          preview: "none",
+          previewColumns: "narrow",
+        },
+      ];
+
+      for (const family of families) {
+        const tokens = collectDefinedTokens(family.tokens ?? []);
         if (tokens.length === 0) {
           continue;
         }
