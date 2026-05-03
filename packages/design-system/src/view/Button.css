@@ -1,3 +1,5 @@
+@import "./ControlStates.css";
+
 /*
  * Button — text button with optional leading icon.
  *
@@ -6,11 +8,13 @@
  */
 
 .ds-button {
+  --ds-control-bg-hover: var(--gray-2);
+  --ds-control-bg-active: var(--gray-3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--size-1);
-  border: none;
+  border: var(--border-size-1) solid var(--gray-5);
   border-radius: var(--radius-3);
   padding: var(--space-control-gap-md) var(--size-px-3);
   font: inherit;
@@ -19,35 +23,42 @@
   line-height: 1;
   cursor: pointer;
   transition: background-color 120ms var(--ease-out-3);
+  position: relative;
+}
+
+.ds-button[data-dropdown] {
+  display: inline-grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  justify-content: start;
+  column-gap: var(--size-1);
 }
 
 /* ---- tones ---- */
 
 .ds-button[data-tone="neutral"],
 .ds-button:not([data-tone]) {
-  background: var(--gray-2);
+  background: var(--gray-0);
   color: var(--gray-9);
 }
 
 .ds-button[data-tone="primary"] {
+  --ds-control-bg-hover: var(--blue-5);
+  --ds-control-bg-active: var(--blue-3);
   background: var(--blue-6);
+  border-color: var(--blue-5);
   color: white;
 }
 
 .ds-button[data-tone="danger"] {
+  --ds-control-bg-hover: var(--red-6);
+  --ds-control-bg-active: var(--red-3);
   background: var(--red-7);
+  border-color: var(--red-5);
   color: white;
 }
 
 /* ---- interaction states ---- */
-
-.ds-button:hover:not(:disabled) {
-  filter: brightness(0.96);
-}
-
-.ds-button:active {
-  filter: brightness(0.9);
-}
 
 .ds-button:focus-visible {
   outline: var(--border-size-3) solid var(--ds-focus-ring);
@@ -76,6 +87,31 @@
 }
 
 .ds-button__icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ds-button__label {
+  white-space: nowrap;
+}
+
+.ds-button__dropdown {
+  width: var(--size-3);
+  height: var(--size-3);
+  min-width: var(--size-3);
+  min-height: var(--size-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ds-button__dropdown[hidden] {
+  display: none;
+}
+
+.ds-button__dropdown > svg {
   width: 100%;
   height: 100%;
   display: block;

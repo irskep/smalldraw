@@ -61,7 +61,7 @@
   min-height: var(--ds-stroke-picker-cell-size, var(--size-px-40x));
   padding: 0;
   border: var(--border-size-1) solid var(--gray-5);
-  background: var(--gray-1);
+  background: var(--gray-0);
   color: var(--gray-9);
   display: flex;
   align-items: center;

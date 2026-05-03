@@ -434,6 +434,30 @@ test.describe("Dropdown Menu", () => {
     await expect(page.getByRole("menu", { name: "Actions" })).toBeHidden();
   });
 
+  test("moving the mouse within the trigger and menu union keeps the menu open", async ({
+    page,
+  }) => {
+    const trigger = page.getByRole("button", { name: "Actions" });
+    const menu = page.getByRole("menu", { name: "Actions" });
+    await trigger.hover();
+    await trigger.click();
+    await expect(menu).toBeVisible();
+    await page.getByRole("menuitem", { name: "Export PNG" }).hover();
+    await expect(menu).toBeVisible();
+  });
+
+  test("moving the mouse outside the trigger and menu union closes the menu", async ({
+    page,
+  }) => {
+    const trigger = page.getByRole("button", { name: "Actions" });
+    const menu = page.getByRole("menu", { name: "Actions" });
+    await trigger.hover();
+    await trigger.click();
+    await expect(menu).toBeVisible();
+    await page.mouse.move(4, 4);
+    await expect(menu).toBeHidden();
+  });
+
   test("pressing Escape closes the menu", async ({ page }) => {
     const trigger = page.getByRole("button", { name: "Actions" });
     await trigger.click();

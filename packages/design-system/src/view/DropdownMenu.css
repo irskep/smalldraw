@@ -5,7 +5,7 @@
 
 .ds-dropdown-menu__popover {
   position: absolute;
-  top: calc(100% + var(--size-2));
+  top: 100%;
   right: 0;
   z-index: 30;
   opacity: 0;
@@ -53,7 +53,7 @@
   gap: 0;
   padding: var(--size-px-1);
   background: var(--gray-0);
-  border: var(--border-size-1) solid var(--gray-9);
+  border: var(--border-size-1) solid var(--gray-5);
   border-radius: var(--radius-2);
   box-shadow: var(--shadow-4);
 }

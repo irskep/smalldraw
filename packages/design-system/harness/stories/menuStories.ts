@@ -44,6 +44,7 @@ export const menuStories: HarnessStory[] = [
       ) as HTMLOutputElement;
       const row = el("div.ds-story-row") as HTMLDivElement;
       const menu = createDropdownMenu({
+        triggerKind: "icon-button",
         triggerLabel: "Actions",
         triggerIcon: MoreHorizontal,
         menuLabel: "Actions",

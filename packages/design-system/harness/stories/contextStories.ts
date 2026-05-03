@@ -205,6 +205,18 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     "div.ds-splat-context__slot ds-splat-context__slot--top",
   ) as HTMLDivElement;
   const topBar = createToolbar({ className: "ds-splat-context__top-actions" });
+  const topBarStart = el(
+    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--start",
+  ) as HTMLDivElement;
+  const topBarHistory = el(
+    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--history",
+  ) as HTMLDivElement;
+  const topBarShare = el(
+    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--share",
+  ) as HTMLDivElement;
+  const topBarMenu = el(
+    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--menu",
+  ) as HTMLDivElement;
   const undoButton = createTopActionButton({ label: "Undo", icon: Undo2, status });
   const redoButton = createTopActionButton({ label: "Redo", icon: Redo2, status });
   const shareButton = createTopActionButton({
@@ -213,8 +225,9 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     status,
   });
   const moreMenu = createDropdownMenu({
-    triggerLabel: "More",
-    triggerIcon: MoreHorizontal,
+    triggerKind: "button",
+    triggerLabel: "Menu",
+    triggerIcon: null,
     menuLabel: "More actions",
     entries: DESKTOP_MENU_ENTRIES,
   });
@@ -223,7 +236,20 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     status.textContent = status.value;
     moreMenu.setOpen(false);
   });
-  topBar.el.append(undoButton.el, redoButton.el, shareButton.el, moreMenu.el);
+  topBarStart.append(
+    createColorPickerControl({
+      className: "ds-splat-context__top-picker",
+      status,
+    }),
+    createStrokePickerControl({
+      className: "ds-splat-context__top-picker",
+      status,
+    }),
+  );
+  topBarHistory.append(undoButton.el, redoButton.el);
+  topBarShare.append(shareButton.el);
+  topBarMenu.append(moreMenu.el);
+  topBar.el.append(topBarStart, topBarHistory, topBarShare, topBarMenu);
   top.append(topBar.el);
 
   const left = el(
@@ -236,16 +262,6 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
   const leftControls = el(
     "div.ds-splat-context__left-controls",
   ) as HTMLDivElement;
-  leftControls.append(
-    createColorPickerControl({
-      className: "ds-splat-context__left-picker",
-      status,
-    }),
-    createStrokePickerControl({
-      className: "ds-splat-context__left-picker",
-      status,
-    }),
-  );
   leftRail.el.append(leftControls);
   const selector = buildGridDemo({
     items: DESKTOP_TOOL_ITEMS,
@@ -263,6 +279,10 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
   const canvas = el("div.ds-splat-context__canvas-shell") as HTMLDivElement;
   canvas.append(el("div.ds-splat-context__paper"));
 
+  const bottomLeft = el(
+    "div.ds-splat-context__slot ds-splat-context__slot--bottom-left",
+  ) as HTMLDivElement;
+
   const bottom = el(
     "div.ds-splat-context__slot ds-splat-context__slot--bottom",
   ) as HTMLDivElement;
@@ -274,7 +294,7 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     }),
   );
 
-  stage.append(top, left, canvas, bottom);
+  stage.append(top, left, canvas, bottomLeft, bottom);
   frame.append(el("h2.ds-story-heading", "Desktop"), stage);
   return frame;
 }
@@ -312,6 +332,7 @@ function createMobileFrame(status: HTMLOutputElement): HTMLElement {
     status,
   });
   const actionsMenu = createDropdownMenu({
+    triggerKind: "icon-button",
     triggerLabel: "Actions",
     triggerIcon: MoreHorizontal,
     menuLabel: "Actions",

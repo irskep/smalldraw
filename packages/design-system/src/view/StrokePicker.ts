@@ -59,6 +59,7 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
       className: "ds-stroke-picker__trigger",
       label: options.triggerLabel ?? "Strokes",
       icon: options.triggerIcon ?? SlidersHorizontal,
+      dropdown: true,
       attributes: {
         "aria-haspopup": "dialog",
         "aria-expanded": "false",

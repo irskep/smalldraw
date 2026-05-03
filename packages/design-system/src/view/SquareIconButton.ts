@@ -1,6 +1,6 @@
 import "./IconButton.css";
 
-import type { IconNode } from "lucide";
+import { ChevronDown, type IconNode } from "lucide";
 import { el, setChildren } from "redom";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
@@ -12,6 +12,8 @@ export interface IconButtonOptions {
   className?: string;
   label?: string;
   icon?: IconButtonSource;
+  dropdown?: boolean;
+  layout?: IconButtonLayout;
   attributes?: Record<string, string>;
 }
 
@@ -21,11 +23,16 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
   private readonly contentElement: HTMLSpanElement;
   private readonly iconElement: HTMLSpanElement;
   private readonly labelElement: HTMLSpanElement;
+  private readonly dropdownElement: HTMLSpanElement;
   private clickHandler: ((event: MouseEvent) => void) | null = null;
 
   constructor(options: IconButtonOptions = {}) {
     this.iconElement = el("span.ds-icon-button__icon") as HTMLSpanElement;
     this.labelElement = el("span.ds-icon-button__label") as HTMLSpanElement;
+    this.dropdownElement = el(
+      "span.ds-icon-button__dropdown",
+      renderIcon(ChevronDown),
+    ) as HTMLSpanElement;
     this.contentElement = el(
       "span.ds-icon-button__content",
       this.iconElement,
@@ -38,6 +45,7 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
         type: "button",
       },
       this.contentElement,
+      this.dropdownElement,
     ) as HTMLButtonElement;
 
     for (const className of (options.className ?? "").split(/\s+/)) {
@@ -45,15 +53,16 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
         this.el.classList.add(className);
       }
     }
+    const requestedLayout = options.layout ?? options.attributes?.layout;
     for (const [name, value] of Object.entries(options.attributes ?? {})) {
       if (name === "layout") {
-        this.setLayout(value === "row" ? "row" : "column");
         continue;
       }
       this.el.setAttribute(name, value);
     }
     this.setLabel(options.label ?? "");
-    this.setLayout("column");
+    this.setLayout(requestedLayout === "row" ? "row" : "column");
+    this.setDropdown(options.dropdown ?? false);
     if (options.icon) {
       this.setIcon(options.icon);
     }
@@ -112,6 +121,11 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
       return;
     }
     this.el.setAttribute("data-layout", layout);
+  }
+
+  setDropdown(dropdown: boolean): void {
+    this.el.toggleAttribute("data-dropdown", dropdown);
+    this.dropdownElement.hidden = !dropdown;
   }
 
   setOnPress(handler: ((event: MouseEvent) => void) | null): void {

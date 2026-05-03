@@ -1,7 +1,8 @@
 import "./DropdownMenu.css";
 
-import { type IconNode, MoreHorizontal } from "lucide";
+import { type IconNode } from "lucide";
 import { el, setChildren } from "redom";
+import { createButton, type Button } from "./Button";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
 import { createIconButton, type IconButton } from "./SquareIconButton";
@@ -31,12 +32,15 @@ export type DropdownMenuEntry =
   | DropdownMenuSeparator;
 
 export interface DropdownMenuOptions {
-  triggerLabel?: string;
-  triggerIcon?: IconNode;
+  triggerKind: "icon-button" | "button";
+  triggerLabel: string;
+  triggerIcon: IconNode | null;
   triggerAttributes?: Record<string, string>;
   menuLabel?: string;
   entries?: DropdownMenuEntry[];
 }
+
+type DropdownTriggerButton = IconButton | Button;
 
 class DropdownMenuItemView implements ReDomLike<HTMLButtonElement> {
   readonly el: HTMLButtonElement;
@@ -76,7 +80,7 @@ class DropdownMenuItemView implements ReDomLike<HTMLButtonElement> {
 
 export class DropdownMenu implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
-  readonly triggerButton: IconButton;
+  readonly triggerButton: DropdownTriggerButton;
 
   private readonly popover: HTMLDivElement;
   private readonly panel: HTMLDivElement;
@@ -84,20 +88,31 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
   private selectHandler: ((itemId: string) => void) | null = null;
   private isOpen = false;
   private readonly documentPointerDownHandler: (event: PointerEvent) => void;
+  private readonly documentPointerMoveHandler: (event: PointerEvent) => void;
   private readonly documentKeyDownHandler: (event: KeyboardEvent) => void;
 
-  constructor(options: DropdownMenuOptions = {}) {
+  constructor(options: DropdownMenuOptions) {
     this.el = el("div.ds-dropdown-menu") as HTMLDivElement;
-    this.triggerButton = createIconButton({
-      className: "ds-dropdown-menu__trigger",
-      label: options.triggerLabel ?? "Actions",
-      icon: options.triggerIcon ?? MoreHorizontal,
-      attributes: {
-        "aria-haspopup": "menu",
-        "aria-expanded": "false",
-        ...options.triggerAttributes,
-      },
-    });
+    const triggerAttributes = {
+      "aria-haspopup": "menu",
+      "aria-expanded": "false",
+      ...options.triggerAttributes,
+    };
+    this.triggerButton =
+      options.triggerKind === "button"
+        ? createButton({
+            label: options.triggerLabel,
+            ...(options.triggerIcon ? { icon: options.triggerIcon } : {}),
+            dropdown: true,
+            attributes: triggerAttributes,
+          })
+        : createIconButton({
+            className: "ds-dropdown-menu__trigger",
+            label: options.triggerLabel,
+            icon: options.triggerIcon ?? undefined,
+            dropdown: true,
+            attributes: triggerAttributes,
+          });
     this.panel = el("div.ds-dropdown-menu__panel", {
       role: "menu",
       "aria-label": options.menuLabel ?? "Actions",
@@ -123,6 +138,25 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
         return;
       }
       this.setOpen(false);
+    };
+    this.documentPointerMoveHandler = (event: PointerEvent) => {
+      if (!this.isOpen || event.pointerType !== "mouse") {
+        return;
+      }
+      const triggerRect = this.triggerButton.el.getBoundingClientRect();
+      const panelRect = this.panel.getBoundingClientRect();
+      const left = Math.min(triggerRect.left, panelRect.left);
+      const right = Math.max(triggerRect.right, panelRect.right);
+      const top = Math.min(triggerRect.top, panelRect.top);
+      const bottom = Math.max(triggerRect.bottom, panelRect.bottom);
+      const insideUnion =
+        event.clientX >= left &&
+        event.clientX <= right &&
+        event.clientY >= top &&
+        event.clientY <= bottom;
+      if (!insideUnion) {
+        this.setOpen(false);
+      }
     };
     this.documentKeyDownHandler = (event: KeyboardEvent) => {
       if (!this.isOpen || event.key !== "Escape") {
@@ -151,11 +185,17 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
     this.popover.hidden = false;
     this.popover.dataset.open = open ? "true" : "false";
     this.popover.setAttribute("aria-hidden", open ? "false" : "true");
+    this.triggerButton.setPressed(open);
     this.triggerButton.setAriaExpanded(open);
     if (open) {
       document.addEventListener(
         "pointerdown",
         this.documentPointerDownHandler,
+        true,
+      );
+      document.addEventListener(
+        "pointermove",
+        this.documentPointerMoveHandler,
         true,
       );
       document.addEventListener("keydown", this.documentKeyDownHandler, true);
@@ -164,6 +204,11 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
     document.removeEventListener(
       "pointerdown",
       this.documentPointerDownHandler,
+      true,
+    );
+    document.removeEventListener(
+      "pointermove",
+      this.documentPointerMoveHandler,
       true,
     );
     document.removeEventListener("keydown", this.documentKeyDownHandler, true);

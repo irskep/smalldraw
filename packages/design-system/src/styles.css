@@ -342,9 +342,9 @@ body {
 .ds-splat-context__scene--desktop {
   display: grid;
   grid-template-areas:
-    "left top"
+    "top top"
     "left canvas"
-    "left bottom";
+    "bottom-left bottom";
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   gap: 0;
@@ -371,12 +371,17 @@ body {
 .ds-splat-context__slot--left {
   grid-area: left;
   align-self: stretch;
+  display: flex;
 }
 
 .ds-splat-context__slot--bottom {
   grid-area: bottom;
   justify-self: stretch;
   align-self: end;
+}
+
+.ds-splat-context__slot--bottom-left {
+  grid-area: bottom-left;
 }
 
 .ds-splat-context__grid-panel .button-grid-shell {
@@ -443,8 +448,12 @@ body {
 }
 
 .ds-splat-context__left-rail {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   gap: var(--size-2);
   align-items: stretch;
+  min-height: 100%;
   padding: var(--size-2);
   background: var(--gray-1);
 }
@@ -461,23 +470,23 @@ body {
 }
 
 .ds-splat-context__top-actions {
-  gap: var(--size-2);
+  display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   width: 100%;
-  padding: var(--size-2) var(--size-2) var(--size-2) 0;
+  padding: var(--size-2);
   background: var(--gray-1);
 }
 
-.ds-splat-context__top-actions > .ds-dropdown-menu {
-  margin-left: auto;
+.ds-splat-context__top-actions-group {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
 }
 
-.ds-splat-context__top-actions .ds-button {
-  min-height: var(--kd-toolbar-cell-size);
-  border-radius: 0;
-  background: var(--gray-1);
-  box-shadow: inset 0 0 0 var(--border-size-1) var(--gray-5);
+.ds-splat-context__top-picker {
+  --ds-color-picker-swatch-size: var(--kd-toolbar-palette-cell-size);
+  --ds-stroke-picker-cell-size: var(--kd-toolbar-palette-cell-size);
 }
 
 .ds-splat-context__variant-bar {
@@ -496,28 +505,8 @@ body {
   min-height: var(--kd-toolbar-bottom-cell-size);
 }
 
-.ds-splat-context__scene .ds-icon-button,
-.ds-splat-context__scene .button-grid-item > .ds-icon-button {
-  --sq-border-width: var(--border-size-1);
-  --sq-border: var(--gray-5);
-  --sq-bg: var(--gray-1);
-  --sq-color: var(--kd-text-default);
-  --sq-border-selected: var(--blue-7);
-  --sq-bg-selected: var(--blue-2);
-  --sq-color-selected: var(--kd-text-strong);
-}
-
-.ds-splat-context__scene .button-grid-shell {
-  background: var(--gray-1);
-  border: none;
-}
-
 .ds-splat-context__tool-selector .ds-icon-button__label {
   font-size: var(--kd-toolbar-label-size-sm);
-}
-
-.ds-splat-context__action-button .ds-icon-button__label {
-  font-size: var(--kd-toolbar-label-size-lg);
 }
 
 .ds-splat-context__mobile-top {

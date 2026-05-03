@@ -1,6 +1,6 @@
 import "./Button.css";
 
-import type { IconNode } from "lucide";
+import { ChevronDown, type IconNode } from "lucide";
 import { el, setChildren } from "redom";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
@@ -11,6 +11,7 @@ export interface ButtonOptions {
   label: string;
   tone?: ButtonTone;
   icon?: IconNode;
+  dropdown?: boolean;
   attributes?: Record<string, string>;
 }
 
@@ -18,15 +19,24 @@ export class Button implements ReDomLike<HTMLButtonElement> {
   readonly el: HTMLButtonElement;
 
   private readonly iconElement: HTMLSpanElement;
+  private readonly labelElement: HTMLSpanElement;
+  private readonly dropdownElement: HTMLSpanElement;
   private clickHandler: ((event: MouseEvent) => void) | null = null;
 
   constructor(options: ButtonOptions) {
     this.iconElement = el("span.ds-button__icon") as HTMLSpanElement;
+    this.labelElement = el("span.ds-button__label") as HTMLSpanElement;
+    this.dropdownElement = el(
+      "span.ds-button__dropdown",
+      renderIcon(ChevronDown),
+    ) as HTMLSpanElement;
 
     this.el = el(
       "button.ds-button",
       { type: "button" },
       this.iconElement,
+      this.labelElement,
+      this.dropdownElement,
     ) as HTMLButtonElement;
 
     this.setLabel(options.label);
@@ -38,19 +48,15 @@ export class Button implements ReDomLike<HTMLButtonElement> {
       this.iconElement.hidden = true;
     }
 
+    this.setDropdown(options.dropdown ?? false);
+
     for (const [name, value] of Object.entries(options.attributes ?? {})) {
       this.el.setAttribute(name, value);
     }
   }
 
   setLabel(label: string): void {
-    // Text node is a direct child after the icon element
-    const textNode = this.el.lastChild;
-    if (textNode?.nodeType === Node.TEXT_NODE) {
-      textNode.textContent = label;
-    } else {
-      this.el.appendChild(document.createTextNode(label));
-    }
+    this.labelElement.textContent = label;
   }
 
   setTone(tone: ButtonTone): void {
@@ -66,6 +72,20 @@ export class Button implements ReDomLike<HTMLButtonElement> {
 
     setChildren(this.iconElement, [renderIcon(icon)]);
     this.iconElement.hidden = false;
+  }
+
+  setDropdown(dropdown: boolean): void {
+    this.el.toggleAttribute("data-dropdown", dropdown);
+    this.dropdownElement.hidden = !dropdown;
+  }
+
+  setPressed(pressed: boolean): void {
+    this.el.classList.toggle("is-selected", pressed);
+    this.el.setAttribute("aria-pressed", pressed ? "true" : "false");
+  }
+
+  setAriaExpanded(expanded: boolean): void {
+    this.el.setAttribute("aria-expanded", expanded ? "true" : "false");
   }
 
   setDisabled(disabled: boolean): void {

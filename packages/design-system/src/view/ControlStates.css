@@ -1,0 +1,17 @@
+/*
+ * Shared interaction-state selectors for pressable controls.
+ *
+ * This keeps hover/active behavior aligned between Button and IconButton.
+ */
+
+:where(.ds-button, .ds-icon-button):hover:not(:disabled) {
+  background: var(--ds-control-bg-hover);
+}
+
+:where(.ds-button, .ds-icon-button):active {
+  background: var(--ds-control-bg-active);
+}
+
+:where(.ds-button, .ds-icon-button):hover:active:not(:disabled) {
+  background: var(--ds-control-bg-active);
+}

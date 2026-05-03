@@ -65,6 +65,7 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
       className: "ds-color-picker__trigger",
       label: options.triggerLabel ?? "Colors",
       icon: options.triggerIcon ?? Palette,
+      dropdown: true,
       attributes: {
         "aria-haspopup": "dialog",
         "aria-expanded": "false",
