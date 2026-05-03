@@ -10,6 +10,7 @@ import { createButton, type Button } from "./Button";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
 import { createIconButton, type IconButton } from "./SquareIconButton";
+import { Text } from "./Text";
 
 export interface DropdownMenuItem {
   type?: "item";
@@ -58,7 +59,12 @@ class DropdownMenuItemView implements ReDomLike<HTMLButtonElement> {
         role: "menuitem",
       },
       el("span.ds-dropdown-menu__item-icon", renderIcon(item.icon)),
-      el("span.ds-dropdown-menu__item-label", item.label),
+      new Text({
+        tag: "span",
+        text: item.label,
+        kind: "label",
+        className: "ds-dropdown-menu__item-label",
+      }),
     ) as HTMLButtonElement;
     this.el.dataset.menuItemId = item.id;
     this.el.classList.toggle("is-danger", item.danger ?? false);

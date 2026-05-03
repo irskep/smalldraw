@@ -24,17 +24,21 @@ export class ColorSwatchGrid implements ReDomLike<HTMLDivElement> {
   setColors(colors: readonly ColorPickerSwatch[]): void {
     const buttons = colors.map((swatch) => {
       const color = swatch.color;
-      return el("button.ds-color-picker__swatch", {
-        type: "button",
-        title: swatch.label ?? color,
-        "aria-label": swatch.label ?? color,
-        "data-selected": color === this.selectedColor ? "true" : "false",
-        style: `--ds-color-picker-swatch-color:${color};`,
-        onclick: () => {
-          this.setSelectedColor(color);
-          this.selectHandler?.(color);
+      return el(
+        "button.ds-color-picker__swatch.ds-control-tile",
+        {
+          type: "button",
+          title: swatch.label ?? color,
+          "aria-label": swatch.label ?? color,
+          "data-selected": color === this.selectedColor ? "true" : "false",
+          style: `--ds-color-picker-swatch-color:${color};`,
+          onclick: () => {
+            this.setSelectedColor(color);
+            this.selectHandler?.(color);
+          },
         },
-      }) as HTMLButtonElement;
+        el("span.ds-color-picker__swatch-fill"),
+      ) as HTMLButtonElement;
     });
 
     setChildren(this.el, buttons);

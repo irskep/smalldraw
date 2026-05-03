@@ -1,6 +1,6 @@
 import { AlertTriangle, Check, Trash2, Zap } from "lucide";
 import { el, mount } from "redom";
-import { createButton } from "../../src";
+import { createButton, createSyncIndicator } from "../../src";
 import type { HarnessStory } from "./types";
 
 export const buttonStories: HarnessStory[] = [
@@ -77,6 +77,42 @@ export const buttonStories: HarnessStory[] = [
         el("h2.ds-story-heading", "Interaction"),
         interactionRow,
       );
+
+      container.replaceChildren(canvas);
+    },
+  },
+  {
+    id: "sync-indicator",
+    title: "Sync Indicator",
+    description:
+      "Compact sync status text with hidden unknown state and a secondary tone by default.",
+    mount: (container) => {
+      const canvas = el("div.ds-story-stack") as HTMLDivElement;
+      const hiddenIndicator = createSyncIndicator({ state: "unknown" });
+      const localOnlyIndicator = createSyncIndicator({ state: "local-only" });
+      const offlineIndicator = createSyncIndicator({
+        state: "synced-to-server-but-offline",
+      });
+      const onlineIndicator = createSyncIndicator({ state: "online" });
+
+      const states = [
+        ["Unknown", hiddenIndicator],
+        ["Local only", localOnlyIndicator],
+        ["Saved to server, offline", offlineIndicator],
+        ["Online", onlineIndicator],
+      ] as const;
+
+      for (const [label, indicator] of states) {
+        const row = el(
+          "div.ds-story-row",
+          el("strong", label),
+          indicator,
+        ) as HTMLDivElement;
+        if (indicator.el.hidden) {
+          row.append(el("span", "(hidden)"));
+        }
+        canvas.append(row);
+      }
 
       container.replaceChildren(canvas);
     },

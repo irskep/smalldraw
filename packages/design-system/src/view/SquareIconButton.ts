@@ -4,6 +4,7 @@ import { ChevronDown, type IconNode } from "lucide";
 import { el, setChildren } from "redom";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
+import { Text } from "./Text";
 
 export type IconButtonSource = IconNode | { kind: "image"; src: string };
 export type IconButtonLayout = "small" | "large";
@@ -22,13 +23,17 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
 
   private readonly contentElement: HTMLSpanElement;
   private readonly iconElement: HTMLSpanElement;
-  private readonly labelElement: HTMLSpanElement;
+  private readonly labelText: Text<"span">;
   private readonly dropdownElement: HTMLSpanElement;
   private clickHandler: ((event: MouseEvent) => void) | null = null;
 
   constructor(options: IconButtonOptions = {}) {
     this.iconElement = el("span.ds-icon-button__icon") as HTMLSpanElement;
-    this.labelElement = el("span.ds-icon-button__label") as HTMLSpanElement;
+    this.labelText = new Text({
+      tag: "span",
+      kind: "caption",
+      className: "ds-icon-button__label",
+    });
     this.dropdownElement = el(
       "span.ds-icon-button__dropdown",
       renderIcon(ChevronDown),
@@ -36,7 +41,7 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
     this.contentElement = el(
       "span.ds-icon-button__content",
       this.iconElement,
-      this.labelElement,
+      this.labelText,
     ) as HTMLSpanElement;
 
     this.el = el(
@@ -70,8 +75,8 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
 
   setLabel(label: string): void {
     const hasLabel = label.trim().length > 0;
-    this.labelElement.textContent = label;
-    this.labelElement.hidden = !hasLabel;
+    this.labelText.setText(label);
+    this.labelText.el.hidden = !hasLabel;
     if (hasLabel) {
       this.el.setAttribute("aria-label", label);
       return;

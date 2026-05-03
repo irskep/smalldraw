@@ -4,14 +4,14 @@
  * This keeps hover/active behavior aligned between Button and IconButton.
  */
 
-:where(.ds-button, .ds-icon-button):hover:not(:disabled) {
+:where(.ds-button, .ds-icon-button, .ds-control-tile):hover:not(:disabled) {
   background: var(--ds-control-bg-hover);
 }
 
-:where(.ds-button, .ds-icon-button):active {
+:where(.ds-button, .ds-icon-button, .ds-control-tile):active {
   background: var(--ds-control-bg-active);
 }
 
-:where(.ds-button, .ds-icon-button):hover:active:not(:disabled) {
+:where(.ds-button, .ds-icon-button, .ds-control-tile):hover:active:not(:disabled) {
   background: var(--ds-control-bg-active);
 }

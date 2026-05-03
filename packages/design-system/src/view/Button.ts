@@ -4,6 +4,7 @@ import { ChevronDown, type IconNode } from "lucide";
 import { el, setChildren } from "redom";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
+import { Text } from "./Text";
 
 export type ButtonTone = "neutral" | "primary" | "danger";
 
@@ -23,21 +24,25 @@ export class Button implements ReDomLike<HTMLButtonElement> {
 
   private readonly iconElement: HTMLSpanElement;
   private readonly labelContainerElement: HTMLSpanElement;
-  private readonly labelElement: HTMLSpanElement;
+  private readonly labelText: Text<"span">;
   private readonly reservedLabelsElement: HTMLSpanElement;
   private readonly dropdownElement: HTMLSpanElement;
   private clickHandler: ((event: MouseEvent) => void) | null = null;
 
   constructor(options: ButtonOptions) {
     this.iconElement = el("span.ds-button__icon") as HTMLSpanElement;
-    this.labelElement = el("span.ds-button__label") as HTMLSpanElement;
+    this.labelText = new Text({
+      tag: "span",
+      kind: "label",
+      className: "ds-button__label",
+    });
     this.reservedLabelsElement = el(
       "span.ds-button__reserved-labels",
       { "aria-hidden": "true" },
     ) as HTMLSpanElement;
     this.labelContainerElement = el(
       "span.ds-button__label-container",
-      this.labelElement,
+      this.labelText,
       this.reservedLabelsElement,
     ) as HTMLSpanElement;
     this.dropdownElement = el(
@@ -75,7 +80,7 @@ export class Button implements ReDomLike<HTMLButtonElement> {
   }
 
   setLabel(label: string): void {
-    this.labelElement.textContent = label;
+    this.labelText.setText(label);
   }
 
   setTone(tone: ButtonTone): void {
@@ -106,7 +111,12 @@ export class Button implements ReDomLike<HTMLButtonElement> {
     }
 
     const reservedLabels = labels.map((label) =>
-      el("span.ds-button__reserved-label", label),
+      new Text({
+        tag: "span",
+        text: label,
+        kind: "label",
+        className: "ds-button__reserved-label",
+      }),
     );
     setChildren(this.reservedLabelsElement, reservedLabels);
     this.reservedLabelsElement.hidden = false;

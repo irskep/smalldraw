@@ -24,7 +24,7 @@ export class StrokeWidthGrid implements ReDomLike<HTMLDivElement> {
     const buttons = strokeWidths.map((strokeWidth) => {
       const previewSize = Math.max(2, Math.min(18, Math.sqrt(strokeWidth) * 1.5));
       return el(
-        "button.ds-stroke-picker__button",
+        "button.ds-stroke-picker__button.ds-control-tile",
         {
           type: "button",
           title: `${strokeWidth}px brush`,

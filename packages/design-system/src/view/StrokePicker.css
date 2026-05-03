@@ -1,3 +1,5 @@
+@import "./ControlTile.css";
+
 .ds-stroke-picker {
   position: relative;
   display: inline-flex;
@@ -55,46 +57,23 @@
 }
 
 .ds-stroke-picker__button {
+  --ds-control-tile-border-width: var(--border-size-1);
+  --ds-control-tile-border: var(--gray-5);
+  --ds-control-tile-bg: var(--gray-0);
+  --ds-control-tile-bg-hover: var(--ds-control-tile-bg);
+  --ds-control-tile-bg-active: var(--gray-4);
   width: var(--ds-stroke-picker-cell-size, var(--size-px-40x));
   height: var(--ds-stroke-picker-cell-size, var(--size-px-40x));
   min-width: var(--ds-stroke-picker-cell-size, var(--size-px-40x));
   min-height: var(--ds-stroke-picker-cell-size, var(--size-px-40x));
   padding: 0;
-  border: var(--border-size-1) solid var(--gray-5);
-  background: var(--gray-0);
-  color: var(--gray-9);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: var(--ds-cursor-interactive-hover);
-  transition:
-    background-color 90ms linear,
-    border-color 90ms linear;
-}
-
-.ds-stroke-picker__button:hover:not(:disabled) {
-  background: var(--gray-2);
-  border-color: var(--gray-6);
-}
-
-.ds-stroke-picker__button:active {
-  background: var(--gray-3);
-  border-color: var(--gray-8);
-}
-
-.ds-stroke-picker__button:hover:active:not(:disabled) {
-  background: var(--gray-3);
-  border-color: var(--gray-8);
 }
 
 .ds-stroke-picker__button[data-selected="true"] {
-  outline: var(--border-size-3) solid var(--ds-focus-ring);
-  outline-offset: calc(var(--border-size-2) * -1);
-}
-
-.ds-stroke-picker__button:focus-visible {
-  outline: var(--border-size-3) solid var(--ds-focus-ring);
-  outline-offset: calc(var(--border-size-2) * -1);
+  border-color: var(--gray-8);
 }
 
 .ds-stroke-picker__line {

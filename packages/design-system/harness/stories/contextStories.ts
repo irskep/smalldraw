@@ -25,10 +25,12 @@ import {
   createColorPicker,
   createDropdownMenu,
   createIconButton,
+  createSyncIndicator,
   createStrokePicker,
   createToolbar,
   type DropdownMenuEntry,
   type IconButton,
+  type SyncIndicatorState,
 } from "../../src";
 import { AnchoredPopoverController } from "../../src/view/AnchoredPopoverController";
 import { buildGridDemo, type DemoGridItem } from "./gridDemo";
@@ -177,6 +179,17 @@ function createTopActionButton(options: {
   return button;
 }
 
+function createContextSyncIndicator(
+  state: SyncIndicatorState,
+): HTMLDivElement {
+  const indicator = createSyncIndicator({
+    state,
+    kind: "caption",
+  });
+  indicator.el.classList.add("ds-splat-context__sync-indicator");
+  return indicator.el;
+}
+
 class ToolPickerPopover {
   readonly el: HTMLDivElement;
   readonly triggerButton: IconButton;
@@ -273,6 +286,7 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     icon: Share2,
     status,
   });
+  const syncIndicator = createContextSyncIndicator("online");
   const moreMenu = createDropdownMenu({
     triggerKind: "button",
     triggerLabel: "Menu",
@@ -296,7 +310,7 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
     }),
   );
   topBarHistory.append(undoButton.el, redoButton.el);
-  topBarShare.append(shareButton.el);
+  topBarShare.append(shareButton.el, syncIndicator);
   topBarMenu.append(moreMenu.el);
   topBar.el.append(topBarStart, topBarHistory, topBarShare, topBarMenu);
   top.append(topBar.el);
@@ -393,7 +407,15 @@ function createMobilePortraitFrame(status: HTMLOutputElement): HTMLElement {
     status.textContent = status.value;
     actionsMenu.setOpen(false);
   });
-  topControls.append(colors, strokes, actionsMenu.el);
+  const syncIndicator = createContextSyncIndicator(
+    "synced-to-server-but-offline",
+  );
+  const trailingActions = el(
+    "div.ds-splat-context__mobile-trailing-actions",
+    syncIndicator,
+    actionsMenu.el,
+  ) as HTMLDivElement;
+  topControls.append(colors, strokes, trailingActions);
   top.append(topControls, selector.grid.el);
 
   const canvas = el(
@@ -472,6 +494,12 @@ function createResponsiveMobileLandscapeFrame(
     status.textContent = status.value;
     actionsMenu.setOpen(false);
   });
+  const syncIndicator = createContextSyncIndicator("local-only");
+  const trailingActions = el(
+    "div.ds-splat-context__mobile-trailing-actions",
+    syncIndicator,
+    actionsMenu.el,
+  ) as HTMLDivElement;
 
   const inlineSelector = buildGridDemo({
     items: MOBILE_TOOL_ITEMS,
@@ -520,7 +548,7 @@ function createResponsiveMobileLandscapeFrame(
     colors,
     strokes,
     toolPickerPopover.el,
-    actionsMenu.el,
+    trailingActions,
   );
   top.append(topControls, inlineToolHost);
 

@@ -6,6 +6,7 @@ import { el, setChildren } from "redom";
 import { Button } from "./Button";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
+import { Text } from "./Text";
 
 const DIALOG_CLOSE_ANIMATION_MS = 220;
 
@@ -22,8 +23,8 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
 
   #dialog: HTMLDialogElement;
-  #title: HTMLHeadingElement;
-  #message: HTMLParagraphElement;
+  #title: Text<"h2">;
+  #message: Text<"p">;
   #icon: HTMLSpanElement;
   #cancelButton: Button;
   #confirmButton: Button;
@@ -33,8 +34,16 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
 
   constructor() {
     this.#icon = el("span.ds-modal-dialog__icon") as HTMLSpanElement;
-    this.#title = el("h2.ds-modal-dialog__title") as HTMLHeadingElement;
-    this.#message = el("p.ds-modal-dialog__message") as HTMLParagraphElement;
+    this.#title = new Text({
+      tag: "h2",
+      kind: "title",
+      className: "ds-modal-dialog__title",
+    });
+    this.#message = new Text({
+      tag: "p",
+      kind: "body",
+      className: "ds-modal-dialog__message",
+    });
     this.#cancelButton = new Button({ label: "Cancel", tone: "neutral" });
     this.#confirmButton = new Button({
       label: "Confirm",
@@ -85,8 +94,8 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
       icon,
     } = options;
 
-    this.#title.textContent = title;
-    this.#message.textContent = message;
+    this.#title.setText(title);
+    this.#message.setText(message);
     this.#confirmButton.setLabel(confirmLabel);
     this.#confirmButton.setTone(tone === "danger" ? "danger" : "primary");
     this.#cancelButton.setLabel(cancelLabel);

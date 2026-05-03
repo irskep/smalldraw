@@ -4,6 +4,7 @@ import "./ShareQrDialog.css";
 import { el } from "redom";
 import { Button } from "./Button";
 import type { ReDomLike } from "./ReDomLike";
+import { Text } from "./Text";
 
 export interface ShareQrDialog extends ReDomLike<HTMLDivElement> {
   show(input: { joinUrl: string; qrDataUrl: string }): Promise<void>;
@@ -11,7 +12,12 @@ export interface ShareQrDialog extends ReDomLike<HTMLDivElement> {
 }
 
 export function createShareQrDialog(): ShareQrDialog {
-  const title = el("h2.ds-share-dialog__title", "Share drawing");
+  const title = new Text({
+    tag: "h2",
+    text: "Share drawing",
+    kind: "title",
+    className: "ds-share-dialog__title",
+  });
   const image = el("img.ds-share-dialog__qr", {
     alt: "QR code for joining this drawing",
   }) as HTMLImageElement;

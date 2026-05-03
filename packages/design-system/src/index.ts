@@ -30,6 +30,12 @@ export {
   ModalDialogView,
 } from "./view/ModalDialog";
 export {
+  createSyncIndicator,
+  SyncIndicator,
+  type SyncIndicatorOptions,
+  type SyncIndicatorState,
+} from "./view/SyncIndicator";
+export {
   type ButtonGridItemSpec,
   PagedButtonGrid,
 } from "./view/PagedButtonGrid";
@@ -53,6 +59,13 @@ export {
   StrokeWidthGrid,
   type StrokeWidthGridOptions,
 } from "./view/StrokeWidthGrid";
+export {
+  createText,
+  Text,
+  type TextKind,
+  type TextOptions,
+  type TextTone,
+} from "./view/Text";
 export {
   createToolbar,
   Toolbar,

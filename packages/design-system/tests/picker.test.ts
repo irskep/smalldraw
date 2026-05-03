@@ -18,6 +18,7 @@ describe("ColorPicker", () => {
 
     const swatches = picker.el.querySelectorAll(".ds-color-picker__swatch");
     expect(swatches.length).toBe(2);
+    expect((swatches[0] as HTMLElement).classList.contains("ds-control-tile")).toBeTrue();
     expect((swatches[0] as HTMLElement).dataset.selected).toBe("false");
     expect((swatches[1] as HTMLElement).dataset.selected).toBe("true");
     expect(picker.triggerButton.el.getAttribute("aria-label")).toBe("Colors");
@@ -46,6 +47,7 @@ describe("ColorSwatchGrid", () => {
 
     const swatches = grid.el.querySelectorAll(".ds-color-picker__swatch");
     expect(swatches.length).toBe(3);
+    expect((swatches[0] as HTMLElement).querySelector(".ds-color-picker__swatch-fill")).not.toBeNull();
     (swatches[2] as HTMLButtonElement).click();
 
     expect(selected).toBe("#0000ff");
@@ -62,6 +64,7 @@ describe("StrokePicker", () => {
 
     const buttons = picker.el.querySelectorAll(".ds-stroke-picker__button");
     expect(buttons.length).toBe(3);
+    expect((buttons[0] as HTMLElement).classList.contains("ds-control-tile")).toBeTrue();
     expect((buttons[1] as HTMLElement).dataset.selected).toBe("true");
 
     picker.setSelectedStrokeWidth(27);

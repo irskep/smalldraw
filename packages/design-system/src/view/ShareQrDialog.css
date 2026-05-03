@@ -15,8 +15,6 @@
 
 .ds-share-dialog__title {
   margin: 0;
-  font-size: var(--font-size-dialog-title);
-  line-height: 1.2;
 }
 
 .ds-share-dialog__qr {

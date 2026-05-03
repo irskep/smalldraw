@@ -33,14 +33,10 @@
 
 .ds-modal-dialog__title {
   margin: 0;
-  font-size: var(--font-size-dialog-title);
-  line-height: 1.2;
 }
 
 .ds-modal-dialog__message {
   margin: 0;
-  font-size: var(--font-size-button-md);
-  line-height: 1.35;
 }
 
 .ds-modal-dialog__actions {
