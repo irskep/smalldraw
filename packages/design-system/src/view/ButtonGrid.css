@@ -138,6 +138,8 @@
 }
 
 .button-grid[data-resolved-orientation="horizontal"][data-large-layout="two-row-xlarge"][data-mode="large"]
+  .button-grid-track,
+.button-grid[data-resolved-orientation="horizontal"][data-large-layout="single-row"][data-mode="large"]
   .button-grid-track {
   grid-template-rows: var(--button-grid-cell-size);
 }
@@ -158,6 +160,8 @@
 .button-grid[data-resolved-orientation="vertical"][data-mode="medium"]
   .button-grid-track,
 .button-grid[data-resolved-orientation="vertical"][data-mode="mobile"]
+  .button-grid-track,
+.button-grid[data-resolved-orientation="vertical"][data-large-layout="single-row"][data-mode="large"]
   .button-grid-track {
   grid-template-columns: var(--button-grid-cell-size);
 }

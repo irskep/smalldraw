@@ -11,7 +11,12 @@ import {
   Triangle,
   Zap,
 } from "lucide";
-import { createIconButton, type IconButton, PagedButtonGrid } from "../../src";
+import {
+  createIconButton,
+  type IconButton,
+  type IconButtonLayout,
+  PagedButtonGrid,
+} from "../../src";
 
 export interface DemoGridItem {
   id: string;
@@ -45,8 +50,9 @@ export function buildGridDemo(options: {
   items?: DemoGridItem[];
   mode?: "large" | "medium" | "mobile";
   orientation?: "horizontal" | "vertical";
-  largeLayout?: "two-row" | "two-row-xlarge";
+  largeLayout?: "two-row" | "two-row-xlarge" | "single-row";
   paginateInLarge?: boolean;
+  itemLayout?: IconButtonLayout;
 }): {
   grid: PagedButtonGrid<DemoGridItem>;
   itemButtons: Map<string, IconButton>;
@@ -64,7 +70,11 @@ export function buildGridDemo(options: {
     largeLayout: options.largeLayout,
     paginateInLarge: options.paginateInLarge,
     createItemComponent: (item) => {
-      const button = createIconButton({ label: item.label, icon: item.icon });
+      const button = createIconButton({
+        label: item.label,
+        icon: item.icon,
+        layout: options.itemLayout,
+      });
       itemButtons.set(item.id, button);
       button.setOnPress(() => {
         activeItemId = item.id;

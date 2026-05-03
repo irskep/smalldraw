@@ -25,7 +25,6 @@ import {
   createButton,
   createColorPicker,
   createDropdownMenu,
-  createIconButton,
   createStrokePicker,
   createToolbar,
   type DropdownMenuEntry,
@@ -122,7 +121,6 @@ const MOBILE_ACTIONS_MENU_ENTRIES: DropdownMenuEntry[] = [
 function createColorPickerControl(options: {
   className?: string;
   triggerLabel?: string;
-  rowLayout?: boolean;
   status: HTMLOutputElement;
 }): HTMLElement {
   const picker = createColorPicker({
@@ -130,7 +128,6 @@ function createColorPickerControl(options: {
     colors: COLOR_SWATCHES.map((color) => ({ color })),
     selectedColor: "#000000",
     triggerLabel: options.triggerLabel ?? "Colors",
-    triggerAttributes: options.rowLayout ? { layout: "row" } : undefined,
   });
   picker.setOnSelect((color) => {
     options.status.value = `Color: ${color}`;
@@ -142,7 +139,6 @@ function createColorPickerControl(options: {
 function createStrokePickerControl(options: {
   className?: string;
   triggerLabel?: string;
-  rowLayout?: boolean;
   status: HTMLOutputElement;
 }): HTMLElement {
   const picker = createStrokePicker({
@@ -150,7 +146,6 @@ function createStrokePickerControl(options: {
     strokeWidths: STROKE_WIDTHS,
     selectedStrokeWidth: 16,
     triggerLabel: options.triggerLabel ?? "Strokes",
-    triggerAttributes: options.rowLayout ? { layout: "row" } : undefined,
   });
   picker.setOnSelect((strokeWidth) => {
     options.status.value = `Stroke width: ${strokeWidth}px`;
@@ -175,25 +170,6 @@ function createTopActionButton(options: {
   return button;
 }
 
-function createVariantBar(options: {
-  items: DemoGridItem[];
-  activeItemId: string;
-  className?: string;
-}): HTMLDivElement {
-  const toolbar = createToolbar({
-    className: `ds-splat-context__variant-bar${options.className ? ` ${options.className}` : ""}`,
-  });
-  for (const item of options.items) {
-    const button = createIconButton({
-      className: "ds-splat-context__variant-button",
-      label: item.label,
-      icon: item.icon,
-    });
-    button.setPressed(item.id === options.activeItemId);
-    toolbar.el.append(button.el);
-  }
-  return toolbar.el;
-}
 
 function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
   const frame = el("section.ds-splat-context__frame") as HTMLElement;
@@ -286,13 +262,18 @@ function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
   const bottom = el(
     "div.ds-splat-context__slot ds-splat-context__slot--bottom",
   ) as HTMLDivElement;
-  bottom.append(
-    createVariantBar({
-      items: BRUSH_VARIANT_ITEMS,
-      activeItemId: "pen",
-      className: "ds-splat-context__toolbar-scale-large",
-    }),
+  const variantBar = buildGridDemo({
+    items: BRUSH_VARIANT_ITEMS,
+    mode: "large",
+    largeLayout: "single-row",
+    itemLayout: "large",
+  });
+  variantBar.setActive("pen");
+  variantBar.grid.el.classList.add(
+    "ds-splat-context__variant-strip",
+    "ds-splat-context__toolbar-scale-large",
   );
+  bottom.append(variantBar.grid.el);
 
   stage.append(top, left, canvas, bottomLeft, bottom);
   frame.append(el("h2.ds-story-heading", "Desktop"), stage);
@@ -350,13 +331,16 @@ function createMobileFrame(status: HTMLOutputElement): HTMLElement {
   );
 
   const bottom = el("div.ds-splat-context__mobile-bottom") as HTMLDivElement;
-  bottom.append(
-    createVariantBar({
-      items: BRUSH_VARIANT_ITEMS,
-      activeItemId: "pen",
-      className: "ds-splat-context__variant-bar--mobile",
-    }),
+  const mobileVariantBar = buildGridDemo({
+    items: BRUSH_VARIANT_ITEMS,
+    mode: "mobile",
+  });
+  mobileVariantBar.setActive("pen");
+  mobileVariantBar.grid.el.classList.add(
+    "ds-splat-context__variant-strip",
+    "ds-splat-context__variant-bar--mobile",
   );
+  bottom.append(mobileVariantBar.grid.el);
 
   stage.append(top, canvas, bottom);
   frame.append(el("h2.ds-story-heading", "Mobile Portrait"), stage);

@@ -6,7 +6,7 @@ import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
 
 export type IconButtonSource = IconNode | { kind: "image"; src: string };
-export type IconButtonLayout = "row" | "column";
+export type IconButtonLayout = "small" | "large";
 
 export interface IconButtonOptions {
   className?: string;
@@ -61,7 +61,7 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
       this.el.setAttribute(name, value);
     }
     this.setLabel(options.label ?? "");
-    this.setLayout(requestedLayout === "row" ? "row" : "column");
+    this.setLayout(requestedLayout === "large" ? "large" : "small");
     this.setDropdown(options.dropdown ?? false);
     if (options.icon) {
       this.setIcon(options.icon);
@@ -116,7 +116,7 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
   }
 
   setLayout(layout: IconButtonLayout): void {
-    if (layout === "column") {
+    if (layout === "small") {
       this.el.removeAttribute("data-layout");
       return;
     }

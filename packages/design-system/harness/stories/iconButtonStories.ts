@@ -36,9 +36,12 @@ export const iconButtonStories: HarnessStory[] = [
       radioA.setChecked(true);
       radioB.setChecked(false);
 
-      const column = createIconButton({ label: "Column", icon: Shapes });
-      const row = createIconButton({ label: "Row", icon: Shapes });
-      row.setLayout("row");
+      const small = createIconButton({ label: "Small", icon: Shapes });
+      const large = createIconButton({
+        label: "Large",
+        icon: Shapes,
+        layout: "large",
+      });
 
       const interactive = createIconButton({
         label: "Click Me",
@@ -58,8 +61,8 @@ export const iconButtonStories: HarnessStory[] = [
       mount(selectionRow, radioA);
       mount(selectionRow, radioB);
 
-      mount(layoutRow, column);
-      mount(layoutRow, row);
+      mount(layoutRow, small);
+      mount(layoutRow, large);
 
       mount(interactionRow, interactive);
       interactionRow.append(status);
