@@ -63,9 +63,53 @@ body {
   color: var(--ds-text-muted);
 }
 
+.ds-typographic-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--ds-ink);
+}
+
+.ds-typographic-icon[data-kind="title"] {
+  font-size: var(--font-size-dialog-title);
+  line-height: 1.2;
+}
+
+.ds-typographic-icon[data-kind="body"] {
+  font-size: var(--font-size-button-md);
+  line-height: 1.35;
+}
+
+.ds-typographic-icon[data-kind="label"] {
+  font-size: var(--font-size-button-md);
+  line-height: 1;
+}
+
+.ds-typographic-icon[data-kind="caption"] {
+  font-size: var(--font-size-toolbar-md);
+  line-height: 1;
+}
+
+.ds-typographic-icon[data-kind="caption"] > svg {
+  width: 1.125em;
+  height: 1.125em;
+}
+
+.ds-typographic-icon[data-tone="secondary"] {
+  color: var(--ds-text-muted);
+}
+
+.ds-typographic-icon > svg {
+  width: 1em;
+  height: 1em;
+  display: block;
+}
+
 .ds-sync-indicator {
   display: inline-flex;
   align-items: center;
+  gap: var(--size-1);
 }
 
 .ds-button {
@@ -185,6 +229,32 @@ body {
 
 .ds-story-output {
   align-self: center;
+}
+
+.ds-typography-story__specimen {
+  display: grid;
+  grid-template-columns: minmax(9rem, 12rem) minmax(0, 1fr);
+  gap: var(--size-3);
+  align-items: center;
+}
+
+.ds-typography-story__specimen-label {
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-0);
+}
+
+.ds-typography-story__specimen-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  min-width: 0;
+}
+
+.ds-typography-story__pair {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-2);
+  min-width: 0;
 }
 
 .ds-story-frame {

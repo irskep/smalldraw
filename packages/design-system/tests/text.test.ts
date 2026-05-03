@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { createSyncIndicator, createText } from "../src";
+import { CloudAlert } from "lucide";
+import { createSyncIndicator, createText, createTypographicIcon } from "../src";
 
 describe("Text", () => {
   test("renders kind, tone, and text content", () => {
@@ -54,6 +55,7 @@ describe("SyncIndicator", () => {
 
     expect(indicator.el.hidden).toBeFalse();
     expect(indicator.el.textContent).toBe("Local only");
+    expect(indicator.el.querySelector("svg")).not.toBeNull();
 
     indicator.setState("synced-to-server-but-offline");
     expect(indicator.el.textContent).toBe("Offline");
@@ -68,5 +70,26 @@ describe("SyncIndicator", () => {
 
     expect(text?.dataset.kind).toBe("body");
     expect(text?.dataset.tone).toBe("secondary");
+  });
+});
+
+describe("TypographicIcon", () => {
+  test("renders the icon with text-like kind and tone metadata", () => {
+    const icon = createTypographicIcon({
+      icon: CloudAlert,
+      kind: "caption",
+      tone: "secondary",
+      className: "custom-icon",
+      attributes: {
+        "data-test-id": "sync-icon",
+      },
+    });
+
+    expect(icon.el.classList.contains("ds-typographic-icon")).toBeTrue();
+    expect(icon.el.classList.contains("custom-icon")).toBeTrue();
+    expect(icon.el.dataset.kind).toBe("caption");
+    expect(icon.el.dataset.tone).toBe("secondary");
+    expect(icon.el.getAttribute("data-test-id")).toBe("sync-icon");
+    expect(icon.el.querySelector("svg")).not.toBeNull();
   });
 });

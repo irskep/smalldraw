@@ -67,6 +67,11 @@ export {
   type TextTone,
 } from "./view/Text";
 export {
+  createTypographicIcon,
+  TypographicIcon,
+  type TypographicIconOptions,
+} from "./view/TypographicIcon";
+export {
   createToolbar,
   Toolbar,
   type ToolbarOptions,
