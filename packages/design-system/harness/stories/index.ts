@@ -6,6 +6,7 @@ import { iconButtonStories } from "./iconButtonStories";
 import { menuStories } from "./menuStories";
 import { pickerStories } from "./pickerStories";
 import { referenceStories } from "./referenceStories";
+import { resizeHandleStories } from "./resizeHandleStories";
 import type { HarnessStory, HarnessStoryGroup } from "./types";
 
 export type { HarnessStory, HarnessStoryGroup } from "./types";
@@ -40,6 +41,11 @@ export const storyGroups: HarnessStoryGroup[] = [
     id: "menus",
     title: "Menus",
     stories: [...menuStories, ...pickerStories],
+  },
+  {
+    id: "harness",
+    title: "Harness",
+    stories: resizeHandleStories,
   },
 ];
 

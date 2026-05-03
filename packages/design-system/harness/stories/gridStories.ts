@@ -117,8 +117,6 @@ export const gridStories: HarnessStory[] = [
         setActive(GRID_ITEMS[GRID_ITEMS.length - 1].id);
       });
 
-      requestAnimationFrame(() => grid.syncLayout());
-
       canvas.append(el("div.ds-story-row", jumpLast), grid.el);
       container.replaceChildren(canvas);
     },
@@ -264,7 +262,6 @@ export const gridStories: HarnessStory[] = [
         grid.el.style.height = mode === "large" ? "" : "var(--width-frame-sm)";
         grid.setMode(mode);
         status.textContent = `Mode: ${mode}`;
-        requestAnimationFrame(() => grid.syncLayout());
       };
 
       const modes = ["large", "mobile"] as const;

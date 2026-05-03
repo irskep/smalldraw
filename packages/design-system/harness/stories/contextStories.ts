@@ -30,6 +30,7 @@ import {
   type DropdownMenuEntry,
 } from "../../src";
 import { buildGridDemo, type DemoGridItem } from "./gridDemo";
+import { createResizeHandle } from "./ResizeHandle";
 import type { HarnessStory } from "./types";
 
 const FILLED_RECT_ICON: IconNode = [
@@ -343,7 +344,11 @@ function createMobileFrame(status: HTMLOutputElement): HTMLElement {
   bottom.append(mobileVariantBar.grid.el);
 
   stage.append(top, canvas, bottom);
-  frame.append(el("h2.ds-story-heading", "Mobile Portrait"), stage);
+  const resizer = createResizeHandle();
+  frame.append(
+    el("h2.ds-story-heading", "Mobile Portrait"),
+    resizer.wrap(stage),
+  );
   return frame;
 }
 

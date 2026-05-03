@@ -15,6 +15,7 @@
 
 .button-grid[data-resolved-orientation="horizontal"] {
   width: 100%;
+  min-width: 0;
 }
 
 .button-grid-inline-host {

@@ -361,7 +361,7 @@ body {
     "mobile-bottom";
   grid-template-rows: auto 1fr auto;
   width: min(var(--width-frame-sm), 100%);
-  min-height: var(--height-frame-md);
+  height: var(--height-frame-md);
   box-sizing: border-box;
   padding: var(--size-2);
   gap: var(--size-2);

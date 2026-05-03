@@ -73,6 +73,7 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     ReDomLike<HTMLElement | SVGElement>
   >();
 
+  private readonly resizeObserver: ResizeObserver;
   private readonly state: PagedButtonGridState<TItem>;
 
   constructor(options: PagedButtonGridOptions<TItem>) {
@@ -153,6 +154,9 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
 
     this.prevButton.setOnPress(() => this.goToPreviousPage());
     this.nextButton.setOnPress(() => this.goToNextPage());
+
+    this.resizeObserver = new ResizeObserver(() => this.syncLayout());
+    this.resizeObserver.observe(this.el);
   }
 
   setHidden(hidden: boolean): void {
@@ -214,6 +218,7 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
       this.state.layoutRetryFrame = 0;
     }
 
+    this.resizeObserver.disconnect();
     this.prevButton.setOnPress(null);
     this.nextButton.setOnPress(null);
     this.itemComponentById.clear();
@@ -470,16 +475,23 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     this.track.style.transform = "";
 
     if (this.state.needsPaginationRecalc) {
-      // Ensure nav buttons are visible during measurement so the viewport
-      // reflects the space they consume. Without this, a prior bail-out may
-      // have hidden them, giving the viewport too much room and causing the
-      // algorithm to fit too many items per page.
+      // First measure without nav buttons to see if all items fit.
+      // Only show nav buttons if pagination is actually needed.
       if (this.shouldPaginate() && items.length > 1) {
-        this.prevButton.el.hidden = false;
-        this.nextButton.el.hidden = false;
+        this.prevButton.el.hidden = true;
+        this.nextButton.el.hidden = true;
       }
       this.renderItems(items);
       this.computePagination(items);
+
+      // If multiple pages are needed, show nav buttons and re-measure
+      // so the viewport reflects the space they consume.
+      if (this.state.pageItemIndices.length > 1) {
+        this.prevButton.el.hidden = false;
+        this.nextButton.el.hidden = false;
+        this.computePagination(items);
+      }
+
       this.syncSelectedPage(items);
       this.state.needsPaginationRecalc = false;
     } else {

@@ -1,0 +1,70 @@
+.ds-resize-handle__wrapper {
+  display: inline-grid;
+  grid-template-columns: auto var(--size-3);
+  grid-template-rows: auto var(--size-3);
+  width: max-content;
+}
+
+.ds-resize-handle__wrapper.is-dragging {
+  user-select: none;
+}
+
+.ds-resize-handle__right,
+.ds-resize-handle__bottom,
+.ds-resize-handle__corner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+.ds-resize-handle__right {
+  cursor: col-resize;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.ds-resize-handle__bottom {
+  cursor: row-resize;
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.ds-resize-handle__corner {
+  cursor: nwse-resize;
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.ds-resize-handle__right::after,
+.ds-resize-handle__bottom::after,
+.ds-resize-handle__corner::after {
+  content: "";
+  border-radius: var(--radius-round);
+  background: var(--gray-4);
+  transition: background 120ms var(--ease-out-3);
+}
+
+.ds-resize-handle__right::after {
+  width: 4px;
+  height: var(--size-6);
+}
+
+.ds-resize-handle__bottom::after {
+  width: var(--size-6);
+  height: 4px;
+}
+
+.ds-resize-handle__corner::after {
+  width: 6px;
+  height: 6px;
+}
+
+.ds-resize-handle__right:hover::after,
+.ds-resize-handle__bottom:hover::after,
+.ds-resize-handle__corner:hover::after,
+.ds-resize-handle__wrapper.is-dragging .ds-resize-handle__right::after,
+.ds-resize-handle__wrapper.is-dragging .ds-resize-handle__bottom::after,
+.ds-resize-handle__wrapper.is-dragging .ds-resize-handle__corner::after {
+  background: var(--blue-6);
+}
