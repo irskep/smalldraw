@@ -20,6 +20,7 @@
   --ds-border-subtle: var(--gray-3);
   --ds-border-strong: var(--gray-5);
   --ds-focus-ring: var(--blue-6);
+  --ds-cursor-interactive-hover: default; /* not pointer! */
 }
 
 body {

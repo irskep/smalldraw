@@ -63,7 +63,7 @@
   border: var(--border-size-2) solid
     color-mix(in oklch, var(--ds-color-picker-swatch-color) 70%, black);
   background: var(--ds-color-picker-swatch-color);
-  cursor: pointer;
+  cursor: var(--ds-cursor-interactive-hover);
   transition:
     outline-color 90ms linear,
     filter 90ms linear;

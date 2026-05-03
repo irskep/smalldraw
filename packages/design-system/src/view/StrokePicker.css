@@ -66,7 +66,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: var(--ds-cursor-interactive-hover);
   transition:
     background-color 90ms linear,
     border-color 90ms linear;

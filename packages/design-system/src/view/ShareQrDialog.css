@@ -45,6 +45,7 @@
   gap: var(--size-2);
 }
 
+/* TODO: why is there a special button here? */
 .ds-share-dialog__button {
   border: none;
   border-radius: var(--radius-2);

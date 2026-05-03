@@ -29,7 +29,7 @@
   color: var(--sq-color);
   font-weight: var(--sq-font-weight, var(--font-weight-5));
   padding: 0;
-  cursor: pointer;
+  cursor: var(--ds-cursor-interactive-hover);
   transition: background-color 120ms var(--ease-out-3);
   position: relative;
 }

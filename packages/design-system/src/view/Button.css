@@ -21,7 +21,7 @@
   font-size: var(--font-size-button-md);
   font-weight: var(--font-weight-5);
   line-height: 1;
-  cursor: pointer;
+  cursor: var(--ds-cursor-interactive-hover);
   transition: background-color 120ms var(--ease-out-3);
   position: relative;
 }
