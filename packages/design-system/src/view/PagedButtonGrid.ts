@@ -36,6 +36,7 @@ interface PagedButtonGridState<TItem extends ButtonGridItemSpec> {
   resolvedOrientation: PagedButtonGridOrientation;
   destroyed: boolean;
   layoutRetryFrame: number;
+  resizeSyncFrame: number;
   currentPageIndex: number;
   activeItemId: string;
   needsPaginationRecalc: boolean;
@@ -88,6 +89,7 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
       resolvedOrientation: this.orientation,
       destroyed: false,
       layoutRetryFrame: 0,
+      resizeSyncFrame: 0,
       currentPageIndex: 0,
       activeItemId: "",
       needsPaginationRecalc: true,
@@ -155,8 +157,10 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     this.prevButton.setOnPress(() => this.goToPreviousPage());
     this.nextButton.setOnPress(() => this.goToNextPage());
 
-    this.resizeObserver = new ResizeObserver(() => this.syncLayout());
+    this.resizeObserver = new ResizeObserver(() => this.scheduleSyncLayout());
     this.resizeObserver.observe(this.el);
+    this.resizeObserver.observe(this.viewport);
+    this.resizeObserver.observe(this.track);
   }
 
   setHidden(hidden: boolean): void {
@@ -217,6 +221,10 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
       window.cancelAnimationFrame(this.state.layoutRetryFrame);
       this.state.layoutRetryFrame = 0;
     }
+    if (this.state.resizeSyncFrame !== 0) {
+      window.cancelAnimationFrame(this.state.resizeSyncFrame);
+      this.state.resizeSyncFrame = 0;
+    }
 
     this.resizeObserver.disconnect();
     this.prevButton.setOnPress(null);
@@ -235,6 +243,17 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     for (const [key, value] of Object.entries(attributes)) {
       node.setAttribute(key, value);
     }
+  }
+
+  private scheduleSyncLayout(): void {
+    if (this.state.destroyed || this.state.resizeSyncFrame !== 0) {
+      return;
+    }
+
+    this.state.resizeSyncFrame = window.requestAnimationFrame(() => {
+      this.state.resizeSyncFrame = 0;
+      this.syncLayout();
+    });
   }
 
   private useHorizontalFlow(): boolean {

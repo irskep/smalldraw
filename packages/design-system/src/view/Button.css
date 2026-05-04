@@ -26,6 +26,10 @@
   position: relative;
 }
 
+.ds-button[hidden] {
+  display: none;
+}
+
 .ds-button[data-dropdown] {
   display: inline-grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

@@ -17,12 +17,18 @@ export class ResizeHandle {
   private readonly rightGrip: HTMLDivElement;
   private readonly bottomGrip: HTMLDivElement;
   private readonly cornerGrip: HTMLDivElement;
+  private readonly sizeReadout: HTMLOutputElement;
+  private readonly resizeObserver: ResizeObserver;
   private wrapper: HTMLDivElement | null = null;
 
   constructor() {
     this.rightGrip = el("div.ds-resize-handle__right") as HTMLDivElement;
     this.bottomGrip = el("div.ds-resize-handle__bottom") as HTMLDivElement;
     this.cornerGrip = el("div.ds-resize-handle__corner") as HTMLDivElement;
+    this.sizeReadout = el("output.ds-resize-handle__size") as HTMLOutputElement;
+    this.resizeObserver = new ResizeObserver(() => {
+      this.syncSizeReadout();
+    });
 
     this.rightGrip.addEventListener("pointerdown", (e) =>
       this.onPointerDown(e, "horizontal"),
@@ -36,14 +42,20 @@ export class ResizeHandle {
   }
 
   wrap(target: HTMLElement): HTMLElement {
+    if (this.target) {
+      this.resizeObserver.disconnect();
+    }
     this.target = target;
     this.wrapper = el(
       "div.ds-resize-handle__wrapper",
       target,
+      this.sizeReadout,
       this.rightGrip,
       this.bottomGrip,
       this.cornerGrip,
     ) as HTMLDivElement;
+    this.resizeObserver.observe(target);
+    this.syncSizeReadout();
     return this.wrapper;
   }
 
@@ -73,6 +85,7 @@ export class ResizeHandle {
       const dy = e.clientY - this.startY;
       this.target.style.height = `${this.startHeight + dy}px`;
     }
+    this.syncSizeReadout();
   };
 
   private onPointerUp = (e: PointerEvent): void => {
@@ -83,6 +96,18 @@ export class ResizeHandle {
     grip.removeEventListener("pointermove", this.onPointerMove);
     grip.removeEventListener("pointerup", this.onPointerUp);
   };
+
+  private syncSizeReadout(): void {
+    if (!this.target) {
+      return;
+    }
+    const rect = this.target.getBoundingClientRect();
+    const width = Math.round(rect.width);
+    const height = Math.round(rect.height);
+    const value = `${width} x ${height}`;
+    this.sizeReadout.value = value;
+    this.sizeReadout.textContent = value;
+  }
 }
 
 export function createResizeHandle(): ResizeHandle {

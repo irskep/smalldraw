@@ -8,11 +8,9 @@ import {
   FolderOpen,
   Highlighter,
   PaintBucket,
-  Palette,
   Pen,
   Redo2,
   Share2,
-  SlidersHorizontal,
   SprayCan,
   Trash2,
   Type,
@@ -38,8 +36,13 @@ import { createResizeHandle } from "./ResizeHandle";
 import type { HarnessStory } from "./types";
 
 const MOBILE_SHORT_HEIGHT_PX = 360;
+const MOBILE_SHARE_THRESHOLD_PX = 480;
 
 type ResponsiveMobileLayout = "mobile-standard" | "mobile-landscape-short";
+type ResponsiveContextLayout =
+  | "desktop"
+  | "mobile-portrait"
+  | "mobile-landscape";
 
 const FILLED_RECT_ICON: IconNode = [
   [
@@ -57,7 +60,7 @@ const FILLED_RECT_ICON: IconNode = [
   ],
 ];
 
-const DESKTOP_TOOL_ITEMS: DemoGridItem[] = [
+const TOOL_ITEMS: DemoGridItem[] = [
   { id: "brush", label: "Brush", icon: Pen },
   { id: "eraser", label: "Eraser", icon: Eraser },
   { id: "fill", label: "Fill", icon: PaintBucket },
@@ -72,16 +75,6 @@ const BRUSH_VARIANT_ITEMS: DemoGridItem[] = [
   { id: "pen", label: "Pen", icon: Pen },
   { id: "spray-move", label: "Spray (Move)", icon: SprayCan },
   { id: "spray-hold", label: "Spray (Hold)", icon: SprayCan },
-];
-
-const MOBILE_TOOL_ITEMS: DemoGridItem[] = [
-  { id: "brush", label: "Brush", icon: Pen },
-  { id: "eraser", label: "Eraser", icon: Eraser },
-  { id: "fill", label: "Fill", icon: PaintBucket },
-  { id: "filled", label: "Filled", icon: FILLED_RECT_ICON },
-  { id: "outline", label: "Outline", icon: Circle },
-  { id: "letters", label: "Letters", icon: Type },
-  { id: "stamps", label: "Stamps", icon: Cat },
 ];
 
 const COLOR_SWATCHES = [
@@ -127,6 +120,11 @@ const MOBILE_ACTIONS_MENU_ENTRIES: DropdownMenuEntry[] = [
   { id: "clear", label: "Clear Canvas", icon: Trash2, danger: true },
 ];
 
+function setStoryStatus(status: HTMLOutputElement, value: string): void {
+  status.value = value;
+  status.textContent = value;
+}
+
 function createColorPickerControl(options: {
   className?: string;
   triggerLabel?: string;
@@ -139,8 +137,7 @@ function createColorPickerControl(options: {
     triggerLabel: options.triggerLabel ?? "Colors",
   });
   picker.setOnSelect((color) => {
-    options.status.value = `Color: ${color}`;
-    options.status.textContent = options.status.value;
+    setStoryStatus(options.status, `Color: ${color}`);
   });
   return picker.el;
 }
@@ -157,8 +154,7 @@ function createStrokePickerControl(options: {
     triggerLabel: options.triggerLabel ?? "Strokes",
   });
   picker.setOnSelect((strokeWidth) => {
-    options.status.value = `Stroke width: ${strokeWidth}px`;
-    options.status.textContent = options.status.value;
+    setStoryStatus(options.status, `Stroke width: ${strokeWidth}px`);
   });
   return picker.el;
 }
@@ -167,14 +163,17 @@ function createTopActionButton(options: {
   label: string;
   icon: IconNode;
   status: HTMLOutputElement;
+  statusPrefix?: string;
 }): Button {
   const button = createButton({
     label: options.label,
     icon: options.icon,
   });
   button.setOnPress(() => {
-    options.status.value = `Desktop action: ${options.label}`;
-    options.status.textContent = options.status.value;
+    setStoryStatus(
+      options.status,
+      `${options.statusPrefix ?? "Desktop action"}: ${options.label}`,
+    );
   });
   return button;
 }
@@ -188,6 +187,369 @@ function createContextSyncIndicator(
   });
   indicator.el.classList.add("ds-splat-context__sync-indicator");
   return indicator.el;
+}
+
+function createDesktopMenu(status: HTMLOutputElement) {
+  const menu = createDropdownMenu({
+    triggerKind: "button",
+    triggerLabel: "Menu",
+    triggerIcon: null,
+    menuLabel: "More actions",
+    entries: DESKTOP_MENU_ENTRIES,
+  });
+  menu.setOnSelect((itemId) => {
+    setStoryStatus(status, `Desktop menu: ${itemId}`);
+    menu.setOpen(false);
+  });
+  return menu;
+}
+
+function createMobileActionsMenu(status: HTMLOutputElement) {
+  const menu = createDropdownMenu({
+    triggerKind: "button",
+    triggerLabel: "Menu",
+    triggerIcon: null,
+    menuLabel: "More actions",
+    entries: MOBILE_ACTIONS_MENU_ENTRIES,
+  });
+  menu.setOnSelect((itemId) => {
+    setStoryStatus(status, `Mobile action: ${itemId}`);
+    menu.setOpen(false);
+  });
+  return menu;
+}
+
+function createCanvasShell(mobile = false): HTMLDivElement {
+  const canvas = el(
+    mobile
+      ? "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile"
+      : "div.ds-splat-context__canvas-shell",
+  ) as HTMLDivElement;
+  canvas.append(
+    el(
+      mobile
+        ? "div.ds-splat-context__paper ds-splat-context__paper--mobile"
+        : "div.ds-splat-context__paper",
+    ),
+  );
+  return canvas;
+}
+
+function createVariantBar(options: {
+  mobile: boolean;
+  activeId: string;
+}): ReturnType<typeof buildGridDemo> {
+  const variantBar = buildGridDemo({
+    items: BRUSH_VARIANT_ITEMS,
+    mode: options.mobile ? "mobile" : "large",
+    paginateInLarge: !options.mobile,
+    ...(options.mobile
+      ? {}
+      : { largeLayout: "single-row" as const, itemLayout: "large" as const }),
+  });
+  variantBar.setActive(options.activeId);
+  variantBar.grid.el.classList.add(
+    "ds-splat-context__variant-strip",
+    options.mobile
+      ? "ds-splat-context__variant-bar--mobile"
+      : "ds-splat-context__toolbar-scale-large",
+  );
+  return variantBar;
+}
+
+function createToolGrid(options: {
+  items: DemoGridItem[];
+  mode: "large" | "mobile";
+  orientation?: "horizontal" | "vertical";
+  activeId: string;
+  classNames: string[];
+}) {
+  const grid = buildGridDemo({
+    items: options.items,
+    mode: options.mode,
+    ...(options.orientation ? { orientation: options.orientation } : {}),
+  });
+  grid.setActive(options.activeId);
+  grid.grid.el.classList.add(...options.classNames);
+  return grid;
+}
+
+function createMobileTopControls(options: {
+  status: HTMLOutputElement;
+  syncState: SyncIndicatorState;
+  extraLeading?: HTMLElement | null;
+  trailingMenu?: HTMLElement | null;
+  shareButton?: HTMLElement | null;
+}): HTMLDivElement {
+  const topControls = el(
+    "div.ds-splat-context__mobile-top-controls",
+  ) as HTMLDivElement;
+  const colors = createColorPickerControl({
+    className: "ds-splat-context__top-picker",
+    status: options.status,
+  });
+  const strokes = createStrokePickerControl({
+    className: "ds-splat-context__top-picker",
+    status: options.status,
+  });
+  const trailingActions = el(
+    "div.ds-splat-context__mobile-trailing-actions",
+    createContextSyncIndicator(options.syncState),
+  ) as HTMLDivElement;
+  if (options.shareButton) {
+    trailingActions.append(options.shareButton);
+  }
+  if (options.trailingMenu) {
+    trailingActions.append(options.trailingMenu);
+  }
+
+  topControls.append(colors, strokes);
+  if (options.extraLeading) {
+    topControls.append(options.extraLeading);
+  }
+  topControls.append(trailingActions);
+  return topControls;
+}
+
+function createDesktopTopSection(status: HTMLOutputElement): HTMLDivElement {
+  const top = el(
+    "div.ds-splat-context__slot ds-splat-context__slot--top",
+  ) as HTMLDivElement;
+  const topBar = createToolbar({ className: "ds-splat-context__top-actions" });
+  const topBarStart = el(
+    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--start",
+  ) as HTMLDivElement;
+  const topBarHistory = el(
+    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--history",
+  ) as HTMLDivElement;
+  const topBarMenu = el(
+    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--menu",
+  ) as HTMLDivElement;
+
+  topBarStart.append(
+    createColorPickerControl({
+      className: "ds-splat-context__top-picker",
+      status,
+    }),
+    createStrokePickerControl({
+      className: "ds-splat-context__top-picker",
+      status,
+    }),
+  );
+  topBarHistory.append(
+    createTopActionButton({ label: "Undo", icon: Undo2, status }).el,
+    createTopActionButton({ label: "Redo", icon: Redo2, status }).el,
+  );
+  topBarMenu.append(
+    createContextSyncIndicator("online"),
+    createTopActionButton({ label: "Share", icon: Share2, status }).el,
+    createDesktopMenu(status).el,
+  );
+
+  topBar.el.append(topBarStart, topBarHistory, topBarMenu);
+  top.append(topBar.el);
+  return top;
+}
+
+function createDesktopLeftSection(): HTMLDivElement {
+  const left = el(
+    "div.ds-splat-context__slot ds-splat-context__slot--left",
+  ) as HTMLDivElement;
+  const leftRail = createToolbar({
+    orientation: "vertical",
+    className: "ds-splat-context__left-rail",
+  });
+  const leftControls = el(
+    "div.ds-splat-context__left-controls",
+  ) as HTMLDivElement;
+  leftRail.el.append(leftControls);
+  leftRail.el.append(
+    createToolGrid({
+      items: TOOL_ITEMS,
+      mode: "large",
+      orientation: "vertical",
+      activeId: "brush",
+      classNames: [
+        "ds-splat-context__tool-selector",
+        "ds-splat-context__grid-panel",
+      ],
+    }).grid.el,
+  );
+  left.append(leftRail.el);
+  return left;
+}
+
+function createDesktopBottomSection(): HTMLDivElement {
+  const bottom = el(
+    "div.ds-splat-context__slot ds-splat-context__slot--bottom",
+  ) as HTMLDivElement;
+  bottom.append(createVariantBar({ mobile: false, activeId: "pen" }).grid.el);
+  return bottom;
+}
+
+function createMobileBottomSection(): HTMLDivElement {
+  const bottom = el("div.ds-splat-context__mobile-bottom") as HTMLDivElement;
+  bottom.append(createVariantBar({ mobile: true, activeId: "pen" }).grid.el);
+  return bottom;
+}
+
+function createMobileToolSection(options: {
+  status: HTMLOutputElement;
+  syncState: SyncIndicatorState;
+  responsive: boolean;
+  shareButton: HTMLElement;
+}): {
+  top: HTMLDivElement;
+  getActiveLayout: (() => ResponsiveMobileLayout) | null;
+} {
+  const top = el("div.ds-splat-context__mobile-top") as HTMLDivElement;
+
+  if (!options.responsive) {
+    const selector = createToolGrid({
+      items: TOOL_ITEMS,
+      mode: "mobile",
+      activeId: "brush",
+      classNames: [
+        "ds-splat-context__tool-selector",
+        "ds-splat-context__grid-panel",
+        "ds-splat-context__tool-selector--mobile",
+      ],
+    });
+    const topControls = createMobileTopControls({
+      status: options.status,
+      syncState: options.syncState,
+      shareButton: options.shareButton,
+      trailingMenu: createMobileActionsMenu(options.status).el,
+    });
+    top.append(topControls, selector.grid.el);
+    return { top, getActiveLayout: null };
+  }
+
+  const inlineToolHost = el(
+    "div.ds-splat-context__mobile-tool-inline-host",
+  ) as HTMLDivElement;
+  const inlineSelector = createToolGrid({
+    items: TOOL_ITEMS,
+    mode: "mobile",
+    activeId: "brush",
+    classNames: [
+      "ds-splat-context__tool-selector",
+      "ds-splat-context__grid-panel",
+      "ds-splat-context__tool-selector--mobile",
+    ],
+  });
+  const dropdownSelector = createToolGrid({
+    items: TOOL_ITEMS,
+    mode: "mobile",
+    activeId: "brush",
+    classNames: [
+      "ds-splat-context__tool-selector",
+      "ds-splat-context__tool-selector--mobile",
+      "ds-splat-context__tool-selector--dropdown",
+    ],
+  });
+  const toolPickerPopover = new ToolPickerPopover();
+
+  const setActiveTool = (toolId: string): void => {
+    inlineSelector.setActive(toolId);
+    dropdownSelector.setActive(toolId);
+    setStoryStatus(options.status, `Tool: ${toolId}`);
+    toolPickerPopover.setOpen(false);
+  };
+
+  const bindToolPickerSelection = (
+    itemButtons: Map<string, IconButton>,
+  ): void => {
+    for (const item of TOOL_ITEMS) {
+      itemButtons.get(item.id)?.setOnPress(() => {
+        setActiveTool(item.id);
+      });
+    }
+  };
+
+  bindToolPickerSelection(inlineSelector.itemButtons);
+  bindToolPickerSelection(dropdownSelector.itemButtons);
+  inlineToolHost.append(inlineSelector.grid.el);
+
+  toolPickerPopover.setContent(dropdownSelector.grid.el);
+  setActiveTool("brush");
+
+  const topControls = createMobileTopControls({
+    status: options.status,
+    syncState: options.syncState,
+    extraLeading: toolPickerPopover.el,
+    shareButton: options.shareButton,
+    trailingMenu: createMobileActionsMenu(options.status).el,
+  });
+  top.append(topControls, inlineToolHost);
+
+  const getActiveLayout = (): ResponsiveMobileLayout => {
+    const width = top.parentElement?.clientWidth ?? 0;
+    const height = top.parentElement?.clientHeight ?? 0;
+    return resolveResponsiveMobileLayout(width, height);
+  };
+
+  return { top, getActiveLayout };
+}
+
+function createMobileStage(options: {
+  status: HTMLOutputElement;
+  syncState: SyncIndicatorState;
+  responsive: boolean;
+}): HTMLDivElement {
+  const stageClassName = options.responsive
+    ? "div.ds-splat-context__scene ds-splat-context__scene--mobile ds-splat-context__scene--mobile-responsive"
+    : "div.ds-splat-context__scene ds-splat-context__scene--mobile";
+  const stage = el(stageClassName) as HTMLDivElement;
+  const shareButton = createTopActionButton({
+    label: "Share",
+    icon: Share2,
+    status: options.status,
+    statusPrefix: "Mobile action",
+  });
+  const { top, getActiveLayout } = createMobileToolSection({
+    status: options.status,
+    syncState: options.syncState,
+    responsive: options.responsive,
+    shareButton: shareButton.el,
+  });
+  const canvas = createCanvasShell(true);
+  const bottom = createMobileBottomSection();
+
+  stage.append(top, canvas, bottom);
+
+  const applyLayout = (): void => {
+    shareButton.el.hidden =
+      stage.getBoundingClientRect().width < MOBILE_SHARE_THRESHOLD_PX;
+    if (options.responsive && getActiveLayout) {
+      const nextLayout = getActiveLayout();
+      stage.dataset.mobileLayout = nextLayout;
+    }
+  };
+
+  const resizeObserver = new ResizeObserver(() => {
+    applyLayout();
+  });
+  resizeObserver.observe(stage);
+  applyLayout();
+  return stage;
+}
+
+function createWrappedContextFrame(
+  stage: HTMLElement,
+  width?: number,
+  height?: number,
+): HTMLElement {
+  if (typeof width === "number") {
+    stage.style.width = `${width}px`;
+  }
+  if (typeof height === "number") {
+    stage.style.height = `${height}px`;
+  }
+  const frame = el("section.ds-splat-context__frame") as HTMLElement;
+  const resizer = createResizeHandle();
+  frame.append(resizer.wrap(stage));
+  return frame;
 }
 
 class ToolPickerPopover {
@@ -250,193 +612,28 @@ class ToolPickerPopover {
 }
 
 function createDesktopFrame(status: HTMLOutputElement): HTMLElement {
-  const frame = el("section.ds-splat-context__frame") as HTMLElement;
   const stage = el(
     "div.ds-splat-context__scene ds-splat-context__scene--desktop",
   ) as HTMLDivElement;
-
-  const top = el(
-    "div.ds-splat-context__slot ds-splat-context__slot--top",
-  ) as HTMLDivElement;
-  const topBar = createToolbar({ className: "ds-splat-context__top-actions" });
-  const topBarStart = el(
-    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--start",
-  ) as HTMLDivElement;
-  const topBarHistory = el(
-    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--history",
-  ) as HTMLDivElement;
-  const topBarMenu = el(
-    "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--menu",
-  ) as HTMLDivElement;
-  const undoButton = createTopActionButton({
-    label: "Undo",
-    icon: Undo2,
-    status,
-  });
-  const redoButton = createTopActionButton({
-    label: "Redo",
-    icon: Redo2,
-    status,
-  });
-  const shareButton = createTopActionButton({
-    label: "Share",
-    icon: Share2,
-    status,
-  });
-  const syncIndicator = createContextSyncIndicator("online");
-  const moreMenu = createDropdownMenu({
-    triggerKind: "button",
-    triggerLabel: "Menu",
-    triggerIcon: null,
-    menuLabel: "More actions",
-    entries: DESKTOP_MENU_ENTRIES,
-  });
-  moreMenu.setOnSelect((itemId) => {
-    status.value = `Desktop menu: ${itemId}`;
-    status.textContent = status.value;
-    moreMenu.setOpen(false);
-  });
-  topBarStart.append(
-    createColorPickerControl({
-      className: "ds-splat-context__top-picker",
-      status,
-    }),
-    createStrokePickerControl({
-      className: "ds-splat-context__top-picker",
-      status,
-    }),
-  );
-  topBarHistory.append(undoButton.el, redoButton.el);
-  topBarMenu.append(syncIndicator, shareButton.el, moreMenu.el);
-  topBar.el.append(topBarStart, topBarHistory, topBarMenu);
-  top.append(topBar.el);
-
-  const left = el(
-    "div.ds-splat-context__slot ds-splat-context__slot--left",
-  ) as HTMLDivElement;
-  const leftRail = createToolbar({
-    orientation: "vertical",
-    className: "ds-splat-context__left-rail",
-  });
-  const leftControls = el(
-    "div.ds-splat-context__left-controls",
-  ) as HTMLDivElement;
-  leftRail.el.append(leftControls);
-  const selector = buildGridDemo({
-    items: DESKTOP_TOOL_ITEMS,
-    mode: "large",
-    orientation: "vertical",
-  });
-  selector.setActive("brush");
-  selector.grid.el.classList.add(
-    "ds-splat-context__tool-selector",
-    "ds-splat-context__grid-panel",
-  );
-  leftRail.el.append(selector.grid.el);
-  left.append(leftRail.el);
-
-  const canvas = el("div.ds-splat-context__canvas-shell") as HTMLDivElement;
-  canvas.append(el("div.ds-splat-context__paper"));
-
+  const top = createDesktopTopSection(status);
+  const left = createDesktopLeftSection();
+  const canvas = createCanvasShell();
   const bottomLeft = el(
     "div.ds-splat-context__slot ds-splat-context__slot--bottom-left",
   ) as HTMLDivElement;
-
-  const bottom = el(
-    "div.ds-splat-context__slot ds-splat-context__slot--bottom",
-  ) as HTMLDivElement;
-  const variantBar = buildGridDemo({
-    items: BRUSH_VARIANT_ITEMS,
-    mode: "large",
-    largeLayout: "single-row",
-    itemLayout: "large",
-  });
-  variantBar.setActive("pen");
-  variantBar.grid.el.classList.add(
-    "ds-splat-context__variant-strip",
-    "ds-splat-context__toolbar-scale-large",
-  );
-  bottom.append(variantBar.grid.el);
+  const bottom = createDesktopBottomSection();
 
   stage.append(top, left, canvas, bottomLeft, bottom);
-  frame.append(stage);
-  return frame;
+  return createWrappedContextFrame(stage);
 }
 
 function createMobilePortraitFrame(status: HTMLOutputElement): HTMLElement {
-  const frame = el("section.ds-splat-context__frame") as HTMLElement;
-  const stage = el(
-    "div.ds-splat-context__scene ds-splat-context__scene--mobile",
-  ) as HTMLDivElement;
-
-  const top = el("div.ds-splat-context__mobile-top") as HTMLDivElement;
-  const selector = buildGridDemo({
-    items: MOBILE_TOOL_ITEMS,
-    mode: "mobile",
-  });
-  selector.setActive("brush");
-  selector.grid.el.classList.add(
-    "ds-splat-context__tool-selector",
-    "ds-splat-context__grid-panel",
-    "ds-splat-context__tool-selector--mobile",
-  );
-  const topControls = el(
-    "div.ds-splat-context__mobile-top-controls",
-  ) as HTMLDivElement;
-  const colors = createColorPickerControl({
-    className: "ds-splat-context__top-picker",
+  const stage = createMobileStage({
     status,
+    syncState: "synced-to-server-but-offline",
+    responsive: false,
   });
-  const strokes = createStrokePickerControl({
-    className: "ds-splat-context__top-picker",
-    status,
-  });
-  const actionsMenu = createDropdownMenu({
-    triggerKind: "button",
-    triggerLabel: "Menu",
-    triggerIcon: null,
-    menuLabel: "More actions",
-    entries: MOBILE_ACTIONS_MENU_ENTRIES,
-  });
-  actionsMenu.setOnSelect((itemId) => {
-    status.value = `Mobile action: ${itemId}`;
-    status.textContent = status.value;
-    actionsMenu.setOpen(false);
-  });
-  const syncIndicator = createContextSyncIndicator(
-    "synced-to-server-but-offline",
-  );
-  const trailingActions = el(
-    "div.ds-splat-context__mobile-trailing-actions",
-    syncIndicator,
-    actionsMenu.el,
-  ) as HTMLDivElement;
-  topControls.append(colors, strokes, trailingActions);
-  top.append(topControls, selector.grid.el);
-
-  const canvas = el(
-    "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile",
-  ) as HTMLDivElement;
-  canvas.append(
-    el("div.ds-splat-context__paper ds-splat-context__paper--mobile"),
-  );
-
-  const bottom = el("div.ds-splat-context__mobile-bottom") as HTMLDivElement;
-  const mobileVariantBar = buildGridDemo({
-    items: BRUSH_VARIANT_ITEMS,
-    mode: "mobile",
-  });
-  mobileVariantBar.setActive("pen");
-  mobileVariantBar.grid.el.classList.add(
-    "ds-splat-context__variant-strip",
-    "ds-splat-context__variant-bar--mobile",
-  );
-  bottom.append(mobileVariantBar.grid.el);
-
-  stage.append(top, canvas, bottom);
-  const resizer = createResizeHandle();
-  frame.append(resizer.wrap(stage));
-  return frame;
+  return createWrappedContextFrame(stage);
 }
 
 function resolveResponsiveMobileLayout(
@@ -452,190 +649,205 @@ function resolveResponsiveMobileLayout(
 function createResponsiveMobileLandscapeFrame(
   status: HTMLOutputElement,
 ): HTMLElement {
+  const stage = createMobileStage({
+    status,
+    syncState: "local-only",
+    responsive: true,
+  });
+  return createWrappedContextFrame(stage, 640, 320);
+}
+
+function extractResponsiveScene(frame: HTMLElement): HTMLDivElement {
+  const scene = frame.querySelector(".ds-splat-context__scene");
+  if (!(scene instanceof HTMLDivElement)) {
+    throw new Error("Expected responsive context scene");
+  }
+  scene.classList.add("ds-splat-context__scene--responsive-hosted");
+  scene.style.width = "100%";
+  scene.style.height = "100%";
+  return scene;
+}
+
+function resolveResponsiveContextLayout(
+  width: number,
+  height: number,
+): ResponsiveContextLayout {
+  if (width > height && height < MOBILE_SHORT_HEIGHT_PX) {
+    return "mobile-landscape";
+  }
+  if (width >= 580 && height >= 580) {
+    return "desktop";
+  }
+  return "mobile-portrait";
+}
+
+function createResponsiveContextFrame(status: HTMLOutputElement): HTMLElement {
   const frame = el("section.ds-splat-context__frame") as HTMLElement;
-  const stage = el(
-    "div.ds-splat-context__scene ds-splat-context__scene--mobile ds-splat-context__scene--mobile-responsive",
-  ) as HTMLDivElement;
-  stage.style.width = "640px";
-  stage.style.height = "320px";
+  frame.style.width = "960px";
+  frame.style.height = "640px";
+  return createResponsiveContextFrameWithDefaults(frame, status);
+}
 
-  const top = el("div.ds-splat-context__mobile-top") as HTMLDivElement;
-  const topControls = el(
-    "div.ds-splat-context__mobile-top-controls",
-  ) as HTMLDivElement;
-  const inlineToolHost = el(
-    "div.ds-splat-context__mobile-tool-inline-host",
-  ) as HTMLDivElement;
+function createResponsiveContextFrameWithSize(
+  status: HTMLOutputElement,
+  width: number,
+  height: number,
+): HTMLElement {
+  const frame = el("section.ds-splat-context__frame") as HTMLElement;
+  frame.style.width = `${width}px`;
+  frame.style.height = `${height}px`;
+  return createResponsiveContextFrameWithDefaults(frame, status);
+}
 
-  const colors = createColorPickerControl({
-    className: "ds-splat-context__top-picker",
-    status,
-  });
-  const strokes = createStrokePickerControl({
-    className: "ds-splat-context__top-picker",
-    status,
-  });
-  const actionsMenu = createDropdownMenu({
-    triggerKind: "button",
-    triggerLabel: "Menu",
-    triggerIcon: null,
-    menuLabel: "More actions",
-    entries: MOBILE_ACTIONS_MENU_ENTRIES,
-  });
-  actionsMenu.setOnSelect((itemId) => {
-    status.value = `Mobile action: ${itemId}`;
-    status.textContent = status.value;
-    actionsMenu.setOpen(false);
-  });
-  const syncIndicator = createContextSyncIndicator("local-only");
-  const trailingActions = el(
-    "div.ds-splat-context__mobile-trailing-actions",
-    syncIndicator,
-    actionsMenu.el,
-  ) as HTMLDivElement;
+function createResponsiveContextFrameWithDefaults(
+  frame: HTMLElement,
+  status: HTMLOutputElement,
+): HTMLElement {
+  const desktopScene = extractResponsiveScene(createDesktopFrame(status));
+  const mobilePortraitScene = extractResponsiveScene(
+    createMobilePortraitFrame(status),
+  );
+  const mobileLandscapeScene = extractResponsiveScene(
+    createResponsiveMobileLandscapeFrame(status),
+  );
 
-  const inlineSelector = buildGridDemo({
-    items: MOBILE_TOOL_ITEMS,
-    mode: "mobile",
-  });
-  const dropdownSelector = buildGridDemo({
-    items: MOBILE_TOOL_ITEMS,
-    mode: "mobile",
-  });
-  const setActiveTool = (toolId: string): void => {
-    inlineSelector.setActive(toolId);
-    dropdownSelector.setActive(toolId);
-    status.value = `Tool: ${toolId}`;
-    status.textContent = status.value;
-    toolPickerPopover.setOpen(false);
-  };
-  const bindToolPickerSelection = (
-    itemButtons: Map<string, IconButton>,
-  ): void => {
-    for (const item of MOBILE_TOOL_ITEMS) {
-      itemButtons.get(item.id)?.setOnPress(() => {
-        setActiveTool(item.id);
-      });
+  let currentLayout: ResponsiveContextLayout | null = null;
+  let pendingLayoutFrame = 0;
+
+  const syncMobileSceneShareVisibility = (scene: HTMLElement): void => {
+    const shareButton = scene.querySelector(
+      ".ds-splat-context__mobile-trailing-actions > .ds-button",
+    );
+    if (!(shareButton instanceof HTMLButtonElement)) {
+      return;
     }
+    shareButton.hidden =
+      frame.getBoundingClientRect().width < MOBILE_SHARE_THRESHOLD_PX;
   };
-  bindToolPickerSelection(inlineSelector.itemButtons);
-  bindToolPickerSelection(dropdownSelector.itemButtons);
-
-  inlineSelector.grid.el.classList.add(
-    "ds-splat-context__tool-selector",
-    "ds-splat-context__grid-panel",
-    "ds-splat-context__tool-selector--mobile",
-  );
-  dropdownSelector.grid.el.classList.add(
-    "ds-splat-context__tool-selector",
-    "ds-splat-context__tool-selector--mobile",
-    "ds-splat-context__tool-selector--dropdown",
-  );
-  inlineToolHost.append(inlineSelector.grid.el);
-
-  const toolPickerPopover = new ToolPickerPopover();
-  toolPickerPopover.setContent(dropdownSelector.grid.el);
-  setActiveTool("brush");
-
-  topControls.append(
-    colors,
-    strokes,
-    toolPickerPopover.el,
-    trailingActions,
-  );
-  top.append(topControls, inlineToolHost);
-
-  const canvas = el(
-    "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile",
-  ) as HTMLDivElement;
-  canvas.append(
-    el("div.ds-splat-context__paper ds-splat-context__paper--mobile"),
-  );
-
-  const bottom = el("div.ds-splat-context__mobile-bottom") as HTMLDivElement;
-  const variantBar = buildGridDemo({
-    items: BRUSH_VARIANT_ITEMS,
-    mode: "mobile",
-  });
-  variantBar.setActive("pen");
-  variantBar.grid.el.classList.add(
-    "ds-splat-context__variant-strip",
-    "ds-splat-context__variant-bar--mobile",
-  );
-  bottom.append(variantBar.grid.el);
-
-  stage.append(top, canvas, bottom);
 
   const applyLayout = (): void => {
-    const nextLayout = resolveResponsiveMobileLayout(
-      stage.clientWidth,
-      stage.clientHeight,
+    const nextLayout = resolveResponsiveContextLayout(
+      frame.clientWidth,
+      frame.clientHeight,
     );
-    stage.dataset.mobileLayout = nextLayout;
-    if (nextLayout !== "mobile-landscape-short") {
-      toolPickerPopover.setOpen(false);
+    if (nextLayout === currentLayout) {
+      const activeScene = frame.querySelector(".ds-splat-context__scene");
+      if (
+        activeScene instanceof HTMLElement &&
+        nextLayout !== "desktop"
+      ) {
+        syncMobileSceneShareVisibility(activeScene);
+      }
+      return;
     }
-    status.value = `Mobile layout: ${nextLayout}`;
-    status.textContent = status.value;
+
+    currentLayout = nextLayout;
+    frame.dataset.layout = nextLayout;
+    setStoryStatus(status, `Context layout: ${nextLayout}`);
+
+    if (nextLayout === "desktop") {
+      frame.replaceChildren(desktopScene);
+      return;
+    }
+
+    if (nextLayout === "mobile-landscape") {
+      frame.replaceChildren(mobileLandscapeScene);
+      syncMobileSceneShareVisibility(mobileLandscapeScene);
+      return;
+    }
+
+    frame.replaceChildren(mobilePortraitScene);
+    syncMobileSceneShareVisibility(mobilePortraitScene);
+  };
+
+  const scheduleLayout = (): void => {
+    if (pendingLayoutFrame !== 0) {
+      return;
+    }
+    pendingLayoutFrame = requestAnimationFrame(() => {
+      pendingLayoutFrame = 0;
+      applyLayout();
+    });
   };
 
   const resizeObserver = new ResizeObserver(() => {
-    applyLayout();
+    scheduleLayout();
   });
-  resizeObserver.observe(stage);
-  applyLayout();
+  resizeObserver.observe(frame);
+  scheduleLayout();
 
   const resizer = createResizeHandle();
-  frame.append(resizer.wrap(stage));
-  return frame;
+  return resizer.wrap(frame);
+}
+
+function createResponsiveContextStory(options: {
+  id: string;
+  title: string;
+  description: string;
+  statusText: string;
+  defaultWidth: number;
+  defaultHeight: number;
+}): HarnessStory {
+  return {
+    id: options.id,
+    title: options.title,
+    description: options.description,
+    mount: (container) => {
+      const stack = el("div.ds-story-stack") as HTMLDivElement;
+      const status = el(
+        "output.ds-story-output",
+        options.statusText,
+      ) as HTMLOutputElement;
+
+      stack.append(
+        createResponsiveContextFrameWithSize(
+          status,
+          options.defaultWidth,
+          options.defaultHeight,
+        ),
+        status,
+      );
+      container.replaceChildren(stack);
+    },
+  };
 }
 
 export const contextStories: HarnessStory[] = [
-  {
+  createResponsiveContextStory({
+    id: "splat-context",
+    title: "Splat Context",
+    description:
+      "Combined responsive story that switches among the known-good desktop, mobile portrait, and short mobile landscape shells.",
+    statusText:
+      "Resize the frame to move between desktop, mobile portrait, and short landscape behavior.",
+    defaultWidth: 960,
+    defaultHeight: 640,
+  }),
+  createResponsiveContextStory({
     id: "desktop-context",
     title: "Desktop",
     description:
-      "Reference desktop splat shell built from the ported design-system components.",
-    mount: (container) => {
-      const stack = el("div.ds-story-stack") as HTMLDivElement;
-      const status = el(
-        "output.ds-story-output",
-        "Use the scene controls to inspect the desktop shell in context.",
-      ) as HTMLOutputElement;
-
-      stack.append(createDesktopFrame(status), status);
-      container.replaceChildren(stack);
-    },
-  },
-  {
+      "Desktop-sized entry into the shared responsive splat context host.",
+    statusText: "Desktop-sized responsive context host.",
+    defaultWidth: 960,
+    defaultHeight: 640,
+  }),
+  createResponsiveContextStory({
     id: "mobile-portrait",
     title: "Mobile Portrait",
     description:
-      "Reference mobile portrait splat shell built from the ported design-system components.",
-    mount: (container) => {
-      const stack = el("div.ds-story-stack") as HTMLDivElement;
-      const status = el(
-        "output.ds-story-output",
-        "Use the scene controls to inspect the mobile portrait shell in context.",
-      ) as HTMLOutputElement;
-
-      stack.append(createMobilePortraitFrame(status), status);
-      container.replaceChildren(stack);
-    },
-  },
-  {
+      "Mobile portrait-sized entry into the shared responsive splat context host.",
+    statusText: "Mobile portrait-sized responsive context host.",
+    defaultWidth: 384,
+    defaultHeight: 640,
+  }),
+  createResponsiveContextStory({
     id: "mobile-landscape",
     title: "Mobile Landscape",
     description:
-      "Responsive mobile shell story with explicit macro-layout states. In short landscape heights below 360px, the inline tool picker is hidden and moved behind a top-bar dropdown trigger.",
-    mount: (container) => {
-      const stack = el("div.ds-story-stack") as HTMLDivElement;
-      const status = el(
-        "output.ds-story-output",
-        "Resize the frame taller than 360px to return to the standard mobile layout.",
-      ) as HTMLOutputElement;
-      stack.append(createResponsiveMobileLandscapeFrame(status), status);
-      container.replaceChildren(stack);
-    },
-  },
+      "Short mobile landscape-sized entry into the shared responsive splat context host.",
+    statusText: "Short mobile landscape-sized responsive context host.",
+    defaultWidth: 640,
+    defaultHeight: 320,
+  }),
 ];

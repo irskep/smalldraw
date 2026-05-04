@@ -29,10 +29,239 @@ test("renders the Open Props reference story", async ({ page }) => {
 
 test("renders the splat context story", async ({ page }) => {
   await page.goto(testStoryUrl("splat-context"));
-  await expect(page.getByRole("heading", { name: "Splat Context" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Desktop" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Mobile Portrait" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Splat Context" }),
+  ).toBeVisible();
+  await expect(page.locator(".ds-splat-context__scene").first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Menu" }).first()).toBeVisible();
+});
+
+test.describe("Unified context entry stories", () => {
+  test("desktop-context starts in desktop layout", async ({ page }) => {
+    await page.goto(testStoryUrl("desktop-context"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
+    await expect(page.getByRole("heading", { name: "Desktop" })).toBeVisible();
+    await expect(
+      page.locator(".ds-splat-context__scene--desktop").first(),
+    ).toBeVisible();
+  });
+
+  test("mobile-portrait starts in portrait layout", async ({ page }) => {
+    await page.goto(testStoryUrl("mobile-portrait"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
+    await expect(
+      page.getByRole("heading", { name: "Mobile Portrait" }),
+    ).toBeVisible();
+    await expect(
+      page.locator(".ds-splat-context__scene--mobile").first(),
+    ).toBeVisible();
+    await expect(
+      page.locator(".ds-splat-context__scene--mobile-responsive").first(),
+    ).not.toBeVisible();
+  });
+
+  test("mobile-landscape starts in short landscape layout", async ({ page }) => {
+    await page.goto(testStoryUrl("mobile-landscape"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
+    await expect(
+      page.getByRole("heading", { name: "Mobile Landscape" }),
+    ).toBeVisible();
+    const scene = page.locator(".ds-splat-context__scene--mobile-responsive").first();
+    await expect(scene).toBeVisible();
+    await expect(scene).toHaveAttribute(
+      "data-mobile-layout",
+      "mobile-landscape-short",
+    );
+  });
+
+  test("mobile layouts show Share once width reaches 480px", async ({ page }) => {
+    await page.goto(testStoryUrl("mobile-portrait"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
+    const frame = page.locator(".ds-splat-context__frame").first();
+    const shareButton = page.locator(
+      ".ds-splat-context__mobile-trailing-actions > .ds-button",
+    );
+
+    await expect(shareButton).toHaveAttribute("hidden", "");
+
+    await frame.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "480px";
+      target.style.height = "500px";
+    });
+
+    await expect(
+      page.locator(".ds-splat-context__scene--mobile").first(),
+    ).toBeVisible();
+    await expect(shareButton).toBeVisible();
+
+    const shareMetrics = await shareButton.evaluate((element) => {
+      const rect = (element as HTMLElement).getBoundingClientRect();
+      return { width: rect.width, height: rect.height };
+    });
+    expect(shareMetrics.width).toBeGreaterThan(0);
+    expect(shareMetrics.height).toBeGreaterThan(0);
+  });
+
+  test("mobile-portrait bottom toolbar paginates at narrow widths", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("mobile-portrait"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
+    const frame = page.locator(".ds-splat-context__frame").first();
+    await frame.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "260px";
+    });
+
+    const variantStrip = page.locator(".ds-splat-context__variant-strip").first();
+    await variantStrip.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.setProperty("--ds-button-grid-cell-size", "72px");
+    });
+    const next = variantStrip.getByRole("button", { name: "Next page" });
+    await expect(next).toBeVisible();
+    await expect(next).toBeEnabled();
+
+    const overflowMetrics = await variantStrip.evaluate((element) => {
+      const target = element as HTMLElement;
+      return {
+        clientWidth: target.clientWidth,
+        scrollWidth: target.scrollWidth,
+      };
+    });
+    expect(overflowMetrics.scrollWidth).toBeLessThanOrEqual(
+      overflowMetrics.clientWidth,
+    );
+  });
+
+  test("desktop bottom toolbar paginates even with larger button sizes", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("desktop-context"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
+    const frame = page.locator(".ds-splat-context__frame").first();
+    await frame.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "600px";
+      target.style.height = "640px";
+    });
+    const variantStrip = page.locator(".ds-splat-context__variant-strip").first();
+    await variantStrip.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.setProperty("--ds-button-grid-cell-size", "160px");
+    });
+
+    const next = variantStrip.getByRole("button", { name: "Next page" });
+    await expect(next).toBeVisible();
+    await expect(next).toBeEnabled();
+  });
+
+  test("resize handle shows live width and height", async ({ page }) => {
+    await page.goto(testStoryUrl("mobile-portrait"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
+
+    const readout = page.locator(".ds-resize-handle__size").first();
+    await expect(readout).toHaveText("384 x 640");
+
+    const frame = page.locator(".ds-splat-context__frame").first();
+    await frame.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "420px";
+      target.style.height = "520px";
+    });
+
+    await expect(readout).toHaveText("420 x 520");
+  });
+});
+
+test.describe("Combined Splat Context story", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(testStoryUrl("splat-context"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
+    await expect(
+      page.getByRole("heading", { name: "Splat Context", level: 1 }),
+    ).toBeVisible();
+  });
+
+  test("starts in desktop, then switches to mobile portrait and short landscape", async ({
+    page,
+  }) => {
+    const frame = page.locator(".ds-splat-context__frame").first();
+    const scene = page.locator(".ds-splat-context__scene").first();
+
+    await expect(scene).toHaveClass(/ds-splat-context__scene--desktop/);
+
+    await frame.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "384px";
+      target.style.height = "640px";
+    });
+    await expect(scene).toHaveClass(/ds-splat-context__scene--mobile/);
+
+    await frame.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "640px";
+      target.style.height = "320px";
+    });
+    await expect(scene).toHaveAttribute(
+      "data-mobile-layout",
+      "mobile-landscape-short",
+    );
+  });
+
+  test("mobile share stays hidden below 480px in the combined story", async ({
+    page,
+  }) => {
+    const frame = page.locator(".ds-splat-context__frame").first();
+    await frame.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "480px";
+      target.style.height = "500px";
+    });
+
+    const mobileShare = page.locator(
+      ".ds-splat-context__mobile-trailing-actions > .ds-button",
+    );
+    await expect(
+      page.locator(".ds-splat-context__scene--mobile").first(),
+    ).toBeVisible();
+    await expect(mobileShare).toBeVisible();
+
+    await frame.evaluate((element) => {
+      const target = element as HTMLElement;
+      target.style.width = "342px";
+      target.style.height = "467px";
+    });
+
+    await expect(
+      page.locator(".ds-splat-context__scene--mobile").first(),
+    ).toBeVisible();
+    await expect(mobileShare).toHaveAttribute("hidden", "");
+
+    const shareMetrics = await mobileShare.evaluate((element) => {
+      const rect = (element as HTMLElement).getBoundingClientRect();
+      return { width: rect.width, height: rect.height };
+    });
+    expect(shareMetrics.width).toBe(0);
+    expect(shareMetrics.height).toBe(0);
+  });
 });
 
 test.describe("Mobile Landscape story", () => {
@@ -143,6 +372,9 @@ test.describe("Mobile Landscape story", () => {
 test.describe("Splat Context pickers", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(testStoryUrl("splat-context"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
     await expect(page.getByRole("heading", { name: "Splat Context" })).toBeVisible();
   });
 

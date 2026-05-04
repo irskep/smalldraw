@@ -449,6 +449,13 @@ body {
   border: 1px solid var(--gray-4);
   background: var(--kd-surface-viewport);
   color: var(--kd-text-default);
+  min-width: 0;
+}
+
+.ds-splat-context__scene--responsive-hosted {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 .ds-splat-context__scene--desktop {
@@ -477,6 +484,12 @@ body {
   box-sizing: border-box;
   padding: var(--size-2);
   gap: var(--size-2);
+  min-width: 0;
+}
+
+.ds-splat-context__scene--responsive-hosted.ds-splat-context__scene--mobile {
+  width: 100%;
+  height: 100%;
 }
 
 .ds-splat-context__slot--top {
@@ -592,6 +605,7 @@ body {
   grid-area: mobile-top;
   display: grid;
   gap: var(--size-2);
+  min-width: 0;
 }
 
 .ds-splat-context__mobile-top-controls {
@@ -599,6 +613,7 @@ body {
   width: 100%;
   align-items: center;
   gap: var(--size-2);
+  min-width: 0;
 }
 
 .ds-splat-context__mobile-trailing-actions {
@@ -606,6 +621,7 @@ body {
   align-items: center;
   gap: var(--size-2);
   margin-left: auto;
+  min-width: 0;
 }
 
 .ds-splat-context__tool-dropdown {
@@ -636,12 +652,14 @@ body {
   grid-area: mobile-bottom;
   display: grid;
   gap: var(--size-2);
+  min-width: 0;
 }
 
 .ds-splat-context__variant-bar--mobile,
 .ds-splat-context__tool-selector--mobile {
   --ds-button-grid-cell-size: var(--kd-toolbar-cell-size);
   --sq-label-size: var(--kd-toolbar-label-size-sm);
+  min-width: 0;
 }
 
 .ds-splat-context__scene--mobile-responsive[data-mobile-layout="mobile-standard"]
