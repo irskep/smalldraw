@@ -61,7 +61,10 @@ test.describe("Unified context entry stories", () => {
     ).toBeVisible();
     await expect(
       page.locator(".ds-splat-context__scene--mobile-responsive").first(),
-    ).not.toBeVisible();
+    ).toBeVisible();
+    await expect(
+      page.locator(".ds-splat-context__scene--mobile-responsive").first(),
+    ).toHaveAttribute("data-mobile-layout", "mobile-standard");
   });
 
   test("mobile-landscape starts in short landscape layout", async ({ page }) => {
@@ -287,8 +290,9 @@ test.describe("Mobile Landscape story", () => {
   });
 
   test("taller landscape restores inline tool picker", async ({ page }) => {
+    const frame = page.locator(".ds-splat-context__frame").first();
     const scene = page.locator(".ds-splat-context__scene--mobile-responsive");
-    await scene.evaluate((element) => {
+    await frame.evaluate((element) => {
       const target = element as HTMLElement;
       target.style.width = "640px";
       target.style.height = "420px";
@@ -304,8 +308,9 @@ test.describe("Mobile Landscape story", () => {
   test("short landscape hides inline picker and shows dropdown picker", async ({
     page,
   }) => {
+    const frame = page.locator(".ds-splat-context__frame").first();
     const scene = page.locator(".ds-splat-context__scene--mobile-responsive");
-    await scene.evaluate((element) => {
+    await frame.evaluate((element) => {
       const target = element as HTMLElement;
       target.style.width = "640px";
       target.style.height = "320px";
@@ -332,7 +337,7 @@ test.describe("Mobile Landscape story", () => {
       .click();
     await expect(page.getByText("Tool: fill")).toBeVisible();
 
-    await scene.evaluate((element) => {
+    await frame.evaluate((element) => {
       const target = element as HTMLElement;
       target.style.height = "420px";
     });

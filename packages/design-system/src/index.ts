@@ -50,6 +50,12 @@ export {
   type IconButtonSource,
 } from "./view/SquareIconButton";
 export {
+  createSplatContext,
+  SplatContext,
+  type SplatContextOptions,
+  type SplatToolItem,
+} from "./view/SplatContext";
+export {
   createStrokePicker,
   StrokePicker,
   type StrokePickerOptions,
@@ -77,3 +83,11 @@ export {
   type ToolbarOptions,
   type ToolbarOrientation,
 } from "./view/toolbar/Toolbar";
+export {
+  resolveSplatContextLayout,
+  shouldShowMobileShare,
+  type SplatContextLayout,
+  SPLAT_CONTEXT_DESKTOP_THRESHOLD_PX,
+  SPLAT_CONTEXT_SHORT_HEIGHT_THRESHOLD_PX,
+  SPLAT_CONTEXT_MOBILE_SHARE_THRESHOLD_PX,
+} from "./view/splatContextLayout";

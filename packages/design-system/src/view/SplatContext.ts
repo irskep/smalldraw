@@ -26,6 +26,11 @@ import {
   type SyncIndicator,
   type SyncIndicatorState,
 } from "./SyncIndicator";
+import {
+  resolveSplatContextLayout,
+  shouldShowMobileShare,
+  type SplatContextLayout,
+} from "./splatContextLayout";
 import { createToolbar } from "./toolbar/Toolbar";
 
 export interface SplatToolItem extends ButtonGridItemSpec {
@@ -48,11 +53,7 @@ export interface SplatContextOptions {
   status: HTMLOutputElement;
 }
 
-type Layout = "desktop" | "mobile-standard" | "mobile-landscape-short";
-
-const MOBILE_THRESHOLD_PX = 580;
-const MOBILE_SHORT_HEIGHT_PX = 360;
-const MOBILE_SHARE_THRESHOLD_PX = 480;
+type Layout = SplatContextLayout;
 
 class ToolPickerPopover {
   readonly el: HTMLDivElement;
@@ -249,11 +250,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private resolveLayout(width: number, height: number): Layout {
-    if (width >= MOBILE_THRESHOLD_PX && height >= MOBILE_THRESHOLD_PX)
-      return "desktop";
-    if (width > height && height < MOBILE_SHORT_HEIGHT_PX)
-      return "mobile-landscape-short";
-    return "mobile-standard";
+    return resolveSplatContextLayout(width, height);
   }
 
   private scheduleResizeSync(): void {
@@ -296,7 +293,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     if (!this.mobileShareButton) {
       return;
     }
-    this.mobileShareButton.el.hidden = width < MOBILE_SHARE_THRESHOLD_PX;
+    this.mobileShareButton.el.hidden = !shouldShowMobileShare(width);
   }
 
   private createToolGrid(

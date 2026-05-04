@@ -59,6 +59,13 @@ export class ResizeHandle {
     return this.wrapper;
   }
 
+  destroy(): void {
+    this.resizeObserver.disconnect();
+    this.target = null;
+    this.wrapper = null;
+    this.dragging = null;
+  }
+
   private onPointerDown = (e: PointerEvent, axis: Axis): void => {
     if (!this.target) return;
     e.preventDefault();
