@@ -1,52 +1,9 @@
 @import "./ControlTile.css";
 
-.ds-stroke-picker {
-  position: relative;
-  display: inline-flex;
-}
-
-.ds-stroke-picker__popover {
-  position: absolute;
-  top: calc(100% + var(--size-2));
-  left: 0;
-  z-index: 30;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateY(calc(var(--border-size-2) * -1));
-  transform-origin: top left;
-  will-change: transform, opacity;
-  transition:
-    opacity 90ms linear,
-    transform 90ms var(--ease-out-3),
-    visibility 0ms linear 90ms;
-}
-
-.ds-stroke-picker__popover[data-open="true"] {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateY(0);
-  transition:
-    opacity 90ms linear,
-    transform 90ms var(--ease-out-3),
-    visibility 0ms linear 0ms;
-}
-
-.ds-stroke-picker__popover[data-open="false"] {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateY(calc(var(--border-size-2) * -1));
-}
-
 .ds-stroke-picker__panel {
   display: grid;
   gap: var(--size-2);
   padding: var(--size-2);
-  background: var(--gray-0);
-  border: var(--border-size-1) solid var(--gray-9);
-  box-shadow: var(--shadow-4);
 }
 
 .ds-stroke-picker__grid {
@@ -82,12 +39,4 @@
   min-height: var(--border-size-2);
   border-radius: var(--radius-round);
   background: currentColor;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ds-stroke-picker__popover[data-open="true"],
-  .ds-stroke-picker__popover[data-open="false"] {
-    animation: none;
-    transform: none;
-  }
 }

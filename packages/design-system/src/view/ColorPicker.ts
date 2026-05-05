@@ -2,8 +2,8 @@ import "./ColorPicker.css";
 
 import { type IconNode, Palette } from "lucide";
 import { el } from "redom";
-import { AnchoredPopoverController } from "./AnchoredPopoverController";
 import { ColorSwatchGrid } from "./ColorSwatchGrid";
+import { DropdownChrome } from "./DropdownChrome";
 import type { ReDomLike } from "./ReDomLike";
 import { createIconButton, type IconButton } from "./SquareIconButton";
 
@@ -45,22 +45,12 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
   readonly triggerButton: IconButton;
 
-  private readonly popover: HTMLDivElement;
-  private readonly panel: HTMLDivElement;
+  private readonly chrome: DropdownChrome;
   private readonly swatchGrid: ColorSwatchGrid;
-  private readonly popoverController: AnchoredPopoverController;
   private selectedColor = "";
   private selectHandler: ((color: string) => void) | null = null;
-  private isOpen = false;
 
   constructor(options: ColorPickerOptions = {}) {
-    this.el = el("div.ds-color-picker") as HTMLDivElement;
-    for (const className of (options.className ?? "").split(/\s+/)) {
-      if (className) {
-        this.el.classList.add(className);
-      }
-    }
-
     this.triggerButton = createIconButton({
       className: "ds-color-picker__trigger",
       label: options.triggerLabel ?? "Colors",
@@ -72,34 +62,22 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
         ...options.triggerAttributes,
       },
     });
-
-    this.panel = el("div.ds-color-picker__panel", {
-      role: "dialog",
-      "aria-label": options.panelLabel ?? "Color picker",
-    }) as HTMLDivElement;
     this.swatchGrid = new ColorSwatchGrid({
       selectedColor: options.selectedColor ?? options.colors?.[0]?.color ?? "",
     });
-    this.popover = el(
-      "div.ds-color-picker__popover",
-      { "aria-hidden": "true" },
-      this.panel,
-    ) as HTMLDivElement;
-    this.popover.dataset.open = "false";
-    this.popover.hidden = true;
-    this.popoverController = new AnchoredPopoverController({
+    this.chrome = new DropdownChrome({
       trigger: this.triggerButton,
-      root: this.el,
-      popover: this.popover,
-      panel: this.panel,
+      className: ["ds-color-picker", options.className ?? ""].join(" ").trim(),
+      panelClassName: "ds-color-picker__panel",
+      panelRole: "dialog",
+      panelLabel: options.panelLabel ?? "Color picker",
+      align: "start",
       closeOnPointerLeave: true,
-      onOpenChange: (open) => {
-        this.isOpen = open;
-      },
     });
+    this.el = this.chrome.el;
 
     this.triggerButton.setOnPress(() => {
-      this.setOpen(!this.isOpen);
+      this.setOpen(!this.chrome.open);
     });
     this.swatchGrid.setOnSelect((color) => {
       this.setSelectedColor(color);
@@ -107,8 +85,7 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
       this.setOpen(false);
     });
 
-    this.panel.append(this.swatchGrid.el);
-    this.el.append(this.triggerButton.el, this.popover);
+    this.chrome.setContent(this.swatchGrid.el);
     this.setSelectedColor(options.selectedColor ?? options.colors?.[0]?.color ?? "");
     this.setColors(options.colors ?? []);
   }
@@ -126,7 +103,7 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
   }
 
   setOpen(open: boolean): void {
-    this.popoverController.setOpen(open);
+    this.chrome.setOpen(open);
   }
 
   setDisabled(disabled: boolean): void {

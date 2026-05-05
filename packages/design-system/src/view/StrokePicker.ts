@@ -2,7 +2,7 @@ import "./StrokePicker.css";
 
 import { type IconNode, SlidersHorizontal } from "lucide";
 import { el } from "redom";
-import { AnchoredPopoverController } from "./AnchoredPopoverController";
+import { DropdownChrome } from "./DropdownChrome";
 import type { ReDomLike } from "./ReDomLike";
 import { createIconButton, type IconButton } from "./SquareIconButton";
 import { StrokeWidthGrid } from "./StrokeWidthGrid";
@@ -39,22 +39,12 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
   readonly triggerButton: IconButton;
 
-  private readonly popover: HTMLDivElement;
-  private readonly panel: HTMLDivElement;
+  private readonly chrome: DropdownChrome;
   private readonly strokeWidthGrid: StrokeWidthGrid;
-  private readonly popoverController: AnchoredPopoverController;
   private selectedStrokeWidth = 0;
   private selectHandler: ((strokeWidth: number) => void) | null = null;
-  private isOpen = false;
 
   constructor(options: StrokePickerOptions = {}) {
-    this.el = el("div.ds-stroke-picker") as HTMLDivElement;
-    for (const className of (options.className ?? "").split(/\s+/)) {
-      if (className) {
-        this.el.classList.add(className);
-      }
-    }
-
     this.triggerButton = createIconButton({
       className: "ds-stroke-picker__trigger",
       label: options.triggerLabel ?? "Strokes",
@@ -66,35 +56,23 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
         ...options.triggerAttributes,
       },
     });
-
-    this.panel = el("div.ds-stroke-picker__panel", {
-      role: "dialog",
-      "aria-label": options.panelLabel ?? "Stroke picker",
-    }) as HTMLDivElement;
     this.strokeWidthGrid = new StrokeWidthGrid({
       selectedStrokeWidth:
         options.selectedStrokeWidth ?? options.strokeWidths?.[0] ?? 0,
     });
-    this.popover = el(
-      "div.ds-stroke-picker__popover",
-      { "aria-hidden": "true" },
-      this.panel,
-    ) as HTMLDivElement;
-    this.popover.dataset.open = "false";
-    this.popover.hidden = true;
-    this.popoverController = new AnchoredPopoverController({
+    this.chrome = new DropdownChrome({
       trigger: this.triggerButton,
-      root: this.el,
-      popover: this.popover,
-      panel: this.panel,
+      className: ["ds-stroke-picker", options.className ?? ""].join(" ").trim(),
+      panelClassName: "ds-stroke-picker__panel",
+      panelRole: "dialog",
+      panelLabel: options.panelLabel ?? "Stroke picker",
+      align: "start",
       closeOnPointerLeave: true,
-      onOpenChange: (open) => {
-        this.isOpen = open;
-      },
     });
+    this.el = this.chrome.el;
 
     this.triggerButton.setOnPress(() => {
-      this.setOpen(!this.isOpen);
+      this.setOpen(!this.chrome.open);
     });
     this.strokeWidthGrid.setOnSelect((strokeWidth) => {
       this.setSelectedStrokeWidth(strokeWidth);
@@ -102,8 +80,7 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
       this.setOpen(false);
     });
 
-    this.panel.append(this.strokeWidthGrid.el);
-    this.el.append(this.triggerButton.el, this.popover);
+    this.chrome.setContent(this.strokeWidthGrid.el);
     this.setSelectedStrokeWidth(
       options.selectedStrokeWidth ?? options.strokeWidths?.[0] ?? 0,
     );
@@ -123,7 +100,7 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
   }
 
   setOpen(open: boolean): void {
-    this.popoverController.setOpen(open);
+    this.chrome.setOpen(open);
   }
 
   setDisabled(disabled: boolean): void {

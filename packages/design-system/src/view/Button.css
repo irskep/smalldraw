@@ -115,8 +115,9 @@
   grid-area: 1 / 1;
 }
 
-.ds-button__label {
+.ds-button .ds-button__label {
   white-space: nowrap;
+  color: inherit;
 }
 
 .ds-button__reserved-labels[hidden] {
@@ -129,9 +130,10 @@
   pointer-events: none;
 }
 
-.ds-button__reserved-label {
+.ds-button .ds-button__reserved-label {
   grid-area: 1 / 1;
   white-space: nowrap;
+  color: inherit;
 }
 
 .ds-button__dropdown {

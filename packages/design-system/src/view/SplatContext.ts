@@ -1,7 +1,6 @@
 import type { IconNode } from "lucide";
-import { Pen, Redo2, Share2, Undo2 } from "lucide";
+import { Redo2, Share2, Undo2 } from "lucide";
 import { el } from "redom";
-import { AnchoredPopoverController } from "./AnchoredPopoverController";
 import { type Button, createButton } from "./Button";
 import {
   type ColorPicker,
@@ -26,11 +25,9 @@ import {
   type SyncIndicator,
   type SyncIndicatorState,
 } from "./SyncIndicator";
-import {
-  resolveSplatContextLayout,
-  shouldShowMobileShare,
-  type SplatContextLayout,
-} from "./splatContextLayout";
+import type { SplatContextLayout } from "./splatContextLayout";
+import { SplatContextResponsiveController } from "./SplatContextResponsiveController";
+import { ToolPickerPopover } from "./ToolPickerPopover";
 import { createToolbar } from "./toolbar/Toolbar";
 
 export interface SplatToolItem extends ButtonGridItemSpec {
@@ -55,72 +52,13 @@ export interface SplatContextOptions {
 
 type Layout = SplatContextLayout;
 
-class ToolPickerPopover {
-  readonly el: HTMLDivElement;
-  readonly trigger: IconButton;
-
-  private readonly popover: HTMLDivElement;
-  private readonly panel: HTMLDivElement;
-  private readonly controller: AnchoredPopoverController;
-  private isOpen = false;
-
-  constructor() {
-    this.el = el("div.ds-splat-context__tool-dropdown") as HTMLDivElement;
-    this.trigger = createIconButton({
-      className: "ds-splat-context__tool-menu-trigger",
-      label: "Tools",
-      icon: Pen,
-      dropdown: true,
-      attributes: {
-        "aria-haspopup": "dialog",
-        "aria-expanded": "false",
-        title: "Show tools",
-      },
-    });
-    this.panel = el("div.ds-splat-context__tool-dropdown-panel", {
-      role: "dialog",
-      "aria-label": "Tool picker",
-    }) as HTMLDivElement;
-    this.popover = el(
-      "div.ds-splat-context__tool-dropdown-popover",
-      { "aria-hidden": "true" },
-      this.panel,
-    ) as HTMLDivElement;
-    this.popover.dataset.open = "false";
-    this.popover.hidden = true;
-    this.controller = new AnchoredPopoverController({
-      trigger: this.trigger,
-      root: this.el,
-      popover: this.popover,
-      panel: this.panel,
-      closeOnPointerLeave: true,
-      onOpenChange: (open) => {
-        this.isOpen = open;
-      },
-    });
-
-    this.trigger.setOnPress(() => {
-      this.setOpen(!this.isOpen);
-    });
-    this.el.append(this.trigger.el, this.popover);
-  }
-
-  setContent(content: HTMLElement): void {
-    this.panel.replaceChildren(content);
-  }
-
-  setOpen(open: boolean): void {
-    this.controller.setOpen(open);
-  }
-}
-
 export class SplatContext implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
 
   private readonly scene: HTMLDivElement;
   private readonly resizeObserver: ResizeObserver;
+  private readonly responsiveController: SplatContextResponsiveController;
   private pendingResizeFrame: number | null = null;
-  private currentLayout: Layout = "desktop";
 
   private readonly opts: SplatContextOptions;
 
@@ -148,6 +86,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.el = el("div.ds-splat-context__frame") as HTMLDivElement;
     this.scene = el("div.ds-splat-context__scene") as HTMLDivElement;
     this.el.append(this.scene);
+    this.responsiveController = new SplatContextResponsiveController();
 
     this.initSharedComponents();
 
@@ -166,6 +105,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       cancelAnimationFrame(this.pendingResizeFrame);
       this.pendingResizeFrame = null;
     }
+    this.destroyOwnedViews();
   }
 
   setColors(colors: readonly ColorPickerSwatch[]): void {
@@ -192,6 +132,11 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.scheduleResizeSync();
   }
 
+  private setStatus(value: string): void {
+    this.opts.status.value = value;
+    this.opts.status.textContent = value;
+  }
+
   private initSharedComponents(): void {
     this.colorPicker = createColorPicker({
       className: "ds-splat-context__top-picker",
@@ -200,8 +145,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       triggerLabel: "Colors",
     });
     this.colorPicker.setOnSelect((color) => {
-      this.opts.status.value = `Color: ${color}`;
-      this.opts.status.textContent = this.opts.status.value;
+      this.setStatus(`Color: ${color}`);
     });
 
     this.strokePicker = createStrokePicker({
@@ -211,8 +155,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       triggerLabel: "Strokes",
     });
     this.strokePicker.setOnSelect((width) => {
-      this.opts.status.value = `Stroke width: ${width}px`;
-      this.opts.status.textContent = this.opts.status.value;
+      this.setStatus(`Stroke width: ${width}px`);
     });
 
     this.desktopMenu = createDropdownMenu({
@@ -223,8 +166,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       entries: [...this.opts.desktopMenuEntries],
     });
     this.desktopMenu.setOnSelect((itemId) => {
-      this.opts.status.value = `Desktop menu: ${itemId}`;
-      this.opts.status.textContent = this.opts.status.value;
+      this.setStatus(`Desktop menu: ${itemId}`);
       this.desktopMenu.setOpen(false);
     });
 
@@ -236,8 +178,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       entries: [...this.opts.mobileMenuEntries],
     });
     this.mobileMenu.setOnSelect((itemId) => {
-      this.opts.status.value = `Mobile action: ${itemId}`;
-      this.opts.status.textContent = this.opts.status.value;
+      this.setStatus(`Mobile action: ${itemId}`);
       this.mobileMenu.setOpen(false);
       this.mobileToolPicker?.setOpen(false);
     });
@@ -247,10 +188,6 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       kind: "caption",
     });
     this.syncIndicator.el.classList.add("ds-splat-context__sync-indicator");
-  }
-
-  private resolveLayout(width: number, height: number): Layout {
-    return resolveSplatContextLayout(width, height);
   }
 
   private scheduleResizeSync(): void {
@@ -266,34 +203,39 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   private syncResponsiveLayout(): void {
     const rect = this.el.getBoundingClientRect();
-    const nextLayout = this.resolveLayout(rect.width, rect.height);
-    if (nextLayout === this.currentLayout) {
-      this.syncMobileShareVisibility(rect.width);
-      this.toolGrid?.syncLayout();
-      this.mobileToolGrid?.syncLayout();
-      this.mobileDropdownToolGrid?.syncLayout();
-      this.desktopVariantGrid?.syncLayout();
-      this.mobileVariantGrid?.syncLayout();
+    const update = this.responsiveController.update(rect.width, rect.height);
+
+    if (update.effect === "sync-only") {
+      this.syncVisibleResponsiveState();
+      this.syncOwnedGridLayouts();
       return;
     }
 
-    const wasDesktop = this.currentLayout === "desktop";
-    const isDesktop = nextLayout === "desktop";
-    this.currentLayout = nextLayout;
-
-    if (wasDesktop || isDesktop) {
+    if (update.effect === "rebuild") {
       this.rebuild();
     } else {
-      this.scene.dataset.mobileLayout = nextLayout;
-      this.syncMobileShareVisibility(rect.width);
+      this.scene.dataset.mobileLayout = update.layout;
+      this.syncVisibleResponsiveState();
     }
   }
 
-  private syncMobileShareVisibility(width: number): void {
+  private syncVisibleResponsiveState(): void {
+    this.syncMobileShareVisibility(
+      this.responsiveController.getState().showMobileShare,
+    );
+  }
+
+  private syncMobileShareVisibility(showMobileShare: boolean): void {
     if (!this.mobileShareButton) {
       return;
     }
-    this.mobileShareButton.el.hidden = !shouldShowMobileShare(width);
+    this.mobileShareButton.el.hidden = !showMobileShare;
+  }
+
+  private syncOwnedGridLayouts(): void {
+    for (const grid of this.getOwnedGrids()) {
+      grid.syncLayout();
+    }
   }
 
   private createToolGrid(
@@ -320,20 +262,17 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   private selectTool(toolId: string): void {
     this.activeToolId = toolId;
-    this.opts.status.value = `Tool: ${toolId}`;
-    this.opts.status.textContent = this.opts.status.value;
+    this.setStatus(`Tool: ${toolId}`);
     this.syncToolGrids();
     this.mobileToolPicker?.setOpen(false);
   }
 
   private syncToolGrids(): void {
-    const tools = [...this.opts.tools];
-    this.toolGrid?.setItems(tools);
-    this.toolGrid?.setActiveItemId(this.activeToolId);
-    this.mobileToolGrid?.setItems(tools);
-    this.mobileToolGrid?.setActiveItemId(this.activeToolId);
-    this.mobileDropdownToolGrid?.setItems(tools);
-    this.mobileDropdownToolGrid?.setActiveItemId(this.activeToolId);
+    this.syncButtonGridGroup(
+      this.getToolGrids(),
+      this.opts.tools,
+      this.activeToolId,
+    );
   }
 
   private initToolGrids(): void {
@@ -341,13 +280,15 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const tools = [...this.opts.tools];
 
     this.toolGrid = this.createToolGrid(tools, "large", "vertical");
-    this.toolGrid.el.classList.add(
+    this.addClasses(
+      this.toolGrid.el,
       "ds-splat-context__tool-selector",
       "ds-splat-context__grid-panel",
     );
 
     this.mobileToolGrid = this.createToolGrid(tools, "mobile", "horizontal");
-    this.mobileToolGrid.el.classList.add(
+    this.addClasses(
+      this.mobileToolGrid.el,
       "ds-splat-context__tool-selector",
       "ds-splat-context__grid-panel",
       "ds-splat-context__tool-selector--mobile",
@@ -358,7 +299,8 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "mobile",
       "horizontal",
     );
-    this.mobileDropdownToolGrid.el.classList.add(
+    this.addClasses(
+      this.mobileDropdownToolGrid.el,
       "ds-splat-context__tool-selector",
       "ds-splat-context__tool-selector--mobile",
       "ds-splat-context__tool-selector--dropdown",
@@ -397,17 +339,16 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   private selectVariant(variantId: string): void {
     this.activeVariantId = variantId;
-    this.opts.status.value = `Variant: ${variantId}`;
-    this.opts.status.textContent = this.opts.status.value;
+    this.setStatus(`Variant: ${variantId}`);
     this.syncVariantGrids();
   }
 
   private syncVariantGrids(): void {
-    const variants = [...this.opts.variants];
-    this.desktopVariantGrid?.setItems(variants);
-    this.desktopVariantGrid?.setActiveItemId(this.activeVariantId);
-    this.mobileVariantGrid?.setItems(variants);
-    this.mobileVariantGrid?.setActiveItemId(this.activeVariantId);
+    this.syncButtonGridGroup(
+      this.getVariantGrids(),
+      this.opts.variants,
+      this.activeVariantId,
+    );
   }
 
   private initVariantGrids(): void {
@@ -415,13 +356,15 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const variants = [...this.opts.variants];
 
     this.desktopVariantGrid = this.createVariantGrid(variants, "large");
-    this.desktopVariantGrid.el.classList.add(
+    this.addClasses(
+      this.desktopVariantGrid.el,
       "ds-splat-context__variant-strip",
       "ds-splat-context__toolbar-scale-large",
     );
 
     this.mobileVariantGrid = this.createVariantGrid(variants, "mobile");
-    this.mobileVariantGrid.el.classList.add(
+    this.addClasses(
+      this.mobileVariantGrid.el,
       "ds-splat-context__variant-strip",
       "ds-splat-context__variant-bar--mobile",
     );
@@ -430,16 +373,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private rebuild(): void {
+    this.destroyOwnedViews();
     this.scene.replaceChildren();
-    this.toolGrid = undefined;
-    this.mobileToolGrid = undefined;
-    this.mobileDropdownToolGrid = undefined;
-    this.mobileToolPicker = undefined;
-    this.desktopVariantGrid = undefined;
-    this.mobileVariantGrid = undefined;
-    this.mobileShareButton = undefined;
 
-    if (this.currentLayout === "desktop") {
+    if (this.responsiveController.getState().layout === "desktop") {
       this.buildDesktop();
     } else {
       this.buildMobile();
@@ -452,42 +389,80 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.initToolGrids();
     this.initVariantGrids();
 
+    this.scene.append(
+      this.createDesktopTopSlot(),
+      this.createDesktopLeftSlot(),
+      this.createCanvasShell(),
+      this.createDesktopBottomLeftSlot(),
+      this.createDesktopBottomSlot(),
+    );
+  }
+
+  private buildMobile(): void {
+    const { layout } = this.responsiveController.getState();
+
+    this.scene.className =
+      "ds-splat-context__scene ds-splat-context__scene--mobile ds-splat-context__scene--mobile-responsive";
+    this.scene.dataset.mobileLayout = layout;
+    this.initToolGrids();
+    this.initVariantGrids();
+
+    this.scene.append(
+      this.createMobileTopSection(),
+      this.createCanvasShell(true),
+      this.createMobileBottomSection(),
+    );
+    this.syncVisibleResponsiveState();
+  }
+
+  private createDesktopTopSlot(): HTMLDivElement {
     const top = el(
       "div.ds-splat-context__slot ds-splat-context__slot--top",
     ) as HTMLDivElement;
+    top.append(this.createDesktopTopBar().el);
+    return top;
+  }
+
+  private createDesktopTopBar() {
     const topBar = createToolbar({
       className: "ds-splat-context__top-actions",
     });
     const topBarStart = el(
       "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--start",
+      this.colorPicker.el,
+      this.strokePicker.el,
     ) as HTMLDivElement;
-    const topBarHistory = el(
+    const topBarHistory = this.createDesktopHistoryActions();
+    const topBarMenu = this.createDesktopMenuActions();
+
+    topBar.el.append(topBarStart, topBarHistory, topBarMenu);
+    return topBar;
+  }
+
+  private createDesktopHistoryActions(): HTMLDivElement {
+    const history = el(
       "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--history",
     ) as HTMLDivElement;
-    const topBarMenu = el(
-      "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--menu",
-    ) as HTMLDivElement;
-
-    topBarStart.append(this.colorPicker.el, this.strokePicker.el);
-
     const undoButton = this.createActionButton("Undo", Undo2, "Desktop action");
     const redoButton = this.createActionButton("Redo", Redo2, "Desktop action");
-    topBarHistory.append(undoButton.el, redoButton.el);
+    history.append(undoButton.el, redoButton.el);
+    return history;
+  }
 
+  private createDesktopMenuActions(): HTMLDivElement {
+    const actions = el(
+      "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--menu",
+    ) as HTMLDivElement;
     const shareButton = this.createActionButton(
       "Share",
       Share2,
       "Desktop action",
     );
-    topBarMenu.append(
-      this.syncIndicator.el,
-      shareButton.el,
-      this.desktopMenu.el,
-    );
+    actions.append(this.syncIndicator.el, shareButton.el, this.desktopMenu.el);
+    return actions;
+  }
 
-    topBar.el.append(topBarStart, topBarHistory, topBarMenu);
-    top.append(topBar.el);
-
+  private createDesktopLeftSlot(): HTMLDivElement {
     const left = el(
       "div.ds-splat-context__slot ds-splat-context__slot--left",
     ) as HTMLDivElement;
@@ -498,69 +473,135 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const leftControls = el(
       "div.ds-splat-context__left-controls",
     ) as HTMLDivElement;
-    leftRail.el.append(leftControls);
-    leftRail.el.append(this.toolGrid!.el);
+    leftRail.el.append(leftControls, this.toolGrid!.el);
     left.append(leftRail.el);
+    return left;
+  }
 
-    const canvas = el("div.ds-splat-context__canvas-shell") as HTMLDivElement;
-    canvas.append(el("div.ds-splat-context__paper"));
-
-    const bottomLeft = el(
+  private createDesktopBottomLeftSlot(): HTMLDivElement {
+    return el(
       "div.ds-splat-context__slot ds-splat-context__slot--bottom-left",
     ) as HTMLDivElement;
+  }
 
+  private createDesktopBottomSlot(): HTMLDivElement {
     const bottom = el(
       "div.ds-splat-context__slot ds-splat-context__slot--bottom",
     ) as HTMLDivElement;
     bottom.append(this.desktopVariantGrid!.el);
-
-    this.scene.append(top, left, canvas, bottomLeft, bottom);
+    return bottom;
   }
 
-  private buildMobile(): void {
-    this.scene.className =
-      "ds-splat-context__scene ds-splat-context__scene--mobile ds-splat-context__scene--mobile-responsive";
-    this.scene.dataset.mobileLayout = this.currentLayout;
-    this.initToolGrids();
-    this.initVariantGrids();
-
+  private createMobileTopSection(): HTMLDivElement {
     const top = el("div.ds-splat-context__mobile-top") as HTMLDivElement;
+    top.append(
+      this.createMobileTopControls(),
+      this.createMobileInlineToolHost(),
+    );
+    return top;
+  }
+
+  private createMobileTopControls(): HTMLDivElement {
     const topControls = el(
       "div.ds-splat-context__mobile-top-controls",
+      this.colorPicker.el,
+      this.strokePicker.el,
+      this.mobileToolPicker!.el,
+      this.createMobileTrailingActions(),
     ) as HTMLDivElement;
+    return topControls;
+  }
 
+  private createMobileInlineToolHost(): HTMLDivElement {
     const inlineToolHost = el(
       "div.ds-splat-context__mobile-tool-inline-host",
     ) as HTMLDivElement;
     inlineToolHost.append(this.mobileToolGrid!.el);
+    return inlineToolHost;
+  }
 
+  private createMobileTrailingActions(): HTMLDivElement {
     const trailingActions = el(
       "div.ds-splat-context__mobile-trailing-actions",
       this.syncIndicator.el,
     ) as HTMLDivElement;
-    this.mobileShareButton = this.createActionButton("Share", Share2, "Mobile action");
+    this.mobileShareButton = this.createActionButton(
+      "Share",
+      Share2,
+      "Mobile action",
+    );
     trailingActions.append(this.mobileShareButton.el, this.mobileMenu.el);
+    return trailingActions;
+  }
 
-    topControls.append(
-      this.colorPicker.el,
-      this.strokePicker.el,
-      this.mobileToolPicker!.el,
-      trailingActions,
-    );
-    top.append(topControls, inlineToolHost);
-
-    const canvas = el(
-      "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile",
-    ) as HTMLDivElement;
-    canvas.append(
-      el("div.ds-splat-context__paper ds-splat-context__paper--mobile"),
-    );
-
+  private createMobileBottomSection(): HTMLDivElement {
     const bottom = el("div.ds-splat-context__mobile-bottom") as HTMLDivElement;
     bottom.append(this.mobileVariantGrid!.el);
+    return bottom;
+  }
 
-    this.scene.append(top, canvas, bottom);
-    this.syncMobileShareVisibility(this.el.getBoundingClientRect().width);
+  private createCanvasShell(mobile = false): HTMLDivElement {
+    const canvas = el(
+      mobile
+        ? "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile"
+        : "div.ds-splat-context__canvas-shell",
+    ) as HTMLDivElement;
+    canvas.append(
+      el(
+        mobile
+          ? "div.ds-splat-context__paper ds-splat-context__paper--mobile"
+          : "div.ds-splat-context__paper",
+      ),
+    );
+    return canvas;
+  }
+
+  private getToolGrids(): PagedButtonGrid<SplatToolItem>[] {
+    return [
+      this.toolGrid,
+      this.mobileToolGrid,
+      this.mobileDropdownToolGrid,
+    ].filter((grid): grid is PagedButtonGrid<SplatToolItem> => Boolean(grid));
+  }
+
+  private getVariantGrids(): PagedButtonGrid<SplatToolItem>[] {
+    return [this.desktopVariantGrid, this.mobileVariantGrid].filter(
+      (grid): grid is PagedButtonGrid<SplatToolItem> => Boolean(grid),
+    );
+  }
+
+  private getOwnedGrids(): PagedButtonGrid<SplatToolItem>[] {
+    return [...this.getToolGrids(), ...this.getVariantGrids()];
+  }
+
+  private syncButtonGridGroup(
+    grids: PagedButtonGrid<SplatToolItem>[],
+    items: readonly SplatToolItem[],
+    activeItemId: string,
+  ): void {
+    const nextItems = [...items];
+    for (const grid of grids) {
+      grid.setItems(nextItems);
+      grid.setActiveItemId(activeItemId);
+    }
+  }
+
+  private addClasses(element: HTMLElement, ...classNames: string[]): void {
+    element.classList.add(...classNames);
+  }
+
+  private destroyOwnedViews(): void {
+    for (const grid of this.getOwnedGrids()) {
+      grid.destroy();
+    }
+    this.mobileToolPicker?.onunmount();
+    this.toolGrid = undefined;
+    this.mobileToolGrid = undefined;
+    this.mobileDropdownToolGrid = undefined;
+    this.mobileToolPicker = undefined;
+    this.desktopVariantGrid = undefined;
+    this.mobileVariantGrid = undefined;
+    this.mobileShareButton = undefined;
   }
 
   private createActionButton(
@@ -570,8 +611,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   ): Button {
     const button = createButton({ label, icon });
     button.setOnPress(() => {
-      this.opts.status.value = `${statusPrefix}: ${label}`;
-      this.opts.status.textContent = this.opts.status.value;
+      this.setStatus(`${statusPrefix}: ${label}`);
     });
     return button;
   }

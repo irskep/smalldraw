@@ -5,6 +5,11 @@ export {
   createButton,
 } from "./view/Button";
 export {
+  createDropdownChrome,
+  DropdownChrome,
+  type DropdownChromeOptions,
+} from "./view/DropdownChrome";
+export {
   createDropdownMenu,
   DropdownMenu,
   type DropdownMenuEntry,
@@ -72,6 +77,11 @@ export {
   type TextOptions,
   type TextTone,
 } from "./view/Text";
+export {
+  createToolPickerPopover,
+  ToolPickerPopover,
+  type ToolPickerPopoverOptions,
+} from "./view/ToolPickerPopover";
 export {
   createTypographicIcon,
   TypographicIcon,

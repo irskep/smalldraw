@@ -153,6 +153,31 @@ export class AnchoredPopoverController {
     window.removeEventListener("scroll", this.windowScrollHandler, true);
   }
 
+  destroy(): void {
+    if (this.pendingAnimationFrame !== null) {
+      cancelAnimationFrame(this.pendingAnimationFrame);
+      this.pendingAnimationFrame = null;
+    }
+    if (this.isOpen) {
+      this.setOpen(false);
+      return;
+    }
+    this.panel.style.removeProperty("max-height");
+    document.removeEventListener(
+      "pointerdown",
+      this.documentPointerDownHandler,
+      true,
+    );
+    document.removeEventListener(
+      "pointermove",
+      this.documentPointerMoveHandler,
+      true,
+    );
+    document.removeEventListener("keydown", this.documentKeyDownHandler, true);
+    window.removeEventListener("resize", this.windowResizeHandler);
+    window.removeEventListener("scroll", this.windowScrollHandler, true);
+  }
+
   private updatePanelViewportConstraints(): void {
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
     let constraintBottom =

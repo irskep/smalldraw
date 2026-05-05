@@ -2,11 +2,8 @@ import "./DropdownMenu.css";
 
 import { type IconNode } from "lucide";
 import { el, setChildren } from "redom";
-import {
-  AnchoredPopoverController,
-  type AnchoredPopoverTrigger,
-} from "./AnchoredPopoverController";
 import { createButton, type Button } from "./Button";
+import { DropdownChrome } from "./DropdownChrome";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
 import { createIconButton, type IconButton } from "./SquareIconButton";
@@ -92,15 +89,12 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
   readonly triggerButton: DropdownTriggerButton;
 
-  private readonly popover: HTMLDivElement;
+  private readonly chrome: DropdownChrome;
   private readonly panel: HTMLDivElement;
   private readonly itemViewById = new Map<string, DropdownMenuItemView>();
-  private readonly popoverController: AnchoredPopoverController;
   private selectHandler: ((itemId: string) => void) | null = null;
-  private isOpen = false;
 
   constructor(options: DropdownMenuOptions) {
-    this.el = el("div.ds-dropdown-menu") as HTMLDivElement;
     const triggerAttributes = {
       "aria-haspopup": "menu",
       "aria-expanded": "false",
@@ -121,34 +115,21 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
             dropdown: true,
             attributes: triggerAttributes,
           });
-    this.panel = el("div.ds-dropdown-menu__panel", {
-      role: "menu",
-      "aria-label": options.menuLabel ?? "Actions",
-    }) as HTMLDivElement;
-    this.popover = el(
-      "div.ds-dropdown-menu__popover",
-      {
-        "aria-hidden": "true",
-      },
-      this.panel,
-    ) as HTMLDivElement;
-    this.popover.dataset.open = "false";
-    this.popover.hidden = true;
-    this.popoverController = new AnchoredPopoverController({
-      trigger: this.triggerButton as AnchoredPopoverTrigger,
-      root: this.el,
-      popover: this.popover,
-      panel: this.panel,
+    this.chrome = new DropdownChrome({
+      trigger: this.triggerButton,
+      className: "ds-dropdown-menu",
+      panelClassName: "ds-dropdown-menu__panel",
+      panelRole: "menu",
+      panelLabel: options.menuLabel ?? "Actions",
+      align: "end",
       closeOnPointerLeave: true,
-      onOpenChange: (open) => {
-        this.isOpen = open;
-      },
     });
+    this.el = this.chrome.el;
+    this.panel = this.chrome.panel;
 
     this.triggerButton.setOnPress(() => {
-      this.setOpen(!this.isOpen);
+      this.setOpen(!this.chrome.open);
     });
-    this.el.append(this.triggerButton.el, this.popover);
 
     if (options.entries) {
       this.setEntries(options.entries);
@@ -156,7 +137,7 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
   }
 
   setOpen(open: boolean): void {
-    this.popoverController.setOpen(open);
+    this.chrome.setOpen(open);
   }
 
   setEntries(entries: DropdownMenuEntry[]): void {

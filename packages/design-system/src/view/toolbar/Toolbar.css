@@ -6,6 +6,10 @@
   border: none;
 }
 
+.ds-toolbar[hidden] {
+  display: none;
+}
+
 .ds-toolbar[data-orientation="vertical"] {
   flex-direction: column;
 }

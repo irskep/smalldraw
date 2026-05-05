@@ -190,6 +190,53 @@ test.describe("Unified context entry stories", () => {
 
     await expect(readout).toHaveText("420 x 520");
   });
+
+  test("shared context control hosts with hidden state have no layout presence", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("desktop-context"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
+    });
+
+    const metrics = await page.evaluate(() => {
+      const selectors = [
+        ".ds-color-picker",
+        ".ds-stroke-picker",
+        ".ds-dropdown-menu",
+        ".ds-sync-indicator",
+        ".ds-toolbar",
+      ] as const;
+
+      return selectors.map((selector) => {
+        const element = document.querySelector(selector) as HTMLElement | null;
+        if (!element) {
+          throw new Error(`Missing element for selector: ${selector}`);
+        }
+
+        const before = element.getBoundingClientRect();
+        element.hidden = true;
+        const after = element.getBoundingClientRect();
+
+        return {
+          selector,
+          beforeWidth: before.width,
+          beforeHeight: before.height,
+          afterWidth: after.width,
+          afterHeight: after.height,
+          display: window.getComputedStyle(element).display,
+        };
+      });
+    });
+
+    for (const metric of metrics) {
+      expect(metric.beforeWidth).toBeGreaterThan(0);
+      expect(metric.beforeHeight).toBeGreaterThan(0);
+      expect(metric.afterWidth).toBe(0);
+      expect(metric.afterHeight).toBe(0);
+      expect(metric.display).toBe("none");
+    }
+  });
 });
 
 test.describe("Combined Splat Context story", () => {
@@ -403,6 +450,41 @@ test.describe("Splat Context pickers", () => {
     await expect(panel).toBeVisible();
     await page.mouse.move(4, 4);
     await expect(panel).toBeHidden();
+  });
+});
+
+test.describe("Typography stories", () => {
+  test("typographic icons with hidden state have no layout presence", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("text"));
+
+    const metrics = await page.evaluate(() => {
+      const element = document.querySelector(
+        ".ds-typographic-icon",
+      ) as HTMLElement | null;
+      if (!element) {
+        throw new Error("Missing typographic icon specimen");
+      }
+
+      const before = element.getBoundingClientRect();
+      element.hidden = true;
+      const after = element.getBoundingClientRect();
+
+      return {
+        beforeWidth: before.width,
+        beforeHeight: before.height,
+        afterWidth: after.width,
+        afterHeight: after.height,
+        display: window.getComputedStyle(element).display,
+      };
+    });
+
+    expect(metrics.beforeWidth).toBeGreaterThan(0);
+    expect(metrics.beforeHeight).toBeGreaterThan(0);
+    expect(metrics.afterWidth).toBe(0);
+    expect(metrics.afterHeight).toBe(0);
+    expect(metrics.display).toBe("none");
   });
 });
 
@@ -761,6 +843,23 @@ test.describe("Button", () => {
     const deleteWithIcon = page.getByRole("button", { name: "Delete" }).nth(1);
     await expect(deleteWithIcon).toBeVisible();
     await expect(deleteWithIcon.locator("svg")).toBeVisible();
+  });
+
+  test("primary and danger button labels inherit white text", async ({
+    page,
+  }) => {
+    const primary = page.getByRole("button", { name: "Save" }).first();
+    const danger = page.getByRole("button", { name: "Delete" }).first();
+
+    const colors = await Promise.all(
+      [primary, danger].map((button) =>
+        button.locator(".ds-button__label").evaluate((element) =>
+          window.getComputedStyle(element).color,
+        ),
+      ),
+    );
+
+    expect(colors).toEqual(["rgb(255, 255, 255)", "rgb(255, 255, 255)"]);
   });
 
   test("disabled buttons are not interactive", async ({ page }) => {
