@@ -16,7 +16,10 @@ export class ColorSwatchGrid implements ReDomLike<HTMLDivElement> {
   private selectHandler: ((color: string) => void) | null = null;
 
   constructor(options: ColorSwatchGridOptions = {}) {
-    this.el = el("div.ds-color-picker__grid") as HTMLDivElement;
+    this.el = el("div.ds-color-picker__grid", {
+      role: "radiogroup",
+      "aria-label": "Stroke colors",
+    }) as HTMLDivElement;
     this.selectedColor = options.selectedColor ?? "";
     this.setColors(options.colors ?? []);
   }
@@ -30,7 +33,11 @@ export class ColorSwatchGrid implements ReDomLike<HTMLDivElement> {
           type: "button",
           title: swatch.label ?? color,
           "aria-label": swatch.label ?? color,
+          role: "radio",
+          "aria-checked": color === this.selectedColor ? "true" : "false",
           "data-selected": color === this.selectedColor ? "true" : "false",
+          "data-setting": "stroke-color",
+          "data-color": color.toLowerCase(),
           style: `--ds-color-picker-swatch-color:${color};`,
           onclick: () => {
             this.setSelectedColor(color);
@@ -51,6 +58,7 @@ export class ColorSwatchGrid implements ReDomLike<HTMLDivElement> {
         swatch.style.getPropertyValue("--ds-color-picker-swatch-color") === color;
       if (swatch instanceof HTMLElement) {
         swatch.dataset.selected = selected ? "true" : "false";
+        swatch.setAttribute("aria-checked", selected ? "true" : "false");
       }
     }
   }

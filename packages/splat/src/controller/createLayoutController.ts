@@ -1,29 +1,21 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
 import { isLayoutDebugEnabled } from "../config/devFlags";
-import { resolveMobileActionsPopoverPosition } from "../layout/mobileActionsPopoverPosition";
 import {
   applyResponsiveLayout,
-  getViewportPaddingForProfile,
   normalizePixelRatio,
-  type ResponsiveLayoutMode,
   type ResponsiveLayoutProfile,
   resolveLayoutProfile,
   resolveLogicalSizeFromViewportArea,
 } from "../layout/responsiveLayout";
 import type { RasterPipeline } from "../render/createRasterPipeline";
-import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import type { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
-import type { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
+import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { RenderLoopController } from "./createRenderLoopController";
 import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 
-export const DEFAULT_MOBILE_ACTIONS_MENU_GAP_PX = 8;
-export const DEFAULT_MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX = 8;
-
 export type LayoutControllerDependencies = {
   stage: KidsDrawStage;
-  toolbar: KidsDrawToolbarView;
+  toolbar: KidsDrawToolbar;
   resolvePageSize: () => { width: number; height: number };
   getSize: () => { width: number; height: number };
   setSize: (size: DrawingDocumentSize) => void;
@@ -39,13 +31,6 @@ export type LayoutControllerDependencies = {
     | "scheduleResizeBake"
     | "setTilePixelRatio"
   >;
-  mobilePortraitActionsView: MobilePortraitActionsView;
-  toolbarUiStore: Pick<
-    ToolbarUiStore,
-    "get" | "setMobileTopPanel" | "setMobileActionsOpen"
-  >;
-  mobileActionsMenuGapPx?: number;
-  mobileActionsMenuViewportPaddingPx?: number;
 };
 
 export class LayoutController {
@@ -81,40 +66,7 @@ export class LayoutController {
   }
 
   applyToolbarLayoutProfile(profile: ResponsiveLayoutProfile): void {
-    const { stage, toolbar } = this.options;
-    const mode = this.resolveModeForProfile(profile);
-    stage.setViewportLayout({
-      profile,
-    });
-    toolbar.setGridMode(mode);
-
-    if (profile === "mobile-portrait") {
-      this.syncMobilePortraitTopPanel();
-      const mobileActionsOpen =
-        this.options.toolbarUiStore.get().mobileActionsOpen;
-      toolbar.mountMobilePortraitLayout({
-        topSlot: stage.insetTopSlot,
-        bottomSlot: stage.insetBottomSlot,
-        mobilePortraitActionsView: this.options.mobilePortraitActionsView,
-        actionsOpen: mobileActionsOpen,
-      });
-      stage.clearSideInsetSlots();
-      toolbar.syncLayout();
-      this.positionMobilePortraitActionsPopover();
-      return;
-    }
-
-    this.options.toolbarUiStore.setMobileActionsOpen(false);
-    this.options.toolbarUiStore.setMobileTopPanel("colors");
-    this.options.mobilePortraitActionsView.unmountMobileLayout();
-    toolbar.showDesktopTopPanels();
-    toolbar.mountDesktopLayout({
-      topSlot: stage.insetTopSlot,
-      leftSlot: stage.insetLeftSlot,
-      rightSlot: stage.insetRightSlot,
-      bottomSlot: stage.insetBottomSlot,
-    });
-    toolbar.syncLayout();
+    this.options.toolbar.syncLayout();
   }
 
   syncLayoutProfile(): void {
@@ -135,35 +87,6 @@ export class LayoutController {
       nextProfile: this.currentLayoutProfile,
     });
     this.applyToolbarLayoutProfile(this.currentLayoutProfile);
-  }
-
-  positionMobilePortraitActionsPopover(): void {
-    if (
-      this.currentLayoutProfile !== "mobile-portrait" ||
-      !this.options.toolbarUiStore.get().mobileActionsOpen
-    ) {
-      return;
-    }
-    const triggerRect =
-      this.options.mobilePortraitActionsView.getActionsTriggerRect();
-    const popoverRect =
-      this.options.mobilePortraitActionsView.getActionsPopoverRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const viewportPaddingPx =
-      this.options.mobileActionsMenuViewportPaddingPx ??
-      DEFAULT_MOBILE_ACTIONS_MENU_VIEWPORT_PADDING_PX;
-    const gapPx =
-      this.options.mobileActionsMenuGapPx ?? DEFAULT_MOBILE_ACTIONS_MENU_GAP_PX;
-    const { left, top } = resolveMobileActionsPopoverPosition({
-      triggerRect,
-      popoverRect,
-      viewportWidth,
-      viewportHeight,
-      viewportPaddingPx,
-      gapPx,
-    });
-    this.options.mobilePortraitActionsView.setPopoverPosition(left, top);
   }
 
   resolveImplicitDocumentSizeFromViewport(): {
@@ -232,35 +155,18 @@ export class LayoutController {
     }
   }
 
-  private resolveModeForProfile(
-    profile: ResponsiveLayoutProfile,
-  ): ResponsiveLayoutMode {
-    if (profile === "large") {
-      return "large";
-    }
-    if (profile === "medium") {
-      return "medium";
-    }
-    return "mobile";
-  }
-
-  private getMobilePortraitTopPanel(): "colors" | "strokes" {
-    return this.options.toolbarUiStore.get().mobileTopPanel;
-  }
-
-  private syncMobilePortraitTopPanel(): void {
-    const panel = this.getMobilePortraitTopPanel();
-    this.options.toolbar.setMobileTopPanel(panel);
-    this.options.mobilePortraitActionsView.setTopPanel(panel);
-  }
-
   private getViewportPadding(): {
     top: number;
     right: number;
     bottom: number;
     left: number;
   } {
-    return getViewportPaddingForProfile(this.currentLayoutProfile);
+    return {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    };
   }
 
   private scheduleAnimationFrame(callback: FrameRequestCallback): number {
@@ -358,7 +264,7 @@ export class LayoutController {
       reason: params.reason,
       previousProfile: params.previousProfile,
       nextProfile: params.nextProfile,
-      mode: this.resolveModeForProfile(params.nextProfile),
+      mode: "embedded",
       orientation:
         window.innerHeight > window.innerWidth ? "portrait" : "landscape",
       innerWidth: window.innerWidth,

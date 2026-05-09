@@ -10,8 +10,8 @@
   border-radius: var(--radius-3);
   padding: 0;
   width: min(460px, calc(100vw - var(--size-px-7)));
-  background: var(--kd-surface-canvas);
-  color: var(--kd-text-default);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
   box-shadow: var(--shadow-6);
   pointer-events: auto;
   opacity: 0;

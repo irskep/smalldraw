@@ -10,11 +10,18 @@
   --ds-control-bg-active: var(--ds-control-tile-bg-active);
   --ds-control-tile-color: var(--gray-8);
 
+  appearance: none;
+  -webkit-appearance: none;
   box-sizing: border-box;
+  margin: 0;
   border: var(--ds-control-tile-border-width) solid var(--ds-control-tile-border);
   border-radius: var(--radius-2);
   background: var(--ds-control-tile-bg);
   color: var(--ds-control-tile-color);
+  box-shadow: none;
+  filter: none;
+  text-shadow: none;
+  transform: none;
   cursor: var(--ds-cursor-interactive-hover);
   transition:
     background-color 120ms var(--ease-out-3),

@@ -16,8 +16,6 @@ export interface ToolbarUiState {
   supportsTransparentFillColor: boolean;
   newDrawingPending: boolean;
   sharePending: boolean;
-  mobileTopPanel: "colors" | "strokes";
-  mobileActionsOpen: boolean;
 }
 
 export const UI_STATE_STORAGE_KEY_PREFIX = "kids-draw:ui-state:v1";
@@ -44,8 +42,6 @@ const DEFAULT_STATE: ToolbarUiState = {
   supportsTransparentFillColor: false,
   newDrawingPending: false,
   sharePending: false,
-  mobileTopPanel: "colors",
-  mobileActionsOpen: false,
 };
 
 export interface ToolbarUiStore {
@@ -62,8 +58,6 @@ export interface ToolbarUiStore {
   setStyleUi(strokeColor: string, fillColor: string, strokeWidth: number): void;
   setNewDrawingPending(newDrawingPending: boolean): void;
   setSharePending(sharePending: boolean): void;
-  setMobileTopPanel(panel: "colors" | "strokes"): void;
-  setMobileActionsOpen(open: boolean): void;
 }
 
 export function createToolbarUiStore(): ToolbarUiStore {
@@ -136,20 +130,6 @@ export function createToolbarUiStore(): ToolbarUiStore {
       }
       state.set({ ...current, sharePending });
     },
-    setMobileTopPanel(panel): void {
-      const current = state.get();
-      if (current.mobileTopPanel === panel) {
-        return;
-      }
-      state.set({ ...current, mobileTopPanel: panel });
-    },
-    setMobileActionsOpen(open): void {
-      const current = state.get();
-      if (current.mobileActionsOpen === open) {
-        return;
-      }
-      state.set({ ...current, mobileActionsOpen: open });
-    },
   };
 }
 
@@ -218,8 +198,6 @@ function isEqual(a: ToolbarUiState, b: ToolbarUiState): boolean {
     a.supportsTransparentStrokeColor === b.supportsTransparentStrokeColor &&
     a.supportsTransparentFillColor === b.supportsTransparentFillColor &&
     a.newDrawingPending === b.newDrawingPending &&
-    a.sharePending === b.sharePending &&
-    a.mobileTopPanel === b.mobileTopPanel &&
-    a.mobileActionsOpen === b.mobileActionsOpen
+    a.sharePending === b.sharePending
   );
 }

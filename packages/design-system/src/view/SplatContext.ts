@@ -17,6 +17,7 @@ import type { ReDomLike } from "./ReDomLike";
 import {
   createIconButton,
   type IconButton,
+  type IconButtonLayout,
   type IconButtonSource,
 } from "./SquareIconButton";
 import { createStrokePicker, type StrokePicker } from "./StrokePicker";
@@ -29,10 +30,12 @@ import type { SplatContextLayout } from "./splatContextLayout";
 import { SplatContextResponsiveController } from "./SplatContextResponsiveController";
 import { ToolPickerPopover } from "./ToolPickerPopover";
 import { createToolbar } from "./toolbar/Toolbar";
+import type { PagedButtonGridLargeLayout } from "./PagedButtonGrid";
 
 export interface SplatToolItem extends ButtonGridItemSpec {
   label: string;
   icon: IconButtonSource;
+  attributes?: Record<string, string>;
 }
 
 export interface SplatContextOptions {
@@ -48,6 +51,14 @@ export interface SplatContextOptions {
   mobileMenuEntries: readonly DropdownMenuEntry[];
   syncState: SyncIndicatorState;
   status: HTMLOutputElement;
+  variantLargeLayout?: PagedButtonGridLargeLayout;
+  paginateVariantsInLarge?: boolean;
+  variantButtonLayout?: IconButtonLayout;
+  onSelectTool?: (toolId: string) => void;
+  onSelectVariant?: (variantId: string) => void;
+  onSelectColor?: (color: string) => void;
+  onSelectStrokeWidth?: (strokeWidth: number) => void;
+  onSelectAction?: (actionId: string) => void;
 }
 
 type Layout = SplatContextLayout;
@@ -61,13 +72,23 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private pendingResizeFrame: number | null = null;
 
   private readonly opts: SplatContextOptions;
+  private readonly toolItems: SplatToolItem[];
+  private readonly variantItems: SplatToolItem[];
 
   private colorPicker!: ColorPicker;
   private strokePicker!: StrokePicker;
   private desktopMenu!: DropdownMenu;
   private mobileMenu!: DropdownMenu;
   private syncIndicator!: SyncIndicator;
+  private desktopUndoButton?: Button;
+  private desktopRedoButton?: Button;
+  private desktopShareButton?: Button;
   private mobileShareButton?: Button;
+  private canvasHost?: HTMLDivElement;
+  private canvasContent: HTMLElement | null = null;
+  private variantLargeLayout: PagedButtonGridLargeLayout;
+  private paginateVariantsInLarge: boolean;
+  private variantButtonLayout: IconButtonLayout;
 
   private activeToolId = "";
 
@@ -83,6 +104,13 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   constructor(options: SplatContextOptions) {
     this.opts = options;
+    this.toolItems = [...options.tools];
+    this.variantItems = [...options.variants];
+    this.activeToolId = options.activeToolId;
+    this.activeVariantId = options.activeVariantId;
+    this.variantLargeLayout = options.variantLargeLayout ?? "single-row";
+    this.paginateVariantsInLarge = options.paginateVariantsInLarge ?? false;
+    this.variantButtonLayout = options.variantButtonLayout ?? "large";
     this.el = el("div.ds-splat-context__frame") as HTMLDivElement;
     this.scene = el("div.ds-splat-context__scene") as HTMLDivElement;
     this.el.append(this.scene);
@@ -102,7 +130,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   onunmount(): void {
     this.resizeObserver.disconnect();
     if (this.pendingResizeFrame !== null) {
-      cancelAnimationFrame(this.pendingResizeFrame);
+      this.cancelAnimationFrame(this.pendingResizeFrame);
       this.pendingResizeFrame = null;
     }
     this.destroyOwnedViews();
@@ -124,8 +152,77 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.strokePicker.setSelectedStrokeWidth(width);
   }
 
+  setColorPickerDisabled(disabled: boolean): void {
+    this.colorPicker.setDisabled(disabled);
+  }
+
+  setStrokePickerDisabled(disabled: boolean): void {
+    this.strokePicker.setDisabled(disabled);
+  }
+
   setSyncState(state: SyncIndicatorState): void {
     this.syncIndicator.setState(state);
+  }
+
+  setTools(tools: readonly SplatToolItem[]): void {
+    this.toolItems.splice(0, this.toolItems.length, ...tools);
+    this.syncToolGrids();
+  }
+
+  setActiveToolId(toolId: string): void {
+    this.activeToolId = toolId;
+    this.syncToolGrids();
+  }
+
+  setVariants(variants: readonly SplatToolItem[]): void {
+    this.variantItems.splice(0, this.variantItems.length, ...variants);
+    this.syncVariantGrids();
+  }
+
+  setActiveVariantId(variantId: string): void {
+    this.activeVariantId = variantId;
+    this.syncVariantGrids();
+  }
+
+  setVariantGridPresentation(options: {
+    largeLayout: PagedButtonGridLargeLayout;
+    paginateInLarge: boolean;
+    buttonLayout: IconButtonLayout;
+  }): void {
+    if (
+      options.largeLayout === this.variantLargeLayout &&
+      options.paginateInLarge === this.paginateVariantsInLarge &&
+      options.buttonLayout === this.variantButtonLayout
+    ) {
+      return;
+    }
+    this.variantLargeLayout = options.largeLayout;
+    this.paginateVariantsInLarge = options.paginateInLarge;
+    this.variantButtonLayout = options.buttonLayout;
+    this.rebuild();
+    this.scheduleResizeSync();
+  }
+
+  setActionDisabled(actionId: string, disabled: boolean): void {
+    switch (actionId) {
+      case "undo":
+        this.desktopUndoButton?.setDisabled(disabled);
+        break;
+      case "redo":
+        this.desktopRedoButton?.setDisabled(disabled);
+        break;
+      case "share":
+        this.desktopShareButton?.setDisabled(disabled);
+        this.mobileShareButton?.setDisabled(disabled);
+        break;
+    }
+    this.desktopMenu.setItemDisabled(actionId, disabled);
+    this.mobileMenu.setItemDisabled(actionId, disabled);
+  }
+
+  setCanvasContent(content: HTMLElement | null): void {
+    this.canvasContent = content;
+    this.syncCanvasContent();
   }
 
   syncLayout(): void {
@@ -146,6 +243,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     });
     this.colorPicker.setOnSelect((color) => {
       this.setStatus(`Color: ${color}`);
+      this.opts.onSelectColor?.(color);
     });
 
     this.strokePicker = createStrokePicker({
@@ -156,6 +254,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     });
     this.strokePicker.setOnSelect((width) => {
       this.setStatus(`Stroke width: ${width}px`);
+      this.opts.onSelectStrokeWidth?.(width);
     });
 
     this.desktopMenu = createDropdownMenu({
@@ -168,6 +267,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.desktopMenu.setOnSelect((itemId) => {
       this.setStatus(`Desktop menu: ${itemId}`);
       this.desktopMenu.setOpen(false);
+      this.opts.onSelectAction?.(itemId);
     });
 
     this.mobileMenu = createDropdownMenu({
@@ -181,6 +281,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.setStatus(`Mobile action: ${itemId}`);
       this.mobileMenu.setOpen(false);
       this.mobileToolPicker?.setOpen(false);
+      this.opts.onSelectAction?.(itemId);
     });
 
     this.syncIndicator = createSyncIndicator({
@@ -195,7 +296,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       return;
     }
 
-    this.pendingResizeFrame = requestAnimationFrame(() => {
+    this.pendingResizeFrame = this.requestAnimationFrame(() => {
       this.pendingResizeFrame = null;
       this.syncResponsiveLayout();
     });
@@ -250,6 +351,9 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       largeLayout,
       createItemComponent: (item) => {
         const btn = createIconButton({ label: item.label, icon: item.icon });
+        for (const [name, value] of Object.entries(item.attributes ?? {})) {
+          btn.el.setAttribute(name, value);
+        }
         btn.setOnPress(() => this.selectTool(item.id));
         return btn;
       },
@@ -265,25 +369,26 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.setStatus(`Tool: ${toolId}`);
     this.syncToolGrids();
     this.mobileToolPicker?.setOpen(false);
+    this.opts.onSelectTool?.(toolId);
   }
 
   private syncToolGrids(): void {
     this.syncButtonGridGroup(
       this.getToolGrids(),
-      this.opts.tools,
+      this.toolItems,
       this.activeToolId,
     );
   }
 
   private initToolGrids(): void {
-    this.activeToolId = this.opts.activeToolId;
-    const tools = [...this.opts.tools];
+    const tools = [...this.toolItems];
 
     this.toolGrid = this.createToolGrid(tools, "large", "vertical");
     this.addClasses(
       this.toolGrid.el,
       "ds-splat-context__tool-selector",
       "ds-splat-context__grid-panel",
+      "kids-draw-tool-selector",
     );
 
     this.mobileToolGrid = this.createToolGrid(tools, "mobile", "horizontal");
@@ -292,6 +397,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "ds-splat-context__tool-selector",
       "ds-splat-context__grid-panel",
       "ds-splat-context__tool-selector--mobile",
+      "kids-draw-tool-selector",
     );
 
     this.mobileDropdownToolGrid = this.createToolGrid(
@@ -304,6 +410,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "ds-splat-context__tool-selector",
       "ds-splat-context__tool-selector--mobile",
       "ds-splat-context__tool-selector--dropdown",
+      "kids-draw-tool-selector",
     );
 
     this.mobileToolPicker = new ToolPickerPopover();
@@ -319,14 +426,18 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     return new PagedButtonGrid<SplatToolItem>({
       initialMode: mode,
       orientation: "horizontal",
-      largeLayout: "single-row",
-      paginateInLarge: mode === "large",
+      largeLayout: this.variantLargeLayout,
+      paginateInLarge: mode === "large" && this.paginateVariantsInLarge,
       createItemComponent: (item) => {
         const btn = createIconButton({
           label: item.label,
           icon: item.icon,
-          layout: mode === "large" ? "large" : undefined,
+          layout:
+            mode === "large" ? this.variantButtonLayout : undefined,
         });
+        for (const [name, value] of Object.entries(item.attributes ?? {})) {
+          btn.el.setAttribute(name, value);
+        }
         btn.setOnPress(() => this.selectVariant(item.id));
         return btn;
       },
@@ -341,33 +452,44 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.activeVariantId = variantId;
     this.setStatus(`Variant: ${variantId}`);
     this.syncVariantGrids();
+    this.opts.onSelectVariant?.(variantId);
   }
 
   private syncVariantGrids(): void {
     this.syncButtonGridGroup(
       this.getVariantGrids(),
-      this.opts.variants,
+      this.variantItems,
       this.activeVariantId,
     );
   }
 
   private initVariantGrids(): void {
-    this.activeVariantId = this.opts.activeVariantId;
-    const variants = [...this.opts.variants];
+    const variants = [...this.variantItems];
 
     this.desktopVariantGrid = this.createVariantGrid(variants, "large");
     this.addClasses(
       this.desktopVariantGrid.el,
       "ds-splat-context__variant-strip",
-      "ds-splat-context__toolbar-scale-large",
+      "kids-draw-toolbar-bottom",
     );
+    this.desktopVariantGrid.el.setAttribute(
+      "data-button-layout",
+      this.variantButtonLayout,
+    );
+    if (this.variantButtonLayout === "large") {
+      this.desktopVariantGrid.el.classList.add(
+        "ds-splat-context__toolbar-scale-large",
+      );
+    }
 
     this.mobileVariantGrid = this.createVariantGrid(variants, "mobile");
     this.addClasses(
       this.mobileVariantGrid.el,
       "ds-splat-context__variant-strip",
       "ds-splat-context__variant-bar--mobile",
+      "kids-draw-toolbar-bottom",
     );
+    this.mobileVariantGrid.el.setAttribute("data-button-layout", "small");
 
     this.syncVariantGrids();
   }
@@ -443,9 +565,19 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const history = el(
       "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--history",
     ) as HTMLDivElement;
-    const undoButton = this.createActionButton("Undo", Undo2, "Desktop action");
-    const redoButton = this.createActionButton("Redo", Redo2, "Desktop action");
-    history.append(undoButton.el, redoButton.el);
+    this.desktopUndoButton = this.createActionButton(
+      "Undo",
+      Undo2,
+      "Desktop action",
+      "undo",
+    );
+    this.desktopRedoButton = this.createActionButton(
+      "Redo",
+      Redo2,
+      "Desktop action",
+      "redo",
+    );
+    history.append(this.desktopUndoButton.el, this.desktopRedoButton.el);
     return history;
   }
 
@@ -453,12 +585,17 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const actions = el(
       "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--menu",
     ) as HTMLDivElement;
-    const shareButton = this.createActionButton(
+    this.desktopShareButton = this.createActionButton(
       "Share",
       Share2,
       "Desktop action",
+      "share",
     );
-    actions.append(this.syncIndicator.el, shareButton.el, this.desktopMenu.el);
+    actions.append(
+      this.syncIndicator.el,
+      this.desktopShareButton.el,
+      this.desktopMenu.el,
+    );
     return actions;
   }
 
@@ -529,6 +666,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "Share",
       Share2,
       "Mobile action",
+      "share",
     );
     trailingActions.append(this.mobileShareButton.el, this.mobileMenu.el);
     return trailingActions;
@@ -546,13 +684,9 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
         ? "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile"
         : "div.ds-splat-context__canvas-shell",
     ) as HTMLDivElement;
-    canvas.append(
-      el(
-        mobile
-          ? "div.ds-splat-context__paper ds-splat-context__paper--mobile"
-          : "div.ds-splat-context__paper",
-      ),
-    );
+    this.canvasHost = el("div.ds-splat-context__canvas-host") as HTMLDivElement;
+    canvas.append(this.canvasHost);
+    this.syncCanvasContent(mobile);
     return canvas;
   }
 
@@ -601,19 +735,55 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.mobileToolPicker = undefined;
     this.desktopVariantGrid = undefined;
     this.mobileVariantGrid = undefined;
+    this.desktopUndoButton = undefined;
+    this.desktopRedoButton = undefined;
+    this.desktopShareButton = undefined;
     this.mobileShareButton = undefined;
+    this.canvasHost = undefined;
   }
 
   private createActionButton(
     label: string,
     icon: IconNode,
     statusPrefix: string,
+    actionId: string,
   ): Button {
     const button = createButton({ label, icon });
+    button.el.setAttribute("data-action", actionId);
     button.setOnPress(() => {
       this.setStatus(`${statusPrefix}: ${label}`);
+      this.opts.onSelectAction?.(actionId);
     });
     return button;
+  }
+
+  private syncCanvasContent(mobile = false): void {
+    if (!this.canvasHost) {
+      return;
+    }
+    this.canvasHost.replaceChildren(
+      this.canvasContent ??
+        el(
+          mobile
+            ? "div.ds-splat-context__paper ds-splat-context__paper--mobile"
+            : "div.ds-splat-context__paper",
+        ),
+    );
+  }
+
+  private requestAnimationFrame(callback: FrameRequestCallback): number {
+    if (typeof globalThis.requestAnimationFrame === "function") {
+      return globalThis.requestAnimationFrame(callback);
+    }
+    return setTimeout(() => callback(Date.now()), 16) as unknown as number;
+  }
+
+  private cancelAnimationFrame(handle: number): void {
+    if (typeof globalThis.cancelAnimationFrame === "function") {
+      globalThis.cancelAnimationFrame(handle);
+      return;
+    }
+    clearTimeout(handle);
   }
 }
 

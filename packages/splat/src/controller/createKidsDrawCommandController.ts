@@ -38,10 +38,7 @@ export interface KidsDrawCommandController {
 
 export function createKidsDrawCommandController(options: {
   store: Pick<DrawingStore, "undo" | "redo" | "applyAction" | "getDocument">;
-  toolbarUiStore: Pick<
-    ToolbarUiStore,
-    "setMobileActionsOpen" | "setNewDrawingPending" | "setSharePending"
-  >;
+  toolbarUiStore: Pick<ToolbarUiStore, "setNewDrawingPending" | "setSharePending">;
   snapshotService: Pick<SnapshotService, "createPngExport">;
   getSize: () => { width: number; height: number };
   openDocumentPicker: () => Promise<void>;
@@ -61,10 +58,6 @@ export function createKidsDrawCommandController(options: {
   let newDrawingRequestId = 0;
   let shareRequestId = 0;
   let clearCounter = 0;
-
-  const closeMobilePortraitActions = (): void => {
-    options.toolbarUiStore.setMobileActionsOpen(false);
-  };
 
   const newDrawing = async (): Promise<void> => {
     const requestId = ++newDrawingRequestId;
@@ -205,11 +198,9 @@ export function createKidsDrawCommandController(options: {
   return {
     undo(): void {
       options.store.undo();
-      closeMobilePortraitActions();
     },
     redo(): void {
       options.store.redo();
-      closeMobilePortraitActions();
     },
     clear(): void {
       void (async () => {
@@ -235,24 +226,19 @@ export function createKidsDrawCommandController(options: {
             style: {},
           }),
         );
-        closeMobilePortraitActions();
       })();
     },
     exportAndClose(): void {
       void exportDrawing();
-      closeMobilePortraitActions();
     },
     newDrawingAndClose(): void {
       void newDrawing();
-      closeMobilePortraitActions();
     },
     browseAndClose(): void {
       void options.openDocumentPicker();
-      closeMobilePortraitActions();
     },
     shareAndClose(): void {
       void shareCurrentDocument();
-      closeMobilePortraitActions();
     },
     destroy(): void {
       newDrawingRequestId += 1;

@@ -32,7 +32,7 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
     this.labelText = new Text({
       tag: "span",
       kind: "caption",
-      className: "ds-icon-button__label",
+      className: "ds-icon-button__label kids-square-icon-button__label",
     });
     this.dropdownElement = el(
       "span.ds-icon-button__dropdown",
@@ -86,7 +86,7 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
 
   setIcon(icon: IconButtonSource): void {
     if ("kind" in icon) {
-      const image = el("img.ds-icon-button__icon-image", {
+      const image = el("img.ds-icon-button__icon-image kids-square-icon-button__icon-image", {
         src: icon.src,
         alt: "",
         loading: "lazy",

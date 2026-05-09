@@ -33,7 +33,7 @@
   gap: var(--size-2);
   padding: var(--size-3);
   border-radius: var(--radius-4);
-  background: var(--kd-surface-canvas);
+  background: var(--ds-surface);
   box-shadow: var(--shadow-6);
 }
 
@@ -55,7 +55,7 @@
   margin: 0;
   text-align: center;
   font-size: var(--font-size-3);
-  color: var(--kd-text-strong);
+  color: var(--ds-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -100,13 +100,13 @@
 .kids-draw-document-browser__empty {
   grid-column: 1 / -1;
   margin: var(--size-2) 0 0;
-  color: var(--kd-text-default);
+  color: var(--ds-text-muted);
 }
 
 .kids-draw-document-browser__loading {
   grid-column: 1 / -1;
   margin: var(--size-2) 0 0;
-  color: var(--kd-text-default);
+  color: var(--ds-text-muted);
 }
 
 .kids-draw-document-tile {
@@ -296,7 +296,7 @@
   gap: var(--size-3);
   padding: var(--size-3);
   border-radius: var(--radius-4);
-  background: var(--kd-surface-canvas);
+  background: var(--ds-surface);
   box-shadow: var(--shadow-6);
 }
 
@@ -311,7 +311,7 @@
   margin: 0;
   text-align: center;
   font-size: var(--font-size-4);
-  color: var(--kd-text-strong);
+  color: var(--ds-ink);
 }
 
 .kids-draw-new-document__subtitle {
@@ -421,7 +421,7 @@
 .kids-draw-new-document-choice__title {
   margin: 0;
   font-weight: 700;
-  color: var(--kd-text-strong);
+  color: var(--ds-ink);
 }
 
 .kids-draw-new-document-choice__subtitle {

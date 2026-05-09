@@ -8,10 +8,6 @@ import type { KidsDrawUiIntent } from "./KidsDrawUiIntent";
 
 export function createKidsDrawUiIntentController(options: {
   runtime: {
-    toolbarUiStore: Pick<
-      ToolbarUiStore,
-      "get" | "setMobileTopPanel" | "setMobileActionsOpen"
-    >;
     drawingStore: Pick<DrawingStore, "updateSharedSettings">;
     toolbarStateController: Pick<
       ToolbarStateController,
@@ -40,7 +36,6 @@ export function createKidsDrawUiIntentController(options: {
     newDrawing: () => void;
     browse: () => void;
     share: () => void;
-    positionMobilePortraitActionsPopover: () => void;
     closeDocumentPicker: () => void;
   };
 }) {
@@ -64,14 +59,6 @@ export function createKidsDrawUiIntentController(options: {
         return;
       case "redo":
         options.commands.redo();
-        return;
-      case "toggle_mobile_actions":
-        options.runtime.toolbarUiStore.setMobileActionsOpen(
-          !options.runtime.toolbarUiStore.get().mobileActionsOpen,
-        );
-        return;
-      case "set_mobile_top_panel":
-        options.runtime.toolbarUiStore.setMobileTopPanel(intent.panel);
         return;
       case "clear":
         options.commands.clear();
@@ -129,12 +116,6 @@ export function createKidsDrawUiIntentController(options: {
         return;
       case "force_cancel_pointer_session":
         options.runtime.inputSessionController.forceCancelPointerSession();
-        return;
-      case "close_mobile_actions":
-        options.runtime.toolbarUiStore.setMobileActionsOpen(false);
-        return;
-      case "position_mobile_actions_popover":
-        options.commands.positionMobilePortraitActionsPopover();
         return;
       case "close_document_picker":
         options.commands.closeDocumentPicker();

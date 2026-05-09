@@ -130,7 +130,10 @@ test.describe("Unified context entry stories", () => {
     const variantStrip = page.locator(".ds-splat-context__variant-strip").first();
     await variantStrip.evaluate((element) => {
       const target = element as HTMLElement;
-      target.style.setProperty("--ds-button-grid-cell-size", "72px");
+      target.style.setProperty(
+        "--ds-splat-context-toolbar-cell-size",
+        "72px",
+      );
     });
     const next = variantStrip.getByRole("button", { name: "Next page" });
     await expect(next).toBeVisible();
@@ -164,12 +167,57 @@ test.describe("Unified context entry stories", () => {
     const variantStrip = page.locator(".ds-splat-context__variant-strip").first();
     await variantStrip.evaluate((element) => {
       const target = element as HTMLElement;
-      target.style.setProperty("--ds-button-grid-cell-size", "160px");
+      target.style.setProperty(
+        "--ds-splat-context-toolbar-bottom-cell-size",
+        "160px",
+      );
+    });
+    const metrics = await variantStrip.evaluate((element) => {
+      const target = element as HTMLElement;
+      const buttonGrid = target as HTMLElement;
+      return {
+        width: target.getBoundingClientRect().width,
+        scrollWidth: target.scrollWidth,
+        largeLayout: buttonGrid.getAttribute("data-large-layout"),
+        paginateLarge: buttonGrid.getAttribute("data-paginate-large"),
+      };
+    });
+    expect(metrics.largeLayout).toBe("single-row");
+    expect(metrics.paginateLarge).toBe("false");
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.width);
+  });
+
+  test("desktop bottom row height stays constant across brush and stamp families", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("desktop-context"));
+    await page.evaluate(() => {
+      document.querySelector("bun-hmr")?.remove();
     });
 
-    const next = variantStrip.getByRole("button", { name: "Next page" });
-    await expect(next).toBeVisible();
-    await expect(next).toBeEnabled();
+    const clickTool = async (label: string) => {
+      await page
+        .locator(".kids-draw-tool-selector")
+        .getByRole("button", { name: label })
+        .click();
+    };
+    const measureBottomSlotHeight = async () =>
+      page.locator(".ds-splat-context__slot--bottom").evaluate((element) => {
+        return (element as HTMLElement).getBoundingClientRect().height;
+      });
+
+    await clickTool("Brush");
+    const brushHeight = await measureBottomSlotHeight();
+
+    await clickTool("Letters");
+    const lettersHeight = await measureBottomSlotHeight();
+
+    await clickTool("Stamps");
+    const stampsHeight = await measureBottomSlotHeight();
+
+    expect(brushHeight).toBe(96);
+    expect(lettersHeight).toBe(96);
+    expect(stampsHeight).toBe(96);
   });
 
   test("resize handle shows live width and height", async ({ page }) => {
@@ -589,6 +637,9 @@ test.describe("Grid: Mode Switching", () => {
   });
 
   test("switching to medium mode still paginates", async ({ page }) => {
+    await page.locator(".button-grid").evaluate((element) => {
+      (element as HTMLElement).style.width = "260px";
+    });
     await page.getByRole("button", { name: "medium" }).click();
     await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
   });
@@ -842,7 +893,7 @@ test.describe("Button", () => {
     // Buttons with icons should have visible SVG elements
     const deleteWithIcon = page.getByRole("button", { name: "Delete" }).nth(1);
     await expect(deleteWithIcon).toBeVisible();
-    await expect(deleteWithIcon.locator("svg")).toBeVisible();
+    await expect(deleteWithIcon.locator("svg").first()).toBeVisible();
   });
 
   test("primary and danger button labels inherit white text", async ({

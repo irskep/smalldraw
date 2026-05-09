@@ -1,4 +1,9 @@
+import "@smalldraw/design-system/styles.css";
 import type { DocumentId } from "@automerge/automerge-repo";
+import {
+  createModalDialogView as createDesignSystemModalDialogView,
+  createShareQrDialog as createDesignSystemShareQrDialog,
+} from "@smalldraw/design-system";
 import {
   createSmalldraw,
   type DrawingDocumentSize,
@@ -37,10 +42,14 @@ import {
 import { warmImageStampAssets } from "../tools/stamps/imageStampAssets";
 import { getImageStampAssets } from "../tools/stamps/imageStampCatalog";
 import { createToolbarUiStore } from "../ui/stores/toolbarUiStore";
+import { DesignSystemKidsDrawToolbarView } from "../designSystem/DesignSystemKidsDrawToolbar";
 import { KidsDrawStageView } from "../view/KidsDrawStage";
-import { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
-import { createModalDialogView } from "../view/ModalDialog";
-import { createShareQrDialog } from "../view/ShareQrDialog";
+import {
+  type KidsDrawToolbar,
+} from "../view/KidsDrawToolbar";
+import {
+  type ShareQrDialog,
+} from "../view/ShareQrDialog";
 import {
   createMultiplayerApiClient,
   type MultiplayerApiClient,
@@ -54,6 +63,19 @@ import type {
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 600;
+
+type ConfirmDialogViewLike = {
+  readonly el: HTMLDivElement;
+  showConfirm(input: {
+    title: string;
+    message: string;
+    confirmLabel: string;
+    cancelLabel?: string;
+    tone?: "default" | "danger";
+    icon?: import("lucide").IconNode;
+  }): Promise<boolean>;
+  onunmount(): void;
+};
 
 export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
@@ -318,11 +340,12 @@ export async function createKidsDrawApp(
   const backgroundColor = options.backgroundColor ?? "#ffffff";
 
   const element = el("div.kids-draw-app") as HTMLDivElement;
+  element.dataset.runtimeVariant = "design-system";
 
   const catalog = createKidsToolCatalog(shapeRendererRegistry);
   const uiIntentStore = createUiIntentStore();
 
-  const toolbar = new KidsDrawToolbarView({
+  const toolbar: KidsDrawToolbar = new DesignSystemKidsDrawToolbarView({
     tools: catalog.tools,
     families: catalog.families,
     sidebarItems: catalog.sidebarItems,
@@ -334,8 +357,8 @@ export async function createKidsDrawApp(
     backgroundColor,
     uiIntentStore,
   });
-  const modalDialog = createModalDialogView();
-  const shareQrDialog = createShareQrDialog();
+  const modalDialog: ConfirmDialogViewLike = createDesignSystemModalDialogView();
+  const shareQrDialog: ShareQrDialog = createDesignSystemShareQrDialog();
 
   const uploadAccountThumbnail = async (
     summary: KidsDocumentSummary | null,
@@ -374,13 +397,8 @@ export async function createKidsDrawApp(
     }
   };
 
-  mount(element, stage.element);
-  toolbar.mountDesktopLayout({
-    topSlot: stage.insetTopSlot,
-    leftSlot: stage.insetLeftSlot,
-    rightSlot: stage.insetRightSlot,
-    bottomSlot: stage.insetBottomSlot,
-  });
+  toolbar.setCanvasContent(stage.element);
+  mount(element, toolbar.el);
   mount(element, modalDialog.el);
   mount(element, shareQrDialog.el);
   mount(options.container, element);

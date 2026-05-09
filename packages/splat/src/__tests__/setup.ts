@@ -18,6 +18,13 @@ const { document } = windowInstance;
 (globalThis as any).sessionStorage = windowInstance.sessionStorage;
 (globalThis as any).PointerEvent =
   (windowInstance as any).PointerEvent ?? windowInstance.MouseEvent;
+(globalThis as any).ResizeObserver =
+  (windowInstance as any).ResizeObserver ??
+  class ResizeObserver {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  };
 
 const contextStub: Partial<CanvasRenderingContext2D> = {
   canvas: {} as HTMLCanvasElement,

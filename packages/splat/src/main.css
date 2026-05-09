@@ -1,44 +1,5 @@
-@import "open-props/open-props.min.css";
-@import "open-props/normalize.light.min.css";
-@import "open-props/buttons.light.min.css";
-@import "open-props/animations.min.css";
-@import "open-props/easings.min.css";
-
 :root {
   color-scheme: light;
-  --kd-font-family: var(--font-sans);
-  --kd-safe-area-top: env(safe-area-inset-top, 0px);
-  --kd-safe-area-right: env(safe-area-inset-right, 0px);
-  --kd-safe-area-bottom: env(safe-area-inset-bottom, 0px);
-  --kd-safe-area-left: env(safe-area-inset-left, 0px);
-
-  --kd-surface-app: color-mix(in oklch, white 96%, var(--yellow-1));
-  --kd-surface-viewport: color-mix(in oklch, white 92%, var(--yellow-1));
-  --kd-surface-canvas: var(--gray-0);
-  --kd-surface-ui-chrome: var(--yellow-0);
-  --kd-surface-toolbar: var(--kd-surface-ui-chrome);
-  --kd-surface-toolbar-panel: var(--kd-surface-ui-chrome);
-  --kd-surface-button: var(--yellow-1);
-  --kd-surface-button-selected: var(--amber-5);
-  --kd-surface-input: var(--yellow-1);
-
-  --kd-text-default: var(--gray-8);
-  --kd-text-strong: var(--gray-10);
-
-  --kd-shadow-toolbar:
-    0 2px 6px color-mix(in oklch, var(--gray-9) 12%, transparent),
-    0 1px 0 color-mix(in oklch, var(--gray-7) 14%, white);
-  --kd-shadow-frame:
-    0 2px 8px color-mix(in oklch, var(--gray-9) 18%, transparent),
-    0 0 0 1px color-mix(in oklch, var(--gray-7) 18%, white);
-
-  --kd-toolbar-cell-size: 50px;
-  --kd-toolbar-bottom-cell-size: clamp(72px, 20vw, 100px);
-  --kd-toolbar-palette-cell-size: 52px;
-  --kd-toolbar-label-size-sm: 10px;
-  --kd-toolbar-label-size-md: 11px;
-  --kd-toolbar-label-size-lg: 12px;
-  --kd-toolbar-stroke-preview-width: 30px;
 }
 
 html,
@@ -58,9 +19,9 @@ body {
 
 body {
   margin: 0;
-  background: var(--kd-surface-app);
-  color: var(--kd-text-default);
-  font-family: var(--kd-font-family);
+  background: var(--ds-surface-muted);
+  color: var(--ds-ink);
+  font-family: var(--ds-font-sans);
   touch-action: none;
 }
 
@@ -71,27 +32,7 @@ body {
   height: 100%;
   min-height: 100svh;
   min-height: 100dvh;
-  font-family: var(--kd-font-family);
+  font-family: var(--ds-font-sans);
   box-sizing: border-box;
-  background: var(--kd-surface-app);
-}
-
-.kd-button-unstyled {
-  appearance: none;
-  -webkit-appearance: none;
-  border: 0;
-  box-shadow: none;
-  filter: none;
-  transform: none;
-  text-shadow: none;
-}
-
-.kd-button-unstyled:hover:not(:disabled),
-.kd-button-unstyled:focus-visible,
-.kd-button-unstyled:active:not(:disabled),
-.kd-button-unstyled:disabled {
-  box-shadow: none;
-  filter: none;
-  transform: none;
-  text-shadow: none;
+  background: var(--ds-surface-muted);
 }

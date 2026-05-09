@@ -17,7 +17,7 @@ import {
   type PersistedKidsUiStateV1,
   type ToolbarUiStore,
 } from "../ui/stores/toolbarUiStore";
-import { STROKE_WIDTH_OPTIONS } from "../view/KidsDrawToolbar";
+import { TOOLBAR_STROKE_WIDTH_OPTIONS } from "../ui/toolbarPresentation";
 
 export type ToolbarStatePolicy = {
   opaqueStrokeColor: string;
@@ -38,9 +38,9 @@ export const DEFAULT_TOOLBAR_STATE_POLICY: ToolbarStatePolicy = {
 };
 
 function getNearestStrokeWidthOption(strokeWidth: number): number {
-  let nearest: number = STROKE_WIDTH_OPTIONS[0];
+  let nearest: number = TOOLBAR_STROKE_WIDTH_OPTIONS[0];
   let nearestDelta = Math.abs(strokeWidth - nearest);
-  for (const option of STROKE_WIDTH_OPTIONS) {
+  for (const option of TOOLBAR_STROKE_WIDTH_OPTIONS) {
     const delta = Math.abs(strokeWidth - option);
     if (delta < nearestDelta) {
       nearest = option;

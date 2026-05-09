@@ -15,7 +15,10 @@ export class StrokeWidthGrid implements ReDomLike<HTMLDivElement> {
   private selectHandler: ((strokeWidth: number) => void) | null = null;
 
   constructor(options: StrokeWidthGridOptions = {}) {
-    this.el = el("div.ds-stroke-picker__grid") as HTMLDivElement;
+    this.el = el("div.ds-stroke-picker__grid", {
+      role: "radiogroup",
+      "aria-label": "Stroke widths",
+    }) as HTMLDivElement;
     this.selectedStrokeWidth = options.selectedStrokeWidth ?? 0;
     this.setStrokeWidths(options.strokeWidths ?? []);
   }
@@ -29,8 +32,13 @@ export class StrokeWidthGrid implements ReDomLike<HTMLDivElement> {
           type: "button",
           title: `${strokeWidth}px brush`,
           "aria-label": `${strokeWidth}px brush`,
+          role: "radio",
+          "aria-checked":
+            strokeWidth === this.selectedStrokeWidth ? "true" : "false",
           "data-selected":
             strokeWidth === this.selectedStrokeWidth ? "true" : "false",
+          "data-setting": "stroke-width",
+          "data-size": `${strokeWidth}`,
           onclick: () => {
             this.setSelectedStrokeWidth(strokeWidth);
             this.selectHandler?.(strokeWidth);
@@ -57,6 +65,10 @@ export class StrokeWidthGrid implements ReDomLike<HTMLDivElement> {
         button.getAttribute("aria-label") === `${strokeWidth}px brush`
           ? "true"
           : "false";
+      button.setAttribute(
+        "aria-checked",
+        button.dataset.selected === "true" ? "true" : "false",
+      );
     }
   }
 

@@ -48,8 +48,6 @@ export function createKidsDrawInteractionRuntime(options: {
     "isOpen" | "openCreateDialog"
   >;
   scheduleResponsiveLayout: () => void;
-  positionMobilePortraitActionsPopover: () => void;
-  applyToolbarLayoutProfile: () => void;
   debugLifecycle: (...args: unknown[]) => void;
   onShareError?: (message: string) => void;
 }) {
@@ -72,27 +70,8 @@ export function createKidsDrawInteractionRuntime(options: {
     onShareError: options.onShareError,
   });
 
-  let lastMobileTopPanel = options.toolbarUiStore.get().mobileTopPanel;
-  let lastMobileActionsOpen = options.toolbarUiStore.get().mobileActionsOpen;
-  const unbindMobileLayoutState = options.toolbarUiStore.subscribe((state) => {
-    const topPanelChanged = state.mobileTopPanel !== lastMobileTopPanel;
-    const actionsOpenChanged =
-      state.mobileActionsOpen !== lastMobileActionsOpen;
-    if (!topPanelChanged && !actionsOpenChanged) {
-      return;
-    }
-    lastMobileTopPanel = state.mobileTopPanel;
-    lastMobileActionsOpen = state.mobileActionsOpen;
-    options.applyToolbarLayoutProfile();
-    if (state.mobileActionsOpen) {
-      options.positionMobilePortraitActionsPopover();
-    }
-  });
-  options.lifecycle.add(unbindMobileLayoutState);
-
   const uiIntentController = createKidsDrawUiIntentController({
     runtime: {
-      toolbarUiStore: options.toolbarUiStore,
       drawingStore: options.store,
       toolbarStateController: options.toolbarStateController,
       inputSessionController: options.inputSessionController,
@@ -107,8 +86,6 @@ export function createKidsDrawInteractionRuntime(options: {
       newDrawing: commandController.newDrawingAndClose,
       browse: commandController.browseAndClose,
       share: commandController.shareAndClose,
-      positionMobilePortraitActionsPopover:
-        options.positionMobilePortraitActionsPopover,
       closeDocumentPicker,
     },
   });

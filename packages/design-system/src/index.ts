@@ -43,6 +43,7 @@ export {
 export {
   type ButtonGridItemSpec,
   PagedButtonGrid,
+  type PagedButtonGridLargeLayout,
 } from "./view/PagedButtonGrid";
 export type { ReDomLike } from "./view/ReDomLike";
 export { renderIcon } from "./view/renderIcon";

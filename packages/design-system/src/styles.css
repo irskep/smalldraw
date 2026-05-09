@@ -435,28 +435,38 @@ body {
 .ds-splat-context__frame {
   display: grid;
   gap: var(--size-3);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  justify-self: stretch;
 }
 
 .ds-splat-context__scene {
-  --kd-surface-app: var(--gray-1);
-  --kd-surface-viewport: var(--gray-1);
-  --kd-surface-toolbar-panel: var(--gray-1);
-  --kd-surface-button: var(--gray-1);
-  --kd-surface-button-selected: var(--amber-5);
-  --kd-text-default: var(--gray-8);
-  --kd-text-strong: var(--gray-10);
-  --kd-toolbar-label-size-sm: var(--font-size-toolbar-sm);
-  --kd-toolbar-label-size-md: var(--font-size-toolbar-md);
-  --kd-toolbar-label-size-lg: var(--font-size-toolbar-lg);
-  --kd-toolbar-cell-size: var(--size-px-44x);
-  --kd-toolbar-bottom-cell-size: var(--size-px-88x);
-  --kd-toolbar-palette-cell-size: var(--size-px-40x);
+  --ds-splat-context-surface-app: var(--gray-1);
+  --ds-splat-context-surface-viewport: var(--gray-1);
+  --ds-splat-context-surface-toolbar-panel: var(--gray-1);
+  --ds-splat-context-surface-button: var(--gray-1);
+  --ds-splat-context-surface-button-selected: var(--amber-5);
+  --ds-splat-context-text-default: var(--gray-8);
+  --ds-splat-context-text-strong: var(--gray-10);
+  --ds-splat-context-toolbar-label-size-sm: var(--font-size-toolbar-sm);
+  --ds-splat-context-toolbar-label-size-md: var(--font-size-toolbar-md);
+  --ds-splat-context-toolbar-label-size-lg: var(--font-size-toolbar-lg);
+  --ds-splat-context-toolbar-cell-size: var(--size-px-44x);
+  --ds-splat-context-toolbar-bottom-cell-size: var(--size-px-88x);
+  --ds-splat-context-toolbar-palette-cell-size: var(--size-px-40x);
+  --ds-splat-context-desktop-bottom-row-size: max(
+    var(--ds-splat-context-toolbar-bottom-cell-size),
+    calc(var(--ds-splat-context-toolbar-cell-size) * 2 + var(--size-2))
+  );
 
   position: relative;
   overflow: hidden;
   border: 1px solid var(--gray-4);
-  background: var(--kd-surface-viewport);
-  color: var(--kd-text-default);
+  background: var(--ds-splat-context-surface-viewport);
+  color: var(--ds-splat-context-text-default);
   min-width: 0;
 }
 
@@ -473,11 +483,13 @@ body {
     "left canvas"
     "bottom-left bottom";
   grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr var(--ds-splat-context-desktop-bottom-row-size);
   row-gap: var(--size-2);
   padding-bottom: var(--size-2);
   min-height: var(--height-frame-md);
-  background: var(--kd-surface-toolbar-panel);
+  width: 100%;
+  height: 100%;
+  background: var(--ds-splat-context-surface-toolbar-panel);
 }
 
 .ds-splat-context__scene--mobile {
@@ -514,7 +526,9 @@ body {
 .ds-splat-context__slot--bottom {
   grid-area: bottom;
   justify-self: stretch;
-  align-self: end;
+  align-self: stretch;
+  display: flex;
+  align-items: end;
 }
 
 .ds-splat-context__slot--bottom-left {
@@ -534,6 +548,23 @@ body {
   grid-area: mobile-canvas;
 }
 
+.ds-splat-context__canvas-host {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.ds-splat-context__canvas-host > * {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
 .ds-splat-context__paper {
   width: 100%;
   height: 100%;
@@ -550,12 +581,18 @@ body {
 }
 
 .ds-splat-context__tool-selector {
-  --ds-button-grid-cell-size: var(--kd-toolbar-cell-size);
-  --sq-label-size: var(--kd-toolbar-label-size-sm);
+  --ds-button-grid-cell-size: var(--ds-splat-context-toolbar-cell-size);
+  --sq-label-size: var(--ds-splat-context-toolbar-label-size-sm);
 }
 
 .ds-splat-context__variant-strip {
-  --ds-button-grid-cell-size: var(--kd-toolbar-bottom-cell-size);
+  --ds-button-grid-cell-size: var(
+    --ds-splat-context-toolbar-bottom-cell-size
+  );
+}
+
+.ds-splat-context__variant-strip[data-button-layout="small"] {
+  --ds-button-grid-cell-size: var(--ds-splat-context-toolbar-cell-size);
 }
 
 .ds-splat-context__toolbar-scale-large {
@@ -581,8 +618,12 @@ body {
 }
 
 .ds-splat-context__left-picker {
-  --ds-color-picker-swatch-size: var(--kd-toolbar-palette-cell-size);
-  --ds-stroke-picker-cell-size: var(--kd-toolbar-palette-cell-size);
+  --ds-color-picker-swatch-size: var(
+    --ds-splat-context-toolbar-palette-cell-size
+  );
+  --ds-stroke-picker-cell-size: var(
+    --ds-splat-context-toolbar-palette-cell-size
+  );
 }
 
 .ds-splat-context__top-actions {
@@ -601,8 +642,12 @@ body {
 }
 
 .ds-splat-context__top-picker {
-  --ds-color-picker-swatch-size: var(--kd-toolbar-palette-cell-size);
-  --ds-stroke-picker-cell-size: var(--kd-toolbar-palette-cell-size);
+  --ds-color-picker-swatch-size: var(
+    --ds-splat-context-toolbar-palette-cell-size
+  );
+  --ds-stroke-picker-cell-size: var(
+    --ds-splat-context-toolbar-palette-cell-size
+  );
 }
 
 .ds-splat-context__sync-indicator {
@@ -647,13 +692,13 @@ body {
 .ds-splat-context__tool-dropdown-panel {
   padding: var(--size-2);
   border: 1px solid var(--gray-4);
-  background: var(--kd-surface-toolbar-panel);
+  background: var(--ds-splat-context-surface-toolbar-panel);
   box-shadow: var(--shadow-4);
 }
 
 .ds-splat-context__tool-selector--dropdown {
-  --ds-button-grid-cell-size: var(--kd-toolbar-cell-size);
-  --sq-label-size: var(--kd-toolbar-label-size-sm);
+  --ds-button-grid-cell-size: var(--ds-splat-context-toolbar-cell-size);
+  --sq-label-size: var(--ds-splat-context-toolbar-label-size-sm);
 }
 
 .ds-splat-context__mobile-bottom {
@@ -665,8 +710,8 @@ body {
 
 .ds-splat-context__variant-bar--mobile,
 .ds-splat-context__tool-selector--mobile {
-  --ds-button-grid-cell-size: var(--kd-toolbar-cell-size);
-  --sq-label-size: var(--kd-toolbar-label-size-sm);
+  --ds-button-grid-cell-size: var(--ds-splat-context-toolbar-cell-size);
+  --sq-label-size: var(--ds-splat-context-toolbar-label-size-sm);
   min-width: 0;
 }
 

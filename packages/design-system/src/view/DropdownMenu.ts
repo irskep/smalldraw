@@ -64,6 +64,7 @@ class DropdownMenuItemView implements ReDomLike<HTMLButtonElement> {
       }),
     ) as HTMLButtonElement;
     this.el.dataset.menuItemId = item.id;
+    this.el.dataset.action = item.id;
     this.el.classList.toggle("is-danger", item.danger ?? false);
     this.setDisabled(item.disabled ?? false);
   }

@@ -14,6 +14,13 @@ import {
 } from "lucide";
 import { getLoadedRasterImage } from "../shapes/rasterImageCache";
 import type { SquareIconSource } from "../view/SquareIconButton";
+
+export type KidsToolVariantGridConfig = {
+  largeLayout: "single-row" | "two-row" | "two-row-xlarge";
+  paginateInLarge?: boolean;
+  buttonLayout?: "small" | "large";
+};
+
 import {
   createAlphabetStampTool,
   createEllipseOutlineTool,
@@ -58,7 +65,7 @@ export interface KidsToolFamilyConfig {
   label: string;
   icon: IconNode;
   shapeFamilyGroup?: "shape";
-  variantLayout?: "default" | "two-row-single-height";
+  variantGrid?: KidsToolVariantGridConfig;
   defaultToolId: string;
   toolIds: string[];
 }
@@ -309,7 +316,10 @@ export function createKidsToolCatalog(
       id: "stamp.alphabet",
       label: "Letters",
       icon: getAlphabetGlyphIcon("A"),
-      variantLayout: "two-row-single-height",
+      variantGrid: {
+        largeLayout: "two-row",
+        buttonLayout: "small",
+      },
       defaultToolId: "stamp.letter.a",
       toolIds: ALPHABET_STAMP_TOOL_CONFIGS.map((tool) => tool.id),
     },
@@ -317,7 +327,11 @@ export function createKidsToolCatalog(
       id: "stamp.images",
       label: "Stamps",
       icon: Cat,
-      variantLayout: "two-row-single-height",
+      variantGrid: {
+        largeLayout: "two-row",
+        paginateInLarge: true,
+        buttonLayout: "small",
+      },
       defaultToolId: getImageStampToolId(
         getImageStampAssets()[0]?.id ?? "cat1",
       ),

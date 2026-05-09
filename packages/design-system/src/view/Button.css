@@ -10,10 +10,13 @@
 .ds-button {
   --ds-control-bg-hover: var(--gray-2);
   --ds-control-bg-active: var(--gray-3);
+  appearance: none;
+  -webkit-appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--size-1);
+  margin: 0;
   border: var(--border-size-1) solid var(--gray-5);
   border-radius: var(--radius-2);
   padding: var(--space-control-gap-md) var(--size-px-3);
@@ -21,6 +24,10 @@
   font-size: var(--font-size-button-md);
   font-weight: var(--font-weight-5);
   line-height: 1;
+  box-shadow: none;
+  filter: none;
+  text-shadow: none;
+  transform: none;
   cursor: var(--ds-cursor-interactive-hover);
   transition: background-color 120ms var(--ease-out-3);
   position: relative;

@@ -10,10 +10,6 @@ const DEBUG_SHOW_DIRTY_RECT_LAYER = false;
 export interface KidsDrawStage extends ReDomLike<HTMLDivElement> {
   readonly element: HTMLDivElement;
   readonly viewportHost: HTMLDivElement;
-  readonly insetTopSlot: HTMLDivElement;
-  readonly insetRightSlot: HTMLDivElement;
-  readonly insetBottomSlot: HTMLDivElement;
-  readonly insetLeftSlot: HTMLDivElement;
   readonly canvasFrame: HTMLDivElement;
   readonly sceneRoot: HTMLDivElement;
   readonly tileLayer: HTMLDivElement;
@@ -25,8 +21,6 @@ export interface KidsDrawStage extends ReDomLike<HTMLDivElement> {
   readonly cursorIndicator: HTMLDivElement;
   readonly dirtyRectOverlay: SVGSVGElement | null;
   readonly dirtyRectShape: SVGRectElement | null;
-  setViewportLayout(options: { profile: string }): void;
-  clearSideInsetSlots(): void;
   setSceneDimensions(width: number, height: number): void;
   setInteractionEnabled(enabled: boolean): void;
   setStartupStatus(status: {
@@ -43,10 +37,6 @@ export class KidsDrawStageView implements KidsDrawStage {
   readonly el: HTMLDivElement;
   readonly element: HTMLDivElement;
   readonly viewportHost: HTMLDivElement;
-  readonly insetTopSlot: HTMLDivElement;
-  readonly insetRightSlot: HTMLDivElement;
-  readonly insetBottomSlot: HTMLDivElement;
-  readonly insetLeftSlot: HTMLDivElement;
   readonly canvasFrame: HTMLDivElement;
   readonly sceneRoot: HTMLDivElement;
   readonly tileLayer: HTMLDivElement;
@@ -72,19 +62,6 @@ export class KidsDrawStageView implements KidsDrawStage {
     this.element = el("div.kids-draw-viewport") as HTMLDivElement;
     this.el = this.element;
     this.viewportHost = this.element;
-    const insetUi = el("div.kids-draw-inset-ui") as HTMLDivElement;
-    this.insetTopSlot = el(
-      "div.kids-draw-inset-slot.kids-draw-inset-slot-top",
-    ) as HTMLDivElement;
-    this.insetRightSlot = el(
-      "div.kids-draw-inset-slot.kids-draw-inset-slot-right",
-    ) as HTMLDivElement;
-    this.insetBottomSlot = el(
-      "div.kids-draw-inset-slot.kids-draw-inset-slot-bottom",
-    ) as HTMLDivElement;
-    this.insetLeftSlot = el(
-      "div.kids-draw-inset-slot.kids-draw-inset-slot-left",
-    ) as HTMLDivElement;
 
     this.canvasFrame = el("div.kids-draw-frame") as HTMLDivElement;
     this.canvasFrame.style.backgroundColor = backgroundColor;
@@ -150,12 +127,7 @@ export class KidsDrawStageView implements KidsDrawStage {
     mount(this.sceneRoot, this.startupOverlay);
     mount(this.sceneRoot, this.cursorIndicator);
     mount(this.canvasFrame, this.sceneRoot);
-    mount(insetUi, this.insetTopSlot);
-    mount(insetUi, this.insetRightSlot);
-    mount(insetUi, this.insetBottomSlot);
-    mount(insetUi, this.insetLeftSlot);
     mount(this.element, this.canvasFrame);
-    mount(this.element, insetUi);
 
     this.bindPointerIntents(uiIntentStore);
   }
@@ -179,15 +151,6 @@ export class KidsDrawStageView implements KidsDrawStage {
         `0 0 ${nextWidth} ${nextHeight}`,
       );
     }
-  }
-
-  setViewportLayout(options: { profile: string }): void {
-    this.viewportHost.dataset.layoutProfile = options.profile;
-  }
-
-  clearSideInsetSlots(): void {
-    this.insetLeftSlot.replaceChildren();
-    this.insetRightSlot.replaceChildren();
   }
 
   setInteractionEnabled(enabled: boolean): void {

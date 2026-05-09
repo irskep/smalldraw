@@ -4,18 +4,12 @@ export class GlobalEventSurface {
   bindIntents(options: {
     windowTarget: Window;
     documentTarget: Document;
-    getCurrentLayoutProfile: () => string;
-    isMobileActionsOpen: () => boolean;
-    isInMobilePortraitChrome: (target: Node) => boolean;
     isDocumentPickerOpen: () => boolean;
     uiIntentStore: Pick<UiIntentStore, "publish">;
   }): () => void {
     const {
       windowTarget,
       documentTarget,
-      getCurrentLayoutProfile,
-      isMobileActionsOpen,
-      isInMobilePortraitChrome,
       isDocumentPickerOpen,
       uiIntentStore,
     } = options;
@@ -50,43 +44,11 @@ export class GlobalEventSurface {
         event: event as PointerEvent,
       });
     });
-    listen(windowTarget, "pointerdown", (event) => {
-      if (
-        getCurrentLayoutProfile() !== "mobile-portrait" ||
-        !isMobileActionsOpen()
-      ) {
-        return;
-      }
-      const target = event.target as Node | null;
-      if (target && isInMobilePortraitChrome(target)) {
-        return;
-      }
-      uiIntentStore.publish({ type: "close_mobile_actions" });
-    });
     listen(windowTarget, "blur", () => {
       uiIntentStore.publish({ type: "force_cancel_pointer_session" });
     });
-    listen(windowTarget, "resize", () => {
-      uiIntentStore.publish({ type: "position_mobile_actions_popover" });
-    });
-    listen(windowTarget, "scroll", () => {
-      uiIntentStore.publish({ type: "position_mobile_actions_popover" });
-    });
-    if (windowTarget.visualViewport) {
-      listen(windowTarget.visualViewport, "resize", () => {
-        uiIntentStore.publish({ type: "position_mobile_actions_popover" });
-      });
-      listen(windowTarget.visualViewport, "scroll", () => {
-        uiIntentStore.publish({ type: "position_mobile_actions_popover" });
-      });
-    }
     listen(windowTarget, "keydown", (event) => {
       if (!(event instanceof KeyboardEvent) || event.key !== "Escape") {
-        return;
-      }
-      if (isMobileActionsOpen()) {
-        event.preventDefault();
-        uiIntentStore.publish({ type: "close_mobile_actions" });
         return;
       }
       if (isDocumentPickerOpen()) {

@@ -350,6 +350,7 @@ describe("splatterboard shell", () => {
       ".kids-draw-app",
     ) as HTMLElement | null;
     expect(root).not.toBeNull();
+    expect(root?.dataset.runtimeVariant).toBe("design-system");
     const frame = container.querySelector(
       ".kids-draw-frame",
     ) as HTMLElement | null;
@@ -370,7 +371,7 @@ describe("splatterboard shell", () => {
       'button[data-setting="stroke-color"][data-color="#000000"]',
     ) as HTMLButtonElement | null;
     const activeToolVariant = container.querySelector(
-      '[data-tool-variant][aria-checked="true"]',
+      '[data-tool-variant].is-selected',
     ) as HTMLButtonElement | null;
     const selectedStrokeWidth = container.querySelector(
       'button[data-setting="stroke-width"][aria-checked="true"]',
@@ -381,14 +382,41 @@ describe("splatterboard shell", () => {
     expect(defaultColorSwatch).not.toBeNull();
     expect(activeToolVariant).not.toBeNull();
     expect(selectedStrokeWidth).not.toBeNull();
-    expect(defaultColorSwatch?.classList.contains("is-selected")).toBeTrue();
+    expect(defaultColorSwatch?.dataset.selected).toBe("true");
     expect(defaultColorSwatch?.getAttribute("role")).toBe("radio");
     expect(defaultColorSwatch?.getAttribute("aria-checked")).toBe("true");
-    expect(activeToolVariant?.getAttribute("role")).toBe("radio");
+    expect(activeToolVariant?.getAttribute("aria-pressed")).toBe("true");
     expect(selectedStrokeWidth?.getAttribute("role")).toBe("radio");
-    expect(
-      container.querySelector('[role="radiogroup"] [aria-pressed]'),
-    ).toBeNull();
+
+    app.destroy();
+    expect(container.querySelector(".kids-draw-app")).toBeNull();
+  });
+
+  test("mounts the design-system shell and dialogs", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+
+    const root = container.querySelector(
+      ".kids-draw-app",
+    ) as HTMLElement | null;
+    expect(root).not.toBeNull();
+    expect(root?.dataset.runtimeVariant).toBe("design-system");
+    expect(container.querySelector(".ds-splat-context__scene")).not.toBeNull();
+    expect(container.querySelector(".ds-color-picker")).not.toBeNull();
+    expect(container.querySelector(".ds-stroke-picker")).not.toBeNull();
+    expect(container.querySelector(".ds-modal-dialog")).not.toBeNull();
+    expect(container.querySelector(".ds-share-dialog")).not.toBeNull();
+    expect(container.querySelector(".kids-draw-toolbar-view")).toBeNull();
+    expect(container.querySelector(".kids-draw-mobile-actions-popover")).toBeNull();
+    expect(container.querySelector(".kids-share-dialog")).toBeNull();
 
     app.destroy();
     expect(container.querySelector(".kids-draw-app")).toBeNull();
@@ -560,14 +588,15 @@ describe("splatterboard shell", () => {
       confirmDestructiveAction: async () => true,
     });
 
-    const status = container.querySelector(
-      ".kids-draw-collaboration-status",
-    ) as HTMLElement | null;
+    const status = container.querySelector(".ds-sync-indicator") as
+      | HTMLElement
+      | null;
     expect(status).not.toBeNull();
     const statusVisible = await waitUntil(() => status?.hidden === false, 80);
     expect(statusVisible).toBeTrue();
     expect(status?.hidden).toBeFalse();
-    expect(status?.textContent).toBe("Collab drawing (offline)");
+    expect(status?.dataset.state).toBe("synced-to-server-but-offline");
+    expect(status?.textContent?.trim()).toBe("Offline");
 
     app.destroy();
   });
@@ -1377,29 +1406,21 @@ describe("splatterboard shell", () => {
     const grayColorSwatch = container.querySelector(
       'button[data-setting="stroke-color"][data-color="#9ca3af"]',
     ) as DisableableElement | null;
-    const rectVariantButton = container.querySelector(
-      '[data-tool-variant="rect"]',
-    ) as HTMLElement | null;
-    const rectOutlineVariantButton = container.querySelector(
-      '[data-tool-variant="rect.outline"]',
-    ) as HTMLElement | null;
-    const ellipseVariantButton = container.querySelector(
-      '[data-tool-variant="ellipse"]',
-    ) as HTMLElement | null;
-    const ellipseOutlineVariantButton = container.querySelector(
-      '[data-tool-variant="ellipse.outline"]',
-    ) as HTMLElement | null;
     expect(filledShapeFamilyButton).not.toBeNull();
     expect(outlineShapeFamilyButton).not.toBeNull();
     expect(yellowColorSwatch).not.toBeNull();
     expect(grayColorSwatch).not.toBeNull();
-    expect(rectVariantButton).not.toBeNull();
-    expect(rectOutlineVariantButton).not.toBeNull();
-    expect(ellipseVariantButton).not.toBeNull();
-    expect(ellipseOutlineVariantButton).not.toBeNull();
 
     filledShapeFamilyButton!.click();
     expect(app.store.getActiveToolId()).toBe("rect");
+    const rectVariantButton = container.querySelector(
+      '[data-tool-variant="rect"]',
+    ) as HTMLElement | null;
+    const ellipseVariantButton = container.querySelector(
+      '[data-tool-variant="ellipse"]',
+    ) as HTMLElement | null;
+    expect(rectVariantButton).not.toBeNull();
+    expect(ellipseVariantButton).not.toBeNull();
     yellowColorSwatch!.click();
     expect(app.store.getSharedSettings().strokeColor).toBe("#ffdb4d");
     expect(app.store.getSharedSettings().fillColor).toBe("#ffffff");
@@ -1407,6 +1428,10 @@ describe("splatterboard shell", () => {
     ellipseVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("ellipse");
     outlineShapeFamilyButton!.click();
+    const ellipseOutlineVariantButton = container.querySelector(
+      '[data-tool-variant="ellipse.outline"]',
+    ) as HTMLElement | null;
+    expect(ellipseOutlineVariantButton).not.toBeNull();
     expect(app.store.getActiveToolId()).toBe("ellipse.outline");
     dispatchPointer(overlay, "pointerdown", 80, 80, 1);
     dispatchPointer(overlay, "pointermove", 200, 140, 1);
@@ -1417,6 +1442,10 @@ describe("splatterboard shell", () => {
     grayColorSwatch!.click();
     expect(app.store.getSharedSettings().strokeColor).toBe("#9ca3af");
     outlineShapeFamilyButton!.click();
+    const rectOutlineVariantButton = container.querySelector(
+      '[data-tool-variant="rect.outline"]',
+    ) as HTMLElement | null;
+    expect(rectOutlineVariantButton).not.toBeNull();
     rectOutlineVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("rect.outline");
 
@@ -1469,13 +1498,13 @@ describe("splatterboard shell", () => {
     const brushFamilyButton = container.querySelector(
       '.kids-draw-tool-selector [data-tool-family="brush"]',
     ) as HTMLElement | null;
-    const penVariantButton = container.querySelector(
+    expect(brushFamilyButton).not.toBeNull();
+    brushFamilyButton!.click();
+    const penVariantButtonAfterBrush = container.querySelector(
       '[data-tool-variant="brush.freehand"]',
     ) as HTMLElement | null;
-    expect(brushFamilyButton).not.toBeNull();
-    expect(penVariantButton).not.toBeNull();
-    brushFamilyButton!.click();
-    penVariantButton!.click();
+    expect(penVariantButtonAfterBrush).not.toBeNull();
+    penVariantButtonAfterBrush!.click();
     const sharedAfterPen = app.store.getSharedSettings();
     expect(sharedAfterPen.strokeColor).toBe("#9ca3af");
     expect(sharedAfterPen.fillColor).toBe("#ffffff");
@@ -1767,50 +1796,55 @@ describe("splatterboard shell", () => {
     const lettersFamilyButton = container.querySelector(
       '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
     ) as HTMLElement | null;
+    const cursorIndicator = container.querySelector(
+      ".kids-draw-cursor-indicator",
+    ) as HTMLDivElement | null;
+
+    expect(lettersFamilyButton).not.toBeNull();
+    expect(cursorIndicator).not.toBeNull();
+    expect(lettersFamilyButton?.getAttribute("title")).toBe("Letters");
+
+    lettersFamilyButton!.click();
+    expect(app.store.getActiveToolId()).toBe("stamp.letter.a");
+    const selectedLettersFamilyButton = container.querySelector(
+      '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
+    ) as HTMLElement | null;
+    expect(selectedLettersFamilyButton?.getAttribute("aria-pressed")).toBe(
+      "true",
+    );
     const lettersToolbar = container.querySelector(
-      '[data-tool-family-toolbar="stamp.alphabet"]',
+      ".ds-splat-context__variant-strip",
     ) as HTMLElement | null;
     const stampZVariantButton = container.querySelector(
       '[data-tool-variant="stamp.letter.z"]',
     ) as HTMLElement | null;
-    const cursorIndicator = container.querySelector(
-      ".kids-draw-cursor-indicator",
-    ) as HTMLDivElement | null;
-    const lettersPrevButton = container.querySelector(
-      '[data-tool-family-prev="stamp.alphabet"]',
-    ) as HTMLElement | null;
-    const lettersNextButton = container.querySelector(
-      '[data-tool-family-next="stamp.alphabet"]',
-    ) as HTMLElement | null;
-
-    expect(lettersFamilyButton).not.toBeNull();
     expect(lettersToolbar).not.toBeNull();
     expect(stampZVariantButton).not.toBeNull();
-    expect(cursorIndicator).not.toBeNull();
-    expect(lettersPrevButton).toBeNull();
-    expect(lettersNextButton).toBeNull();
-    expect(lettersFamilyButton?.getAttribute("title")).toBe("Letters");
-    expect(lettersToolbar?.getAttribute("data-variant-layout")).toBe(
-      "two-row-single-height",
-    );
+    expect(lettersToolbar?.getAttribute("data-large-layout")).toBe("two-row");
+    expect(lettersToolbar?.getAttribute("data-paginate-large")).toBe("false");
     const variantButtons = lettersToolbar?.querySelectorAll(
       "[data-tool-variant]",
     );
     expect(variantButtons?.length).toBe(26);
+    expect(
+      stampZVariantButton?.getAttribute("data-layout") ?? null,
+    ).toBeNull();
     const firstVariantLabel = lettersToolbar?.querySelector(
       '[data-tool-variant="stamp.letter.a"] .kids-square-icon-button__label',
     ) as HTMLElement | null;
-    expect(firstVariantLabel?.textContent).toBe("");
-    expect(firstVariantLabel?.hidden).toBeTrue();
-
-    lettersFamilyButton!.click();
-    expect(app.store.getActiveToolId()).toBe("stamp.letter.a");
+    expect(firstVariantLabel?.textContent).toBe("A");
     dispatchPointer(overlay, "pointermove", 140, 110, 0, "mouse");
     expect(cursorIndicator!.classList.contains("is-glyph-preview")).toBeTrue();
     expect(cursorIndicator!.style.visibility).toBe("");
 
     stampZVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("stamp.letter.z");
+    const selectedLettersAfterVariant = container.querySelector(
+      '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
+    ) as HTMLElement | null;
+    expect(selectedLettersAfterVariant?.getAttribute("aria-pressed")).toBe(
+      "true",
+    );
     dispatchPointer(overlay, "pointerdown", 200, 200, 1, "mouse");
     dispatchPointer(overlay, "pointerup", 200, 200, 0, "mouse");
     const stampPop = container.querySelector(
@@ -1858,8 +1892,22 @@ describe("splatterboard shell", () => {
     const imageFamilyButton = container.querySelector(
       '.kids-draw-tool-selector [data-tool-family="stamp.images"]',
     ) as HTMLElement | null;
+    const cursorIndicator = container.querySelector(
+      ".kids-draw-cursor-indicator",
+    ) as HTMLDivElement | null;
+
+    expect(imageFamilyButton).not.toBeNull();
+
+    imageFamilyButton!.click();
+    expect(app.store.getActiveToolId()).toBe("stamp.image.bird1");
+    const selectedImageFamilyButton = container.querySelector(
+      '.kids-draw-tool-selector [data-tool-family="stamp.images"]',
+    ) as HTMLElement | null;
+    expect(selectedImageFamilyButton?.getAttribute("aria-pressed")).toBe(
+      "true",
+    );
     const imageToolbar = container.querySelector(
-      '[data-tool-family-toolbar="stamp.images"]',
+      ".ds-splat-context__variant-strip",
     ) as HTMLElement | null;
     const imageVariantButton = container.querySelector(
       '[data-tool-variant="stamp.image.cat1"]',
@@ -1873,28 +1921,28 @@ describe("splatterboard shell", () => {
     const imageIcon = imageVariantButton?.querySelector(
       ".kids-square-icon-button__icon-image",
     ) as HTMLImageElement | null;
-    const cursorIndicator = container.querySelector(
-      ".kids-draw-cursor-indicator",
-    ) as HTMLDivElement | null;
-
-    expect(imageFamilyButton).not.toBeNull();
     expect(imageToolbar).not.toBeNull();
     expect(imageVariantButton).not.toBeNull();
     expect(prevPageButton).not.toBeNull();
     expect(nextPageButton).not.toBeNull();
     expect(imageIcon).not.toBeNull();
-    expect(imageToolbar?.getAttribute("data-variant-layout")).toBe(
-      "two-row-single-height",
-    );
-
-    imageFamilyButton!.click();
-    expect(app.store.getActiveToolId()).toBe("stamp.image.bird1");
+    expect(imageToolbar?.getAttribute("data-large-layout")).toBe("two-row");
+    expect(imageToolbar?.getAttribute("data-paginate-large")).toBe("true");
+    expect(
+      imageVariantButton?.getAttribute("data-layout") ?? null,
+    ).toBeNull();
     dispatchPointer(overlay, "pointermove", 150, 130, 0, "mouse");
     expect(cursorIndicator).not.toBeNull();
     expect(cursorIndicator!.style.visibility).toBe("");
 
     imageVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("stamp.image.cat1");
+    const selectedImagesAfterVariant = container.querySelector(
+      '.kids-draw-tool-selector [data-tool-family="stamp.images"]',
+    ) as HTMLElement | null;
+    expect(selectedImagesAfterVariant?.getAttribute("aria-pressed")).toBe(
+      "true",
+    );
     dispatchPointer(overlay, "pointerdown", 220, 220, 1, "mouse");
     dispatchPointer(overlay, "pointerup", 220, 220, 0, "mouse");
 
@@ -2024,14 +2072,14 @@ describe("splatterboard shell", () => {
     const alphabetFamilyButton = container.querySelector(
       '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
     ) as HTMLElement | null;
+    expect(cursorIndicator).not.toBeNull();
+    expect(alphabetFamilyButton).not.toBeNull();
+
+    alphabetFamilyButton!.click();
     const stampAVariantButton = container.querySelector(
       '[data-tool-variant="stamp.letter.a"]',
     ) as HTMLElement | null;
-    expect(cursorIndicator).not.toBeNull();
-    expect(alphabetFamilyButton).not.toBeNull();
     expect(stampAVariantButton).not.toBeNull();
-
-    alphabetFamilyButton!.click();
     stampAVariantButton!.click();
 
     dispatchPointer(overlay, "pointermove", 200, 120, 0, "mouse");

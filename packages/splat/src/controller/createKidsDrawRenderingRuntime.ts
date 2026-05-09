@@ -1,9 +1,7 @@
 import { normalizePixelRatio } from "../layout/responsiveLayout";
 import type { RasterPipeline } from "../render/createRasterPipeline";
-import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import type { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
-import type { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
+import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { InputSessionController } from "./createInputSessionController";
 import {
   LayoutController,
@@ -18,12 +16,7 @@ type RenderingRuntimeOptions = Omit<
   "renderLoopController"
 > & {
   stage: KidsDrawStage;
-  toolbar: KidsDrawToolbarView;
-  mobilePortraitActionsView: MobilePortraitActionsView;
-  toolbarUiStore: Pick<
-    ToolbarUiStore,
-    "get" | "setMobileTopPanel" | "setMobileActionsOpen"
-  >;
+  toolbar: KidsDrawToolbar;
   pipeline: RasterPipeline;
   backgroundColor: string;
   runtimeStore: Pick<
@@ -83,14 +76,6 @@ export function createKidsDrawRenderingRuntime(
   return {
     renderLoopController,
     layoutController,
-    positionMobilePortraitActionsPopover: (): void => {
-      layoutController.positionMobilePortraitActionsPopover();
-    },
-    applyToolbarLayoutProfile: (): void => {
-      layoutController.applyToolbarLayoutProfile(
-        layoutController.getCurrentLayoutProfile(),
-      );
-    },
     resolveImplicitDocumentSizeFromViewport: (): {
       width: number;
       height: number;

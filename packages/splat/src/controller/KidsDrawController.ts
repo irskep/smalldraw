@@ -24,8 +24,7 @@ import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import { createDocumentBrowserOverlay } from "../view/DocumentBrowserOverlay";
 import { GlobalEventSurface } from "../view/GlobalEventSurface";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
-import type { KidsDrawToolbarView } from "../view/KidsDrawToolbar";
-import { MobilePortraitActionsView } from "../view/MobilePortraitActionsView";
+import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import type { SharePayload } from "./createCollaborativeUpgradeCoordinator";
 import { createCursorOverlayController } from "./createCursorOverlayController";
 import { createDocumentBrowserCommands } from "./createDocumentBrowserCommands";
@@ -90,7 +89,7 @@ function toClaimErrorMessage(
 export function createKidsDrawController(options: {
   store: DrawingStore;
   core: SmalldrawCore;
-  toolbar: KidsDrawToolbarView;
+  toolbar: KidsDrawToolbar;
   catalog: KidsToolCatalog;
   shapeRendererRegistry: ShapeRendererRegistry;
   tools: KidsToolConfig[];
@@ -213,11 +212,7 @@ export function createKidsDrawController(options: {
   const syncToolbarUi = (): void => {
     toolbarStateController.syncToolbarUi();
   };
-  const mobilePortraitActionsUi = new MobilePortraitActionsView();
   const globalEventSurface = new GlobalEventSurface();
-  const unbindMobilePortraitActionsUiState =
-    mobilePortraitActionsUi.bindUiState(toolbarUiStore.$state);
-  add(unbindMobilePortraitActionsUiState);
 
   const debugLifecycle = (...args: unknown[]): void => {
     if (
@@ -287,8 +282,6 @@ export function createKidsDrawController(options: {
   const {
     renderLoopController,
     layoutController,
-    positionMobilePortraitActionsPopover,
-    applyToolbarLayoutProfile,
     resolveImplicitDocumentSizeFromViewport,
     applyCanvasSize,
     applyLayoutAndPixelRatio,
@@ -296,8 +289,6 @@ export function createKidsDrawController(options: {
   } = createKidsDrawRenderingRuntime({
     stage,
     toolbar,
-    mobilePortraitActionsView: mobilePortraitActionsUi,
-    toolbarUiStore,
     pipeline,
     backgroundColor,
     runtimeStore,
@@ -402,19 +393,9 @@ export function createKidsDrawController(options: {
     claimDocumentFromBrowser,
     deleteDocumentFromBrowser,
   } = documentBrowserCommands;
-  const unbindMobilePortraitActionsIntents =
-    mobilePortraitActionsUi.bindIntents({
-      uiIntentStore,
-      layoutController,
-    });
-  add(unbindMobilePortraitActionsIntents);
   const unbindGlobalIntents = globalEventSurface.bindIntents({
     windowTarget: window,
     documentTarget: document,
-    getCurrentLayoutProfile: () => layoutController.getCurrentLayoutProfile(),
-    isMobileActionsOpen: () => toolbarUiStore.get().mobileActionsOpen,
-    isInMobilePortraitChrome: (target) =>
-      mobilePortraitActionsUi.containsTarget(target),
     isDocumentPickerOpen: () => documentPickerController.isOpen(),
     uiIntentStore,
   });
@@ -449,8 +430,6 @@ export function createKidsDrawController(options: {
     runtimeStore,
     documentPickerController,
     scheduleResponsiveLayout,
-    positionMobilePortraitActionsPopover,
-    applyToolbarLayoutProfile,
     debugLifecycle,
     onShareError,
   });

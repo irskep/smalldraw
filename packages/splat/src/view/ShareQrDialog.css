@@ -20,14 +20,14 @@
   justify-items: center;
   padding: var(--size-5);
   border-radius: var(--radius-3);
-  background: var(--kd-surface-toolbar-panel);
+  background: var(--ds-surface-muted);
   box-shadow: var(--shadow-4);
 }
 
 .kids-share-dialog__title {
   margin: 0;
   font-size: var(--font-size-4);
-  color: var(--kd-text-strong);
+  color: var(--ds-ink);
 }
 
 .kids-share-dialog__qr {
@@ -68,6 +68,6 @@
     color-mix(in oklch, var(--gray-7), white 30%);
   border-radius: var(--radius-2);
   background: white;
-  color: var(--kd-text-default);
+  color: var(--ds-ink);
   font-size: var(--font-size-1);
 }
