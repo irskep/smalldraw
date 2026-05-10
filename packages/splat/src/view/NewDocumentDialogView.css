@@ -1,0 +1,95 @@
+.kids-draw-new-document-dialog__card {
+  width: min(92vw, 61.25rem);
+  max-height: min(92vh, 55rem);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.kids-draw-new-document-dialog__body {
+  min-height: 0;
+  display: grid;
+}
+
+.kids-draw-new-document-dialog__choices {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: var(--size-3);
+}
+
+.kids-draw-new-document-dialog__page-section {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: var(--size-3);
+}
+
+.kids-draw-new-document-dialog__blank-choice {
+  min-width: 0;
+}
+
+.kids-draw-new-document-dialog__book-summary {
+  display: grid;
+  grid-template-columns: minmax(6rem, 8rem) minmax(0, 1fr);
+  gap: var(--size-3);
+  align-items: center;
+  padding: var(--size-3);
+  border: var(--border-size-1) solid var(--gray-5);
+  border-radius: var(--radius-3);
+  background: var(--gray-0);
+}
+
+.kids-draw-new-document-dialog__book-summary-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius-2);
+  border: var(--border-size-1) solid var(--gray-4);
+  background: white;
+}
+
+.kids-draw-new-document-dialog__book-summary-meta {
+  min-width: 0;
+  display: grid;
+  gap: var(--size-1);
+}
+
+.kids-draw-new-document-dialog__book-summary-title,
+.kids-draw-new-document-dialog__book-summary-copy,
+.kids-draw-new-document-dialog__section-title,
+.kids-draw-new-document-dialog__section-copy {
+  margin: 0;
+}
+
+.kids-draw-new-document-dialog__volume-grid,
+.kids-draw-new-document-dialog__pages {
+  min-height: 0;
+  padding-right: var(--size-1);
+}
+
+.kids-draw-new-document-dialog__choices[hidden],
+.kids-draw-new-document-dialog__page-section[hidden],
+.kids-draw-new-document-dialog__pages[hidden] {
+  display: none;
+}
+
+.kids-draw-new-document-dialog__choice {
+  --ds-choice-card-media-size: 5.75rem;
+}
+
+@media (max-width: 720px) {
+  .kids-draw-new-document-dialog__card {
+    width: min(92vw, 32rem);
+  }
+
+  .kids-draw-new-document-dialog__choice {
+    --ds-choice-card-media-size: 4.5rem;
+  }
+
+  .kids-draw-new-document-dialog__book-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kids-draw-new-document-dialog__book-summary-image {
+    max-width: 10rem;
+  }
+}

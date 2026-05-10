@@ -14,7 +14,7 @@ import {
   resolveRasterImageSource,
   warmRasterImage,
 } from "../shapes/rasterImageCache";
-import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
+import type { NewDocumentRequest } from "../documents/newDocumentRequest";
 import {
   createCollaborativeUpgradeCoordinator,
   type SharePayload,

@@ -1,0 +1,58 @@
+.kids-draw-document-browser-dialog-host {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.kids-draw-document-browser-dialog {
+  width: min(92vw, 72rem);
+}
+
+.kids-draw-document-browser-dialog__panel {
+  width: 100%;
+  max-height: min(92vh, 55rem);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.kids-draw-document-browser-dialog__body {
+  position: relative;
+  min-height: 0;
+}
+
+.kids-draw-document-browser-dialog__grid {
+  --ds-card-grid-item-min-width: clamp(7rem, 18vw, 15rem);
+
+  min-height: 0;
+  padding-right: var(--size-1);
+}
+
+.kids-draw-document-browser-dialog__loading,
+.kids-draw-document-browser-dialog__empty {
+  margin: var(--size-2) 0 0;
+  color: var(--ds-text-muted);
+}
+
+.kids-draw-document-browser-dialog__preview {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--size-4);
+  background: rgb(2 6 23 / 45%);
+  pointer-events: auto;
+}
+
+.kids-draw-document-browser-dialog__preview[hidden] {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .kids-draw-document-browser-dialog {
+    width: min(92vw, 32rem);
+  }
+
+  .kids-draw-document-browser-dialog__grid {
+    --ds-card-grid-item-min-width: clamp(6.25rem, 28vw, 11.25rem);
+  }
+}

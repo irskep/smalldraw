@@ -1,9 +1,16 @@
-.ds-share-dialog__card {
+.ds-share-dialog {
   width: min(92vw, 42rem);
+}
+
+.ds-share-dialog__card {
+  width: 100%;
+  padding: var(--size-5);
+}
+
+.ds-share-dialog__content {
   display: grid;
   grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
   gap: var(--size-5);
-  padding: var(--size-5);
   align-items: start;
 }
 
@@ -58,8 +65,11 @@
 }
 
 @media (max-width: 720px) {
-  .ds-share-dialog__card {
+  .ds-share-dialog {
     width: min(92vw, 28rem);
+  }
+
+  .ds-share-dialog__content {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--size-4);
   }

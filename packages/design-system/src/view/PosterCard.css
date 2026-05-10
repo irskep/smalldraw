@@ -1,0 +1,42 @@
+.ds-poster-card {
+  width: 100%;
+  border: var(--border-size-1) solid var(--gray-4);
+  border-radius: var(--radius-3);
+  background: white;
+  padding: var(--size-1);
+  display: grid;
+  gap: var(--size-1);
+  cursor: pointer;
+  text-align: left;
+}
+
+.ds-poster-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--blue-6) 38%, white);
+}
+
+.ds-poster-card:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ds-poster-card__media {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-2);
+  background: color-mix(in oklch, var(--gray-1) 90%, white);
+  border: var(--border-size-1) solid var(--gray-3);
+}
+
+.ds-poster-card__media > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ds-poster-card__label {
+  margin: 0;
+}

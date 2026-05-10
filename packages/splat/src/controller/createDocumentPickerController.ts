@@ -1,6 +1,7 @@
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 import { bindAtom } from "../view/atomBindings";
-import type { DocumentBrowserOverlay } from "../view/DocumentBrowserOverlay";
+import type { DocumentBrowserDialogView } from "../view/DocumentBrowserDialogView";
+import type { NewDocumentDialogView } from "../view/NewDocumentDialogView";
 import { createDocumentPickerStore } from "./stores/createDocumentPickerStore";
 
 export class DocumentPickerController {
@@ -10,38 +11,40 @@ export class DocumentPickerController {
 
   constructor(
     private readonly options: {
-      pickerOverlay: DocumentBrowserOverlay;
+      browserDialog: DocumentBrowserDialogView;
+      newDocumentDialog: NewDocumentDialogView;
       documentBackend: KidsDocumentBackend;
       getCurrentDocUrl: () => string;
     },
   ) {
     this.unsubscribeStore = bindAtom(this.state.$state, (state) => {
-      const { pickerOverlay, getCurrentDocUrl } = this.options;
-      pickerOverlay.setLoading(state.loading);
-      pickerOverlay.setBusyDocument(state.busyDocUrl);
-      pickerOverlay.setDocuments(
+      const { browserDialog, newDocumentDialog, getCurrentDocUrl } = this.options;
+      browserDialog.setLoading(state.loading);
+      browserDialog.setBusyDocument(state.busyDocUrl);
+      browserDialog.setDocuments(
         state.documents,
         getCurrentDocUrl(),
         state.thumbnailUrlByDocUrl,
         state.claimableDocUrls,
       );
+      newDocumentDialog.setBusy(state.busyDocUrl === "__new__");
     });
   }
 
   isOpen(): boolean {
-    return this.options.pickerOverlay.isOpen();
+    return this.options.browserDialog.isOpen();
   }
 
   isCreateDialogOpen(): boolean {
-    return this.options.pickerOverlay.isCreateDialogOpen();
+    return this.options.newDocumentDialog.isOpen();
   }
 
   openCreateDialog(): void {
-    this.options.pickerOverlay.openCreateDialog();
+    this.options.newDocumentDialog.setOpen(true);
   }
 
   closeCreateDialog(): void {
-    this.options.pickerOverlay.closeCreateDialog();
+    this.options.newDocumentDialog.setOpen(false);
   }
 
   setBusyDocument(docUrl: string | null): void {
@@ -53,7 +56,7 @@ export class DocumentPickerController {
   }
 
   close(): void {
-    this.options.pickerOverlay.setOpen(false);
+    this.options.browserDialog.setOpen(false);
     this.state.setBusyDocument(null);
   }
 
@@ -62,7 +65,7 @@ export class DocumentPickerController {
   }
 
   async open(): Promise<KidsDocumentSummary[]> {
-    this.options.pickerOverlay.setOpen(true);
+    this.options.browserDialog.setOpen(true);
     this.state.setBusyDocument(null);
     return await this.reload();
   }

@@ -32,7 +32,8 @@ This folder contains store channels used by the `splatterboard` runtime.
 - Publishers:
   - `DocumentPickerController`
 - Subscribers:
-  - `DocumentBrowserOverlay` binding in `DocumentPickerController`
+  - `DocumentBrowserDialogView` binding in `DocumentPickerController`
+  - `NewDocumentDialogView` busy-state binding in `DocumentPickerController`
 - Lifecycle owner:
   - `DocumentPickerController` owns subscription and thumbnail URL cleanup.
 

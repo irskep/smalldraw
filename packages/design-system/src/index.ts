@@ -4,6 +4,16 @@ export {
   type ButtonTone,
   createButton,
 } from "./view/Button";
+export { CardGrid, createCardGrid, type CardGridOptions } from "./view/CardGrid";
+export {
+  ChoiceCard,
+  createChoiceCard,
+  type ChoiceCardOptions,
+} from "./view/ChoiceCard";
+export {
+  createDialogScaffold,
+  DialogScaffold,
+} from "./view/DialogScaffold";
 export {
   createDropdownChrome,
   DropdownChrome,
@@ -34,6 +44,8 @@ export {
   type ModalDialogOptions,
   ModalDialogView,
 } from "./view/ModalDialog";
+export { createPosterCard, PosterCard, type PosterCardOptions } from "./view/PosterCard";
+export { createPreviewCard, PreviewCard } from "./view/PreviewCard";
 export {
   createSyncIndicator,
   SyncIndicator,
@@ -78,6 +90,7 @@ export {
   type TextOptions,
   type TextTone,
 } from "./view/Text";
+export { createThumbnailTile, ThumbnailTile } from "./view/ThumbnailTile";
 export {
   createToolPickerPopover,
   ToolPickerPopover,

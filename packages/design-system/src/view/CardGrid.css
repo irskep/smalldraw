@@ -1,0 +1,14 @@
+.ds-card-grid {
+  --ds-card-grid-item-min-width: 14rem;
+
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(var(--ds-card-grid-item-min-width), 1fr)
+  );
+  gap: var(--size-3);
+  align-content: start;
+}

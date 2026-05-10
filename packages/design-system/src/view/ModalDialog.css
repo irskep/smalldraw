@@ -4,6 +4,9 @@
 
 .ds-modal-dialog__shell {
   padding: var(--size-px-4);
+}
+
+.ds-modal-dialog__content {
   display: grid;
   gap: var(--size-px-3);
 }
@@ -12,6 +15,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-control-gap-md);
+}
+
+.ds-modal-dialog__header--iconless {
+  gap: 0;
 }
 
 .ds-modal-dialog__icon {

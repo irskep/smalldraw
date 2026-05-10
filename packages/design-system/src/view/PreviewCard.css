@@ -1,0 +1,29 @@
+.ds-preview-card {
+  width: min(88vw, 48.75rem);
+  max-height: min(88vh, 56.25rem);
+  display: grid;
+  gap: var(--size-2);
+  padding: var(--size-2);
+  border-radius: var(--radius-4);
+  background: white;
+  box-shadow: var(--shadow-6);
+}
+
+.ds-preview-card__image {
+  width: 100%;
+  max-height: min(72vh, 45rem);
+  object-fit: contain;
+  border-radius: var(--radius-3);
+  background: color-mix(in oklch, var(--gray-1) 80%, white);
+}
+
+.ds-preview-card__meta {
+  display: grid;
+  gap: 2px;
+  padding-inline: 2px;
+}
+
+.ds-preview-card__title,
+.ds-preview-card__subtitle {
+  margin: 0;
+}

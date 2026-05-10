@@ -94,6 +94,10 @@ async function waitForTurn(): Promise<void> {
   await Promise.resolve();
 }
 
+function waitMs(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function waitUntil(
   predicate: () => boolean,
   maxAttempts = 50,
@@ -543,7 +547,7 @@ describe("splatterboard shell", () => {
 
     newDrawingButton!.click();
     const createNormalButton = container.querySelector(
-      '[data-doc-browser-create-normal="true"]',
+      '[data-new-document-mode="normal"]',
     ) as HTMLButtonElement | null;
     expect(createNormalButton).not.toBeNull();
     createNormalButton!.click();
@@ -1564,21 +1568,23 @@ describe("splatterboard shell", () => {
     browseButton!.click();
 
     const browser = container.querySelector(
-      ".kids-draw-document-browser",
-    ) as HTMLDivElement | null;
+      "dialog.kids-draw-document-browser-dialog",
+    ) as HTMLDialogElement | null;
     expect(browser).not.toBeNull();
-    const browserOpened = await waitUntil(() => browser?.hidden === false);
+    const browserOpened = await waitUntil(() => browser?.open === true);
     expect(browserOpened).toBeTrue();
 
     const openButtonReady = await waitUntil(() => {
       return (
-        container.querySelector(`[data-doc-browser-open="${secondDocUrl}"]`) !==
+        container.querySelector(
+          `[data-document-browser-open="${secondDocUrl}"]`,
+        ) !==
         null
       );
     });
     expect(openButtonReady).toBeTrue();
     const openSecondButton = container.querySelector(
-      `[data-doc-browser-open="${secondDocUrl}"]`,
+      `[data-document-browser-open="${secondDocUrl}"]`,
     ) as HTMLButtonElement | null;
     openSecondButton!.click();
 
@@ -1590,7 +1596,8 @@ describe("splatterboard shell", () => {
       () => currentDocumentSummaries.at(-1)?.docUrl === secondDocUrl,
     );
     expect(summaryChanged).toBeTrue();
-    const browserClosed = await waitUntil(() => browser?.hidden === true);
+    await waitMs(240);
+    const browserClosed = await waitUntil(() => browser?.open === false, 300);
     expect(browserClosed).toBeTrue();
 
     app.destroy();
@@ -1668,13 +1675,13 @@ describe("splatterboard shell", () => {
       const openNormalReady = await waitUntil(() => {
         return (
           container.querySelector(
-            `[data-doc-browser-open="${staleNormalDocUrl}"]`,
+            `[data-document-browser-open="${staleNormalDocUrl}"]`,
           ) !== null
         );
       });
       expect(openNormalReady).toBeTrue();
       const openNormalButton = container.querySelector(
-        `[data-doc-browser-open="${staleNormalDocUrl}"]`,
+        `[data-document-browser-open="${staleNormalDocUrl}"]`,
       ) as HTMLButtonElement | null;
       expect(openNormalButton).not.toBeNull();
       openNormalButton!.click();
@@ -1742,13 +1749,13 @@ describe("splatterboard shell", () => {
     const deleteButtonReady = await waitUntil(() => {
       return (
         container.querySelector(
-          `[data-doc-browser-delete="${secondDocUrl}"]`,
+          `[data-document-browser-delete="${secondDocUrl}"]`,
         ) !== null
       );
     });
     expect(deleteButtonReady).toBeTrue();
     const deleteSecondButton = container.querySelector(
-      `[data-doc-browser-delete="${secondDocUrl}"]`,
+      `[data-document-browser-delete="${secondDocUrl}"]`,
     ) as HTMLButtonElement | null;
     deleteSecondButton!.click();
 
@@ -2148,7 +2155,7 @@ describe("splatterboard shell", () => {
 
       newDrawingButton!.click();
       const createNormalButton = container.querySelector(
-        '[data-doc-browser-create-normal="true"]',
+        '[data-new-document-mode="normal"]',
       ) as HTMLButtonElement | null;
       expect(createNormalButton).not.toBeNull();
       createNormalButton!.click();
@@ -2200,13 +2207,13 @@ describe("splatterboard shell", () => {
 
       newDrawingButton!.click();
       const volumeButton = container.querySelector(
-        '[data-doc-create-volume="pdr-v1"]',
+        '[data-new-document-volume="pdr-v1"]',
       ) as HTMLButtonElement | null;
       expect(volumeButton).not.toBeNull();
       volumeButton!.click();
 
       const pageButton = container.querySelector(
-        '[data-doc-create-page="coloring/pdr-v1/page-009.png"]',
+        '[data-new-document-page="coloring/pdr-v1/page-009.png"]',
       ) as HTMLButtonElement | null;
       expect(pageButton).not.toBeNull();
       pageButton!.click();
@@ -2244,12 +2251,12 @@ describe("splatterboard shell", () => {
       expect(newDrawingButton).not.toBeNull();
       newDrawingButton!.click();
       const volumeButton = container.querySelector(
-        '[data-doc-create-volume="pdr-v1"]',
+        '[data-new-document-volume="pdr-v1"]',
       ) as HTMLButtonElement | null;
       expect(volumeButton).not.toBeNull();
       volumeButton!.click();
       const pageButton = container.querySelector(
-        '[data-doc-create-page="coloring/pdr-v1/page-009.png"]',
+        '[data-new-document-page="coloring/pdr-v1/page-009.png"]',
       ) as HTMLButtonElement | null;
       expect(pageButton).not.toBeNull();
       pageButton!.click();

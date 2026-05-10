@@ -14,7 +14,7 @@ import type {
   KidsDocumentSummary,
 } from "../documents";
 import { resolveDocumentOpenUrl } from "../documents";
-import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
+import type { NewDocumentRequest } from "../documents/newDocumentRequest";
 import {
   createDocumentSessionStore,
   type DocumentSessionIntent,

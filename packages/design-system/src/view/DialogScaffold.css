@@ -1,0 +1,71 @@
+.ds-dialog-scaffold {
+  width: min(var(--width-modal-md), calc(100vw - var(--size-px-7)));
+}
+
+.ds-dialog-scaffold__surface {
+  display: grid;
+  gap: var(--size-px-3);
+  padding: var(--size-px-4);
+}
+
+.ds-dialog-scaffold__header,
+.ds-dialog-scaffold__footer {
+  display: grid;
+  gap: var(--size-px-2);
+}
+
+.ds-dialog-scaffold__header[hidden],
+.ds-dialog-scaffold__footer[hidden] {
+  display: none;
+}
+
+.ds-dialog-scaffold__header-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--size-px-2);
+}
+
+.ds-dialog-scaffold__leading,
+.ds-dialog-scaffold__trailing {
+  min-width: 0;
+}
+
+.ds-dialog-scaffold__leading[hidden],
+.ds-dialog-scaffold__trailing[hidden] {
+  display: none;
+}
+
+.ds-dialog-scaffold__heading {
+  min-width: 0;
+  display: grid;
+  gap: var(--size-px-1);
+  align-content: start;
+}
+
+.ds-dialog-scaffold__heading[data-align="center"] {
+  justify-items: center;
+  text-align: center;
+}
+
+.ds-dialog-scaffold__title,
+.ds-dialog-scaffold__subtitle {
+  margin: 0;
+}
+
+.ds-dialog-scaffold__subtitle[hidden] {
+  display: none;
+}
+
+.ds-dialog-scaffold__body {
+  min-width: 0;
+}
+
+.ds-dialog-scaffold__body[data-scrollable="true"] {
+  min-height: 0;
+  overflow: auto;
+}
+
+.ds-dialog-scaffold__footer[data-align="end"] {
+  justify-items: end;
+}

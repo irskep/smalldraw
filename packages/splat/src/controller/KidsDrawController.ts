@@ -6,7 +6,7 @@ import type {
 import { Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { type IconNode, Trash2 } from "lucide";
-import { mount } from "redom";
+import { mount, unmount } from "redom";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 import { resolveDocumentClaimState } from "../documents";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
@@ -21,10 +21,11 @@ import {
   type ToolbarUiPersistence,
 } from "../ui/stores/toolbarUiPersistence";
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
-import { createDocumentBrowserOverlay } from "../view/DocumentBrowserOverlay";
+import { createDocumentBrowserDialogView } from "../view/DocumentBrowserDialogView";
 import { GlobalEventSurface } from "../view/GlobalEventSurface";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
+import { createNewDocumentDialogView } from "../view/NewDocumentDialogView";
 import type { SharePayload } from "./createCollaborativeUpgradeCoordinator";
 import { createCursorOverlayController } from "./createCursorOverlayController";
 import { createDocumentBrowserCommands } from "./createDocumentBrowserCommands";
@@ -224,12 +225,12 @@ export function createKidsDrawController(options: {
     console.debug("[kids-draw:lifecycle]", ...args);
   };
 
-  const documentPickerOverlay = createDocumentBrowserOverlay({
+  const documentBrowserDialog = createDocumentBrowserDialogView({
     onClose: () => {
       documentPickerController.close();
     },
-    onNewDocument: (request) => {
-      void createNewDocumentFromBrowser(request);
+    onOpenCreateDialog: () => {
+      documentPickerController.openCreateDialog();
     },
     onOpenDocument: (docUrl) => {
       void openDocumentFromBrowser(docUrl);
@@ -241,10 +242,20 @@ export function createKidsDrawController(options: {
       void deleteDocumentFromBrowser(docUrl);
     },
   });
-  mount(appElement, documentPickerOverlay.el);
+  const newDocumentDialog = createNewDocumentDialogView({
+    onClose: () => {
+      documentPickerController.closeCreateDialog();
+    },
+    onCreate: (request) => {
+      void createNewDocumentFromBrowser(request);
+    },
+  });
+  mount(appElement, documentBrowserDialog.el);
+  mount(appElement, newDocumentDialog.el);
   let documentRuntimeController: DocumentRuntimeController | null = null;
   const documentPickerController = new DocumentPickerController({
-    pickerOverlay: documentPickerOverlay,
+    browserDialog: documentBrowserDialog,
+    newDocumentDialog,
     documentBackend,
     getCurrentDocUrl: () =>
       documentRuntimeController?.getCurrentCatalogDocUrl() ??
@@ -497,7 +508,8 @@ export function createKidsDrawController(options: {
       lifecycleScope.disposeAll();
 
       pipeline.dispose();
-      documentPickerOverlay.el.remove();
+      unmount(appElement, documentBrowserDialog.el);
+      unmount(appElement, newDocumentDialog.el);
       if (!providedCore) {
         core.destroy();
       }

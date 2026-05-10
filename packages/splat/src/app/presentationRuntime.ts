@@ -1,6 +1,7 @@
 import {
   createModalDialogView as createDesignSystemModalDialogView,
   createShareQrDialog as createDesignSystemShareQrDialog,
+  type ShareQrDialog,
 } from "@smalldraw/design-system";
 import { el, mount, unmount } from "redom";
 import { createUiIntentStore } from "../controller/stores/createUiIntentStore";
@@ -12,7 +13,6 @@ import type {
 import { DesignSystemKidsDrawToolbarView } from "../designSystem/DesignSystemKidsDrawToolbar";
 import { KidsDrawStageView } from "../view/KidsDrawStage";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
-import type { ShareQrDialog } from "../view/ShareQrDialog";
 
 export type ConfirmDialogViewLike = {
   readonly el: HTMLDivElement;

@@ -1,14 +1,12 @@
-import "./DialogChrome.css";
 import "./ModalDialog.css";
 
 import type { IconNode } from "lucide";
-import { el, setChildren } from "redom";
+import { setChildren } from "redom";
 import { Button } from "./Button";
+import { DialogScaffold } from "./DialogScaffold";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
 import { Text } from "./Text";
-
-const DIALOG_CLOSE_ANIMATION_MS = 220;
 
 export interface ModalDialogOptions {
   title: string;
@@ -22,18 +20,27 @@ export interface ModalDialogOptions {
 export class ModalDialogView implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
 
-  #dialog: HTMLDialogElement;
+  #scaffold: DialogScaffold;
+  #shell: HTMLDivElement;
+  #header: HTMLDivElement;
   #title: Text<"h2">;
   #message: Text<"p">;
   #icon: HTMLSpanElement;
   #cancelButton: Button;
   #confirmButton: Button;
+  #actions: HTMLDivElement;
   #resolve: ((value: boolean) => void) | null = null;
-  #isClosing = false;
-  #closeTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
-    this.#icon = el("span.ds-modal-dialog__icon") as HTMLSpanElement;
+    this.#scaffold = new DialogScaffold();
+    this.#scaffold.setDialogClassName("ds-modal-dialog");
+    this.#scaffold.setSurfaceClassName("ds-modal-dialog__shell");
+    this.#scaffold.setOnDismiss(() => {
+      void this.#finish(false);
+    });
+
+    this.#icon = document.createElement("span");
+    this.#icon.className = "ds-modal-dialog__icon";
     this.#title = new Text({
       tag: "h2",
       kind: "title",
@@ -50,22 +57,15 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
       tone: "primary",
       autofocus: true,
     });
-
-    this.#dialog = el(
-      "dialog.ds-dialog ds-modal-dialog",
-      el(
-        "div.ds-dialog-surface ds-modal-dialog__shell",
-        el("div.ds-modal-dialog__header", this.#icon, this.#title),
-        this.#message,
-        el(
-          "div.ds-modal-dialog__actions",
-          this.#cancelButton,
-          this.#confirmButton,
-        ),
-      ),
-    ) as HTMLDialogElement;
-
-    this.el = el("div.ds-dialog-host ds-modal-dialog-host", this.#dialog) as HTMLDivElement;
+    this.#header = document.createElement("div");
+    this.#header.className = "ds-modal-dialog__header";
+    this.#header.append(this.#icon, this.#title.el);
+    this.#actions = document.createElement("div");
+    this.#actions.className = "ds-modal-dialog__actions";
+    this.#actions.append(this.#cancelButton.el, this.#confirmButton.el);
+    this.#shell = document.createElement("div");
+    this.#shell.className = "ds-modal-dialog__content";
+    this.#shell.append(this.#header, this.#message.el, this.#actions);
 
     this.#cancelButton.setOnPress(() => {
       void this.#finish(false);
@@ -73,15 +73,11 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
     this.#confirmButton.setOnPress(() => {
       void this.#finish(true);
     });
-    this.#dialog.addEventListener("cancel", (event) => {
-      event.preventDefault();
-      void this.#finish(false);
-    });
-    this.#dialog.addEventListener("click", (event) => {
-      if (event.target === this.#dialog) {
-        void this.#finish(false);
-      }
-    });
+
+    this.#scaffold.setBody(this.#shell);
+    this.#icon.hidden = true;
+
+    this.el = this.#scaffold.el;
   }
 
   async showConfirm(options: ModalDialogOptions): Promise<boolean> {
@@ -100,22 +96,14 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
     this.#confirmButton.setTone(tone === "danger" ? "danger" : "primary");
     this.#cancelButton.setLabel(cancelLabel);
     if (icon) {
+      setChildren(this.#icon, [renderIcon(icon)]);
       this.#icon.hidden = false;
-      setChildren(this.#icon, [this.#createIcon(icon)]);
     } else {
       setChildren(this.#icon, []);
       this.#icon.hidden = true;
     }
-
-    if (typeof this.#dialog.showModal !== "function") {
-      this.#dialog.setAttribute("open", "");
-    }
-
-    if (!this.#dialog.open) {
-      this.#dialog.showModal();
-    }
-    this.#dialog.classList.remove("is-closing");
-    this.#isClosing = false;
+    this.#header.classList.toggle("ds-modal-dialog__header--iconless", this.#icon.hidden);
+    this.#scaffold.show();
 
     return await new Promise<boolean>((resolve) => {
       this.#resolve = resolve;
@@ -123,49 +111,19 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
   }
 
   onunmount(): void {
-    if (this.#closeTimer !== null) {
-      clearTimeout(this.#closeTimer);
-      this.#closeTimer = null;
-    }
-    if (this.#dialog.open) {
-      this.#dialog.close();
-    }
+    this.#scaffold.onunmount?.();
     const resolve = this.#resolve;
     this.#resolve = null;
-    this.#isClosing = false;
     resolve?.(false);
   }
 
-  #createIcon(iconNode: IconNode): SVGSVGElement {
-    return renderIcon(iconNode);
-  }
-
   async #finish(value: boolean): Promise<void> {
-    if (this.#isClosing) {
+    if (this.#resolve === null) {
       return;
     }
-    this.#isClosing = true;
-
-    if (this.#dialog.open) {
-      this.#dialog.classList.add("is-closing");
-      await new Promise<void>((resolve) => {
-        const onDone = () => {
-          if (this.#closeTimer !== null) {
-            clearTimeout(this.#closeTimer);
-            this.#closeTimer = null;
-          }
-          this.#dialog.removeEventListener("animationend", onDone);
-          resolve();
-        };
-        this.#closeTimer = setTimeout(onDone, DIALOG_CLOSE_ANIMATION_MS);
-        this.#dialog.addEventListener("animationend", onDone);
-      });
-      this.#dialog.classList.remove("is-closing");
-      this.#dialog.close();
-    }
+    await this.#scaffold.close({ animated: true });
     const resolve = this.#resolve;
     this.#resolve = null;
-    this.#isClosing = false;
     resolve?.(value);
   }
 }

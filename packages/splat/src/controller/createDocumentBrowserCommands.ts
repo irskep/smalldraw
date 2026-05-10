@@ -1,5 +1,5 @@
 import type { KidsDocumentSummary } from "../documents";
-import type { NewDocumentRequest } from "../view/DocumentBrowserOverlay";
+import type { NewDocumentRequest } from "../documents/newDocumentRequest";
 
 type DocumentPickerControllerLike = {
   isOpen(): boolean;

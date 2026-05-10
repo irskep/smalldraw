@@ -242,6 +242,60 @@ body {
   align-self: center;
 }
 
+.ds-dialog-story__body {
+  display: grid;
+  gap: var(--size-4);
+}
+
+.ds-dialog-story__body--compact {
+  gap: var(--size-3);
+}
+
+.ds-dialog-story__section {
+  display: grid;
+  gap: var(--size-3);
+}
+
+.ds-dialog-story__heading,
+.ds-dialog-story__copy {
+  margin: 0;
+}
+
+.ds-dialog-story__summary {
+  display: grid;
+  grid-template-columns: minmax(6rem, 8rem) minmax(0, 1fr);
+  gap: var(--size-3);
+  align-items: center;
+  padding: var(--size-3);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--radius-3);
+}
+
+.ds-dialog-story__summary-cover,
+.ds-dialog-story__cover-token {
+  display: grid;
+  place-items: center;
+  background: white;
+  color: var(--ds-text-muted);
+}
+
+.ds-dialog-story__summary-cover {
+  aspect-ratio: 1;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--radius-2);
+}
+
+.ds-dialog-story__summary-meta {
+  display: grid;
+  gap: var(--size-1);
+}
+
+.ds-dialog-story__cover-token {
+  min-block-size: clamp(4rem, 14vw, 6rem);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--radius-2);
+}
+
 .ds-typography-story__specimen {
   display: grid;
   grid-template-columns: minmax(9rem, 12rem) minmax(0, 1fr);

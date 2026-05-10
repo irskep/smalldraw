@@ -877,6 +877,125 @@ test.describe("Grid: Vertical Two-Column", () => {
 // Button
 // ---------------------------------------------------------------------------
 
+test.describe("Dialog primitives", () => {
+  test("dialog-scaffold story exposes centered header controls and body cards", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("dialog-scaffold"));
+    await page.getByRole("button", { name: "Open scaffold" }).click();
+    await expect(page.getByRole("button", { name: "Back" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Close" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Blank Drawing" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Coloring Book" }),
+    ).toBeVisible();
+  });
+
+  test("dialog-scaffold story closes on Escape", async ({ page }) => {
+    await page.goto(testStoryUrl("dialog-scaffold"));
+    await page.getByRole("button", { name: "Open scaffold" }).click();
+    await expect(page.locator("dialog.ds-harness-dialog-scaffold")).toHaveAttribute(
+      "open",
+      "",
+    );
+    await page.keyboard.press("Escape");
+    await expect(page.locator("dialog.ds-harness-dialog-scaffold")).not.toHaveAttribute(
+      "open",
+      "",
+    );
+  });
+
+  test("choice-card story renders enabled and disabled cards", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("choice-card"));
+    await expect(
+      page.getByRole("heading", { name: "Choice Card" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Blank Drawing" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Coloring Book 1" }),
+    ).toBeDisabled();
+  });
+
+  test("poster-card story renders square page cards inside the grid", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("poster-card"));
+    const firstCard = page.getByRole("button", { name: "Page 001" });
+    await expect(firstCard).toBeVisible();
+    const metrics = await firstCard.locator(".ds-poster-card__media").evaluate(
+      (element) => {
+        const rect = (element as HTMLElement).getBoundingClientRect();
+        return { width: Math.round(rect.width), height: Math.round(rect.height) };
+      },
+    );
+    expect(metrics.width).toBe(metrics.height);
+  });
+
+  test("coloring-book-picker story navigates from books to pages and back", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("coloring-book-picker"));
+    await page.getByRole("button", { name: "Open book picker" }).click();
+    await expect(
+      page.getByRole("button", { name: "Blank Drawing" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "PDR Volume 1" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "PDR Volume 1" }).click();
+    await expect(
+      page.locator(".ds-dialog-scaffold__title"),
+    ).toHaveText("PDR Volume 1");
+    await expect(
+      page.locator("h3").filter({ hasText: "PDR Volume 1" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Page 001" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Page 004" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Back" }).click();
+    await expect(
+      page.getByRole("button", { name: "Blank Drawing" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "PDR Volume 1" }),
+    ).toBeVisible();
+  });
+
+  test("thumbnail-tile story renders overlay actions and status badges", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("thumbnail-tile"));
+    await expect(page.getByText("Shared").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Claim drawing" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Delete drawing" }).first(),
+    ).toBeVisible();
+    await expect(page.getByText("Local").first()).toBeVisible();
+  });
+
+  test("preview-card story renders preview media and metadata", async ({
+    page,
+  }) => {
+    await page.goto(testStoryUrl("preview-card"));
+    await expect(page.getByText("Drawing abc123")).toBeVisible();
+    await expect(
+      page.getByText("Last opened: 1/1/2026, 12:00:00 AM"),
+    ).toBeVisible();
+    await expect(page.locator(".ds-preview-card__image")).toBeVisible();
+  });
+});
+
 test.describe("Button", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(testStoryUrl("button"));
