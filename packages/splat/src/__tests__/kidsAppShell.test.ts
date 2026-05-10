@@ -1760,12 +1760,12 @@ describe("splatterboard shell", () => {
     deleteSecondButton!.click();
 
     let removed = false;
-    for (let i = 0; i < 50; i += 1) {
+    for (let i = 0; i < 120; i += 1) {
       if ((await documentBackend.getDocument(secondDocUrl)) === null) {
         removed = true;
         break;
       }
-      await waitForTurn();
+      await waitMs(5);
     }
     expect(removed).toBeTrue();
     expect(core.getCurrentDocUrl()).toBe(firstDocUrl);

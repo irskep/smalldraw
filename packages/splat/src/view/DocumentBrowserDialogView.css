@@ -27,6 +27,15 @@
   padding-right: var(--size-1);
 }
 
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile {
+  transition: opacity 180ms var(--ease-3);
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile[data-removing="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .kids-draw-document-browser-dialog__loading,
 .kids-draw-document-browser-dialog__empty {
   margin: var(--size-2) 0 0;

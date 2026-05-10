@@ -21,6 +21,7 @@ type DocumentBrowserDialogState = {
   open: boolean;
   loading: boolean;
   busyDocUrl: string | null;
+  removingDocUrl: string | null;
   currentDocUrl: string;
   documents: KidsDocumentSummary[];
   thumbnailUrlByDocUrl: Map<string, string>;
@@ -35,6 +36,7 @@ type DocumentTileItem = {
   document: KidsDocumentSummary;
   isCurrent: boolean;
   busy: boolean;
+  removing: boolean;
   claimable: boolean;
   thumbnailUrl: string | null;
   onOpen: (docUrl: string) => void;
@@ -49,12 +51,12 @@ export interface DocumentBrowserDialogView
   setOpen(open: boolean): void;
   isOpen(): boolean;
   setLoading(loading: boolean): void;
-  setDocuments(
-    documents: KidsDocumentSummary[],
-    currentDocUrl: string,
-    thumbnailUrlByDocUrl: Map<string, string>,
-    claimableDocUrls: Set<string>,
-  ): void;
+  setRemovingDocument(docUrl: string | null): void;
+  waitForRemovingDocument(docUrl: string): Promise<void>;
+  setDocuments(documents: KidsDocumentSummary[]): void;
+  setCurrentDocument(docUrl: string): void;
+  setThumbnailUrls(thumbnailUrlByDocUrl: Map<string, string>): void;
+  setClaimableDocuments(claimableDocUrls: Set<string>): void;
   setBusyDocument(docUrl: string | null): void;
 }
 
@@ -86,6 +88,10 @@ function getMetadataTooltip(document: KidsDocumentSummary): string {
   return `${toFallbackTitle(document)}\nLast opened: ${formatTimestamp(document.lastOpenedAt)}${mode}`;
 }
 
+function toViewTransitionName(docUrl: string): string {
+  return `kids-draw-doc-${docUrl.replace(/[^a-zA-Z0-9_-]+/g, "-")}`;
+}
+
 class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
   readonly el: HTMLDivElement;
 
@@ -111,6 +117,8 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     const nextThumbnailUrl = item.thumbnailUrl;
 
     this.el.dataset.docBrowserDoc = document.docUrl;
+    this.el.dataset.removing = item.removing ? "true" : "false";
+    this.el.style.viewTransitionName = toViewTransitionName(document.docUrl);
     this.#tile.setCurrent(item.isCurrent);
     this.#tile.setOpenLabel(toFallbackTitle(document));
     this.#tile.setOpenTitle(getMetadataTooltip(document));
@@ -246,6 +254,7 @@ export function createDocumentBrowserDialogView(options: {
     open: false,
     loading: false,
     busyDocUrl: null,
+    removingDocUrl: null,
     currentDocUrl: "",
     documents: [],
     thumbnailUrlByDocUrl: new Map(),
@@ -346,11 +355,11 @@ export function createDocumentBrowserDialogView(options: {
       );
     }
 
-    const showLoading = state.loading;
-    const showEmpty = !showLoading && state.documents.length === 0;
-    loadingEl.hidden = !showLoading;
+    const showInitialLoading = state.loading && state.documents.length === 0;
+    const showEmpty = !state.loading && state.documents.length === 0;
+    loadingEl.hidden = !showInitialLoading;
     emptyStateEl.hidden = !showEmpty;
-    grid.el.hidden = showLoading || showEmpty;
+    grid.el.hidden = showInitialLoading || showEmpty;
 
     tileList.update(
       state.documents.map((document) => ({
@@ -358,6 +367,7 @@ export function createDocumentBrowserDialogView(options: {
         document,
         isCurrent: document.docUrl === state.currentDocUrl,
         busy: state.busyDocUrl === document.docUrl,
+        removing: state.removingDocUrl === document.docUrl,
         claimable: state.claimableDocUrls.has(document.docUrl),
         thumbnailUrl: state.thumbnailUrlByDocUrl.get(document.docUrl) ?? null,
         onOpen: openDocument,
@@ -393,17 +403,87 @@ export function createDocumentBrowserDialogView(options: {
     setLoading(loading) {
       updateState((state) => ({ ...state, loading }));
     },
-    setDocuments(
-      documents,
-      currentDocUrl,
-      thumbnailUrlByDocUrl,
-      claimableDocUrls,
-    ) {
+    setRemovingDocument(docUrl) {
+      updateState((state) => ({ ...state, removingDocUrl: docUrl }));
+    },
+    waitForRemovingDocument(docUrl) {
+      const tile =
+        Array.from(root.querySelectorAll<HTMLElement>("[data-doc-browser-doc]")).find(
+          (element) => element.dataset.docBrowserDoc === docUrl,
+        ) ?? null;
+      if (!tile) {
+        return Promise.resolve();
+      }
+      return new Promise((resolve) => {
+        let settled = false;
+        let startedTransitions = 0;
+        let finishedTransitions = 0;
+        let sawTransitionRun = false;
+        const finish = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          tile.removeEventListener("transitionrun", onTransitionRun);
+          tile.removeEventListener("transitionend", onTransitionDone);
+          tile.removeEventListener("transitioncancel", onTransitionDone);
+          resolve();
+        };
+        const isRelevantTransition = (event: TransitionEvent): boolean => {
+          return event.target === tile && event.propertyName === "opacity";
+        };
+        const onTransitionRun = (event: TransitionEvent) => {
+          if (!isRelevantTransition(event)) {
+            return;
+          }
+          sawTransitionRun = true;
+          startedTransitions += 1;
+        };
+        const onTransitionDone = (event: TransitionEvent) => {
+          if (!isRelevantTransition(event)) {
+            return;
+          }
+          finishedTransitions += 1;
+          if (sawTransitionRun && finishedTransitions >= startedTransitions) {
+            finish();
+          }
+        };
+        tile.addEventListener("transitionrun", onTransitionRun);
+        tile.addEventListener("transitionend", onTransitionDone);
+        tile.addEventListener("transitioncancel", onTransitionDone);
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (!sawTransitionRun) {
+              finish();
+            }
+          });
+        });
+      });
+    },
+    setDocuments(documents) {
       updateState((state) => ({
         ...state,
         documents: [...documents],
-        currentDocUrl,
+        removingDocUrl:
+          state.removingDocUrl &&
+          documents.some((document) => document.docUrl === state.removingDocUrl)
+            ? state.removingDocUrl
+            : null,
+      }));
+    },
+    setCurrentDocument(docUrl) {
+      updateState((state) => ({ ...state, currentDocUrl: docUrl }));
+    },
+    setThumbnailUrls(thumbnailUrlByDocUrl) {
+      updateState((state) => ({
+        ...state,
         thumbnailUrlByDocUrl: new Map(thumbnailUrlByDocUrl),
+      }));
+    },
+    setClaimableDocuments(claimableDocUrls) {
+      updateState((state) => ({
+        ...state,
         claimableDocUrls: new Set(claimableDocUrls),
       }));
     },

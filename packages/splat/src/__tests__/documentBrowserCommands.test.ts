@@ -17,9 +17,11 @@ function createPickerState() {
     lastOpenedAt: string;
   }> = [];
   const busy: Array<string | null> = [];
+  const removing: string[] = [];
   const claimableCalls: string[][] = [];
   return {
     busy,
+    removing,
     claimableCalls,
     controller: {
       isOpen() {
@@ -36,6 +38,17 @@ function createPickerState() {
       },
       setClaimableDocuments(docUrls: Iterable<string>) {
         claimableCalls.push([...docUrls]);
+      },
+      setRemovingDocument(docUrl: string | null) {
+        if (docUrl) {
+          removing.push(docUrl);
+        }
+      },
+      async waitForRemovingDocument(docUrl: string) {
+        removing.push(`wait:${docUrl}`);
+      },
+      removeDocument(docUrl: string) {
+        documents = documents.filter((document) => document.docUrl !== docUrl);
       },
       close() {
         open = false;
@@ -225,6 +238,40 @@ describe("createDocumentBrowserCommands", () => {
       ["doc://owner"],
     ]);
     expect(picker.busy).toEqual(["doc://owner", null]);
+  });
+
+  test("deleteDocumentFromBrowser marks non-current document as removing during delete", async () => {
+    const picker = createPickerState();
+    picker.controller._setOpen(true);
+    picker.controller._setDocuments([
+      {
+        docUrl: "doc://other",
+        mode: "normal",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        lastOpenedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    const commands = createDocumentBrowserCommands({
+      documentPickerController: picker.controller,
+      getCurrentDocUrl: () => "doc://current",
+      switchToDocument: async () => {},
+      createNewDocument: async () => {},
+      flushThumbnailSave: async () => {},
+      listDocuments: async () => picker.controller.getDocuments(),
+      claimDocument: async () => {},
+      isClaimableDocument: () => false,
+      deleteDocument: async () => {},
+      confirmDelete: async () => true,
+      isDestroyed: () => false,
+    });
+
+    await commands.deleteDocumentFromBrowser("doc://other");
+
+    expect(picker.removing).toEqual([
+      "doc://other",
+      "wait:doc://other",
+    ]);
   });
 
   test("claimDocumentFromBrowser hides claim after successful attachment state update", async () => {

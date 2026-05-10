@@ -7,6 +7,9 @@ type DocumentPickerControllerLike = {
   getDocuments(): KidsDocumentSummary[];
   setBusyDocument(docUrl: string | null): void;
   setClaimableDocuments(docUrls: Iterable<string>): void;
+  setRemovingDocument(docUrl: string | null): void;
+  waitForRemovingDocument(docUrl: string): Promise<void>;
+  removeDocument(docUrl: string): void;
   close(): void;
   closeCreateDialog(): void;
   open(): Promise<KidsDocumentSummary[]>;
@@ -117,6 +120,11 @@ export function createDocumentBrowserCommands(options: {
     options.documentPickerController.setBusyDocument(docUrl);
     try {
       const deletingCurrent = docUrl === options.getCurrentDocUrl();
+      if (!deletingCurrent) {
+        options.documentPickerController.setRemovingDocument(docUrl);
+        await options.documentPickerController.waitForRemovingDocument(docUrl);
+        options.documentPickerController.removeDocument(docUrl);
+      }
       if (deletingCurrent) {
         await options.flushThumbnailSave();
       }
@@ -131,7 +139,11 @@ export function createDocumentBrowserCommands(options: {
         }
       }
       await reloadDocumentPicker();
+    } catch (error) {
+      await reloadDocumentPicker();
+      throw error;
     } finally {
+      options.documentPickerController.setRemovingDocument(null);
       options.documentPickerController.setBusyDocument(null);
     }
   };

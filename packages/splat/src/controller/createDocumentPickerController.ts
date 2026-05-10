@@ -8,6 +8,14 @@ export class DocumentPickerController {
   private browserRequestId = 0;
   private unsubscribeStore: (() => void) | null = null;
   private readonly state = createDocumentPickerStore();
+  private previousBrowserViewState: {
+    loading: boolean;
+    busyDocUrl: string | null;
+    currentDocUrl: string;
+    documents: KidsDocumentSummary[];
+    thumbnailUrlByDocUrl: Map<string, string>;
+    claimableDocUrls: Set<string>;
+  } | null = null;
 
   constructor(
     private readonly options: {
@@ -19,14 +27,34 @@ export class DocumentPickerController {
   ) {
     this.unsubscribeStore = bindAtom(this.state.$state, (state) => {
       const { browserDialog, newDocumentDialog, getCurrentDocUrl } = this.options;
-      browserDialog.setLoading(state.loading);
-      browserDialog.setBusyDocument(state.busyDocUrl);
-      browserDialog.setDocuments(
-        state.documents,
-        getCurrentDocUrl(),
-        state.thumbnailUrlByDocUrl,
-        state.claimableDocUrls,
-      );
+      const currentDocUrl = getCurrentDocUrl();
+      const previous = this.previousBrowserViewState;
+      if (!previous || previous.loading !== state.loading) {
+        browserDialog.setLoading(state.loading);
+      }
+      if (!previous || previous.busyDocUrl !== state.busyDocUrl) {
+        browserDialog.setBusyDocument(state.busyDocUrl);
+      }
+      if (!previous || previous.currentDocUrl !== currentDocUrl) {
+        browserDialog.setCurrentDocument(currentDocUrl);
+      }
+      if (!previous || previous.documents !== state.documents) {
+        browserDialog.setDocuments(state.documents);
+      }
+      if (!previous || previous.thumbnailUrlByDocUrl !== state.thumbnailUrlByDocUrl) {
+        browserDialog.setThumbnailUrls(state.thumbnailUrlByDocUrl);
+      }
+      if (!previous || previous.claimableDocUrls !== state.claimableDocUrls) {
+        browserDialog.setClaimableDocuments(state.claimableDocUrls);
+      }
+      this.previousBrowserViewState = {
+        loading: state.loading,
+        busyDocUrl: state.busyDocUrl,
+        currentDocUrl,
+        documents: state.documents,
+        thumbnailUrlByDocUrl: state.thumbnailUrlByDocUrl,
+        claimableDocUrls: state.claimableDocUrls,
+      };
       newDocumentDialog.setBusy(state.busyDocUrl === "__new__");
     });
   }
@@ -53,6 +81,23 @@ export class DocumentPickerController {
 
   setClaimableDocuments(docUrls: Iterable<string>): void {
     this.state.setClaimableDocUrls(new Set(docUrls));
+  }
+
+  setRemovingDocument(docUrl: string | null): void {
+    this.options.browserDialog.setRemovingDocument(docUrl);
+  }
+
+  async waitForRemovingDocument(docUrl: string): Promise<void> {
+    await this.options.browserDialog.waitForRemovingDocument(docUrl);
+  }
+
+  removeDocument(docUrl: string): void {
+    const previousThumbnailUrl =
+      this.state.get().thumbnailUrlByDocUrl.get(docUrl) ?? null;
+    this.state.removeDocument(docUrl);
+    if (previousThumbnailUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(previousThumbnailUrl);
+    }
   }
 
   close(): void {
@@ -141,7 +186,12 @@ export class DocumentPickerController {
       return;
     }
 
-    this.clearThumbnails();
+    const previousThumbnailUrlByDocUrl = this.state.get().thumbnailUrlByDocUrl;
     this.state.setThumbnailUrls(nextThumbnailUrlByDocUrl);
+    for (const [docUrl, url] of previousThumbnailUrlByDocUrl) {
+      if (url.startsWith("blob:") && nextThumbnailUrlByDocUrl.get(docUrl) !== url) {
+        URL.revokeObjectURL(url);
+      }
+    }
   }
 }

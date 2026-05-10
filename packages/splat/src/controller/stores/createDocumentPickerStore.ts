@@ -47,6 +47,22 @@ export function createDocumentPickerStore() {
       }
       $state.set({ ...current, documents: [...documents] });
     },
+    removeDocument(docUrl: string): void {
+      const current = $state.get();
+      if (!current.documents.some((document) => document.docUrl === docUrl)) {
+        return;
+      }
+      const nextThumbnailUrlByDocUrl = new Map(current.thumbnailUrlByDocUrl);
+      nextThumbnailUrlByDocUrl.delete(docUrl);
+      const nextClaimableDocUrls = new Set(current.claimableDocUrls);
+      nextClaimableDocUrls.delete(docUrl);
+      $state.set({
+        ...current,
+        documents: current.documents.filter((document) => document.docUrl !== docUrl),
+        thumbnailUrlByDocUrl: nextThumbnailUrlByDocUrl,
+        claimableDocUrls: nextClaimableDocUrls,
+      });
+    },
     setThumbnailUrls(thumbnailUrlByDocUrl: Map<string, string>): void {
       const current = $state.get();
       if (

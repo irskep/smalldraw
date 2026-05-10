@@ -95,12 +95,10 @@ describe("DocumentBrowserDialogView", () => {
 
     const doc = createDocument("doc://1");
     dialog.setOpen(true);
-    dialog.setDocuments(
-      [doc],
-      doc.docUrl,
-      new Map([[doc.docUrl, "blob://thumb"]]),
-      new Set(),
-    );
+    dialog.setDocuments([doc]);
+    dialog.setCurrentDocument(doc.docUrl);
+    dialog.setThumbnailUrls(new Map([[doc.docUrl, "blob://thumb"]]));
+    dialog.setClaimableDocuments(new Set());
 
     const openButton = dialog.el.querySelector(
       `[data-document-browser-open="${doc.docUrl}"]`,
@@ -139,12 +137,10 @@ describe("DocumentBrowserDialogView", () => {
 
     const doc = createDocument("doc://2");
     dialog.setOpen(true);
-    dialog.setDocuments(
-      [doc],
-      doc.docUrl,
-      new Map([[doc.docUrl, "blob://thumb"]]),
-      new Set(),
-    );
+    dialog.setDocuments([doc]);
+    dialog.setCurrentDocument(doc.docUrl);
+    dialog.setThumbnailUrls(new Map([[doc.docUrl, "blob://thumb"]]));
+    dialog.setClaimableDocuments(new Set());
 
     const openButton = dialog.el.querySelector(
       `[data-document-browser-open="${doc.docUrl}"]`,
@@ -186,12 +182,10 @@ describe("DocumentBrowserDialogView", () => {
 
     const doc = createDocument("doc://3");
     dialog.setOpen(true);
-    dialog.setDocuments(
-      [doc],
-      doc.docUrl,
-      new Map([[doc.docUrl, "blob://thumb"]]),
-      new Set(),
-    );
+    dialog.setDocuments([doc]);
+    dialog.setCurrentDocument(doc.docUrl);
+    dialog.setThumbnailUrls(new Map([[doc.docUrl, "blob://thumb"]]));
+    dialog.setClaimableDocuments(new Set());
 
     const openButton = dialog.el.querySelector(
       `[data-document-browser-open="${doc.docUrl}"]`,
@@ -230,7 +224,10 @@ describe("DocumentBrowserDialogView", () => {
 
     const doc = createDocument("doc://claimable");
     dialog.setOpen(true);
-    dialog.setDocuments([doc], doc.docUrl, new Map(), new Set([doc.docUrl]));
+    dialog.setDocuments([doc]);
+    dialog.setCurrentDocument(doc.docUrl);
+    dialog.setThumbnailUrls(new Map());
+    dialog.setClaimableDocuments(new Set([doc.docUrl]));
 
     const claimButton = dialog.el.querySelector(
       `[data-document-browser-claim="${doc.docUrl}"]`,
@@ -259,12 +256,10 @@ describe("DocumentBrowserDialogView", () => {
       collabDocUrl: "automerge:shared-1",
     };
     dialog.setOpen(true);
-    dialog.setDocuments(
-      [localDoc, sharedDoc],
-      localDoc.docUrl,
-      new Map(),
-      new Set(),
-    );
+    dialog.setDocuments([localDoc, sharedDoc]);
+    dialog.setCurrentDocument(localDoc.docUrl);
+    dialog.setThumbnailUrls(new Map());
+    dialog.setClaimableDocuments(new Set());
 
     const statuses = Array.from(
       dialog.el.querySelectorAll(".ds-thumbnail-tile__badge"),
@@ -279,7 +274,7 @@ describe("DocumentBrowserDialogView", () => {
     ]);
   });
 
-  test("loading round-trip preserves the retained grid element", () => {
+  test("initial loading shows loading state before any documents exist", () => {
     const dialog = createDocumentBrowserDialogView({
       onClose: () => {},
       onOpenCreateDialog: () => {},
@@ -289,30 +284,56 @@ describe("DocumentBrowserDialogView", () => {
     });
     document.body.appendChild(dialog.el);
 
-    const doc = createDocument("doc://retained");
     dialog.setOpen(true);
-    dialog.setDocuments([doc], doc.docUrl, new Map(), new Set());
-
-    const gridBefore = dialog.el.querySelector(
-      ".kids-draw-document-browser-dialog__grid",
-    ) as HTMLElement | null;
-    expect(gridBefore).not.toBeNull();
 
     dialog.setLoading(true);
 
     const loading = dialog.el.querySelector(
       ".kids-draw-document-browser-dialog__loading",
     ) as HTMLElement | null;
+    const grid = dialog.el.querySelector(
+      ".kids-draw-document-browser-dialog__grid",
+    ) as HTMLElement | null;
     expect(loading).not.toBeNull();
     expect(loading?.hidden).toBeFalse();
-    expect(gridBefore?.hidden).toBeTrue();
+    expect(grid).not.toBeNull();
+    expect(grid?.hidden).toBeTrue();
 
     dialog.setLoading(false);
 
-    const gridAfter = dialog.el.querySelector(
+    expect(loading?.hidden).toBeTrue();
+  });
+
+  test("reload loading keeps existing grid visible", () => {
+    const dialog = createDocumentBrowserDialogView({
+      onClose: () => {},
+      onOpenCreateDialog: () => {},
+      onOpenDocument: () => {},
+      onClaimDocument: () => {},
+      onDeleteDocument: () => {},
+    });
+    document.body.appendChild(dialog.el);
+
+    const doc = createDocument("doc://visible");
+    dialog.setOpen(true);
+    dialog.setDocuments([doc]);
+    dialog.setCurrentDocument(doc.docUrl);
+    dialog.setThumbnailUrls(new Map());
+    dialog.setClaimableDocuments(new Set());
+
+    const grid = dialog.el.querySelector(
       ".kids-draw-document-browser-dialog__grid",
     ) as HTMLElement | null;
-    expect(gridAfter).toBe(gridBefore);
-    expect(gridAfter?.hidden).toBeFalse();
+    const loading = dialog.el.querySelector(
+      ".kids-draw-document-browser-dialog__loading",
+    ) as HTMLElement | null;
+    expect(grid).not.toBeNull();
+    expect(loading).not.toBeNull();
+
+    dialog.setLoading(true);
+
+    expect(grid?.hidden).toBeFalse();
+    expect(loading?.hidden).toBeTrue();
   });
+
 });
