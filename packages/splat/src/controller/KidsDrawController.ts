@@ -435,10 +435,7 @@ export function createKidsDrawController(options: {
   });
 
   const applyCollaborationStatus = (status: CollaborationStatus): void => {
-    toolbar.setCollaborationStatus({
-      visible: status.visible,
-      label: status.visible ? status.label : undefined,
-    });
+    toolbar.setCollaborationStatus(status);
   };
   applyCollaborationStatus(collaborationStatusStore.getStatus());
   const unbindCollaborationStatus = collaborationStatusStore.subscribe(
@@ -499,7 +496,6 @@ export function createKidsDrawController(options: {
 
       lifecycleScope.disposeAll();
 
-      toolbar.destroy();
       pipeline.dispose();
       documentPickerOverlay.el.remove();
       if (!providedCore) {

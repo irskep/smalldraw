@@ -197,7 +197,7 @@ test.describe("Unified context entry stories", () => {
 
     const clickTool = async (label: string) => {
       await page
-        .locator(".kids-draw-tool-selector")
+        .locator(".ds-splat-context__tool-selector")
         .getByRole("button", { name: label })
         .click();
     };

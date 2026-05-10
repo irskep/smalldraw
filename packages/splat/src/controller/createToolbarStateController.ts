@@ -116,8 +116,6 @@ export class ToolbarStateController {
 
   syncToolbarUi(): void {
     this.options.toolbarUiStore.syncFromDrawingStore(this.options.store, {
-      resolveActiveFamilyId: (toolId) =>
-        getFamilyIdForTool(toolId, this.options.catalog),
       resolveToolStyleSupport: (toolId) =>
         getToolStyleSupport(toolId, this.options.catalog),
     });
@@ -129,10 +127,9 @@ export class ToolbarStateController {
     this.options.store.activateTool(toolId);
     this.sanitizeTransparentStylesForTool(toolId);
     const familyId = getFamilyIdForTool(toolId, this.options.catalog);
-    if (!familyId) {
-      return;
+    if (familyId) {
+      this.selectedToolIdByFamily.set(familyId, toolId);
     }
-    this.selectedToolIdByFamily.set(familyId, toolId);
   }
 
   activateFamilyTool(familyId: string): void {

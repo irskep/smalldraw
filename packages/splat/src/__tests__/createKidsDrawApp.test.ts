@@ -4,7 +4,7 @@ import {
   resolveCollaborativeDocumentId,
   resolveInitialDocumentSize,
   resolveStartupWebsocketToken,
-} from "../app/createKidsDrawApp";
+} from "../app/documentBootstrap";
 
 describe("resolveStartupWebsocketToken", () => {
   test("uses stored access token", () => {

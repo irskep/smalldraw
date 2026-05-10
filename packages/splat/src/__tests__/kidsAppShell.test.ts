@@ -502,7 +502,7 @@ describe("splatterboard shell", () => {
     clearButton!.click();
 
     const eraserFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="eraser"]',
+      '.ds-splat-context__tool-selector [data-tool-family="eraser"]',
     ) as HTMLElement | null;
     const markerVariantButton = container.querySelector(
       '[data-tool-variant="brush.marker"]',
@@ -1395,10 +1395,10 @@ describe("splatterboard shell", () => {
       }) as DOMRect;
 
     const filledShapeFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="shape.filled"]',
+      '.ds-splat-context__tool-selector [data-tool-family="shape.filled"]',
     ) as HTMLElement | null;
     const outlineShapeFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="shape.outline"]',
+      '.ds-splat-context__tool-selector [data-tool-family="shape.outline"]',
     ) as HTMLElement | null;
     const yellowColorSwatch = container.querySelector(
       'button[data-setting="stroke-color"][data-color="#ffdb4d"]',
@@ -1496,7 +1496,7 @@ describe("splatterboard shell", () => {
     }
 
     const brushFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="brush"]',
+      '.ds-splat-context__tool-selector [data-tool-family="brush"]',
     ) as HTMLElement | null;
     expect(brushFamilyButton).not.toBeNull();
     brushFamilyButton!.click();
@@ -1794,7 +1794,7 @@ describe("splatterboard shell", () => {
       }) as DOMRect;
 
     const lettersFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
+      '.ds-splat-context__tool-selector [data-tool-family="stamp.alphabet"]',
     ) as HTMLElement | null;
     const cursorIndicator = container.querySelector(
       ".kids-draw-cursor-indicator",
@@ -1807,7 +1807,7 @@ describe("splatterboard shell", () => {
     lettersFamilyButton!.click();
     expect(app.store.getActiveToolId()).toBe("stamp.letter.a");
     const selectedLettersFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
+      '.ds-splat-context__tool-selector [data-tool-family="stamp.alphabet"]',
     ) as HTMLElement | null;
     expect(selectedLettersFamilyButton?.getAttribute("aria-pressed")).toBe(
       "true",
@@ -1840,7 +1840,7 @@ describe("splatterboard shell", () => {
     stampZVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("stamp.letter.z");
     const selectedLettersAfterVariant = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
+      '.ds-splat-context__tool-selector [data-tool-family="stamp.alphabet"]',
     ) as HTMLElement | null;
     expect(selectedLettersAfterVariant?.getAttribute("aria-pressed")).toBe(
       "true",
@@ -1890,7 +1890,7 @@ describe("splatterboard shell", () => {
       }) as DOMRect;
 
     const imageFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="stamp.images"]',
+      '.ds-splat-context__tool-selector [data-tool-family="stamp.images"]',
     ) as HTMLElement | null;
     const cursorIndicator = container.querySelector(
       ".kids-draw-cursor-indicator",
@@ -1901,7 +1901,7 @@ describe("splatterboard shell", () => {
     imageFamilyButton!.click();
     expect(app.store.getActiveToolId()).toBe("stamp.image.bird1");
     const selectedImageFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="stamp.images"]',
+      '.ds-splat-context__tool-selector [data-tool-family="stamp.images"]',
     ) as HTMLElement | null;
     expect(selectedImageFamilyButton?.getAttribute("aria-pressed")).toBe(
       "true",
@@ -1913,10 +1913,10 @@ describe("splatterboard shell", () => {
       '[data-tool-variant="stamp.image.cat1"]',
     ) as HTMLElement | null;
     const prevPageButton = container.querySelector(
-      '[data-tool-family-prev="stamp.images"]',
+      '.ds-splat-context__variant-strip [data-button-grid-nav="prev"]',
     ) as HTMLElement | null;
     const nextPageButton = container.querySelector(
-      '[data-tool-family-next="stamp.images"]',
+      '.ds-splat-context__variant-strip [data-button-grid-nav="next"]',
     ) as HTMLElement | null;
     const imageIcon = imageVariantButton?.querySelector(
       ".kids-square-icon-button__icon-image",
@@ -1938,7 +1938,7 @@ describe("splatterboard shell", () => {
     imageVariantButton!.click();
     expect(app.store.getActiveToolId()).toBe("stamp.image.cat1");
     const selectedImagesAfterVariant = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="stamp.images"]',
+      '.ds-splat-context__tool-selector [data-tool-family="stamp.images"]',
     ) as HTMLElement | null;
     expect(selectedImagesAfterVariant?.getAttribute("aria-pressed")).toBe(
       "true",
@@ -1998,13 +1998,13 @@ describe("splatterboard shell", () => {
       ".kids-draw-cursor-indicator",
     ) as HTMLDivElement | null;
     const brushFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="brush"]',
+      '.ds-splat-context__tool-selector [data-tool-family="brush"]',
     ) as HTMLElement | null;
     const penVariantButton = container.querySelector(
       '[data-tool-variant="brush.freehand"]',
     ) as HTMLElement | null;
     const eraserFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="eraser"]',
+      '.ds-splat-context__tool-selector [data-tool-family="eraser"]',
     ) as HTMLElement | null;
     expect(cursorIndicator).not.toBeNull();
     expect(brushFamilyButton).not.toBeNull();
@@ -2070,7 +2070,7 @@ describe("splatterboard shell", () => {
       ".kids-draw-cursor-indicator",
     ) as HTMLDivElement | null;
     const alphabetFamilyButton = container.querySelector(
-      '.kids-draw-tool-selector [data-tool-family="stamp.alphabet"]',
+      '.ds-splat-context__tool-selector [data-tool-family="stamp.alphabet"]',
     ) as HTMLElement | null;
     expect(cursorIndicator).not.toBeNull();
     expect(alphabetFamilyButton).not.toBeNull();
@@ -2455,7 +2455,7 @@ describe("splatterboard shell", () => {
 
     expect(app.store.getActiveToolId()).toBe(persistedToolId);
     const stampPrevButton = container.querySelector(
-      '[data-tool-family-prev="stamp.images"]',
+      '.ds-splat-context__variant-strip [data-button-grid-nav="prev"]',
     ) as HTMLButtonElement | null;
     expect(stampPrevButton).not.toBeNull();
     expect(stampPrevButton!.disabled).toBeFalse();
@@ -2499,13 +2499,13 @@ describe("splatterboard shell", () => {
       await waitForTurn();
 
       const toolSelectorStampFamilyButton = container.querySelector(
-        '.kids-draw-tool-selector [data-tool-family="stamp.images"]',
+        '.ds-splat-context__tool-selector [data-tool-family="stamp.images"]',
       ) as HTMLButtonElement | null;
       const selectorPrevButton = container.querySelector(
-        '.kids-draw-tool-selector [data-button-grid-nav="prev"]',
+        '.ds-splat-context__variant-strip [data-button-grid-nav="prev"]',
       ) as HTMLButtonElement | null;
       const selectorNextButton = container.querySelector(
-        '.kids-draw-tool-selector [data-button-grid-nav="next"]',
+        '.ds-splat-context__variant-strip [data-button-grid-nav="next"]',
       ) as HTMLButtonElement | null;
 
       expect(app.store.getActiveToolId()).toBe("stamp.image.cat1");
@@ -2592,7 +2592,7 @@ describe("splatterboard shell", () => {
       await waitForTurn();
 
       const visibleSelectorButtons = container.querySelectorAll(
-        ".kids-draw-tool-selector [data-tool-family], .kids-draw-tool-selector [data-tool-id]",
+        ".ds-splat-context__tool-selector [data-tool-family], .ds-splat-context__tool-selector [data-tool-id]",
       );
       expect(app.store.getActiveToolId()).toBe(selectedStampToolId);
       expect(visibleSelectorButtons.length).toBeGreaterThan(1);

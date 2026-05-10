@@ -48,12 +48,12 @@ describe("toolbarUiPersistence", () => {
     });
 
     persistence.start();
-    toolbarUiStore.setStyleUi("#000000", "#ffffff", 2);
+    toolbarUiStore.setStyleUi("#000000", 2);
     await wait(20);
     expect(loadPersistedToolbarUiState(docUrl)).toBeNull();
     expect(persistedSignatures.length).toBe(1);
 
-    toolbarUiStore.setStyleUi("#0055ff", "#ffffff", 2);
+    toolbarUiStore.setStyleUi("#0055ff", 2);
     await wait(20);
     expect(loadPersistedToolbarUiState(docUrl)).toEqual({
       version: 1,
@@ -63,7 +63,7 @@ describe("toolbarUiPersistence", () => {
     });
     expect(persistedSignatures.length).toBe(2);
 
-    toolbarUiStore.setStyleUi("#0055ff", "#ffffff", 2);
+    toolbarUiStore.setStyleUi("#0055ff", 2);
     await wait(20);
     expect(persistedSignatures.length).toBe(2);
   });
@@ -81,8 +81,8 @@ describe("toolbarUiPersistence", () => {
     });
 
     persistence.start();
-    toolbarUiStore.setStyleUi("#111111", "#ffffff", 2);
-    toolbarUiStore.setStyleUi("#222222", "#ffffff", 16);
+    toolbarUiStore.setStyleUi("#111111", 2);
+    toolbarUiStore.setStyleUi("#222222", 16);
     await wait(45);
 
     expect(persistedSignatures.length).toBe(2);
@@ -98,17 +98,12 @@ describe("toolbarUiPersistence", () => {
     let currentDocUrl = "automerge:doc-1";
     const initialState: ToolbarUiState = {
       activeToolId: "",
-      activeFamilyId: "",
       canUndo: false,
       canRedo: false,
       strokeColor: "#000000",
-      fillColor: "#ffffff",
       strokeWidth: 2,
       supportsStrokeColor: true,
       supportsStrokeWidth: true,
-      supportsFillColor: false,
-      supportsTransparentStrokeColor: false,
-      supportsTransparentFillColor: false,
       newDrawingPending: false,
       sharePending: false,
     };
@@ -164,7 +159,7 @@ describe("toolbarUiPersistence", () => {
     });
 
     persistence.start();
-    toolbarUiStore.setStyleUi("#000000", "#ffffff", 24);
+    toolbarUiStore.setStyleUi("#000000", 24);
     persistence.flush();
     expect(loadPersistedToolbarUiState(docUrl)).toEqual({
       version: 1,

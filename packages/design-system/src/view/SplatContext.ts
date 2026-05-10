@@ -1,5 +1,6 @@
 import type { IconNode } from "lucide";
 import { Redo2, Share2, Undo2 } from "lucide";
+import { atom, type WritableAtom } from "nanostores";
 import { el } from "redom";
 import { type Button, createButton } from "./Button";
 import {
@@ -62,6 +63,11 @@ export interface SplatContextOptions {
 }
 
 type Layout = SplatContextLayout;
+type VariantGridPresentation = {
+  largeLayout: PagedButtonGridLargeLayout;
+  paginateInLarge: boolean;
+  buttonLayout: IconButtonLayout;
+};
 
 export class SplatContext implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
@@ -69,11 +75,15 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private readonly scene: HTMLDivElement;
   private readonly resizeObserver: ResizeObserver;
   private readonly responsiveController: SplatContextResponsiveController;
+  private readonly disposers: Array<() => void> = [];
   private pendingResizeFrame: number | null = null;
 
   private readonly opts: SplatContextOptions;
-  private readonly toolItems: SplatToolItem[];
-  private readonly variantItems: SplatToolItem[];
+  private readonly toolItemsStore: WritableAtom<SplatToolItem[]>;
+  private readonly activeToolIdStore: WritableAtom<string>;
+  private readonly variantItemsStore: WritableAtom<SplatToolItem[]>;
+  private readonly activeVariantIdStore: WritableAtom<string>;
+  private readonly variantPresentationStore: WritableAtom<VariantGridPresentation>;
 
   private colorPicker!: ColorPicker;
   private strokePicker!: StrokePicker;
@@ -86,37 +96,33 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private mobileShareButton?: Button;
   private canvasHost?: HTMLDivElement;
   private canvasContent: HTMLElement | null = null;
-  private variantLargeLayout: PagedButtonGridLargeLayout;
-  private paginateVariantsInLarge: boolean;
-  private variantButtonLayout: IconButtonLayout;
-
-  private activeToolId = "";
 
   private toolGrid?: PagedButtonGrid<SplatToolItem>;
   private mobileToolGrid?: PagedButtonGrid<SplatToolItem>;
   private mobileDropdownToolGrid?: PagedButtonGrid<SplatToolItem>;
   private mobileToolPicker?: ToolPickerPopover;
 
-  private activeVariantId = "";
-
   private desktopVariantGrid?: PagedButtonGrid<SplatToolItem>;
   private mobileVariantGrid?: PagedButtonGrid<SplatToolItem>;
 
   constructor(options: SplatContextOptions) {
     this.opts = options;
-    this.toolItems = [...options.tools];
-    this.variantItems = [...options.variants];
-    this.activeToolId = options.activeToolId;
-    this.activeVariantId = options.activeVariantId;
-    this.variantLargeLayout = options.variantLargeLayout ?? "single-row";
-    this.paginateVariantsInLarge = options.paginateVariantsInLarge ?? false;
-    this.variantButtonLayout = options.variantButtonLayout ?? "large";
+    this.toolItemsStore = atom([...options.tools]);
+    this.activeToolIdStore = atom(options.activeToolId);
+    this.variantItemsStore = atom([...options.variants]);
+    this.activeVariantIdStore = atom(options.activeVariantId);
+    this.variantPresentationStore = atom({
+      largeLayout: options.variantLargeLayout ?? "single-row",
+      paginateInLarge: options.paginateVariantsInLarge ?? false,
+      buttonLayout: options.variantButtonLayout ?? "large",
+    });
     this.el = el("div.ds-splat-context__frame") as HTMLDivElement;
     this.scene = el("div.ds-splat-context__scene") as HTMLDivElement;
     this.el.append(this.scene);
     this.responsiveController = new SplatContextResponsiveController();
 
     this.initSharedComponents();
+    this.bindState();
 
     this.resizeObserver = new ResizeObserver(() => {
       this.scheduleResizeSync();
@@ -132,6 +138,9 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     if (this.pendingResizeFrame !== null) {
       this.cancelAnimationFrame(this.pendingResizeFrame);
       this.pendingResizeFrame = null;
+    }
+    for (const dispose of this.disposers) {
+      dispose();
     }
     this.destroyOwnedViews();
   }
@@ -165,23 +174,19 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   setTools(tools: readonly SplatToolItem[]): void {
-    this.toolItems.splice(0, this.toolItems.length, ...tools);
-    this.syncToolGrids();
+    this.toolItemsStore.set([...tools]);
   }
 
   setActiveToolId(toolId: string): void {
-    this.activeToolId = toolId;
-    this.syncToolGrids();
+    this.activeToolIdStore.set(toolId);
   }
 
   setVariants(variants: readonly SplatToolItem[]): void {
-    this.variantItems.splice(0, this.variantItems.length, ...variants);
-    this.syncVariantGrids();
+    this.variantItemsStore.set([...variants]);
   }
 
   setActiveVariantId(variantId: string): void {
-    this.activeVariantId = variantId;
-    this.syncVariantGrids();
+    this.activeVariantIdStore.set(variantId);
   }
 
   setVariantGridPresentation(options: {
@@ -189,18 +194,15 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     paginateInLarge: boolean;
     buttonLayout: IconButtonLayout;
   }): void {
+    const current = this.variantPresentationStore.get();
     if (
-      options.largeLayout === this.variantLargeLayout &&
-      options.paginateInLarge === this.paginateVariantsInLarge &&
-      options.buttonLayout === this.variantButtonLayout
+      options.largeLayout === current.largeLayout &&
+      options.paginateInLarge === current.paginateInLarge &&
+      options.buttonLayout === current.buttonLayout
     ) {
       return;
     }
-    this.variantLargeLayout = options.largeLayout;
-    this.paginateVariantsInLarge = options.paginateInLarge;
-    this.variantButtonLayout = options.buttonLayout;
-    this.rebuild();
-    this.scheduleResizeSync();
+    this.variantPresentationStore.set({ ...options });
   }
 
   setActionDisabled(actionId: string, disabled: boolean): void {
@@ -291,6 +293,19 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.syncIndicator.el.classList.add("ds-splat-context__sync-indicator");
   }
 
+  private bindState(): void {
+    this.disposers.push(
+      this.toolItemsStore.subscribe(() => this.syncToolGrids()),
+      this.activeToolIdStore.subscribe(() => this.syncToolGrids()),
+      this.variantItemsStore.subscribe(() => this.syncVariantGrids()),
+      this.activeVariantIdStore.subscribe(() => this.syncVariantGrids()),
+      this.variantPresentationStore.subscribe(() => {
+        this.syncVariantGridPresentation();
+        this.scheduleResizeSync();
+      }),
+    );
+  }
+
   private scheduleResizeSync(): void {
     if (this.pendingResizeFrame !== null) {
       return;
@@ -359,15 +374,14 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       },
       updateItemComponent: (component, item) => {
         const btn = component as IconButton;
-        btn.setPressed(item.id === this.activeToolId);
+        btn.setPressed(item.id === this.activeToolIdStore.get());
       },
     });
   }
 
   private selectTool(toolId: string): void {
-    this.activeToolId = toolId;
+    this.activeToolIdStore.set(toolId);
     this.setStatus(`Tool: ${toolId}`);
-    this.syncToolGrids();
     this.mobileToolPicker?.setOpen(false);
     this.opts.onSelectTool?.(toolId);
   }
@@ -375,20 +389,19 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private syncToolGrids(): void {
     this.syncButtonGridGroup(
       this.getToolGrids(),
-      this.toolItems,
-      this.activeToolId,
+      this.toolItemsStore.get(),
+      this.activeToolIdStore.get(),
     );
   }
 
   private initToolGrids(): void {
-    const tools = [...this.toolItems];
+    const tools = [...this.toolItemsStore.get()];
 
     this.toolGrid = this.createToolGrid(tools, "large", "vertical");
     this.addClasses(
       this.toolGrid.el,
       "ds-splat-context__tool-selector",
       "ds-splat-context__grid-panel",
-      "kids-draw-tool-selector",
     );
 
     this.mobileToolGrid = this.createToolGrid(tools, "mobile", "horizontal");
@@ -397,7 +410,6 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "ds-splat-context__tool-selector",
       "ds-splat-context__grid-panel",
       "ds-splat-context__tool-selector--mobile",
-      "kids-draw-tool-selector",
     );
 
     this.mobileDropdownToolGrid = this.createToolGrid(
@@ -410,7 +422,6 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "ds-splat-context__tool-selector",
       "ds-splat-context__tool-selector--mobile",
       "ds-splat-context__tool-selector--dropdown",
-      "kids-draw-tool-selector",
     );
 
     this.mobileToolPicker = new ToolPickerPopover();
@@ -423,17 +434,18 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     _items: SplatToolItem[],
     mode: "large" | "medium" | "mobile",
   ): PagedButtonGrid<SplatToolItem> {
+    const presentation = this.variantPresentationStore.get();
     return new PagedButtonGrid<SplatToolItem>({
       initialMode: mode,
       orientation: "horizontal",
-      largeLayout: this.variantLargeLayout,
-      paginateInLarge: mode === "large" && this.paginateVariantsInLarge,
+      largeLayout: presentation.largeLayout,
+      paginateInLarge: mode === "large" && presentation.paginateInLarge,
       createItemComponent: (item) => {
         const btn = createIconButton({
           label: item.label,
           icon: item.icon,
           layout:
-            mode === "large" ? this.variantButtonLayout : undefined,
+            mode === "large" ? presentation.buttonLayout : undefined,
         });
         for (const [name, value] of Object.entries(item.attributes ?? {})) {
           btn.el.setAttribute(name, value);
@@ -443,40 +455,44 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       },
       updateItemComponent: (component, item) => {
         const btn = component as IconButton;
-        btn.setPressed(item.id === this.activeVariantId);
+        btn.setPressed(item.id === this.activeVariantIdStore.get());
+        btn.setLayout(
+          mode === "large"
+            ? this.variantPresentationStore.get().buttonLayout
+            : "small",
+        );
       },
     });
   }
 
   private selectVariant(variantId: string): void {
-    this.activeVariantId = variantId;
+    this.activeVariantIdStore.set(variantId);
     this.setStatus(`Variant: ${variantId}`);
-    this.syncVariantGrids();
     this.opts.onSelectVariant?.(variantId);
   }
 
   private syncVariantGrids(): void {
     this.syncButtonGridGroup(
       this.getVariantGrids(),
-      this.variantItems,
-      this.activeVariantId,
+      this.variantItemsStore.get(),
+      this.activeVariantIdStore.get(),
     );
   }
 
   private initVariantGrids(): void {
-    const variants = [...this.variantItems];
+    const variants = [...this.variantItemsStore.get()];
+    const presentation = this.variantPresentationStore.get();
 
     this.desktopVariantGrid = this.createVariantGrid(variants, "large");
     this.addClasses(
       this.desktopVariantGrid.el,
       "ds-splat-context__variant-strip",
-      "kids-draw-toolbar-bottom",
     );
     this.desktopVariantGrid.el.setAttribute(
       "data-button-layout",
-      this.variantButtonLayout,
+      presentation.buttonLayout,
     );
-    if (this.variantButtonLayout === "large") {
+    if (presentation.buttonLayout === "large") {
       this.desktopVariantGrid.el.classList.add(
         "ds-splat-context__toolbar-scale-large",
       );
@@ -487,10 +503,33 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.mobileVariantGrid.el,
       "ds-splat-context__variant-strip",
       "ds-splat-context__variant-bar--mobile",
-      "kids-draw-toolbar-bottom",
     );
     this.mobileVariantGrid.el.setAttribute("data-button-layout", "small");
 
+    this.syncVariantGrids();
+  }
+
+  private syncVariantGridPresentation(): void {
+    const presentation = this.variantPresentationStore.get();
+    if (this.desktopVariantGrid) {
+      this.desktopVariantGrid.setLargeLayout(presentation.largeLayout);
+      this.desktopVariantGrid.setPaginateInLarge(
+        presentation.paginateInLarge,
+      );
+      this.desktopVariantGrid.el.setAttribute(
+        "data-button-layout",
+        presentation.buttonLayout,
+      );
+      this.desktopVariantGrid.el.classList.toggle(
+        "ds-splat-context__toolbar-scale-large",
+        presentation.buttonLayout === "large",
+      );
+    }
+    if (this.mobileVariantGrid) {
+      this.mobileVariantGrid.setLargeLayout(presentation.largeLayout);
+      this.mobileVariantGrid.setPaginateInLarge(false);
+      this.mobileVariantGrid.el.setAttribute("data-button-layout", "small");
+    }
     this.syncVariantGrids();
   }
 

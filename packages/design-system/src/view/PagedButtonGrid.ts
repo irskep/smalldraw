@@ -57,8 +57,8 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
   private readonly nextButton: IconButton;
 
   private readonly orientation: PagedButtonGridOrientation;
-  private readonly largeLayout: PagedButtonGridLargeLayout;
-  private readonly paginateInLarge: boolean;
+  private largeLayout: PagedButtonGridLargeLayout;
+  private paginateInLarge: boolean;
   private readonly createItemComponent: (
     item: TItem,
   ) => ReDomLike<HTMLElement | SVGElement>;
@@ -188,6 +188,24 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
       return;
     }
     this.state.resolvedOrientation = nextOrientation;
+    this.resetPagination();
+    this.render();
+  }
+
+  setLargeLayout(nextLayout: PagedButtonGridLargeLayout): void {
+    if (nextLayout === this.largeLayout) {
+      return;
+    }
+    this.largeLayout = nextLayout;
+    this.resetPagination();
+    this.render();
+  }
+
+  setPaginateInLarge(nextPaginateInLarge: boolean): void {
+    if (nextPaginateInLarge === this.paginateInLarge) {
+      return;
+    }
+    this.paginateInLarge = nextPaginateInLarge;
     this.resetPagination();
     this.render();
   }
@@ -491,6 +509,8 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
 
     this.el.dataset.mode = this.state.mode;
     this.el.dataset.resolvedOrientation = this.state.resolvedOrientation;
+    this.el.dataset.largeLayout = this.largeLayout;
+    this.el.dataset.paginateLarge = this.paginateInLarge ? "true" : "false";
     this.track.style.transform = "";
 
     if (this.state.needsPaginationRecalc) {
