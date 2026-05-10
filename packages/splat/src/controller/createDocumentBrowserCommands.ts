@@ -29,6 +29,7 @@ export function createDocumentBrowserCommands(options: {
   deleteDocument: (docUrl: string) => Promise<void>;
   confirmDelete: () => Promise<boolean>;
   onClaimError?: (message: string) => void;
+  onOpenDocumentError?: (message: string) => void;
   isDestroyed: () => boolean;
 }) {
   const updateClaimableDocuments = (
@@ -104,6 +105,17 @@ export function createDocumentBrowserCommands(options: {
     try {
       await options.switchToDocument(docUrl);
       closeDocumentPicker();
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : "Failed to open this drawing.";
+      console.warn("[kids-draw:documents] open failed", {
+        docUrl,
+        message,
+        error,
+      });
+      options.onOpenDocumentError?.(message);
     } finally {
       options.documentPickerController.setBusyDocument(null);
     }

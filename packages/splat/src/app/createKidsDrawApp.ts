@@ -152,6 +152,7 @@ export async function createKidsDrawApp(
     showShareDialog: controllerMultiplayerAdapters.showShareDialog,
     onShareError: controllerMultiplayerAdapters.onShareError,
     onClaimError: controllerMultiplayerAdapters.onClaimError,
+    onOpenDocumentError: controllerMultiplayerAdapters.onOpenDocumentError,
     onCurrentDocumentSummaryChanged: options.onCurrentDocumentSummaryChanged,
   });
 
@@ -236,6 +237,7 @@ function createControllerMultiplayerAdapters(options: {
   | "showShareDialog"
   | "onShareError"
   | "onClaimError"
+  | "onOpenDocumentError"
 > {
   const multiplayerApiClient = options.multiplayerApiClient;
 
@@ -301,6 +303,14 @@ function createControllerMultiplayerAdapters(options: {
     onClaimError: (message) => {
       void options.presentation.modalDialog.showConfirm({
         title: "Unable to claim drawing",
+        message,
+        confirmLabel: "OK",
+        cancelLabel: "Dismiss",
+      });
+    },
+    onOpenDocumentError: (message) => {
+      void options.presentation.modalDialog.showConfirm({
+        title: "Unable to open drawing",
         message,
         confirmLabel: "OK",
         cancelLabel: "Dismiss",

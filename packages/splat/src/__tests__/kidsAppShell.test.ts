@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { TRPCClientError } from "@trpc/client";
 import {
   type ActionContext,
   applyActionToDoc,
@@ -109,6 +110,21 @@ async function waitUntil(
     await waitForTurn();
   }
   return predicate();
+}
+
+function createUnauthorizedTrpcError(): TRPCClientError<any> {
+  return new TRPCClientError("UNAUTHORIZED", {
+    result: {
+      error: {
+        message: "UNAUTHORIZED",
+        code: -32001,
+        data: {
+          code: "UNAUTHORIZED",
+          httpStatus: 401,
+        },
+      },
+    },
+  });
 }
 
 async function waitForToolbarUiPersistence(): Promise<void> {
@@ -789,6 +805,131 @@ describe("splatterboard shell", () => {
     }
   });
 
+  test("account document bootstrap falls back to cached local access when auth is missing", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(JSON.stringify([{ result: { data: [] } }]), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.includes("/resolveAccountCollaborativeDocument")) {
+        throw createUnauthorizedTrpcError();
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const now = new Date().toISOString();
+      const backend = createMockDocumentBackend(
+        [
+          {
+            docUrl: "catalog-collab:account-doc",
+            collaborative: true,
+            collabDocUrl: "automerge:account-doc",
+            accessToken: "cached-access-token",
+            accessTokenScope: "owner",
+            accountAttached: true,
+            mode: "normal",
+            createdAt: now,
+            updatedAt: now,
+            lastOpenedAt: now,
+          },
+        ],
+        null,
+      );
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          startupIntent: {
+            kind: "open-account-document",
+            documentId: "account-doc",
+          },
+          deviceTag: "device-1",
+        },
+      });
+
+      expect(await backend.getCurrentDocument()).toBe(
+        "catalog-collab:account-doc",
+      );
+
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
+  });
+
+  test("account document bootstrap surfaces auth-required access error without local fallback", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(JSON.stringify([{ result: { data: [] } }]), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.includes("/resolveAccountCollaborativeDocument")) {
+        throw createUnauthorizedTrpcError();
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const backend = createMockDocumentBackend([], null);
+
+      await expect(
+        createKidsDrawApp({
+          container,
+          width: 640,
+          height: 480,
+          core: createMockCore({ width: 640, height: 480 }),
+          documentBackend: backend,
+          confirmDestructiveAction: async () => true,
+          multiplayer: {
+            syncServerHttpUrl: "http://localhost:3030/api",
+            startupIntent: {
+              kind: "open-account-document",
+              documentId: "account-doc",
+            },
+            deviceTag: "device-1",
+          },
+        }),
+      ).rejects.toMatchObject({
+        name: "DocumentAccessError",
+        reason: "auth_required",
+        userMessage: "Log in or sign up to open this account-linked drawing.",
+      });
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
+  });
+
   test("empty local catalog syncs account document metadata and loads only the selected drawing", async () => {
     const originalFetch = globalThis.fetch;
     const resolvedDocumentIds: string[] = [];
@@ -1368,7 +1509,7 @@ describe("splatterboard shell", () => {
           },
         },
       }),
-    ).rejects.toThrow("This drawing is not stored in this browser.");
+    ).rejects.toThrow("This drawing is not stored in this browser anymore.");
   });
 
   test("filled/outline shape families preserve sub-shape and draw boxed kinds", async () => {

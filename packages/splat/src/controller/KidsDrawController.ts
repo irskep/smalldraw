@@ -138,6 +138,7 @@ export function createKidsDrawController(options: {
   showShareDialog: (payload: SharePayload) => Promise<void>;
   onShareError?: (message: string) => void;
   onClaimError?: (message: string) => void;
+  onOpenDocumentError?: (message: string) => void;
   onCurrentDocumentSummaryChanged?: (
     summary: KidsDocumentSummary | null,
   ) => void;
@@ -172,6 +173,7 @@ export function createKidsDrawController(options: {
     showShareDialog,
     onShareError,
     onClaimError,
+    onOpenDocumentError,
   } = options;
   let size = {
     width: initialSize.width,
@@ -394,6 +396,7 @@ export function createKidsDrawController(options: {
         icon: Trash2,
       }),
     onClaimError,
+    onOpenDocumentError,
     isDestroyed: () => runtimeStore.isDestroyed(),
   });
   const {

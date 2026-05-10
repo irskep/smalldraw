@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { DocumentAccessError } from "../app/documentBootstrap";
 import { createDocumentBrowserCommands } from "../controller/createDocumentBrowserCommands";
 
 function createPickerState() {
@@ -362,5 +363,41 @@ describe("createDocumentBrowserCommands", () => {
       "This browser only has join access for this drawing.",
     ]);
     expect(picker.busy).toEqual(["doc://device", null]);
+  });
+
+  test("openDocumentFromBrowser surfaces document access errors", async () => {
+    const picker = createPickerState();
+    picker.controller._setOpen(true);
+    const errors: string[] = [];
+    const commands = createDocumentBrowserCommands({
+      documentPickerController: picker.controller,
+      getCurrentDocUrl: () => "doc://current",
+      switchToDocument: async () => {
+        throw new DocumentAccessError({
+          reason: "auth_required",
+          title: "You can't access this drawing",
+          userMessage:
+            "Log in or sign up to open this account-linked drawing.",
+        });
+      },
+      createNewDocument: async () => {},
+      flushThumbnailSave: async () => {},
+      listDocuments: async () => picker.controller.getDocuments(),
+      claimDocument: async () => {},
+      isClaimableDocument: () => false,
+      deleteDocument: async () => {},
+      confirmDelete: async () => true,
+      onOpenDocumentError: (message) => {
+        errors.push(message);
+      },
+      isDestroyed: () => false,
+    });
+
+    await commands.openDocumentFromBrowser("doc://account");
+
+    expect(errors).toEqual([
+      "Log in or sign up to open this account-linked drawing.",
+    ]);
+    expect(picker.busy).toEqual(["doc://account", null]);
   });
 });

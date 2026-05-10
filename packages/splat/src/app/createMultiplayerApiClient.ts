@@ -1,4 +1,24 @@
-import { createTRPCUntypedClient, httpBatchLink } from "@trpc/client";
+import {
+  TRPCClientError,
+  createTRPCUntypedClient,
+  httpBatchLink,
+} from "@trpc/client";
+
+export class MultiplayerApiError extends Error {
+  readonly code?: string;
+
+  constructor(
+    message: string,
+    options?: {
+      code?: string;
+      cause?: unknown;
+    },
+  ) {
+    super(message, { cause: options?.cause });
+    this.name = "MultiplayerApiError";
+    this.code = options?.code;
+  }
+}
 
 export interface MultiplayerApiClient {
   listAccountCollaborativeDocuments(): Promise<
@@ -64,7 +84,15 @@ export function createMultiplayerApiClient(options: {
 
   return {
     async listAccountCollaborativeDocuments() {
-      const result = await client.query("listAccountCollaborativeDocuments");
+      let result: unknown;
+      try {
+        result = await client.query("listAccountCollaborativeDocuments");
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to list account drawings.",
+        );
+      }
       const parsed = parseAccountDocumentListResult(result);
       if (!parsed) {
         throw new Error(
@@ -75,11 +103,19 @@ export function createMultiplayerApiClient(options: {
     },
     async registerCollaborativeDocument(documentId, content, deviceTag) {
       const contentBase64 = uint8ArrayToBase64(content);
-      const result = await client.mutation("registerCollaborativeDocument", {
-        documentId,
-        content: contentBase64,
-        deviceTag,
-      });
+      let result: unknown;
+      try {
+        result = await client.mutation("registerCollaborativeDocument", {
+          documentId,
+          content: contentBase64,
+          deviceTag,
+        });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to register collaborative drawing.",
+        );
+      }
       const parsed = parseRegisterResult(result);
       if (!parsed) {
         throw new Error("Invalid response from registerCollaborativeDocument");
@@ -87,13 +123,18 @@ export function createMultiplayerApiClient(options: {
       return parsed;
     },
     async resolveCollaborativeDocumentByJoinSecret(joinSecret, deviceTag) {
-      const result = await client.query(
-        "resolveAnonymousCollaborativeDocument",
-        {
+      let result: unknown;
+      try {
+        result = await client.query("resolveAnonymousCollaborativeDocument", {
           joinSecret,
           deviceTag,
-        },
-      );
+        });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to resolve shared drawing.",
+        );
+      }
       if (result == null) {
         return null;
       }
@@ -109,10 +150,18 @@ export function createMultiplayerApiClient(options: {
       documentId,
       deviceTag,
     ) {
-      const result = await client.query("resolveAccountCollaborativeDocument", {
-        documentId,
-        deviceTag,
-      });
+      let result: unknown;
+      try {
+        result = await client.query("resolveAccountCollaborativeDocument", {
+          documentId,
+          deviceTag,
+        });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to resolve account drawing.",
+        );
+      }
       const parsed = parseAccountResolveResult(result);
       if (!parsed) {
         throw new Error(
@@ -122,9 +171,17 @@ export function createMultiplayerApiClient(options: {
       return parsed;
     },
     async claimCollaborativeDocument(accessToken) {
-      const result = await client.mutation("claimCollaborativeDocument", {
-        accessToken,
-      });
+      let result: unknown;
+      try {
+        result = await client.mutation("claimCollaborativeDocument", {
+          accessToken,
+        });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to claim drawing.",
+        );
+      }
       const parsed = parseClaimResult(result);
       if (!parsed) {
         throw new Error("Invalid response from claimCollaborativeDocument");
@@ -153,6 +210,35 @@ export function createMultiplayerApiClient(options: {
       }
     },
   };
+}
+
+export function isMultiplayerApiAuthError(error: unknown): boolean {
+  if (error instanceof MultiplayerApiError) {
+    return error.code === "UNAUTHORIZED";
+  }
+  if (error instanceof TRPCClientError) {
+    return error.data?.code === "UNAUTHORIZED" || error.message === "UNAUTHORIZED";
+  }
+  return error instanceof Error && error.message === "UNAUTHORIZED";
+}
+
+function normalizeMultiplayerApiError(
+  error: unknown,
+  fallbackMessage: string,
+): Error {
+  if (error instanceof MultiplayerApiError) {
+    return error;
+  }
+  if (error instanceof TRPCClientError) {
+    return new MultiplayerApiError(error.message || fallbackMessage, {
+      code: typeof error.data?.code === "string" ? error.data.code : undefined,
+      cause: error,
+    });
+  }
+  if (error instanceof Error) {
+    return error;
+  }
+  return new Error(fallbackMessage);
 }
 
 function parseAccountDocumentListResult(input: unknown): Array<{

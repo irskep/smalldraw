@@ -1,7 +1,10 @@
 import type { DocumentId } from "@automerge/automerge-repo";
 import type { DrawingDocumentSize } from "@smalldraw/core";
 import type { KidsDrawAppOptions } from "./types";
-import type { MultiplayerApiClient } from "./createMultiplayerApiClient";
+import {
+  isMultiplayerApiAuthError,
+  type MultiplayerApiClient,
+} from "./createMultiplayerApiClient";
 import type {
   KidsDocumentBackend,
   KidsDocumentSummary,
@@ -14,6 +17,40 @@ import {
 } from "../documents";
 
 type StartupIntent = NonNullable<KidsDrawAppOptions["multiplayer"]>["startupIntent"];
+
+export class DocumentAccessError extends Error {
+  readonly kind = "document_access";
+  readonly reason:
+    | "auth_required"
+    | "invalid_share_link"
+    | "local_document_missing"
+    | "server_unavailable";
+  readonly title: string;
+  readonly userMessage: string;
+
+  constructor(options: {
+    reason:
+      | "auth_required"
+      | "invalid_share_link"
+      | "local_document_missing"
+      | "server_unavailable";
+    title: string;
+    userMessage: string;
+    cause?: unknown;
+  }) {
+    super(options.userMessage, { cause: options.cause });
+    this.name = "DocumentAccessError";
+    this.reason = options.reason;
+    this.title = options.title;
+    this.userMessage = options.userMessage;
+  }
+}
+
+export function isDocumentAccessError(
+  error: unknown,
+): error is DocumentAccessError {
+  return error instanceof DocumentAccessError;
+}
 
 export function resolveStartupWebsocketToken(
   initialCatalogSummary: Pick<KidsDocumentSummary, "accessToken"> | null,
@@ -156,7 +193,11 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
               })
             : null;
         if (!resolved) {
-          throw new Error("This drawing is not stored in this browser.");
+          throw new DocumentAccessError({
+            reason: "local_document_missing",
+            title: "This drawing is not available here",
+            userMessage: "This drawing is not stored in this browser anymore.",
+          });
         }
         startupPreImports.push({
           binary: resolved.binary,
@@ -179,7 +220,11 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
           options.deviceTag,
         );
       if (!resolved) {
-        throw new Error("Invalid share link.");
+        throw new DocumentAccessError({
+          reason: "invalid_share_link",
+          title: "This share link does not work",
+          userMessage: "This share link is invalid or no longer available.",
+        });
       }
       startupPreImports.push({
         binary: base64ToUint8Array(resolved.content),
@@ -202,11 +247,47 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
       if (!options.multiplayerApiClient) {
         throw new Error("Multiplayer API is not configured.");
       }
-      const resolved =
-        await options.multiplayerApiClient.resolveCollaborativeDocumentByAccountDocumentId(
-          options.startupIntent.documentId,
-          options.deviceTag,
-        );
+      const localSummary = await findLocalCollaborativeSummaryByDocumentId({
+        documentBackend: options.documentBackend,
+        documentId: options.startupIntent.documentId,
+      });
+      let resolved: Awaited<
+        ReturnType<
+          MultiplayerApiClient["resolveCollaborativeDocumentByAccountDocumentId"]
+        >
+      >;
+      try {
+        resolved =
+          await options.multiplayerApiClient.resolveCollaborativeDocumentByAccountDocumentId(
+            options.startupIntent.documentId,
+            options.deviceTag,
+          );
+      } catch (error) {
+        if (
+          isMultiplayerApiAuthError(error) &&
+          localSummary &&
+          canUseLocalCollaborativeAccess(localSummary)
+        ) {
+          await options.documentBackend.setCurrentDocument(localSummary.docUrl);
+          return startupPreImports;
+        }
+        if (isMultiplayerApiAuthError(error)) {
+          throw new DocumentAccessError({
+            reason: "auth_required",
+            title: "You can't access this drawing",
+            userMessage:
+              "Log in or sign up to open this account-linked drawing.",
+            cause: error,
+          });
+        }
+        throw new DocumentAccessError({
+          reason: "server_unavailable",
+          title: "Could not open drawing",
+          userMessage:
+            "The drawing could not be opened right now. Please try again.",
+          cause: error,
+        });
+      }
       startupPreImports.push({
         binary: base64ToUint8Array(resolved.content),
         docId: resolved.collabDocUrl,
@@ -283,11 +364,32 @@ export async function resolveAccountDocumentForLocalOpen(options: {
     });
     return { binary, collabDocUrl: resolved.collabDocUrl };
   } catch (error) {
+    if (
+      isMultiplayerApiAuthError(error) &&
+      canUseLocalCollaborativeAccess(summary)
+    ) {
+      configureLocalCollaborativeAccess({
+        localRepo: options.localRepo,
+        summary,
+      });
+      return null;
+    }
     console.warn("[kids-draw:documents] failed to resolve account document", {
       documentId,
       error,
     });
-    return null;
+    throw new DocumentAccessError({
+      reason: isMultiplayerApiAuthError(error)
+        ? "auth_required"
+        : "server_unavailable",
+      title: isMultiplayerApiAuthError(error)
+        ? "You can't access this drawing"
+        : "Could not open drawing",
+      userMessage: isMultiplayerApiAuthError(error)
+        ? "Log in or sign up to open this account-linked drawing."
+        : "The drawing could not be opened right now. Please try again.",
+      cause: error,
+    });
   }
 }
 
@@ -337,4 +439,46 @@ function base64ToUint8Array(base64: string): Uint8Array {
     bytes[i] = binary.charCodeAt(i);
   }
   return bytes;
+}
+
+async function findLocalCollaborativeSummaryByDocumentId(options: {
+  documentBackend: KidsDocumentBackend;
+  documentId: string;
+}): Promise<KidsDocumentSummary | null> {
+  const collabDocUrl = `automerge:${options.documentId}`;
+  const documents = await options.documentBackend.listDocuments();
+  const match =
+    documents.find((summary) => summary.collabDocUrl === collabDocUrl) ?? null;
+  return match;
+}
+
+function canUseLocalCollaborativeAccess(
+  summary: KidsDocumentSummary | null,
+): summary is KidsDocumentSummary & {
+  collaborative: true;
+  collabDocUrl: string;
+  accessToken: string;
+} {
+  return Boolean(
+    isCollaborativeDocument(summary) &&
+      summary.accessToken &&
+      summary.accessToken.length > 0,
+  );
+}
+
+function configureLocalCollaborativeAccess(options: {
+  localRepo: LocalSmalldrawRepo | null;
+  summary: KidsDocumentSummary & {
+    collaborative: true;
+    collabDocUrl: string;
+    accessToken: string;
+  };
+}): void {
+  if (!options.localRepo) {
+    return;
+  }
+  options.localRepo.setWebsocketAuthorizedDocumentId(
+    resolveCollaborativeDocumentId(options.summary.collabDocUrl),
+  );
+  options.localRepo.setWebsocketAuthToken(options.summary.accessToken);
 }

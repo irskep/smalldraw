@@ -1,5 +1,7 @@
 export {
   createKidsDrawApp,
+  DocumentAccessError,
+  isDocumentAccessError,
   type KidsDrawApp,
   type KidsDrawAppOptions,
 } from "./createKidsDrawApp";
