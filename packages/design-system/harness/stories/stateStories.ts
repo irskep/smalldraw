@@ -10,6 +10,7 @@ export const stateStories: HarnessStory[] = [
       "Inline startup/document-open error state with auth recovery and local reset actions.",
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
+      const viewport = el("div.ds-story-viewport") as HTMLDivElement;
       const status = el(
         "output.ds-story-output",
         "No action yet.",
@@ -42,7 +43,8 @@ export const stateStories: HarnessStory[] = [
         status.textContent = "Reset Local Session pressed on generic failure.";
       });
 
-      canvas.append(authRequired.el, genericFailure.el, status);
+      viewport.append(authRequired.el);
+      canvas.append(viewport, genericFailure.el, status);
       container.replaceChildren(canvas);
     },
   },

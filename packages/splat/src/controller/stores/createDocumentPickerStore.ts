@@ -7,6 +7,7 @@ type DocumentPickerState = {
   documents: KidsDocumentSummary[];
   thumbnailUrlByDocUrl: Map<string, string>;
   claimableDocUrls: Set<string>;
+  unavailableMessageByDocUrl: Map<string, string>;
 };
 
 export function createDocumentPickerStore() {
@@ -16,6 +17,7 @@ export function createDocumentPickerStore() {
     documents: [],
     thumbnailUrlByDocUrl: new Map(),
     claimableDocUrls: new Set(),
+    unavailableMessageByDocUrl: new Map(),
   });
 
   return {
@@ -42,10 +44,24 @@ export function createDocumentPickerStore() {
     },
     setDocuments(documents: KidsDocumentSummary[]): void {
       const current = $state.get();
-      if (isSameDocuments(current.documents, documents)) {
+      const nextUnavailableMessageByDocUrl = retainDocumentStringMap(
+        current.unavailableMessageByDocUrl,
+        documents,
+      );
+      if (
+        isSameDocuments(current.documents, documents) &&
+        isSameStringMap(
+          current.unavailableMessageByDocUrl,
+          nextUnavailableMessageByDocUrl,
+        )
+      ) {
         return;
       }
-      $state.set({ ...current, documents: [...documents] });
+      $state.set({
+        ...current,
+        documents: [...documents],
+        unavailableMessageByDocUrl: nextUnavailableMessageByDocUrl,
+      });
     },
     removeDocument(docUrl: string): void {
       const current = $state.get();
@@ -56,11 +72,16 @@ export function createDocumentPickerStore() {
       nextThumbnailUrlByDocUrl.delete(docUrl);
       const nextClaimableDocUrls = new Set(current.claimableDocUrls);
       nextClaimableDocUrls.delete(docUrl);
+      const nextUnavailableMessageByDocUrl = new Map(
+        current.unavailableMessageByDocUrl,
+      );
+      nextUnavailableMessageByDocUrl.delete(docUrl);
       $state.set({
         ...current,
         documents: current.documents.filter((document) => document.docUrl !== docUrl),
         thumbnailUrlByDocUrl: nextThumbnailUrlByDocUrl,
         claimableDocUrls: nextClaimableDocUrls,
+        unavailableMessageByDocUrl: nextUnavailableMessageByDocUrl,
       });
     },
     setThumbnailUrls(thumbnailUrlByDocUrl: Map<string, string>): void {
@@ -90,6 +111,27 @@ export function createDocumentPickerStore() {
       $state.set({
         ...current,
         claimableDocUrls: new Set(claimableDocUrls),
+      });
+    },
+    setUnavailableDocumentMessage(docUrl: string, message: string | null): void {
+      const current = $state.get();
+      const nextMessage = message?.trim() ? message.trim() : null;
+      const previousMessage =
+        current.unavailableMessageByDocUrl.get(docUrl) ?? null;
+      if (previousMessage === nextMessage) {
+        return;
+      }
+      const nextUnavailableMessageByDocUrl = new Map(
+        current.unavailableMessageByDocUrl,
+      );
+      if (nextMessage) {
+        nextUnavailableMessageByDocUrl.set(docUrl, nextMessage);
+      } else {
+        nextUnavailableMessageByDocUrl.delete(docUrl);
+      }
+      $state.set({
+        ...current,
+        unavailableMessageByDocUrl: nextUnavailableMessageByDocUrl,
       });
     },
   };
@@ -172,4 +214,36 @@ function isSameThumbnailMap(
     }
   }
   return true;
+}
+
+function isSameStringMap(
+  a: ReadonlyMap<string, string>,
+  b: ReadonlyMap<string, string>,
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a.size !== b.size) {
+    return false;
+  }
+  for (const [key, value] of a) {
+    if (b.get(key) !== value) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function retainDocumentStringMap(
+  map: ReadonlyMap<string, string>,
+  documents: readonly KidsDocumentSummary[],
+): Map<string, string> {
+  const allowedDocUrls = new Set(documents.map((document) => document.docUrl));
+  const next = new Map<string, string>();
+  for (const [docUrl, value] of map) {
+    if (allowedDocUrls.has(docUrl)) {
+      next.set(docUrl, value);
+    }
+  }
+  return next;
 }

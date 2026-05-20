@@ -15,6 +15,7 @@ export class DocumentPickerController {
     documents: KidsDocumentSummary[];
     thumbnailUrlByDocUrl: Map<string, string>;
     claimableDocUrls: Set<string>;
+    unavailableMessageByDocUrl: Map<string, string>;
   } | null = null;
 
   constructor(
@@ -47,6 +48,12 @@ export class DocumentPickerController {
       if (!previous || previous.claimableDocUrls !== state.claimableDocUrls) {
         browserDialog.setClaimableDocuments(state.claimableDocUrls);
       }
+      if (
+        !previous ||
+        previous.unavailableMessageByDocUrl !== state.unavailableMessageByDocUrl
+      ) {
+        browserDialog.setUnavailableDocuments(state.unavailableMessageByDocUrl);
+      }
       this.previousBrowserViewState = {
         loading: state.loading,
         busyDocUrl: state.busyDocUrl,
@@ -54,6 +61,7 @@ export class DocumentPickerController {
         documents: state.documents,
         thumbnailUrlByDocUrl: state.thumbnailUrlByDocUrl,
         claimableDocUrls: state.claimableDocUrls,
+        unavailableMessageByDocUrl: state.unavailableMessageByDocUrl,
       };
       newDocumentDialog.setBusy(state.busyDocUrl === "__new__");
     });
@@ -85,6 +93,14 @@ export class DocumentPickerController {
 
   setRemovingDocument(docUrl: string | null): void {
     this.options.browserDialog.setRemovingDocument(docUrl);
+  }
+
+  setUnavailableDocumentMessage(docUrl: string, message: string | null): void {
+    this.state.setUnavailableDocumentMessage(docUrl, message);
+  }
+
+  getUnavailableDocumentMessage(docUrl: string): string | null {
+    return this.state.get().unavailableMessageByDocUrl.get(docUrl) ?? null;
   }
 
   async waitForRemovingDocument(docUrl: string): Promise<void> {

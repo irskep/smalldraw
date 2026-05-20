@@ -19,6 +19,7 @@
     "test:ui:headed": "mise -C ../.. run design-system:test:ui:headed",
     "test:ui:managed": "mise -C ../.. run design-system:test:ui:managed",
     "test:ui:live": "mise -C ../.. run design-system:test:ui",
+    "validate": "bun run ts:check && bun run test && bun run test:ui:live",
     "test:ui:install": "bunx playwright install chromium"
   },
   "dependencies": {

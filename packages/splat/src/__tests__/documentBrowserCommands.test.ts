@@ -20,10 +20,12 @@ function createPickerState() {
   const busy: Array<string | null> = [];
   const removing: string[] = [];
   const claimableCalls: string[][] = [];
+  const unavailableMessageByDocUrl = new Map<string, string>();
   return {
     busy,
     removing,
     claimableCalls,
+    unavailableMessageByDocUrl,
     controller: {
       isOpen() {
         return open;
@@ -34,11 +36,21 @@ function createPickerState() {
       getDocuments() {
         return documents;
       },
+      getUnavailableDocumentMessage(docUrl: string) {
+        return unavailableMessageByDocUrl.get(docUrl) ?? null;
+      },
       setBusyDocument(docUrl: string | null) {
         busy.push(docUrl);
       },
       setClaimableDocuments(docUrls: Iterable<string>) {
         claimableCalls.push([...docUrls]);
+      },
+      setUnavailableDocumentMessage(docUrl: string, message: string | null) {
+        if (message?.trim()) {
+          unavailableMessageByDocUrl.set(docUrl, message.trim());
+          return;
+        }
+        unavailableMessageByDocUrl.delete(docUrl);
       },
       setRemovingDocument(docUrl: string | null) {
         if (docUrl) {
@@ -430,5 +442,55 @@ describe("createDocumentBrowserCommands", () => {
       "This drawing is no longer stored in this browser.",
     ]);
     expect(picker.busy).toEqual(["doc://stale", null]);
+  });
+
+  test("openDocumentFromBrowser marks collaborative unavailability and shows learn-more copy", async () => {
+    const picker = createPickerState();
+    picker.controller._setOpen(true);
+    picker.controller._setDocuments([
+      {
+        docUrl: "catalog-collab:stale",
+        collaborative: true,
+        collabDocUrl: "automerge:collab-stale",
+        mode: "normal",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        lastOpenedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    const errors: string[] = [];
+    let openAttempts = 0;
+    const commands = createDocumentBrowserCommands({
+      documentPickerController: picker.controller,
+      getCurrentDocUrl: () => "doc://current",
+      switchToDocument: async () => {
+        openAttempts += 1;
+        throw new Error("Document automerge:collab-stale is unavailable");
+      },
+      createNewDocument: async () => {},
+      flushThumbnailSave: async () => {},
+      listDocuments: async () => picker.controller.getDocuments(),
+      claimDocument: async () => {},
+      isClaimableDocument: () => false,
+      deleteDocument: async () => {},
+      confirmDelete: async () => true,
+      onOpenDocumentError: (message) => {
+        errors.push(message);
+      },
+      isDestroyed: () => false,
+    });
+
+    await commands.openDocumentFromBrowser("catalog-collab:stale");
+    await commands.openDocumentFromBrowser("catalog-collab:stale");
+
+    expect(openAttempts).toBe(1);
+    expect(picker.unavailableMessageByDocUrl.get("catalog-collab:stale")).toBe(
+      "This drawing is no longer syncing.\n\nThis browser still has its local record and preview, but the shared copy can't be opened anymore. You can keep it here for reference or delete it from Browse Drawings.",
+    );
+    expect(errors).toEqual([
+      "This drawing is no longer syncing.\n\nThis browser still has its local record and preview, but the shared copy can't be opened anymore. You can keep it here for reference or delete it from Browse Drawings.",
+      "This drawing is no longer syncing.\n\nThis browser still has its local record and preview, but the shared copy can't be opened anymore. You can keep it here for reference or delete it from Browse Drawings.",
+    ]);
+    expect(picker.busy).toEqual(["catalog-collab:stale", null]);
   });
 });

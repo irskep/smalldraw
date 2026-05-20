@@ -36,6 +36,46 @@
   pointer-events: none;
 }
 
+.kids-draw-document-browser-dialog__thumbnail-media {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.kids-draw-document-browser-dialog__thumbnail-media > img,
+.kids-draw-document-browser-dialog__thumbnail-media > div:first-child {
+  width: 100%;
+  height: 100%;
+}
+
+.kids-draw-document-browser-dialog__sync-issue {
+  position: absolute;
+  inset-inline: var(--size-2);
+  bottom: var(--size-2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-1);
+  width: fit-content;
+  max-width: calc(100% - (var(--size-2) * 2));
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--ds-danger);
+  color: white;
+  box-shadow: var(--shadow-1);
+  pointer-events: none;
+  font-size: var(--font-size-0);
+  font-weight: var(--font-weight-6);
+  line-height: 1;
+}
+
+.kids-draw-document-browser-dialog__sync-issue[hidden] {
+  display: none;
+}
+
+.kids-draw-document-browser-dialog__sync-issue-icon {
+  color: inherit;
+}
+
 .kids-draw-document-browser-dialog__loading,
 .kids-draw-document-browser-dialog__empty {
   margin: var(--size-2) 0 0;

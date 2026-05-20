@@ -242,6 +242,16 @@ body {
   gap: var(--size-4);
 }
 
+.ds-story-viewport {
+  min-height: min(70vh, 42rem);
+  display: grid;
+  place-items: center;
+  padding: var(--size-5);
+  border: 1px solid var(--ds-border-subtle);
+  border-radius: var(--radius-3);
+  background: var(--ds-surface-muted);
+}
+
 .ds-story-heading {
   margin: 0;
   font-size: var(--font-size-3);
