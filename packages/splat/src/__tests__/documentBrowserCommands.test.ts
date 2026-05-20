@@ -400,4 +400,35 @@ describe("createDocumentBrowserCommands", () => {
     ]);
     expect(picker.busy).toEqual(["doc://account", null]);
   });
+
+  test("openDocumentFromBrowser rewrites unavailable-document errors", async () => {
+    const picker = createPickerState();
+    picker.controller._setOpen(true);
+    const errors: string[] = [];
+    const commands = createDocumentBrowserCommands({
+      documentPickerController: picker.controller,
+      getCurrentDocUrl: () => "doc://current",
+      switchToDocument: async () => {
+        throw new Error("Document automerge:abc123 is unavailable");
+      },
+      createNewDocument: async () => {},
+      flushThumbnailSave: async () => {},
+      listDocuments: async () => picker.controller.getDocuments(),
+      claimDocument: async () => {},
+      isClaimableDocument: () => false,
+      deleteDocument: async () => {},
+      confirmDelete: async () => true,
+      onOpenDocumentError: (message) => {
+        errors.push(message);
+      },
+      isDestroyed: () => false,
+    });
+
+    await commands.openDocumentFromBrowser("doc://stale");
+
+    expect(errors).toEqual([
+      "This drawing is no longer stored in this browser.",
+    ]);
+    expect(picker.busy).toEqual(["doc://stale", null]);
+  });
 });

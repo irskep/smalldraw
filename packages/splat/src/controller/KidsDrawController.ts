@@ -87,6 +87,19 @@ function toClaimErrorMessage(
   }
 }
 
+function toUiOpenDocumentErrorMessage(error: unknown): string {
+  if (
+    error instanceof Error &&
+    /document .* is unavailable/i.test(error.message)
+  ) {
+    return "This drawing is no longer stored in this browser.";
+  }
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+  return "Failed to open this drawing.";
+}
+
 export function createKidsDrawController(options: {
   store: DrawingStore;
   core: SmalldrawCore;
@@ -235,7 +248,15 @@ export function createKidsDrawController(options: {
       documentPickerController.openCreateDialog();
     },
     onOpenDocument: (docUrl) => {
-      void openDocumentFromBrowser(docUrl);
+      void openDocumentFromBrowser(docUrl).catch((error) => {
+        const message = toUiOpenDocumentErrorMessage(error);
+        console.error("[kids-draw:documents] unhandled open failure", {
+          docUrl,
+          message,
+          error,
+        });
+        onOpenDocumentError?.(message);
+      });
     },
     onClaimDocument: (docUrl) => {
       void claimDocumentFromBrowser(docUrl);

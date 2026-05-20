@@ -1,5 +1,8 @@
 import type { KidsDocumentSummary } from "../documents";
 import type { NewDocumentRequest } from "../documents/newDocumentRequest";
+import {
+  isDocumentAccessError,
+} from "../app/documentBootstrap";
 
 type DocumentPickerControllerLike = {
   isOpen(): boolean;
@@ -32,6 +35,22 @@ export function createDocumentBrowserCommands(options: {
   onOpenDocumentError?: (message: string) => void;
   isDestroyed: () => boolean;
 }) {
+  const toOpenDocumentErrorMessage = (error: unknown): string => {
+    if (isDocumentAccessError(error)) {
+      return error.userMessage;
+    }
+    if (
+      error instanceof Error &&
+      /document .* is unavailable/i.test(error.message)
+    ) {
+      return "This drawing is no longer stored in this browser.";
+    }
+    if (error instanceof Error && error.message.trim().length > 0) {
+      return error.message;
+    }
+    return "Failed to open this drawing.";
+  };
+
   const updateClaimableDocuments = (
     documents: readonly KidsDocumentSummary[],
   ): KidsDocumentSummary[] => {
@@ -106,10 +125,7 @@ export function createDocumentBrowserCommands(options: {
       await options.switchToDocument(docUrl);
       closeDocumentPicker();
     } catch (error) {
-      const message =
-        error instanceof Error && error.message.trim().length > 0
-          ? error.message
-          : "Failed to open this drawing.";
+      const message = toOpenDocumentErrorMessage(error);
       console.warn("[kids-draw:documents] open failed", {
         docUrl,
         message,
