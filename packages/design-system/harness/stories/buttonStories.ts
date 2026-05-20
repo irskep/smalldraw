@@ -93,12 +93,18 @@ export const buttonStories: HarnessStory[] = [
       const offlineIndicator = createSyncIndicator({
         state: "synced-to-server-but-offline",
       });
+      const errorIndicator = createSyncIndicator({
+        state: "error",
+        description:
+          "Sync is taking longer than expected. Changes may not be reaching the server.",
+      });
       const onlineIndicator = createSyncIndicator({ state: "online" });
 
       const states = [
         ["Unknown", hiddenIndicator],
         ["Local only", localOnlyIndicator],
         ["Saved to server, offline", offlineIndicator],
+        ["Sync issue", errorIndicator],
         ["Online", onlineIndicator],
       ] as const;
 

@@ -15,9 +15,10 @@
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "bunx biome check --write",
     "test": "bun test ./tests",
-    "test:ui": "playwright test",
-    "test:ui:headed": "playwright test --headed",
-    "test:ui:live": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:3002 playwright test",
+    "test:ui": "mise -C ../.. run design-system:test:ui",
+    "test:ui:headed": "mise -C ../.. run design-system:test:ui:headed",
+    "test:ui:managed": "mise -C ../.. run design-system:test:ui:managed",
+    "test:ui:live": "mise -C ../.. run design-system:test:ui",
     "test:ui:install": "bunx playwright install chromium"
   },
   "dependencies": {

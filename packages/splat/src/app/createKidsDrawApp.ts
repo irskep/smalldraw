@@ -34,6 +34,10 @@ import {
   createPresentationRuntime,
   type ConfirmDialogViewLike,
 } from "./presentationRuntime";
+import {
+  bindCollaborativeSyncErrorSurface,
+  isSyncIssueShareMessage,
+} from "./collaborativeSyncErrorSurface";
 import { bootstrapKidsDrawRuntime } from "./runtimeBootstrap";
 import { assembleAppRuntime } from "./runtimeAssembly";
 import type { KidsDrawUiIntent } from "../controller/KidsDrawUiIntent";
@@ -81,7 +85,13 @@ export async function createKidsDrawApp(
     uploadAccountThumbnail,
     presentation,
     appOptions: options,
+    collaborationStatusStore: runtime.collaborationStatusStore,
   });
+  const unbindCollaborativeSyncErrorSurface =
+    bindCollaborativeSyncErrorSurface({
+      windowTarget: window,
+      collaborationStatusStore: runtime.collaborationStatusStore,
+    });
 
   const store = new DrawingStore({
     tools: catalog.tools.map((tool) => tool.tool),
@@ -167,6 +177,7 @@ export async function createKidsDrawApp(
     destroy() {
       controller.destroy();
       unbindToolbarUi();
+      unbindCollaborativeSyncErrorSurface();
       presentation.destroy();
       uninstallMobileGestureGuards();
     },
@@ -227,6 +238,7 @@ function createControllerMultiplayerAdapters(options: {
   uploadAccountThumbnail: ReturnType<typeof createAccountThumbnailUploader>;
   presentation: ReturnType<typeof createPresentationRuntime>;
   appOptions: KidsDrawAppOptions;
+  collaborationStatusStore: ReturnType<typeof createCollaborationStatusStore>;
 }): Pick<
   Parameters<typeof createKidsDrawController>[0],
   | "createDocumentCopy"
@@ -290,16 +302,21 @@ function createControllerMultiplayerAdapters(options: {
         qrDataUrl,
       });
     },
-    onShareError:
-      options.appOptions.onShareError ??
-      ((message) => {
-        void options.presentation.modalDialog.showConfirm({
-          title: "Unable to share drawing",
-          message,
-          confirmLabel: "OK",
-          cancelLabel: "Dismiss",
-        });
-      }),
+    onShareError: (message) => {
+      if (isSyncIssueShareMessage(message)) {
+        options.collaborationStatusStore.setSyncError(message);
+      }
+      if (options.appOptions.onShareError) {
+        options.appOptions.onShareError(message);
+        return;
+      }
+      void options.presentation.modalDialog.showConfirm({
+        title: "Unable to share drawing",
+        message,
+        confirmLabel: "OK",
+        cancelLabel: "Dismiss",
+      });
+    },
     onClaimError: (message) => {
       void options.presentation.modalDialog.showConfirm({
         title: "Unable to claim drawing",

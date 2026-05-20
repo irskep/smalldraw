@@ -10,10 +10,14 @@ export type CollaborationStatus =
     }
   | {
       visible: true;
-      state: "online" | "offline";
-      label: "Collab drawing (online)" | "Collab drawing (offline)";
+      state: "online" | "offline" | "error";
+      label:
+        | "Collab drawing (online)"
+        | "Collab drawing (offline)"
+        | "Collab drawing (sync issue)";
       docUrl: string;
       collabDocUrl: string;
+      message?: string;
     };
 
 export type CollaborationStatusStore = ReturnType<
@@ -23,11 +27,22 @@ export type CollaborationStatusStore = ReturnType<
 export function createCollaborationStatusStore() {
   const $currentDocument = atom<KidsDocumentSummary | null>(null);
   const $websocketConnected = atom(false);
+  const $syncErrorMessage = atom<string | null>(null);
   const $status = computed(
-    [$currentDocument, $websocketConnected],
-    (currentDocument, websocketConnected): CollaborationStatus => {
+    [$currentDocument, $websocketConnected, $syncErrorMessage],
+    (currentDocument, websocketConnected, syncErrorMessage): CollaborationStatus => {
       if (!isCollaborativeDocument(currentDocument)) {
         return { visible: false };
+      }
+      if (syncErrorMessage) {
+        return {
+          visible: true,
+          state: "error",
+          label: "Collab drawing (sync issue)",
+          docUrl: currentDocument.docUrl,
+          collabDocUrl: currentDocument.collabDocUrl,
+          message: syncErrorMessage,
+        };
       }
       return websocketConnected
         ? {
@@ -60,12 +75,23 @@ export function createCollaborationStatusStore() {
         return;
       }
       $currentDocument.set(summary);
+      $syncErrorMessage.set(null);
     },
     setWebsocketConnected(websocketConnected: boolean): void {
       if ($websocketConnected.get() === websocketConnected) {
         return;
       }
       $websocketConnected.set(websocketConnected);
+      if (websocketConnected) {
+        $syncErrorMessage.set(null);
+      }
+    },
+    setSyncError(message: string | null): void {
+      const nextMessage = message?.trim() ? message.trim() : null;
+      if ($syncErrorMessage.get() === nextMessage) {
+        return;
+      }
+      $syncErrorMessage.set(nextMessage);
     },
   };
 }

@@ -60,6 +60,13 @@ describe("SyncIndicator", () => {
     indicator.setState("synced-to-server-but-offline");
     expect(indicator.el.textContent).toBe("Offline");
 
+    indicator.setState("error", "Sync is taking longer than expected.");
+    expect(indicator.el.textContent).toBe("Sync issue");
+    expect(indicator.el.title).toBe("Sync is taking longer than expected.");
+    expect(indicator.el.getAttribute("aria-label")).toBe(
+      "Sync issue: Sync is taking longer than expected.",
+    );
+
     indicator.setState("online");
     expect(indicator.el.textContent).toBe("Online");
   });

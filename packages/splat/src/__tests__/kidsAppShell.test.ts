@@ -621,6 +621,104 @@ describe("splatterboard shell", () => {
     app.destroy();
   });
 
+  test("surfaces collaborative sync timeout as a sync indicator error", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const originalAddEventListener = window.addEventListener.bind(window);
+    const originalRemoveEventListener = window.removeEventListener.bind(window);
+    type WindowEventListener = (event: Event) => void;
+    let unhandledRejectionListener: WindowEventListener | null = null;
+    window.addEventListener = ((
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions,
+    ) => {
+      if (type === "unhandledrejection") {
+        unhandledRejectionListener = listener as WindowEventListener;
+      }
+      return originalAddEventListener(type, listener, options);
+    }) as typeof window.addEventListener;
+    window.removeEventListener = ((
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | EventListenerOptions,
+    ) => {
+      if (
+        type === "unhandledrejection" &&
+        unhandledRejectionListener === listener
+      ) {
+        unhandledRejectionListener = null;
+      }
+      return originalRemoveEventListener(type, listener, options);
+    }) as typeof window.removeEventListener;
+    const now = new Date().toISOString();
+    const backend = createMockDocumentBackend(
+      [
+        {
+          docUrl: "automerge:mock-1",
+          mode: "normal",
+          collaborative: true,
+          collabDocUrl: "automerge:collab-1",
+          joinSecret: "join-secret-1",
+          createdAt: now,
+          updatedAt: now,
+          lastOpenedAt: now,
+        },
+      ],
+      "automerge:mock-1",
+    );
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      documentBackend: backend,
+      confirmDestructiveAction: async () => true,
+    });
+
+    const status = container.querySelector(".ds-sync-indicator") as
+      | HTMLElement
+      | null;
+    expect(status).not.toBeNull();
+    const initiallyOffline = await waitUntil(
+      () => status?.dataset.state === "synced-to-server-but-offline",
+      80,
+    );
+    expect(initiallyOffline).toBeTrue();
+
+    const error = new Error("withTimeout: timed out after 60000ms");
+    error.name = "TimeoutError";
+    error.stack = "TimeoutError\n at beginSync (DocSynchronizer.js:184:1)";
+    if (!unhandledRejectionListener) {
+      throw new Error("Expected collaborative sync error listener to be bound");
+    }
+    let prevented = false;
+    const boundUnhandledRejectionListener =
+      unhandledRejectionListener as WindowEventListener;
+    boundUnhandledRejectionListener({
+      type: "unhandledrejection",
+      reason: error,
+      preventDefault() {
+        prevented = true;
+      },
+    } as Event & { reason: Error; preventDefault(): void });
+    const statusVisible = await waitUntil(
+      () => status?.dataset.state === "error",
+      80,
+    );
+    expect(statusVisible).toBeTrue();
+    expect(prevented).toBeTrue();
+    expect(status?.textContent?.trim()).toBe("Sync issue");
+    expect(status?.title).toBe(
+      "Sync is taking longer than expected. Changes may not be reaching the server. Check your connection and try again.",
+    );
+
+    app.destroy();
+    window.addEventListener = originalAddEventListener;
+    window.removeEventListener = originalRemoveEventListener;
+  });
+
   test("share command fails gracefully when multiplayer api is not configured", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);

@@ -119,6 +119,15 @@ body {
   gap: var(--size-1);
 }
 
+.ds-sync-indicator[data-state="error"] {
+  color: var(--ds-danger);
+}
+
+.ds-sync-indicator[data-state="error"] .ds-text,
+.ds-sync-indicator[data-state="error"] .ds-typographic-icon {
+  color: inherit;
+}
+
 .ds-sync-indicator[hidden] {
   display: none;
 }

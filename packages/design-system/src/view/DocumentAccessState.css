@@ -1,0 +1,102 @@
+.ds-document-access-state {
+  display: grid;
+  gap: var(--size-4);
+  width: min(100%, 42.5rem);
+  margin: 0 auto;
+  padding: var(--size-5);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--radius-3);
+  background: var(--ds-surface);
+}
+
+.ds-document-access-state__copy {
+  display: grid;
+  gap: var(--size-2);
+}
+
+.ds-document-access-state__description {
+  max-width: 44ch;
+}
+
+.ds-document-access-state__message {
+  margin: 0;
+  padding: var(--size-3);
+  border: 1px solid var(--ds-border-subtle);
+  border-radius: var(--radius-2);
+  background: var(--ds-surface-muted);
+  color: var(--ds-ink);
+  font: inherit;
+  font-size: var(--font-size-button-md);
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ds-document-access-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--size-3);
+}
+
+.ds-document-access-state__action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-px-2);
+}
+
+.ds-document-access-state__action-group--auth {
+  justify-content: flex-end;
+  margin-inline-start: auto;
+}
+
+.ds-document-access-state__auth-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(
+    var(--font-size-button-md) + (var(--space-control-gap-md) * 2) + (var(--border-size-1) * 2)
+  );
+  padding: var(--space-control-gap-md) var(--size-px-3);
+  border: var(--border-size-1) solid var(--gray-5);
+  border-radius: var(--radius-2);
+  background: var(--gray-0);
+  color: var(--gray-9);
+  font-size: var(--font-size-button-md);
+  font-weight: var(--font-weight-5);
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 120ms var(--ease-out-3);
+}
+
+.ds-document-access-state__auth-link--neutral {
+  background: var(--gray-0);
+  color: var(--gray-9);
+}
+
+.ds-document-access-state__auth-link--primary {
+  background: var(--ds-accent-fill);
+  border-color: var(--ds-accent-border);
+  color: white;
+}
+
+.ds-document-access-state__auth-link:focus-visible {
+  outline: var(--border-size-3) solid var(--ds-focus-ring);
+  outline-offset: calc(var(--border-size-2) * -1);
+}
+
+.ds-document-access-state__auth-link[hidden] {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  .ds-document-access-state__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ds-document-access-state__action-group--auth {
+    margin-inline-start: 0;
+    justify-content: flex-start;
+  }
+}

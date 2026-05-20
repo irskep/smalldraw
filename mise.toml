@@ -68,6 +68,21 @@ alias = ["ds:dev"]
 dir = "packages/design-system"
 run = "bun run dev"
 
+[tasks."design-system:test:ui"]
+alias = ["ds:test:ui"]
+dir = "packages/design-system"
+env = { PLAYWRIGHT_BASE_URL = "http://127.0.0.1:3002" }
+run = "bunx playwright test"
+
+[tasks."design-system:test:ui:headed"]
+dir = "packages/design-system"
+env = { PLAYWRIGHT_BASE_URL = "http://127.0.0.1:3002" }
+run = "bunx playwright test --headed"
+
+[tasks."design-system:test:ui:managed"]
+dir = "packages/design-system"
+run = "bunx playwright test"
+
 [tasks."tilt:up"]
 run = "tilt up"
 

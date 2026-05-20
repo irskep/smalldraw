@@ -36,6 +36,37 @@ test("renders the splat context story", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Menu" }).first()).toBeVisible();
 });
 
+test("renders the document access state story directly", async ({ page }) => {
+  await page.goto(testStoryUrl("document-access-state"));
+  await expect(
+    page.getByRole("heading", { name: "Document Access State" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "You can't access this drawing" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Log In" }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Reset Local Session" }).first(),
+  ).toBeVisible();
+});
+
+test("shows document access state inside the states group", async ({ page }) => {
+  await page.goto("/#states");
+  await expect(
+    page.getByRole("button", { name: "States" }),
+  ).toHaveClass(/is-active/);
+  await expect(
+    page.getByRole("heading", { name: "Document Access State" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Inline startup/document-open error state with auth recovery and local reset actions.",
+    ),
+  ).toBeVisible();
+});
+
 test.describe("Unified context entry stories", () => {
   test("desktop-context starts in desktop layout", async ({ page }) => {
     await page.goto(testStoryUrl("desktop-context"));

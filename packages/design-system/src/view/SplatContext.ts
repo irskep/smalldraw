@@ -169,8 +169,8 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.strokePicker.setDisabled(disabled);
   }
 
-  setSyncState(state: SyncIndicatorState): void {
-    this.syncIndicator.setState(state);
+  setSyncState(state: SyncIndicatorState, description?: string): void {
+    this.syncIndicator.setState(state, description);
   }
 
   setTools(tools: readonly SplatToolItem[]): void {

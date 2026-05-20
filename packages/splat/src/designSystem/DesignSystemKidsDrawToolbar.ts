@@ -147,7 +147,7 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
   }
 
   setCollaborationStatus(status: CollaborationStatus): void {
-    this.context.setSyncState(resolveSyncState(status));
+    this.context.setSyncState(resolveSyncState(status), status.visible ? status.message : undefined);
   }
 
   syncLayout(): void {
@@ -212,6 +212,9 @@ function createToolbarActionIntentPublisher(
 function resolveSyncState(status: CollaborationStatus): SyncIndicatorState {
   if (!status.visible) {
     return "unknown";
+  }
+  if (status.state === "error") {
+    return "error";
   }
   if (status.state === "online") {
     return "online";

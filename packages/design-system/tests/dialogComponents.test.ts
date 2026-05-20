@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { AlertTriangle } from "lucide";
-import { createModalDialogView, createShareQrDialog } from "../src";
+import {
+  createDocumentAccessState,
+  createModalDialogView,
+  createShareQrDialog,
+} from "../src";
 
 function waitMs(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -184,5 +188,89 @@ describe("ShareQrDialog", () => {
     await waitMs(240);
     expect(dialogEl?.open).toBeFalse();
     await pending;
+  });
+});
+
+describe("DocumentAccessState", () => {
+  test("renders auth actions and invokes retry/reset handlers", async () => {
+    const state = createDocumentAccessState({
+      title: "You can't access this drawing",
+      description:
+        "This drawing needs account access. Log in or sign up to continue.",
+      message: "Log in or sign up to open this account-linked drawing.",
+      loginUrl: "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Ddemo",
+      signupUrl:
+        "http://localhost:3000/account/register?redirect=%2F%3Fdoc%3Ddemo",
+    });
+    document.body.appendChild(state.el);
+
+    let retried = false;
+    let reset = false;
+    state.setOnRetry(() => {
+      retried = true;
+    });
+    state.setOnReset(() => {
+      reset = true;
+    });
+
+    const loginLink = state.el.querySelector(
+      ".ds-document-access-state__auth-link--login",
+    ) as HTMLAnchorElement | null;
+    const signupLink = state.el.querySelector(
+      ".ds-document-access-state__auth-link--signup",
+    ) as HTMLAnchorElement | null;
+    const retryButton = state.el.querySelector(
+      ".ds-document-access-state__retry-button",
+    ) as HTMLButtonElement | null;
+    const resetButton = state.el.querySelector(
+      ".ds-document-access-state__reset-button",
+    ) as HTMLButtonElement | null;
+    const actionGroups = Array.from(
+      state.el.querySelectorAll(".ds-document-access-state__action-group"),
+    ) as HTMLDivElement[];
+
+    expect(loginLink?.href).toBe(
+      "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Ddemo",
+    );
+    expect(signupLink?.href).toBe(
+      "http://localhost:3000/account/register?redirect=%2F%3Fdoc%3Ddemo",
+    );
+    expect(loginLink?.hidden).toBeFalse();
+    expect(signupLink?.hidden).toBeFalse();
+    expect(loginLink?.classList.contains("ds-document-access-state__auth-link--primary")).toBeTrue();
+    expect(signupLink?.classList.contains("ds-document-access-state__auth-link--neutral")).toBeTrue();
+    expect(actionGroups).toHaveLength(2);
+    expect(actionGroups[0]?.textContent).toContain("Retry");
+    expect(actionGroups[0]?.textContent).toContain("Reset Local Session");
+    expect(actionGroups[1]?.textContent).toContain("Sign Up");
+    expect(actionGroups[1]?.textContent).toContain("Log In");
+
+    retryButton?.click();
+    resetButton?.click();
+    expect(retried).toBeTrue();
+    expect(reset).toBeTrue();
+  });
+
+  test("hides auth links for generic startup failures", () => {
+    const state = createDocumentAccessState({
+      title: "Could not open drawing",
+      description: "Startup failed. This should not leave a blank screen.",
+      message: "Unexpected failure",
+    });
+    document.body.appendChild(state.el);
+
+    const loginLink = state.el.querySelector(
+      ".ds-document-access-state__auth-link--login",
+    ) as HTMLAnchorElement | null;
+    const signupLink = state.el.querySelector(
+      ".ds-document-access-state__auth-link--signup",
+    ) as HTMLAnchorElement | null;
+    const message = state.el.querySelector(
+      ".ds-document-access-state__message",
+    ) as HTMLPreElement | null;
+
+    expect(loginLink?.hidden).toBeTrue();
+    expect(signupLink?.hidden).toBeTrue();
+    expect(message?.textContent).toBe("Unexpected failure");
   });
 });

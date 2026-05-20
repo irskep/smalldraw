@@ -15,6 +15,11 @@ export {
   DialogScaffold,
 } from "./view/DialogScaffold";
 export {
+  createDocumentAccessState,
+  DocumentAccessState,
+  type DocumentAccessStateModel,
+} from "./view/DocumentAccessState";
+export {
   createDropdownChrome,
   DropdownChrome,
   type DropdownChromeOptions,
