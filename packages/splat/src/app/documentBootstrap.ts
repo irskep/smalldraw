@@ -340,12 +340,25 @@ export async function resolveAccountDocumentForLocalOpen(options: {
   }
 
   const documentId = resolveCollaborativeDocumentId(summary.collabDocUrl);
+  console.info("[kids-draw:documents] local-open collaborative resolve start", {
+    summaryDocUrl: summary.docUrl,
+    collabDocUrl: summary.collabDocUrl,
+    documentId,
+  });
   try {
     const resolved =
       await options.multiplayerApiClient.resolveCollaborativeDocumentByAccountDocumentId(
         documentId,
         options.deviceTag,
       );
+    console.info(
+      "[kids-draw:documents] local-open collaborative resolve complete",
+      {
+        summaryDocUrl: summary.docUrl,
+        collabDocUrl: summary.collabDocUrl,
+        documentId,
+      },
+    );
     const binary = base64ToUint8Array(resolved.content);
     const automergeDocumentId = documentId as DocumentId;
     options.localRepo?.setWebsocketAuthorizedDocumentId(documentId);
@@ -376,6 +389,8 @@ export async function resolveAccountDocumentForLocalOpen(options: {
     }
     console.warn("[kids-draw:documents] failed to resolve account document", {
       documentId,
+      summaryDocUrl: summary.docUrl,
+      collabDocUrl: summary.collabDocUrl,
       error,
     });
     throw new DocumentAccessError({

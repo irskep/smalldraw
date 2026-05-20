@@ -25,6 +25,17 @@ try {
       ...multiplayerConfig,
       startupIntent,
     },
+    onDocumentOpenRequested: (summary, docUrl) => {
+      const nextUrl = buildSplatCurrentDocumentUrl(window.location.href, {
+        docUrl,
+        collaborative: summary?.collaborative,
+        collabDocUrl: summary?.collabDocUrl,
+        accountAttached: summary?.accountAttached,
+      });
+      if (nextUrl !== window.location.href) {
+        window.history.pushState(null, "", nextUrl);
+      }
+    },
     onCurrentDocumentSummaryChanged: (summary) => {
       const nextUrl = buildSplatCurrentDocumentUrl(
         window.location.href,

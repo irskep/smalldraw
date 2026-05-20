@@ -70,16 +70,35 @@
   visibility: visible;
 }
 
-.kids-draw-startup-text {
-  margin: 0;
-  padding: var(--size-2) var(--size-3);
+.kids-draw-startup-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-1);
+  max-width: min(32rem, 80vw);
+  padding: var(--size-3);
   border-radius: var(--radius-2);
-  font-size: var(--font-size-2);
-  line-height: var(--font-lineheight-2);
-  color: var(--gray-9);
   background: color-mix(in oklch, var(--gray-0) 88%, white);
   border: 1px solid color-mix(in oklch, var(--gray-5) 60%, white);
   box-shadow: var(--shadow-2);
+}
+
+.kids-draw-startup-title,
+.kids-draw-startup-detail {
+  margin: 0;
+  text-align: center;
+}
+
+.kids-draw-startup-title {
+  font-size: var(--font-size-3);
+  font-weight: var(--font-weight-6);
+  line-height: var(--font-lineheight-1);
+  color: var(--gray-9);
+}
+
+.kids-draw-startup-detail {
+  font-size: var(--font-size-1);
+  line-height: var(--font-lineheight-3);
+  color: var(--gray-7);
 }
 
 .kids-draw-dirty-rect {

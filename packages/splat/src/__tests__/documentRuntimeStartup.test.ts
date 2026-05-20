@@ -485,4 +485,88 @@ describe("createDocumentRuntimeController startup readiness", () => {
       "register failed",
     );
   });
+
+  test("failed document switches leave startup readiness interactive", async () => {
+    const store = createTestStore();
+    const startupReadinessStore = createStartupReadinessStore();
+    const controller = createDocumentRuntimeController({
+      store,
+      core: {
+        ...createTestCore(store),
+        open: async () => {
+          throw new Error("shared document bootstrap failed");
+        },
+      },
+      documentBackend: {
+        mode: "local",
+        listDocuments: async () => [],
+        getDocument: async () => ({
+          docUrl: "catalog-collab:broken",
+          collaborative: true,
+          collabDocUrl: "automerge:broken",
+          accountAttached: true,
+          mode: "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        createDocument: async () => ({
+          docUrl: "automerge:test-1",
+          mode: "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        touchDocument: async () => ({
+          docUrl: "automerge:test-1",
+          mode: "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        deleteDocument: async () => {},
+        saveThumbnail: async () => {},
+        getThumbnail: async () => null,
+        setCurrentDocument: async () => {},
+        getCurrentDocument: async () => null,
+      },
+      snapshotService: {
+        createThumbnailBlob: async () => null,
+      },
+      runtimeStore: {
+        setPresentation: () => {},
+        isDestroyed: () => false,
+      },
+      startupReadinessStore,
+      toolbarStateController: {
+        applyToolbarStateForCurrentDocument: () => {},
+        getCurrentToolbarSignature: () => "sig",
+      },
+      renderLoopController: {
+        updateRenderIdentity: () => {},
+        requestRenderFromModel: () => {},
+      },
+      pipeline: {
+        setLayers: () => {},
+        scheduleBakeForClear: () => {},
+        bakePendingTiles: () => {},
+        flushBakes: async () => {},
+      },
+      syncToolbarUi: () => {},
+      applyCanvasSize: () => {},
+      getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+      hasExplicitSize: false,
+      getExplicitSize: () => ({ width: 640, height: 480 }),
+    });
+
+    await expect(
+      controller.switchToDocument("catalog-collab:broken"),
+    ).rejects.toThrow("shared document bootstrap failed");
+
+    expect(startupReadinessStore.getState().phase).toBe("degraded");
+    expect(startupReadinessStore.getState().interactionEnabled).toBeTrue();
+    expect(startupReadinessStore.getState().lastBlockingReason).toBe(
+      "document_open_failed",
+    );
+  });
 });

@@ -69,22 +69,51 @@ const listAccountDocumentSummaries = async (userId: string) => {
 };
 
 const serializeRepoDocument = async (documentId: string): Promise<string> => {
+  console.info("[server:documents] serialize start", {
+    documentId,
+  });
   if (!repoStorage.hasDocumentData(documentId)) {
+    console.warn("[server:documents] serialize missing repo data", {
+      documentId,
+    });
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Document has no data in repository storage",
     });
   }
+  console.info("[server:documents] serialize repo.find start", {
+    documentId,
+  });
   const handle = await repo.find(documentId as DocumentId);
+  console.info("[server:documents] serialize repo.find complete", {
+    documentId,
+  });
+  console.info("[server:documents] serialize handle.doc start", {
+    documentId,
+  });
   const doc = await handle.doc();
   if (!doc) {
+    console.warn("[server:documents] serialize empty doc", {
+      documentId,
+    });
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Document not found in repository",
     });
   }
+  console.info("[server:documents] serialize handle.doc complete", {
+    documentId,
+  });
   const { save } = await import("@automerge/automerge");
-  return Buffer.from(save(doc)).toString("base64");
+  console.info("[server:documents] serialize save start", {
+    documentId,
+  });
+  const content = Buffer.from(save(doc)).toString("base64");
+  console.info("[server:documents] serialize save complete", {
+    documentId,
+    bytes: content.length,
+  });
+  return content;
 };
 
 export const appRouter = router({
@@ -224,11 +253,20 @@ export const appRouter = router({
       }),
     )
     .query(async (opts) => {
+      console.info("[server:documents] account resolve request", {
+        documentId: opts.input.documentId,
+        userId: opts.ctx.session.userId,
+        deviceTag: opts.input.deviceTag,
+      });
       const document = await getDocument({
         documentId: opts.input.documentId,
         userId: opts.ctx.session.userId,
       });
       if (!document) {
+        console.warn("[server:documents] account resolve missing document", {
+          documentId: opts.input.documentId,
+          userId: opts.ctx.session.userId,
+        });
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Document not found",
@@ -250,6 +288,11 @@ export const appRouter = router({
           content,
         };
       } catch (err) {
+        console.warn("[server:documents] account resolve failed", {
+          documentId: opts.input.documentId,
+          userId: opts.ctx.session.userId,
+          error: err,
+        });
         if (err instanceof TRPCError) {
           throw err;
         }

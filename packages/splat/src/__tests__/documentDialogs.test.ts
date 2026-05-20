@@ -274,54 +274,6 @@ describe("DocumentBrowserDialogView", () => {
     ]);
   });
 
-  test("unavailable shared drawings render a sync issue chip without disabling open", () => {
-    const opened: string[] = [];
-    const dialog = createDocumentBrowserDialogView({
-      onClose: () => {},
-      onOpenCreateDialog: () => {},
-      onOpenDocument: (docUrl) => {
-        opened.push(docUrl);
-      },
-      onClaimDocument: () => {},
-      onDeleteDocument: () => {},
-    });
-    document.body.appendChild(dialog.el);
-
-    const sharedDoc = {
-      ...createDocument("catalog-collab:stale"),
-      collaborative: true,
-      collabDocUrl: "automerge:collab-stale",
-    };
-    dialog.setOpen(true);
-    dialog.setDocuments([sharedDoc]);
-    dialog.setCurrentDocument("doc://current");
-    dialog.setThumbnailUrls(new Map());
-    dialog.setClaimableDocuments(new Set());
-    dialog.setUnavailableDocuments(
-      new Map([
-        [
-          sharedDoc.docUrl,
-          "This drawing is no longer syncing.\n\nThis browser still has its local record and preview, but the shared copy can't be opened anymore. You can keep it here for reference or delete it from Browse Drawings.",
-        ],
-      ]),
-    );
-
-    const chip = dialog.el.querySelector(
-      ".kids-draw-document-browser-dialog__sync-issue",
-    ) as HTMLElement | null;
-    const openButton = dialog.el.querySelector(
-      `[data-document-browser-open="${sharedDoc.docUrl}"]`,
-    ) as HTMLButtonElement | null;
-
-    expect(chip?.hidden).toBeFalse();
-    expect(chip?.textContent?.trim()).toBe("Not syncing");
-    expect(openButton?.disabled).toBeFalse();
-    expect(openButton?.title).toContain("no longer syncing");
-
-    openButton?.click();
-    expect(opened).toEqual([sharedDoc.docUrl]);
-  });
-
   test("initial loading shows loading state before any documents exist", () => {
     const dialog = createDocumentBrowserDialogView({
       onClose: () => {},

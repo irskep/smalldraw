@@ -20,12 +20,10 @@ function createPickerState() {
   const busy: Array<string | null> = [];
   const removing: string[] = [];
   const claimableCalls: string[][] = [];
-  const unavailableMessageByDocUrl = new Map<string, string>();
   return {
     busy,
     removing,
     claimableCalls,
-    unavailableMessageByDocUrl,
     controller: {
       isOpen() {
         return open;
@@ -36,21 +34,11 @@ function createPickerState() {
       getDocuments() {
         return documents;
       },
-      getUnavailableDocumentMessage(docUrl: string) {
-        return unavailableMessageByDocUrl.get(docUrl) ?? null;
-      },
       setBusyDocument(docUrl: string | null) {
         busy.push(docUrl);
       },
       setClaimableDocuments(docUrls: Iterable<string>) {
         claimableCalls.push([...docUrls]);
-      },
-      setUnavailableDocumentMessage(docUrl: string, message: string | null) {
-        if (message?.trim()) {
-          unavailableMessageByDocUrl.set(docUrl, message.trim());
-          return;
-        }
-        unavailableMessageByDocUrl.delete(docUrl);
       },
       setRemovingDocument(docUrl: string | null) {
         if (docUrl) {
@@ -139,6 +127,71 @@ describe("createDocumentBrowserCommands", () => {
     expect(switchedDocUrl).toBeNull();
     expect(picker.controller.isOpen()).toBeFalse();
     expect(picker.busy).toEqual([]);
+  });
+
+  test("openDocumentFromBrowser reports requested navigation before awaiting switch", async () => {
+    const picker = createPickerState();
+    picker.controller._setOpen(true);
+    picker.controller._setDocuments([
+      {
+        docUrl: "catalog-collab:server-doc",
+        collaborative: true,
+        collabDocUrl: "automerge:server-doc",
+        accountAttached: true,
+        mode: "normal",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        lastOpenedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    const steps: string[] = [];
+    const requested: Array<{ docUrl: string; accountAttached: boolean }> = [];
+    let resolveSwitch!: () => void;
+    const switchPromise = new Promise<void>((resolve) => {
+      resolveSwitch = resolve;
+    });
+    const commands = createDocumentBrowserCommands({
+      documentPickerController: picker.controller,
+      getCurrentDocUrl: () => "doc://current",
+      switchToDocument: async (docUrl) => {
+        steps.push(`switch:${docUrl}`);
+        await switchPromise;
+      },
+      createNewDocument: async () => {},
+      flushThumbnailSave: async () => {},
+      listDocuments: async () => [],
+      claimDocument: async () => {},
+      isClaimableDocument: () => false,
+      deleteDocument: async () => {},
+      confirmDelete: async () => true,
+      onDocumentOpenRequested: (summary, docUrl) => {
+        steps.push(`requested:${docUrl}`);
+        requested.push({
+          docUrl: summary?.docUrl ?? docUrl,
+          accountAttached: summary?.accountAttached ?? false,
+        });
+      },
+      isDestroyed: () => false,
+    });
+
+    const openPromise = commands.openDocumentFromBrowser(
+      "catalog-collab:server-doc",
+    );
+
+    expect(steps).toEqual([
+      "requested:catalog-collab:server-doc",
+      "switch:catalog-collab:server-doc",
+    ]);
+    expect(picker.controller.isOpen()).toBeFalse();
+    expect(requested).toEqual([
+      {
+        docUrl: "catalog-collab:server-doc",
+        accountAttached: true,
+      },
+    ]);
+
+    resolveSwitch();
+    await openPromise;
   });
 
   test("deleteDocumentFromBrowser switches fallback or creates new and clears busy", async () => {
@@ -410,10 +463,10 @@ describe("createDocumentBrowserCommands", () => {
     expect(errors).toEqual([
       "Log in or sign up to open this account-linked drawing.",
     ]);
-    expect(picker.busy).toEqual(["doc://account", null]);
+    expect(picker.busy).toEqual([]);
   });
 
-  test("openDocumentFromBrowser rewrites unavailable-document errors", async () => {
+  test("openDocumentFromBrowser surfaces generic errors", async () => {
     const picker = createPickerState();
     picker.controller._setOpen(true);
     const errors: string[] = [];
@@ -438,59 +491,7 @@ describe("createDocumentBrowserCommands", () => {
 
     await commands.openDocumentFromBrowser("doc://stale");
 
-    expect(errors).toEqual([
-      "This drawing is no longer stored in this browser.",
-    ]);
-    expect(picker.busy).toEqual(["doc://stale", null]);
-  });
-
-  test("openDocumentFromBrowser marks collaborative unavailability and shows learn-more copy", async () => {
-    const picker = createPickerState();
-    picker.controller._setOpen(true);
-    picker.controller._setDocuments([
-      {
-        docUrl: "catalog-collab:stale",
-        collaborative: true,
-        collabDocUrl: "automerge:collab-stale",
-        mode: "normal",
-        createdAt: "2026-01-01T00:00:00.000Z",
-        updatedAt: "2026-01-01T00:00:00.000Z",
-        lastOpenedAt: "2026-01-01T00:00:00.000Z",
-      },
-    ]);
-    const errors: string[] = [];
-    let openAttempts = 0;
-    const commands = createDocumentBrowserCommands({
-      documentPickerController: picker.controller,
-      getCurrentDocUrl: () => "doc://current",
-      switchToDocument: async () => {
-        openAttempts += 1;
-        throw new Error("Document automerge:collab-stale is unavailable");
-      },
-      createNewDocument: async () => {},
-      flushThumbnailSave: async () => {},
-      listDocuments: async () => picker.controller.getDocuments(),
-      claimDocument: async () => {},
-      isClaimableDocument: () => false,
-      deleteDocument: async () => {},
-      confirmDelete: async () => true,
-      onOpenDocumentError: (message) => {
-        errors.push(message);
-      },
-      isDestroyed: () => false,
-    });
-
-    await commands.openDocumentFromBrowser("catalog-collab:stale");
-    await commands.openDocumentFromBrowser("catalog-collab:stale");
-
-    expect(openAttempts).toBe(1);
-    expect(picker.unavailableMessageByDocUrl.get("catalog-collab:stale")).toBe(
-      "This drawing is no longer syncing.\n\nThis browser still has its local record and preview, but the shared copy can't be opened anymore. You can keep it here for reference or delete it from Browse Drawings.",
-    );
-    expect(errors).toEqual([
-      "This drawing is no longer syncing.\n\nThis browser still has its local record and preview, but the shared copy can't be opened anymore. You can keep it here for reference or delete it from Browse Drawings.",
-      "This drawing is no longer syncing.\n\nThis browser still has its local record and preview, but the shared copy can't be opened anymore. You can keep it here for reference or delete it from Browse Drawings.",
-    ]);
-    expect(picker.busy).toEqual(["catalog-collab:stale", null]);
+    expect(errors).toEqual(["Document automerge:abc123 is unavailable"]);
+    expect(picker.busy).toEqual([]);
   });
 });

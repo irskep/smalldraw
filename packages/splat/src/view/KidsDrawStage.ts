@@ -17,7 +17,9 @@ export interface KidsDrawStage extends ReDomLike<HTMLDivElement> {
   readonly hotOverlayCanvas: HTMLCanvasElement;
   readonly overlay: HTMLDivElement;
   readonly startupOverlay: HTMLDivElement;
-  readonly startupOverlayText: HTMLParagraphElement;
+  readonly startupOverlayCard: HTMLDivElement;
+  readonly startupOverlayTitle: HTMLParagraphElement;
+  readonly startupOverlayDetail: HTMLParagraphElement;
   readonly cursorIndicator: HTMLDivElement;
   readonly dirtyRectOverlay: SVGSVGElement | null;
   readonly dirtyRectShape: SVGRectElement | null;
@@ -29,6 +31,7 @@ export interface KidsDrawStage extends ReDomLike<HTMLDivElement> {
     assetsLoaded: number;
     assetsTotal: number;
     assetsFailed: number;
+    blockingReason?: string;
   }): void;
   destroy(): void;
 }
@@ -44,7 +47,9 @@ export class KidsDrawStageView implements KidsDrawStage {
   readonly hotOverlayCanvas: HTMLCanvasElement;
   readonly overlay: HTMLDivElement;
   readonly startupOverlay: HTMLDivElement;
-  readonly startupOverlayText: HTMLParagraphElement;
+  readonly startupOverlayCard: HTMLDivElement;
+  readonly startupOverlayTitle: HTMLParagraphElement;
+  readonly startupOverlayDetail: HTMLParagraphElement;
   readonly cursorIndicator: HTMLDivElement;
   readonly dirtyRectOverlay: SVGSVGElement | null;
   readonly dirtyRectShape: SVGRectElement | null;
@@ -106,11 +111,20 @@ export class KidsDrawStageView implements KidsDrawStage {
     this.startupOverlay = el(
       "div.kids-draw-layer.kids-draw-startup-overlay",
     ) as HTMLDivElement;
-    this.startupOverlayText = el(
-      "p.kids-draw-startup-text",
+    this.startupOverlayCard = el(
+      "div.kids-draw-startup-card",
+    ) as HTMLDivElement;
+    this.startupOverlayTitle = el(
+      "p.kids-draw-startup-title",
       "Loading drawing…",
     ) as HTMLParagraphElement;
-    mount(this.startupOverlay, this.startupOverlayText);
+    this.startupOverlayDetail = el(
+      "p.kids-draw-startup-detail",
+      "Preparing the drawing surface.",
+    ) as HTMLParagraphElement;
+    mount(this.startupOverlayCard, this.startupOverlayTitle);
+    mount(this.startupOverlayCard, this.startupOverlayDetail);
+    mount(this.startupOverlay, this.startupOverlayCard);
     this.cursorIndicator = el(
       "div.kids-draw-cursor-indicator",
     ) as HTMLDivElement;
@@ -163,10 +177,12 @@ export class KidsDrawStageView implements KidsDrawStage {
     assetsLoaded: number;
     assetsTotal: number;
     assetsFailed: number;
+    blockingReason?: string;
   }): void {
     this.startupOverlay.dataset.visible = status.visible ? "true" : "false";
     if (!status.visible) {
-      this.startupOverlayText.textContent = "";
+      this.startupOverlayTitle.textContent = "";
+      this.startupOverlayDetail.textContent = "";
       return;
     }
     const progressText =
@@ -175,13 +191,9 @@ export class KidsDrawStageView implements KidsDrawStage {
             status.assetsFailed > 0 ? `, ${status.assetsFailed} failed` : ""
           })`
         : "";
-    const phaseText =
-      status.phase === "assets_loading"
-        ? "Loading drawing assets…"
-        : status.phase === "first_bake"
-          ? "Preparing drawing…"
-          : "Loading drawing…";
-    this.startupOverlayText.textContent = `${phaseText}${progressText}`;
+    const content = describeStartupStatus(status);
+    this.startupOverlayTitle.textContent = `${content.title}${progressText}`;
+    this.startupOverlayDetail.textContent = content.detail;
   }
 
   destroy(): void {
@@ -245,4 +257,49 @@ export class KidsDrawStageView implements KidsDrawStage {
       uiIntentStore.publish({ type: "pointer_leave" });
     });
   }
+}
+
+function describeStartupStatus(status: {
+  phase: StartupPhase;
+  blockingReason?: string;
+}): {
+  title: string;
+  detail: string;
+} {
+  if (status.phase === "assets_loading") {
+    return {
+      title: "Loading drawing assets…",
+      detail: "Image layers and references are being prepared.",
+    };
+  }
+  if (status.phase === "first_bake") {
+    return {
+      title: "Preparing drawing…",
+      detail: "Building the first rendered frame.",
+    };
+  }
+  if (status.phase === "degraded") {
+    return {
+      title: "Drawing could not be opened",
+      detail:
+        "The previous drawing is still available. You can dismiss this message and try another one.",
+    };
+  }
+  if (status.blockingReason === "switch_document") {
+    return {
+      title: "Opening drawing…",
+      detail:
+        "Shared drawings can take a moment to respond. The current drawing will stay in place until the switch finishes.",
+    };
+  }
+  if (status.blockingReason === "create_document") {
+    return {
+      title: "Creating drawing…",
+      detail: "Setting up a fresh canvas.",
+    };
+  }
+  return {
+    title: "Loading drawing…",
+    detail: "Preparing the drawing surface.",
+  };
 }

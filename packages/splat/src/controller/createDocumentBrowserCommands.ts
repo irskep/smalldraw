@@ -1,17 +1,13 @@
 import type { KidsDocumentSummary } from "../documents";
 import type { NewDocumentRequest } from "../documents/newDocumentRequest";
-import {
-  isDocumentAccessError,
-} from "../app/documentBootstrap";
+import { isDocumentAccessError } from "../app/documentBootstrap";
 
 type DocumentPickerControllerLike = {
   isOpen(): boolean;
   isCreateDialogOpen(): boolean;
   getDocuments(): KidsDocumentSummary[];
-  getUnavailableDocumentMessage(docUrl: string): string | null;
   setBusyDocument(docUrl: string | null): void;
   setClaimableDocuments(docUrls: Iterable<string>): void;
-  setUnavailableDocumentMessage(docUrl: string, message: string | null): void;
   setRemovingDocument(docUrl: string | null): void;
   waitForRemovingDocument(docUrl: string): Promise<void>;
   removeDocument(docUrl: string): void;
@@ -35,27 +31,15 @@ export function createDocumentBrowserCommands(options: {
   confirmDelete: () => Promise<boolean>;
   onClaimError?: (message: string) => void;
   onOpenDocumentError?: (message: string) => void;
+  onDocumentOpenRequested?: (
+    summary: KidsDocumentSummary | null,
+    docUrl: string,
+  ) => void;
   isDestroyed: () => boolean;
 }) {
-  const isUnavailableDocumentError = (error: unknown): boolean => {
-    return (
-      error instanceof Error &&
-      /document .* is unavailable/i.test(error.message)
-    );
-  };
-
-  const toCollaborativeUnavailableMessage = (
-    document: KidsDocumentSummary,
-  ): string => {
-    return `${document.title?.trim() || "This drawing"} is no longer syncing.\n\nThis browser still has its local record and preview, but the shared copy can't be opened anymore. You can keep it here for reference or delete it from Browse Drawings.`;
-  };
-
   const toOpenDocumentErrorMessage = (error: unknown): string => {
     if (isDocumentAccessError(error)) {
       return error.userMessage;
-    }
-    if (isUnavailableDocumentError(error)) {
-      return "This drawing is no longer stored in this browser.";
     }
     if (error instanceof Error && error.message.trim().length > 0) {
       return error.message;
@@ -132,43 +116,15 @@ export function createDocumentBrowserCommands(options: {
       closeDocumentPicker();
       return;
     }
-    const existingUnavailableMessage =
-      options.documentPickerController.getUnavailableDocumentMessage(docUrl);
-    if (existingUnavailableMessage) {
-      options.onOpenDocumentError?.(existingUnavailableMessage);
-      return;
-    }
-    options.documentPickerController.setBusyDocument(docUrl);
+    const requestedDocument =
+      options.documentPickerController
+        .getDocuments()
+        .find((item) => item.docUrl === docUrl) ?? null;
+    options.onDocumentOpenRequested?.(requestedDocument, docUrl);
+    closeDocumentPicker();
     try {
       await options.switchToDocument(docUrl);
-      options.documentPickerController.setUnavailableDocumentMessage(
-        docUrl,
-        null,
-      );
-      closeDocumentPicker();
     } catch (error) {
-      const document = options.documentPickerController
-        .getDocuments()
-        .find((item) => item.docUrl === docUrl);
-      if (
-        document?.collaborative &&
-        document.collabDocUrl &&
-        isUnavailableDocumentError(error)
-      ) {
-        const message = toCollaborativeUnavailableMessage(document);
-        options.documentPickerController.setUnavailableDocumentMessage(
-          docUrl,
-          message,
-        );
-        console.warn("[kids-draw:documents] collaborative open unavailable", {
-          docUrl,
-          collabDocUrl: document.collabDocUrl,
-          message,
-          error,
-        });
-        options.onOpenDocumentError?.(message);
-        return;
-      }
       const message = toOpenDocumentErrorMessage(error);
       console.warn("[kids-draw:documents] open failed", {
         docUrl,
@@ -176,8 +132,6 @@ export function createDocumentBrowserCommands(options: {
         error,
       });
       options.onOpenDocumentError?.(message);
-    } finally {
-      options.documentPickerController.setBusyDocument(null);
     }
   };
 

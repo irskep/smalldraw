@@ -152,6 +152,10 @@ export function createKidsDrawController(options: {
   onShareError?: (message: string) => void;
   onClaimError?: (message: string) => void;
   onOpenDocumentError?: (message: string) => void;
+  onDocumentOpenRequested?: (
+    summary: KidsDocumentSummary | null,
+    docUrl: string,
+  ) => void;
   onCurrentDocumentSummaryChanged?: (
     summary: KidsDocumentSummary | null,
   ) => void;
@@ -187,6 +191,7 @@ export function createKidsDrawController(options: {
     onShareError,
     onClaimError,
     onOpenDocumentError,
+    onDocumentOpenRequested,
   } = options;
   let size = {
     width: initialSize.width,
@@ -418,6 +423,7 @@ export function createKidsDrawController(options: {
       }),
     onClaimError,
     onOpenDocumentError,
+    onDocumentOpenRequested,
     isDestroyed: () => runtimeStore.isDestroyed(),
   });
   const {
@@ -503,6 +509,7 @@ export function createKidsDrawController(options: {
       assetsLoaded: state.assetsLoaded,
       assetsTotal: state.assetsTotal,
       assetsFailed: state.assetsFailed,
+      blockingReason: state.lastBlockingReason,
     });
   });
   add(unbindStartupReadiness);

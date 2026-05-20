@@ -201,6 +201,34 @@ export function createDocumentRuntimeController(options: {
     return startupCycleId;
   };
 
+  const clearRenderedDocumentSurface = (): void => {
+    options.pipeline.setLayers([]);
+    options.pipeline.scheduleBakeForClear();
+    options.pipeline.bakePendingTiles();
+    options.renderLoopController.requestRenderFromModel();
+  };
+
+  const failStartupCycle = (
+    cycleId: number,
+    reason: string,
+    error: unknown,
+  ): void => {
+    if (options.runtimeStore.isDestroyed() || cycleId !== startupCycleId) {
+      return;
+    }
+    options.startupReadinessStore.markDegraded(reason);
+    logStartupEvent(
+      "document_load_end",
+      {
+        cycleId,
+        status: "failed",
+        reason,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "warn",
+    );
+  };
+
   const loadReferenceImage = async (
     referenceImageSrc: string,
     cycleId: number,
@@ -431,12 +459,24 @@ export function createDocumentRuntimeController(options: {
       return documentSessionController.getCurrentCatalogDocUrl();
     },
     async switchToDocument(docUrl: string): Promise<void> {
-      beginStartupCycle("switch_document");
-      await documentSessionController.switchToDocument(docUrl);
+      const cycleId = beginStartupCycle("switch_document");
+      clearRenderedDocumentSurface();
+      try {
+        await documentSessionController.switchToDocument(docUrl);
+      } catch (error) {
+        failStartupCycle(cycleId, "document_open_failed", error);
+        throw error;
+      }
     },
     async createNewDocument(request: NewDocumentRequest): Promise<void> {
-      beginStartupCycle("create_document");
-      await documentSessionController.createNewDocument(request);
+      const cycleId = beginStartupCycle("create_document");
+      clearRenderedDocumentSurface();
+      try {
+        await documentSessionController.createNewDocument(request);
+      } catch (error) {
+        failStartupCycle(cycleId, "document_create_failed", error);
+        throw error;
+      }
     },
     async flushThumbnailSave(): Promise<void> {
       await documentSessionController.flushThumbnailSave();

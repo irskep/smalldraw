@@ -124,17 +124,30 @@ export function createMultiplayerApiClient(options: {
     },
     async resolveCollaborativeDocumentByJoinSecret(joinSecret, deviceTag) {
       let result: unknown;
+      console.info("[kids-draw:documents] anonymous resolve start", {
+        joinSecret,
+        deviceTag,
+      });
       try {
         result = await client.query("resolveAnonymousCollaborativeDocument", {
           joinSecret,
           deviceTag,
         });
       } catch (error) {
+        console.warn("[kids-draw:documents] anonymous resolve failed", {
+          joinSecret,
+          deviceTag,
+          error,
+        });
         throw normalizeMultiplayerApiError(
           error,
           "Failed to resolve shared drawing.",
         );
       }
+      console.info("[kids-draw:documents] anonymous resolve complete", {
+        joinSecret,
+        deviceTag,
+      });
       if (result == null) {
         return null;
       }
@@ -151,17 +164,30 @@ export function createMultiplayerApiClient(options: {
       deviceTag,
     ) {
       let result: unknown;
+      console.info("[kids-draw:documents] account resolve start", {
+        documentId,
+        deviceTag,
+      });
       try {
         result = await client.query("resolveAccountCollaborativeDocument", {
           documentId,
           deviceTag,
         });
       } catch (error) {
+        console.warn("[kids-draw:documents] account resolve failed", {
+          documentId,
+          deviceTag,
+          error,
+        });
         throw normalizeMultiplayerApiError(
           error,
           "Failed to resolve account drawing.",
         );
       }
+      console.info("[kids-draw:documents] account resolve complete", {
+        documentId,
+        deviceTag,
+      });
       const parsed = parseAccountResolveResult(result);
       if (!parsed) {
         throw new Error(

@@ -6,10 +6,9 @@ import {
   createDialogScaffold,
   createPreviewCard,
   createThumbnailTile,
-  createTypographicIcon,
   type ThumbnailTile,
 } from "@smalldraw/design-system";
-import { CloudOff, KeyRound, Trash2, X } from "lucide";
+import { KeyRound, Trash2, X } from "lucide";
 import { atom } from "nanostores";
 import { list } from "redom";
 import type { KidsDocumentSummary } from "../documents";
@@ -27,7 +26,6 @@ type DocumentBrowserDialogState = {
   documents: KidsDocumentSummary[];
   thumbnailUrlByDocUrl: Map<string, string>;
   claimableDocUrls: Set<string>;
-  unavailableMessageByDocUrl: Map<string, string>;
   previewDocUrl: string | null;
   touchPressDocUrl: string | null;
   suppressNextOpenDocUrl: string | null;
@@ -41,7 +39,6 @@ type DocumentTileItem = {
   removing: boolean;
   claimable: boolean;
   thumbnailUrl: string | null;
-  unavailableMessage: string | null;
   onOpen: (docUrl: string) => void;
   onDelete: (docUrl: string) => void;
   onClaim: (docUrl: string) => void;
@@ -60,7 +57,6 @@ export interface DocumentBrowserDialogView
   setCurrentDocument(docUrl: string): void;
   setThumbnailUrls(thumbnailUrlByDocUrl: Map<string, string>): void;
   setClaimableDocuments(claimableDocUrls: Set<string>): void;
-  setUnavailableDocuments(unavailableMessageByDocUrl: Map<string, string>): void;
   setBusyDocument(docUrl: string | null): void;
 }
 
@@ -103,7 +99,6 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
   #thumbnailMedia: HTMLDivElement;
   #thumbnailImage: HTMLImageElement;
   #thumbnailFallback: HTMLDivElement;
-  #syncIssueChip: HTMLDivElement;
   #thumbnailUrl: string | null = null;
 
   constructor() {
@@ -117,19 +112,7 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     this.#thumbnailImage.decoding = "async";
     this.#thumbnailImage.draggable = false;
     this.#thumbnailFallback = document.createElement("div");
-    this.#syncIssueChip = document.createElement("div");
-    this.#syncIssueChip.className =
-      "kids-draw-document-browser-dialog__sync-issue";
-    const syncIssueIcon = createTypographicIcon({
-      icon: CloudOff,
-      kind: "body",
-      className: "kids-draw-document-browser-dialog__sync-issue-icon",
-    });
-    const syncIssueLabel = document.createElement("span");
-    syncIssueLabel.textContent = "Not syncing";
-    this.#syncIssueChip.append(syncIssueIcon.el, syncIssueLabel);
-    this.#syncIssueChip.hidden = true;
-    this.#thumbnailMedia.append(this.#thumbnailFallback, this.#syncIssueChip);
+    this.#thumbnailMedia.append(this.#thumbnailFallback);
     this.#tile.setMedia(this.#thumbnailMedia);
     this.el = this.#tile.el;
   }
@@ -137,15 +120,11 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
   update(item: DocumentTileItem): void {
     const { document, busy, claimable } = item;
     const nextThumbnailUrl = item.thumbnailUrl;
-    const unavailableMessage = item.unavailableMessage?.trim() || null;
-    const openLabel = unavailableMessage
-      ? `${toFallbackTitle(document)} is no longer syncing. Click to learn more.`
-      : toFallbackTitle(document);
-    const openTitle = unavailableMessage ?? getMetadataTooltip(document);
+    const openLabel = toFallbackTitle(document);
+    const openTitle = getMetadataTooltip(document);
 
     this.el.dataset.docBrowserDoc = document.docUrl;
     this.el.dataset.removing = item.removing ? "true" : "false";
-    this.el.dataset.unavailable = unavailableMessage ? "true" : "false";
     this.el.style.viewTransitionName = toViewTransitionName(document.docUrl);
     this.#tile.setCurrent(item.isCurrent);
     this.#tile.setOpenLabel(openLabel);
@@ -207,9 +186,7 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     }
     this.#thumbnailMedia.replaceChildren(
       nextThumbnailUrl ? this.#thumbnailImage : this.#thumbnailFallback,
-      this.#syncIssueChip,
     );
-    this.#syncIssueChip.hidden = unavailableMessage === null;
   }
 }
 
@@ -291,7 +268,6 @@ export function createDocumentBrowserDialogView(options: {
     documents: [],
     thumbnailUrlByDocUrl: new Map(),
     claimableDocUrls: new Set(),
-    unavailableMessageByDocUrl: new Map(),
     previewDocUrl: null,
     touchPressDocUrl: null,
     suppressNextOpenDocUrl: null,
@@ -403,8 +379,6 @@ export function createDocumentBrowserDialogView(options: {
         removing: state.removingDocUrl === document.docUrl,
         claimable: state.claimableDocUrls.has(document.docUrl),
         thumbnailUrl: state.thumbnailUrlByDocUrl.get(document.docUrl) ?? null,
-        unavailableMessage:
-          state.unavailableMessageByDocUrl.get(document.docUrl) ?? null,
         onOpen: openDocument,
         onDelete: options.onDeleteDocument,
         onClaim: (docUrl: string) => options.onClaimDocument?.(docUrl),
@@ -520,12 +494,6 @@ export function createDocumentBrowserDialogView(options: {
       updateState((state) => ({
         ...state,
         claimableDocUrls: new Set(claimableDocUrls),
-      }));
-    },
-    setUnavailableDocuments(unavailableMessageByDocUrl) {
-      updateState((state) => ({
-        ...state,
-        unavailableMessageByDocUrl: new Map(unavailableMessageByDocUrl),
       }));
     },
     setBusyDocument(docUrl) {

@@ -37,6 +37,10 @@ export interface KidsDrawAppOptions {
     dataUrl?: string;
   }) => Promise<boolean>;
   onShareError?: (message: string) => void;
+  onDocumentOpenRequested?: (
+    summary: KidsDocumentSummary | null,
+    docUrl: string,
+  ) => void;
   onCurrentDocumentSummaryChanged?: (
     summary: KidsDocumentSummary | null,
   ) => void;
