@@ -1,4 +1,10 @@
 import { initTRPC, TRPCError } from "@trpc/server";
+import {
+  type AppError,
+  AppErrorException,
+  createAppError,
+  getAppError,
+} from "@smalldraw/shared";
 import type * as trpcExpress from "@trpc/server/adapters/express";
 import { parseSessionKeyFromCookieHeader } from "../auth/sessionCookie.js";
 import { getServerAdminByBasicAuth } from "../db/getServerAdminByBasicAuth.js";
@@ -32,7 +38,29 @@ export const createContext = async ({
 };
 
 type Context = Awaited<ReturnType<typeof createContext>>;
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        appError: getAppError(error.cause),
+      },
+    };
+  },
+});
+
+export function appTrpcError(
+  appError: AppError,
+  trpcCode: ConstructorParameters<typeof TRPCError>[0]["code"],
+): TRPCError {
+  const normalized = createAppError(appError);
+  return new TRPCError({
+    code: trpcCode,
+    message: normalized.message,
+    cause: new AppErrorException(normalized),
+  });
+}
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
@@ -40,7 +68,16 @@ export const protectedProcedure = t.procedure.use(
   async function isAuthenticated(opts) {
     const { ctx } = opts;
     if (!ctx.session) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw appTrpcError(
+        {
+          code: "DOCUMENT_AUTH_REQUIRED",
+          title: "You can't access this drawing",
+          message: "Log in or sign up to open this account-linked drawing.",
+          severity: "recoverable",
+          retryable: false,
+        },
+        "UNAUTHORIZED",
+      );
     }
     return opts.next({
       ctx: {

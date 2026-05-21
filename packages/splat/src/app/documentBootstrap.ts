@@ -1,4 +1,5 @@
 import type { DocumentId } from "@automerge/automerge-repo";
+import { type AppError, createAppError } from "@smalldraw/shared";
 import type { DrawingDocumentSize } from "@smalldraw/core";
 import type { KidsDrawAppOptions } from "./types";
 import {
@@ -17,10 +18,13 @@ import {
   isCollaborativeDocument,
 } from "../documents";
 
-type StartupIntent = NonNullable<KidsDrawAppOptions["multiplayer"]>["startupIntent"];
+type StartupIntent = NonNullable<
+  KidsDrawAppOptions["multiplayer"]
+>["startupIntent"];
 
 export class DocumentAccessError extends Error {
   readonly kind = "document_access";
+  readonly appError: AppError;
   readonly reason:
     | "auth_required"
     | "invalid_share_link"
@@ -30,20 +34,15 @@ export class DocumentAccessError extends Error {
   readonly userMessage: string;
 
   constructor(options: {
-    reason:
-      | "auth_required"
-      | "invalid_share_link"
-      | "local_document_missing"
-      | "server_unavailable";
-    title: string;
-    userMessage: string;
+    appError: AppError;
     cause?: unknown;
   }) {
-    super(options.userMessage, { cause: options.cause });
+    super(options.appError.message, { cause: options.cause });
     this.name = "DocumentAccessError";
-    this.reason = options.reason;
-    this.title = options.title;
-    this.userMessage = options.userMessage;
+    this.appError = options.appError;
+    this.reason = documentAccessReasonForAppError(options.appError);
+    this.title = options.appError.title;
+    this.userMessage = options.appError.message;
   }
 }
 
@@ -195,9 +194,13 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
             : null;
         if (!resolved) {
           throw new DocumentAccessError({
-            reason: "local_document_missing",
-            title: "This drawing is not available here",
-            userMessage: "This drawing is not stored in this browser anymore.",
+            appError: createAppError({
+              code: "DOCUMENT_NOT_FOUND",
+              title: "This drawing is not available here",
+              message: "This drawing is not stored in this browser anymore.",
+              severity: "recoverable",
+              retryable: false,
+            }),
           });
         }
         startupPreImports.push({
@@ -222,9 +225,13 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
         );
       if (!resolved) {
         throw new DocumentAccessError({
-          reason: "invalid_share_link",
-          title: "This share link does not work",
-          userMessage: "This share link is invalid or no longer available.",
+          appError: createAppError({
+            code: "DOCUMENT_SHARE_LINK_INVALID",
+            title: "This share link does not work",
+            message: "This share link is invalid or no longer available.",
+            severity: "recoverable",
+            retryable: false,
+          }),
         });
       }
       startupPreImports.push({
@@ -274,17 +281,18 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
         }
         if (isMultiplayerApiAuthError(error)) {
           throw new DocumentAccessError({
-            reason: "auth_required",
-            title: "You can't access this drawing",
-            userMessage:
-              "Log in or sign up to open this account-linked drawing.",
+            appError: createAppError({
+              code: "DOCUMENT_AUTH_REQUIRED",
+              title: "You can't access this drawing",
+              message: "Log in or sign up to open this account-linked drawing.",
+              severity: "recoverable",
+              retryable: false,
+            }),
             cause: error,
           });
         }
         throw new DocumentAccessError({
-          reason: "server_unavailable",
-          title: "Could not open drawing",
-          userMessage: resolveDocumentOpenFailureMessage(error),
+          appError: resolveDocumentOpenFailure(error),
           cause: error,
         });
       }
@@ -394,29 +402,46 @@ export async function resolveAccountDocumentForLocalOpen(options: {
       error,
     });
     throw new DocumentAccessError({
-      reason: isMultiplayerApiAuthError(error)
-        ? "auth_required"
-        : "server_unavailable",
-      title: isMultiplayerApiAuthError(error)
-        ? "You can't access this drawing"
-        : "Could not open drawing",
-      userMessage: isMultiplayerApiAuthError(error)
-        ? "Log in or sign up to open this account-linked drawing."
-        : resolveDocumentOpenFailureMessage(error),
+      appError: isMultiplayerApiAuthError(error)
+        ? createAppError({
+            code: "DOCUMENT_AUTH_REQUIRED",
+            title: "You can't access this drawing",
+            message: "Log in or sign up to open this account-linked drawing.",
+            severity: "recoverable",
+            retryable: false,
+          })
+        : resolveDocumentOpenFailure(error),
       cause: error,
     });
   }
 }
 
-function resolveDocumentOpenFailureMessage(error: unknown): string {
-  if (
-    error instanceof MultiplayerApiError &&
-    error.code === "NOT_FOUND" &&
-    error.message.trim().length > 0
-  ) {
-    return error.message;
+function resolveDocumentOpenFailure(error: unknown): AppError {
+  if (error instanceof MultiplayerApiError) {
+    return error.appError;
   }
-  return "The drawing could not be opened right now. Please try again.";
+  return createAppError({
+    code: "NETWORK_UNAVAILABLE",
+    title: "Could not open drawing",
+    message: "The drawing could not be opened right now. Please try again.",
+    severity: "recoverable",
+    retryable: true,
+  });
+}
+
+function documentAccessReasonForAppError(
+  appError: AppError,
+): DocumentAccessError["reason"] {
+  if (appError.code === "DOCUMENT_AUTH_REQUIRED") {
+    return "auth_required";
+  }
+  if (appError.code === "DOCUMENT_NOT_FOUND") {
+    return "local_document_missing";
+  }
+  if (appError.code === "DOCUMENT_SHARE_LINK_INVALID") {
+    return "invalid_share_link";
+  }
+  return "server_unavailable";
 }
 
 export function updateRepoWebsocketAuthorization(

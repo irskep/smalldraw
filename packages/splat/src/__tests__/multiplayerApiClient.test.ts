@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createMultiplayerApiClient } from "../app/createMultiplayerApiClient";
+import { createAppError } from "@smalldraw/shared";
+import {
+  createMultiplayerApiClient,
+  MultiplayerApiError,
+} from "../app/createMultiplayerApiClient";
 
 const originalFetch = globalThis.fetch;
 
@@ -14,6 +18,33 @@ function mockJsonResponse(data: unknown): Response {
   return new Response(JSON.stringify([{ result: { data } }]), {
     headers: { "content-type": "application/json" },
   });
+}
+
+function mockTrpcErrorResponse(options: {
+  message: string;
+  trpcCode: string;
+  httpStatus: number;
+  appError: ReturnType<typeof createAppError>;
+}): Response {
+  return new Response(
+    JSON.stringify([
+      {
+        error: {
+          message: options.message,
+          code: -32004,
+          data: {
+            code: options.trpcCode,
+            httpStatus: options.httpStatus,
+            appError: options.appError,
+          },
+        },
+      },
+    ]),
+    {
+      status: options.httpStatus,
+      headers: { "content-type": "application/json" },
+    },
+  );
 }
 
 function installFetchMock(
@@ -221,6 +252,42 @@ describe("createMultiplayerApiClient", () => {
     expect(decodeURIComponent(requests[0]?.url ?? "")).toContain(
       '"deviceTag":"device-1"',
     );
+  });
+
+  test("resolveCollaborativeDocumentByAccountDocumentId preserves typed app errors", async () => {
+    const appError = createAppError({
+      code: "DOCUMENT_CONTENT_MISSING",
+      title: "Could not open drawing",
+      message:
+        "This drawing exists in your account, but its drawing content is missing from storage.",
+      severity: "recoverable",
+      retryable: false,
+      details: { documentId: "account-doc-missing-content" },
+    });
+    installFetchMock(async () =>
+      mockTrpcErrorResponse({
+        message: appError.message,
+        trpcCode: "NOT_FOUND",
+        httpStatus: 404,
+        appError,
+      }),
+    );
+
+    const client = createMultiplayerApiClient({
+      apiUrl: "http://localhost/api",
+    });
+    let thrown: unknown;
+    try {
+      await client.resolveCollaborativeDocumentByAccountDocumentId(
+        "account-doc-missing-content",
+        "device-1",
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(MultiplayerApiError);
+    expect((thrown as MultiplayerApiError).appError).toEqual(appError);
   });
 
   test("throws when response payload is invalid", async () => {

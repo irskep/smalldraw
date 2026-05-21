@@ -116,7 +116,7 @@ describe("account document open routes", () => {
       expect(error).toBeInstanceOf(TRPCError);
       expect((error as TRPCError).code).toBe("NOT_FOUND");
       expect((error as TRPCError).message).toBe(
-        "Document metadata exists, but its drawing content is missing from repository storage.",
+        "This drawing exists in your account, but its drawing content is missing from storage.",
       );
     }
   });

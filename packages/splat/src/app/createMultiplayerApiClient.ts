@@ -3,20 +3,24 @@ import {
   createTRPCUntypedClient,
   httpBatchLink,
 } from "@trpc/client";
+import {
+  type AppError,
+  createAppError,
+  isAppError,
+} from "@smalldraw/shared";
 
 export class MultiplayerApiError extends Error {
-  readonly code?: string;
+  readonly appError: AppError;
 
   constructor(
-    message: string,
+    appError: AppError,
     options?: {
-      code?: string;
       cause?: unknown;
     },
   ) {
-    super(message, { cause: options?.cause });
+    super(appError.message, { cause: options?.cause });
     this.name = "MultiplayerApiError";
-    this.code = options?.code;
+    this.appError = appError;
   }
 }
 
@@ -203,10 +207,7 @@ export function createMultiplayerApiClient(options: {
           accessToken,
         });
       } catch (error) {
-        throw normalizeMultiplayerApiError(
-          error,
-          "Failed to claim drawing.",
-        );
+        throw normalizeMultiplayerApiError(error, "Failed to claim drawing.");
       }
       const parsed = parseClaimResult(result);
       if (!parsed) {
@@ -240,10 +241,12 @@ export function createMultiplayerApiClient(options: {
 
 export function isMultiplayerApiAuthError(error: unknown): boolean {
   if (error instanceof MultiplayerApiError) {
-    return error.code === "UNAUTHORIZED";
+    return error.appError.code === "DOCUMENT_AUTH_REQUIRED";
   }
   if (error instanceof TRPCClientError) {
-    return error.data?.code === "UNAUTHORIZED" || error.message === "UNAUTHORIZED";
+    return (
+      error.data?.code === "UNAUTHORIZED" || error.message === "UNAUTHORIZED"
+    );
   }
   return error instanceof Error && error.message === "UNAUTHORIZED";
 }
@@ -256,15 +259,51 @@ function normalizeMultiplayerApiError(
     return error;
   }
   if (error instanceof TRPCClientError) {
-    return new MultiplayerApiError(error.message || fallbackMessage, {
-      code: typeof error.data?.code === "string" ? error.data.code : undefined,
-      cause: error,
-    });
+    return new MultiplayerApiError(
+      extractAppError(error) ?? fallbackAppError(error, fallbackMessage),
+      { cause: error },
+    );
   }
   if (error instanceof Error) {
     return error;
   }
   return new Error(fallbackMessage);
+}
+
+function extractAppError(error: TRPCClientError<any>): AppError | null {
+  const appError = (error.data as { appError?: unknown } | undefined)?.appError;
+  return isAppError(appError) ? appError : null;
+}
+
+function fallbackAppError(
+  error: TRPCClientError<any>,
+  fallbackMessage: string,
+): AppError {
+  if (error.data?.code === "UNAUTHORIZED" || error.message === "UNAUTHORIZED") {
+    return createAppError({
+      code: "DOCUMENT_AUTH_REQUIRED",
+      title: "You can't access this drawing",
+      message: "Log in or sign up to open this account-linked drawing.",
+      severity: "recoverable",
+      retryable: false,
+    });
+  }
+  if (error.data?.code === "NOT_FOUND") {
+    return createAppError({
+      code: "DOCUMENT_NOT_FOUND",
+      title: "Could not open drawing",
+      message: "This drawing is no longer available.",
+      severity: "recoverable",
+      retryable: false,
+    });
+  }
+  return createAppError({
+    code: "NETWORK_UNAVAILABLE",
+    title: "Could not open drawing",
+    message: fallbackMessage,
+    severity: "recoverable",
+    retryable: true,
+  });
 }
 
 function parseAccountDocumentListResult(input: unknown): Array<{

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { DocumentAccessError } from "../app/documentBootstrap";
+import { createAppError } from "@smalldraw/shared";
 import { createDocumentBrowserCommands } from "../controller/createDocumentBrowserCommands";
 
 function createPickerState() {
@@ -325,10 +326,7 @@ describe("createDocumentBrowserCommands", () => {
 
     await commands.deleteDocumentFromBrowser("doc://other");
 
-    expect(picker.removing).toEqual([
-      "doc://other",
-      "wait:doc://other",
-    ]);
+    expect(picker.removing).toEqual(["doc://other", "wait:doc://other"]);
   });
 
   test("claimDocumentFromBrowser hides claim after successful attachment state update", async () => {
@@ -429,10 +427,13 @@ describe("createDocumentBrowserCommands", () => {
       getCurrentDocUrl: () => "doc://current",
       switchToDocument: async () => {
         throw new DocumentAccessError({
-          reason: "auth_required",
-          title: "You can't access this drawing",
-          userMessage:
-            "Log in or sign up to open this account-linked drawing.",
+          appError: createAppError({
+            code: "DOCUMENT_AUTH_REQUIRED",
+            title: "You can't access this drawing",
+            message: "Log in or sign up to open this account-linked drawing.",
+            severity: "recoverable",
+            retryable: false,
+          }),
         });
       },
       createNewDocument: async () => {},

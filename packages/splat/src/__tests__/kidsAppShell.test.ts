@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { TRPCClientError } from "@trpc/client";
+import { createAppError } from "@smalldraw/shared";
 import {
   type ActionContext,
   applyActionToDoc,
@@ -136,6 +137,13 @@ function createNotFoundTrpcError(message: string): TRPCClientError<any> {
         data: {
           code: "NOT_FOUND",
           httpStatus: 404,
+          appError: createAppError({
+            code: "DOCUMENT_CONTENT_MISSING",
+            title: "Could not open drawing",
+            message,
+            severity: "recoverable",
+            retryable: false,
+          }),
         },
       },
     },
@@ -406,7 +414,7 @@ describe("splatterboard shell", () => {
       'button[data-setting="stroke-color"][data-color="#000000"]',
     ) as HTMLButtonElement | null;
     const activeToolVariant = container.querySelector(
-      '[data-tool-variant].is-selected',
+      "[data-tool-variant].is-selected",
     ) as HTMLButtonElement | null;
     const selectedStrokeWidth = container.querySelector(
       'button[data-setting="stroke-width"][aria-checked="true"]',
@@ -450,7 +458,9 @@ describe("splatterboard shell", () => {
     expect(container.querySelector(".ds-modal-dialog")).not.toBeNull();
     expect(container.querySelector(".ds-share-dialog")).not.toBeNull();
     expect(container.querySelector(".kids-draw-toolbar-view")).toBeNull();
-    expect(container.querySelector(".kids-draw-mobile-actions-popover")).toBeNull();
+    expect(
+      container.querySelector(".kids-draw-mobile-actions-popover"),
+    ).toBeNull();
     expect(container.querySelector(".kids-share-dialog")).toBeNull();
 
     app.destroy();
@@ -629,9 +639,9 @@ describe("splatterboard shell", () => {
       confirmDestructiveAction: async () => true,
     });
 
-    const status = container.querySelector(".ds-sync-indicator") as
-      | HTMLElement
-      | null;
+    const status = container.querySelector(
+      ".ds-sync-indicator",
+    ) as HTMLElement | null;
     expect(status).not.toBeNull();
     const statusVisible = await waitUntil(() => status?.hidden === false, 80);
     expect(statusVisible).toBeTrue();
@@ -698,9 +708,9 @@ describe("splatterboard shell", () => {
       confirmDestructiveAction: async () => true,
     });
 
-    const status = container.querySelector(".ds-sync-indicator") as
-      | HTMLElement
-      | null;
+    const status = container.querySelector(
+      ".ds-sync-indicator",
+    ) as HTMLElement | null;
     expect(status).not.toBeNull();
     const initiallyOffline = await waitUntil(
       () => status?.dataset.state === "synced-to-server-but-offline",
@@ -1028,21 +1038,21 @@ describe("splatterboard shell", () => {
       const backend = createMockDocumentBackend([], null);
 
       const app = await createKidsDrawApp({
-          container,
-          width: 640,
-          height: 480,
-          core: createMockCore({ width: 640, height: 480 }),
-          documentBackend: backend,
-          confirmDestructiveAction: async () => true,
-          multiplayer: {
-            syncServerHttpUrl: "http://localhost:3030/api",
-            startupIntent: {
-              kind: "open-account-document",
-              documentId: "account-doc",
-            },
-            deviceTag: "device-1",
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          startupIntent: {
+            kind: "open-account-document",
+            documentId: "account-doc",
           },
-        });
+          deviceTag: "device-1",
+        },
+      });
       const documentState = container.querySelector(
         ".ds-document-access-state",
       );
@@ -1052,7 +1062,9 @@ describe("splatterboard shell", () => {
       expect(documentState?.textContent).toContain(
         "This drawing needs account access before it can be opened here.",
       );
-      expect(container.querySelector(".ds-splat-context__canvas-shell")).toBeNull();
+      expect(
+        container.querySelector(".ds-splat-context__canvas-shell"),
+      ).toBeNull();
       app.destroy();
     } finally {
       globalThis.fetch = originalFetch;
@@ -1709,7 +1721,9 @@ describe("splatterboard shell", () => {
     ) as HTMLElement | null;
 
     expect(documentState).not.toBeNull();
-    expect(documentState?.textContent).toContain("This drawing is not available here");
+    expect(documentState?.textContent).toContain(
+      "This drawing is not available here",
+    );
     expect(documentState?.textContent).toContain(
       "This drawing is not stored in this browser anymore.",
     );
@@ -1945,8 +1959,7 @@ describe("splatterboard shell", () => {
       return (
         container.querySelector(
           `[data-document-browser-open="${secondDocUrl}"]`,
-        ) !==
-        null
+        ) !== null
       );
     });
     expect(openButtonReady).toBeTrue();
@@ -2200,9 +2213,7 @@ describe("splatterboard shell", () => {
       "[data-tool-variant]",
     );
     expect(variantButtons?.length).toBe(26);
-    expect(
-      stampZVariantButton?.getAttribute("data-layout") ?? null,
-    ).toBeNull();
+    expect(stampZVariantButton?.getAttribute("data-layout") ?? null).toBeNull();
     const firstVariantLabel = lettersToolbar?.querySelector(
       '[data-tool-variant="stamp.letter.a"] .kids-square-icon-button__label',
     ) as HTMLElement | null;
@@ -2302,9 +2313,7 @@ describe("splatterboard shell", () => {
     expect(imageIcon).not.toBeNull();
     expect(imageToolbar?.getAttribute("data-large-layout")).toBe("two-row");
     expect(imageToolbar?.getAttribute("data-paginate-large")).toBe("true");
-    expect(
-      imageVariantButton?.getAttribute("data-layout") ?? null,
-    ).toBeNull();
+    expect(imageVariantButton?.getAttribute("data-layout") ?? null).toBeNull();
     dispatchPointer(overlay, "pointermove", 150, 130, 0, "mouse");
     expect(cursorIndicator).not.toBeNull();
     expect(cursorIndicator!.style.visibility).toBe("");

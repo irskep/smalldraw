@@ -1,0 +1,13 @@
+{
+  "name": "@smalldraw/shared",
+  "version": "0.0.0",
+  "private": false,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "ts:check": "tsc -p tsconfig.json --noEmit",
+    "lint": "bunx biome check --write",
+    "test": "bun test"
+  }
+}

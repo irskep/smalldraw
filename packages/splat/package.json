@@ -22,6 +22,7 @@
     "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
     "@smalldraw/core": "workspace:*",
     "@smalldraw/design-system": "workspace:*",
+    "@smalldraw/shared": "workspace:*",
     "@smalldraw/geometry": "workspace:*",
     "@smalldraw/renderer-canvas": "workspace:*",
     "@smalldraw/renderer-raster": "workspace:*",

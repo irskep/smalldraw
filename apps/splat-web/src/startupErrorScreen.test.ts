@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { createAppError } from "@smalldraw/shared";
 import { DocumentAccessError } from "@smalldraw/splat";
 import { Window } from "happy-dom";
 import {
@@ -25,9 +26,13 @@ describe("buildStartupErrorScreenModel", () => {
   test("builds login and signup actions for auth-required document access", () => {
     const model = buildStartupErrorScreenModel(
       new DocumentAccessError({
-        reason: "auth_required",
-        title: "You can't access this drawing",
-        userMessage: "Log in or sign up to open this account-linked drawing.",
+        appError: createAppError({
+          code: "DOCUMENT_AUTH_REQUIRED",
+          title: "You can't access this drawing",
+          message: "Log in or sign up to open this account-linked drawing.",
+          severity: "recoverable",
+          retryable: false,
+        }),
       }),
       "http://localhost:3000/?doc=server-doc",
     );

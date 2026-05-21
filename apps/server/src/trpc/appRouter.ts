@@ -50,6 +50,7 @@ import {
   publicProcedure,
   router,
   serverAdminProcedure,
+  appTrpcError,
 } from "./trpc.js";
 
 const resolveThumbnailUrl = (
@@ -85,11 +86,18 @@ const serializeRepoDocument = async (documentId: string): Promise<string> => {
     console.warn("[server:documents] serialize missing repo content", {
       documentId,
     });
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message:
-        "Document metadata exists, but its drawing content is missing from repository storage.",
-    });
+    throw appTrpcError(
+      {
+        code: "DOCUMENT_CONTENT_MISSING",
+        title: "Could not open drawing",
+        message:
+          "This drawing exists in your account, but its drawing content is missing from storage.",
+        severity: "recoverable",
+        retryable: false,
+        details: { documentId },
+      },
+      "NOT_FOUND",
+    );
   }
   console.info("[server:documents] serialize repo.find start", {
     documentId,
@@ -195,10 +203,17 @@ export const appRouter = router({
         userId: opts.ctx.session.userId,
       });
       if (!document) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Document not found",
-        });
+        throw appTrpcError(
+          {
+            code: "DOCUMENT_NOT_FOUND",
+            title: "Could not open drawing",
+            message: "This drawing is no longer available.",
+            severity: "recoverable",
+            retryable: false,
+            details: { documentId: opts.input.documentId },
+          },
+          "NOT_FOUND",
+        );
       }
       if (!document.isAdmin) {
         throw new TRPCError({
