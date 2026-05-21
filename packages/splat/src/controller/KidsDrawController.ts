@@ -538,11 +538,15 @@ export function createKidsDrawController(options: {
   };
   const unbindActiveDocument = runtimeStore.subscribeActiveDocument(
     (activeDocument) => {
+      const wasLoaded = latestActiveDocument.type === "loaded";
       latestActiveDocument = activeDocument;
       if (activeDocument.type === "error" || activeDocument.type === "none") {
         collaborationStatusStore.setCurrentDocument(null);
       }
       syncShellForDocumentState();
+      if (!wasLoaded && activeDocument.type === "loaded") {
+        scheduleResponsiveLayout();
+      }
     },
   );
   add(unbindActiveDocument);
