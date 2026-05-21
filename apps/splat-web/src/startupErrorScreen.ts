@@ -31,6 +31,7 @@ export function buildStartupErrorScreenModel(
   message: string;
   loginUrl?: string;
   signupUrl?: string;
+  recoveryActions: "retry-and-reset";
 } {
   if (isDocumentAccessError(error) && error.reason === "auth_required") {
     return {
@@ -40,6 +41,7 @@ export function buildStartupErrorScreenModel(
       message: error.userMessage,
       loginUrl: buildAccountAuthUrl("login", currentHref),
       signupUrl: buildAccountAuthUrl("register", currentHref),
+      recoveryActions: "retry-and-reset",
     };
   }
 
@@ -49,6 +51,7 @@ export function buildStartupErrorScreenModel(
     description:
       "The requested drawing could not be opened. Try again or reset this browser's local drawing session.",
     message,
+    recoveryActions: "retry-and-reset",
   };
 }
 

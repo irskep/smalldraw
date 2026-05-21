@@ -85,6 +85,42 @@ describe("account document open routes", () => {
     });
   });
 
+  it("rejects account document bootstrap when repository content is missing", async () => {
+    const user = await createUser({
+      username: "account-open-missing-content",
+      registrationRecord: "registration-record",
+    });
+    await createDocument({
+      userId: user.id,
+      documentId: "v8W2YTz3eA7E1CmTGVmTQyPhXVA",
+      name: "Missing Content Doc",
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "account-open-missing-content-session",
+        userId: user.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+
+    try {
+      await caller.resolveAccountCollaborativeDocument({
+        documentId: "v8W2YTz3eA7E1CmTGVmTQyPhXVA",
+        deviceTag: "browser-device-missing-content",
+      });
+      throw new Error("Expected resolveAccountCollaborativeDocument to fail");
+    } catch (error) {
+      expect(error).toBeInstanceOf(TRPCError);
+      expect((error as TRPCError).code).toBe("NOT_FOUND");
+      expect((error as TRPCError).message).toBe(
+        "Document metadata exists, but its drawing content is missing from repository storage.",
+      );
+    }
+  });
+
   it("rejects account document bootstrap for non-members", async () => {
     const owner = await createUser({
       username: "account-open-owner",

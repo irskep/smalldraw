@@ -78,7 +78,9 @@ describe("ShareQrDialog", () => {
 
     await first;
     const doneButton = Array.from(
-      dialog.el.querySelectorAll<HTMLButtonElement>(".ds-share-dialog .ds-button"),
+      dialog.el.querySelectorAll<HTMLButtonElement>(
+        ".ds-share-dialog .ds-button",
+      ),
     ).find((button) => button.textContent?.trim() === "Done");
     expect(doneButton).not.toBeUndefined();
     doneButton!.click();
@@ -176,13 +178,15 @@ describe("ShareQrDialog", () => {
       qrDataUrl: "data:image/png;base64,done",
     });
 
-    const dialogEl = dialog.el.querySelector("dialog.ds-share-dialog") as
-      | HTMLDialogElement
-      | null;
+    const dialogEl = dialog.el.querySelector(
+      "dialog.ds-share-dialog",
+    ) as HTMLDialogElement | null;
     expect(dialogEl?.open).toBeTrue();
 
     const doneButton = Array.from(
-      dialog.el.querySelectorAll<HTMLButtonElement>(".ds-share-dialog .ds-button"),
+      dialog.el.querySelectorAll<HTMLButtonElement>(
+        ".ds-share-dialog .ds-button",
+      ),
     ).find((button) => button.textContent?.trim() === "Done");
     doneButton!.click();
     await waitMs(240);
@@ -201,6 +205,7 @@ describe("DocumentAccessState", () => {
       loginUrl: "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Ddemo",
       signupUrl:
         "http://localhost:3000/account/register?redirect=%2F%3Fdoc%3Ddemo",
+      recoveryActions: "retry-and-reset",
     });
     document.body.appendChild(state.el);
 
@@ -237,8 +242,16 @@ describe("DocumentAccessState", () => {
     );
     expect(loginLink?.hidden).toBeFalse();
     expect(signupLink?.hidden).toBeFalse();
-    expect(loginLink?.classList.contains("ds-document-access-state__auth-link--primary")).toBeTrue();
-    expect(signupLink?.classList.contains("ds-document-access-state__auth-link--neutral")).toBeTrue();
+    expect(
+      loginLink?.classList.contains(
+        "ds-document-access-state__auth-link--primary",
+      ),
+    ).toBeTrue();
+    expect(
+      signupLink?.classList.contains(
+        "ds-document-access-state__auth-link--neutral",
+      ),
+    ).toBeTrue();
     expect(actionGroups).toHaveLength(2);
     expect(actionGroups[0]?.textContent).toContain("Retry");
     expect(actionGroups[0]?.textContent).toContain("Reset Local Session");
@@ -256,6 +269,7 @@ describe("DocumentAccessState", () => {
       title: "Could not open drawing",
       description: "Startup failed. This should not leave a blank screen.",
       message: "Unexpected failure",
+      recoveryActions: "retry-and-reset",
     });
     document.body.appendChild(state.el);
 
@@ -272,5 +286,20 @@ describe("DocumentAccessState", () => {
     expect(loginLink?.hidden).toBeTrue();
     expect(signupLink?.hidden).toBeTrue();
     expect(message?.textContent).toBe("Unexpected failure");
+  });
+
+  test("can render loading copy without recovery actions", () => {
+    const state = createDocumentAccessState({
+      title: "Opening drawing…",
+      description: "Shared drawings can take a moment to respond.",
+      recoveryActions: "none",
+    });
+    document.body.appendChild(state.el);
+
+    const utilityActions = state.el.querySelector(
+      ".ds-document-access-state__action-group--utility",
+    ) as HTMLDivElement | null;
+
+    expect(utilityActions?.childElementCount).toBe(0);
   });
 });

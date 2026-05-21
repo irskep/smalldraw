@@ -435,7 +435,7 @@ export function createKidsDrawController(options: {
         cancelLabel: "Cancel",
         tone: "danger",
         icon: Trash2,
-    }),
+      }),
     onClaimError,
     onDocumentOpenRequested,
     isDestroyed: () => runtimeStore.isDestroyed(),
@@ -605,6 +605,7 @@ function resolveDocumentSlot(
     title: activeDocument.display.title,
     description: activeDocument.display.description,
     message: activeDocument.display.message,
+    recoveryActions: "retry-and-reset",
   };
 }
 
@@ -616,6 +617,7 @@ function describeDocumentLoading(reason: string): SplatContextDocumentSlot & {
       type: "loading",
       title: "Opening drawing…",
       description: "Shared drawings can take a moment to respond.",
+      recoveryActions: "none",
     };
   }
   if (reason === "create_document") {
@@ -623,11 +625,13 @@ function describeDocumentLoading(reason: string): SplatContextDocumentSlot & {
       type: "loading",
       title: "Creating drawing…",
       description: "Setting up a fresh canvas.",
+      recoveryActions: "none",
     };
   }
   return {
     type: "loading",
     title: "Loading drawing…",
     description: "Preparing the drawing surface.",
+    recoveryActions: "none",
   };
 }

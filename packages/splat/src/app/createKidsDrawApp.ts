@@ -26,9 +26,7 @@ import {
 import { warmImageStampAssets } from "../tools/stamps/imageStampAssets";
 import { getImageStampAssets } from "../tools/stamps/imageStampCatalog";
 import { createToolbarUiStore } from "../ui/stores/toolbarUiStore";
-import {
-  type MultiplayerApiClient,
-} from "./createMultiplayerApiClient";
+import { type MultiplayerApiClient } from "./createMultiplayerApiClient";
 import {
   resolveCollaborativeDocumentId,
   updateRepoWebsocketAuthorization,
@@ -76,12 +74,12 @@ export async function createKidsDrawApp(
     backgroundColor: provisionalBackgroundColor,
   });
   const toolbarUiStore = createToolbarUiStore();
-  const unbindToolbarUi = presentation.toolbar.bindUiState(toolbarUiStore.$state);
+  const unbindToolbarUi = presentation.toolbar.bindUiState(
+    toolbarUiStore.$state,
+  );
   presentation.stage.setCanvasVisible(true);
   presentation.stage.setInteractionEnabled(false);
-  presentation.toolbar.setDocumentSlot(
-    describeInitialBlockingState(options),
-  );
+  presentation.toolbar.setDocumentSlot(describeInitialBlockingState(options));
 
   let runtime;
   try {
@@ -121,11 +119,12 @@ export async function createKidsDrawApp(
     appOptions: options,
     collaborationStatusStore: runtime.collaborationStatusStore,
   });
-  const unbindCollaborativeSyncErrorSurface =
-    bindCollaborativeSyncErrorSurface({
+  const unbindCollaborativeSyncErrorSurface = bindCollaborativeSyncErrorSurface(
+    {
       windowTarget: window,
       collaborationStatusStore: runtime.collaborationStatusStore,
-    });
+    },
+  );
 
   const store = new DrawingStore({
     tools: catalog.tools.map((tool) => tool.tool),
@@ -192,8 +191,7 @@ export async function createKidsDrawApp(
       controllerMultiplayerAdapters.uploadDocumentThumbnail,
     onThumbnailSaved: controllerMultiplayerAdapters.onThumbnailSaved,
     initialCatalogDocUrl: runtime.initialCatalogDocUrl ?? undefined,
-    initialDocumentAccessState:
-      runtime.initialDocumentAccessState ?? undefined,
+    initialDocumentAccessState: runtime.initialDocumentAccessState ?? undefined,
     beforeOpenDocument: runtime.prepareDocumentOpen,
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
@@ -245,6 +243,7 @@ function describeInitialBlockingState(
       type: "loading",
       title: "Opening drawing…",
       description: "Loading the requested shared drawing.",
+      recoveryActions: "none",
     };
   }
   if (startupIntent?.kind === "open-share-link") {
@@ -252,6 +251,7 @@ function describeInitialBlockingState(
       type: "loading",
       title: "Opening shared drawing…",
       description: "Loading the shared drawing from its invite link.",
+      recoveryActions: "none",
     };
   }
   if (startupIntent?.kind === "open-local-document") {
@@ -259,22 +259,26 @@ function describeInitialBlockingState(
       type: "loading",
       title: "Opening drawing…",
       description: "Loading the requested drawing from this browser.",
+      recoveryActions: "none",
     };
   }
   return {
     type: "loading",
     title: "Loading drawing…",
     description: "Preparing the drawing surface.",
+    recoveryActions: "none",
   };
 }
 
 function createUiIntentCommands(
   uiIntentStore: Pick<UiIntentStore, "publish">,
 ): Omit<KidsDrawAppCommands, "openDocument"> {
-  const publish = <TType extends Extract<
-    KidsDrawUiIntent["type"],
-    "undo" | "redo" | "clear" | "export" | "new_drawing" | "browse" | "share"
-  >>(
+  const publish = <
+    TType extends Extract<
+      KidsDrawUiIntent["type"],
+      "undo" | "redo" | "clear" | "export" | "new_drawing" | "browse" | "share"
+    >,
+  >(
     type: TType,
   ): void => {
     uiIntentStore.publish({
@@ -295,7 +299,9 @@ function createUiIntentCommands(
 
 function createControllerCollaborationStatusStore(options: {
   collaborationStatusStore: ReturnType<typeof createCollaborationStatusStore>;
-  collaborativeDocumentIndex: ReturnType<typeof createCollaborativeDocumentIndex>;
+  collaborativeDocumentIndex: ReturnType<
+    typeof createCollaborativeDocumentIndex
+  >;
   localRepo: Awaited<ReturnType<typeof bootstrapKidsDrawRuntime>>["localRepo"];
 }): Parameters<typeof createKidsDrawController>[0]["collaborationStatusStore"] {
   return {
@@ -413,10 +419,7 @@ function createControllerMultiplayerAdapters(options: {
 
 function createAccountThumbnailUploader(options: {
   multiplayerApiClient: MultiplayerApiClient | null;
-}): (
-  summary: KidsDocumentSummary | null,
-  thumbnail: Blob,
-) => Promise<void> {
+}): (summary: KidsDocumentSummary | null, thumbnail: Blob) => Promise<void> {
   return async (
     summary: KidsDocumentSummary | null,
     thumbnail: Blob,

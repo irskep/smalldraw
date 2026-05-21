@@ -80,6 +80,7 @@ export type SplatContextDocumentSlot =
       title: string;
       description: string;
       message?: string;
+      recoveryActions: "none" | "retry-and-reset";
     };
 
 export class SplatContext implements ReDomLike<HTMLDivElement> {
@@ -469,8 +470,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
         const btn = createIconButton({
           label: item.label,
           icon: item.icon,
-          layout:
-            mode === "large" ? presentation.buttonLayout : undefined,
+          layout: mode === "large" ? presentation.buttonLayout : undefined,
         });
         for (const [name, value] of Object.entries(item.attributes ?? {})) {
           btn.el.setAttribute(name, value);
@@ -538,9 +538,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const presentation = this.variantPresentationStore.get();
     if (this.desktopVariantGrid) {
       this.desktopVariantGrid.setLargeLayout(presentation.largeLayout);
-      this.desktopVariantGrid.setPaginateInLarge(
-        presentation.paginateInLarge,
-      );
+      this.desktopVariantGrid.setPaginateInLarge(presentation.paginateInLarge);
       this.desktopVariantGrid.el.setAttribute(
         "data-button-layout",
         presentation.buttonLayout,
@@ -800,7 +798,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     return bottom;
   }
 
-  private createCanvasShell(content: HTMLElement, mobile = false): HTMLDivElement {
+  private createCanvasShell(
+    content: HTMLElement,
+    mobile = false,
+  ): HTMLDivElement {
     const canvas = el(
       mobile
         ? "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile"
@@ -931,7 +932,8 @@ function isSameDocumentSlot(
     return (
       a.title === b.title &&
       a.description === b.description &&
-      a.message === b.message
+      a.message === b.message &&
+      a.recoveryActions === b.recoveryActions
     );
   }
   return false;

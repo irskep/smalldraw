@@ -11,6 +11,7 @@ export interface DocumentAccessStateModel {
   message?: string;
   loginUrl?: string;
   signupUrl?: string;
+  recoveryActions: "none" | "retry-and-reset";
   retryLabel?: string;
   resetLabel?: string;
 }
@@ -103,6 +104,14 @@ export class DocumentAccessState implements ReDomLike<HTMLDivElement> {
     this.#setAuthLink(this.#signupLink, model.signupUrl);
     this.#retryButton.setLabel(model.retryLabel ?? "Retry");
     this.#resetButton.setLabel(model.resetLabel ?? "Reset Local Session");
+    if (model.recoveryActions === "none") {
+      this.#utilityActions.replaceChildren();
+    } else {
+      this.#utilityActions.replaceChildren(
+        this.#retryButton.el,
+        this.#resetButton.el,
+      );
+    }
   }
 
   setOnRetry(handler: (() => void) | null): void {

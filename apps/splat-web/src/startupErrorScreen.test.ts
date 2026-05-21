@@ -37,9 +37,11 @@ describe("buildStartupErrorScreenModel", () => {
       description:
         "This drawing needs account access. Log in or sign up to continue.",
       message: "Log in or sign up to open this account-linked drawing.",
-      loginUrl: "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Dserver-doc",
+      loginUrl:
+        "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Dserver-doc",
       signupUrl:
         "http://localhost:3000/account/register?redirect=%2F%3Fdoc%3Dserver-doc",
+      recoveryActions: "retry-and-reset",
     });
   });
 
@@ -54,6 +56,7 @@ describe("buildStartupErrorScreenModel", () => {
       description:
         "The requested drawing could not be opened. Try again or reset this browser's local drawing session.",
       message: "Unexpected failure",
+      recoveryActions: "retry-and-reset",
     });
   });
 
@@ -62,12 +65,17 @@ describe("buildStartupErrorScreenModel", () => {
     const root = window.document.createElement("div");
     installHappyDomGlobals(window);
 
-    renderStartupErrorScreen(root as unknown as HTMLElement, new Error("Unexpected failure"));
+    renderStartupErrorScreen(
+      root as unknown as HTMLElement,
+      new Error("Unexpected failure"),
+    );
 
     const shell = root.querySelector(
       ".splat-web-startup-error-screen",
     ) as HTMLDivElement | null;
     expect(shell).not.toBeNull();
-    expect(shell?.firstElementChild?.classList.contains("ds-document-access-state")).toBeTrue();
+    expect(
+      shell?.firstElementChild?.classList.contains("ds-document-access-state"),
+    ).toBeTrue();
   });
 });

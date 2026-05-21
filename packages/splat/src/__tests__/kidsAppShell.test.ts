@@ -127,6 +127,21 @@ function createUnauthorizedTrpcError(): TRPCClientError<any> {
   });
 }
 
+function createNotFoundTrpcError(message: string): TRPCClientError<any> {
+  return new TRPCClientError(message, {
+    result: {
+      error: {
+        message,
+        code: -32004,
+        data: {
+          code: "NOT_FOUND",
+          httpStatus: 404,
+        },
+      },
+    },
+  });
+}
+
 async function waitForToolbarUiPersistence(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 220));
   await waitForTurn();
@@ -1038,6 +1053,66 @@ describe("splatterboard shell", () => {
         "This drawing needs account access before it can be opened here.",
       );
       expect(container.querySelector(".ds-splat-context__canvas-shell")).toBeNull();
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
+  });
+
+  test("account document bootstrap surfaces missing repository content", async () => {
+    const originalFetch = globalThis.fetch;
+    const missingContentMessage =
+      "Document metadata exists, but its drawing content is missing from repository storage.";
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/listAccountCollaborativeDocuments")) {
+        return new Response(JSON.stringify([{ result: { data: [] } }]), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.includes("/resolveAccountCollaborativeDocument")) {
+        throw createNotFoundTrpcError(missingContentMessage);
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const backend = createMockDocumentBackend([], null);
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          startupIntent: {
+            kind: "open-account-document",
+            documentId: "missing-content-doc",
+          },
+          deviceTag: "device-1",
+        },
+      });
+
+      const documentState = container.querySelector(
+        ".ds-document-access-state",
+      );
+      expect(documentState?.textContent).toContain("Could not open drawing");
+      expect(documentState?.textContent).toContain(missingContentMessage);
+      expect(
+        container.querySelector(".ds-splat-context__canvas-shell"),
+      ).toBeNull();
       app.destroy();
     } finally {
       globalThis.fetch = originalFetch;

@@ -262,6 +262,64 @@ function createNoDocumentContextStory(): HarnessStory {
         title: "Could not open drawing",
         description:
           "The requested drawing could not be opened. Browse drawings or create a new one from the menu.",
+        recoveryActions: "retry-and-reset",
+      });
+      context.el.style.width = "960px";
+      context.el.style.height = "640px";
+
+      const resizeHandle = createResizeHandle();
+      const wrappedContext = resizeHandle.wrap(context.el);
+
+      stack.append(wrappedContext, status);
+      container.replaceChildren(stack);
+
+      (
+        container as HTMLElement & { __disposeContextStory?: () => void }
+      ).__disposeContextStory = () => {
+        context.onunmount();
+        resizeHandle.destroy();
+      };
+    },
+  };
+}
+
+function createLoadingDocumentContextStory(): HarnessStory {
+  return {
+    id: "splat-context-loading-document",
+    title: "Splat Context Loading Document",
+    description:
+      "Menu-only responsive shell with a pure loading state and no recovery actions.",
+    mount: (container) => {
+      const previousDispose = (
+        container as HTMLElement & { __disposeContextStory?: () => void }
+      ).__disposeContextStory;
+      previousDispose?.();
+
+      const stack = el("div.ds-story-stack") as HTMLDivElement;
+      const status = el(
+        "output.ds-story-output",
+        "Document is loading.",
+      ) as HTMLOutputElement;
+
+      const context = createSplatContext({
+        tools: TOOL_ITEMS,
+        activeToolId: "brush",
+        variants: VARIANT_ITEMS,
+        activeVariantId: "pen",
+        colors: COLOR_SWATCHES,
+        selectedColor: "#000000",
+        strokeWidths: STROKE_WIDTHS,
+        selectedStrokeWidth: 16,
+        desktopMenuEntries: DESKTOP_MENU_ENTRIES,
+        mobileMenuEntries: MOBILE_MENU_ENTRIES,
+        syncState: "local-only",
+        status,
+      });
+      context.setDocumentSlot({
+        type: "loading",
+        title: "Opening drawing…",
+        description: "Shared drawings can take a moment to respond.",
+        recoveryActions: "none",
       });
       context.el.style.width = "960px";
       context.el.style.height = "640px";
@@ -325,4 +383,5 @@ export const contextStories: HarnessStory[] = [
     syncMode: "fixed",
   }),
   createNoDocumentContextStory(),
+  createLoadingDocumentContextStory(),
 ];

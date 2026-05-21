@@ -68,17 +68,27 @@ const listAccountDocumentSummaries = async (userId: string) => {
   }));
 };
 
+const hasInMemoryRepoHandle = (documentId: string): boolean => {
+  const handleMap = (repo as unknown as { handles?: Record<string, unknown> })
+    .handles;
+  return Boolean(handleMap?.[documentId]);
+};
+
 const serializeRepoDocument = async (documentId: string): Promise<string> => {
   console.info("[server:documents] serialize start", {
     documentId,
   });
-  if (!repoStorage.hasDocumentData(documentId)) {
-    console.warn("[server:documents] serialize missing repo data", {
+  if (
+    !repoStorage.hasDocumentContent(documentId) &&
+    !hasInMemoryRepoHandle(documentId)
+  ) {
+    console.warn("[server:documents] serialize missing repo content", {
       documentId,
     });
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Document has no data in repository storage",
+      message:
+        "Document metadata exists, but its drawing content is missing from repository storage.",
     });
   }
   console.info("[server:documents] serialize repo.find start", {

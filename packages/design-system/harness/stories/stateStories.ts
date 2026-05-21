@@ -20,9 +20,11 @@ export const stateStories: HarnessStory[] = [
         description:
           "This drawing needs account access. Log in or sign up to continue.",
         message: "Log in or sign up to open this account-linked drawing.",
-        loginUrl: "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Ddemo",
+        loginUrl:
+          "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Ddemo",
         signupUrl:
           "http://localhost:3000/account/register?redirect=%2F%3Fdoc%3Ddemo",
+        recoveryActions: "retry-and-reset",
       });
       authRequired.setOnRetry(() => {
         status.textContent = "Retry pressed.";
@@ -36,6 +38,7 @@ export const stateStories: HarnessStory[] = [
         description:
           "The requested drawing could not be opened. Choose another drawing or start a new one.",
         message: "Unexpected failure while resolving the requested document.",
+        recoveryActions: "retry-and-reset",
       });
       genericFailure.setOnRetry(() => {
         status.textContent = "Retry pressed on generic failure.";

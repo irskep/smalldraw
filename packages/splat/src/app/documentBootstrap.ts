@@ -3,6 +3,7 @@ import type { DrawingDocumentSize } from "@smalldraw/core";
 import type { KidsDrawAppOptions } from "./types";
 import {
   isMultiplayerApiAuthError,
+  MultiplayerApiError,
   type MultiplayerApiClient,
 } from "./createMultiplayerApiClient";
 import type {
@@ -283,8 +284,7 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
         throw new DocumentAccessError({
           reason: "server_unavailable",
           title: "Could not open drawing",
-          userMessage:
-            "The drawing could not be opened right now. Please try again.",
+          userMessage: resolveDocumentOpenFailureMessage(error),
           cause: error,
         });
       }
@@ -402,10 +402,21 @@ export async function resolveAccountDocumentForLocalOpen(options: {
         : "Could not open drawing",
       userMessage: isMultiplayerApiAuthError(error)
         ? "Log in or sign up to open this account-linked drawing."
-        : "The drawing could not be opened right now. Please try again.",
+        : resolveDocumentOpenFailureMessage(error),
       cause: error,
     });
   }
+}
+
+function resolveDocumentOpenFailureMessage(error: unknown): string {
+  if (
+    error instanceof MultiplayerApiError &&
+    error.code === "NOT_FOUND" &&
+    error.message.trim().length > 0
+  ) {
+    return error.message;
+  }
+  return "The drawing could not be opened right now. Please try again.";
 }
 
 export function updateRepoWebsocketAuthorization(

@@ -47,8 +47,8 @@ export class SqliteStorageAdapter implements StorageAdapter {
   ): Promise<{ key: StorageKey; data: Uint8Array }[]> {
     const prefix = this.serializeKey(keyPrefix);
     const rows = this.db
-      .query("SELECT key, value FROM automerge_data WHERE key LIKE ?")
-      .all(`${prefix}%`) as { key: string; value: Uint8Array }[];
+      .query("SELECT key, value FROM automerge_data WHERE key >= ? AND key < ?")
+      .all(prefix, nextPrefix(prefix)) as { key: string; value: Uint8Array }[];
 
     return rows.map((row) => ({
       key: this.deserializeKey(row.key),
@@ -60,15 +60,30 @@ export class SqliteStorageAdapter implements StorageAdapter {
   async removeRange(keyPrefix: StorageKey): Promise<void> {
     const prefix = this.serializeKey(keyPrefix);
     this.db
-      .query("DELETE FROM automerge_data WHERE key LIKE ?")
-      .run(`${prefix}%`);
+      .query("DELETE FROM automerge_data WHERE key >= ? AND key < ?")
+      .run(prefix, nextPrefix(prefix));
   }
 
-  hasDocumentData(documentId: string): boolean {
+  hasDocumentContent(documentId: string): boolean {
+    const snapshotPrefix = `${documentId}/snapshot/`;
+    const incrementalPrefix = `${documentId}/incremental/`;
     const row = this.db
-      .query("SELECT 1 FROM automerge_data WHERE key LIKE ? LIMIT 1")
-      .get(`${documentId}/%`) as { 1: number } | undefined;
-    return row !== undefined;
+      .query(
+        `
+          SELECT 1
+          FROM automerge_data
+          WHERE (key >= ? AND key < ?)
+             OR (key >= ? AND key < ?)
+          LIMIT 1
+        `,
+      )
+      .get(
+        snapshotPrefix,
+        nextPrefix(snapshotPrefix),
+        incrementalPrefix,
+        nextPrefix(incrementalPrefix),
+      ) as { 1: number } | null | undefined;
+    return row != null;
   }
 
   private serializeKey(key: StorageKey): string {
@@ -78,4 +93,8 @@ export class SqliteStorageAdapter implements StorageAdapter {
   private deserializeKey(key: string): StorageKey {
     return key.split("/");
   }
+}
+
+function nextPrefix(prefix: string): string {
+  return `${prefix}\uffff`;
 }

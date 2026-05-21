@@ -10,7 +10,9 @@ function testStoryUrl(storyId: string): string {
 
 test("renders the default story", async ({ page }) => {
   await page.goto(testStoryUrl("icon-button"));
-  await expect(page.getByRole("heading", { name: "Icon Button" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Icon Button" }),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Fill" })).toBeVisible();
   await expect(page.getByRole("radio", { name: "Option A" })).toHaveAttribute(
     "aria-checked",
@@ -33,7 +35,9 @@ test("renders the splat context story", async ({ page }) => {
     page.getByRole("heading", { name: "Splat Context" }),
   ).toBeVisible();
   await expect(page.locator(".ds-splat-context__scene").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Menu" }).first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Menu" }).first(),
+  ).toBeVisible();
 });
 
 test("renders the no-document splat context story with right-aligned menu and centered access state", async ({
@@ -65,11 +69,9 @@ test("renders the no-document splat context story with right-aligned menu and ce
     const sceneEl = document.querySelector(
       ".ds-splat-context__scene--no-document",
     ) as HTMLElement | null;
-    const menuEl = Array.from(
-      document.querySelectorAll("button"),
-    ).find((button) => button.textContent?.trim().startsWith("Menu")) as
-      | HTMLElement
-      | undefined;
+    const menuEl = Array.from(document.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim().startsWith("Menu"),
+    ) as HTMLElement | undefined;
     const cardEl = document.querySelector(
       ".ds-document-access-state",
     ) as HTMLElement | null;
@@ -99,11 +101,29 @@ test("renders the no-document splat context story with right-aligned menu and ce
     layout!.sceneLeft + layout!.sceneWidth * 0.7,
   );
   expect(
-    Math.abs(layout!.cardCenterX - (layout!.sceneLeft + layout!.sceneWidth / 2)),
+    Math.abs(
+      layout!.cardCenterX - (layout!.sceneLeft + layout!.sceneWidth / 2),
+    ),
   ).toBeLessThanOrEqual(24);
-  expect(Math.abs(layout!.cardCenterY - layout!.contentCenterY)).toBeLessThanOrEqual(
-    32,
-  );
+  expect(
+    Math.abs(layout!.cardCenterY - layout!.contentCenterY),
+  ).toBeLessThanOrEqual(32);
+});
+
+test("renders loading document state without recovery actions", async ({
+  page,
+}) => {
+  await page.goto(testStoryUrl("splat-context-loading-document"));
+  await expect(
+    page.getByRole("heading", { name: "Opening drawing…" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Shared drawings can take a moment to respond."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Reset Local Session" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
 });
 
 test("renders the document access state story directly", async ({ page }) => {
@@ -122,11 +142,13 @@ test("renders the document access state story directly", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("shows document access state inside the states group", async ({ page }) => {
+test("shows document access state inside the states group", async ({
+  page,
+}) => {
   await page.goto("/#states");
-  await expect(
-    page.getByRole("button", { name: "States" }),
-  ).toHaveClass(/is-active/);
+  await expect(page.getByRole("button", { name: "States" })).toHaveClass(
+    /is-active/,
+  );
   await expect(
     page.getByRole("heading", { name: "Document Access State" }),
   ).toBeVisible();
@@ -168,7 +190,9 @@ test.describe("Unified context entry stories", () => {
     ).toHaveAttribute("data-mobile-layout", "mobile-standard");
   });
 
-  test("mobile-landscape starts in short landscape layout", async ({ page }) => {
+  test("mobile-landscape starts in short landscape layout", async ({
+    page,
+  }) => {
     await page.goto(testStoryUrl("mobile-landscape"));
     await page.evaluate(() => {
       document.querySelector("bun-hmr")?.remove();
@@ -176,7 +200,9 @@ test.describe("Unified context entry stories", () => {
     await expect(
       page.getByRole("heading", { name: "Mobile Landscape" }),
     ).toBeVisible();
-    const scene = page.locator(".ds-splat-context__scene--mobile-responsive").first();
+    const scene = page
+      .locator(".ds-splat-context__scene--mobile-responsive")
+      .first();
     await expect(scene).toBeVisible();
     await expect(scene).toHaveAttribute(
       "data-mobile-layout",
@@ -184,7 +210,9 @@ test.describe("Unified context entry stories", () => {
     );
   });
 
-  test("mobile layouts show Share once width reaches 480px", async ({ page }) => {
+  test("mobile layouts show Share once width reaches 480px", async ({
+    page,
+  }) => {
     await page.goto(testStoryUrl("mobile-portrait"));
     await page.evaluate(() => {
       document.querySelector("bun-hmr")?.remove();
@@ -228,13 +256,12 @@ test.describe("Unified context entry stories", () => {
       target.style.width = "260px";
     });
 
-    const variantStrip = page.locator(".ds-splat-context__variant-strip").first();
+    const variantStrip = page
+      .locator(".ds-splat-context__variant-strip")
+      .first();
     await variantStrip.evaluate((element) => {
       const target = element as HTMLElement;
-      target.style.setProperty(
-        "--ds-splat-context-toolbar-cell-size",
-        "72px",
-      );
+      target.style.setProperty("--ds-splat-context-toolbar-cell-size", "72px");
     });
     const next = variantStrip.getByRole("button", { name: "Next page" });
     await expect(next).toBeVisible();
@@ -265,7 +292,9 @@ test.describe("Unified context entry stories", () => {
       target.style.width = "600px";
       target.style.height = "640px";
     });
-    const variantStrip = page.locator(".ds-splat-context__variant-strip").first();
+    const variantStrip = page
+      .locator(".ds-splat-context__variant-strip")
+      .first();
     await variantStrip.evaluate((element) => {
       const target = element as HTMLElement;
       target.style.setProperty(
@@ -494,7 +523,10 @@ test.describe("Mobile Landscape story", () => {
       target.style.height = "420px";
     });
 
-    await expect(scene).toHaveAttribute("data-mobile-layout", "mobile-standard");
+    await expect(scene).toHaveAttribute(
+      "data-mobile-layout",
+      "mobile-standard",
+    );
     await expect(
       page.locator(".ds-splat-context__mobile-tool-inline-host"),
     ).toBeVisible();
@@ -537,7 +569,10 @@ test.describe("Mobile Landscape story", () => {
       const target = element as HTMLElement;
       target.style.height = "420px";
     });
-    await expect(scene).toHaveAttribute("data-mobile-layout", "mobile-standard");
+    await expect(scene).toHaveAttribute(
+      "data-mobile-layout",
+      "mobile-standard",
+    );
     await expect(
       page.locator(".ds-splat-context__mobile-tool-inline-host"),
     ).toBeVisible();
@@ -576,7 +611,9 @@ test.describe("Splat Context pickers", () => {
     await page.evaluate(() => {
       document.querySelector("bun-hmr")?.remove();
     });
-    await expect(page.getByRole("heading", { name: "Splat Context" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Splat Context" }),
+    ).toBeVisible();
   });
 
   test("color picker closes when the mouse leaves the trigger and panel union", async ({
@@ -644,12 +681,18 @@ test.describe("Typography stories", () => {
 test.describe("Grid: Pagination", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(testStoryUrl("grid-pagination"));
-    await expect(page.getByRole("heading", { name: "Grid: Pagination" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Grid: Pagination" }),
+    ).toBeVisible();
   });
 
-  test("shows first page with prev disabled and next enabled", async ({ page }) => {
+  test("shows first page with prev disabled and next enabled", async ({
+    page,
+  }) => {
     await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeDisabled();
     await expect(page.getByRole("button", { name: "Next page" })).toBeEnabled();
   });
 
@@ -659,7 +702,9 @@ test.describe("Grid: Pagination", () => {
 
     // Go forward — Pencil should disappear, later items should appear
     await next.click();
-    await expect(page.getByRole("button", { name: "Pencil" })).not.toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Pencil" }),
+    ).not.toBeVisible();
     await expect(prev).toBeEnabled();
 
     // Go back — Pencil should reappear
@@ -671,8 +716,12 @@ test.describe("Grid: Pagination", () => {
   test("jumping to last item pages to the final page", async ({ page }) => {
     await page.getByRole("button", { name: "Last" }).click();
     await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Next page" })).toBeDisabled();
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeEnabled();
+    await expect(
+      page.getByRole("button", { name: "Next page" }),
+    ).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeEnabled();
   });
 
   test("jumping to middle item shows that item", async ({ page }) => {
@@ -683,10 +732,14 @@ test.describe("Grid: Pagination", () => {
 
   test("jumping to first from last pages back to start", async ({ page }) => {
     await page.getByRole("button", { name: "Last" }).click();
-    await expect(page.getByRole("button", { name: "Next page" })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Next page" }),
+    ).toBeDisabled();
     await page.getByRole("button", { name: "First" }).click();
     await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeDisabled();
   });
 
   test("clicking a grid item selects it", async ({ page }) => {
@@ -708,7 +761,9 @@ test.describe("Grid: Pagination", () => {
 test.describe("Grid: Mode Switching", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(testStoryUrl("grid-mode-switching"));
-    await expect(page.getByRole("heading", { name: "Grid: Mode Switching" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Grid: Mode Switching" }),
+    ).toBeVisible();
   });
 
   test("starts in mobile mode with pagination", async ({ page }) => {
@@ -717,17 +772,23 @@ test.describe("Grid: Mode Switching", () => {
     await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
   });
 
-  test("switching to large mode shows all items without pagination", async ({ page }) => {
+  test("switching to large mode shows all items without pagination", async ({
+    page,
+  }) => {
     await page.getByRole("button", { name: "large" }).click();
     // All 12 items should be visible
     await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
     // Nav buttons should be hidden
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeHidden();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeHidden();
     await expect(page.getByRole("button", { name: "Next page" })).toBeHidden();
   });
 
-  test("switching from large back to mobile restores pagination", async ({ page }) => {
+  test("switching from large back to mobile restores pagination", async ({
+    page,
+  }) => {
     await page.getByRole("button", { name: "large" }).click();
     await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
 
@@ -753,7 +814,9 @@ test.describe("Grid: Mode Switching", () => {
 test.describe("Grid: Dynamic Items", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(testStoryUrl("grid-dynamic-items"));
-    await expect(page.getByRole("heading", { name: "Grid: Dynamic Items" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Grid: Dynamic Items" }),
+    ).toBeVisible();
   });
 
   test("adding an item increases the count", async ({ page }) => {
@@ -769,7 +832,9 @@ test.describe("Grid: Dynamic Items", () => {
     }
     await expect(page.getByText("Items: 1")).toBeVisible();
     await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeHidden();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeHidden();
     await expect(page.getByRole("button", { name: "Next page" })).toBeHidden();
   });
 
@@ -792,7 +857,9 @@ test.describe("Grid: Dynamic Items", () => {
       await next.click();
     }
     // One of the new items should be visible on the last page
-    await expect(page.getByRole("button", { name: /New \d+/ }).first()).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /New \d+/ }).first(),
+    ).toBeVisible();
   });
 });
 
@@ -803,7 +870,9 @@ test.describe("Grid: Dynamic Items", () => {
 test.describe("Grid: Vertical", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(testStoryUrl("grid-vertical"));
-    await expect(page.getByRole("heading", { name: "Grid: Vertical" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Grid: Vertical" }),
+    ).toBeVisible();
     // Wait for rAF-based layout to settle
     await page.waitForTimeout(100);
   });
@@ -811,10 +880,14 @@ test.describe("Grid: Vertical", () => {
   test("paginates vertically with nav buttons", async ({ page }) => {
     await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeDisabled();
   });
 
-  test("items remain contained within the grid root height", async ({ page }) => {
+  test("items remain contained within the grid root height", async ({
+    page,
+  }) => {
     const overflows = await page.evaluate(() => {
       const grid = document.querySelector(".button-grid");
       const items = Array.from(document.querySelectorAll(".button-grid-item"));
@@ -836,7 +909,9 @@ test.describe("Grid: Vertical", () => {
   test("jump to last navigates to final page", async ({ page }) => {
     await page.getByRole("button", { name: "Jump to last" }).click();
     await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Next page" })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Next page" }),
+    ).toBeDisabled();
   });
 });
 
@@ -847,17 +922,23 @@ test.describe("Grid: Vertical", () => {
 test.describe("Grid: Two-Row", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(testStoryUrl("grid-two-row"));
-    await expect(page.getByRole("heading", { name: "Grid: Two-Row" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Grid: Two-Row" }),
+    ).toBeVisible();
   });
 
   test("large mode shows all items without pagination", async ({ page }) => {
     await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeHidden();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeHidden();
     await expect(page.getByRole("button", { name: "Next page" })).toBeHidden();
   });
 
-  test("large mode shell grows to contain all visible items", async ({ page }) => {
+  test("large mode shell grows to contain all visible items", async ({
+    page,
+  }) => {
     const clipped = await page.evaluate(() => {
       const shell = document.querySelector(".button-grid-shell");
       const items = Array.from(document.querySelectorAll(".button-grid-item"));
@@ -865,7 +946,9 @@ test.describe("Grid: Two-Row", () => {
       const shellRect = shell.getBoundingClientRect();
       return items.some((item) => {
         const rect = item.getBoundingClientRect();
-        return rect.right > shellRect.right + 2 || rect.bottom > shellRect.bottom + 2;
+        return (
+          rect.right > shellRect.right + 2 || rect.bottom > shellRect.bottom + 2
+        );
       });
     });
     expect(clipped).toBe(false);
@@ -895,13 +978,19 @@ test.describe("Grid: Two-Row XLarge", () => {
     await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
     // With doubled cells in a constrained frame, pagination should be active
     await expect(page.getByRole("button", { name: "Next page" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeDisabled();
   });
 
   test("navigating forward reveals more items", async ({ page }) => {
     await page.getByRole("button", { name: "Next page" }).click();
-    await expect(page.getByRole("button", { name: "Pencil" })).not.toBeVisible();
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeEnabled();
+    await expect(
+      page.getByRole("button", { name: "Pencil" }),
+    ).not.toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeEnabled();
   });
 
   test("visible items are not clipped by nav buttons", async ({ page }) => {
@@ -913,14 +1002,17 @@ test.describe("Grid: Two-Row XLarge", () => {
       const vpRect = viewport.getBoundingClientRect();
       for (const item of items) {
         const r = item.getBoundingClientRect();
-        if (r.right > vpRect.right + 2 || r.bottom > vpRect.bottom + 2) return true;
+        if (r.right > vpRect.right + 2 || r.bottom > vpRect.bottom + 2)
+          return true;
       }
       return false;
     });
     expect(clipped).toBe(false);
   });
 
-  test("items remain contained within the story frame width", async ({ page }) => {
+  test("items remain contained within the story frame width", async ({
+    page,
+  }) => {
     const overflows = await page.evaluate(() => {
       const frame = document.querySelector(".ds-story-frame");
       const items = Array.from(document.querySelectorAll(".button-grid-item"));
@@ -928,7 +1020,9 @@ test.describe("Grid: Two-Row XLarge", () => {
       const frameRect = frame.getBoundingClientRect();
       return items.some((item) => {
         const rect = item.getBoundingClientRect();
-        return rect.left < frameRect.left - 2 || rect.right > frameRect.right + 2;
+        return (
+          rect.left < frameRect.left - 2 || rect.right > frameRect.right + 2
+        );
       });
     });
     expect(overflows).toBe(false);
@@ -947,10 +1041,14 @@ test.describe("Grid: Vertical Two-Column", () => {
     ).toBeVisible();
   });
 
-  test("large mode shows all items in two columns without pagination", async ({ page }) => {
+  test("large mode shows all items in two columns without pagination", async ({
+    page,
+  }) => {
     await expect(page.getByRole("button", { name: "Pencil" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Rows" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Previous page" })).toBeHidden();
+    await expect(
+      page.getByRole("button", { name: "Previous page" }),
+    ).toBeHidden();
   });
 
   test("large mode grid does not overflow its container", async ({ page }) => {
@@ -966,7 +1064,9 @@ test.describe("Grid: Vertical Two-Column", () => {
     expect(overflows).toBe(false);
   });
 
-  test("switching to mobile shows single-column paginated", async ({ page }) => {
+  test("switching to mobile shows single-column paginated", async ({
+    page,
+  }) => {
     await page.getByRole("button", { name: "mobile" }).click();
     // Wait for rAF layout
     await page.waitForTimeout(100);
@@ -997,15 +1097,13 @@ test.describe("Dialog primitives", () => {
   test("dialog-scaffold story closes on Escape", async ({ page }) => {
     await page.goto(testStoryUrl("dialog-scaffold"));
     await page.getByRole("button", { name: "Open scaffold" }).click();
-    await expect(page.locator("dialog.ds-harness-dialog-scaffold")).toHaveAttribute(
-      "open",
-      "",
-    );
+    await expect(
+      page.locator("dialog.ds-harness-dialog-scaffold"),
+    ).toHaveAttribute("open", "");
     await page.keyboard.press("Escape");
-    await expect(page.locator("dialog.ds-harness-dialog-scaffold")).not.toHaveAttribute(
-      "open",
-      "",
-    );
+    await expect(
+      page.locator("dialog.ds-harness-dialog-scaffold"),
+    ).not.toHaveAttribute("open", "");
   });
 
   test("choice-card story renders enabled and disabled cards", async ({
@@ -1029,12 +1127,15 @@ test.describe("Dialog primitives", () => {
     await page.goto(testStoryUrl("poster-card"));
     const firstCard = page.getByRole("button", { name: "Page 001" });
     await expect(firstCard).toBeVisible();
-    const metrics = await firstCard.locator(".ds-poster-card__media").evaluate(
-      (element) => {
+    const metrics = await firstCard
+      .locator(".ds-poster-card__media")
+      .evaluate((element) => {
         const rect = (element as HTMLElement).getBoundingClientRect();
-        return { width: Math.round(rect.width), height: Math.round(rect.height) };
-      },
-    );
+        return {
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+        };
+      });
     expect(metrics.width).toBe(metrics.height);
   });
 
@@ -1051,18 +1152,14 @@ test.describe("Dialog primitives", () => {
     ).toBeVisible();
 
     await page.getByRole("button", { name: "PDR Volume 1" }).click();
-    await expect(
-      page.locator(".ds-dialog-scaffold__title"),
-    ).toHaveText("PDR Volume 1");
+    await expect(page.locator(".ds-dialog-scaffold__title")).toHaveText(
+      "PDR Volume 1",
+    );
     await expect(
       page.locator("h3").filter({ hasText: "PDR Volume 1" }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Page 001" }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Page 004" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Page 001" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Page 004" })).toBeVisible();
 
     await page.getByRole("button", { name: "Back" }).click();
     await expect(
@@ -1078,7 +1175,9 @@ test.describe("Dialog primitives", () => {
   }) => {
     await page.goto(testStoryUrl("thumbnail-tile"));
     await expect(page.getByText("Shared").first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Claim drawing" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Claim drawing" }),
+    ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Delete drawing" }).first(),
     ).toBeVisible();
@@ -1106,7 +1205,9 @@ test.describe("Button", () => {
   test("renders all three tone variants", async ({ page }) => {
     await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Delete" }).first()).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Delete" }).first(),
+    ).toBeVisible();
   });
 
   test("renders buttons with icons", async ({ page }) => {
@@ -1124,9 +1225,9 @@ test.describe("Button", () => {
 
     const colors = await Promise.all(
       [primary, danger].map((button) =>
-        button.locator(".ds-button__label").evaluate((element) =>
-          window.getComputedStyle(element).color,
-        ),
+        button
+          .locator(".ds-button__label")
+          .evaluate((element) => window.getComputedStyle(element).color),
       ),
     );
 
@@ -1151,7 +1252,9 @@ test.describe("Button", () => {
 test.describe("Dropdown Menu", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(testStoryUrl("dropdown-menu"));
-    await expect(page.getByRole("heading", { name: "Dropdown Menu" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Dropdown Menu" }),
+    ).toBeVisible();
   });
 
   test("opens and renders mobile action menu items", async ({ page }) => {
@@ -1159,7 +1262,9 @@ test.describe("Dropdown Menu", () => {
     await expect(page.getByRole("menu", { name: "Actions" })).toBeVisible();
     await expect(page.getByRole("menuitem", { name: "Undo" })).toBeVisible();
     await expect(page.getByRole("menuitem", { name: "Redo" })).toBeDisabled();
-    await expect(page.getByRole("menuitem", { name: "Clear Canvas" })).toBeVisible();
+    await expect(
+      page.getByRole("menuitem", { name: "Clear Canvas" }),
+    ).toBeVisible();
   });
 
   test("selecting an item updates the story status", async ({ page }) => {
