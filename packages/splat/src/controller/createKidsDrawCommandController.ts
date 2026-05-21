@@ -36,9 +36,16 @@ export interface KidsDrawCommandController {
   destroy(): void;
 }
 
+export type LoadedDocumentCommandScope = {
+  run(command: () => void | Promise<void>): void;
+};
+
 export function createKidsDrawCommandController(options: {
   store: Pick<DrawingStore, "undo" | "redo" | "applyAction" | "getDocument">;
-  toolbarUiStore: Pick<ToolbarUiStore, "setNewDrawingPending" | "setSharePending">;
+  toolbarUiStore: Pick<
+    ToolbarUiStore,
+    "setNewDrawingPending" | "setSharePending"
+  >;
   snapshotService: Pick<SnapshotService, "createPngExport">;
   getSize: () => { width: number; height: number };
   openDocumentPicker: () => Promise<void>;
@@ -52,7 +59,7 @@ export function createKidsDrawCommandController(options: {
     dataUrl?: string;
   }) => Promise<boolean>;
   clearConfirmationIcon: IconNode;
-  hasLoadedDocument: () => boolean;
+  loadedDocumentCommands: LoadedDocumentCommandScope;
   isDestroyed: () => boolean;
   debugLifecycle: (...args: unknown[]) => void;
 }) {
@@ -198,22 +205,17 @@ export function createKidsDrawCommandController(options: {
 
   return {
     undo(): void {
-      if (!options.hasLoadedDocument()) {
-        return;
-      }
-      options.store.undo();
+      options.loadedDocumentCommands.run(() => {
+        options.store.undo();
+      });
     },
     redo(): void {
-      if (!options.hasLoadedDocument()) {
-        return;
-      }
-      options.store.redo();
+      options.loadedDocumentCommands.run(() => {
+        options.store.redo();
+      });
     },
     clear(): void {
-      if (!options.hasLoadedDocument()) {
-        return;
-      }
-      void (async () => {
+      options.loadedDocumentCommands.run(async () => {
         const confirmed = await options.confirmDestructiveAction({
           title: "Clear drawing?",
           message: "This removes all strokes from the current drawing.",
@@ -236,13 +238,10 @@ export function createKidsDrawCommandController(options: {
             style: {},
           }),
         );
-      })();
+      });
     },
     exportAndClose(): void {
-      if (!options.hasLoadedDocument()) {
-        return;
-      }
-      void exportDrawing();
+      options.loadedDocumentCommands.run(exportDrawing);
     },
     newDrawingAndClose(): void {
       void newDrawing();
@@ -251,10 +250,7 @@ export function createKidsDrawCommandController(options: {
       void options.openDocumentPicker();
     },
     shareAndClose(): void {
-      if (!options.hasLoadedDocument()) {
-        return;
-      }
-      void shareCurrentDocument();
+      options.loadedDocumentCommands.run(shareCurrentDocument);
     },
     destroy(): void {
       newDrawingRequestId += 1;

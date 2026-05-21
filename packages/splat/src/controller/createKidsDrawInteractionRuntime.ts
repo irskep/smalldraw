@@ -53,6 +53,14 @@ export function createKidsDrawInteractionRuntime(options: {
 }) {
   const { closeDocumentPicker, openDocumentPicker, shareCurrentDocument } =
     options.documentBrowserCommands;
+  const loadedDocumentCommands = {
+    run(command: () => void | Promise<void>): void {
+      if (options.runtimeStore.getActiveDocument().type !== "loaded") {
+        return;
+      }
+      void command();
+    },
+  };
   const commandController = createKidsDrawCommandController({
     store: options.store,
     toolbarUiStore: options.toolbarUiStore,
@@ -65,8 +73,7 @@ export function createKidsDrawInteractionRuntime(options: {
     confirmDestructiveAction: options.confirmDestructiveAction,
     savePngExport: options.savePngExport,
     clearConfirmationIcon: Trash2,
-    hasLoadedDocument: () =>
-      options.runtimeStore.getActiveDocument().type === "loaded",
+    loadedDocumentCommands,
     isDestroyed: () => options.runtimeStore.isDestroyed(),
     debugLifecycle: options.debugLifecycle,
     onShareError: options.onShareError,

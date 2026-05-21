@@ -1,10 +1,6 @@
 import "@smalldraw/splat/styles.css";
-import {
-  buildJoinedCatalogDocUrl,
-  createKidsDrawApp,
-  type KidsDrawApp,
-} from "@smalldraw/splat";
-import { buildSplatCurrentDocumentUrl } from "./documentUrl";
+import { createKidsDrawApp } from "@smalldraw/splat";
+import { createSplatDocumentNavigationStore } from "./documentNavigation";
 import {
   createBrowserMultiplayerConfig,
   resolveSplatStartupIntent,
@@ -22,24 +18,9 @@ try {
   if (startupIntent.kind === "startup-error") {
     throw new Error(startupIntent.message);
   }
-  let app: KidsDrawApp | null = null;
-  const openDocumentFromLocation = async (): Promise<void> => {
-    if (!app) {
-      return;
-    }
-    const intent = resolveSplatStartupIntent(window.location.search);
-    const docUrl = resolveCatalogDocUrlForNavigation(intent);
-    if (!docUrl) {
-      return;
-    }
-    await app.commands.openDocument(docUrl);
-  };
-  const requestOpenDocumentFromLocation = (): void => {
-    void openDocumentFromLocation().catch((error) => {
-      console.warn("[splat-web] document navigation failed", { error });
-    });
-  };
-  app = await createKidsDrawApp({
+  const documentNavigation = createSplatDocumentNavigationStore({ window });
+  let lastOpenedNavigationKey = documentNavigation.get().key;
+  const baseApp = await createKidsDrawApp({
     container,
     assetBaseUrl: multiplayerConfig.assetBaseUrl,
     multiplayer: {
@@ -47,47 +28,38 @@ try {
       startupIntent,
     },
     onDocumentOpenRequested: (summary, docUrl) => {
-      const nextUrl = buildSplatCurrentDocumentUrl(window.location.href, {
-        docUrl,
-        collaborative: summary?.collaborative,
-        collabDocUrl: summary?.collabDocUrl,
-        accountAttached: summary?.accountAttached,
-      });
-      if (nextUrl !== window.location.href) {
-        window.history.pushState(null, "", nextUrl);
-      }
-      requestOpenDocumentFromLocation();
+      documentNavigation.pushDocument(summary, docUrl);
     },
     onCurrentDocumentSummaryChanged: (summary) => {
-      const nextUrl = buildSplatCurrentDocumentUrl(
-        window.location.href,
-        summary,
-      );
-      if (nextUrl !== window.location.href) {
-        window.history.replaceState(null, "", nextUrl);
-      }
+      lastOpenedNavigationKey =
+        documentNavigation.replaceCurrentDocument(summary).key;
     },
   });
-  window.addEventListener("popstate", () => {
-    requestOpenDocumentFromLocation();
+  const unbindNavigation = documentNavigation.subscribe((navigation) => {
+    if (navigation.key === lastOpenedNavigationKey) {
+      return;
+    }
+    lastOpenedNavigationKey = navigation.key;
+    if (navigation.type !== "open-document") {
+      return;
+    }
+    void baseApp.commands.openDocument(navigation.docUrl).catch((error) => {
+      console.warn("[splat-web] document navigation failed", {
+        docUrl: navigation.docUrl,
+        error,
+      });
+    });
   });
+  const app = {
+    ...baseApp,
+    destroy(): void {
+      unbindNavigation();
+      documentNavigation.dispose();
+      baseApp.destroy();
+    },
+  };
   (window as unknown as { kidsDrawApp?: typeof app }).kidsDrawApp = app;
 } catch (error) {
   console.error("[splat-web] failed to start app", { error });
   renderStartupErrorScreen(container, error);
-}
-
-function resolveCatalogDocUrlForNavigation(
-  intent: ReturnType<typeof resolveSplatStartupIntent>,
-): string | null {
-  switch (intent.kind) {
-    case "open-local-document":
-      return intent.docUrl;
-    case "open-account-document":
-      return buildJoinedCatalogDocUrl(`automerge:${intent.documentId}`);
-    case "open-last-local":
-    case "open-share-link":
-    case "startup-error":
-      return null;
-  }
 }
