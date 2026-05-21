@@ -801,6 +801,7 @@ describe("splatterboard shell", () => {
                   collabDocUrl: "automerge:joined-doc",
                   joinSecret: "join-seed",
                   accessToken: "access-seed",
+                  accessTokenScope: "device",
                   content: btoa("fake-doc-binary"),
                 },
               },

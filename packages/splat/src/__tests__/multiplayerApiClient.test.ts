@@ -119,6 +119,7 @@ describe("createMultiplayerApiClient", () => {
         collabDocUrl: "automerge:doc-1",
         joinSecret: "token-1",
         accessToken: "access-1",
+        accessTokenScope: "owner",
       });
     });
 
@@ -154,6 +155,7 @@ describe("createMultiplayerApiClient", () => {
           collabDocUrl: "automerge:doc-2",
           joinSecret: "token-2",
           accessToken: "access-2",
+          accessTokenScope: "device",
           content: btoa("fake-doc-binary"),
         });
       }

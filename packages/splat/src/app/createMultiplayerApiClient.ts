@@ -4,8 +4,13 @@ import {
   httpBatchLink,
 } from "@trpc/client";
 import {
+  type AccountCollaborativeDocumentResolution,
+  type AccountCollaborativeDocumentSummary,
+  type AnonymousCollaborativeDocumentResolution,
   type AppError,
+  type ClaimCollaborativeDocumentResult,
   createAppError,
+  type RegisteredCollaborativeDocument,
   isAppError,
 } from "@smalldraw/shared";
 
@@ -26,46 +31,24 @@ export class MultiplayerApiError extends Error {
 
 export interface MultiplayerApiClient {
   listAccountCollaborativeDocuments(): Promise<
-    Array<{
-      documentId: string;
-      name: string;
-      thumbnailUrl: string | null;
-    }>
+    AccountCollaborativeDocumentSummary[]
   >;
   registerCollaborativeDocument(
     documentId: string,
     content: Uint8Array,
     deviceTag: string,
-  ): Promise<{
-    collabDocUrl: string;
-    joinSecret: string;
-    accessToken: string;
-    accessTokenScope: "owner";
-  }>;
+  ): Promise<RegisteredCollaborativeDocument>;
   resolveCollaborativeDocumentByJoinSecret(
     joinSecret: string,
     deviceTag: string,
-  ): Promise<{
-    collabDocUrl: string;
-    joinSecret: string;
-    accessToken: string;
-    accessTokenScope: "device";
-    content: string;
-  } | null>;
+  ): Promise<AnonymousCollaborativeDocumentResolution | null>;
   resolveCollaborativeDocumentByAccountDocumentId(
     documentId: string,
     deviceTag: string,
-  ): Promise<{
-    collabDocUrl: string;
-    accessToken: string;
-    accessTokenScope: "owner" | "device";
-    content: string;
-  }>;
-  claimCollaborativeDocument(accessToken: string): Promise<{
-    documentId: string;
-    attached: boolean;
-    isAdmin: boolean;
-  }>;
+  ): Promise<AccountCollaborativeDocumentResolution>;
+  claimCollaborativeDocument(
+    accessToken: string,
+  ): Promise<ClaimCollaborativeDocumentResult>;
   uploadDocumentThumbnail(documentId: string, thumbnail: Blob): Promise<void>;
 }
 
@@ -306,19 +289,13 @@ function fallbackAppError(
   });
 }
 
-function parseAccountDocumentListResult(input: unknown): Array<{
-  documentId: string;
-  name: string;
-  thumbnailUrl: string | null;
-}> | null {
+function parseAccountDocumentListResult(
+  input: unknown,
+): AccountCollaborativeDocumentSummary[] | null {
   if (!Array.isArray(input)) {
     return null;
   }
-  const documents: Array<{
-    documentId: string;
-    name: string;
-    thumbnailUrl: string | null;
-  }> = [];
+  const documents: AccountCollaborativeDocumentSummary[] = [];
   for (const item of input) {
     if (
       !item ||
@@ -341,18 +318,16 @@ function parseAccountDocumentListResult(input: unknown): Array<{
   return documents;
 }
 
-function parseRegisterResult(input: unknown): {
-  collabDocUrl: string;
-  joinSecret: string;
-  accessToken: string;
-  accessTokenScope: "owner";
-} | null {
+function parseRegisterResult(
+  input: unknown,
+): RegisteredCollaborativeDocument | null {
   if (
     !input ||
     typeof input !== "object" ||
     typeof (input as { collabDocUrl?: unknown }).collabDocUrl !== "string" ||
     typeof (input as { joinSecret?: unknown }).joinSecret !== "string" ||
-    typeof (input as { accessToken?: unknown }).accessToken !== "string"
+    typeof (input as { accessToken?: unknown }).accessToken !== "string" ||
+    (input as { accessTokenScope?: unknown }).accessTokenScope !== "owner"
   ) {
     return null;
   }
@@ -360,23 +335,21 @@ function parseRegisterResult(input: unknown): {
     collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
     joinSecret: (input as { joinSecret: string }).joinSecret,
     accessToken: (input as { accessToken: string }).accessToken,
-    accessTokenScope: "owner",
+    accessTokenScope: (input as { accessTokenScope: "owner" })
+      .accessTokenScope,
   };
 }
 
-function parseResolveResult(input: unknown): {
-  collabDocUrl: string;
-  joinSecret: string;
-  accessToken: string;
-  accessTokenScope: "device";
-  content: string;
-} | null {
+function parseResolveResult(
+  input: unknown,
+): AnonymousCollaborativeDocumentResolution | null {
   if (
     !input ||
     typeof input !== "object" ||
     typeof (input as { collabDocUrl?: unknown }).collabDocUrl !== "string" ||
     typeof (input as { joinSecret?: unknown }).joinSecret !== "string" ||
     typeof (input as { accessToken?: unknown }).accessToken !== "string" ||
+    (input as { accessTokenScope?: unknown }).accessTokenScope !== "device" ||
     typeof (input as { content?: unknown }).content !== "string"
   ) {
     return null;
@@ -385,17 +358,15 @@ function parseResolveResult(input: unknown): {
     collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
     joinSecret: (input as { joinSecret: string }).joinSecret,
     accessToken: (input as { accessToken: string }).accessToken,
-    accessTokenScope: "device",
+    accessTokenScope: (input as { accessTokenScope: "device" })
+      .accessTokenScope,
     content: (input as { content: string }).content,
   };
 }
 
-function parseAccountResolveResult(input: unknown): {
-  collabDocUrl: string;
-  accessToken: string;
-  accessTokenScope: "owner" | "device";
-  content: string;
-} | null {
+function parseAccountResolveResult(
+  input: unknown,
+): AccountCollaborativeDocumentResolution | null {
   if (
     !input ||
     typeof input !== "object" ||
@@ -422,7 +393,7 @@ function parseAccountResolveResult(input: unknown): {
 
 function parseClaimResult(
   input: unknown,
-): { documentId: string; attached: boolean; isAdmin: boolean } | null {
+): ClaimCollaborativeDocumentResult | null {
   if (
     !input ||
     typeof input !== "object" ||

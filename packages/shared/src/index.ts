@@ -57,6 +57,46 @@ export function getAppError(input: unknown): AppError | null {
   return null;
 }
 
+export type DocumentAccessTokenScope = "owner" | "device";
+
+export type AccountCollaborativeDocumentSummary = {
+  documentId: string;
+  name: string;
+  thumbnailUrl: string | null;
+};
+
+export type RegisteredCollaborativeDocument = {
+  collabDocUrl: string;
+  joinSecret: string;
+  accessToken: string;
+  accessTokenScope: "owner";
+};
+
+export type AnonymousCollaborativeDocumentResolution = {
+  collabDocUrl: string;
+  joinSecret: string;
+  accessToken: string;
+  accessTokenScope: "device";
+  content: string;
+};
+
+export type AccountCollaborativeDocumentResolution = {
+  collabDocUrl: string;
+  accessToken: string;
+  accessTokenScope: DocumentAccessTokenScope;
+  content: string;
+};
+
+export type ClaimCollaborativeDocumentResult = {
+  documentId: string;
+  attached: boolean;
+  isAdmin: boolean;
+};
+
+export type DocumentThumbnailUploadTarget = {
+  uploadUrl: string;
+};
+
 function isAppErrorCode(input: unknown): input is AppErrorCode {
   return (
     input === "DOCUMENT_CONTENT_MISSING" ||

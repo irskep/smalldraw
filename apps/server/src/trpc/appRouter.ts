@@ -1,4 +1,12 @@
 import type { DocumentId } from "@automerge/automerge-repo";
+import type {
+  AccountCollaborativeDocumentResolution,
+  AccountCollaborativeDocumentSummary,
+  AnonymousCollaborativeDocumentResolution,
+  ClaimCollaborativeDocumentResult,
+  DocumentThumbnailUploadTarget,
+  RegisteredCollaborativeDocument,
+} from "@smalldraw/shared";
 import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -175,7 +183,7 @@ export const appRouter = router({
       documentId: doc.id,
       name: doc.name,
       thumbnailUrl: doc.thumbnailUrl,
-    }));
+    })) satisfies AccountCollaborativeDocumentSummary[];
   }),
   getDocument: protectedProcedure.input(z.string()).query(async (opts) => {
     const document = await getDocument({
@@ -237,7 +245,7 @@ export const appRouter = router({
 
       return {
         uploadUrl,
-      };
+      } satisfies DocumentThumbnailUploadTarget;
     }),
   updateDocument: protectedProcedure
     .input(
@@ -311,7 +319,7 @@ export const appRouter = router({
           accessToken: accessToken.token,
           accessTokenScope,
           content,
-        };
+        } satisfies AccountCollaborativeDocumentResolution;
       } catch (err) {
         console.warn("[server:documents] account resolve failed", {
           documentId: opts.input.documentId,
@@ -358,7 +366,8 @@ export const appRouter = router({
         collabDocUrl: toAutomergeUrl(result.document.id),
         joinSecret: result.joinSecret,
         accessToken: result.accessToken,
-      };
+        accessTokenScope: "owner",
+      } satisfies RegisteredCollaborativeDocument;
     }),
 
   resolveAnonymousCollaborativeDocument: publicProcedure
@@ -388,8 +397,9 @@ export const appRouter = router({
               tag: opts.input.deviceTag,
             })
           ).token,
+          accessTokenScope: "device",
           content,
-        };
+        } satisfies AnonymousCollaborativeDocumentResolution;
       } catch (err) {
         if (err instanceof TRPCError) {
           throw err;
@@ -496,10 +506,10 @@ export const appRouter = router({
     )
     .mutation(async (opts) => {
       try {
-        return await claimAnonymousCollaborativeDocument({
+        return (await claimAnonymousCollaborativeDocument({
           userId: opts.ctx.session.userId,
           accessToken: opts.input.accessToken,
-        });
+        })) satisfies ClaimCollaborativeDocumentResult;
       } catch (error) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
