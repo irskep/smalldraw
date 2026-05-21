@@ -1,4 +1,5 @@
 import type { ReadableAtom } from "nanostores";
+import type { SplatContextDocumentSlot } from "@smalldraw/design-system";
 import type { CollaborationStatus } from "../controller/stores/createCollaborationStatusStore";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 
@@ -15,4 +16,5 @@ export interface KidsDrawToolbar {
   setCollaborationStatus(status: CollaborationStatus): void;
   syncLayout(): void;
   setCanvasContent(content: HTMLElement): void;
+  setDocumentSlot(slot: SplatContextDocumentSlot): void;
 }

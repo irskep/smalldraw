@@ -24,6 +24,7 @@ export interface KidsDrawStage extends ReDomLike<HTMLDivElement> {
   readonly dirtyRectOverlay: SVGSVGElement | null;
   readonly dirtyRectShape: SVGRectElement | null;
   setSceneDimensions(width: number, height: number): void;
+  setCanvasVisible(visible: boolean): void;
   setInteractionEnabled(enabled: boolean): void;
   setStartupStatus(status: {
     visible: boolean;
@@ -125,6 +126,7 @@ export class KidsDrawStageView implements KidsDrawStage {
     mount(this.startupOverlayCard, this.startupOverlayTitle);
     mount(this.startupOverlayCard, this.startupOverlayDetail);
     mount(this.startupOverlay, this.startupOverlayCard);
+
     this.cursorIndicator = el(
       "div.kids-draw-cursor-indicator",
     ) as HTMLDivElement;
@@ -142,6 +144,7 @@ export class KidsDrawStageView implements KidsDrawStage {
     mount(this.sceneRoot, this.cursorIndicator);
     mount(this.canvasFrame, this.sceneRoot);
     mount(this.element, this.canvasFrame);
+    this.setCanvasVisible(true);
 
     this.bindPointerIntents(uiIntentStore);
   }
@@ -165,6 +168,10 @@ export class KidsDrawStageView implements KidsDrawStage {
         `0 0 ${nextWidth} ${nextHeight}`,
       );
     }
+  }
+
+  setCanvasVisible(visible: boolean): void {
+    this.canvasFrame.hidden = !visible;
   }
 
   setInteractionEnabled(enabled: boolean): void {
@@ -280,16 +287,15 @@ function describeStartupStatus(status: {
   }
   if (status.phase === "degraded") {
     return {
-      title: "Drawing could not be opened",
+      title: "Drawing loaded with issues",
       detail:
-        "The previous drawing is still available. You can dismiss this message and try another one.",
+        "Some drawing assets did not load correctly, but the drawing itself is still available.",
     };
   }
   if (status.blockingReason === "switch_document") {
     return {
       title: "Opening drawing…",
-      detail:
-        "Shared drawings can take a moment to respond. The current drawing will stay in place until the switch finishes.",
+      detail: "Shared drawings can take a moment to respond.",
     };
   }
   if (status.blockingReason === "create_document") {

@@ -3,6 +3,7 @@ import { atom, type ReadableAtom } from "nanostores";
 
 export interface ToolbarUiState {
   activeToolId: string;
+  hasLoadedDocument: boolean;
   canUndo: boolean;
   canRedo: boolean;
   strokeColor: string;
@@ -24,6 +25,7 @@ export interface PersistedKidsUiStateV1 {
 
 const DEFAULT_STATE: ToolbarUiState = {
   activeToolId: "",
+  hasLoadedDocument: false,
   canUndo: false,
   canRedo: false,
   strokeColor: "#000000",
@@ -44,6 +46,7 @@ export interface ToolbarUiStore {
       resolveToolStyleSupport?: (activeToolId: string) => ToolStyleSupport;
     },
   ): void;
+  setHasLoadedDocument(hasLoadedDocument: boolean): void;
   setStyleUi(strokeColor: string, strokeWidth: number): void;
   setNewDrawingPending(newDrawingPending: boolean): void;
   setSharePending(sharePending: boolean): void;
@@ -85,6 +88,13 @@ export function createToolbarUiStore(): ToolbarUiStore {
         supportsStrokeWidth: styleSupport.strokeWidth ?? true,
       };
       setIfChanged(next);
+    },
+    setHasLoadedDocument(hasLoadedDocument): void {
+      const current = state.get();
+      if (current.hasLoadedDocument === hasLoadedDocument) {
+        return;
+      }
+      state.set({ ...current, hasLoadedDocument });
     },
     setStyleUi(strokeColor, strokeWidth): void {
       const current = state.get();
@@ -164,6 +174,7 @@ function isPersistedKidsUiStateV1(
 function isEqual(a: ToolbarUiState, b: ToolbarUiState): boolean {
   return (
     a.activeToolId === b.activeToolId &&
+    a.hasLoadedDocument === b.hasLoadedDocument &&
     a.canUndo === b.canUndo &&
     a.canRedo === b.canRedo &&
     a.strokeColor === b.strokeColor &&

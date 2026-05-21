@@ -3,6 +3,7 @@ import {
   createSplatContext,
   type DropdownMenuEntry,
   type SplatContext,
+  type SplatContextDocumentSlot,
 } from "@smalldraw/design-system";
 import type { ReadableAtom } from "nanostores";
 import {
@@ -156,7 +157,11 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
 
   setCanvasContent(content: HTMLElement): void {
     content.classList.add("kids-draw-stage--design-system");
-    this.context.setCanvasContent(content);
+    this.setDocumentSlot({ type: "document", content });
+  }
+
+  setDocumentSlot(slot: SplatContextDocumentSlot): void {
+    this.context.setDocumentSlot(slot);
   }
 
   private applyState(state: ToolbarUiState): void {
@@ -171,13 +176,22 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
     this.context.setVariants(presentation.familyPresentation.variantItems);
     this.context.setActiveVariantId(presentation.activeToolId);
     this.context.setSelectedColor(state.strokeColor);
-    this.context.setColorPickerDisabled(!state.supportsStrokeColor);
+    this.context.setColorPickerDisabled(
+      !state.hasLoadedDocument || !state.supportsStrokeColor,
+    );
     this.context.setSelectedStrokeWidth(presentation.selectedStrokeWidth);
-    this.context.setStrokePickerDisabled(!state.supportsStrokeWidth);
-    this.context.setActionDisabled("undo", !state.canUndo);
-    this.context.setActionDisabled("redo", !state.canRedo);
+    this.context.setStrokePickerDisabled(
+      !state.hasLoadedDocument || !state.supportsStrokeWidth,
+    );
+    this.context.setActionDisabled("undo", !state.hasLoadedDocument || !state.canUndo);
+    this.context.setActionDisabled("redo", !state.hasLoadedDocument || !state.canRedo);
     this.context.setActionDisabled("new-drawing", state.newDrawingPending);
-    this.context.setActionDisabled("share", state.sharePending);
+    this.context.setActionDisabled("export", !state.hasLoadedDocument);
+    this.context.setActionDisabled("clear", !state.hasLoadedDocument);
+    this.context.setActionDisabled(
+      "share",
+      !state.hasLoadedDocument || state.sharePending,
+    );
   }
 }
 

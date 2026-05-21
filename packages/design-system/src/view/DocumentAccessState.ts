@@ -8,7 +8,7 @@ import { Text } from "./Text";
 export interface DocumentAccessStateModel {
   title: string;
   description: string;
-  message: string;
+  message?: string;
   loginUrl?: string;
   signupUrl?: string;
   retryLabel?: string;
@@ -97,7 +97,8 @@ export class DocumentAccessState implements ReDomLike<HTMLDivElement> {
   setModel(model: DocumentAccessStateModel): void {
     this.#title.setText(model.title);
     this.#description.setText(model.description);
-    this.#message.textContent = model.message;
+    this.#message.textContent = model.message ?? "";
+    this.#message.hidden = !model.message;
     this.#setAuthLink(this.#loginLink, model.loginUrl);
     this.#setAuthLink(this.#signupLink, model.signupUrl);
     this.#retryButton.setLabel(model.retryLabel ?? "Retry");

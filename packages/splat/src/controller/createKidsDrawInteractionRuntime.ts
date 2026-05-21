@@ -42,7 +42,7 @@ export function createKidsDrawInteractionRuntime(options: {
     blob?: Blob;
     dataUrl?: string;
   }) => Promise<boolean>;
-  runtimeStore: Pick<KidsDrawRuntimeStore, "isDestroyed">;
+  runtimeStore: Pick<KidsDrawRuntimeStore, "getActiveDocument" | "isDestroyed">;
   documentPickerController: Pick<
     DocumentPickerController,
     "isOpen" | "openCreateDialog"
@@ -65,6 +65,8 @@ export function createKidsDrawInteractionRuntime(options: {
     confirmDestructiveAction: options.confirmDestructiveAction,
     savePngExport: options.savePngExport,
     clearConfirmationIcon: Trash2,
+    hasLoadedDocument: () =>
+      options.runtimeStore.getActiveDocument().type === "loaded",
     isDestroyed: () => options.runtimeStore.isDestroyed(),
     debugLifecycle: options.debugLifecycle,
     onShareError: options.onShareError,

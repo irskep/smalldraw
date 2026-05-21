@@ -33,7 +33,8 @@ export const stateStories: HarnessStory[] = [
 
       const genericFailure = createDocumentAccessState({
         title: "Could not open drawing",
-        description: "Startup failed. This should not leave a blank screen.",
+        description:
+          "The requested drawing could not be opened. Choose another drawing or start a new one.",
         message: "Unexpected failure while resolving the requested document.",
       });
       genericFailure.setOnRetry(() => {

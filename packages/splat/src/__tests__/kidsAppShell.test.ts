@@ -568,10 +568,16 @@ describe("splatterboard shell", () => {
     expect(createNormalButton).not.toBeNull();
     createNormalButton!.click();
     const resetSettled = await waitUntil(() => {
+      const currentUndoButton = container.querySelector(
+        '[data-action="undo"]',
+      ) as DisableableElement | null;
+      const currentRedoButton = container.querySelector(
+        '[data-action="redo"]',
+      ) as DisableableElement | null;
       return (
         Object.values(app.store.getDocument().shapes).length === 0 &&
-        undoButton!.disabled === true &&
-        redoButton!.disabled === true
+        currentUndoButton?.disabled === true &&
+        currentRedoButton?.disabled === true
       );
     }, 100);
     expect(resetSettled).toBeTrue();
@@ -737,9 +743,17 @@ describe("splatterboard shell", () => {
     expect(shareButton?.disabled).toBeFalse();
 
     app.commands.share();
-    const settled = await waitUntil(() => shareButton?.disabled === false, 80);
+    const settled = await waitUntil(() => {
+      const currentShareButton = container.querySelector(
+        '[data-action="share"]',
+      ) as DisableableElement | null;
+      return currentShareButton?.disabled === false;
+    }, 80);
     expect(settled).toBeTrue();
-    expect(shareButton?.disabled).toBeFalse();
+    const currentShareButton = container.querySelector(
+      '[data-action="share"]',
+    ) as DisableableElement | null;
+    expect(currentShareButton?.disabled).toBeFalse();
 
     app.destroy();
   });
@@ -998,8 +1012,7 @@ describe("splatterboard shell", () => {
       document.body.appendChild(container);
       const backend = createMockDocumentBackend([], null);
 
-      await expect(
-        createKidsDrawApp({
+      const app = await createKidsDrawApp({
           container,
           width: 640,
           height: 480,
@@ -1014,12 +1027,18 @@ describe("splatterboard shell", () => {
             },
             deviceTag: "device-1",
           },
-        }),
-      ).rejects.toMatchObject({
-        name: "DocumentAccessError",
-        reason: "auth_required",
-        userMessage: "Log in or sign up to open this account-linked drawing.",
-      });
+        });
+      const documentState = container.querySelector(
+        ".ds-document-access-state",
+      );
+      expect(documentState?.textContent).toContain(
+        "You can't access this drawing",
+      );
+      expect(documentState?.textContent).toContain(
+        "This drawing needs account access before it can be opened here.",
+      );
+      expect(container.querySelector(".ds-splat-context__canvas-shell")).toBeNull();
+      app.destroy();
     } finally {
       globalThis.fetch = originalFetch;
       if (typeof window !== "undefined") {
@@ -1588,26 +1607,60 @@ describe("splatterboard shell", () => {
     }
   });
 
-  test("local document startup rejects missing browser catalog entries", async () => {
+  test("local document startup shows access state for missing browser catalog entries", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
-    await expect(
-      createKidsDrawApp({
-        container,
-        width: 640,
-        height: 480,
-        core: createMockCore({ width: 640, height: 480 }),
-        documentBackend: createMockDocumentBackend([], null),
-        confirmDestructiveAction: async () => true,
-        multiplayer: {
-          startupIntent: {
-            kind: "open-local-document",
-            docUrl: "automerge:missing-doc",
-          },
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      documentBackend: createMockDocumentBackend([], null),
+      confirmDestructiveAction: async () => true,
+      multiplayer: {
+        startupIntent: {
+          kind: "open-local-document",
+          docUrl: "automerge:missing-doc",
         },
-      }),
-    ).rejects.toThrow("This drawing is not stored in this browser anymore.");
+      },
+    });
+
+    const documentState = container.querySelector(
+      ".ds-document-access-state",
+    ) as HTMLElement | null;
+    const canvasShell = container.querySelector(
+      ".ds-splat-context__canvas-shell",
+    ) as HTMLElement | null;
+
+    expect(documentState).not.toBeNull();
+    expect(documentState?.textContent).toContain("This drawing is not available here");
+    expect(documentState?.textContent).toContain(
+      "This drawing is not stored in this browser anymore.",
+    );
+    expect(canvasShell).toBeNull();
+
+    const menuTrigger = Array.from(
+      container.querySelectorAll<HTMLButtonElement>(
+        'button[aria-haspopup="menu"]',
+      ),
+    ).find((button) => button.textContent?.includes("Menu"));
+    expect(menuTrigger).not.toBeUndefined();
+    menuTrigger!.click();
+
+    const browseAction = container.querySelector(
+      '.ds-dropdown-menu__item[data-action="browse"]',
+    ) as HTMLButtonElement | null;
+    expect(browseAction).not.toBeNull();
+    browseAction!.click();
+
+    const browserDialog = container.querySelector(
+      "dialog.kids-draw-document-browser-dialog",
+    ) as HTMLDialogElement | null;
+    expect(browserDialog).not.toBeNull();
+    const browserOpened = await waitUntil(() => browserDialog?.open === true);
+    expect(browserOpened).toBeTrue();
+    app.destroy();
   });
 
   test("filled/outline shape families preserve sub-shape and draw boxed kinds", async () => {

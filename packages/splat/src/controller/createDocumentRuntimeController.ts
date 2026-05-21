@@ -27,7 +27,10 @@ import type { RenderLoopController } from "./createRenderLoopController";
 import type { SnapshotService } from "./createSnapshotService";
 import type { ToolbarStateController } from "./createToolbarStateController";
 import { logStartupEvent } from "./startup/startupLogger";
-import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
+import type {
+  DocumentAccessDisplay,
+  KidsDrawRuntimeStore,
+} from "./stores/createKidsDrawRuntimeStore";
 import type { StartupReadinessStore } from "./stores/createStartupReadinessStore";
 
 export const DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS = 1000;
@@ -36,6 +39,7 @@ const SHARE_TIMEOUT_MS = 30000;
 
 export interface DocumentRuntimeController {
   getCurrentCatalogDocUrl(): string;
+  getActiveDocumentDocUrl(): string | null;
   switchToDocument(docUrl: string): Promise<void>;
   createNewDocument(request: NewDocumentRequest): Promise<void>;
   flushThumbnailSave(): Promise<void>;
@@ -53,7 +57,15 @@ export function createDocumentRuntimeController(options: {
     summary: KidsDocumentSummary | null,
   ) => void;
   snapshotService: Pick<SnapshotService, "createThumbnailBlob">;
-  runtimeStore: Pick<KidsDrawRuntimeStore, "setPresentation" | "isDestroyed">;
+  runtimeStore: Pick<
+    KidsDrawRuntimeStore,
+    | "setDocumentLoading"
+    | "setDocumentLoaded"
+    | "setDocumentError"
+    | "setNoDocument"
+    | "getActiveDocumentDocUrl"
+    | "isDestroyed"
+  >;
   startupReadinessStore: Pick<
     StartupReadinessStore,
     | "startDocLoad"
@@ -91,6 +103,17 @@ export function createDocumentRuntimeController(options: {
     accessTokenScope: "owner";
   }>;
   initialCatalogDocUrl?: string;
+  initialDocumentAccessState?:
+    | {
+        type: "error";
+        reason: string;
+        display: DocumentAccessDisplay;
+      }
+    | {
+        type: "none";
+        reason: string;
+        display: DocumentAccessDisplay;
+      };
   beforeOpenDocument?: (
     summary: KidsDocumentSummary | null,
   ) => Promise<void> | void;
@@ -193,6 +216,10 @@ export function createDocumentRuntimeController(options: {
   const beginStartupCycle = (reason: string): number => {
     startupCycleId += 1;
     options.startupReadinessStore.startDocLoad(reason);
+    options.runtimeStore.setDocumentLoading({
+      requestedDocUrl: documentSessionController.getCurrentCatalogDocUrl(),
+      reason,
+    });
     logStartupEvent("document_load_start", {
       cycleId: startupCycleId,
       reason,
@@ -217,6 +244,11 @@ export function createDocumentRuntimeController(options: {
       return;
     }
     options.startupReadinessStore.markDegraded(reason);
+    options.runtimeStore.setDocumentError({
+      requestedDocUrl: documentSessionController.getCurrentCatalogDocUrl(),
+      reason,
+      display: toDocumentAccessDisplay(reason, error),
+    });
     logStartupEvent(
       "document_load_end",
       {
@@ -335,7 +367,10 @@ export function createDocumentRuntimeController(options: {
     presentation: DocumentSessionPresentation,
   ): void => {
     const cycleId = beginStartupCycle("apply_presentation");
-    options.runtimeStore.setPresentation(presentation);
+    options.runtimeStore.setDocumentLoaded({
+      docUrl: documentSessionController.getCurrentCatalogDocUrl(),
+      presentation,
+    });
     const layers = getOrderedLayersFromDoc(options.store.getDocument());
     void (async () => {
       const { expected, failed } = await warmLayerImageLoads(layers, cycleId);
@@ -458,6 +493,9 @@ export function createDocumentRuntimeController(options: {
     getCurrentCatalogDocUrl(): string {
       return documentSessionController.getCurrentCatalogDocUrl();
     },
+    getActiveDocumentDocUrl(): string | null {
+      return options.runtimeStore.getActiveDocumentDocUrl();
+    },
     async switchToDocument(docUrl: string): Promise<void> {
       const cycleId = beginStartupCycle("switch_document");
       clearRenderedDocumentSurface();
@@ -491,6 +529,29 @@ export function createDocumentRuntimeController(options: {
       );
     },
     start(): void {
+      if (options.initialDocumentAccessState) {
+        if (options.initialDocumentAccessState.type === "error") {
+          options.runtimeStore.setDocumentError({
+            requestedDocUrl: null,
+            reason: options.initialDocumentAccessState.reason,
+            display: options.initialDocumentAccessState.display,
+          });
+        } else {
+          options.runtimeStore.setNoDocument({
+            reason: options.initialDocumentAccessState.reason,
+            display: options.initialDocumentAccessState.display,
+          });
+        }
+        options.startupReadinessStore.markDegraded(
+          options.initialDocumentAccessState.reason,
+        );
+        applyToolbarStateForCurrentDocument(
+          { mode: "normal" },
+          { forceDefaults: true },
+        );
+        options.syncToolbarUi();
+        return;
+      }
       beginStartupCycle("app_start");
       applyDocumentPresentation({ mode: "normal" });
       applyToolbarStateForCurrentDocument({ mode: "normal" });
@@ -517,6 +578,37 @@ export function createDocumentRuntimeController(options: {
       documentSessionController.dispose();
     },
   } satisfies DocumentRuntimeController;
+}
+
+function toDocumentAccessDisplay(
+  reason: string,
+  error: unknown,
+): DocumentAccessDisplay {
+  if (reason === "document_open_failed") {
+    return {
+      title: "Could not open drawing",
+      description:
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : "The drawing could not be opened right now. Please try again.",
+    };
+  }
+  if (reason === "document_create_failed") {
+    return {
+      title: "Could not create drawing",
+      description:
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : "The drawing could not be created right now. Please try again.",
+    };
+  }
+  return {
+    title: "Document unavailable",
+    description:
+      error instanceof Error && error.message.trim().length > 0
+        ? error.message
+        : "The drawing is not available right now.",
+  };
 }
 
 async function withTimeout<T>(

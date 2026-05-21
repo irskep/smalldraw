@@ -51,7 +51,8 @@ describe("buildStartupErrorScreenModel", () => {
 
     expect(model).toEqual({
       title: "Could not open drawing",
-      description: "Startup failed. This should not leave a blank screen.",
+      description:
+        "The requested drawing could not be opened. Try again or reset this browser's local drawing session.",
       message: "Unexpected failure",
     });
   });

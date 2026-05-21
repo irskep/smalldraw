@@ -1,5 +1,9 @@
 import "@smalldraw/splat/styles.css";
-import { createKidsDrawApp } from "@smalldraw/splat";
+import {
+  buildJoinedCatalogDocUrl,
+  createKidsDrawApp,
+  type KidsDrawApp,
+} from "@smalldraw/splat";
 import { buildSplatCurrentDocumentUrl } from "./documentUrl";
 import {
   createBrowserMultiplayerConfig,
@@ -18,7 +22,24 @@ try {
   if (startupIntent.kind === "startup-error") {
     throw new Error(startupIntent.message);
   }
-  const app = await createKidsDrawApp({
+  let app: KidsDrawApp | null = null;
+  const openDocumentFromLocation = async (): Promise<void> => {
+    if (!app) {
+      return;
+    }
+    const intent = resolveSplatStartupIntent(window.location.search);
+    const docUrl = resolveCatalogDocUrlForNavigation(intent);
+    if (!docUrl) {
+      return;
+    }
+    await app.commands.openDocument(docUrl);
+  };
+  const requestOpenDocumentFromLocation = (): void => {
+    void openDocumentFromLocation().catch((error) => {
+      console.warn("[splat-web] document navigation failed", { error });
+    });
+  };
+  app = await createKidsDrawApp({
     container,
     assetBaseUrl: multiplayerConfig.assetBaseUrl,
     multiplayer: {
@@ -35,6 +56,7 @@ try {
       if (nextUrl !== window.location.href) {
         window.history.pushState(null, "", nextUrl);
       }
+      requestOpenDocumentFromLocation();
     },
     onCurrentDocumentSummaryChanged: (summary) => {
       const nextUrl = buildSplatCurrentDocumentUrl(
@@ -46,9 +68,26 @@ try {
       }
     },
   });
-
+  window.addEventListener("popstate", () => {
+    requestOpenDocumentFromLocation();
+  });
   (window as unknown as { kidsDrawApp?: typeof app }).kidsDrawApp = app;
 } catch (error) {
   console.error("[splat-web] failed to start app", { error });
   renderStartupErrorScreen(container, error);
+}
+
+function resolveCatalogDocUrlForNavigation(
+  intent: ReturnType<typeof resolveSplatStartupIntent>,
+): string | null {
+  switch (intent.kind) {
+    case "open-local-document":
+      return intent.docUrl;
+    case "open-account-document":
+      return buildJoinedCatalogDocUrl(`automerge:${intent.documentId}`);
+    case "open-last-local":
+    case "open-share-link":
+    case "startup-error":
+      return null;
+  }
 }

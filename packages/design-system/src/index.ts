@@ -75,6 +75,7 @@ export {
 export {
   createSplatContext,
   SplatContext,
+  type SplatContextDocumentSlot,
   type SplatContextOptions,
   type SplatToolItem,
 } from "./view/SplatContext";

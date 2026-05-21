@@ -14,7 +14,10 @@ describe("createKidsDrawRuntimeStore", () => {
     });
     const baselineUpdates = updates;
 
-    store.setPresentation({ mode: "normal" });
+    store.setDocumentLoaded({
+      docUrl: "catalog-local:doc-1",
+      presentation: { mode: "normal" },
+    });
     store.setDestroyed(false);
     expect(updates).toBe(baselineUpdates);
 
@@ -34,11 +37,14 @@ describe("createKidsDrawRuntimeStore", () => {
       identities.push(identity);
     });
 
-    store.setPresentation({
-      mode: "coloring",
-      referenceImageSrc: "/page-001.png",
-      referenceComposite: "over-drawing",
-      coloringPageId: "pdr-v1-001",
+    store.setDocumentLoaded({
+      docUrl: "catalog-local:doc-1",
+      presentation: {
+        mode: "coloring",
+        referenceImageSrc: "/page-001.png",
+        referenceComposite: "over-drawing",
+        coloringPageId: "pdr-v1-001",
+      },
     });
 
     expect(store.getPresentationIdentity()).toBe("over-drawing:/page-001.png");

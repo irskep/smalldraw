@@ -98,6 +98,7 @@ describe("toolbarUiPersistence", () => {
     let currentDocUrl = "automerge:doc-1";
     const initialState: ToolbarUiState = {
       activeToolId: "",
+      hasLoadedDocument: true,
       canUndo: false,
       canRedo: false,
       strokeColor: "#000000",

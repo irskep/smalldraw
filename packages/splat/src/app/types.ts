@@ -54,6 +54,7 @@ export interface KidsDrawAppCommands {
   newDrawing(): void;
   browse(): void;
   share(): void;
+  openDocument(docUrl: string): Promise<void>;
 }
 
 export interface KidsDrawApp {

@@ -147,6 +147,11 @@ export class DocumentSessionController {
   async switchToDocument(docUrl: string): Promise<void> {
     const persistedSummary =
       await this.options.documentBackend.getDocument(docUrl);
+    if (!persistedSummary && docUrl.startsWith("catalog-collab:")) {
+      throw new Error(
+        "The drawing could not be opened right now. Please try again.",
+      );
+    }
     const openDocUrl = resolveDocumentOpenUrl(docUrl, persistedSummary);
     await this.flushThumbnailSave();
     await this.options.beforeOpenDocument?.(persistedSummary);

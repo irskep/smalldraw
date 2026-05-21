@@ -36,6 +36,76 @@ test("renders the splat context story", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Menu" }).first()).toBeVisible();
 });
 
+test("renders the no-document splat context story with right-aligned menu and centered access state", async ({
+  page,
+}) => {
+  await page.goto(testStoryUrl("splat-context-no-document"));
+  await page.evaluate(() => {
+    document.querySelector("bun-hmr")?.remove();
+  });
+
+  await expect(
+    page.getByRole("heading", { name: "Splat Context No Document" }),
+  ).toBeVisible();
+
+  const scene = page.locator(".ds-splat-context__scene--no-document").first();
+  const menuButton = page.getByRole("button", { name: "Menu" }).first();
+  const accessState = page.locator(".ds-document-access-state").first();
+
+  await expect(scene).toBeVisible();
+  await expect(menuButton).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Could not open drawing" }).first(),
+  ).toBeVisible();
+  await expect(page.locator(".ds-splat-context__left-rail")).toHaveCount(0);
+  await expect(page.locator(".ds-splat-context__variant-strip")).toHaveCount(0);
+  await expect(page.locator(".ds-splat-context__canvas-shell")).toHaveCount(0);
+
+  const layout = await page.evaluate(() => {
+    const sceneEl = document.querySelector(
+      ".ds-splat-context__scene--no-document",
+    ) as HTMLElement | null;
+    const menuEl = Array.from(
+      document.querySelectorAll("button"),
+    ).find((button) => button.textContent?.trim().startsWith("Menu")) as
+      | HTMLElement
+      | undefined;
+    const cardEl = document.querySelector(
+      ".ds-document-access-state",
+    ) as HTMLElement | null;
+    if (!sceneEl || !menuEl || !cardEl) {
+      return null;
+    }
+
+    const scene = sceneEl.getBoundingClientRect();
+    const menu = menuEl.getBoundingClientRect();
+    const card = cardEl.getBoundingClientRect();
+    const topRowBottom = menu.bottom;
+    const contentCenterY = topRowBottom + (scene.bottom - topRowBottom) / 2;
+
+    return {
+      sceneLeft: scene.left,
+      sceneRight: scene.right,
+      sceneWidth: scene.width,
+      menuCenterX: menu.left + menu.width / 2,
+      cardCenterX: card.left + card.width / 2,
+      cardCenterY: card.top + card.height / 2,
+      contentCenterY,
+    };
+  });
+
+  expect(layout).not.toBeNull();
+  expect(layout!.menuCenterX).toBeGreaterThan(
+    layout!.sceneLeft + layout!.sceneWidth * 0.7,
+  );
+  expect(
+    Math.abs(layout!.cardCenterX - (layout!.sceneLeft + layout!.sceneWidth / 2)),
+  ).toBeLessThanOrEqual(24);
+  expect(Math.abs(layout!.cardCenterY - layout!.contentCenterY)).toBeLessThanOrEqual(
+    32,
+  );
+});
+
 test("renders the document access state story directly", async ({ page }) => {
   await page.goto(testStoryUrl("document-access-state"));
   await expect(

@@ -1,4 +1,5 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
+import type { DocumentAccessDisplay } from "../controller/stores/createKidsDrawRuntimeStore";
 import { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
 import type { KidsDocumentSummary } from "../documents";
 import {
@@ -14,6 +15,7 @@ import {
   type MultiplayerApiClient,
 } from "./createMultiplayerApiClient";
 import {
+  DocumentAccessError,
   resolveAccountDocumentForLocalOpen,
   resolveAuthorizedCollaborativeDocumentId,
   resolveInitialDocumentSize,
@@ -42,6 +44,13 @@ export type AppRuntimeAssembly = {
   backgroundColor: string;
   deviceTag: string;
   initialCatalogDocUrl: string | null;
+  initialDocumentAccessState:
+    | {
+        type: "error";
+        reason: string;
+        display: DocumentAccessDisplay;
+      }
+    | null;
   sizingPolicy: {
     hasExplicitSize: boolean;
     getExplicitSize: () => DrawingDocumentSize;
@@ -54,6 +63,10 @@ export type AppRuntimeAssembly = {
 
 export async function assembleAppRuntime(
   options: KidsDrawAppOptions,
+  injected?: {
+    shapeHandlers?: ReturnType<typeof createKidsShapeHandlerRegistry>;
+    shapeRendererRegistry?: ReturnType<typeof createKidsShapeRendererRegistry>;
+  },
 ): Promise<AppRuntimeAssembly> {
   const hasExplicitSize =
     options.width !== undefined || options.height !== undefined;
@@ -79,8 +92,10 @@ export async function assembleAppRuntime(
     });
   }
 
-  const shapeHandlers = createKidsShapeHandlerRegistry();
-  const shapeRendererRegistry = createKidsShapeRendererRegistry();
+  const shapeHandlers =
+    injected?.shapeHandlers ?? createKidsShapeHandlerRegistry();
+  const shapeRendererRegistry =
+    injected?.shapeRendererRegistry ?? createKidsShapeRendererRegistry();
   const documentBackend =
     options.documentBackend ??
     createLocalDocumentBackend({
@@ -116,15 +131,34 @@ export async function assembleAppRuntime(
       startupIntent.kind === "open-last-local" ||
       startupIntent.kind === "open-local-document",
   });
-  const startupPreImports = await resolveStartupPreImportsAndCurrentDocument({
-    documentBackend,
-    multiplayerApiClient,
-    startupIntent,
-    deviceTag,
-    syncedAccountDocument,
-  });
+  let startupPreImports: Array<{ binary: Uint8Array; docId: string }> = [];
+  let initialCatalogDocUrlOverride: string | null | undefined;
+  let initialDocumentAccessState: AppRuntimeAssembly["initialDocumentAccessState"] =
+    null;
+  try {
+    startupPreImports = await resolveStartupPreImportsAndCurrentDocument({
+      documentBackend,
+      multiplayerApiClient,
+      startupIntent,
+      deviceTag,
+      syncedAccountDocument,
+    });
+  } catch (error) {
+    if (!(error instanceof DocumentAccessError)) {
+      throw error;
+    }
+    initialCatalogDocUrlOverride = null;
+    initialDocumentAccessState = {
+      type: "error",
+      reason: error.reason,
+      display: toStartupDocumentAccessDisplay(error),
+    };
+  }
 
-  const initialCatalogDocUrl = await documentBackend.getCurrentDocument();
+  const initialCatalogDocUrl =
+    initialCatalogDocUrlOverride === null
+      ? null
+      : await documentBackend.getCurrentDocument();
   const initialCatalogSummary = initialCatalogDocUrl
     ? await documentBackend.getDocument(initialCatalogDocUrl)
     : null;
@@ -148,6 +182,7 @@ export async function assembleAppRuntime(
       collaborationStatusStore.setWebsocketConnected(connected);
     },
     documentBackend,
+    initialCatalogDocUrlOverride,
     preImports: startupPreImports,
     documentSize: desiredInitialSize,
     shapeHandlers,
@@ -185,11 +220,41 @@ export async function assembleAppRuntime(
     backgroundColor: options.backgroundColor ?? "#ffffff",
     deviceTag,
     initialCatalogDocUrl,
+    initialDocumentAccessState,
     sizingPolicy: {
       hasExplicitSize,
       getExplicitSize,
       resolvePageSize: resolveCurrentPageSize,
     },
     prepareDocumentOpen,
+  };
+}
+
+function toStartupDocumentAccessDisplay(
+  error: DocumentAccessError,
+): DocumentAccessDisplay {
+  if (error.reason === "auth_required") {
+    return {
+      title: error.title,
+      description:
+        "This drawing needs account access before it can be opened here.",
+      message: error.userMessage,
+    };
+  }
+  if (error.reason === "invalid_share_link") {
+    return {
+      title: error.title,
+      description: error.userMessage,
+    };
+  }
+  if (error.reason === "local_document_missing") {
+    return {
+      title: error.title,
+      description: error.userMessage,
+    };
+  }
+  return {
+    title: error.title,
+    description: error.userMessage,
   };
 }

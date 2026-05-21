@@ -19,6 +19,10 @@
   flex-shrink: 0;
 }
 
+.kids-draw-frame[hidden] {
+  display: none;
+}
+
 .kids-draw-scene {
   position: absolute;
   left: 0;

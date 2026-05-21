@@ -565,6 +565,15 @@ body {
   background: var(--ds-splat-context-surface-toolbar-panel);
 }
 
+.ds-splat-context__scene--desktop.ds-splat-context__scene--no-document {
+  grid-template-areas:
+    "top"
+    "document";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  padding-bottom: 0;
+}
+
 .ds-splat-context__scene--mobile {
   display: grid;
   grid-template-areas:
@@ -606,6 +615,30 @@ body {
 
 .ds-splat-context__slot--bottom-left {
   grid-area: bottom-left;
+}
+
+.ds-splat-context__no-document-shell {
+  grid-area: document;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--size-6);
+}
+
+.ds-splat-context__no-document-shell--mobile {
+  grid-area: mobile-canvas;
+  padding: var(--size-4);
+}
+
+.ds-splat-context__no-document-host {
+  width: min(100%, var(--width-content-3));
+  min-width: 0;
+}
+
+.ds-splat-context__no-document-host > * {
+  width: 100%;
 }
 
 .ds-splat-context__canvas-shell {
@@ -708,6 +741,10 @@ body {
   width: 100%;
 }
 
+.ds-splat-context__top-actions.ds-splat-context__top-actions--menu-only {
+  justify-content: flex-end;
+}
+
 .ds-splat-context__top-actions-group {
   display: flex;
   align-items: center;
@@ -740,6 +777,17 @@ body {
   align-items: center;
   gap: var(--size-2);
   min-width: 0;
+}
+
+.ds-splat-context__mobile-top-controls--menu-only {
+  justify-content: end;
+}
+
+.ds-splat-context__scene--mobile.ds-splat-context__scene--no-document {
+  grid-template-areas:
+    "mobile-top"
+    "mobile-canvas";
+  grid-template-rows: auto 1fr;
 }
 
 .ds-splat-context__mobile-trailing-actions {

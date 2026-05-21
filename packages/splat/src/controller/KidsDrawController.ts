@@ -3,6 +3,7 @@ import type {
   DrawingStore,
   SmalldrawCore,
 } from "@smalldraw/core";
+import type { SplatContextDocumentSlot } from "@smalldraw/design-system";
 import { Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { type IconNode, Trash2 } from "lucide";
@@ -45,7 +46,11 @@ import type {
   CollaborationStatus,
   CollaborationStatusStore,
 } from "./stores/createCollaborationStatusStore";
-import { createKidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
+import {
+  createKidsDrawRuntimeStore,
+  type ActiveDocumentState,
+  type DocumentAccessDisplay,
+} from "./stores/createKidsDrawRuntimeStore";
 import { createStartupReadinessStore } from "./stores/createStartupReadinessStore";
 import type { UiIntentStore } from "./stores/createUiIntentStore";
 
@@ -59,6 +64,7 @@ type ConfirmDialogRequest = {
 };
 
 export interface KidsDrawController {
+  openDocument(docUrl: string): Promise<void>;
   destroy(): void;
 }
 
@@ -144,6 +150,17 @@ export function createKidsDrawController(options: {
   ) => Promise<void>;
   onThumbnailSaved?: (docUrl: string, thumbnail: Blob) => Promise<void> | void;
   initialCatalogDocUrl?: string;
+  initialDocumentAccessState?:
+    | {
+        type: "error";
+        reason: string;
+        display: DocumentAccessDisplay;
+      }
+    | {
+        type: "none";
+        reason: string;
+        display: DocumentAccessDisplay;
+      };
   beforeOpenDocument?: (
     summary: KidsDocumentSummary | null,
   ) => Promise<void> | void;
@@ -151,7 +168,6 @@ export function createKidsDrawController(options: {
   showShareDialog: (payload: SharePayload) => Promise<void>;
   onShareError?: (message: string) => void;
   onClaimError?: (message: string) => void;
-  onOpenDocumentError?: (message: string) => void;
   onDocumentOpenRequested?: (
     summary: KidsDocumentSummary | null,
     docUrl: string,
@@ -185,12 +201,12 @@ export function createKidsDrawController(options: {
     registerCollaborativeDocument,
     onThumbnailSaved,
     initialCatalogDocUrl,
+    initialDocumentAccessState,
     beforeOpenDocument,
     resolveJoinBaseUrl,
     showShareDialog,
     onShareError,
     onClaimError,
-    onOpenDocumentError,
     onDocumentOpenRequested,
   } = options;
   let size = {
@@ -260,7 +276,6 @@ export function createKidsDrawController(options: {
           message,
           error,
         });
-        onOpenDocumentError?.(message);
       });
     },
     onClaimDocument: (docUrl) => {
@@ -286,8 +301,7 @@ export function createKidsDrawController(options: {
     newDocumentDialog,
     documentBackend,
     getCurrentDocUrl: () =>
-      documentRuntimeController?.getCurrentCatalogDocUrl() ??
-      core.getCurrentDocUrl(),
+      documentRuntimeController?.getActiveDocumentDocUrl() ?? null,
   });
   toolbarStateController = new ToolbarStateController({
     store,
@@ -363,6 +377,7 @@ export function createKidsDrawController(options: {
     registerCollaborativeDocument,
     onThumbnailSaved,
     initialCatalogDocUrl,
+    initialDocumentAccessState,
     beforeOpenDocument,
     resolveJoinBaseUrl,
   });
@@ -373,7 +388,7 @@ export function createKidsDrawController(options: {
 
   const documentBrowserCommands = createDocumentBrowserCommands({
     documentPickerController,
-    getCurrentDocUrl: () => runtimeDocumentController.getCurrentCatalogDocUrl(),
+    getCurrentDocUrl: () => runtimeDocumentController.getActiveDocumentDocUrl(),
     switchToDocument: (docUrl) =>
       runtimeDocumentController.switchToDocument(docUrl),
     createNewDocument: (request) =>
@@ -420,9 +435,8 @@ export function createKidsDrawController(options: {
         cancelLabel: "Cancel",
         tone: "danger",
         icon: Trash2,
-      }),
+    }),
     onClaimError,
-    onOpenDocumentError,
     onDocumentOpenRequested,
     isDestroyed: () => runtimeStore.isDestroyed(),
   });
@@ -501,18 +515,43 @@ export function createKidsDrawController(options: {
   });
 
   toolbarUiPersistence.start();
-  const unbindStartupReadiness = startupReadinessStore.subscribe((state) => {
-    stage.setInteractionEnabled(state.interactionEnabled);
+  let latestActiveDocument = runtimeStore.getActiveDocument();
+  let latestStartupReadiness = startupReadinessStore.getState();
+  const syncShellForDocumentState = (): void => {
+    const hasLoadedDocument = latestActiveDocument.type === "loaded";
+    toolbarUiStore.setHasLoadedDocument(hasLoadedDocument);
+    stage.setCanvasVisible(hasLoadedDocument);
+    stage.setInteractionEnabled(
+      hasLoadedDocument && latestStartupReadiness.interactionEnabled,
+    );
+    toolbar.setDocumentSlot(
+      resolveDocumentSlot(latestActiveDocument, stage.element),
+    );
     stage.setStartupStatus({
-      visible: !state.interactionEnabled,
-      phase: state.phase,
-      assetsLoaded: state.assetsLoaded,
-      assetsTotal: state.assetsTotal,
-      assetsFailed: state.assetsFailed,
-      blockingReason: state.lastBlockingReason,
+      visible: hasLoadedDocument && !latestStartupReadiness.interactionEnabled,
+      phase: latestStartupReadiness.phase,
+      assetsLoaded: latestStartupReadiness.assetsLoaded,
+      assetsTotal: latestStartupReadiness.assetsTotal,
+      assetsFailed: latestStartupReadiness.assetsFailed,
+      blockingReason: latestStartupReadiness.lastBlockingReason,
     });
+  };
+  const unbindActiveDocument = runtimeStore.subscribeActiveDocument(
+    (activeDocument) => {
+      latestActiveDocument = activeDocument;
+      if (activeDocument.type === "error" || activeDocument.type === "none") {
+        collaborationStatusStore.setCurrentDocument(null);
+      }
+      syncShellForDocumentState();
+    },
+  );
+  add(unbindActiveDocument);
+  const unbindStartupReadiness = startupReadinessStore.subscribe((state) => {
+    latestStartupReadiness = state;
+    syncShellForDocumentState();
   });
   add(unbindStartupReadiness);
+  syncShellForDocumentState();
   runtimeDocumentController.start();
   renderLoopController.updateRenderIdentity();
   applyLayoutAndPixelRatio();
@@ -520,6 +559,9 @@ export function createKidsDrawController(options: {
   renderLoopController.requestRenderFromModel();
 
   return {
+    async openDocument(docUrl: string): Promise<void> {
+      await runtimeDocumentController.switchToDocument(docUrl);
+    },
     destroy() {
       runtimeStore.setDestroyed(true);
       commandController.destroy();
@@ -545,5 +587,47 @@ export function createKidsDrawController(options: {
         core.destroy();
       }
     },
+  };
+}
+
+function resolveDocumentSlot(
+  activeDocument: ActiveDocumentState,
+  stageElement: HTMLElement,
+): SplatContextDocumentSlot {
+  if (activeDocument.type === "loaded") {
+    return { type: "document", content: stageElement };
+  }
+  if (activeDocument.type === "loading") {
+    return describeDocumentLoading(activeDocument.reason);
+  }
+  return {
+    type: activeDocument.type,
+    title: activeDocument.display.title,
+    description: activeDocument.display.description,
+    message: activeDocument.display.message,
+  };
+}
+
+function describeDocumentLoading(reason: string): SplatContextDocumentSlot & {
+  type: "loading";
+} {
+  if (reason === "switch_document") {
+    return {
+      type: "loading",
+      title: "Opening drawing…",
+      description: "Shared drawings can take a moment to respond.",
+    };
+  }
+  if (reason === "create_document") {
+    return {
+      type: "loading",
+      title: "Creating drawing…",
+      description: "Setting up a fresh canvas.",
+    };
+  }
+  return {
+    type: "loading",
+    title: "Loading drawing…",
+    description: "Preparing the drawing surface.",
   };
 }

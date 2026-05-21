@@ -129,7 +129,7 @@ describe("createDocumentBrowserCommands", () => {
     expect(picker.busy).toEqual([]);
   });
 
-  test("openDocumentFromBrowser reports requested navigation before awaiting switch", async () => {
+  test("openDocumentFromBrowser delegates navigation to request handler when provided", async () => {
     const picker = createPickerState();
     picker.controller._setOpen(true);
     picker.controller._setDocuments([
@@ -146,16 +146,11 @@ describe("createDocumentBrowserCommands", () => {
     ]);
     const steps: string[] = [];
     const requested: Array<{ docUrl: string; accountAttached: boolean }> = [];
-    let resolveSwitch!: () => void;
-    const switchPromise = new Promise<void>((resolve) => {
-      resolveSwitch = resolve;
-    });
     const commands = createDocumentBrowserCommands({
       documentPickerController: picker.controller,
       getCurrentDocUrl: () => "doc://current",
       switchToDocument: async (docUrl) => {
         steps.push(`switch:${docUrl}`);
-        await switchPromise;
       },
       createNewDocument: async () => {},
       flushThumbnailSave: async () => {},
@@ -178,10 +173,7 @@ describe("createDocumentBrowserCommands", () => {
       "catalog-collab:server-doc",
     );
 
-    expect(steps).toEqual([
-      "requested:catalog-collab:server-doc",
-      "switch:catalog-collab:server-doc",
-    ]);
+    expect(steps).toEqual(["requested:catalog-collab:server-doc"]);
     expect(picker.controller.isOpen()).toBeFalse();
     expect(requested).toEqual([
       {
@@ -190,7 +182,6 @@ describe("createDocumentBrowserCommands", () => {
       },
     ]);
 
-    resolveSwitch();
     await openPromise;
   });
 
@@ -430,10 +421,9 @@ describe("createDocumentBrowserCommands", () => {
     expect(picker.busy).toEqual(["doc://device", null]);
   });
 
-  test("openDocumentFromBrowser surfaces document access errors", async () => {
+  test("openDocumentFromBrowser swallows document access errors after closing the picker", async () => {
     const picker = createPickerState();
     picker.controller._setOpen(true);
-    const errors: string[] = [];
     const commands = createDocumentBrowserCommands({
       documentPickerController: picker.controller,
       getCurrentDocUrl: () => "doc://current",
@@ -452,24 +442,18 @@ describe("createDocumentBrowserCommands", () => {
       isClaimableDocument: () => false,
       deleteDocument: async () => {},
       confirmDelete: async () => true,
-      onOpenDocumentError: (message) => {
-        errors.push(message);
-      },
       isDestroyed: () => false,
     });
 
     await commands.openDocumentFromBrowser("doc://account");
 
-    expect(errors).toEqual([
-      "Log in or sign up to open this account-linked drawing.",
-    ]);
+    expect(picker.controller.isOpen()).toBeFalse();
     expect(picker.busy).toEqual([]);
   });
 
-  test("openDocumentFromBrowser surfaces generic errors", async () => {
+  test("openDocumentFromBrowser swallows generic errors after closing the picker", async () => {
     const picker = createPickerState();
     picker.controller._setOpen(true);
-    const errors: string[] = [];
     const commands = createDocumentBrowserCommands({
       documentPickerController: picker.controller,
       getCurrentDocUrl: () => "doc://current",
@@ -483,15 +467,12 @@ describe("createDocumentBrowserCommands", () => {
       isClaimableDocument: () => false,
       deleteDocument: async () => {},
       confirmDelete: async () => true,
-      onOpenDocumentError: (message) => {
-        errors.push(message);
-      },
       isDestroyed: () => false,
     });
 
     await commands.openDocumentFromBrowser("doc://stale");
 
-    expect(errors).toEqual(["Document automerge:abc123 is unavailable"]);
+    expect(picker.controller.isOpen()).toBeFalse();
     expect(picker.busy).toEqual([]);
   });
 });

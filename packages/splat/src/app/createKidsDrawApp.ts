@@ -1,5 +1,6 @@
 import "@smalldraw/design-system/styles.css";
 import { DrawingStore } from "@smalldraw/core";
+import type { SplatContextDocumentSlot } from "@smalldraw/design-system";
 import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
 import { createQrCodeDataUrl } from "../controller/createQrCodeDataUrl";
 import { createKidsDrawController } from "../controller/KidsDrawController";
@@ -13,6 +14,9 @@ import {
   resolveJoinBaseUrl,
 } from "../documents";
 import { createRasterPipeline } from "../render/createRasterPipeline";
+import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
+import { resolvePageSize } from "../layout/responsiveLayout";
+import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import { configureRasterImageSourceResolver } from "../shapes/rasterImageCache";
 import {
   createKidsToolCatalog,
@@ -55,18 +59,43 @@ export async function createKidsDrawApp(
     createColoringAssetUrlResolver(options.assetBaseUrl),
   );
   warmImageStampAssets(getImageStampAssets().map((asset) => asset.src));
-  const runtime = await assembleAppRuntime(options);
-
-  const catalog = createKidsToolCatalog(runtime.shapeRendererRegistry);
+  const provisionalShapeHandlers = createKidsShapeHandlerRegistry();
+  const provisionalShapeRendererRegistry = createKidsShapeRendererRegistry();
+  const provisionalCatalog = createKidsToolCatalog(
+    provisionalShapeRendererRegistry,
+  );
+  const provisionalSize = resolveInitialShellSize(options);
+  const provisionalBackgroundColor = options.backgroundColor ?? "#ffffff";
   const presentation = createPresentationRuntime({
     container: options.container,
-    tools: catalog.tools,
-    families: catalog.families,
-    sidebarItems: catalog.sidebarItems,
-    width: runtime.initialSize.width,
-    height: runtime.initialSize.height,
-    backgroundColor: runtime.backgroundColor,
+    tools: provisionalCatalog.tools,
+    families: provisionalCatalog.families,
+    sidebarItems: provisionalCatalog.sidebarItems,
+    width: provisionalSize.width,
+    height: provisionalSize.height,
+    backgroundColor: provisionalBackgroundColor,
   });
+  const toolbarUiStore = createToolbarUiStore();
+  const unbindToolbarUi = presentation.toolbar.bindUiState(toolbarUiStore.$state);
+  presentation.stage.setCanvasVisible(true);
+  presentation.stage.setInteractionEnabled(false);
+  presentation.toolbar.setDocumentSlot(
+    describeInitialBlockingState(options),
+  );
+
+  let runtime;
+  try {
+    runtime = await assembleAppRuntime(options, {
+      shapeHandlers: provisionalShapeHandlers,
+      shapeRendererRegistry: provisionalShapeRendererRegistry,
+    });
+  } catch (error) {
+    presentation.destroy();
+    uninstallMobileGestureGuards();
+    throw error;
+  }
+
+  const catalog = createKidsToolCatalog(runtime.shapeRendererRegistry);
   const uploadAccountThumbnail = createAccountThumbnailUploader({
     multiplayerApiClient: runtime.multiplayerApiClient,
   });
@@ -76,6 +105,11 @@ export async function createKidsDrawApp(
       collaborativeDocumentIndex: runtime.collaborativeDocumentIndex,
       localRepo: runtime.localRepo,
     });
+  if (runtime.initialCatalogDocUrl) {
+    controllerCollaborationStatusStore.setCurrentDocument(
+      await runtime.documentBackend.getDocument(runtime.initialCatalogDocUrl),
+    );
+  }
   const controllerMultiplayerAdapters = createControllerMultiplayerAdapters({
     multiplayerApiClient: runtime.multiplayerApiClient,
     core: runtime.core,
@@ -102,11 +136,9 @@ export async function createKidsDrawApp(
   store.activateTool(
     getDefaultToolIdForFamily(catalog.defaultFamilyId, catalog),
   );
-  const toolbarUiStore = createToolbarUiStore();
   toolbarUiStore.syncFromDrawingStore(store, {
     resolveToolStyleSupport: (toolId) => getToolStyleSupport(toolId, catalog),
   });
-  const unbindToolbarUi = presentation.toolbar.bindUiState(toolbarUiStore.$state);
 
   const pipeline = createRasterPipeline({
     store,
@@ -121,6 +153,10 @@ export async function createKidsDrawApp(
         : 1,
     renderIdentity: "kids-draw-init",
   });
+  presentation.stage.setSceneDimensions(
+    runtime.initialSize.width,
+    runtime.initialSize.height,
+  );
 
   pipeline.bakeInitialShapes(Object.values(store.getDocument().shapes));
 
@@ -156,18 +192,22 @@ export async function createKidsDrawApp(
       controllerMultiplayerAdapters.uploadDocumentThumbnail,
     onThumbnailSaved: controllerMultiplayerAdapters.onThumbnailSaved,
     initialCatalogDocUrl: runtime.initialCatalogDocUrl ?? undefined,
+    initialDocumentAccessState:
+      runtime.initialDocumentAccessState ?? undefined,
     beforeOpenDocument: runtime.prepareDocumentOpen,
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
     showShareDialog: controllerMultiplayerAdapters.showShareDialog,
     onShareError: controllerMultiplayerAdapters.onShareError,
     onClaimError: controllerMultiplayerAdapters.onClaimError,
-    onOpenDocumentError: controllerMultiplayerAdapters.onOpenDocumentError,
     onDocumentOpenRequested: options.onDocumentOpenRequested,
     onCurrentDocumentSummaryChanged: options.onCurrentDocumentSummaryChanged,
   });
 
-  const commands = createUiIntentCommands(presentation.uiIntentStore);
+  const commands = {
+    ...createUiIntentCommands(presentation.uiIntentStore),
+    openDocument: (docUrl: string) => controller.openDocument(docUrl),
+  };
 
   return {
     element: presentation.element,
@@ -185,9 +225,52 @@ export async function createKidsDrawApp(
   };
 }
 
+function resolveInitialShellSize(
+  options: Pick<KidsDrawAppOptions, "width" | "height">,
+): { width: number; height: number } {
+  const explicitWidth = options.width ?? 960;
+  const explicitHeight = options.height ?? 600;
+  if (options.width !== undefined || options.height !== undefined) {
+    return { width: explicitWidth, height: explicitHeight };
+  }
+  return resolvePageSize({ width: explicitWidth, height: explicitHeight });
+}
+
+function describeInitialBlockingState(
+  options: Pick<KidsDrawAppOptions, "multiplayer">,
+): SplatContextDocumentSlot {
+  const startupIntent = options.multiplayer?.startupIntent;
+  if (startupIntent?.kind === "open-account-document") {
+    return {
+      type: "loading",
+      title: "Opening drawing…",
+      description: "Loading the requested shared drawing.",
+    };
+  }
+  if (startupIntent?.kind === "open-share-link") {
+    return {
+      type: "loading",
+      title: "Opening shared drawing…",
+      description: "Loading the shared drawing from its invite link.",
+    };
+  }
+  if (startupIntent?.kind === "open-local-document") {
+    return {
+      type: "loading",
+      title: "Opening drawing…",
+      description: "Loading the requested drawing from this browser.",
+    };
+  }
+  return {
+    type: "loading",
+    title: "Loading drawing…",
+    description: "Preparing the drawing surface.",
+  };
+}
+
 function createUiIntentCommands(
   uiIntentStore: Pick<UiIntentStore, "publish">,
-): KidsDrawAppCommands {
+): Omit<KidsDrawAppCommands, "openDocument"> {
   const publish = <TType extends Extract<
     KidsDrawUiIntent["type"],
     "undo" | "redo" | "clear" | "export" | "new_drawing" | "browse" | "share"
@@ -250,7 +333,6 @@ function createControllerMultiplayerAdapters(options: {
   | "showShareDialog"
   | "onShareError"
   | "onClaimError"
-  | "onOpenDocumentError"
 > {
   const multiplayerApiClient = options.multiplayerApiClient;
 
@@ -321,14 +403,6 @@ function createControllerMultiplayerAdapters(options: {
     onClaimError: (message) => {
       void options.presentation.modalDialog.showConfirm({
         title: "Unable to claim drawing",
-        message,
-        confirmLabel: "OK",
-        cancelLabel: "Dismiss",
-      });
-    },
-    onOpenDocumentError: (message) => {
-      void options.presentation.modalDialog.showConfirm({
-        title: "Unable to open drawing",
         message,
         confirmLabel: "OK",
         cancelLabel: "Dismiss",

@@ -11,7 +11,7 @@ export class DocumentPickerController {
   private previousBrowserViewState: {
     loading: boolean;
     busyDocUrl: string | null;
-    currentDocUrl: string;
+    currentDocUrl: string | null;
     documents: KidsDocumentSummary[];
     thumbnailUrlByDocUrl: Map<string, string>;
     claimableDocUrls: Set<string>;
@@ -22,7 +22,7 @@ export class DocumentPickerController {
       browserDialog: DocumentBrowserDialogView;
       newDocumentDialog: NewDocumentDialogView;
       documentBackend: KidsDocumentBackend;
-      getCurrentDocUrl: () => string;
+      getCurrentDocUrl: () => string | null;
     },
   ) {
     this.unsubscribeStore = bindAtom(this.state.$state, (state) => {

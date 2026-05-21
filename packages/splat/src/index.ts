@@ -5,4 +5,7 @@ export {
   type KidsDrawApp,
   type KidsDrawAppOptions,
 } from "./createKidsDrawApp";
-export type { KidsDocumentSummary } from "./documents";
+export {
+  buildJoinedCatalogDocUrl,
+  type KidsDocumentSummary,
+} from "./documents";

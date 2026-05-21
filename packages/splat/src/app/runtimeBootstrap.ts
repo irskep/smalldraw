@@ -17,6 +17,7 @@ export async function bootstrapKidsDrawRuntime(options: {
   hasCollaborativeDocumentId(documentId: string): Promise<boolean>;
   onWebsocketConnectedChange(connected: boolean): void;
   documentBackend: KidsDocumentBackend;
+  initialCatalogDocUrlOverride?: string | null;
   preImports: Array<{ binary: Uint8Array; docId: string }>;
   documentSize: DrawingDocumentSize;
   shapeHandlers: ReturnType<typeof createKidsShapeHandlerRegistry>;
@@ -51,6 +52,18 @@ export async function bootstrapKidsDrawRuntime(options: {
     persistence: {
       mode: "reuse",
       getCurrentDocUrl: async () => {
+        if (options.initialCatalogDocUrlOverride !== undefined) {
+          if (!options.initialCatalogDocUrlOverride) {
+            return null;
+          }
+          const summary = await options.documentBackend.getDocument(
+            options.initialCatalogDocUrlOverride,
+          );
+          return resolveDocumentOpenUrl(
+            options.initialCatalogDocUrlOverride,
+            summary,
+          );
+        }
         const currentCatalogDocUrl =
           await options.documentBackend.getCurrentDocument();
         if (!currentCatalogDocUrl) {

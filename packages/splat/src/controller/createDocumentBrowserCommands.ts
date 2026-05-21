@@ -19,7 +19,7 @@ type DocumentPickerControllerLike = {
 
 export function createDocumentBrowserCommands(options: {
   documentPickerController: DocumentPickerControllerLike;
-  getCurrentDocUrl: () => string;
+  getCurrentDocUrl: () => string | null;
   switchToDocument: (docUrl: string) => Promise<void>;
   createNewDocument: (request: NewDocumentRequest) => Promise<void>;
   flushThumbnailSave: () => Promise<void>;
@@ -30,7 +30,6 @@ export function createDocumentBrowserCommands(options: {
   deleteDocument: (docUrl: string) => Promise<void>;
   confirmDelete: () => Promise<boolean>;
   onClaimError?: (message: string) => void;
-  onOpenDocumentError?: (message: string) => void;
   onDocumentOpenRequested?: (
     summary: KidsDocumentSummary | null,
     docUrl: string,
@@ -120,8 +119,11 @@ export function createDocumentBrowserCommands(options: {
       options.documentPickerController
         .getDocuments()
         .find((item) => item.docUrl === docUrl) ?? null;
-    options.onDocumentOpenRequested?.(requestedDocument, docUrl);
     closeDocumentPicker();
+    if (options.onDocumentOpenRequested) {
+      options.onDocumentOpenRequested(requestedDocument, docUrl);
+      return;
+    }
     try {
       await options.switchToDocument(docUrl);
     } catch (error) {
@@ -131,7 +133,6 @@ export function createDocumentBrowserCommands(options: {
         message,
         error,
       });
-      options.onOpenDocumentError?.(message);
     }
   };
 

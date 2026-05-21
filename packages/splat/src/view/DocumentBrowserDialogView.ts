@@ -22,7 +22,7 @@ type DocumentBrowserDialogState = {
   loading: boolean;
   busyDocUrl: string | null;
   removingDocUrl: string | null;
-  currentDocUrl: string;
+  currentDocUrl: string | null;
   documents: KidsDocumentSummary[];
   thumbnailUrlByDocUrl: Map<string, string>;
   claimableDocUrls: Set<string>;
@@ -54,7 +54,7 @@ export interface DocumentBrowserDialogView
   setRemovingDocument(docUrl: string | null): void;
   waitForRemovingDocument(docUrl: string): Promise<void>;
   setDocuments(documents: KidsDocumentSummary[]): void;
-  setCurrentDocument(docUrl: string): void;
+  setCurrentDocument(docUrl: string | null): void;
   setThumbnailUrls(thumbnailUrlByDocUrl: Map<string, string>): void;
   setClaimableDocuments(claimableDocUrls: Set<string>): void;
   setBusyDocument(docUrl: string | null): void;
@@ -264,7 +264,7 @@ export function createDocumentBrowserDialogView(options: {
     loading: false,
     busyDocUrl: null,
     removingDocUrl: null,
-    currentDocUrl: "",
+    currentDocUrl: null,
     documents: [],
     thumbnailUrlByDocUrl: new Map(),
     claimableDocUrls: new Set(),

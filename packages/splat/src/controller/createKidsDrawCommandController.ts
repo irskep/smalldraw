@@ -52,6 +52,7 @@ export function createKidsDrawCommandController(options: {
     dataUrl?: string;
   }) => Promise<boolean>;
   clearConfirmationIcon: IconNode;
+  hasLoadedDocument: () => boolean;
   isDestroyed: () => boolean;
   debugLifecycle: (...args: unknown[]) => void;
 }) {
@@ -197,12 +198,21 @@ export function createKidsDrawCommandController(options: {
 
   return {
     undo(): void {
+      if (!options.hasLoadedDocument()) {
+        return;
+      }
       options.store.undo();
     },
     redo(): void {
+      if (!options.hasLoadedDocument()) {
+        return;
+      }
       options.store.redo();
     },
     clear(): void {
+      if (!options.hasLoadedDocument()) {
+        return;
+      }
       void (async () => {
         const confirmed = await options.confirmDestructiveAction({
           title: "Clear drawing?",
@@ -229,6 +239,9 @@ export function createKidsDrawCommandController(options: {
       })();
     },
     exportAndClose(): void {
+      if (!options.hasLoadedDocument()) {
+        return;
+      }
       void exportDrawing();
     },
     newDrawingAndClose(): void {
@@ -238,6 +251,9 @@ export function createKidsDrawCommandController(options: {
       void options.openDocumentPicker();
     },
     shareAndClose(): void {
+      if (!options.hasLoadedDocument()) {
+        return;
+      }
       void shareCurrentDocument();
     },
     destroy(): void {

@@ -8,6 +8,7 @@ import {
   type ColorPickerSwatch,
   createColorPicker,
 } from "./ColorPicker";
+import { createDocumentAccessState } from "./DocumentAccessState";
 import {
   createDropdownMenu,
   type DropdownMenu,
@@ -69,6 +70,18 @@ type VariantGridPresentation = {
   buttonLayout: IconButtonLayout;
 };
 
+export type SplatContextDocumentSlot =
+  | {
+      type: "document";
+      content: HTMLElement;
+    }
+  | {
+      type: "loading" | "error" | "none";
+      title: string;
+      description: string;
+      message?: string;
+    };
+
 export class SplatContext implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
 
@@ -84,6 +97,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private readonly variantItemsStore: WritableAtom<SplatToolItem[]>;
   private readonly activeVariantIdStore: WritableAtom<string>;
   private readonly variantPresentationStore: WritableAtom<VariantGridPresentation>;
+  private readonly documentSlotStore: WritableAtom<SplatContextDocumentSlot>;
 
   private colorPicker!: ColorPicker;
   private strokePicker!: StrokePicker;
@@ -95,7 +109,6 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private desktopShareButton?: Button;
   private mobileShareButton?: Button;
   private canvasHost?: HTMLDivElement;
-  private canvasContent: HTMLElement | null = null;
 
   private toolGrid?: PagedButtonGrid<SplatToolItem>;
   private mobileToolGrid?: PagedButtonGrid<SplatToolItem>;
@@ -104,6 +117,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   private desktopVariantGrid?: PagedButtonGrid<SplatToolItem>;
   private mobileVariantGrid?: PagedButtonGrid<SplatToolItem>;
+  private documentStateHost?: HTMLDivElement;
 
   constructor(options: SplatContextOptions) {
     this.opts = options;
@@ -115,6 +129,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       largeLayout: options.variantLargeLayout ?? "single-row",
       paginateInLarge: options.paginateVariantsInLarge ?? false,
       buttonLayout: options.variantButtonLayout ?? "large",
+    });
+    this.documentSlotStore = atom({
+      type: "document",
+      content: el("div.ds-splat-context__paper") as HTMLElement,
     });
     this.el = el("div.ds-splat-context__frame") as HTMLDivElement;
     this.scene = el("div.ds-splat-context__scene") as HTMLDivElement;
@@ -222,9 +240,12 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.mobileMenu.setItemDisabled(actionId, disabled);
   }
 
-  setCanvasContent(content: HTMLElement | null): void {
-    this.canvasContent = content;
-    this.syncCanvasContent();
+  setDocumentSlot(slot: SplatContextDocumentSlot): void {
+    const current = this.documentSlotStore.get();
+    if (isSameDocumentSlot(current, slot)) {
+      return;
+    }
+    this.documentSlotStore.set(slot);
   }
 
   syncLayout(): void {
@@ -301,6 +322,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.activeVariantIdStore.subscribe(() => this.syncVariantGrids()),
       this.variantPresentationStore.subscribe(() => {
         this.syncVariantGridPresentation();
+        this.scheduleResizeSync();
+      }),
+      this.documentSlotStore.subscribe(() => {
+        this.rebuild();
         this.scheduleResizeSync();
       }),
     );
@@ -547,13 +572,23 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private buildDesktop(): void {
     this.scene.className =
       "ds-splat-context__scene ds-splat-context__scene--desktop";
+    const documentSlot = this.documentSlotStore.get();
+    if (documentSlot.type !== "document") {
+      this.scene.classList.add("ds-splat-context__scene--no-document");
+      this.scene.append(
+        this.createDesktopMenuTopSlot(),
+        this.createNoDocumentShell(documentSlot),
+      );
+      return;
+    }
+
     this.initToolGrids();
     this.initVariantGrids();
 
     this.scene.append(
       this.createDesktopTopSlot(),
       this.createDesktopLeftSlot(),
-      this.createCanvasShell(),
+      this.createCanvasShell(documentSlot.content),
       this.createDesktopBottomLeftSlot(),
       this.createDesktopBottomSlot(),
     );
@@ -565,12 +600,23 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.scene.className =
       "ds-splat-context__scene ds-splat-context__scene--mobile ds-splat-context__scene--mobile-responsive";
     this.scene.dataset.mobileLayout = layout;
+    const documentSlot = this.documentSlotStore.get();
+    if (documentSlot.type !== "document") {
+      this.scene.classList.add("ds-splat-context__scene--no-document");
+      this.scene.append(
+        this.createMobileMenuTopSection(),
+        this.createNoDocumentShell(documentSlot, true),
+      );
+      this.syncVisibleResponsiveState();
+      return;
+    }
+
     this.initToolGrids();
     this.initVariantGrids();
 
     this.scene.append(
       this.createMobileTopSection(),
-      this.createCanvasShell(true),
+      this.createCanvasShell(documentSlot.content, true),
       this.createMobileBottomSection(),
     );
     this.syncVisibleResponsiveState();
@@ -581,6 +627,14 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "div.ds-splat-context__slot ds-splat-context__slot--top",
     ) as HTMLDivElement;
     top.append(this.createDesktopTopBar().el);
+    return top;
+  }
+
+  private createDesktopMenuTopSlot(): HTMLDivElement {
+    const top = el(
+      "div.ds-splat-context__slot ds-splat-context__slot--top",
+    ) as HTMLDivElement;
+    top.append(this.createDesktopMenuOnlyBar().el);
     return top;
   }
 
@@ -597,6 +651,15 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const topBarMenu = this.createDesktopMenuActions();
 
     topBar.el.append(topBarStart, topBarHistory, topBarMenu);
+    return topBar;
+  }
+
+  private createDesktopMenuOnlyBar() {
+    const topBar = createToolbar({
+      className:
+        "ds-splat-context__top-actions ds-splat-context__top-actions--menu-only",
+    });
+    topBar.el.append(this.createDesktopMenuOnlyActions());
     return topBar;
   }
 
@@ -638,6 +701,13 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     return actions;
   }
 
+  private createDesktopMenuOnlyActions(): HTMLDivElement {
+    return el(
+      "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--menu",
+      this.desktopMenu.el,
+    ) as HTMLDivElement;
+  }
+
   private createDesktopLeftSlot(): HTMLDivElement {
     const left = el(
       "div.ds-splat-context__slot ds-splat-context__slot--left",
@@ -677,6 +747,12 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     return top;
   }
 
+  private createMobileMenuTopSection(): HTMLDivElement {
+    const top = el("div.ds-splat-context__mobile-top") as HTMLDivElement;
+    top.append(this.createMobileMenuOnlyControls());
+    return top;
+  }
+
   private createMobileTopControls(): HTMLDivElement {
     const topControls = el(
       "div.ds-splat-context__mobile-top-controls",
@@ -686,6 +762,13 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.createMobileTrailingActions(),
     ) as HTMLDivElement;
     return topControls;
+  }
+
+  private createMobileMenuOnlyControls(): HTMLDivElement {
+    return el(
+      "div.ds-splat-context__mobile-top-controls ds-splat-context__mobile-top-controls--menu-only",
+      this.mobileMenu.el,
+    ) as HTMLDivElement;
   }
 
   private createMobileInlineToolHost(): HTMLDivElement {
@@ -717,7 +800,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     return bottom;
   }
 
-  private createCanvasShell(mobile = false): HTMLDivElement {
+  private createCanvasShell(content: HTMLElement, mobile = false): HTMLDivElement {
     const canvas = el(
       mobile
         ? "div.ds-splat-context__canvas-shell ds-splat-context__canvas-shell--mobile"
@@ -725,8 +808,25 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     ) as HTMLDivElement;
     this.canvasHost = el("div.ds-splat-context__canvas-host") as HTMLDivElement;
     canvas.append(this.canvasHost);
-    this.syncCanvasContent(mobile);
+    this.canvasHost.replaceChildren(content);
     return canvas;
+  }
+
+  private createNoDocumentShell(
+    slot: Exclude<SplatContextDocumentSlot, { type: "document" }>,
+    mobile = false,
+  ): HTMLDivElement {
+    const shell = el(
+      mobile
+        ? "div.ds-splat-context__no-document-shell ds-splat-context__no-document-shell--mobile"
+        : "div.ds-splat-context__no-document-shell",
+    ) as HTMLDivElement;
+    this.documentStateHost = el(
+      "div.ds-splat-context__no-document-host",
+    ) as HTMLDivElement;
+    this.documentStateHost.append(createDocumentAccessState(slot).el);
+    shell.append(this.documentStateHost);
+    return shell;
   }
 
   private getToolGrids(): PagedButtonGrid<SplatToolItem>[] {
@@ -779,6 +879,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.desktopShareButton = undefined;
     this.mobileShareButton = undefined;
     this.canvasHost = undefined;
+    this.documentStateHost = undefined;
   }
 
   private createActionButton(
@@ -794,20 +895,6 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.opts.onSelectAction?.(actionId);
     });
     return button;
-  }
-
-  private syncCanvasContent(mobile = false): void {
-    if (!this.canvasHost) {
-      return;
-    }
-    this.canvasHost.replaceChildren(
-      this.canvasContent ??
-        el(
-          mobile
-            ? "div.ds-splat-context__paper ds-splat-context__paper--mobile"
-            : "div.ds-splat-context__paper",
-        ),
-    );
   }
 
   private requestAnimationFrame(callback: FrameRequestCallback): number {
@@ -828,4 +915,24 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
 export function createSplatContext(options: SplatContextOptions): SplatContext {
   return new SplatContext(options);
+}
+
+function isSameDocumentSlot(
+  a: SplatContextDocumentSlot,
+  b: SplatContextDocumentSlot,
+): boolean {
+  if (a.type !== b.type) {
+    return false;
+  }
+  if (a.type === "document" && b.type === "document") {
+    return a.content === b.content;
+  }
+  if (a.type !== "document" && b.type !== "document") {
+    return (
+      a.title === b.title &&
+      a.description === b.description &&
+      a.message === b.message
+    );
+  }
+  return false;
 }

@@ -66,7 +66,7 @@ describe("view components", () => {
     );
   });
 
-  test("KidsDrawStage shows degraded copy without hiding the current drawing", () => {
+  test("KidsDrawStage shows degraded loaded-document copy", () => {
     const stage = new KidsDrawStageView({
       width: 640,
       height: 480,
@@ -84,10 +84,11 @@ describe("view components", () => {
     });
 
     expect(stage.startupOverlayTitle.textContent).toBe(
-      "Drawing could not be opened",
+      "Drawing loaded with issues",
     );
     expect(stage.startupOverlayDetail.textContent).toContain(
-      "The previous drawing is still available.",
+      "drawing itself is still available",
     );
   });
+
 });
