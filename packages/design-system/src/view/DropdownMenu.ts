@@ -1,8 +1,8 @@
 import "./DropdownMenu.css";
 
-import { type IconNode } from "lucide";
+import type { IconNode } from "lucide";
 import { el, setChildren } from "redom";
-import { createButton, type Button } from "./Button";
+import { type Button, createButton } from "./Button";
 import { DropdownChrome } from "./DropdownChrome";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";

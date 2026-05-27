@@ -7,7 +7,10 @@ import { createIconButton, type IconButton } from "./SquareIconButton";
 
 export type PagedButtonGridMode = "large" | "medium" | "mobile";
 export type PagedButtonGridOrientation = "horizontal" | "vertical";
-export type PagedButtonGridLargeLayout = "two-row" | "two-row-xlarge" | "single-row";
+export type PagedButtonGridLargeLayout =
+  | "two-row"
+  | "two-row-xlarge"
+  | "single-row";
 
 export interface ButtonGridItemSpec {
   id: string;

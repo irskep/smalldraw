@@ -7,6 +7,7 @@ import type {
 import { getOrderedLayers as getOrderedLayersFromDoc } from "@smalldraw/core";
 import { getColoringPageById } from "../coloring/catalog";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
+import type { NewDocumentRequest } from "../documents/newDocumentRequest";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import {
   getLoadedRasterImage,
@@ -14,7 +15,6 @@ import {
   resolveRasterImageSource,
   warmRasterImage,
 } from "../shapes/rasterImageCache";
-import type { NewDocumentRequest } from "../documents/newDocumentRequest";
 import {
   createCollaborativeUpgradeCoordinator,
   type SharePayload,

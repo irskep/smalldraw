@@ -1,7 +1,7 @@
 import {
   resolveSplatContextLayout,
-  shouldShowMobileShare,
   type SplatContextLayout,
+  shouldShowMobileShare,
 } from "./splatContextLayout";
 
 export type SplatContextResponsiveEffect =

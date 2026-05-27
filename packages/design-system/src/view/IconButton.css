@@ -135,10 +135,7 @@
 /* ---- interaction states ---- */
 
 .ds-icon-button.is-selected {
-  --ds-control-bg-hover: var(
-    --sq-bg-selected,
-    var(--ds-accent-subtle-surface)
-  );
+  --ds-control-bg-hover: var(--sq-bg-selected, var(--ds-accent-subtle-surface));
   background: var(--sq-bg-selected, var(--ds-accent-subtle-surface));
   color: var(--sq-color-selected, var(--gray-10));
   border-color: var(--sq-border-selected, var(--ds-accent-border));

@@ -1,6 +1,6 @@
+import { isDocumentAccessError } from "../app/documentBootstrap";
 import type { KidsDocumentSummary } from "../documents";
 import type { NewDocumentRequest } from "../documents/newDocumentRequest";
-import { isDocumentAccessError } from "../app/documentBootstrap";
 
 type DocumentPickerControllerLike = {
   isOpen(): boolean;

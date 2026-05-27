@@ -4,12 +4,27 @@ export {
   type ButtonTone,
   createButton,
 } from "./view/Button";
-export { CardGrid, createCardGrid, type CardGridOptions } from "./view/CardGrid";
+export {
+  CardGrid,
+  type CardGridOptions,
+  createCardGrid,
+} from "./view/CardGrid";
 export {
   ChoiceCard,
-  createChoiceCard,
   type ChoiceCardOptions,
+  createChoiceCard,
 } from "./view/ChoiceCard";
+export {
+  ColorPicker,
+  type ColorPickerOptions,
+  type ColorPickerSwatch,
+  createColorPicker,
+} from "./view/ColorPicker";
+export {
+  ColorSwatchGrid,
+  type ColorSwatchGridOptions,
+  createColorSwatchGrid,
+} from "./view/ColorSwatchGrid";
 export {
   createDialogScaffold,
   DialogScaffold,
@@ -34,44 +49,24 @@ export {
   type DropdownMenuSeparator,
 } from "./view/DropdownMenu";
 export {
-  ColorPicker,
-  createColorPicker,
-  type ColorPickerOptions,
-  type ColorPickerSwatch,
-} from "./view/ColorPicker";
-export {
-  createColorSwatchGrid,
-  ColorSwatchGrid,
-  type ColorSwatchGridOptions,
-} from "./view/ColorSwatchGrid";
-export {
   createModalDialogView,
   type ModalDialogOptions,
   ModalDialogView,
 } from "./view/ModalDialog";
-export { createPosterCard, PosterCard, type PosterCardOptions } from "./view/PosterCard";
-export { createPreviewCard, PreviewCard } from "./view/PreviewCard";
-export {
-  createSyncIndicator,
-  SyncIndicator,
-  type SyncIndicatorOptions,
-  type SyncIndicatorState,
-} from "./view/SyncIndicator";
 export {
   type ButtonGridItemSpec,
   PagedButtonGrid,
   type PagedButtonGridLargeLayout,
 } from "./view/PagedButtonGrid";
+export {
+  createPosterCard,
+  PosterCard,
+  type PosterCardOptions,
+} from "./view/PosterCard";
+export { createPreviewCard, PreviewCard } from "./view/PreviewCard";
 export type { ReDomLike } from "./view/ReDomLike";
 export { renderIcon } from "./view/renderIcon";
 export { createShareQrDialog, type ShareQrDialog } from "./view/ShareQrDialog";
-export {
-  createIconButton,
-  IconButton,
-  type IconButtonLayout,
-  type IconButtonOptions,
-  type IconButtonSource,
-} from "./view/SquareIconButton";
 export {
   createSplatContext,
   SplatContext,
@@ -79,6 +74,13 @@ export {
   type SplatContextOptions,
   type SplatToolItem,
 } from "./view/SplatContext";
+export {
+  createIconButton,
+  IconButton,
+  type IconButtonLayout,
+  type IconButtonOptions,
+  type IconButtonSource,
+} from "./view/SquareIconButton";
 export {
   createStrokePicker,
   StrokePicker,
@@ -89,6 +91,20 @@ export {
   StrokeWidthGrid,
   type StrokeWidthGridOptions,
 } from "./view/StrokeWidthGrid";
+export {
+  createSyncIndicator,
+  SyncIndicator,
+  type SyncIndicatorOptions,
+  type SyncIndicatorState,
+} from "./view/SyncIndicator";
+export {
+  resolveSplatContextLayout,
+  SPLAT_CONTEXT_DESKTOP_THRESHOLD_PX,
+  SPLAT_CONTEXT_MOBILE_SHARE_THRESHOLD_PX,
+  SPLAT_CONTEXT_SHORT_HEIGHT_THRESHOLD_PX,
+  type SplatContextLayout,
+  shouldShowMobileShare,
+} from "./view/splatContextLayout";
 export {
   createText,
   Text,
@@ -113,11 +129,3 @@ export {
   type ToolbarOptions,
   type ToolbarOrientation,
 } from "./view/toolbar/Toolbar";
-export {
-  resolveSplatContextLayout,
-  shouldShowMobileShare,
-  type SplatContextLayout,
-  SPLAT_CONTEXT_DESKTOP_THRESHOLD_PX,
-  SPLAT_CONTEXT_SHORT_HEIGHT_THRESHOLD_PX,
-  SPLAT_CONTEXT_MOBILE_SHARE_THRESHOLD_PX,
-} from "./view/splatContextLayout";

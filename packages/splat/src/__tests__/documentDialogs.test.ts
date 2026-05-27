@@ -335,5 +335,4 @@ describe("DocumentBrowserDialogView", () => {
     expect(grid?.hidden).toBeFalse();
     expect(loading?.hidden).toBeTrue();
   });
-
 });

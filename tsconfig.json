@@ -13,7 +13,9 @@
     "types": ["bun-types"],
     "jsx": "react",
     "paths": {
-      "@smalldraw/design-system/styles.css": ["./packages/design-system/src/styles.css"],
+      "@smalldraw/design-system/styles.css": [
+        "./packages/design-system/src/styles.css"
+      ],
       "@smalldraw/splat/styles.css": ["./packages/splat/src/main.css"],
       "@smalldraw/design-system": ["./packages/design-system/src/index.ts"],
       "@smalldraw/core": ["./packages/core/src/index.ts"],

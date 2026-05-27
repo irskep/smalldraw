@@ -20,7 +20,9 @@ const handleError = (error: Error, queryClient: QueryClient) => {
   ) {
     queryClient.clear();
 
-    window.location.href = appPath(`login${window.location.pathname !== basePath ? `?redirect=${window.location.pathname}` : ""}`);
+    window.location.href = appPath(
+      `login${window.location.pathname !== basePath ? `?redirect=${window.location.pathname}` : ""}`,
+    );
 
     return true;
   }

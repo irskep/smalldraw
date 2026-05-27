@@ -30,7 +30,11 @@ export function createCollaborationStatusStore() {
   const $syncErrorMessage = atom<string | null>(null);
   const $status = computed(
     [$currentDocument, $websocketConnected, $syncErrorMessage],
-    (currentDocument, websocketConnected, syncErrorMessage): CollaborationStatus => {
+    (
+      currentDocument,
+      websocketConnected,
+      syncErrorMessage,
+    ): CollaborationStatus => {
       if (!isCollaborativeDocument(currentDocument)) {
         return { visible: false };
       }

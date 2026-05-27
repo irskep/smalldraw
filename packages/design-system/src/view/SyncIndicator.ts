@@ -68,7 +68,11 @@ export class SyncIndicator implements ReDomLike<HTMLDivElement> {
       tone: this.tone,
       className: "ds-sync-indicator__text",
     });
-    this.el = el("div.ds-sync-indicator", this.icon, this.text) as HTMLDivElement;
+    this.el = el(
+      "div.ds-sync-indicator",
+      this.icon,
+      this.text,
+    ) as HTMLDivElement;
     this.setState(options.state ?? "unknown", options.description);
   }
 

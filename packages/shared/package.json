@@ -7,7 +7,8 @@
   "types": "src/index.ts",
   "scripts": {
     "ts:check": "tsc -p tsconfig.json --noEmit",
-    "lint": "bunx biome check --write",
+    "lint": "bunx biome check .",
+    "lint:fix": "bunx biome check --write .",
     "test": "bun test --pass-with-no-tests"
   }
 }

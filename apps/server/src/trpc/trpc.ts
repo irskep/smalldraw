@@ -1,10 +1,10 @@
-import { initTRPC, TRPCError } from "@trpc/server";
 import {
   type AppError,
   AppErrorException,
   createAppError,
   getAppError,
 } from "@smalldraw/shared";
+import { initTRPC, TRPCError } from "@trpc/server";
 import type * as trpcExpress from "@trpc/server/adapters/express";
 import { parseSessionKeyFromCookieHeader } from "../auth/sessionCookie.js";
 import { getServerAdminByBasicAuth } from "../db/getServerAdminByBasicAuth.js";

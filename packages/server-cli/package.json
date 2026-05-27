@@ -11,7 +11,8 @@
   "scripts": {
     "cli": "bun run src/index.ts",
     "ts:check": "tsc -p tsconfig.json --noEmit",
-    "lint": "bunx biome check --write",
+    "lint": "bunx biome check .",
+    "lint:fix": "bunx biome check --write .",
     "test": "bun test"
   },
   "dependencies": {

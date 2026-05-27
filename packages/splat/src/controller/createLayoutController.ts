@@ -65,7 +65,7 @@ export class LayoutController {
     return this.currentLayoutProfile;
   }
 
-  applyToolbarLayoutProfile(profile: ResponsiveLayoutProfile): void {
+  applyToolbarLayoutProfile(_profile: ResponsiveLayoutProfile): void {
     this.options.toolbar.syncLayout();
   }
 

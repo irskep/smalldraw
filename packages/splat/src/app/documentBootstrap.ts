@@ -1,12 +1,6 @@
 import type { DocumentId } from "@automerge/automerge-repo";
-import { type AppError, createAppError } from "@smalldraw/shared";
 import type { DrawingDocumentSize } from "@smalldraw/core";
-import type { KidsDrawAppOptions } from "./types";
-import {
-  isMultiplayerApiAuthError,
-  MultiplayerApiError,
-  type MultiplayerApiClient,
-} from "./createMultiplayerApiClient";
+import { type AppError, createAppError } from "@smalldraw/shared";
 import type {
   KidsDocumentBackend,
   KidsDocumentSummary,
@@ -17,6 +11,12 @@ import {
   buildJoinedCatalogDocUrl,
   isCollaborativeDocument,
 } from "../documents";
+import {
+  isMultiplayerApiAuthError,
+  type MultiplayerApiClient,
+  MultiplayerApiError,
+} from "./createMultiplayerApiClient";
+import type { KidsDrawAppOptions } from "./types";
 
 type StartupIntent = NonNullable<
   KidsDrawAppOptions["multiplayer"]

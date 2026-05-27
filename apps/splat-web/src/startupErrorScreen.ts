@@ -1,7 +1,7 @@
 import "./startupErrorScreen.css";
 
-import { isDocumentAccessError } from "@smalldraw/splat";
 import { createDocumentAccessState } from "@smalldraw/design-system";
+import { isDocumentAccessError } from "@smalldraw/splat";
 
 export function renderStartupErrorScreen(
   root: HTMLElement,

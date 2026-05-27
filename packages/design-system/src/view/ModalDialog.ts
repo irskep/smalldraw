@@ -102,7 +102,10 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
       setChildren(this.#icon, []);
       this.#icon.hidden = true;
     }
-    this.#header.classList.toggle("ds-modal-dialog__header--iconless", this.#icon.hidden);
+    this.#header.classList.toggle(
+      "ds-modal-dialog__header--iconless",
+      this.#icon.hidden,
+    );
     this.#scaffold.show();
 
     return await new Promise<boolean>((resolve) => {

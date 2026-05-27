@@ -101,13 +101,15 @@ export function createNewDocumentDialogView(options: {
   const bookSummary = document.createElement("div");
   bookSummary.className = "kids-draw-new-document-dialog__book-summary";
   const bookSummaryImage = document.createElement("img");
-  bookSummaryImage.className = "kids-draw-new-document-dialog__book-summary-image";
+  bookSummaryImage.className =
+    "kids-draw-new-document-dialog__book-summary-image";
   bookSummaryImage.alt = "";
   bookSummaryImage.loading = "eager";
   bookSummaryImage.decoding = "async";
   bookSummaryImage.draggable = false;
   const bookSummaryMeta = document.createElement("div");
-  bookSummaryMeta.className = "kids-draw-new-document-dialog__book-summary-meta";
+  bookSummaryMeta.className =
+    "kids-draw-new-document-dialog__book-summary-meta";
   const bookSummaryTitle = createText({
     tag: "h3",
     text: "",
@@ -261,9 +263,7 @@ export function createNewDocumentDialogView(options: {
       state.selectedVolumeId === null
         ? null
         : (bookById.get(state.selectedVolumeId) ?? null);
-    scaffold.setLeading(
-      selectedBook === null ? null : backButton,
-    );
+    scaffold.setLeading(selectedBook === null ? null : backButton);
     scaffold.setTitle(
       selectedBook === null ? "New Drawing" : selectedBook.title,
     );

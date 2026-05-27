@@ -61,7 +61,9 @@ export function createDocumentPickerStore() {
       nextClaimableDocUrls.delete(docUrl);
       $state.set({
         ...current,
-        documents: current.documents.filter((document) => document.docUrl !== docUrl),
+        documents: current.documents.filter(
+          (document) => document.docUrl !== docUrl,
+        ),
         thumbnailUrlByDocUrl: nextThumbnailUrlByDocUrl,
         claimableDocUrls: nextClaimableDocUrls,
       });

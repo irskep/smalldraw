@@ -180,7 +180,10 @@ export function createKidsDrawRuntimeStore() {
       }
       $activeDocument.set(next);
     },
-    setNoDocument(input: { reason: string; display: DocumentAccessDisplay }): void {
+    setNoDocument(input: {
+      reason: string;
+      display: DocumentAccessDisplay;
+    }): void {
       const next: ActiveDocumentState = {
         type: "none",
         reason: input.reason,
@@ -235,9 +238,7 @@ function isSameActiveDocumentState(
     return false;
   }
   if (a.type === "loading" && b.type === "loading") {
-    return (
-      a.requestedDocUrl === b.requestedDocUrl && a.reason === b.reason
-    );
+    return a.requestedDocUrl === b.requestedDocUrl && a.reason === b.reason;
   }
   if (a.type === "loaded" && b.type === "loaded") {
     return (
@@ -254,8 +255,7 @@ function isSameActiveDocumentState(
   }
   if (a.type === "none" && b.type === "none") {
     return (
-      a.reason === b.reason &&
-      isSameDocumentAccessDisplay(a.display, b.display)
+      a.reason === b.reason && isSameDocumentAccessDisplay(a.display, b.display)
     );
   }
   return false;

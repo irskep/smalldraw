@@ -8,7 +8,10 @@
 
 .ds-stroke-picker__grid {
   display: grid;
-  grid-template-columns: repeat(4, var(--ds-stroke-picker-cell-size, var(--size-px-40x)));
+  grid-template-columns: repeat(
+      4,
+      var(--ds-stroke-picker-cell-size, var(--size-px-40x))
+    );
   gap: var(--size-2);
   justify-content: start;
 }

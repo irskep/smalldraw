@@ -30,6 +30,9 @@
     "ts:check": "bun --filter '*' ts:check",
     "test": "bun --filter '*' test",
     "lint": "bun --filter '*' lint",
-    "format": "bunx biome format --write ."
+    "format": "bun run format:check",
+    "format:check": "bunx biome format .",
+    "format:fix": "bunx biome format --write .",
+    "fix:all": "bun run format:fix && bun --filter '*' lint:fix"
   }
 }

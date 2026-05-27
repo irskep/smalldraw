@@ -1,12 +1,12 @@
-import { createSmalldraw, type DrawingDocumentSize } from "@smalldraw/core";
 import type { SmalldrawCore } from "@smalldraw/core";
+import { createSmalldraw, type DrawingDocumentSize } from "@smalldraw/core";
 import {
   createLocalSmalldrawRepo,
   type KidsDocumentBackend,
   type LocalSmalldrawRepo,
   resolveDocumentOpenUrl,
 } from "../documents";
-import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
+import type { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import { resolveCollaborativeDocumentId } from "./documentBootstrap";
 
 export async function bootstrapKidsDrawRuntime(options: {
@@ -73,7 +73,8 @@ export async function bootstrapKidsDrawRuntime(options: {
           await options.documentBackend.getDocument(currentCatalogDocUrl);
         return resolveDocumentOpenUrl(currentCatalogDocUrl, summary);
       },
-      setCurrentDocUrl: (url) => options.documentBackend.setCurrentDocument(url),
+      setCurrentDocUrl: (url) =>
+        options.documentBackend.setCurrentDocument(url),
     },
     documentSize: options.documentSize,
     shapeHandlers: options.shapeHandlers,

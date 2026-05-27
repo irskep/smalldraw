@@ -17,10 +17,7 @@ export function resolveSplatContextLayout(
   ) {
     return "desktop";
   }
-  if (
-    width > height &&
-    height < SPLAT_CONTEXT_SHORT_HEIGHT_THRESHOLD_PX
-  ) {
+  if (width > height && height < SPLAT_CONTEXT_SHORT_HEIGHT_THRESHOLD_PX) {
     return "mobile-landscape-short";
   }
   return "mobile-standard";

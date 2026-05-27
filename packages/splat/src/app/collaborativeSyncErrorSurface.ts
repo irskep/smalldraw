@@ -51,8 +51,7 @@ export function resolveCollaborativeSyncIssueMessage(
   }
   const { name, message, stack } = normalized;
   const timeoutLike =
-    name === "TimeoutError" ||
-    message.includes("withTimeout: timed out after");
+    name === "TimeoutError" || message.includes("withTimeout: timed out after");
   const syncLike =
     message.includes("beginSync") ||
     stack.includes("beginSync") ||

@@ -70,7 +70,9 @@ describe("Button", () => {
       possibleLabels: ["Copy", "Copied"],
     });
 
-    const reservedLabels = button.el.querySelector(".ds-button__reserved-labels");
+    const reservedLabels = button.el.querySelector(
+      ".ds-button__reserved-labels",
+    );
     const reservedLabelNodes = button.el.querySelectorAll(
       ".ds-button__reserved-label",
     );

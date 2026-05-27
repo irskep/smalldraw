@@ -14,7 +14,8 @@
   -webkit-appearance: none;
   box-sizing: border-box;
   margin: 0;
-  border: var(--ds-control-tile-border-width) solid var(--ds-control-tile-border);
+  border: var(--ds-control-tile-border-width) solid
+    var(--ds-control-tile-border);
   border-radius: var(--radius-2);
   background: var(--ds-control-tile-bg);
   color: var(--ds-control-tile-color);

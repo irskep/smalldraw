@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { viteBundler } from "@vuepress/bundler-vite";
-import { copyCodePlugin } from "@vuepress/plugin-copy-code";
 import { markdownChartPlugin } from "@vuepress/plugin-markdown-chart";
 import type {
   SidebarArrayOptions,
@@ -163,9 +162,6 @@ export default defineUserConfig({
   title: "SmallDraw",
   description: "SmallDraw Documentation",
   plugins: [
-    copyCodePlugin({
-      showInMobile: true,
-    }),
     markdownChartPlugin({
       mermaid: true,
     }),

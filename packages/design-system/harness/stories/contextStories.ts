@@ -6,6 +6,7 @@ import {
   FilePlus,
   FolderOpen,
   Highlighter,
+  type IconNode,
   PaintBucket,
   Pen,
   Redo2,
@@ -14,14 +15,13 @@ import {
   Trash2,
   Type,
   Undo2,
-  type IconNode,
 } from "lucide";
 import { el } from "redom";
 import {
   type ColorPickerSwatch,
   createSplatContext,
-  resolveSplatContextLayout,
   type DropdownMenuEntry,
+  resolveSplatContextLayout,
   type SplatContextLayout,
   type SplatToolItem,
   type SyncIndicatorState,
@@ -106,11 +106,6 @@ const MOBILE_MENU_ENTRIES: DropdownMenuEntry[] = [
 ];
 
 type StorySyncMode = "fixed" | "layout-driven";
-
-function setStoryStatus(status: HTMLOutputElement, value: string): void {
-  status.value = value;
-  status.textContent = value;
-}
 
 function resolveLayoutDrivenSyncState(
   layout: SplatContextLayout,

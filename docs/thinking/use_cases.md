@@ -7,7 +7,7 @@ Smalldraw (to be renamed) is a construction kit for drawing apps.
 - Batteries-included tools that solve the hardest problems so you can focus on the problems in a specific domain
 - Complete UIs so you can just "drop a drawing program" into any web app
 
-My previous forays into this space were Literally Canvas (2012, abandoned) and Browserboard (2020, sold off and now shut down but info possibly still available). The first was a way to write simple single-<canvas> drawing programs, the latter was an infinite whiteboard.
+My previous forays into this space were Literally Canvas (2012, abandoned) and Browserboard (2020, sold off and now shut down but info possibly still available). The first was a way to write simple single-`<canvas>` drawing programs, the latter was an infinite whiteboard.
 
 # Potential use cases and their requirements
 

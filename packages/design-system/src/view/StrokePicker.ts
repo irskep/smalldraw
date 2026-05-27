@@ -1,7 +1,6 @@
 import "./StrokePicker.css";
 
 import { type IconNode, SlidersHorizontal } from "lucide";
-import { el } from "redom";
 import { DropdownChrome } from "./DropdownChrome";
 import type { ReDomLike } from "./ReDomLike";
 import { createIconButton, type IconButton } from "./SquareIconButton";
@@ -94,7 +93,9 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
   setSelectedStrokeWidth(strokeWidth: number): void {
     this.selectedStrokeWidth = strokeWidth;
     this.triggerButton.setIcon(
-      strokeWidth > 0 ? createStrokeTriggerIcon(strokeWidth) : SlidersHorizontal,
+      strokeWidth > 0
+        ? createStrokeTriggerIcon(strokeWidth)
+        : SlidersHorizontal,
     );
     this.strokeWidthGrid.setSelectedStrokeWidth(strokeWidth);
   }

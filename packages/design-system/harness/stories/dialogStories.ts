@@ -1,10 +1,4 @@
-import {
-  AlertTriangle,
-  ArrowLeft,
-  KeyRound,
-  Trash2,
-  X,
-} from "lucide";
+import { AlertTriangle, ArrowLeft, KeyRound, Trash2, X } from "lucide";
 import { el, mount } from "redom";
 import {
   Button,
@@ -171,7 +165,8 @@ export const dialogStories: HarnessStory[] = [
   {
     id: "dialog-scaffold",
     title: "Dialog Scaffold",
-    description: "Shared dialog foundation with centered header and large body.",
+    description:
+      "Shared dialog foundation with centered header and large body.",
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
       const status = el(
@@ -318,9 +313,7 @@ export const dialogStories: HarnessStory[] = [
         "div.ds-dialog-story__body.ds-dialog-story__body--compact",
       ) as HTMLDivElement;
 
-      const rootView = el(
-        "section.ds-dialog-story__section",
-      ) as HTMLElement;
+      const rootView = el("section.ds-dialog-story__section") as HTMLElement;
       const blankCard = createChoiceCard({
         title: "Blank Drawing",
         subtitle: "Start with an empty page",
@@ -360,9 +353,7 @@ export const dialogStories: HarnessStory[] = [
       bookGrid.setItems(bookCards);
       rootView.append(blankCard.el, booksHeading.el, booksCopy.el, bookGrid.el);
 
-      const pageView = el(
-        "section.ds-dialog-story__section",
-      ) as HTMLElement;
+      const pageView = el("section.ds-dialog-story__section") as HTMLElement;
       const bookSummary = el("div.ds-dialog-story__summary") as HTMLDivElement;
       const bookSummaryCover = el(
         "div.ds-dialog-story__summary-cover",
@@ -402,12 +393,7 @@ export const dialogStories: HarnessStory[] = [
         itemMinWidth: "8.5rem",
         ariaLabel: "Coloring pages",
       });
-      pageView.append(
-        bookSummary,
-        pagesHeading.el,
-        pagesCopy.el,
-        pageGrid.el,
-      );
+      pageView.append(bookSummary, pagesHeading.el, pagesCopy.el, pageGrid.el);
 
       body.append(rootView, pageView);
       scaffold.setBody(body);
@@ -416,7 +402,8 @@ export const dialogStories: HarnessStory[] = [
         const selectedBook =
           selectedBookId === null
             ? null
-            : (MOCK_COLORING_BOOKS.find((book) => book.id === selectedBookId) ?? null);
+            : (MOCK_COLORING_BOOKS.find((book) => book.id === selectedBookId) ??
+              null);
         scaffold.setLeading(selectedBook ? backButton : null);
         scaffold.setTitle(selectedBook ? selectedBook.title : "New Drawing");
         scaffold.setSubtitle(
@@ -495,7 +482,8 @@ export const dialogStories: HarnessStory[] = [
   {
     id: "preview-card",
     title: "Preview Card",
-    description: "Large media preview card used for long-press document previews.",
+    description:
+      "Large media preview card used for long-press document previews.",
     mount: (container) => {
       const canvas = el("div.ds-story-stack") as HTMLDivElement;
       const card = createPreviewCard();

@@ -7,11 +7,11 @@ import type {
   KidsToolFamilyConfig,
   ToolbarItem,
 } from "../tools/kidsTools";
+import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 import {
   resolveNearestStrokeWidthOption,
   TOOLBAR_STROKE_WIDTH_OPTIONS,
 } from "../ui/toolbarPresentation";
-import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 
 export type VariantGridPresentation = {
   largeLayout: PagedButtonGridLargeLayout;
@@ -56,7 +56,9 @@ export function createToolbarProjectionModel(options: {
   families: KidsToolFamilyConfig[];
   sidebarItems: ToolbarItem[];
 }): ToolbarProjectionModel {
-  const toolById = new Map(options.tools.map((tool) => [tool.id, tool] as const));
+  const toolById = new Map(
+    options.tools.map((tool) => [tool.id, tool] as const),
+  );
   const fallbackFamilyId = options.families[0]?.id ?? "";
   const fallbackToolId =
     options.tools[0]?.id ?? options.families[0]?.defaultToolId ?? "";
@@ -74,7 +76,11 @@ export function createToolbarProjectionModel(options: {
       options.families,
       toolById,
     ),
-    toolItems: createToolItems(options.sidebarItems, options.families, toolById),
+    toolItems: createToolItems(
+      options.sidebarItems,
+      options.families,
+      toolById,
+    ),
   };
 }
 
@@ -86,13 +92,18 @@ export function resolveToolbarPresentationState(options: {
     options.state.activeToolId,
     options.model,
   );
-  const activeFamilyId = resolveToolPresentation(activeToolId, options.model)
-    .familyId;
+  const activeFamilyId = resolveToolPresentation(
+    activeToolId,
+    options.model,
+  ).familyId;
   return {
     activeToolId,
     activeSidebarItemId: resolveToolPresentation(activeToolId, options.model)
       .activeSidebarItemId,
-    familyPresentation: resolveFamilyPresentation(activeFamilyId, options.model),
+    familyPresentation: resolveFamilyPresentation(
+      activeFamilyId,
+      options.model,
+    ),
     selectedStrokeWidth: resolveNearestStrokeWidthOption(
       options.state.strokeWidth,
       TOOLBAR_STROKE_WIDTH_OPTIONS,
@@ -217,7 +228,9 @@ function createToolPresentationById(
   families: KidsToolFamilyConfig[],
   toolById: ReadonlyMap<string, KidsToolConfig>,
 ): Map<string, ToolPresentation> {
-  const familyById = new Map(families.map((family) => [family.id, family] as const));
+  const familyById = new Map(
+    families.map((family) => [family.id, family] as const),
+  );
   const presentationByToolId = new Map<string, ToolPresentation>();
 
   for (const item of sidebarItems) {

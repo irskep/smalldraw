@@ -55,7 +55,9 @@
   align-items: center;
   justify-content: center;
   min-height: calc(
-    var(--font-size-button-md) + (var(--space-control-gap-md) * 2) + (var(--border-size-1) * 2)
+    var(--font-size-button-md) +
+    (var(--space-control-gap-md) * 2) +
+    (var(--border-size-1) * 2)
   );
   padding: var(--space-control-gap-md) var(--size-px-3);
   border: var(--border-size-1) solid var(--gray-5);

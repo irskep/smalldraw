@@ -3,7 +3,11 @@ import { basePath } from "@/config";
 import { trpc } from "@/utils/trpc";
 
 const getSafeRedirectTarget = (redirect?: string) => {
-  if (!redirect || redirect.endsWith("/login") || redirect.endsWith("/register")) {
+  if (
+    !redirect ||
+    redirect.endsWith("/login") ||
+    redirect.endsWith("/register")
+  ) {
     return basePath;
   }
 

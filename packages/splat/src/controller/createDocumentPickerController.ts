@@ -26,7 +26,8 @@ export class DocumentPickerController {
     },
   ) {
     this.unsubscribeStore = bindAtom(this.state.$state, (state) => {
-      const { browserDialog, newDocumentDialog, getCurrentDocUrl } = this.options;
+      const { browserDialog, newDocumentDialog, getCurrentDocUrl } =
+        this.options;
       const currentDocUrl = getCurrentDocUrl();
       const previous = this.previousBrowserViewState;
       if (!previous || previous.loading !== state.loading) {
@@ -41,7 +42,10 @@ export class DocumentPickerController {
       if (!previous || previous.documents !== state.documents) {
         browserDialog.setDocuments(state.documents);
       }
-      if (!previous || previous.thumbnailUrlByDocUrl !== state.thumbnailUrlByDocUrl) {
+      if (
+        !previous ||
+        previous.thumbnailUrlByDocUrl !== state.thumbnailUrlByDocUrl
+      ) {
         browserDialog.setThumbnailUrls(state.thumbnailUrlByDocUrl);
       }
       if (!previous || previous.claimableDocUrls !== state.claimableDocUrls) {
@@ -189,7 +193,10 @@ export class DocumentPickerController {
     const previousThumbnailUrlByDocUrl = this.state.get().thumbnailUrlByDocUrl;
     this.state.setThumbnailUrls(nextThumbnailUrlByDocUrl);
     for (const [docUrl, url] of previousThumbnailUrlByDocUrl) {
-      if (url.startsWith("blob:") && nextThumbnailUrlByDocUrl.get(docUrl) !== url) {
+      if (
+        url.startsWith("blob:") &&
+        nextThumbnailUrlByDocUrl.get(docUrl) !== url
+      ) {
         URL.revokeObjectURL(url);
       }
     }

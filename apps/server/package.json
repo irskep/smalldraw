@@ -3,10 +3,11 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
-    "build": "bun build src/index.ts --outdir dist --target node",
+    "build": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js",
     "test": "bun test",
-    "lint": "bunx biome check --write",
+    "lint": "bunx biome check .",
+    "lint:fix": "bunx biome check --write .",
     "ts:check": "tsc --noEmit"
   },
   "dependencies": {

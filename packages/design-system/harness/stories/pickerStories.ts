@@ -1,8 +1,5 @@
 import { el } from "redom";
-import {
-  createColorSwatchGrid,
-  createStrokeWidthGrid,
-} from "../../src";
+import { createColorSwatchGrid, createStrokeWidthGrid } from "../../src";
 import type { HarnessStory } from "./types";
 
 const DEMO_COLORS = [

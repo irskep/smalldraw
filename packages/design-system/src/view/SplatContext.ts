@@ -14,8 +14,10 @@ import {
   type DropdownMenu,
   type DropdownMenuEntry,
 } from "./DropdownMenu";
+import type { PagedButtonGridLargeLayout } from "./PagedButtonGrid";
 import { type ButtonGridItemSpec, PagedButtonGrid } from "./PagedButtonGrid";
 import type { ReDomLike } from "./ReDomLike";
+import { SplatContextResponsiveController } from "./SplatContextResponsiveController";
 import {
   createIconButton,
   type IconButton,
@@ -28,11 +30,8 @@ import {
   type SyncIndicator,
   type SyncIndicatorState,
 } from "./SyncIndicator";
-import type { SplatContextLayout } from "./splatContextLayout";
-import { SplatContextResponsiveController } from "./SplatContextResponsiveController";
 import { ToolPickerPopover } from "./ToolPickerPopover";
 import { createToolbar } from "./toolbar/Toolbar";
-import type { PagedButtonGridLargeLayout } from "./PagedButtonGrid";
 
 export interface SplatToolItem extends ButtonGridItemSpec {
   label: string;
@@ -63,7 +62,6 @@ export interface SplatContextOptions {
   onSelectAction?: (actionId: string) => void;
 }
 
-type Layout = SplatContextLayout;
 type VariantGridPresentation = {
   largeLayout: PagedButtonGridLargeLayout;
   paginateInLarge: boolean;
@@ -717,7 +715,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const leftControls = el(
       "div.ds-splat-context__left-controls",
     ) as HTMLDivElement;
-    leftRail.el.append(leftControls, this.toolGrid!.el);
+    leftRail.el.append(leftControls, requireView(this.toolGrid, "toolGrid").el);
     left.append(leftRail.el);
     return left;
   }
@@ -732,7 +730,9 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const bottom = el(
       "div.ds-splat-context__slot ds-splat-context__slot--bottom",
     ) as HTMLDivElement;
-    bottom.append(this.desktopVariantGrid!.el);
+    bottom.append(
+      requireView(this.desktopVariantGrid, "desktopVariantGrid").el,
+    );
     return bottom;
   }
 
@@ -756,7 +756,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "div.ds-splat-context__mobile-top-controls",
       this.colorPicker.el,
       this.strokePicker.el,
-      this.mobileToolPicker!.el,
+      requireView(this.mobileToolPicker, "mobileToolPicker").el,
       this.createMobileTrailingActions(),
     ) as HTMLDivElement;
     return topControls;
@@ -773,7 +773,9 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const inlineToolHost = el(
       "div.ds-splat-context__mobile-tool-inline-host",
     ) as HTMLDivElement;
-    inlineToolHost.append(this.mobileToolGrid!.el);
+    inlineToolHost.append(
+      requireView(this.mobileToolGrid, "mobileToolGrid").el,
+    );
     return inlineToolHost;
   }
 
@@ -794,7 +796,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   private createMobileBottomSection(): HTMLDivElement {
     const bottom = el("div.ds-splat-context__mobile-bottom") as HTMLDivElement;
-    bottom.append(this.mobileVariantGrid!.el);
+    bottom.append(requireView(this.mobileVariantGrid, "mobileVariantGrid").el);
     return bottom;
   }
 
@@ -916,6 +918,16 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
 export function createSplatContext(options: SplatContextOptions): SplatContext {
   return new SplatContext(options);
+}
+
+function requireView<T extends ReDomLike<HTMLElement>>(
+  view: T | undefined,
+  name: string,
+): T {
+  if (view === undefined) {
+    throw new Error(`Expected ${name} to be initialized for this layout`);
+  }
+  return view;
 }
 
 function isSameDocumentSlot(

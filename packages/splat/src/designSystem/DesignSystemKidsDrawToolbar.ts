@@ -5,7 +5,6 @@ import {
   type SplatContext,
   type SplatContextDocumentSlot,
 } from "@smalldraw/design-system";
-import type { ReadableAtom } from "nanostores";
 import {
   Download,
   FilePlus,
@@ -15,23 +14,23 @@ import {
   Trash2,
   Undo2,
 } from "lucide";
+import type { ReadableAtom } from "nanostores";
 import type { KidsDrawUiIntent } from "../controller/KidsDrawUiIntent";
-import type { UiIntentStore } from "../controller/stores/createUiIntentStore";
 import type { CollaborationStatus } from "../controller/stores/createCollaborationStatusStore";
+import type { UiIntentStore } from "../controller/stores/createUiIntentStore";
 import type {
   KidsToolConfig,
   KidsToolFamilyConfig,
   ToolbarItem,
 } from "../tools/kidsTools";
+import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 import {
   TOOLBAR_COLOR_SWATCHES,
   TOOLBAR_STROKE_WIDTH_OPTIONS,
 } from "../ui/toolbarPresentation";
-import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 import {
   createToolbarProjectionModel,
-  resolveActiveToolId,
   resolveFamilyPresentation,
   resolveToolbarPresentationState,
   resolveToolPresentation,
@@ -105,8 +104,7 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
       ...resolveFamilyPresentation(
         this.projectionModel.fallbackFamilyId,
         this.projectionModel,
-      )
-        .variantGridPresentation,
+      ).variantGridPresentation,
       colors: TOOLBAR_COLOR_SWATCHES.map((swatch) => ({
         color: swatch.value,
         label: swatch.label,
@@ -148,7 +146,10 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
   }
 
   setCollaborationStatus(status: CollaborationStatus): void {
-    this.context.setSyncState(resolveSyncState(status), status.visible ? status.message : undefined);
+    this.context.setSyncState(
+      resolveSyncState(status),
+      status.visible ? status.message : undefined,
+    );
   }
 
   syncLayout(): void {
@@ -183,8 +184,14 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
     this.context.setStrokePickerDisabled(
       !state.hasLoadedDocument || !state.supportsStrokeWidth,
     );
-    this.context.setActionDisabled("undo", !state.hasLoadedDocument || !state.canUndo);
-    this.context.setActionDisabled("redo", !state.hasLoadedDocument || !state.canRedo);
+    this.context.setActionDisabled(
+      "undo",
+      !state.hasLoadedDocument || !state.canUndo,
+    );
+    this.context.setActionDisabled(
+      "redo",
+      !state.hasLoadedDocument || !state.canRedo,
+    );
     this.context.setActionDisabled("new-drawing", state.newDrawingPending);
     this.context.setActionDisabled("export", !state.hasLoadedDocument);
     this.context.setActionDisabled("clear", !state.hasLoadedDocument);
@@ -236,9 +243,7 @@ function resolveSyncState(status: CollaborationStatus): SyncIndicatorState {
   return "synced-to-server-but-offline";
 }
 
-function toUiActionIntent(
-  actionId: string,
-): Extract<
+function toUiActionIntent(actionId: string): Extract<
   KidsDrawUiIntent,
   {
     type:

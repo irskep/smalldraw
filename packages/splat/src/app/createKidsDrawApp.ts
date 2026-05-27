@@ -4,18 +4,19 @@ import type { SplatContextDocumentSlot } from "@smalldraw/design-system";
 import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
 import { createQrCodeDataUrl } from "../controller/createQrCodeDataUrl";
 import { createKidsDrawController } from "../controller/KidsDrawController";
-import { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
+import type { KidsDrawUiIntent } from "../controller/KidsDrawUiIntent";
+import type { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
 import type { UiIntentStore } from "../controller/stores/createUiIntentStore";
 import type { KidsDocumentSummary } from "../documents";
 import {
-  createCollaborativeDocumentIndex,
+  type createCollaborativeDocumentIndex,
   isCollaborativeDocument,
   type KidsDocumentBackend,
   resolveJoinBaseUrl,
 } from "../documents";
+import { resolvePageSize } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
-import { resolvePageSize } from "../layout/responsiveLayout";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import { configureRasterImageSourceResolver } from "../shapes/rasterImageCache";
 import {
@@ -26,23 +27,19 @@ import {
 import { warmImageStampAssets } from "../tools/stamps/imageStampAssets";
 import { getImageStampAssets } from "../tools/stamps/imageStampCatalog";
 import { createToolbarUiStore } from "../ui/stores/toolbarUiStore";
-import { type MultiplayerApiClient } from "./createMultiplayerApiClient";
+import {
+  bindCollaborativeSyncErrorSurface,
+  isSyncIssueShareMessage,
+} from "./collaborativeSyncErrorSurface";
+import type { MultiplayerApiClient } from "./createMultiplayerApiClient";
 import {
   resolveCollaborativeDocumentId,
   updateRepoWebsocketAuthorization,
 } from "./documentBootstrap";
 import { installMobileGestureGuards } from "./installMobileGestureGuards";
-import {
-  createPresentationRuntime,
-  type ConfirmDialogViewLike,
-} from "./presentationRuntime";
-import {
-  bindCollaborativeSyncErrorSurface,
-  isSyncIssueShareMessage,
-} from "./collaborativeSyncErrorSurface";
-import { bootstrapKidsDrawRuntime } from "./runtimeBootstrap";
-import { assembleAppRuntime } from "./runtimeAssembly";
-import type { KidsDrawUiIntent } from "../controller/KidsDrawUiIntent";
+import { createPresentationRuntime } from "./presentationRuntime";
+import { type AppRuntimeAssembly, assembleAppRuntime } from "./runtimeAssembly";
+import type { bootstrapKidsDrawRuntime } from "./runtimeBootstrap";
 import type {
   KidsDrawApp,
   KidsDrawAppCommands,
@@ -81,7 +78,7 @@ export async function createKidsDrawApp(
   presentation.stage.setInteractionEnabled(false);
   presentation.toolbar.setDocumentSlot(describeInitialBlockingState(options));
 
-  let runtime;
+  let runtime: AppRuntimeAssembly;
   try {
     runtime = await assembleAppRuntime(options, {
       shapeHandlers: provisionalShapeHandlers,

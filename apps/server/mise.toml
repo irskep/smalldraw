@@ -1,8 +1,26 @@
 [tasks.test]
-run = "bun test --only-failures"
+run = "bun run test"
 
 [tasks.lint]
 run = "bun run lint"
 
+[tasks."lint:fix"]
+run = "bun run lint:fix"
+
 [tasks."ts:check"]
 run = "bun run ts:check"
+
+[tasks.build]
+run = "bun run build"
+
+[tasks."localci:typecheck"]
+run = "bun run ts:check"
+
+[tasks."localci:lint"]
+run = "bun run lint"
+
+[tasks."localci:test"]
+run = "bun run test"
+
+[tasks."localci:build"]
+run = "bun run build"

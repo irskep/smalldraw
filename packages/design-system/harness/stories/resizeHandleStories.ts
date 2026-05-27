@@ -27,10 +27,7 @@ export const resizeHandleStories: HarnessStory[] = [
 
       const resizer = createResizeHandle();
 
-      stack.append(
-        el("h2.ds-story-heading", "Basic"),
-        resizer.wrap(box),
-      );
+      stack.append(el("h2.ds-story-heading", "Basic"), resizer.wrap(box));
       container.replaceChildren(stack);
     },
   },

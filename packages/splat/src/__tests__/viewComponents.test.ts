@@ -90,5 +90,4 @@ describe("view components", () => {
       "drawing itself is still available",
     );
   });
-
 });

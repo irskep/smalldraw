@@ -1,5 +1,4 @@
 import type { DrawingStore } from "@smalldraw/core";
-import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { CursorOverlayController } from "./createCursorOverlayController";
 import type { InputSessionController } from "./createInputSessionController";
 import type { ToolbarStateController } from "./createToolbarStateController";

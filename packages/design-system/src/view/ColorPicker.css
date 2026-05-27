@@ -8,7 +8,10 @@
 
 .ds-color-picker__grid {
   display: grid;
-  grid-template-columns: repeat(6, var(--ds-color-picker-swatch-size, var(--size-px-40x)));
+  grid-template-columns: repeat(
+      6,
+      var(--ds-color-picker-swatch-size, var(--size-px-40x))
+    );
   gap: var(--size-2);
   justify-content: start;
 }

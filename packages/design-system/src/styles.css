@@ -692,9 +692,7 @@ body {
 }
 
 .ds-splat-context__variant-strip {
-  --ds-button-grid-cell-size: var(
-    --ds-splat-context-toolbar-bottom-cell-size
-  );
+  --ds-button-grid-cell-size: var(--ds-splat-context-toolbar-bottom-cell-size);
 }
 
 .ds-splat-context__variant-strip[data-button-layout="small"] {

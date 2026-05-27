@@ -3,8 +3,8 @@ import "./DialogScaffold.css";
 
 import { setChildren } from "redom";
 import type { ReDomLike } from "./ReDomLike";
+import { type ReDomChild, toReDomChildren } from "./redomChildren";
 import { Text } from "./Text";
-import { toReDomChildren, type ReDomChild } from "./redomChildren";
 
 const DIALOG_CLOSE_ANIMATION_MS = 220;
 
@@ -265,7 +265,8 @@ export class DialogScaffold implements ReDomLike<HTMLDivElement> {
     const hasSubtitle = !this.#subtitle.el.hidden;
     const hasLeading = !this.#leading.hidden;
     const hasTrailing = !this.#trailing.hidden;
-    this.#header.hidden = !hasTitle && !hasSubtitle && !hasLeading && !hasTrailing;
+    this.#header.hidden =
+      !hasTitle && !hasSubtitle && !hasLeading && !hasTrailing;
   }
 }
 

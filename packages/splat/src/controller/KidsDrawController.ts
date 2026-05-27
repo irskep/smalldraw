@@ -47,8 +47,8 @@ import type {
   CollaborationStatusStore,
 } from "./stores/createCollaborationStatusStore";
 import {
-  createKidsDrawRuntimeStore,
   type ActiveDocumentState,
+  createKidsDrawRuntimeStore,
   type DocumentAccessDisplay,
 } from "./stores/createKidsDrawRuntimeStore";
 import { createStartupReadinessStore } from "./stores/createStartupReadinessStore";

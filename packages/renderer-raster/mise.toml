@@ -6,3 +6,21 @@ run = "bun run ts:check"
 
 [tasks.lint]
 run = "bun run lint"
+
+[tasks."lint:fix"]
+run = "bun run lint:fix"
+
+[tasks.build]
+run = "bun run build"
+
+[tasks."localci:typecheck"]
+run = "bun run ts:check"
+
+[tasks."localci:lint"]
+run = "bun run lint"
+
+[tasks."localci:test"]
+run = "bun run test"
+
+[tasks."localci:build"]
+run = "bun run build"

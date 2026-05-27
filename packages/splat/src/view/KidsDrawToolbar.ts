@@ -1,5 +1,5 @@
-import type { ReadableAtom } from "nanostores";
 import type { SplatContextDocumentSlot } from "@smalldraw/design-system";
+import type { ReadableAtom } from "nanostores";
 import type { CollaborationStatus } from "../controller/stores/createCollaborationStatusStore";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 

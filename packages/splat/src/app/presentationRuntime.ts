@@ -5,12 +5,12 @@ import {
 } from "@smalldraw/design-system";
 import { el, mount, unmount } from "redom";
 import { createUiIntentStore } from "../controller/stores/createUiIntentStore";
+import { DesignSystemKidsDrawToolbarView } from "../designSystem/DesignSystemKidsDrawToolbar";
 import type {
   KidsToolConfig,
   KidsToolFamilyConfig,
   ToolbarItem,
 } from "../tools/kidsTools";
-import { DesignSystemKidsDrawToolbarView } from "../designSystem/DesignSystemKidsDrawToolbar";
 import { KidsDrawStageView } from "../view/KidsDrawStage";
 import type { KidsDrawToolbar } from "../view/KidsDrawToolbar";
 
@@ -61,7 +61,8 @@ export function createPresentationRuntime(options: {
     backgroundColor: options.backgroundColor,
     uiIntentStore,
   });
-  const modalDialog: ConfirmDialogViewLike = createDesignSystemModalDialogView();
+  const modalDialog: ConfirmDialogViewLike =
+    createDesignSystemModalDialogView();
   const shareQrDialog: ShareQrDialog = createDesignSystemShareQrDialog();
 
   toolbar.setCanvasContent(stage.element);

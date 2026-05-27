@@ -3,3 +3,6 @@ run = "bun run dev"
 
 [tasks.build]
 run = "bun run build"
+
+[tasks."localci:build"]
+run = "bun run build"

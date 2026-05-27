@@ -1,8 +1,8 @@
 import "./ColorPicker.css";
 
 import { el, setChildren } from "redom";
-import type { ReDomLike } from "./ReDomLike";
 import type { ColorPickerSwatch } from "./ColorPicker";
+import type { ReDomLike } from "./ReDomLike";
 
 export interface ColorSwatchGridOptions {
   colors?: readonly ColorPickerSwatch[];
@@ -53,9 +53,13 @@ export class ColorSwatchGrid implements ReDomLike<HTMLDivElement> {
 
   setSelectedColor(color: string): void {
     this.selectedColor = color;
-    for (const swatch of Array.from(this.el.querySelectorAll(".ds-color-picker__swatch"))) {
-      const selected = swatch instanceof HTMLElement &&
-        swatch.style.getPropertyValue("--ds-color-picker-swatch-color") === color;
+    for (const swatch of Array.from(
+      this.el.querySelectorAll(".ds-color-picker__swatch"),
+    )) {
+      const selected =
+        swatch instanceof HTMLElement &&
+        swatch.style.getPropertyValue("--ds-color-picker-swatch-color") ===
+          color;
       if (swatch instanceof HTMLElement) {
         swatch.dataset.selected = selected ? "true" : "false";
         swatch.setAttribute("aria-checked", selected ? "true" : "false");

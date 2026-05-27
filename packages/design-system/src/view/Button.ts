@@ -36,10 +36,9 @@ export class Button implements ReDomLike<HTMLButtonElement> {
       kind: "label",
       className: "ds-button__label",
     });
-    this.reservedLabelsElement = el(
-      "span.ds-button__reserved-labels",
-      { "aria-hidden": "true" },
-    ) as HTMLSpanElement;
+    this.reservedLabelsElement = el("span.ds-button__reserved-labels", {
+      "aria-hidden": "true",
+    }) as HTMLSpanElement;
     this.labelContainerElement = el(
       "span.ds-button__label-container",
       this.labelText,
@@ -110,13 +109,14 @@ export class Button implements ReDomLike<HTMLButtonElement> {
       return;
     }
 
-    const reservedLabels = labels.map((label) =>
-      new Text({
-        tag: "span",
-        text: label,
-        kind: "label",
-        className: "ds-button__reserved-label",
-      }),
+    const reservedLabels = labels.map(
+      (label) =>
+        new Text({
+          tag: "span",
+          text: label,
+          kind: "label",
+          className: "ds-button__reserved-label",
+        }),
     );
     setChildren(this.reservedLabelsElement, reservedLabels);
     this.reservedLabelsElement.hidden = false;

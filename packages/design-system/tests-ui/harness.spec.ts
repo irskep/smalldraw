@@ -58,6 +58,7 @@ test("renders the no-document splat context story with right-aligned menu and ce
 
   await expect(scene).toBeVisible();
   await expect(menuButton).toBeVisible();
+  await expect(accessState).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Could not open drawing" }).first(),
   ).toBeVisible();
@@ -96,17 +97,18 @@ test("renders the no-document splat context story with right-aligned menu and ce
     };
   });
 
-  expect(layout).not.toBeNull();
-  expect(layout!.menuCenterX).toBeGreaterThan(
-    layout!.sceneLeft + layout!.sceneWidth * 0.7,
+  if (layout === null) {
+    throw new Error("Expected no-document layout metrics");
+  }
+
+  expect(layout.menuCenterX).toBeGreaterThan(
+    layout.sceneLeft + layout.sceneWidth * 0.7,
   );
   expect(
-    Math.abs(
-      layout!.cardCenterX - (layout!.sceneLeft + layout!.sceneWidth / 2),
-    ),
+    Math.abs(layout.cardCenterX - (layout.sceneLeft + layout.sceneWidth / 2)),
   ).toBeLessThanOrEqual(24);
   expect(
-    Math.abs(layout!.cardCenterY - layout!.contentCenterY),
+    Math.abs(layout.cardCenterY - layout.contentCenterY),
   ).toBeLessThanOrEqual(32);
 });
 

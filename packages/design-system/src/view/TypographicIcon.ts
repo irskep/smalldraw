@@ -11,9 +11,7 @@ export interface TypographicIconOptions {
   attributes?: Record<string, string>;
 }
 
-export class TypographicIcon
-  implements ReDomLike<HTMLSpanElement>
-{
+export class TypographicIcon implements ReDomLike<HTMLSpanElement> {
   readonly el: HTMLSpanElement;
   private svg: SVGSVGElement;
 

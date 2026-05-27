@@ -8,11 +8,7 @@ run = "bun run lint"
 run = "bun run lint:fix"
 
 [tasks.test]
-env = { VITE_API_URL = "http://localhost:3030/api/v1" }
 run = "bun run test"
-
-[tasks.build]
-run = "bun run build"
 
 [tasks."localci:typecheck"]
 run = "bun run ts:check"
@@ -21,8 +17,4 @@ run = "bun run ts:check"
 run = "bun run lint"
 
 [tasks."localci:test"]
-env = { VITE_API_URL = "http://localhost:3030/api/v1" }
 run = "bun run test"
-
-[tasks."localci:build"]
-run = "bun run build"

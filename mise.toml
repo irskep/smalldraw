@@ -8,9 +8,12 @@ config_roots = [
   "apps/splat-desktop",
   "apps/splat-web",
   "packages/core",
+  "packages/design-system",
   "packages/geometry",
   "packages/renderer-canvas",
   "packages/renderer-raster",
+  "packages/server-cli",
+  "packages/shared",
   "packages/splat",
   "packages/testing",
 ]
@@ -32,29 +35,6 @@ run = [
   "mise install",
   "bun install --frozen-lockfile",
 ]
-
-[tasks."localci:typecheck"]
-description = "Run the full workspace TypeScript check for LocalCI"
-run = """
-set -eu
-out="${LOCALCI_TASK_OUTPUT_DIR:-/tmp/smalldraw-localci/typecheck}"
-mkdir -p "$out"
-log="$out/typecheck.log"
-printf 'writing typecheck log to %s\\n' "$log"
-bun run ts:check >"$log" 2>&1
-"""
-
-[tasks."localci:test"]
-description = "Run the full workspace test suite for LocalCI"
-env = { VITE_API_URL = "http://localhost:3030/api/v1" }
-run = """
-set -eu
-out="${LOCALCI_TASK_OUTPUT_DIR:-/tmp/smalldraw-localci/test}"
-mkdir -p "$out"
-log="$out/test.log"
-printf 'writing test log to %s\\n' "$log"
-bun run test >"$log" 2>&1
-"""
 
 [tasks."db:push"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
@@ -155,34 +135,56 @@ run = "bunx drizzle-kit push"
 
 [tasks."ts:check:all"]
 alias = ["typecheck"]
-# Run all ts:check tasks across the monorepo using wildcard pattern
-# also lint just so there's one easy command to run
 run = [
   "mise run '//packages/...:ts:check'",
   "mise run '//apps/...:ts:check'",
-  'mise run lint:all',
 ]
 
 [tasks."lint:all"]
 run = ["mise run '//packages/...:lint'", "mise run '//apps/...:lint'"]
 
-[tasks."format:all"]
-alias = ["format"]
-run = "bun run format"
+[tasks."lint:fix:all"]
+run = ["mise run '//packages/...:lint:fix'", "mise run '//apps/...:lint:fix'"]
+
+[tasks."format:check"]
+run = "bun run format:check"
+
+[tasks."format:fix"]
+run = "bun run format:fix"
+
+[tasks."fix:all"]
+run = ["mise run format:fix", "mise run lint:fix:all"]
 
 [tasks."test:all"]
-# Run all test tasks across the monorepo using wildcard pattern
-run = [
-  "mise run '//packages/...:test' > /dev/null",
-  "mise run '//apps/...:test' > /dev/null",
-]
-
-[tasks."test:all:with-output"]
-# Run all test tasks across the monorepo using wildcard pattern
 run = ["mise run '//packages/...:test'", "mise run '//apps/...:test'"]
 
+[tasks."build:all"]
+run = [
+  "mise run //apps/app:build",
+  "mise run //apps/docs-site:build",
+  "mise run //apps/server:build",
+  "mise run //apps/splat-desktop:build",
+  "mise run //apps/splat-web:build",
+  "mise run //packages/core:build",
+  "mise run //packages/design-system:build",
+  "mise run //packages/geometry:build",
+  "mise run //packages/renderer-canvas:build",
+  "mise run //packages/renderer-raster:build",
+  "mise run //packages/testing:build",
+]
+
+[tasks."test:ui:all"]
+run = "mise run //packages/design-system:test:ui:managed"
+
 [tasks."validate:all"]
-run = ["mise run format", "mise run lint:all", "mise run ts:check:all", "mise run test:all"]
+run = [
+  "mise run format:check",
+  "mise run lint:all",
+  "mise run ts:check:all",
+  "mise run test:all",
+  "mise run build:all",
+  "mise run test:ui:all",
+]
 
 [tasks."docs:typedoc"]
 run = """

@@ -3,8 +3,8 @@ import "./ThumbnailTile.css";
 import type { IconNode } from "lucide";
 import { setChildren } from "redom";
 import type { ReDomLike } from "./ReDomLike";
+import { type ReDomChild, toReDomChildren } from "./redomChildren";
 import { renderIcon } from "./renderIcon";
-import { toReDomChildren, type ReDomChild } from "./redomChildren";
 
 type ThumbnailAction = {
   label: string;
@@ -82,7 +82,10 @@ export class ThumbnailTile implements ReDomLike<HTMLDivElement> {
 
   setOnOpenPointerDown(handler: ((event: PointerEvent) => void) | null): void {
     if (this.#openPointerDownHandler) {
-      this.#open.removeEventListener("pointerdown", this.#openPointerDownHandler);
+      this.#open.removeEventListener(
+        "pointerdown",
+        this.#openPointerDownHandler,
+      );
       this.#openPointerDownHandler = null;
     }
     if (!handler) {
@@ -121,9 +124,7 @@ export class ThumbnailTile implements ReDomLike<HTMLDivElement> {
     this.#open.addEventListener("pointercancel", handler);
   }
 
-  setOnOpenPointerLeave(
-    handler: ((event: PointerEvent) => void) | null,
-  ): void {
+  setOnOpenPointerLeave(handler: ((event: PointerEvent) => void) | null): void {
     if (this.#openPointerLeaveHandler) {
       this.#open.removeEventListener(
         "pointerleave",
@@ -138,7 +139,9 @@ export class ThumbnailTile implements ReDomLike<HTMLDivElement> {
     this.#open.addEventListener("pointerleave", handler);
   }
 
-  setBadge(input: { label: string; tone?: "default" | "positive" } | null): void {
+  setBadge(
+    input: { label: string; tone?: "default" | "positive" } | null,
+  ): void {
     if (!input) {
       this.#badge.hidden = true;
       this.#badge.textContent = "";
@@ -157,7 +160,11 @@ export class ThumbnailTile implements ReDomLike<HTMLDivElement> {
   setSecondaryAction(
     action: (ThumbnailAction & { text?: string }) | null,
   ): void {
-    this.#applyAction(this.#secondaryAction, action, action?.text ?? action?.label);
+    this.#applyAction(
+      this.#secondaryAction,
+      action,
+      action?.text ?? action?.label,
+    );
   }
 
   setOpenAttributes(attributes: Record<string, string | null>): void {

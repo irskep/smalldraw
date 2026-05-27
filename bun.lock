@@ -65,7 +65,6 @@
       "name": "docs-site",
       "version": "1.0.0",
       "dependencies": {
-        "@vuepress/plugin-copy-code": "^2.0.0-rc.121",
         "@vuepress/plugin-markdown-chart": "^2.0.0-rc.121",
         "mermaid": "^11.12.2",
         "typedoc": "^0.28.16",

@@ -12,7 +12,8 @@
   "scripts": {
     "generate:coloring-assets": "bun run ./scripts/generate-coloring-assets.ts",
     "ts:check": "tsc -p tsconfig.json --noEmit",
-    "lint": "bunx biome check --write",
+    "lint": "bunx biome check .",
+    "lint:fix": "bunx biome check --write .",
     "test": "bun test --timeout 4000"
   },
   "dependencies": {

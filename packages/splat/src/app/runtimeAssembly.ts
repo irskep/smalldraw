@@ -1,6 +1,6 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
-import type { DocumentAccessDisplay } from "../controller/stores/createKidsDrawRuntimeStore";
 import { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
+import type { DocumentAccessDisplay } from "../controller/stores/createKidsDrawRuntimeStore";
 import type { KidsDocumentSummary } from "../documents";
 import {
   createCollaborativeDocumentIndex,
@@ -33,7 +33,9 @@ export type AppRuntimeAssembly = {
   documentBackend: KidsDocumentBackend;
   multiplayerApiClient: MultiplayerApiClient | null;
   collaborationStatusStore: ReturnType<typeof createCollaborationStatusStore>;
-  collaborativeDocumentIndex: ReturnType<typeof createCollaborativeDocumentIndex>;
+  collaborativeDocumentIndex: ReturnType<
+    typeof createCollaborativeDocumentIndex
+  >;
   shapeHandlers: ReturnType<typeof createKidsShapeHandlerRegistry>;
   shapeRendererRegistry: ReturnType<typeof createKidsShapeRendererRegistry>;
   core: Awaited<ReturnType<typeof bootstrapKidsDrawRuntime>>["core"];
@@ -44,13 +46,11 @@ export type AppRuntimeAssembly = {
   backgroundColor: string;
   deviceTag: string;
   initialCatalogDocUrl: string | null;
-  initialDocumentAccessState:
-    | {
-        type: "error";
-        reason: string;
-        display: DocumentAccessDisplay;
-      }
-    | null;
+  initialDocumentAccessState: {
+    type: "error";
+    reason: string;
+    display: DocumentAccessDisplay;
+  } | null;
   sizingPolicy: {
     hasExplicitSize: boolean;
     getExplicitSize: () => DrawingDocumentSize;

@@ -6,7 +6,8 @@
     "build": "bun run ./scripts/run-electrobun.ts build --env=dev",
     "package": "bun run ./scripts/run-electrobun.ts build --env=stable",
     "test": "bun test --pass-with-no-tests",
-    "lint": "bunx biome check --write",
+    "lint": "bunx biome check .",
+    "lint:fix": "bunx biome check --write .",
     "ts:check": "tsc -p tsconfig.typecheck.json --noEmit"
   },
   "dependencies": {

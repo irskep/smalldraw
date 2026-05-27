@@ -12,6 +12,8 @@
   background: var(--ds-control-bg-active);
 }
 
-:where(.ds-button, .ds-icon-button, .ds-control-tile):hover:active:not(:disabled) {
+:where(.ds-button, .ds-icon-button, .ds-control-tile):hover:active:not(
+    :disabled
+  ) {
   background: var(--ds-control-bg-active);
 }

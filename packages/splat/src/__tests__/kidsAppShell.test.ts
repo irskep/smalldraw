@@ -1,6 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { TRPCClientError } from "@trpc/client";
-import { createAppError } from "@smalldraw/shared";
 import {
   type ActionContext,
   applyActionToDoc,
@@ -11,7 +9,9 @@ import {
   type PenShape,
   type SmalldrawCore,
 } from "@smalldraw/core";
+import { createAppError } from "@smalldraw/shared";
 import { getWorldPointsFromShape } from "@smalldraw/testing";
+import { TRPCClientError } from "@trpc/client";
 import { getColoringPageById } from "../coloring/catalog";
 import { createKidsDrawApp } from "../createKidsDrawApp";
 import type {

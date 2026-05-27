@@ -12,9 +12,8 @@ export interface TextOptions<TTag extends keyof HTMLElementTagNameMap> {
   attributes?: Record<string, string>;
 }
 
-export class Text<
-  TTag extends keyof HTMLElementTagNameMap = "span",
-> implements ReDomLike<HTMLElementTagNameMap[TTag]>
+export class Text<TTag extends keyof HTMLElementTagNameMap = "span">
+  implements ReDomLike<HTMLElementTagNameMap[TTag]>
 {
   readonly el: HTMLElementTagNameMap[TTag];
 

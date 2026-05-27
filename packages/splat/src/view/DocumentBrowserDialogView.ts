@@ -46,8 +46,7 @@ type DocumentTileItem = {
   onPointerEnd: () => void;
 };
 
-export interface DocumentBrowserDialogView
-  extends ReDomLike<HTMLDivElement> {
+export interface DocumentBrowserDialogView extends ReDomLike<HTMLDivElement> {
   setOpen(open: boolean): void;
   isOpen(): boolean;
   setLoading(loading: boolean): void;
@@ -344,8 +343,9 @@ export function createDocumentBrowserDialogView(options: {
     newButton.setDisabled(state.busyDocUrl === "__new__");
 
     const previewDocument = state.previewDocUrl
-      ? (state.documents.find((document) => document.docUrl === state.previewDocUrl) ??
-        null)
+      ? (state.documents.find(
+          (document) => document.docUrl === state.previewDocUrl,
+        ) ?? null)
       : null;
     previewOverlay.hidden = previewDocument === null;
     if (previewDocument) {
@@ -417,9 +417,9 @@ export function createDocumentBrowserDialogView(options: {
     },
     waitForRemovingDocument(docUrl) {
       const tile =
-        Array.from(root.querySelectorAll<HTMLElement>("[data-doc-browser-doc]")).find(
-          (element) => element.dataset.docBrowserDoc === docUrl,
-        ) ?? null;
+        Array.from(
+          root.querySelectorAll<HTMLElement>("[data-doc-browser-doc]"),
+        ).find((element) => element.dataset.docBrowserDoc === docUrl) ?? null;
       if (!tile) {
         return Promise.resolve();
       }

@@ -1,7 +1,6 @@
 import "./ColorPicker.css";
 
 import { type IconNode, Palette } from "lucide";
-import { el } from "redom";
 import { ColorSwatchGrid } from "./ColorSwatchGrid";
 import { DropdownChrome } from "./DropdownChrome";
 import type { ReDomLike } from "./ReDomLike";
@@ -86,7 +85,9 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
     });
 
     this.chrome.setContent(this.swatchGrid.el);
-    this.setSelectedColor(options.selectedColor ?? options.colors?.[0]?.color ?? "");
+    this.setSelectedColor(
+      options.selectedColor ?? options.colors?.[0]?.color ?? "",
+    );
     this.setColors(options.colors ?? []);
   }
 
@@ -96,9 +97,7 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
 
   setSelectedColor(color: string): void {
     this.selectedColor = color;
-    this.triggerButton.setIcon(
-      color ? createColorTriggerIcon(color) : Palette,
-    );
+    this.triggerButton.setIcon(color ? createColorTriggerIcon(color) : Palette);
     this.swatchGrid.setSelectedColor(color);
   }
 
@@ -118,6 +117,8 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
   }
 }
 
-export function createColorPicker(options: ColorPickerOptions = {}): ColorPicker {
+export function createColorPicker(
+  options: ColorPickerOptions = {},
+): ColorPicker {
   return new ColorPicker(options);
 }

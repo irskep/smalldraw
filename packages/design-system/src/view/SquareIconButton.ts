@@ -86,13 +86,16 @@ export class IconButton implements ReDomLike<HTMLButtonElement> {
 
   setIcon(icon: IconButtonSource): void {
     if ("kind" in icon) {
-      const image = el("img.ds-icon-button__icon-image kids-square-icon-button__icon-image", {
-        src: icon.src,
-        alt: "",
-        loading: "lazy",
-        decoding: "async",
-        draggable: "false",
-      }) as HTMLImageElement;
+      const image = el(
+        "img.ds-icon-button__icon-image kids-square-icon-button__icon-image",
+        {
+          src: icon.src,
+          alt: "",
+          loading: "lazy",
+          decoding: "async",
+          draggable: "false",
+        },
+      ) as HTMLImageElement;
       setChildren(this.iconElement, [image]);
       return;
     }

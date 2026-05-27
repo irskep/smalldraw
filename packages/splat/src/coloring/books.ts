@@ -1,4 +1,4 @@
-import { getColoringPages, type ColoringPageSpec } from "./catalog";
+import { type ColoringPageSpec, getColoringPages } from "./catalog";
 
 export interface ColoringBookSpec {
   id: string;

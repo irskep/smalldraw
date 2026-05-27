@@ -1,11 +1,12 @@
 import type { DocumentId } from "@automerge/automerge-repo";
+import * as opaque from "@serenity-kit/opaque";
 import type {
+  AcceptedDocumentInvitation,
   AccountCollaborativeDocumentResolution,
   AccountCollaborativeDocumentSummary,
   AccountDocumentDetails,
   AccountDocumentMutationResult,
   AccountDocumentSummary,
-  AcceptedDocumentInvitation,
   AnonymousCollaborativeDocumentResolution,
   ClaimCollaborativeDocumentResult,
   CreatedAccountDocument,
@@ -13,11 +14,10 @@ import type {
   DocumentInvitationToken,
   DocumentMember,
   DocumentThumbnailUploadTarget,
-  RevokeDocumentAccessTokenResult,
   RegisteredCollaborativeDocument,
+  RevokeDocumentAccessTokenResult,
 } from "@smalldraw/shared";
 import { isDocumentAccessTokenScope } from "@smalldraw/shared";
-import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -64,11 +64,11 @@ import {
 import { getDocumentThumbnailStore } from "../storage/documentThumbnailStore.js";
 import { getOpaqueServerSetup } from "../utils/getOpaqueServerSetup.js";
 import {
+  appTrpcError,
   protectedProcedure,
   publicProcedure,
   router,
   serverAdminProcedure,
-  appTrpcError,
 } from "./trpc.js";
 
 const resolveThumbnailUrl = (
@@ -465,7 +465,9 @@ export const appRouter = router({
         documentId: opts.input.documentId,
       });
       return documentInvitation
-        ? ({ token: documentInvitation.token } satisfies DocumentInvitationToken)
+        ? ({
+            token: documentInvitation.token,
+          } satisfies DocumentInvitationToken)
         : null;
     }),
 
@@ -477,7 +479,9 @@ export const appRouter = router({
         userId: opts.ctx.session.userId,
       });
       if (!documentInvitation) return null;
-      return { token: documentInvitation.token } satisfies DocumentInvitationToken;
+      return {
+        token: documentInvitation.token,
+      } satisfies DocumentInvitationToken;
     }),
   documentAccessTokens: protectedProcedure
     .input(z.string())
@@ -528,7 +532,9 @@ export const appRouter = router({
         documentInvitationToken: opts.input.token,
       });
       return result
-        ? ({ documentId: result.documentId } satisfies AcceptedDocumentInvitation)
+        ? ({
+            documentId: result.documentId,
+          } satisfies AcceptedDocumentInvitation)
         : null;
     }),
   claimCollaborativeDocument: protectedProcedure

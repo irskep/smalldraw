@@ -1,8 +1,8 @@
 import { el } from "redom";
 import "../src/styles.css";
 import "./stories/ResizeHandle.css";
-import { stories, storyGroups } from "./stories/index";
 import type { HarnessStory, HarnessStoryGroup } from "./stories/index";
+import { stories, storyGroups } from "./stories/index";
 
 function getTestStoryId(): string {
   const params = new URLSearchParams(window.location.search);
@@ -11,7 +11,7 @@ function getTestStoryId(): string {
 
 function getActiveGroupIdFromHash(): string {
   const groupId = window.location.hash.replace(/^#/, "").trim();
-  return groupId.length > 0 ? groupId : storyGroups[0]?.id ?? "";
+  return groupId.length > 0 ? groupId : (storyGroups[0]?.id ?? "");
 }
 
 function findStoryById(storyId: string): HarnessStory | undefined {
@@ -25,7 +25,10 @@ function findGroupById(groupId: string): HarnessStoryGroup | undefined {
 function renderTestStory(story: HarnessStory): HTMLElement {
   const app = el("main.ds-harness.ds-harness--test") as HTMLElement;
   const stage = el("section.ds-harness__stage") as HTMLElement;
-  const title = el("h1.ds-harness__story-title", story.title) as HTMLHeadingElement;
+  const title = el(
+    "h1.ds-harness__story-title",
+    story.title,
+  ) as HTMLHeadingElement;
   const description = el(
     "p.ds-harness__story-description",
     story.description,
@@ -40,7 +43,10 @@ function renderTestStory(story: HarnessStory): HTMLElement {
 
 function renderGroupStory(story: HarnessStory): HTMLElement {
   const card = el("section.ds-harness__story-card") as HTMLElement;
-  const title = el("h2.ds-harness__story-card-title", story.title) as HTMLHeadingElement;
+  const title = el(
+    "h2.ds-harness__story-card-title",
+    story.title,
+  ) as HTMLHeadingElement;
   const description = el(
     "p.ds-harness__story-description",
     story.description,
@@ -56,7 +62,10 @@ function renderGroupedHarness(activeGroup: HarnessStoryGroup): HTMLElement {
   const app = el("main.ds-harness") as HTMLElement;
   const shell = el("div.ds-harness__shell") as HTMLDivElement;
   const sidebar = el("aside.ds-harness__sidebar") as HTMLElement;
-  const sidebarTitle = el("h1.ds-harness__sidebar-title", "Stories") as HTMLHeadingElement;
+  const sidebarTitle = el(
+    "h1.ds-harness__sidebar-title",
+    "Stories",
+  ) as HTMLHeadingElement;
   const groupList = el("nav.ds-harness__group-list", {
     "aria-label": "Story groups",
   }) as HTMLElement;
@@ -98,9 +107,7 @@ function render(): void {
   const testStoryId = getTestStoryId();
   const story = testStoryId ? findStoryById(testStoryId) : null;
   const root =
-    story ??
-    findGroupById(getActiveGroupIdFromHash()) ??
-    storyGroups[0];
+    story ?? findGroupById(getActiveGroupIdFromHash()) ?? storyGroups[0];
 
   document.body.replaceChildren();
 

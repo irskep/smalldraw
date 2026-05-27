@@ -1,18 +1,20 @@
 import {
-  TRPCClientError,
-  createTRPCUntypedClient,
-  httpBatchLink,
-} from "@trpc/client";
-import {
   type AccountCollaborativeDocumentResolution,
   type AccountCollaborativeDocumentSummary,
   type AnonymousCollaborativeDocumentResolution,
   type AppError,
   type ClaimCollaborativeDocumentResult,
   createAppError,
-  type RegisteredCollaborativeDocument,
   isAppError,
+  type RegisteredCollaborativeDocument,
 } from "@smalldraw/shared";
+import {
+  createTRPCUntypedClient,
+  httpBatchLink,
+  TRPCClientError,
+  type TRPCClientErrorBase,
+} from "@trpc/client";
+import type { DefaultErrorShape } from "@trpc/server/unstable-core-do-not-import";
 
 export class MultiplayerApiError extends Error {
   readonly appError: AppError;
@@ -253,13 +255,15 @@ function normalizeMultiplayerApiError(
   return new Error(fallbackMessage);
 }
 
-function extractAppError(error: TRPCClientError<any>): AppError | null {
+type SmalldrawTrpcClientError = TRPCClientErrorBase<DefaultErrorShape> & Error;
+
+function extractAppError(error: SmalldrawTrpcClientError): AppError | null {
   const appError = (error.data as { appError?: unknown } | undefined)?.appError;
   return isAppError(appError) ? appError : null;
 }
 
 function fallbackAppError(
-  error: TRPCClientError<any>,
+  error: SmalldrawTrpcClientError,
   fallbackMessage: string,
 ): AppError {
   if (error.data?.code === "UNAUTHORIZED" || error.message === "UNAUTHORIZED") {
@@ -335,8 +339,7 @@ function parseRegisterResult(
     collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
     joinSecret: (input as { joinSecret: string }).joinSecret,
     accessToken: (input as { accessToken: string }).accessToken,
-    accessTokenScope: (input as { accessTokenScope: "owner" })
-      .accessTokenScope,
+    accessTokenScope: (input as { accessTokenScope: "owner" }).accessTokenScope,
   };
 }
 

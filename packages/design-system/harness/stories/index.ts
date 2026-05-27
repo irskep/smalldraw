@@ -8,8 +8,8 @@ import { pickerStories } from "./pickerStories";
 import { referenceStories } from "./referenceStories";
 import { resizeHandleStories } from "./resizeHandleStories";
 import { stateStories } from "./stateStories";
-import { typographyStories } from "./typographyStories";
 import type { HarnessStory, HarnessStoryGroup } from "./types";
+import { typographyStories } from "./typographyStories";
 
 export type { HarnessStory, HarnessStoryGroup } from "./types";
 

@@ -373,7 +373,10 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     if (!fallbackCanvas) {
       return null;
     }
-    const ctx = fallbackCanvas.getContext("2d");
+    const ctx = fallbackCanvas.getContext("2d") as
+      | CanvasRenderingContext2D
+      | OffscreenCanvasRenderingContext2D
+      | null;
     if (!ctx) {
       return null;
     }
