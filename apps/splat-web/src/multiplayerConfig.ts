@@ -1,3 +1,5 @@
+import type { SplatDocumentOpenIntent } from "@smalldraw/shared";
+
 export interface SplatWebRuntimeEnvLike {
   SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: string;
   SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL: string;
@@ -30,10 +32,7 @@ export interface StartupOpenParams {
 }
 
 export type SplatStartupIntent =
-  | { kind: "open-last-local" }
-  | { kind: "open-local-document"; docUrl: string }
-  | { kind: "open-share-link"; joinSecret: string }
-  | { kind: "open-account-document"; documentId: string }
+  | SplatDocumentOpenIntent
   | { kind: "startup-error"; message: string };
 
 export function createBrowserMultiplayerConfig(

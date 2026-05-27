@@ -1,4 +1,5 @@
 import type { DrawingStore, SmalldrawCore } from "@smalldraw/core";
+import type { SplatDocumentOpenIntent } from "@smalldraw/shared";
 import type { IconNode } from "lucide";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 
@@ -23,11 +24,7 @@ export interface KidsDrawAppOptions {
     syncServerWebSocketUrl?: string;
     syncServerHttpUrl?: string;
     joinBaseUrl?: string;
-    startupIntent?:
-      | { kind: "open-last-local" }
-      | { kind: "open-local-document"; docUrl: string }
-      | { kind: "open-share-link"; joinSecret: string }
-      | { kind: "open-account-document"; documentId: string };
+    startupIntent?: SplatDocumentOpenIntent;
     deviceTag?: string;
   };
   confirmDestructiveAction?: (dialog: ConfirmDialogRequest) => Promise<boolean>;

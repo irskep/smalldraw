@@ -2,11 +2,21 @@ import type { DocumentId } from "@automerge/automerge-repo";
 import type {
   AccountCollaborativeDocumentResolution,
   AccountCollaborativeDocumentSummary,
+  AccountDocumentDetails,
+  AccountDocumentMutationResult,
+  AccountDocumentSummary,
+  AcceptedDocumentInvitation,
   AnonymousCollaborativeDocumentResolution,
   ClaimCollaborativeDocumentResult,
+  CreatedAccountDocument,
+  DocumentAccessToken,
+  DocumentInvitationToken,
+  DocumentMember,
   DocumentThumbnailUploadTarget,
+  RevokeDocumentAccessTokenResult,
   RegisteredCollaborativeDocument,
 } from "@smalldraw/shared";
+import { isDocumentAccessTokenScope } from "@smalldraw/shared";
 import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -68,13 +78,15 @@ const resolveThumbnailUrl = (
     ? buildDocumentThumbnailUrl(storageKey, process.env.R2_PUBLIC_BASE_URL)
     : null;
 
-const listAccountDocumentSummaries = async (userId: string) => {
+const listAccountDocumentSummaries = async (
+  userId: string,
+): Promise<AccountDocumentSummary[]> => {
   const documents = await getDocumentsByUserId(userId);
   return documents.map((doc) => ({
     id: doc.id,
     name: doc.name,
     thumbnailUrl: resolveThumbnailUrl(doc.thumbnailStorageKey),
-  }));
+  })) satisfies AccountDocumentSummary[];
 };
 
 const hasInMemoryRepoHandle = (documentId: string): boolean => {
@@ -196,7 +208,7 @@ export const appRouter = router({
       name: document.name,
       isAdmin: document.isAdmin,
       thumbnailUrl: resolveThumbnailUrl(document.thumbnailStorageKey),
-    };
+    } satisfies AccountDocumentDetails;
   }),
   uploadDocumentThumbnail: protectedProcedure
     .input(
@@ -260,7 +272,10 @@ export const appRouter = router({
         userId: opts.ctx.session.userId,
         name: opts.input.name,
       });
-      return { id: updatedDocument.id, name: updatedDocument.name };
+      return {
+        id: updatedDocument.id,
+        name: updatedDocument.name,
+      } satisfies AccountDocumentMutationResult;
     }),
   createDocument: protectedProcedure
     .input(
@@ -275,7 +290,9 @@ export const appRouter = router({
         documentId,
         name: opts.input.name,
       });
-      return { document: { id: document.id, name: document.name } };
+      return {
+        document: { id: document.id, name: document.name },
+      } satisfies CreatedAccountDocument;
     }),
 
   resolveAccountCollaborativeDocument: protectedProcedure
@@ -447,7 +464,9 @@ export const appRouter = router({
         userId: opts.ctx.session.userId,
         documentId: opts.input.documentId,
       });
-      return documentInvitation ? { token: documentInvitation.token } : null;
+      return documentInvitation
+        ? ({ token: documentInvitation.token } satisfies DocumentInvitationToken)
+        : null;
     }),
 
   documentInvitation: protectedProcedure
@@ -458,14 +477,26 @@ export const appRouter = router({
         userId: opts.ctx.session.userId,
       });
       if (!documentInvitation) return null;
-      return { token: documentInvitation.token };
+      return { token: documentInvitation.token } satisfies DocumentInvitationToken;
     }),
   documentAccessTokens: protectedProcedure
     .input(z.string())
     .query(async (opts) => {
-      return await listDocumentAccessTokensForAdmin({
+      const tokens = await listDocumentAccessTokensForAdmin({
         userId: opts.ctx.session.userId,
         documentId: opts.input,
+      });
+      return tokens.map((token) => {
+        if (!isDocumentAccessTokenScope(token.scope)) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid document access token scope",
+          });
+        }
+        return {
+          ...token,
+          scope: token.scope,
+        } satisfies DocumentAccessToken;
       });
     }),
 
@@ -482,7 +513,7 @@ export const appRouter = router({
         documentId: opts.input.documentId,
         tokenId: opts.input.tokenId,
       });
-      return { revoked };
+      return { revoked } satisfies RevokeDocumentAccessTokenResult;
     }),
 
   acceptDocumentInvitation: protectedProcedure
@@ -496,7 +527,9 @@ export const appRouter = router({
         userId: opts.ctx.session.userId,
         documentInvitationToken: opts.input.token,
       });
-      return result ? { documentId: result.documentId } : null;
+      return result
+        ? ({ documentId: result.documentId } satisfies AcceptedDocumentInvitation)
+        : null;
     }),
   claimCollaborativeDocument: protectedProcedure
     .input(
@@ -524,7 +557,7 @@ export const appRouter = router({
       documentId: opts.input,
       userId: opts.ctx.session.userId,
     });
-    return members;
+    return members satisfies DocumentMember[] | null;
   }),
 
   logout: protectedProcedure.mutation(async (opts) => {

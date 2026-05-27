@@ -120,6 +120,7 @@
     "apps/splat-web": {
       "name": "splat-web",
       "dependencies": {
+        "@smalldraw/shared": "workspace:*",
         "@smalldraw/splat": "workspace:*",
       },
     },
