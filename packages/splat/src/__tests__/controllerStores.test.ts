@@ -14,18 +14,30 @@ describe("createKidsDrawRuntimeStore", () => {
     });
     const baselineUpdates = updates;
 
-    store.setDocumentLoaded({
-      docUrl: "catalog-local:doc-1",
-      presentation: { mode: "normal" },
+    store.setDocumentLoading({
+      requestedDocUrl: null,
+      reason: "app_boot",
     });
     store.setDestroyed(false);
     expect(updates).toBe(baselineUpdates);
 
-    store.setDestroyed(true);
+    store.setDocumentLoaded({
+      docUrl: "catalog-local:doc-1",
+      presentation: { mode: "normal" },
+    });
+    expect(updates).toBe(baselineUpdates + 1);
+
+    store.setDocumentLoaded({
+      docUrl: "catalog-local:doc-1",
+      presentation: { mode: "normal" },
+    });
     expect(updates).toBe(baselineUpdates + 1);
 
     store.setDestroyed(true);
-    expect(updates).toBe(baselineUpdates + 1);
+    expect(updates).toBe(baselineUpdates + 2);
+
+    store.setDestroyed(true);
+    expect(updates).toBe(baselineUpdates + 2);
 
     unbind();
   });

@@ -1,14 +1,60 @@
 experimental_monorepo_root = true
 
+[monorepo]
+config_roots = [
+  "apps/app",
+  "apps/docs-site",
+  "apps/server",
+  "apps/splat-desktop",
+  "apps/splat-web",
+  "packages/core",
+  "packages/geometry",
+  "packages/renderer-canvas",
+  "packages/renderer-raster",
+  "packages/splat",
+  "packages/testing",
+]
+
 [settings]
 experimental = true
 
 [tools]
 bun = "1.3.10"
 tilt = "0.37.1"
+"github:irskep/localci" = "0.1.1"
 node = "24"
 "pipx:persistproc" = "latest"
 "npm:wrangler" = "latest"
+
+[tasks."localci:setup"]
+description = "Install dependencies for LocalCI runs"
+run = [
+  "mise install",
+  "bun install --frozen-lockfile",
+]
+
+[tasks."localci:typecheck"]
+description = "Run the full workspace TypeScript check for LocalCI"
+run = """
+set -eu
+out="${LOCALCI_TASK_OUTPUT_DIR:-/tmp/smalldraw-localci/typecheck}"
+mkdir -p "$out"
+log="$out/typecheck.log"
+printf 'writing typecheck log to %s\\n' "$log"
+bun run ts:check >"$log" 2>&1
+"""
+
+[tasks."localci:test"]
+description = "Run the full workspace test suite for LocalCI"
+env = { VITE_API_URL = "http://localhost:3030/api/v1" }
+run = """
+set -eu
+out="${LOCALCI_TASK_OUTPUT_DIR:-/tmp/smalldraw-localci/test}"
+mkdir -p "$out"
+log="$out/test.log"
+printf 'writing test log to %s\\n' "$log"
+bun run test >"$log" 2>&1
+"""
 
 [tasks."db:push"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }

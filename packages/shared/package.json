@@ -8,6 +8,6 @@
   "scripts": {
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "bunx biome check --write",
-    "test": "bun test"
+    "test": "bun test --pass-with-no-tests"
   }
 }
