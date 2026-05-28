@@ -1,13 +1,8 @@
 Project workflows live in @mise.toml. Prefer `mise run ...` tasks over ad hoc package commands.
 
-Validation commands must be non-mutating:
-- Use `mise run lint:all`, `mise run format:check`, `mise run ts:check:all`, `mise run test:all`, and package-local `localci:*` tasks for checks.
-- `lint` means check only. It must not rewrite files.
-- `format:check` means check only. It must not rewrite files.
+If you do not commit a set of changes, use 'localci wait --no-clone' to run all tests and static analysis.
 
-Mutating cleanup commands are explicit:
-- Use `lint:fix`, `format:fix`, or `fix:all` only when intentionally editing code.
-- Do not run mutating fix tasks merely to validate work.
+Run 'mise tasks lint' to see all tasks. Tasks with :fix suffixes will write fixes.
 
 packages/ contains logic
 apps/ contains applications of the packages

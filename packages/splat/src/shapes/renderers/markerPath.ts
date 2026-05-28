@@ -21,12 +21,13 @@ export function renderMarkerPath(
   ctx.lineJoin = "round";
   ctx.lineWidth = strokeSize;
   ctx.beginPath();
-  ctx.moveTo(first[0], first[1]);
   if (drawPoints.length === 1) {
-    ctx.lineTo(first[0], first[1]);
-    ctx.stroke();
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.arc(first[0], first[1], Math.max(1, strokeSize / 2), 0, Math.PI * 2);
+    ctx.fill();
     return;
   }
+  ctx.moveTo(first[0], first[1]);
   if (drawPoints.length === 2) {
     const second = drawPoints[1];
     if (second) {

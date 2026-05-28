@@ -246,8 +246,7 @@ export function createStrokeTool(
       return;
     }
     stopSprayAnimation(state);
-    const minPointCount = getSprayMode(state.drawing.stroke.brushId) ? 1 : 2;
-    if (state.drawing.geometry.points.length < minPointCount) {
+    if (state.drawing.geometry.points.length < 1) {
       runtime.clearDraft();
       runtime.setPreview(null);
       state.drawing = null;

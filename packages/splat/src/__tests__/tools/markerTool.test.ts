@@ -90,13 +90,15 @@ describe("marker tool integration with runtime", () => {
     ]);
   });
 
-  test("still ignores taps that end at the same point", () => {
+  test("commits a dot when a tap ends at the same point", () => {
     const { runtime, getDocument } = setup();
 
     runtime.dispatch("pointerDown", { point: new Vec2(5, 5), buttons: 1 });
     runtime.dispatch("pointerUp", { point: new Vec2(5, 5), buttons: 0 });
 
-    expect(Object.keys(getDocument().shapes)).toHaveLength(0);
+    const shape = Object.values(getDocument().shapes)[0] as PenShape;
+    expect(shape).toBeDefined();
+    expectPointsClose(getWorldPointsFromShape(shape), [[5, 5]]);
   });
 
   test("keeps preview dirty bounds local to the recent segment", () => {
