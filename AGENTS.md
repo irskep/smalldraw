@@ -14,3 +14,5 @@ Backward compatibility is NOT a concern. If you add any code for "backward compa
 Read @design_principles.md
 
 Use nanostore atoms to store application state over class properties where appropriate. Use re:dom component idioms rather than manual mount/unmount.
+
+Commit frequently, because the postcommit hook makes localci run comprehensive checks asynchronously. The postcommit hook will print basic instructions for seeing results, or you can run localci --help to see more options.
