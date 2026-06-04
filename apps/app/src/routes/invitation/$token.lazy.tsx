@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import {
   buildDrawingDocumentUrl,
@@ -32,15 +30,23 @@ const Invitation: React.FC = () => {
   };
 
   return (
-    <Card className="p-4">
-      <p className="mb-4">Accept the invitation to this document.</p>
-      <Button
-        disabled={acceptDocumentInvitationMutation.isPending}
-        onClick={acceptInvitation}
-      >
-        Accept Document Invitation
-      </Button>
-    </Card>
+    <section className="account-card account-card--centered">
+      <h1 className="account-title">Document invitation</h1>
+      <p className="account-subtitle">
+        Accept the invitation to this document.
+      </p>
+      <div className="account-actions">
+        <button
+          type="button"
+          className="ds-button"
+          data-tone="primary"
+          disabled={acceptDocumentInvitationMutation.isPending}
+          onClick={acceptInvitation}
+        >
+          Accept Document Invitation
+        </button>
+      </div>
+    </section>
   );
 };
 

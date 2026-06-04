@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { RefreshCcw } from "lucide-react";
 import React, { useId } from "react";
 import { buildInvitationUrl } from "./buildInvitationUrl";
@@ -23,22 +21,27 @@ export const DocumentInvitationView: React.FC<DocumentInvitationViewProps> = ({
   const id = useId();
 
   return (
-    <div>
-      <label htmlFor={id} className="text-sm">
+    <div className="account-form-field">
+      <label htmlFor={id} className="account-label">
         Share link
       </label>
-      <div className="flex gap-2 pt-2">
-        <Input
+      <div className="account-form-row">
+        <input
           id={id}
           value={invitationUrl}
           readOnly
           onFocus={(event) => event.target.select()}
-          className="w-72"
+          className="account-input account-input--share"
         />
-        <Button disabled={isPending} onClick={onRotate}>
-          <RefreshCcw className="mr-2 h-4 w-4" />
+        <button
+          type="button"
+          className="ds-button"
+          disabled={isPending}
+          onClick={onRotate}
+        >
+          <RefreshCcw className="account-action-icon" />
           Rotate
-        </Button>
+        </button>
       </div>
     </div>
   );

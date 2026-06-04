@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/utils/trpc";
 import { DocumentInvitation } from "../DocumentInvitation/DocumentInvitation";
 
@@ -29,83 +27,82 @@ export const DocumentMembers: React.FC<Props> = ({
     });
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Members</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+    <div className="account-two-column">
+      <section className="account-card">
+        <header className="account-card__header">
+          <h2 className="account-title">Members</h2>
+        </header>
+        <div className="account-card__body">
           {documentMembersQuery.isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading members…</p>
+            <p className="account-muted">Loading members…</p>
           ) : null}
           {documentMembersQuery.data?.map((user) => (
-            <div
-              key={user.id}
-              className="flex items-center justify-between rounded-md border p-3"
-            >
-              <div>
-                <div className="font-medium">{user.username}</div>
-                <div className="text-xs text-muted-foreground">{user.id}</div>
+            <div key={user.id} className="account-list-item">
+              <div className="account-list-item__main">
+                <div>{user.username}</div>
+                <div className="account-muted account-muted--small account-code">
+                  {user.id}
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="account-muted account-muted--small">
                 {user.isAdmin ? "document admin" : "member"}
               </div>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Access</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <section className="account-card">
+        <header className="account-card__header">
+          <h2 className="account-title">Access</h2>
+        </header>
+        <div className="account-card__body">
           {currentUserIsAdmin ? (
             <DocumentInvitation documentId={documentId} />
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="account-muted">
               Only document admins can manage access tokens.
             </p>
           )}
 
           {currentUserIsAdmin ? (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium">Active non-share tokens</h3>
+            <div className="account-list">
+              <h3 className="account-label">Active non-share tokens</h3>
               {documentAccessTokensQuery.isLoading ? (
-                <p className="text-sm text-muted-foreground">Loading tokens…</p>
+                <p className="account-muted">Loading tokens…</p>
               ) : null}
               {documentAccessTokensQuery.data?.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="account-muted">
                   No owner or device tokens recorded.
                 </p>
               ) : null}
               {documentAccessTokensQuery.data?.map((token) => (
                 <div
                   key={token.id}
-                  className="space-y-2 rounded-md border p-3 text-sm"
+                  className="account-list-item account-list-item--stacked"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium">
+                  <div className="account-list-item">
+                    <div>
                       {token.scope}
                       {token.tag ? `:${token.tag}` : ""}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="account-muted account-muted--small">
                       {token.revokedAt ? "revoked" : "active"}
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="account-muted account-muted--small">
                     Created: {new Date(token.createdAt).toLocaleString()}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="account-muted account-muted--small">
                     Last used:{" "}
                     {token.lastUsedAt
                       ? new Date(token.lastUsedAt).toLocaleString()
                       : "never"}
                   </div>
                   {token.scope === "device" && !token.revokedAt ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <button
+                      type="button"
+                      className="ds-button"
                       disabled={revokeDocumentAccessTokenMutation.isPending}
                       onClick={() =>
                         revokeDocumentAccessTokenMutation.mutate({
@@ -115,14 +112,14 @@ export const DocumentMembers: React.FC<Props> = ({
                       }
                     >
                       Revoke device token
-                    </Button>
+                    </button>
                   ) : null}
                 </div>
               ))}
             </div>
           ) : null}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 };

@@ -1,6 +1,4 @@
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Input } from "../ui/input";
 
 type Props = {
   onSubmit: (params: { username: string; password: string }) => void;
@@ -14,6 +12,7 @@ export const AuthForm = ({ onSubmit, isPending, children }: Props) => {
 
   return (
     <form
+      className="account-card account-card--centered account-form"
       onSubmit={(
         e: React.FormEvent<HTMLFormElement> & {
           nativeEvent: { submitter: HTMLButtonElement };
@@ -23,36 +22,43 @@ export const AuthForm = ({ onSubmit, isPending, children }: Props) => {
         onSubmit({ username, password });
       }}
     >
-      <h1 className="text-xl text-center font-semibold mb-8 mt-12">
-        {children}
-      </h1>
+      <h1 className="account-title">{children}</h1>
 
-      <div className="gap-4 flex flex-col">
-        <Input
+      <div className="account-form-field">
+        <input
           required
           name="username"
           placeholder="Username"
           type="text"
           autoComplete="off"
+          className="account-input"
           value={username}
           onChange={(e) => {
             setUsername(e.target.value);
           }}
         />
 
-        <Input
+        <input
           required
           name="password"
           placeholder="Password"
           type="password"
           autoComplete="off"
+          className="account-input"
           value={password}
           onChange={(e) => {
             setPassword(e.target.value);
           }}
         />
 
-        <Button disabled={isPending}>{children}</Button>
+        <button
+          type="submit"
+          className="ds-button"
+          data-tone="primary"
+          disabled={isPending}
+        >
+          {children}
+        </button>
       </div>
     </form>
   );

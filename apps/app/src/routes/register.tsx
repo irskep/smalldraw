@@ -1,4 +1,3 @@
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
@@ -16,7 +15,7 @@ const Register = () => {
   useRedirectIfAuthenticated(redirect);
 
   return (
-    <div className="max-w-md mr-auto ml-auto">
+    <div className="account-page">
       <AuthForm
         onSubmit={async ({ password, username }) => {
           const success = await registerAndLogin({
@@ -33,11 +32,13 @@ const Register = () => {
         isPending={isPending}
       />
       {error && (
-        <Alert variant="destructive" className="mt-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>Failed to sign up</AlertDescription>
-        </Alert>
+        <div className="account-alert" data-tone="danger" role="alert">
+          <AlertCircle className="account-alert__icon" />
+          <div className="account-alert__body">
+            <div className="account-alert__title">Error</div>
+            <div>Failed to sign up</div>
+          </div>
+        </div>
       )}
     </div>
   );

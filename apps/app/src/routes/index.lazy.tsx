@@ -1,6 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Link, createLazyFileRoute } from "@tanstack/react-router";
 import { DocumentListCard } from "@/components/DocumentListCard/DocumentListCard";
 import {
@@ -22,47 +19,47 @@ function Index() {
   const isNotAuthorized = documentsQuery.error?.data?.code === "UNAUTHORIZED";
 
   if (documentsQuery.isLoading) {
-    return <div className="p-4 text-center">Loading...</div>;
+    return <div className="account-page__header">Loading...</div>;
   }
 
   if (isNotAuthorized) {
     return (
-      <Card className="mx-auto max-w-2xl p-8 text-center">
-        <h1 className="text-3xl font-semibold">Splatterboard</h1>
-        <p className="mx-auto max-w-lg pt-3 text-muted-foreground">
+      <section className="account-card account-card--centered">
+        <h1 className="account-title account-title--large">Splatterboard</h1>
+        <p className="account-subtitle">
           Sign in to browse your saved drawings and start new account-backed
           drawings. Public drawing without an account is coming back here next.
         </p>
-        <div className="flex justify-center gap-3 pt-6">
-          <Button asChild>
-            <Link to="/login">Login</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/register">Sign up</Link>
-          </Button>
+        <div className="account-actions">
+          <Link to="/login" className="ds-button" data-tone="primary">
+            Login
+          </Link>
+          <Link to="/register" className="ds-button">
+            Sign up
+          </Link>
         </div>
-      </Card>
+      </section>
     );
   }
 
   if (documentsQuery.error) {
     return (
-      <div className="p-4 text-center text-red-500">
+      <div className="account-alert" data-tone="danger" role="alert">
         Error loading documents: {documentsQuery.error.message}
       </div>
     );
   }
 
   return (
-    <>
-      <div className="pb-6 text-center">
-        <h1 className="text-2xl font-semibold">Your documents</h1>
-        <p className="pt-2 text-sm text-muted-foreground">
+    <section className="account-page">
+      <div className="account-page__header">
+        <h1 className="account-title">Your documents</h1>
+        <p className="account-subtitle">
           Account-attached documents you can manage from this server.
         </p>
       </div>
       <form
-        className="flex justify-center items-center gap-4 py-4"
+        className="account-form account-form--inline"
         onSubmit={(event) => {
           event.preventDefault();
 
@@ -83,19 +80,24 @@ function Index() {
           );
         }}
       >
-        <Input
+        <input
           type="text"
           name="name"
           placeholder="Document name"
-          className="max-w-48"
+          className="account-input account-input--short"
           autoComplete="off"
         />
-        <Button type="submit" disabled={createDocumentMutation.isPending}>
+        <button
+          type="submit"
+          className="ds-button"
+          data-tone="primary"
+          disabled={createDocumentMutation.isPending}
+        >
           Create Document
-        </Button>
+        </button>
       </form>
 
-      <div className="flex flex-col gap-2 pt-4">
+      <div className="account-document-list">
         {documentsQuery.data?.map((doc) => (
           <DocumentListCard
             key={doc.id}
@@ -106,6 +108,6 @@ function Index() {
           />
         ))}
       </div>
-    </>
+    </section>
   );
 }

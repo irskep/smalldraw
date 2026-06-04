@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   createRootRoute,
@@ -65,13 +64,13 @@ const Root = () => {
   }, [isNotAuthorized, navigate]);
 
   return (
-    <>
-      <div className="p-5 flex gap-4 items-center justify-between border-b">
-        <Link to="/" className="text-xl flex items-center gap-2">
+    <div className="account-shell">
+      <header className="account-header">
+        <Link to="/" className="account-brand">
           <Shield />
-          Smalldraw Server
+          Splatterboard
         </Link>
-        <div className="flex gap-4 items-center justify-between">
+        <nav className="account-nav" aria-label="Account">
           {(!meQuery.data && !meQuery.isLoading) || isNotAuthorized ? (
             <>
               <Link to="/login" search={{ redirect: getRedirectParam() }}>
@@ -85,14 +84,18 @@ const Root = () => {
 
           {meQuery.data && !isNotAuthorized ? (
             <>
-              <div>{meQuery.data.username}</div>
-              {meQuery.data.isServerAdmin ? (
-                <div className="text-xs text-muted-foreground">
-                  server admin
-                </div>
-              ) : null}
+              <div className="account-nav__identity">
+                <div>{meQuery.data.username}</div>
+                {meQuery.data.isServerAdmin ? (
+                  <div className="account-muted account-muted--small">
+                    server admin
+                  </div>
+                ) : null}
+              </div>
 
-              <Button
+              <button
+                type="button"
+                className="ds-button"
                 // not perfect but good enough since the local changes are fast
                 disabled={logoutMutation.isPending}
                 onClick={async () => {
@@ -108,18 +111,18 @@ const Root = () => {
                 }}
               >
                 Logout
-              </Button>
+              </button>
             </>
           ) : null}
-        </div>
-      </div>
-      <div className="p-5">
+        </nav>
+      </header>
+      <main className="account-main">
         <Outlet />
-      </div>
+      </main>
       <Suspense>
         <TanStackRouterDevtools />
       </Suspense>{" "}
-    </>
+    </div>
   );
 };
 
