@@ -1,6 +1,7 @@
 import "./startupErrorScreen.css";
 
 import { createDocumentAccessState } from "@smalldraw/design-system";
+import { buildDrawingAppRedirectPath } from "@smalldraw/shared";
 import { isDocumentAccessError } from "@smalldraw/splat";
 
 export function renderStartupErrorScreen(
@@ -74,8 +75,8 @@ function buildAccountAuthUrl(
   currentHref: string,
 ): string {
   const current = new URL(currentHref);
-  const redirect = `${current.pathname}${current.search}`;
-  const authUrl = new URL(`/account/${route}`, current.origin);
+  const redirect = buildDrawingAppRedirectPath(currentHref);
+  const authUrl = new URL(`/${route}`, current.origin);
   authUrl.searchParams.set("redirect", redirect);
   return authUrl.toString();
 }

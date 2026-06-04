@@ -34,7 +34,7 @@ describe("buildStartupErrorScreenModel", () => {
           retryable: false,
         }),
       }),
-      "http://localhost:3000/?doc=server-doc",
+      "http://localhost:3000/draw/?doc=server-doc",
     );
 
     expect(model).toEqual({
@@ -43,9 +43,9 @@ describe("buildStartupErrorScreenModel", () => {
         "This drawing needs account access. Log in or sign up to continue.",
       message: "Log in or sign up to open this account-linked drawing.",
       loginUrl:
-        "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Dserver-doc",
+        "http://localhost:3000/login?redirect=%2Fdraw%2F%3Fdoc%3Dserver-doc",
       signupUrl:
-        "http://localhost:3000/account/register?redirect=%2F%3Fdoc%3Dserver-doc",
+        "http://localhost:3000/register?redirect=%2Fdraw%2F%3Fdoc%3Dserver-doc",
       recoveryActions: "retry-and-reset",
     });
   });

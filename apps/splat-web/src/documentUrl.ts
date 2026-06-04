@@ -1,3 +1,5 @@
+import { buildDrawingAppUrl } from "@smalldraw/shared";
+
 export interface SplatDocumentUrlSummary {
   docUrl: string;
   collaborative?: boolean;
@@ -9,22 +11,21 @@ export function buildSplatCurrentDocumentUrl(
   currentHref: string,
   summary: SplatDocumentUrlSummary | null,
 ): string {
-  const url = new URL(currentHref);
-  url.searchParams.delete("join");
-  url.searchParams.delete("doc");
-  url.searchParams.delete("local");
-
   if (!summary) {
-    return url.toString();
+    return buildDrawingAppUrl(currentHref);
   }
 
   if (summary.accountAttached && summary.collabDocUrl) {
-    url.searchParams.set("doc", toDocumentId(summary.collabDocUrl));
-    return url.toString();
+    return buildDrawingAppUrl(currentHref, {
+      type: "account",
+      documentId: toDocumentId(summary.collabDocUrl),
+    });
   }
 
-  url.searchParams.set("local", summary.docUrl);
-  return url.toString();
+  return buildDrawingAppUrl(currentHref, {
+    type: "local",
+    docUrl: summary.docUrl,
+  });
 }
 
 function toDocumentId(docUrl: string): string {

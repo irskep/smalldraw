@@ -15,8 +15,7 @@ const handleError = (error: Error, queryClient: QueryClient) => {
   if (
     error instanceof TRPCClientError &&
     error.data?.code === "UNAUTHORIZED" &&
-    !isAppRoute("login") &&
-    !isAppRoute("register")
+    !isPublicUnauthenticatedRoute()
   ) {
     queryClient.clear();
 
@@ -30,6 +29,14 @@ const handleError = (error: Error, queryClient: QueryClient) => {
 
   return false;
 };
+
+function isPublicUnauthenticatedRoute(): boolean {
+  return (
+    window.location.pathname === basePath ||
+    isAppRoute("login") ||
+    isAppRoute("register")
+  );
+}
 
 export const App: React.FC = () => {
   const [queryClient] = useState(

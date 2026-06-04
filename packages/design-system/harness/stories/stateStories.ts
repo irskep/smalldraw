@@ -21,9 +21,9 @@ export const stateStories: HarnessStory[] = [
           "This drawing needs account access. Log in or sign up to continue.",
         message: "Log in or sign up to open this account-linked drawing.",
         loginUrl:
-          "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Ddemo",
+          "http://localhost:3000/login?redirect=%2Fdraw%2F%3Fdoc%3Ddemo",
         signupUrl:
-          "http://localhost:3000/account/register?redirect=%2F%3Fdoc%3Ddemo",
+          "http://localhost:3000/register?redirect=%2Fdraw%2F%3Fdoc%3Ddemo",
         recoveryActions: "retry-and-reset",
       });
       authRequired.setOnRetry(() => {

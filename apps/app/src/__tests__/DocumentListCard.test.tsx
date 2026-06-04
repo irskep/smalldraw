@@ -8,7 +8,7 @@ describe("DocumentListCard", () => {
       <DocumentListCard
         id="doc-1"
         name="Thumb Doc"
-        drawingUrl="http://localhost:3000/?doc=doc-1"
+        drawingUrl="http://localhost:3000/draw/?doc=doc-1"
         thumbnailUrl="https://cdn.example.com/documents/doc-1/thumbnail.png"
       />,
     );
@@ -16,7 +16,7 @@ describe("DocumentListCard", () => {
     expect(screen.getByAltText("Thumb Doc thumbnail")).toBeTruthy();
     expect(screen.queryByText("No preview")).toBeNull();
     expect(screen.getByRole("link").getAttribute("href")).toBe(
-      "http://localhost:3000/?doc=doc-1",
+      "http://localhost:3000/draw/?doc=doc-1",
     );
   });
 
@@ -25,7 +25,7 @@ describe("DocumentListCard", () => {
       <DocumentListCard
         id="doc-2"
         name="No Thumb Doc"
-        drawingUrl="http://localhost:3000/?doc=doc-2"
+        drawingUrl="http://localhost:3000/draw/?doc=doc-2"
       />,
     );
 

@@ -52,6 +52,9 @@ const Root = () => {
     if (!isNotAuthorized || isAppRoute("login") || isAppRoute("register")) {
       return;
     }
+    if (window.location.pathname === basePath) {
+      return;
+    }
     navigate({
       to: "/login",
       search:

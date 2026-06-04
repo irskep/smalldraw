@@ -68,11 +68,11 @@ describe("ShareQrDialog", () => {
     document.body.appendChild(dialog.el);
 
     const first = dialog.show({
-      joinUrl: "https://splatterboard.app/?join=first",
+      joinUrl: "https://splatterboard.app/draw/?join=first",
       qrDataUrl: "data:image/png;base64,first",
     });
     const second = dialog.show({
-      joinUrl: "https://splatterboard.app/?join=second",
+      joinUrl: "https://splatterboard.app/draw/?join=second",
       qrDataUrl: "data:image/png;base64,second",
     });
 
@@ -102,7 +102,7 @@ describe("ShareQrDialog", () => {
     });
 
     const pending = dialog.show({
-      joinUrl: "https://splatterboard.app/?join=copy-me",
+      joinUrl: "https://splatterboard.app/draw/?join=copy-me",
       qrDataUrl: "data:image/png;base64,copy",
     });
 
@@ -115,13 +115,15 @@ describe("ShareQrDialog", () => {
 
     expect(copyButton).not.toBeNull();
     expect(urlInput).not.toBeNull();
-    expect(urlInput!.value).toBe("https://splatterboard.app/?join=copy-me");
+    expect(urlInput!.value).toBe(
+      "https://splatterboard.app/draw/?join=copy-me",
+    );
 
     const ensuredCopyButton = copyButton!;
     ensuredCopyButton.click();
     await Promise.resolve();
 
-    expect(copied).toBe("https://splatterboard.app/?join=copy-me");
+    expect(copied).toBe("https://splatterboard.app/draw/?join=copy-me");
     expect(
       ensuredCopyButton.querySelector(".ds-button__label")?.textContent?.trim(),
     ).toBe("Copied");
@@ -146,7 +148,7 @@ describe("ShareQrDialog", () => {
     }) as typeof document.execCommand;
 
     const pending = dialog.show({
-      joinUrl: "http://192.168.1.58:3000/?join=copy-me",
+      joinUrl: "http://192.168.1.58:3000/draw/?join=copy-me",
       qrDataUrl: "data:image/png;base64,copy",
     });
 
@@ -174,7 +176,7 @@ describe("ShareQrDialog", () => {
     document.body.appendChild(dialog.el);
 
     const pending = dialog.show({
-      joinUrl: "https://splatterboard.app/?join=done",
+      joinUrl: "https://splatterboard.app/draw/?join=done",
       qrDataUrl: "data:image/png;base64,done",
     });
 
@@ -202,9 +204,9 @@ describe("DocumentAccessState", () => {
       description:
         "This drawing needs account access. Log in or sign up to continue.",
       message: "Log in or sign up to open this account-linked drawing.",
-      loginUrl: "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Ddemo",
+      loginUrl: "http://localhost:3000/login?redirect=%2Fdraw%2F%3Fdoc%3Ddemo",
       signupUrl:
-        "http://localhost:3000/account/register?redirect=%2F%3Fdoc%3Ddemo",
+        "http://localhost:3000/register?redirect=%2Fdraw%2F%3Fdoc%3Ddemo",
       recoveryActions: "retry-and-reset",
     });
     document.body.appendChild(state.el);
@@ -235,10 +237,10 @@ describe("DocumentAccessState", () => {
     ) as HTMLDivElement[];
 
     expect(loginLink?.href).toBe(
-      "http://localhost:3000/account/login?redirect=%2F%3Fdoc%3Ddemo",
+      "http://localhost:3000/login?redirect=%2Fdraw%2F%3Fdoc%3Ddemo",
     );
     expect(signupLink?.href).toBe(
-      "http://localhost:3000/account/register?redirect=%2F%3Fdoc%3Ddemo",
+      "http://localhost:3000/register?redirect=%2Fdraw%2F%3Fdoc%3Ddemo",
     );
     expect(loginLink?.hidden).toBeFalse();
     expect(signupLink?.hidden).toBeFalse();

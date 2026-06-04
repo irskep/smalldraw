@@ -24,7 +24,7 @@ describe("createBrowserMultiplayerConfig", () => {
     ).toEqual({
       syncServerHttpUrl: "http://192.168.1.25:3030/api",
       syncServerWebSocketUrl: "ws://192.168.1.25:3030",
-      joinBaseUrl: "http://192.168.1.25:3000",
+      joinBaseUrl: "http://192.168.1.25:3000/draw/",
       assetBaseUrl: "http://192.168.1.25:3030",
       deviceTag: "device-uuid-1",
     });
@@ -49,7 +49,7 @@ describe("createBrowserMultiplayerConfig", () => {
     ).toEqual({
       syncServerHttpUrl: "https://api.splatterboard.app/api",
       syncServerWebSocketUrl: "wss://sync.splatterboard.app",
-      joinBaseUrl: "https://splatterboard.app",
+      joinBaseUrl: "https://splatterboard.app/draw/",
       assetBaseUrl: "https://assets.splatterboard.app",
       deviceTag: "device-uuid-2",
     });

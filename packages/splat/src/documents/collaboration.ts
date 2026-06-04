@@ -1,3 +1,4 @@
+import { buildDrawingAppUrl } from "@smalldraw/shared";
 import type { KidsDocumentSummary } from "./types";
 
 export type DocumentClaimState =
@@ -42,9 +43,7 @@ export function automergeUrlToDocumentId(url: string): string | null {
 }
 
 export function buildJoinUrl(joinSecret: string, baseUrl: string): string {
-  const url = new URL(baseUrl);
-  url.searchParams.set("join", joinSecret);
-  return url.toString();
+  return buildDrawingAppUrl(baseUrl, { type: "join", joinSecret });
 }
 
 export function resolveJoinBaseUrl(

@@ -6,13 +6,13 @@ if (!deployHost) {
 }
 
 // Build splat-web (paint app) with prod env vars baked in
-await $`SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL=https://${deployHost}/api/v1 SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL=wss://${deployHost} SPLATTERBOARD_PUBLIC_JOIN_BASE_URL=https://${deployHost} SPLATTERBOARD_PUBLIC_ASSET_BASE_URL=https://${deployHost} bun run --cwd apps/splat-web build`;
+await $`SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL=https://${deployHost}/api/v1 SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL=wss://${deployHost} SPLATTERBOARD_PUBLIC_JOIN_BASE_URL=https://${deployHost}/draw/ SPLATTERBOARD_PUBLIC_ASSET_BASE_URL=https://${deployHost} bun run --cwd apps/splat-web build`;
 
-// Build account app with /account/ base path and API URL baked in
-await $`VITE_API_URL=https://${deployHost}/api/v1 VITE_BASE=/account/ bun run --cwd apps/app build`;
+// Build account app as the root document home
+await $`VITE_API_URL=https://${deployHost}/api/v1 VITE_BASE=/ bun run --cwd apps/app build`;
 
 // Assemble into server build directory
 await $`rm -rf apps/server/build`;
-await $`mkdir -p apps/server/build/account`;
-await $`cp -R apps/splat-web/dist/. apps/server/build/`;
-await $`cp -R apps/app/dist/. apps/server/build/account/`;
+await $`mkdir -p apps/server/build/draw`;
+await $`cp -R apps/app/dist/. apps/server/build/`;
+await $`cp -R apps/splat-web/dist/. apps/server/build/draw/`;

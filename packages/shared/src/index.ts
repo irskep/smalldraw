@@ -47,6 +47,59 @@ export function isAppError(input: unknown): input is AppError {
   );
 }
 
+export const DRAW_APP_PATH = "/draw/";
+
+export type DrawingAppDocumentUrlParams =
+  | { type: "account"; documentId: string }
+  | { type: "local"; docUrl: string }
+  | { type: "join"; joinSecret: string };
+
+export function buildDrawingAppUrl(
+  baseUrl: string,
+  params?: DrawingAppDocumentUrlParams,
+): string {
+  const url = new URL(resolveDrawingAppBaseUrl(baseUrl));
+  url.search = "";
+  if (!params) {
+    return url.toString();
+  }
+  switch (params.type) {
+    case "account":
+      url.searchParams.set("doc", params.documentId);
+      break;
+    case "local":
+      url.searchParams.set("local", params.docUrl);
+      break;
+    case "join":
+      url.searchParams.set("join", params.joinSecret);
+      break;
+  }
+  return url.toString();
+}
+
+export function resolveDrawingAppBaseUrl(baseUrl: string): string {
+  const url = new URL(baseUrl);
+  url.pathname = normalizeDrawPath(url.pathname);
+  url.search = "";
+  url.hash = "";
+  return url.toString();
+}
+
+export function buildDrawingAppRedirectPath(currentHref: string): string {
+  const url = new URL(currentHref);
+  return `${url.pathname}${url.search}`;
+}
+
+function normalizeDrawPath(pathname: string): string {
+  if (pathname === DRAW_APP_PATH) {
+    return pathname;
+  }
+  if (pathname === "/" || pathname === "") {
+    return DRAW_APP_PATH;
+  }
+  return pathname.endsWith("/") ? pathname : `${pathname}/`;
+}
+
 export function getAppError(input: unknown): AppError | null {
   if (input instanceof AppErrorException) {
     return input.appError;

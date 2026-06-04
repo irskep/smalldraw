@@ -28,6 +28,7 @@ const sourceColoringDir = path.resolve(
   "packages/splat/src/coloring/assets",
 );
 const indexHtmlPath = path.join(staticDir, "index.html");
+const drawIndexHtmlPath = path.join(staticDir, "draw", "index.html");
 
 const PORT =
   process.env.PORT !== undefined ? parseInt(process.env.PORT, 10) : 3030;
@@ -68,17 +69,16 @@ app.get("/healthz", (_req, res) => {
 });
 
 // SPA fallback only for known app routes
-app.get("/account/*", (_req, res) => {
-  const accountIndexPath = path.join(staticDir, "account", "index.html");
-  if (!fs.existsSync(accountIndexPath)) {
-    return res.status(404).send("Account app build not found");
+app.get("/draw/*", (_req, res) => {
+  if (!fs.existsSync(drawIndexHtmlPath)) {
+    return res.status(404).send("Drawing app build not found");
   }
-  res.sendFile(accountIndexPath);
+  res.sendFile(drawIndexHtmlPath);
 });
 
-app.get("/", (_req, res) => {
+app.get(["/", "/login", "/register", "/invitation/*"], (_req, res) => {
   if (!fs.existsSync(indexHtmlPath)) {
-    return res.status(404).send("Frontend build not found");
+    return res.status(404).send("Home app build not found");
   }
   res.sendFile(indexHtmlPath);
 });

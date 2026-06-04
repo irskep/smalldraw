@@ -1,4 +1,7 @@
-import type { SplatDocumentOpenIntent } from "@smalldraw/shared";
+import {
+  resolveDrawingAppBaseUrl,
+  type SplatDocumentOpenIntent,
+} from "@smalldraw/shared";
 
 export interface SplatWebRuntimeEnvLike {
   SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: string;
@@ -47,7 +50,9 @@ export function createBrowserMultiplayerConfig(
     syncServerWebSocketUrl: stripTrailingSlashes(
       env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL,
     ),
-    joinBaseUrl: stripTrailingSlashes(env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL),
+    joinBaseUrl: resolveDrawingAppBaseUrl(
+      env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL,
+    ),
     assetBaseUrl: env.SPLATTERBOARD_PUBLIC_ASSET_BASE_URL
       ? stripTrailingSlashes(env.SPLATTERBOARD_PUBLIC_ASSET_BASE_URL)
       : undefined,

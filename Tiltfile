@@ -47,7 +47,7 @@ local_dev_server(
         "packages/renderer-raster/src",
         "mise.toml",
     ],
-    port=3000,
+    port=3001,
     resource_deps=["app-server"],
 )
 
@@ -60,7 +60,7 @@ local_dev_server(
         "apps/app/vite.config.ts",
         "mise.toml",
     ],
-    port=3001,
+    port=3000,
     resource_deps=["app-server"],
 )
 

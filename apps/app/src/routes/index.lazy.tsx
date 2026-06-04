@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { createLazyFileRoute } from "@tanstack/react-router";
+import { Link, createLazyFileRoute } from "@tanstack/react-router";
 import { DocumentListCard } from "@/components/DocumentListCard/DocumentListCard";
 import {
   buildDrawingDocumentUrl,
@@ -18,9 +19,30 @@ function Index() {
   });
   const createDocumentMutation = trpc.createDocument.useMutation();
   const runtimeConfig = createAccountWebRuntimeConfig();
+  const isNotAuthorized = documentsQuery.error?.data?.code === "UNAUTHORIZED";
 
   if (documentsQuery.isLoading) {
     return <div className="p-4 text-center">Loading...</div>;
+  }
+
+  if (isNotAuthorized) {
+    return (
+      <Card className="mx-auto max-w-2xl p-8 text-center">
+        <h1 className="text-3xl font-semibold">Splatterboard</h1>
+        <p className="mx-auto max-w-lg pt-3 text-muted-foreground">
+          Sign in to browse your saved drawings and start new account-backed
+          drawings. Public drawing without an account is coming back here next.
+        </p>
+        <div className="flex justify-center gap-3 pt-6">
+          <Button asChild>
+            <Link to="/login">Login</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/register">Sign up</Link>
+          </Button>
+        </div>
+      </Card>
+    );
   }
 
   if (documentsQuery.error) {

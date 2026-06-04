@@ -14,11 +14,11 @@ describe("drawing app links", () => {
         },
         {
           protocol: "http:",
-          hostname: "localhost",
+          host: "localhost:3000",
         },
       ),
     ).toEqual({
-      drawingAppBaseUrl: "https://draw.example.com",
+      drawingAppBaseUrl: "https://draw.example.com/draw/",
     });
   });
 
@@ -28,31 +28,37 @@ describe("drawing app links", () => {
         {},
         {
           protocol: "http:",
-          hostname: "localhost",
+          host: "localhost:3000",
         },
       ),
     ).toEqual({
-      drawingAppBaseUrl: "http://localhost:3000",
+      drawingAppBaseUrl: "http://localhost:3000/draw/",
     });
     expect(
       resolveDrawingAppBaseUrl({
         protocol: "http:",
-        hostname: "localhost",
+        host: "localhost:3000",
       }),
-    ).toBe("http://localhost:3000");
+    ).toBe("http://localhost:3000/draw/");
     expect(
       resolveDrawingAppBaseUrl({
         protocol: "http:",
-        hostname: "192.168.1.58",
+        host: "192.168.1.58:3000",
       }),
-    ).toBe("http://192.168.1.58:3000");
+    ).toBe("http://192.168.1.58:3000/draw/");
+    expect(
+      resolveDrawingAppBaseUrl({
+        protocol: "https:",
+        host: "splatterboard.app",
+      }),
+    ).toBe("https://splatterboard.app/draw/");
   });
 
   test("builds canonical drawing app document URL", () => {
     expect(
       buildDrawingDocumentUrl("doc with spaces", {
-        drawingAppBaseUrl: "http://localhost:3000",
+        drawingAppBaseUrl: "http://localhost:3000/draw/",
       }),
-    ).toBe("http://localhost:3000/?doc=doc+with+spaces");
+    ).toBe("http://localhost:3000/draw/?doc=doc+with+spaces");
   });
 });

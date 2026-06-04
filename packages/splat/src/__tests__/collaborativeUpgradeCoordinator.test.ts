@@ -84,7 +84,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
       joinSecret: "join-secret-1",
       accessToken: "access-token-1",
       accessTokenScope: "owner",
-      joinUrl: "https://splatterboard.app/draw?join=join-secret-1",
+      joinUrl: "https://splatterboard.app/draw/?join=join-secret-1",
       upgraded: true,
     });
     expect(getDocumentCalls).toEqual(["automerge:catalog-doc"]);
@@ -152,7 +152,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
       switchToDocument: async () => {
         switched = true;
       },
-      resolveJoinBaseUrl: () => "https://splatterboard.app",
+      resolveJoinBaseUrl: () => "https://splatterboard.app/draw/",
     });
 
     const result = await coordinator.ensureCollaborative();
@@ -162,7 +162,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
       joinSecret: "existing-secret",
       accessToken: "existing-access",
       accessTokenScope: "owner",
-      joinUrl: "https://splatterboard.app/?join=existing-secret",
+      joinUrl: "https://splatterboard.app/draw/?join=existing-secret",
       upgraded: false,
     });
     expect(created).toBeFalse();

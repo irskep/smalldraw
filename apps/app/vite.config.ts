@@ -9,7 +9,14 @@ export default defineConfig({
   plugins: [wasm(), react(), TanStackRouterVite()],
   server: {
     host: "0.0.0.0",
-    port: 3001,
+    port: 3000,
+    proxy: {
+      "/draw": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+        rewrite: (requestPath) => requestPath.replace(/^\/draw\/?/, "/") || "/",
+      },
+    },
   },
   test: {
     environment: "happy-dom",

@@ -1,6 +1,11 @@
+import {
+  buildDrawingAppUrl,
+  resolveDrawingAppBaseUrl as resolveSharedDrawingAppBaseUrl,
+} from "@smalldraw/shared";
+
 export interface LocationLike {
   protocol: string;
-  hostname: string;
+  host: string;
 }
 
 export interface AccountWebRuntimeConfig {
@@ -27,19 +32,24 @@ export function resolveDrawingAppBaseUrl(location: LocationLike): string {
 }
 
 function resolveDefaultDrawingAppBaseUrl(location: LocationLike): string {
-  return `${location.protocol}//${location.hostname}:3000`;
+  return resolveSharedDrawingAppBaseUrl(
+    `${location.protocol}//${location.host}`,
+  );
 }
 
 export function buildDrawingDocumentUrl(
   documentId: string,
   config: AccountWebRuntimeConfig = createAccountWebRuntimeConfig(),
 ): string {
-  const url = new URL(config.drawingAppBaseUrl);
-  url.searchParams.set("doc", documentId);
-  return url.toString();
+  return buildDrawingAppUrl(config.drawingAppBaseUrl, {
+    type: "account",
+    documentId,
+  });
 }
 
 function normalizeOptionalBaseUrl(value: string | undefined): string | null {
   const trimmed = value?.trim();
-  return trimmed && trimmed.length > 0 ? trimmed.replace(/\/+$/, "") : null;
+  return trimmed && trimmed.length > 0
+    ? resolveSharedDrawingAppBaseUrl(trimmed)
+    : null;
 }
