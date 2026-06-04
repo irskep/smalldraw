@@ -51,6 +51,7 @@ export type AppRuntimeAssembly = {
     reason: string;
     display: DocumentAccessDisplay;
   } | null;
+  startupCreateNewDocument: boolean;
   sizingPolicy: {
     hasExplicitSize: boolean;
     getExplicitSize: () => DrawingDocumentSize;
@@ -154,6 +155,9 @@ export async function assembleAppRuntime(
       display: toStartupDocumentAccessDisplay(error),
     };
   }
+  if (startupIntent.kind === "create-new-document") {
+    initialCatalogDocUrlOverride = null;
+  }
 
   const initialCatalogDocUrl =
     initialCatalogDocUrlOverride === null
@@ -221,6 +225,7 @@ export async function assembleAppRuntime(
     deviceTag,
     initialCatalogDocUrl,
     initialDocumentAccessState,
+    startupCreateNewDocument: startupIntent.kind === "create-new-document",
     sizingPolicy: {
       hasExplicitSize,
       getExplicitSize,

@@ -1,7 +1,9 @@
-import { Link, createLazyFileRoute } from "@tanstack/react-router";
-import { DocumentListCard } from "@/components/DocumentListCard/DocumentListCard";
+import { createLocalDocumentBackend } from "@smalldraw/splat/documents";
+import { createLazyFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { buildLauncherDocumentTiles } from "@/utils/documentLauncher";
 import {
-  buildDrawingDocumentUrl,
+  buildNewDrawingUrl,
   createAccountWebRuntimeConfig,
 } from "@/utils/drawingAppLinks";
 import { trpc } from "../utils/trpc";
@@ -10,104 +12,152 @@ export const Route = createLazyFileRoute("/")({
   component: Index,
 });
 
+type LocalDocumentTileInput = Parameters<
+  typeof buildLauncherDocumentTiles
+>[0]["localDocuments"][number];
+
+type LocalCatalogState =
+  | { type: "loading" }
+  | { type: "loaded"; documents: LocalDocumentTileInput[] }
+  | { type: "error"; message: string };
+
 function Index() {
-  const documentsQuery = trpc.documents.useQuery(undefined, {
-    refetchInterval: 5000,
+  const runtimeConfig = useMemo(() => createAccountWebRuntimeConfig(), []);
+  const [localCatalog, setLocalCatalog] = useState<LocalCatalogState>({
+    type: "loading",
   });
-  const createDocumentMutation = trpc.createDocument.useMutation();
-  const runtimeConfig = createAccountWebRuntimeConfig();
-  const isNotAuthorized = documentsQuery.error?.data?.code === "UNAUTHORIZED";
+  const meQuery = trpc.me.useQuery(undefined, {
+    retry: false,
+  });
+  const isLoggedIn = Boolean(meQuery.data);
+  const documentsQuery = trpc.documents.useQuery(undefined, {
+    enabled: isLoggedIn,
+    refetchInterval: 5000,
+    retry: (failureCount) => failureCount < 2,
+  });
+  const tiles = useMemo(() => {
+    const accountDocuments =
+      isLoggedIn && !documentsQuery.error ? (documentsQuery.data ?? []) : [];
+    return buildLauncherDocumentTiles({
+      localDocuments:
+        localCatalog.type === "loaded" ? localCatalog.documents : [],
+      accountDocuments,
+      config: runtimeConfig,
+    });
+  }, [
+    documentsQuery.data,
+    documentsQuery.error,
+    isLoggedIn,
+    localCatalog,
+    runtimeConfig,
+  ]);
 
-  if (documentsQuery.isLoading) {
-    return <div className="account-page__header">Loading...</div>;
-  }
+  useEffect(() => {
+    let disposed = false;
+    const objectUrls: string[] = [];
+    const documentBackend = createLocalDocumentBackend({
+      currentDocStorageKey: "kids-draw-doc-url",
+    });
 
-  if (isNotAuthorized) {
-    return (
-      <section className="account-card account-card--centered">
-        <h1 className="account-title account-title--large">Splatterboard</h1>
-        <p className="account-subtitle">
-          Sign in to browse your saved drawings and start new account-backed
-          drawings. Public drawing without an account is coming back here next.
-        </p>
-        <div className="account-actions">
-          <Link to="/login" className="ds-button" data-tone="primary">
-            Login
-          </Link>
-          <Link to="/register" className="ds-button">
-            Sign up
-          </Link>
-        </div>
-      </section>
-    );
-  }
+    void (async () => {
+      try {
+        const documents = await documentBackend.listDocuments();
+        const documentsWithThumbnails = await Promise.all(
+          documents.map(async (document) => {
+            const thumbnail = await documentBackend.getThumbnail(
+              document.docUrl,
+            );
+            if (!thumbnail) {
+              return document;
+            }
+            const thumbnailUrl = URL.createObjectURL(thumbnail);
+            objectUrls.push(thumbnailUrl);
+            return { ...document, thumbnailUrl };
+          }),
+        );
+        if (!disposed) {
+          setLocalCatalog({
+            type: "loaded",
+            documents: documentsWithThumbnails,
+          });
+        }
+      } catch (error) {
+        if (!disposed) {
+          setLocalCatalog({
+            type: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Local drawings could not be loaded.",
+          });
+        }
+      }
+    })();
 
-  if (documentsQuery.error) {
-    return (
-      <div className="account-alert" data-tone="danger" role="alert">
-        Error loading documents: {documentsQuery.error.message}
-      </div>
-    );
-  }
+    return () => {
+      disposed = true;
+      for (const objectUrl of objectUrls) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, []);
 
   return (
-    <section className="account-page">
-      <div className="account-page__header">
-        <h1 className="account-title">Your documents</h1>
-        <p className="account-subtitle">
-          Account-attached documents you can manage from this server.
-        </p>
-      </div>
-      <form
-        className="account-form account-form--inline"
-        onSubmit={(event) => {
-          event.preventDefault();
+    <section className="account-launcher" aria-label="Drawings">
+      {localCatalog.type === "error" ? (
+        <div className="account-alert" data-tone="danger" role="alert">
+          <div className="account-alert__body">
+            <div className="account-alert__title">
+              Local drawings could not be loaded
+            </div>
+            <div>{localCatalog.message}</div>
+          </div>
+        </div>
+      ) : null}
 
-          createDocumentMutation.mutate(
-            // @ts-expect-error form name is defined
-            { name: event.target.name.value },
-            {
-              onSuccess: ({ document }) => {
-                window.location.assign(
-                  buildDrawingDocumentUrl(document.id, runtimeConfig),
-                );
-                documentsQuery.refetch();
-              },
-              onError: () => {
-                alert("Failed to create the document");
-              },
-            },
-          );
-        }}
-      >
-        <input
-          type="text"
-          name="name"
-          placeholder="Document name"
-          className="account-input account-input--short"
-          autoComplete="off"
-        />
-        <button
-          type="submit"
-          className="ds-button"
-          data-tone="primary"
-          disabled={createDocumentMutation.isPending}
+      <div className="account-launcher-grid">
+        <a
+          href={buildNewDrawingUrl(runtimeConfig)}
+          className="account-launcher-card account-launcher-card--new"
         >
-          Create Document
-        </button>
-      </form>
+          <span className="account-launcher-card__media">
+            <span
+              className="ds-button account-launcher-card__cta"
+              data-tone="primary"
+            >
+              New Drawing
+            </span>
+          </span>
+        </a>
 
-      <div className="account-document-list">
-        {documentsQuery.data?.map((doc) => (
-          <DocumentListCard
-            key={doc.id}
-            id={doc.id}
-            name={doc.name}
-            drawingUrl={buildDrawingDocumentUrl(doc.id, runtimeConfig)}
-            thumbnailUrl={doc.thumbnailUrl}
-          />
+        {tiles.map((tile) => (
+          <a
+            key={tile.key}
+            href={tile.href}
+            className="account-launcher-card"
+            aria-label={`Open ${tile.title}`}
+          >
+            <span className="account-launcher-card__badge">{tile.badge}</span>
+            <span className="account-launcher-card__media">
+              {tile.thumbnailUrl ? (
+                <img src={tile.thumbnailUrl} alt={`${tile.title} thumbnail`} />
+              ) : (
+                <span className="account-launcher-card__empty">No preview</span>
+              )}
+            </span>
+          </a>
         ))}
       </div>
+
+      {localCatalog.type === "loading" ? (
+        <p className="account-muted">Loading drawings…</p>
+      ) : null}
+
+      {isLoggedIn && documentsQuery.error ? (
+        <p className="account-muted">
+          Account drawings could not be refreshed right now.
+        </p>
+      ) : null}
     </section>
   );
 }

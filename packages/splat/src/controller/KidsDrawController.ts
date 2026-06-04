@@ -161,6 +161,7 @@ export function createKidsDrawController(options: {
         reason: string;
         display: DocumentAccessDisplay;
       };
+  startupCreateNewDocument?: boolean;
   beforeOpenDocument?: (
     summary: KidsDocumentSummary | null,
   ) => Promise<void> | void;
@@ -202,6 +203,7 @@ export function createKidsDrawController(options: {
     onThumbnailSaved,
     initialCatalogDocUrl,
     initialDocumentAccessState,
+    startupCreateNewDocument,
     beforeOpenDocument,
     resolveJoinBaseUrl,
     showShareDialog,
@@ -378,6 +380,7 @@ export function createKidsDrawController(options: {
     onThumbnailSaved,
     initialCatalogDocUrl,
     initialDocumentAccessState,
+    startupCreateNewDocument,
     beforeOpenDocument,
     resolveJoinBaseUrl,
   });

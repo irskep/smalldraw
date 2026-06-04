@@ -1,12 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
+import type { DropdownMenuEntry } from "@smalldraw/design-system/dropdown-menu";
 import {
   createRootRoute,
   Link,
   Outlet,
   useNavigate,
 } from "@tanstack/react-router";
-import { Shield } from "lucide-react";
-import { lazy, Suspense, useEffect } from "react";
+import { LogIn, LogOut, UserPlus } from "lucide";
+import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
+import { DsDropdownMenu } from "@/components/DsDropdownMenu/DsDropdownMenu";
 import { appPath, basePath, isAppRoute } from "../config";
 import { trpc } from "../utils/trpc";
 
@@ -46,6 +48,30 @@ const Root = () => {
   const queryClient = useQueryClient();
 
   const isNotAuthorized = meQuery.error?.data?.code === "UNAUTHORIZED";
+  const accountMenuEntries = useMemo<DropdownMenuEntry[]>(() => {
+    if (meQuery.data && !isNotAuthorized) {
+      return [
+        {
+          id: "logout",
+          label: "Log out",
+          icon: LogOut,
+          disabled: logoutMutation.isPending,
+        },
+      ];
+    }
+    if ((!meQuery.data && !meQuery.isLoading) || isNotAuthorized) {
+      return [
+        { id: "login", label: "Login", icon: LogIn },
+        { id: "register", label: "Sign up", icon: UserPlus },
+      ];
+    }
+    return [];
+  }, [
+    isNotAuthorized,
+    logoutMutation.isPending,
+    meQuery.data,
+    meQuery.isLoading,
+  ]);
 
   useEffect(() => {
     if (!isNotAuthorized || isAppRoute("login") || isAppRoute("register")) {
@@ -63,57 +89,56 @@ const Root = () => {
     });
   }, [isNotAuthorized, navigate]);
 
+  const handleMenuSelect = useCallback(
+    (itemId: string) => {
+      if (itemId === "login") {
+        navigate({
+          to: "/login",
+          search: { redirect: getRedirectParam() },
+        });
+        return;
+      }
+      if (itemId === "register") {
+        navigate({
+          to: "/register",
+          search: { redirect: getRedirectParam() },
+        });
+        return;
+      }
+      if (itemId === "logout") {
+        logoutMutation.mutate(undefined, {
+          onSuccess: () => {
+            queryClient.invalidateQueries();
+            window.location.href = appPath("login");
+          },
+          onError: () => {
+            alert("Failed to logout");
+          },
+        });
+      }
+    },
+    [logoutMutation, navigate, queryClient],
+  );
+
   return (
     <div className="account-shell">
       <header className="account-header">
         <Link to="/" className="account-brand">
-          <Shield />
           Splatterboard
         </Link>
         <nav className="account-nav" aria-label="Account">
-          {(!meQuery.data && !meQuery.isLoading) || isNotAuthorized ? (
-            <>
-              <Link to="/login" search={{ redirect: getRedirectParam() }}>
-                Login
-              </Link>
-              <Link to="/register" search={{ redirect: getRedirectParam() }}>
-                Sign up
-              </Link>
-            </>
-          ) : null}
-
           {meQuery.data && !isNotAuthorized ? (
-            <>
-              <div className="account-nav__identity">
-                <div>{meQuery.data.username}</div>
-                {meQuery.data.isServerAdmin ? (
-                  <div className="account-muted account-muted--small">
-                    server admin
-                  </div>
-                ) : null}
-              </div>
-
-              <button
-                type="button"
-                className="ds-button"
-                // not perfect but good enough since the local changes are fast
-                disabled={logoutMutation.isPending}
-                onClick={async () => {
-                  logoutMutation.mutate(undefined, {
-                    onSuccess: () => {
-                      queryClient.invalidateQueries();
-                      window.location.href = appPath("login");
-                    },
-                    onError: () => {
-                      alert("Failed to logout");
-                    },
-                  });
-                }}
-              >
-                Logout
-              </button>
-            </>
+            <div className="account-nav__identity" aria-live="polite">
+              {meQuery.data.username}
+              {meQuery.data.isServerAdmin ? " (admin)" : ""}
+            </div>
           ) : null}
+          <DsDropdownMenu
+            label="Menu"
+            menuLabel="Account"
+            entries={accountMenuEntries}
+            onSelect={handleMenuSelect}
+          />
         </nav>
       </header>
       <main className="account-main">

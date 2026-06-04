@@ -26,7 +26,12 @@ describe("drawing app route helpers", () => {
     );
   });
 
-  test("builds account, local, and join drawing URLs", () => {
+  test("builds new, account, local, and join drawing URLs", () => {
+    expect(
+      buildDrawingAppUrl("http://localhost:3000", {
+        type: "new",
+      }),
+    ).toBe("http://localhost:3000/draw/?new=1");
     expect(
       buildDrawingAppUrl("http://localhost:3000", {
         type: "account",

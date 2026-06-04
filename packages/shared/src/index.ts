@@ -50,6 +50,7 @@ export function isAppError(input: unknown): input is AppError {
 export const DRAW_APP_PATH = "/draw/";
 
 export type DrawingAppDocumentUrlParams =
+  | { type: "new" }
   | { type: "account"; documentId: string }
   | { type: "local"; docUrl: string }
   | { type: "join"; joinSecret: string };
@@ -64,6 +65,9 @@ export function buildDrawingAppUrl(
     return url.toString();
   }
   switch (params.type) {
+    case "new":
+      url.searchParams.set("new", "1");
+      break;
     case "account":
       url.searchParams.set("doc", params.documentId);
       break;
@@ -168,6 +172,7 @@ export type RevokeDocumentAccessTokenResult = {
 
 export type SplatDocumentOpenIntent =
   | { kind: "open-last-local" }
+  | { kind: "create-new-document" }
   | { kind: "open-local-document"; docUrl: string }
   | { kind: "open-share-link"; joinSecret: string }
   | { kind: "open-account-document"; documentId: string };

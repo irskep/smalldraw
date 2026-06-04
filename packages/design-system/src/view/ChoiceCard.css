@@ -8,7 +8,7 @@
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--size-2);
-  cursor: pointer;
+  cursor: var(--ds-cursor-interactive-hover);
   text-align: left;
 }
 

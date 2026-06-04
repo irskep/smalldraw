@@ -46,7 +46,6 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
 
   private readonly chrome: DropdownChrome;
   private readonly swatchGrid: ColorSwatchGrid;
-  private selectedColor = "";
   private selectHandler: ((color: string) => void) | null = null;
 
   constructor(options: ColorPickerOptions = {}) {
@@ -96,7 +95,6 @@ export class ColorPicker implements ReDomLike<HTMLDivElement> {
   }
 
   setSelectedColor(color: string): void {
-    this.selectedColor = color;
     this.triggerButton.setIcon(color ? createColorTriggerIcon(color) : Palette);
     this.swatchGrid.setSelectedColor(color);
   }

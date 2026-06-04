@@ -13,7 +13,7 @@ export interface DropdownMenuItem {
   type?: "item";
   id: string;
   label: string;
-  icon: IconNode;
+  icon?: IconNode;
   danger?: boolean;
   disabled?: boolean;
 }
@@ -55,7 +55,10 @@ class DropdownMenuItemView implements ReDomLike<HTMLButtonElement> {
         type: "button",
         role: "menuitem",
       },
-      el("span.ds-dropdown-menu__item-icon", renderIcon(item.icon)),
+      el(
+        "span.ds-dropdown-menu__item-icon",
+        item.icon ? renderIcon(item.icon) : [],
+      ),
       new Text({
         tag: "span",
         text: item.label,

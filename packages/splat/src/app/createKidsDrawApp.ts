@@ -189,6 +189,7 @@ export async function createKidsDrawApp(
     onThumbnailSaved: controllerMultiplayerAdapters.onThumbnailSaved,
     initialCatalogDocUrl: runtime.initialCatalogDocUrl ?? undefined,
     initialDocumentAccessState: runtime.initialDocumentAccessState ?? undefined,
+    startupCreateNewDocument: runtime.startupCreateNewDocument,
     beforeOpenDocument: runtime.prepareDocumentOpen,
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
@@ -235,6 +236,14 @@ function describeInitialBlockingState(
   options: Pick<KidsDrawAppOptions, "multiplayer">,
 ): SplatContextDocumentSlot {
   const startupIntent = options.multiplayer?.startupIntent;
+  if (startupIntent?.kind === "create-new-document") {
+    return {
+      type: "loading",
+      title: "Creating drawing…",
+      description: "Preparing a blank drawing.",
+      recoveryActions: "none",
+    };
+  }
   if (startupIntent?.kind === "open-account-document") {
     return {
       type: "loading",

@@ -40,7 +40,6 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
 
   private readonly chrome: DropdownChrome;
   private readonly strokeWidthGrid: StrokeWidthGrid;
-  private selectedStrokeWidth = 0;
   private selectHandler: ((strokeWidth: number) => void) | null = null;
 
   constructor(options: StrokePickerOptions = {}) {
@@ -91,7 +90,6 @@ export class StrokePicker implements ReDomLike<HTMLDivElement> {
   }
 
   setSelectedStrokeWidth(strokeWidth: number): void {
-    this.selectedStrokeWidth = strokeWidth;
     this.triggerButton.setIcon(
       strokeWidth > 0
         ? createStrokeTriggerIcon(strokeWidth)

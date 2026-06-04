@@ -14,6 +14,8 @@ a {
 
 .account-shell {
   min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   background: var(--ds-surface-muted);
 }
 
@@ -22,9 +24,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: var(--size-4);
-  padding: var(--size-4);
-  border-bottom: var(--border-size-1) solid var(--ds-border);
-  background: color-mix(in oklch, var(--ds-surface) 92%, transparent);
+  padding: var(--size-2);
 }
 
 .account-brand {
@@ -36,30 +36,30 @@ a {
   text-decoration: none;
 }
 
-.account-brand svg,
 .account-action-icon {
   width: 1em;
   height: 1em;
 }
 
 .account-nav {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap;
   gap: var(--size-3);
 }
 
 .account-nav__identity {
-  display: grid;
-  gap: var(--size-1);
-  justify-items: end;
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-1);
 }
 
 .account-main {
-  width: min(100%, var(--size-content-3));
+  width: min(100%, 88rem);
   margin-inline: auto;
-  padding: var(--size-5);
+  padding: var(--size-2);
+  display: grid;
+  align-items: safe center;
 }
 
 .account-page {
@@ -216,55 +216,92 @@ a {
   font-weight: var(--font-weight-6);
 }
 
-.account-document-list {
+.account-launcher {
   display: grid;
-  gap: var(--size-3);
+  gap: var(--size-5);
 }
 
-.account-document-card {
+.account-launcher-grid {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
   gap: var(--size-4);
-  align-items: start;
-  padding: var(--size-3);
-  text-align: left;
+  align-items: stretch;
+}
+
+.account-launcher-card {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  gap: var(--size-2);
+  color: var(--ds-ink);
   text-decoration: none;
-  transition: background-color 120ms var(--ease-out-3);
+  cursor: var(--ds-cursor-interactive-hover);
 }
 
-.account-document-card:hover {
-  background: var(--ds-accent-subtle-surface);
-}
-
-.account-document-card__thumbnail {
-  width: var(--size-px-88x);
-  height: var(--size-px-88x);
+.account-launcher-card__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
   display: grid;
   place-items: center;
   overflow: hidden;
   border: var(--border-size-1) solid var(--ds-border);
-  border-radius: var(--radius-2);
+  border-radius: var(--radius-3);
+  background: var(--ds-surface);
+  box-shadow: var(--shadow-1);
+  transition:
+    border-color 120ms var(--ease-out-3),
+    box-shadow 120ms var(--ease-out-3),
+    transform 120ms var(--ease-out-3);
+}
+
+.account-launcher-card:hover .account-launcher-card__media,
+.account-launcher-card:focus-visible .account-launcher-card__media {
+  border-color: var(--ds-focus-ring);
+  box-shadow: var(--shadow-3);
+  transform: translateY(-1px);
+}
+
+.account-launcher-card:focus-visible {
+  outline: none;
+}
+
+.account-launcher-card:focus-visible .account-launcher-card__media {
+  outline: var(--border-size-3) solid var(--ds-focus-ring);
+  outline-offset: var(--size-1);
+}
+
+.account-launcher-card--new .account-launcher-card__media {
+  gap: var(--size-4);
+  border-style: dashed;
   background: var(--ds-surface-muted);
 }
 
-.account-document-card__thumbnail img {
+.account-launcher-card__cta {
+  pointer-events: none;
+}
+
+.account-launcher-card__media img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--ds-surface);
 }
 
-.account-document-card__body {
-  min-width: 0;
-  display: grid;
-  gap: var(--size-1);
+.account-launcher-card__badge {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: var(--size-2);
+  inset-inline-start: var(--size-2);
+  padding: var(--size-1) var(--size-2);
+  border-radius: var(--radius-round);
+  background: var(--ds-accent-subtle-surface);
+  color: var(--ds-ink);
+  font-size: var(--font-size-0);
+  font-weight: var(--font-weight-6);
 }
 
-.account-document-card__title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--font-size-3);
-  font-weight: var(--font-weight-5);
+.account-launcher-card__empty {
+  color: var(--ds-text-muted);
 }
 
 .account-two-column {

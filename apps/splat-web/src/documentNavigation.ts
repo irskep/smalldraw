@@ -138,6 +138,11 @@ function navigationStateFromStartupIntent(
         docUrl,
       };
     }
+    case "create-new-document":
+      return {
+        type: "none",
+        key: "new",
+      };
     case "startup-error":
       return {
         type: "startup-error",

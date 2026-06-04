@@ -6,7 +6,7 @@
   padding: var(--size-1);
   display: grid;
   gap: var(--size-1);
-  cursor: pointer;
+  cursor: var(--ds-cursor-interactive-hover);
   text-align: left;
 }
 

@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
+  buildLocalDrawingUrl,
+  buildNewDrawingUrl,
   buildDrawingDocumentUrl,
   createAccountWebRuntimeConfig,
   resolveDrawingAppBaseUrl,
@@ -60,5 +62,18 @@ describe("drawing app links", () => {
         drawingAppBaseUrl: "http://localhost:3000/draw/",
       }),
     ).toBe("http://localhost:3000/draw/?doc=doc+with+spaces");
+  });
+
+  test("builds explicit new and local drawing URLs", () => {
+    expect(
+      buildNewDrawingUrl({
+        drawingAppBaseUrl: "http://localhost:3000/draw/",
+      }),
+    ).toBe("http://localhost:3000/draw/?new=1");
+    expect(
+      buildLocalDrawingUrl("automerge:local doc", {
+        drawingAppBaseUrl: "http://localhost:3000/draw/",
+      }),
+    ).toBe("http://localhost:3000/draw/?local=automerge%3Alocal+doc");
   });
 });

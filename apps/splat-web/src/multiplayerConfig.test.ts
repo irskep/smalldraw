@@ -100,6 +100,9 @@ describe("resolveStartupOpenParams", () => {
       accountDocumentId: undefined,
       localDocUrl: "automerge:local-doc",
     });
+    expect(resolveStartupOpenParams("?new=1")).toEqual({
+      createNew: true,
+    });
   });
 
   test("rejects ambiguous startup URLs", () => {
@@ -113,6 +116,9 @@ describe("resolveSplatStartupIntent", () => {
   test("returns one discrete startup intent", () => {
     expect(resolveSplatStartupIntent("")).toEqual({
       kind: "open-last-local",
+    });
+    expect(resolveSplatStartupIntent("?new=1")).toEqual({
+      kind: "create-new-document",
     });
     expect(resolveSplatStartupIntent("?join=share-token")).toEqual({
       kind: "open-share-link",
@@ -133,6 +139,12 @@ describe("resolveSplatStartupIntent", () => {
       kind: "startup-error",
       message: "Open only one drawing URL at a time.",
     });
+    expect(resolveSplatStartupIntent("?new=1&local=automerge%3Alocal")).toEqual(
+      {
+        kind: "startup-error",
+        message: "Open only one drawing URL at a time.",
+      },
+    );
   });
 });
 

@@ -114,6 +114,7 @@ export function createDocumentRuntimeController(options: {
         reason: string;
         display: DocumentAccessDisplay;
       };
+  startupCreateNewDocument?: boolean;
   beforeOpenDocument?: (
     summary: KidsDocumentSummary | null,
   ) => Promise<void> | void;
@@ -550,6 +551,14 @@ export function createDocumentRuntimeController(options: {
           { forceDefaults: true },
         );
         options.syncToolbarUi();
+        return;
+      }
+      if (options.startupCreateNewDocument) {
+        void this.createNewDocument({ mode: "normal" }).catch((error) => {
+          console.error("[kids-draw:documents] startup create failed", {
+            error,
+          });
+        });
         return;
       }
       beginStartupCycle("app_start");

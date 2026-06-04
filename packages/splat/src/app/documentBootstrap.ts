@@ -313,6 +313,8 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
       });
       return startupPreImports;
     }
+    case "create-new-document":
+      return startupPreImports;
     case "open-last-local":
     case undefined: {
       if (options.syncedAccountDocument && options.multiplayerApiClient) {

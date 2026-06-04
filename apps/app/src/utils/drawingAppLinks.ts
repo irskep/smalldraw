@@ -47,6 +47,22 @@ export function buildDrawingDocumentUrl(
   });
 }
 
+export function buildNewDrawingUrl(
+  config: AccountWebRuntimeConfig = createAccountWebRuntimeConfig(),
+): string {
+  return buildDrawingAppUrl(config.drawingAppBaseUrl, { type: "new" });
+}
+
+export function buildLocalDrawingUrl(
+  docUrl: string,
+  config: AccountWebRuntimeConfig = createAccountWebRuntimeConfig(),
+): string {
+  return buildDrawingAppUrl(config.drawingAppBaseUrl, {
+    type: "local",
+    docUrl,
+  });
+}
+
 function normalizeOptionalBaseUrl(value: string | undefined): string | null {
   const trimmed = value?.trim();
   return trimmed && trimmed.length > 0

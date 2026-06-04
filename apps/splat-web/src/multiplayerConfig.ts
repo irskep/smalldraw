@@ -29,6 +29,7 @@ export interface BrowserMultiplayerConfig {
 }
 
 export interface StartupOpenParams {
+  createNew?: boolean;
   joinSecret?: string;
   accountDocumentId?: string;
   localDocUrl?: string;
@@ -63,6 +64,8 @@ export function createBrowserMultiplayerConfig(
 export function resolveStartupOpenParams(search: string): StartupOpenParams {
   const intent = resolveSplatStartupIntent(search);
   switch (intent.kind) {
+    case "create-new-document":
+      return { createNew: true };
     case "open-last-local":
       return {};
     case "open-share-link":
@@ -81,7 +84,9 @@ export function resolveSplatStartupIntent(search: string): SplatStartupIntent {
   const joinSecret = params.get("join") ?? undefined;
   const accountDocumentId = params.get("doc") ?? undefined;
   const localDocUrl = params.get("local") ?? undefined;
+  const createNew = params.has("new") ? "1" : undefined;
   const requestedDocumentCount = [
+    createNew,
     joinSecret,
     accountDocumentId,
     localDocUrl,
@@ -94,6 +99,9 @@ export function resolveSplatStartupIntent(search: string): SplatStartupIntent {
   }
   if (joinSecret) {
     return { kind: "open-share-link", joinSecret };
+  }
+  if (createNew) {
+    return { kind: "create-new-document" };
   }
   if (accountDocumentId) {
     return { kind: "open-account-document", documentId: accountDocumentId };
