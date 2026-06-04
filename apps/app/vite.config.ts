@@ -11,6 +11,10 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 3000,
     proxy: {
+      "/_bun": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
       "/draw": {
         target: "http://localhost:3001",
         changeOrigin: true,
