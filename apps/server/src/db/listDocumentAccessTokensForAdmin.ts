@@ -1,6 +1,6 @@
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { db } from "./client.js";
-import { documentInvitations, usersOnDocuments } from "./schema.js";
+import { documentInvitations, documents, usersOnDocuments } from "./schema.js";
 
 type Params = {
   userId: string;
@@ -14,11 +14,13 @@ export const listDocumentAccessTokensForAdmin = async ({
   const admin = await db
     .select({ userId: usersOnDocuments.userId })
     .from(usersOnDocuments)
+    .innerJoin(documents, eq(documents.id, usersOnDocuments.documentId))
     .where(
       and(
         eq(usersOnDocuments.documentId, documentId),
         eq(usersOnDocuments.userId, userId),
         eq(usersOnDocuments.isAdmin, true),
+        isNull(documents.deletedAt),
       ),
     )
     .limit(1);

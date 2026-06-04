@@ -1149,11 +1149,13 @@ describe("splatterboard shell", () => {
                   {
                     documentId: "account-doc-a",
                     name: "Account Doc A",
+                    isAdmin: true,
                     thumbnailUrl: null,
                   },
                   {
                     documentId: "account-doc-b",
                     name: "Account Doc B",
+                    isAdmin: true,
                     thumbnailUrl: null,
                   },
                 ],
@@ -1273,11 +1275,13 @@ describe("splatterboard shell", () => {
                   {
                     documentId: "account-doc-b",
                     name: "Renamed Account Doc B",
+                    isAdmin: true,
                     thumbnailUrl: null,
                   },
                   {
                     documentId: "account-doc-c",
                     name: "New Account Doc C",
+                    isAdmin: true,
                     thumbnailUrl: null,
                   },
                 ],
@@ -1394,6 +1398,7 @@ describe("splatterboard shell", () => {
                   {
                     documentId: "account-doc-a",
                     name: "Account Doc A",
+                    isAdmin: true,
                     thumbnailUrl: null,
                   },
                 ],
@@ -1522,6 +1527,7 @@ describe("splatterboard shell", () => {
                   {
                     documentId: "account-doc-a",
                     name: "Account Doc A",
+                    isAdmin: true,
                     thumbnailUrl: null,
                   },
                 ],
@@ -1615,6 +1621,7 @@ describe("splatterboard shell", () => {
                   {
                     documentId: "account-doc-a",
                     name: "Account Doc A",
+                    isAdmin: true,
                     thumbnailUrl: null,
                   },
                 ],
@@ -2128,11 +2135,10 @@ describe("splatterboard shell", () => {
     browseButton!.click();
 
     const deleteButtonReady = await waitUntil(() => {
-      return (
-        container.querySelector(
-          `[data-document-browser-delete="${secondDocUrl}"]`,
-        ) !== null
-      );
+      const button = container.querySelector(
+        `[data-document-browser-delete="${secondDocUrl}"]`,
+      ) as HTMLButtonElement | null;
+      return Boolean(button && !button.hidden && !button.disabled);
     });
     expect(deleteButtonReady).toBeTrue();
     const deleteSecondButton = container.querySelector(

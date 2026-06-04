@@ -5,8 +5,10 @@ import {
   type AppError,
   type ClaimCollaborativeDocumentResult,
   createAppError,
+  type DeletedAccountDocument,
   isAppError,
   type RegisteredCollaborativeDocument,
+  type RemovedAccountDocument,
 } from "@smalldraw/shared";
 import {
   createTRPCUntypedClient,
@@ -51,6 +53,12 @@ export interface MultiplayerApiClient {
   claimCollaborativeDocument(
     accessToken: string,
   ): Promise<ClaimCollaborativeDocumentResult>;
+  deleteCollaborativeDocument(
+    documentId: string,
+  ): Promise<DeletedAccountDocument>;
+  removeCollaborativeDocumentFromAccount(
+    documentId: string,
+  ): Promise<RemovedAccountDocument>;
   uploadDocumentThumbnail(documentId: string, thumbnail: Blob): Promise<void>;
 }
 
@@ -200,6 +208,34 @@ export function createMultiplayerApiClient(options: {
       }
       return parsed;
     },
+    async deleteCollaborativeDocument(documentId) {
+      let result: unknown;
+      try {
+        result = await client.mutation("deleteDocument", { id: documentId });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(error, "Failed to delete drawing.");
+      }
+      const parsed = parseDeleteResult(result);
+      if (!parsed) {
+        throw new Error("Invalid response from deleteDocument");
+      }
+      return parsed;
+    },
+    async removeCollaborativeDocumentFromAccount(documentId) {
+      let result: unknown;
+      try {
+        result = await client.mutation("removeDocumentFromAccount", {
+          id: documentId,
+        });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(error, "Failed to remove drawing.");
+      }
+      const parsed = parseRemoveResult(result);
+      if (!parsed) {
+        throw new Error("Invalid response from removeDocumentFromAccount");
+      }
+      return parsed;
+    },
     async uploadDocumentThumbnail(documentId, thumbnail) {
       const contentType = thumbnail.type || "application/octet-stream";
       const result = await client.mutation("uploadDocumentThumbnail", {
@@ -305,7 +341,8 @@ function parseAccountDocumentListResult(
       !item ||
       typeof item !== "object" ||
       typeof (item as { documentId?: unknown }).documentId !== "string" ||
-      typeof (item as { name?: unknown }).name !== "string"
+      typeof (item as { name?: unknown }).name !== "string" ||
+      typeof (item as { isAdmin?: unknown }).isAdmin !== "boolean"
     ) {
       return null;
     }
@@ -316,6 +353,7 @@ function parseAccountDocumentListResult(
     documents.push({
       documentId: (item as { documentId: string }).documentId,
       name: (item as { name: string }).name,
+      isAdmin: (item as { isAdmin: boolean }).isAdmin,
       thumbnailUrl: thumbnailUrl ?? null,
     });
   }
@@ -410,6 +448,37 @@ function parseClaimResult(
     documentId: (input as { documentId: string }).documentId,
     attached: (input as { attached: boolean }).attached,
     isAdmin: (input as { isAdmin: boolean }).isAdmin,
+  };
+}
+
+function parseDeleteResult(input: unknown): DeletedAccountDocument | null {
+  if (
+    !input ||
+    typeof input !== "object" ||
+    typeof (input as { id?: unknown }).id !== "string"
+  ) {
+    return null;
+  }
+  const deletedAt = (input as { deletedAt?: unknown }).deletedAt;
+  if (!(deletedAt instanceof Date) && typeof deletedAt !== "string") {
+    return null;
+  }
+  return {
+    id: (input as { id: string }).id,
+    deletedAt: deletedAt instanceof Date ? deletedAt : new Date(deletedAt),
+  };
+}
+
+function parseRemoveResult(input: unknown): RemovedAccountDocument | null {
+  if (
+    !input ||
+    typeof input !== "object" ||
+    typeof (input as { id?: unknown }).id !== "string"
+  ) {
+    return null;
+  }
+  return {
+    id: (input as { id: string }).id,
   };
 }
 

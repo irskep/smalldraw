@@ -15,6 +15,7 @@ export class DocumentPickerController {
     documents: KidsDocumentSummary[];
     thumbnailUrlByDocUrl: Map<string, string>;
     claimableDocUrls: Set<string>;
+    deletableDocUrls: Set<string>;
   } | null = null;
 
   constructor(
@@ -51,6 +52,9 @@ export class DocumentPickerController {
       if (!previous || previous.claimableDocUrls !== state.claimableDocUrls) {
         browserDialog.setClaimableDocuments(state.claimableDocUrls);
       }
+      if (!previous || previous.deletableDocUrls !== state.deletableDocUrls) {
+        browserDialog.setDeletableDocuments(state.deletableDocUrls);
+      }
       this.previousBrowserViewState = {
         loading: state.loading,
         busyDocUrl: state.busyDocUrl,
@@ -58,6 +62,7 @@ export class DocumentPickerController {
         documents: state.documents,
         thumbnailUrlByDocUrl: state.thumbnailUrlByDocUrl,
         claimableDocUrls: state.claimableDocUrls,
+        deletableDocUrls: state.deletableDocUrls,
       };
       newDocumentDialog.setBusy(state.busyDocUrl === "__new__");
     });
@@ -85,6 +90,10 @@ export class DocumentPickerController {
 
   setClaimableDocuments(docUrls: Iterable<string>): void {
     this.state.setClaimableDocUrls(new Set(docUrls));
+  }
+
+  setDeletableDocuments(docUrls: Iterable<string>): void {
+    this.state.setDeletableDocUrls(new Set(docUrls));
   }
 
   setRemovingDocument(docUrl: string | null): void {

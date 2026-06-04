@@ -26,6 +26,7 @@ type DocumentBrowserDialogState = {
   documents: KidsDocumentSummary[];
   thumbnailUrlByDocUrl: Map<string, string>;
   claimableDocUrls: Set<string>;
+  deletableDocUrls: Set<string>;
   previewDocUrl: string | null;
   touchPressDocUrl: string | null;
   suppressNextOpenDocUrl: string | null;
@@ -38,6 +39,7 @@ type DocumentTileItem = {
   busy: boolean;
   removing: boolean;
   claimable: boolean;
+  deletable: boolean;
   thumbnailUrl: string | null;
   onOpen: (docUrl: string) => void;
   onDelete: (docUrl: string) => void;
@@ -56,6 +58,7 @@ export interface DocumentBrowserDialogView extends ReDomLike<HTMLDivElement> {
   setCurrentDocument(docUrl: string | null): void;
   setThumbnailUrls(thumbnailUrlByDocUrl: Map<string, string>): void;
   setClaimableDocuments(claimableDocUrls: Set<string>): void;
+  setDeletableDocuments(deletableDocUrls: Set<string>): void;
   setBusyDocument(docUrl: string | null): void;
 }
 
@@ -148,7 +151,7 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
       icon: Trash2,
       onPress: () => item.onDelete(document.docUrl),
       disabled: busy,
-      hidden: false,
+      hidden: !item.deletable,
     });
     this.#tile.setActionAttributes({
       "data-document-browser-delete": document.docUrl,
@@ -267,6 +270,7 @@ export function createDocumentBrowserDialogView(options: {
     documents: [],
     thumbnailUrlByDocUrl: new Map(),
     claimableDocUrls: new Set(),
+    deletableDocUrls: new Set(),
     previewDocUrl: null,
     touchPressDocUrl: null,
     suppressNextOpenDocUrl: null,
@@ -378,6 +382,7 @@ export function createDocumentBrowserDialogView(options: {
         busy: state.busyDocUrl === document.docUrl,
         removing: state.removingDocUrl === document.docUrl,
         claimable: state.claimableDocUrls.has(document.docUrl),
+        deletable: state.deletableDocUrls.has(document.docUrl),
         thumbnailUrl: state.thumbnailUrlByDocUrl.get(document.docUrl) ?? null,
         onOpen: openDocument,
         onDelete: options.onDeleteDocument,
@@ -494,6 +499,12 @@ export function createDocumentBrowserDialogView(options: {
       updateState((state) => ({
         ...state,
         claimableDocUrls: new Set(claimableDocUrls),
+      }));
+    },
+    setDeletableDocuments(deletableDocUrls) {
+      updateState((state) => ({
+        ...state,
+        deletableDocUrls: new Set(deletableDocUrls),
       }));
     },
     setBusyDocument(docUrl) {

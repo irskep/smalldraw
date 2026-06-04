@@ -7,6 +7,7 @@ type DocumentPickerState = {
   documents: KidsDocumentSummary[];
   thumbnailUrlByDocUrl: Map<string, string>;
   claimableDocUrls: Set<string>;
+  deletableDocUrls: Set<string>;
 };
 
 export function createDocumentPickerStore() {
@@ -16,6 +17,7 @@ export function createDocumentPickerStore() {
     documents: [],
     thumbnailUrlByDocUrl: new Map(),
     claimableDocUrls: new Set(),
+    deletableDocUrls: new Set(),
   });
 
   return {
@@ -59,6 +61,8 @@ export function createDocumentPickerStore() {
       nextThumbnailUrlByDocUrl.delete(docUrl);
       const nextClaimableDocUrls = new Set(current.claimableDocUrls);
       nextClaimableDocUrls.delete(docUrl);
+      const nextDeletableDocUrls = new Set(current.deletableDocUrls);
+      nextDeletableDocUrls.delete(docUrl);
       $state.set({
         ...current,
         documents: current.documents.filter(
@@ -66,6 +70,7 @@ export function createDocumentPickerStore() {
         ),
         thumbnailUrlByDocUrl: nextThumbnailUrlByDocUrl,
         claimableDocUrls: nextClaimableDocUrls,
+        deletableDocUrls: nextDeletableDocUrls,
       });
     },
     setThumbnailUrls(thumbnailUrlByDocUrl: Map<string, string>): void {
@@ -95,6 +100,16 @@ export function createDocumentPickerStore() {
       $state.set({
         ...current,
         claimableDocUrls: new Set(claimableDocUrls),
+      });
+    },
+    setDeletableDocUrls(deletableDocUrls: Set<string>): void {
+      const current = $state.get();
+      if (isSameStringSet(current.deletableDocUrls, deletableDocUrls)) {
+        return;
+      }
+      $state.set({
+        ...current,
+        deletableDocUrls: new Set(deletableDocUrls),
       });
     },
   };
@@ -130,6 +145,7 @@ function isSameDocumentSummary(
     a.accessToken === b.accessToken &&
     a.accessTokenScope === b.accessTokenScope &&
     a.accountAttached === b.accountAttached &&
+    a.canDeleteFromServer === b.canDeleteFromServer &&
     a.title === b.title &&
     a.mode === b.mode &&
     a.coloringPageId === b.coloringPageId &&

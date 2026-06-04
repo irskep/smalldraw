@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "./client.js";
 import { documents, documentThumbnails, usersOnDocuments } from "./schema.js";
 
@@ -30,7 +30,7 @@ export const getDocument = async ({ documentId, userId }: Params) => {
       documentThumbnails,
       eq(documentThumbnails.documentId, documents.id),
     )
-    .where(eq(documents.id, documentId))
+    .where(and(eq(documents.id, documentId), isNull(documents.deletedAt)))
     .limit(1);
 
   if (rows.length === 0) return null;

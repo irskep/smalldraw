@@ -1,6 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "./client.js";
-import { usersOnDocuments } from "./schema.js";
+import { documents, usersOnDocuments } from "./schema.js";
 
 type Params = {
   userId: string;
@@ -16,10 +16,12 @@ export const getUserHasAccessToDocument = async ({
   const rows = await db
     .select({ userId: usersOnDocuments.userId })
     .from(usersOnDocuments)
+    .innerJoin(documents, eq(documents.id, usersOnDocuments.documentId))
     .where(
       and(
         eq(usersOnDocuments.userId, userId),
         eq(usersOnDocuments.documentId, documentId),
+        isNull(documents.deletedAt),
       ),
     )
     .limit(1);

@@ -9,7 +9,10 @@ import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { type IconNode, Trash2 } from "lucide";
 import { mount, unmount } from "redom";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
-import { resolveDocumentClaimState } from "../documents";
+import {
+  automergeUrlToDocumentId,
+  resolveDocumentClaimState,
+} from "../documents";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import type {
@@ -144,6 +147,10 @@ export function createKidsDrawController(options: {
     accessTokenScope: "owner";
   }>;
   claimCollaborativeDocument?: (accessToken: string) => Promise<void>;
+  deleteCollaborativeDocument?: (documentId: string) => Promise<void>;
+  removeCollaborativeDocumentFromAccount?: (
+    documentId: string,
+  ) => Promise<void>;
   uploadDocumentThumbnail?: (
     document: KidsDocumentSummary,
     thumbnail: Blob,
@@ -429,12 +436,44 @@ export function createKidsDrawController(options: {
     describeClaimability: (document) => ({
       claimState: resolveDocumentClaimState(document),
     }),
-    deleteDocument: (docUrl) => documentBackend.deleteDocument(docUrl),
-    confirmDelete: () =>
+    deleteDocument: async (docUrl) => {
+      const document = await documentBackend.getDocument(docUrl);
+      if (document?.accountAttached && document.collabDocUrl) {
+        const documentId = automergeUrlToDocumentId(document.collabDocUrl);
+        if (!documentId) {
+          throw new Error("Shared drawing id is invalid.");
+        }
+        if (document.canDeleteFromServer) {
+          if (!options.deleteCollaborativeDocument) {
+            throw new Error("Server deletion is not configured.");
+          }
+          await options.deleteCollaborativeDocument(documentId);
+        } else {
+          if (!options.removeCollaborativeDocumentFromAccount) {
+            throw new Error("Account removal is not configured.");
+          }
+          await options.removeCollaborativeDocumentFromAccount(documentId);
+        }
+      }
+      await documentBackend.deleteDocument(docUrl);
+    },
+    confirmDelete: (document) =>
       confirmDestructiveAction({
-        title: "Delete drawing?",
-        message: "This drawing will be removed.",
-        confirmLabel: "Delete",
+        title: document.accountAttached
+          ? document.canDeleteFromServer
+            ? "Delete shared drawing?"
+            : "Remove shared drawing?"
+          : "Delete drawing?",
+        message: document.accountAttached
+          ? document.canDeleteFromServer
+            ? "This stops syncing and removes server access. People who already opened it may still have a local copy in their browser."
+            : "This removes the drawing from your account and this browser. People who already opened it may still have a local copy in their browser."
+          : "This deletes the drawing from this browser.",
+        confirmLabel: document.accountAttached
+          ? document.canDeleteFromServer
+            ? "Delete"
+            : "Remove"
+          : "Delete",
         cancelLabel: "Cancel",
         tone: "danger",
         icon: Trash2,

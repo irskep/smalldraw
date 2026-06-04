@@ -12,11 +12,17 @@ export type LauncherDocumentTile = {
   href: string;
   badge: "Local" | "Shared";
   thumbnailUrl?: string;
+  deleteAction?: LauncherDocumentDeleteAction;
 };
 
 export type LocalLauncherDocument = KidsDocumentSummary & {
   thumbnailUrl?: string;
 };
+
+export type LauncherDocumentDeleteAction =
+  | { type: "local"; docUrl: string }
+  | { type: "shared"; documentId: string; localDocUrl?: string }
+  | { type: "remove-shared"; documentId: string; localDocUrl?: string };
 
 export function buildLauncherDocumentTiles(options: {
   localDocuments: LocalLauncherDocument[];
@@ -34,8 +40,9 @@ export function buildLauncherDocumentTiles(options: {
     key: `local:${document.docUrl}`,
     title: resolveLocalDocumentTitle(document),
     href: buildLocalDrawingUrl(document.docUrl, options.config),
-    badge: document.accountAttached ? ("Shared" as const) : ("Local" as const),
+    badge: document.collaborative ? ("Shared" as const) : ("Local" as const),
     thumbnailUrl: document.thumbnailUrl ?? document.remoteThumbnailUrl,
+    deleteAction: resolveLocalDocumentDeleteAction(document),
   }));
 
   const accountTiles = options.accountDocuments
@@ -46,9 +53,33 @@ export function buildLauncherDocumentTiles(options: {
       href: buildDrawingDocumentUrl(document.id, options.config),
       badge: "Shared" as const,
       thumbnailUrl: document.thumbnailUrl ?? undefined,
+      deleteAction: document.isAdmin
+        ? { type: "shared" as const, documentId: document.id }
+        : { type: "remove-shared" as const, documentId: document.id },
     }));
 
   return [...localTiles, ...accountTiles];
+}
+
+function resolveLocalDocumentDeleteAction(
+  document: LocalLauncherDocument,
+): LauncherDocumentDeleteAction | undefined {
+  const accountDocumentId = resolveAccountDocumentId(document);
+  if (document.canDeleteFromServer && accountDocumentId) {
+    return {
+      type: "shared",
+      documentId: accountDocumentId,
+      localDocUrl: document.docUrl,
+    };
+  }
+  if (document.accountAttached && accountDocumentId) {
+    return {
+      type: "remove-shared",
+      documentId: accountDocumentId,
+      localDocUrl: document.docUrl,
+    };
+  }
+  return { type: "local", docUrl: document.docUrl };
 }
 
 function resolveAccountDocumentId(

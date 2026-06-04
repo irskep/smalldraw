@@ -184,6 +184,8 @@ export async function createKidsDrawApp(
       controllerMultiplayerAdapters.registerCollaborativeDocument,
     claimCollaborativeDocument:
       controllerMultiplayerAdapters.claimCollaborativeDocument,
+    deleteCollaborativeDocument:
+      controllerMultiplayerAdapters.deleteCollaborativeDocument,
     uploadDocumentThumbnail:
       controllerMultiplayerAdapters.uploadDocumentThumbnail,
     onThumbnailSaved: controllerMultiplayerAdapters.onThumbnailSaved,
@@ -340,6 +342,8 @@ function createControllerMultiplayerAdapters(options: {
   | "createDocumentCopy"
   | "registerCollaborativeDocument"
   | "claimCollaborativeDocument"
+  | "deleteCollaborativeDocument"
+  | "removeCollaborativeDocumentFromAccount"
   | "uploadDocumentThumbnail"
   | "onThumbnailSaved"
   | "showShareDialog"
@@ -381,6 +385,18 @@ function createControllerMultiplayerAdapters(options: {
     claimCollaborativeDocument: multiplayerApiClient
       ? async (accessToken: string) => {
           await multiplayerApiClient.claimCollaborativeDocument(accessToken);
+        }
+      : undefined,
+    deleteCollaborativeDocument: multiplayerApiClient
+      ? async (documentId: string) => {
+          await multiplayerApiClient.deleteCollaborativeDocument(documentId);
+        }
+      : undefined,
+    removeCollaborativeDocumentFromAccount: multiplayerApiClient
+      ? async (documentId: string) => {
+          await multiplayerApiClient.removeCollaborativeDocumentFromAccount(
+            documentId,
+          );
         }
       : undefined,
     uploadDocumentThumbnail: async (document, thumbnail) => {

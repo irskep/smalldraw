@@ -15,8 +15,10 @@ import { createDocument } from "./createDocument.js";
 import { createOrRefreshDocumentInvitation } from "./createOrRefreshDocumentInvitation.js";
 import { createSession } from "./createSession.js";
 import { createUser } from "./createUser.js";
+import { deleteDocument } from "./deleteDocument.js";
 import { deleteSession } from "./deleteSession.js";
 import { createDocumentToken } from "./documentTokens.js";
+import { getDocument } from "./getDocument.js";
 import { getDocumentInvitationByToken } from "./getDocumentInvitationByToken.js";
 import { getDocumentsByUserId } from "./getDocumentsByUserId.js";
 import { getDocumentThumbnail } from "./getDocumentThumbnail.js";
@@ -25,6 +27,7 @@ import { getUser } from "./getUser.js";
 import { getUserByUsername } from "./getUserByUsername.js";
 import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
 import { listDocumentAccessTokensForAdmin } from "./listDocumentAccessTokensForAdmin.js";
+import { removeDocumentFromAccount } from "./removeDocumentFromAccount.js";
 import { revokeDocumentAccessTokenForAdmin } from "./revokeDocumentAccessTokenForAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "./rotateAnonymousCollaborativeDocumentShareToken.js";
 import { documentInvitations, usersOnDocuments } from "./schema.js";
@@ -216,6 +219,119 @@ describe("Document operations", () => {
     expect(
       await getUserHasAccessToDocument({ userId: "user", documentId: "" }),
     ).toBe(false);
+  });
+
+  it("deleteDocument soft deletes owner-capable documents", async () => {
+    const user = await createUser({
+      username: "delete-owner",
+      registrationRecord: "test-registration-record",
+    });
+    await createDocument({
+      userId: user.id,
+      documentId: "delete-doc",
+      name: "Delete Doc",
+    });
+
+    const deleted = await deleteDocument({
+      userId: user.id,
+      documentId: "delete-doc",
+    });
+
+    expect(deleted.id).toBe("delete-doc");
+    expect(deleted.deletedAt).toBeInstanceOf(Date);
+    expect(await getDocumentsByUserId(user.id)).toEqual([]);
+    expect(
+      await getDocument({ userId: user.id, documentId: "delete-doc" }),
+    ).toBeNull();
+    expect(
+      await getUserHasAccessToDocument({
+        userId: user.id,
+        documentId: "delete-doc",
+      }),
+    ).toBe(false);
+  });
+
+  it("deleteDocument distinguishes missing docs from permission failures", async () => {
+    const owner = await createUser({
+      username: "delete-permission-owner",
+      registrationRecord: "test-registration-record",
+    });
+    const member = await createUser({
+      username: "delete-permission-member",
+      registrationRecord: "test-registration-record-2",
+    });
+    await createDocument({
+      userId: owner.id,
+      documentId: "delete-permission-doc",
+      name: "Delete Permission Doc",
+    });
+    await db.insert(usersOnDocuments).values({
+      userId: member.id,
+      documentId: "delete-permission-doc",
+      isAdmin: false,
+    });
+
+    await expect(
+      deleteDocument({
+        userId: member.id,
+        documentId: "delete-permission-doc",
+      }),
+    ).rejects.toThrow("User lacks delete permission");
+    await expect(
+      deleteDocument({
+        userId: owner.id,
+        documentId: "missing-delete-doc",
+      }),
+    ).rejects.toThrow("Document not found");
+  });
+
+  it("removeDocumentFromAccount removes membership without deleting the document", async () => {
+    const owner = await createUser({
+      username: "remove-membership-owner",
+      registrationRecord: "test-registration-record",
+    });
+    const member = await createUser({
+      username: "remove-membership-member",
+      registrationRecord: "test-registration-record-2",
+    });
+    await createDocument({
+      userId: owner.id,
+      documentId: "remove-membership-doc",
+      name: "Remove Membership Doc",
+    });
+    await db.insert(usersOnDocuments).values({
+      userId: member.id,
+      documentId: "remove-membership-doc",
+      isAdmin: false,
+    });
+
+    const removed = await removeDocumentFromAccount({
+      userId: member.id,
+      documentId: "remove-membership-doc",
+    });
+
+    expect(removed).toEqual({ id: "remove-membership-doc" });
+    expect(await getDocumentsByUserId(member.id)).toEqual([]);
+    expect(
+      await getDocument({
+        userId: owner.id,
+        documentId: "remove-membership-doc",
+      }),
+    ).not.toBeNull();
+  });
+
+  it("removeDocumentFromAccount reports missing memberships as missing documents", async () => {
+    const user = await createUser({
+      username: "remove-membership-missing",
+      registrationRecord: "test-registration-record",
+    });
+
+    await expect(
+      removeDocumentFromAccount({
+        userId: user.id,
+        documentId: "missing-membership-doc",
+      }),
+    ).rejects.toThrow("Document not found");
   });
 
   it("getDocumentInvitationByToken returns invitation by token", async () => {
@@ -541,6 +657,7 @@ describe("Document operations", () => {
       {
         id: "thumb-doc-2",
         name: "Thumb List Doc",
+        isAdmin: true,
         thumbnailStorageKey: "documents/thumb-doc-2/thumbnail.png",
         thumbnailContentType: "image/png",
       },

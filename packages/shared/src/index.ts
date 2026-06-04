@@ -126,6 +126,7 @@ export function isDocumentAccessTokenScope(
 export type AccountDocumentSummary = {
   id: string;
   name: string;
+  isAdmin: boolean;
   thumbnailUrl: string | null;
 };
 
@@ -136,6 +137,15 @@ export type AccountDocumentDetails = AccountDocumentSummary & {
 export type AccountDocumentMutationResult = {
   id: string;
   name: string;
+};
+
+export type DeletedAccountDocument = {
+  id: string;
+  deletedAt: Date;
+};
+
+export type RemovedAccountDocument = {
+  id: string;
 };
 
 export type CreatedAccountDocument = {
@@ -180,6 +190,7 @@ export type SplatDocumentOpenIntent =
 export type AccountCollaborativeDocumentSummary = {
   documentId: string;
   name: string;
+  isAdmin: boolean;
   thumbnailUrl: string | null;
 };
 

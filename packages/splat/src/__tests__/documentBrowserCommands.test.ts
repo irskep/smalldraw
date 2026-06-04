@@ -13,6 +13,7 @@ function createPickerState() {
     accessToken?: string;
     accessTokenScope?: "owner" | "device";
     accountAttached?: boolean;
+    canDeleteFromServer?: boolean;
     mode: "normal";
     createdAt: string;
     updatedAt: string;
@@ -21,10 +22,12 @@ function createPickerState() {
   const busy: Array<string | null> = [];
   const removing: string[] = [];
   const claimableCalls: string[][] = [];
+  const deletableCalls: string[][] = [];
   return {
     busy,
     removing,
     claimableCalls,
+    deletableCalls,
     controller: {
       isOpen() {
         return open;
@@ -40,6 +43,9 @@ function createPickerState() {
       },
       setClaimableDocuments(docUrls: Iterable<string>) {
         claimableCalls.push([...docUrls]);
+      },
+      setDeletableDocuments(docUrls: Iterable<string>) {
+        deletableCalls.push([...docUrls]);
       },
       setRemovingDocument(docUrl: string | null) {
         if (docUrl) {
@@ -189,6 +195,15 @@ describe("createDocumentBrowserCommands", () => {
   test("deleteDocumentFromBrowser switches fallback or creates new and clears busy", async () => {
     const picker = createPickerState();
     picker.controller._setOpen(true);
+    picker.controller._setDocuments([
+      {
+        docUrl: "doc://current",
+        mode: "normal",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        lastOpenedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
     const switched: string[] = [];
     const created: string[] = [];
 
@@ -246,6 +261,39 @@ describe("createDocumentBrowserCommands", () => {
 
     expect(steps).toEqual(["flush", "open"]);
     expect(picker.claimableCalls).toEqual([[], []]);
+  });
+
+  test("openDocumentPicker marks account attached shared docs as deletable", async () => {
+    const picker = createPickerState();
+    picker.controller._setDocuments([
+      {
+        docUrl: "catalog-collab:member-doc",
+        collaborative: true,
+        collabDocUrl: "automerge:member-doc",
+        accountAttached: true,
+        mode: "normal",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        lastOpenedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    const commands = createDocumentBrowserCommands({
+      documentPickerController: picker.controller,
+      getCurrentDocUrl: () => "doc://current",
+      switchToDocument: async () => {},
+      createNewDocument: async () => {},
+      flushThumbnailSave: async () => {},
+      listDocuments: async () => [],
+      claimDocument: async () => {},
+      isClaimableDocument: () => false,
+      deleteDocument: async () => {},
+      confirmDelete: async () => true,
+      isDestroyed: () => false,
+    });
+
+    await commands.openDocumentPicker();
+
+    expect(picker.deletableCalls).toEqual([[], ["catalog-collab:member-doc"]]);
   });
 
   test("claimDocumentFromBrowser reloads after claiming", async () => {

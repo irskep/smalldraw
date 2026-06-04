@@ -29,6 +29,13 @@
       "when": 1775670000000,
       "tag": "0003_document_thumbnails",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780599600000,
+      "tag": "0004_document_soft_delete",
+      "breakpoints": true
     }
   ]
 }

@@ -69,6 +69,8 @@ function normalizeDocumentSummary(
     accessToken: collaborative ? accessToken : undefined,
     accessTokenScope: collaborative ? accessTokenScope : undefined,
     accountAttached: value.accountAttached === true ? true : undefined,
+    canDeleteFromServer:
+      collaborative && value.canDeleteFromServer === true ? true : undefined,
     title: value.title,
     mode: normalizeMode(value.mode),
     coloringPageId,
@@ -361,6 +363,8 @@ class IndexedDbDocumentRepository implements DocumentRepository {
               ? undefined
               : (input.accessTokenScope ?? existing?.accessTokenScope),
           accountAttached: input.accountAttached ?? existing?.accountAttached,
+          canDeleteFromServer:
+            input.canDeleteFromServer ?? existing?.canDeleteFromServer,
           title: input.title ?? existing?.title,
           mode: input.mode ?? existing?.mode ?? "normal",
           coloringPageId:
@@ -476,6 +480,8 @@ class MemoryDocumentRepository implements DocumentRepository {
           ? undefined
           : (input.accessTokenScope ?? existing?.accessTokenScope),
       accountAttached: input.accountAttached ?? existing?.accountAttached,
+      canDeleteFromServer:
+        input.canDeleteFromServer ?? existing?.canDeleteFromServer,
       title: input.title ?? existing?.title,
       mode: input.mode ?? existing?.mode ?? "normal",
       coloringPageId:

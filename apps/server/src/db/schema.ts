@@ -64,6 +64,7 @@ export const documents = sqliteTable("documents", {
   name: text("name").notNull().default("Untitled"),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
+  deletedAt: integer("deleted_at", { mode: "timestamp" }),
 });
 
 export const documentThumbnails = sqliteTable("document_thumbnails", {

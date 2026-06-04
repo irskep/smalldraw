@@ -1,6 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "./client.js";
-import { users, usersOnDocuments } from "./schema.js";
+import { documents, users, usersOnDocuments } from "./schema.js";
 
 type Params = {
   documentId: string;
@@ -11,10 +11,12 @@ export const getDocumentMembers = async ({ documentId, userId }: Params) => {
   const membership = await db
     .select({ userId: usersOnDocuments.userId })
     .from(usersOnDocuments)
+    .innerJoin(documents, eq(documents.id, usersOnDocuments.documentId))
     .where(
       and(
         eq(usersOnDocuments.documentId, documentId),
         eq(usersOnDocuments.userId, userId),
+        isNull(documents.deletedAt),
       ),
     )
     .limit(1);
@@ -29,5 +31,11 @@ export const getDocumentMembers = async ({ documentId, userId }: Params) => {
     })
     .from(usersOnDocuments)
     .innerJoin(users, eq(users.id, usersOnDocuments.userId))
-    .where(eq(usersOnDocuments.documentId, documentId));
+    .innerJoin(documents, eq(documents.id, usersOnDocuments.documentId))
+    .where(
+      and(
+        eq(usersOnDocuments.documentId, documentId),
+        isNull(documents.deletedAt),
+      ),
+    );
 };

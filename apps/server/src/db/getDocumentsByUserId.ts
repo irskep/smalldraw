@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "./client.js";
 import { documents, documentThumbnails, usersOnDocuments } from "./schema.js";
 
@@ -7,6 +7,7 @@ export const getDocumentsByUserId = async (userId: string) => {
     .select({
       id: documents.id,
       name: documents.name,
+      isAdmin: usersOnDocuments.isAdmin,
       thumbnailStorageKey: documentThumbnails.storageKey,
       thumbnailContentType: documentThumbnails.contentType,
     })
@@ -16,6 +17,8 @@ export const getDocumentsByUserId = async (userId: string) => {
       documentThumbnails,
       eq(documentThumbnails.documentId, documents.id),
     )
-    .where(eq(usersOnDocuments.userId, userId))
+    .where(
+      and(eq(usersOnDocuments.userId, userId), isNull(documents.deletedAt)),
+    )
     .orderBy(desc(documents.createdAt));
 };

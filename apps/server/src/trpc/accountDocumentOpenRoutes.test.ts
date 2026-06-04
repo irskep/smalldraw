@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { createDocument } from "../db/createDocument.js";
 import { createUser } from "../db/createUser.js";
-import { documentInvitations } from "../db/schema.js";
+import { documentInvitations, usersOnDocuments } from "../db/schema.js";
 import { appRouter } from "./appRouter.js";
 
 describe("account document open routes", () => {
@@ -38,6 +38,7 @@ describe("account document open routes", () => {
       {
         documentId: document.id,
         name: "Listed Account Doc",
+        isAdmin: true,
         thumbnailUrl: null,
       },
     ]);
@@ -152,5 +153,129 @@ describe("account document open routes", () => {
         deviceTag: "browser-device-2",
       }),
     ).rejects.toBeInstanceOf(TRPCError);
+  });
+
+  it("soft deletes account documents for owner-capable users", async () => {
+    const user = await createUser({
+      username: "account-delete-owner",
+      registrationRecord: "registration-record",
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "account-delete-owner-session",
+        userId: user.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+    const { document } = await caller.createDocument({
+      name: "Delete Me",
+    });
+
+    const deleted = await caller.deleteDocument({ id: document.id });
+
+    expect(deleted.id).toBe(document.id);
+    expect(deleted.deletedAt).toBeInstanceOf(Date);
+    expect(await caller.documents()).toEqual([]);
+    await expect(
+      caller.resolveAccountCollaborativeDocument({
+        documentId: document.id,
+        deviceTag: "deleted-doc-device",
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("rejects account document deletion for non-owner members", async () => {
+    const owner = await createUser({
+      username: "account-delete-doc-owner",
+      registrationRecord: "registration-record",
+    });
+    const member = await createUser({
+      username: "account-delete-doc-member",
+      registrationRecord: "registration-record-2",
+    });
+    await createDocument({
+      userId: owner.id,
+      documentId: "member-cannot-delete-doc",
+      name: "Member Cannot Delete",
+    });
+    await db.insert(usersOnDocuments).values({
+      userId: member.id,
+      documentId: "member-cannot-delete-doc",
+      isAdmin: false,
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "account-delete-member-session",
+        userId: member.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+
+    await expect(
+      caller.deleteDocument({ id: "member-cannot-delete-doc" }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("removes account document listing for non-owner members", async () => {
+    const owner = await createUser({
+      username: "account-remove-doc-owner",
+      registrationRecord: "registration-record",
+    });
+    const member = await createUser({
+      username: "account-remove-doc-member",
+      registrationRecord: "registration-record-2",
+    });
+    await createDocument({
+      userId: owner.id,
+      documentId: "member-removes-doc",
+      name: "Member Removes Doc",
+    });
+    await db.insert(usersOnDocuments).values({
+      userId: member.id,
+      documentId: "member-removes-doc",
+      isAdmin: false,
+    });
+    const memberCaller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "account-remove-member-session",
+        userId: member.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+    const ownerCaller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "account-remove-owner-session",
+        userId: owner.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+
+    await expect(
+      memberCaller.deleteDocument({ id: "member-removes-doc" }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(
+      memberCaller.removeDocumentFromAccount({ id: "member-removes-doc" }),
+    ).resolves.toEqual({ id: "member-removes-doc" });
+
+    expect(await memberCaller.documents()).toEqual([]);
+    expect(await ownerCaller.documents()).toMatchObject([
+      {
+        id: "member-removes-doc",
+        name: "Member Removes Doc",
+        isAdmin: true,
+      },
+    ]);
   });
 });

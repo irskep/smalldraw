@@ -106,6 +106,7 @@ describe("document thumbnail routes", () => {
       {
         id: "thumbnail-doc-2",
         name: "Thumbnail Doc 2",
+        isAdmin: true,
         thumbnailUrl:
           "https://cdn.example.com/documents/thumbnail-doc-2/thumbnail.png",
       },

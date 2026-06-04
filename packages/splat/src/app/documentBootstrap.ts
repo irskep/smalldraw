@@ -149,6 +149,7 @@ export async function syncAccountCatalog(options: {
       collaborative: true,
       collabDocUrl,
       accountAttached: true,
+      canDeleteFromServer: accountDocument.isAdmin,
       remoteThumbnailUrl: accountDocument.thumbnailUrl ?? undefined,
     });
     selectedDocument ??= summary;
@@ -309,6 +310,7 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
           accessToken: resolved.accessToken,
           accessTokenScope: resolved.accessTokenScope,
           accountAttached: true,
+          canDeleteFromServer: resolved.accessTokenScope === "owner",
         },
       });
       return startupPreImports;
@@ -384,6 +386,7 @@ export async function resolveAccountDocumentForLocalOpen(options: {
       accessToken: resolved.accessToken,
       accessTokenScope: resolved.accessTokenScope,
       accountAttached: true,
+      canDeleteFromServer: resolved.accessTokenScope === "owner",
     });
     return { binary, collabDocUrl: resolved.collabDocUrl };
   } catch (error) {

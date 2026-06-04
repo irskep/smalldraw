@@ -8,6 +8,7 @@ type DocumentPickerControllerLike = {
   getDocuments(): KidsDocumentSummary[];
   setBusyDocument(docUrl: string | null): void;
   setClaimableDocuments(docUrls: Iterable<string>): void;
+  setDeletableDocuments(docUrls: Iterable<string>): void;
   setRemovingDocument(docUrl: string | null): void;
   waitForRemovingDocument(docUrl: string): Promise<void>;
   removeDocument(docUrl: string): void;
@@ -28,7 +29,7 @@ export function createDocumentBrowserCommands(options: {
   isClaimableDocument: (document: KidsDocumentSummary) => boolean;
   describeClaimability?: (document: KidsDocumentSummary) => unknown;
   deleteDocument: (docUrl: string) => Promise<void>;
-  confirmDelete: () => Promise<boolean>;
+  confirmDelete: (document: KidsDocumentSummary) => Promise<boolean>;
   onClaimError?: (message: string) => void;
   onDocumentOpenRequested?: (
     summary: KidsDocumentSummary | null,
@@ -46,14 +47,20 @@ export function createDocumentBrowserCommands(options: {
     return "Failed to open this drawing.";
   };
 
-  const updateClaimableDocuments = (
+  const isDeletableDocument = (document: KidsDocumentSummary): boolean =>
+    !document.accountAttached || Boolean(document.collabDocUrl);
+
+  const updateDocumentCapabilities = (
     documents: readonly KidsDocumentSummary[],
   ): KidsDocumentSummary[] => {
     const nextDocuments = [...documents];
     const claimableDocUrls = nextDocuments
       .filter((document) => options.isClaimableDocument(document))
       .map((document) => document.docUrl);
-    console.info("[kids-draw:documents] picker claimability recompute", {
+    const deletableDocUrls = nextDocuments
+      .filter(isDeletableDocument)
+      .map((document) => document.docUrl);
+    console.info("[kids-draw:documents] picker capabilities recompute", {
       documents: nextDocuments.map((document) => ({
         docUrl: document.docUrl,
         collaborative: document.collaborative ?? false,
@@ -64,8 +71,10 @@ export function createDocumentBrowserCommands(options: {
         claim: options.describeClaimability?.(document) ?? null,
       })),
       claimableDocUrls,
+      deletableDocUrls,
     });
     options.documentPickerController.setClaimableDocuments(claimableDocUrls);
+    options.documentPickerController.setDeletableDocuments(deletableDocUrls);
     return nextDocuments;
   };
 
@@ -76,16 +85,18 @@ export function createDocumentBrowserCommands(options: {
   const reloadDocumentPicker = async (): Promise<void> => {
     console.info("[kids-draw:documents] picker reload start");
     options.documentPickerController.setClaimableDocuments([]);
+    options.documentPickerController.setDeletableDocuments([]);
     const documents = await options.documentPickerController.reload();
-    updateClaimableDocuments(documents);
+    updateDocumentCapabilities(documents);
   };
 
   const openDocumentPicker = async (): Promise<void> => {
     await options.flushThumbnailSave();
     console.info("[kids-draw:documents] picker open start");
     options.documentPickerController.setClaimableDocuments([]);
+    options.documentPickerController.setDeletableDocuments([]);
     const documents = await options.documentPickerController.open();
-    updateClaimableDocuments(documents);
+    updateDocumentCapabilities(documents);
   };
 
   const createNewDocumentFromBrowser = async (
@@ -140,7 +151,13 @@ export function createDocumentBrowserCommands(options: {
     if (!options.documentPickerController.isOpen()) {
       return;
     }
-    const confirmed = await options.confirmDelete();
+    const document = options.documentPickerController
+      .getDocuments()
+      .find((item) => item.docUrl === docUrl);
+    if (!document || !isDeletableDocument(document)) {
+      throw new Error("This drawing cannot be deleted here.");
+    }
+    const confirmed = await options.confirmDelete(document);
     if (!confirmed || options.isDestroyed()) {
       return;
     }

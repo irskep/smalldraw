@@ -10,11 +10,13 @@ import type {
   AnonymousCollaborativeDocumentResolution,
   ClaimCollaborativeDocumentResult,
   CreatedAccountDocument,
+  DeletedAccountDocument,
   DocumentAccessToken,
   DocumentInvitationToken,
   DocumentMember,
   DocumentThumbnailUploadTarget,
   RegisteredCollaborativeDocument,
+  RemovedAccountDocument,
   RevokeDocumentAccessTokenResult,
 } from "@smalldraw/shared";
 import { isDocumentAccessTokenScope } from "@smalldraw/shared";
@@ -35,6 +37,7 @@ import { createLoginAttempt } from "../db/createLoginAttempt.js";
 import { createOrRefreshDocumentInvitation } from "../db/createOrRefreshDocumentInvitation.js";
 import { createSession } from "../db/createSession.js";
 import { createUser } from "../db/createUser.js";
+import { deleteDocument } from "../db/deleteDocument.js";
 import { deleteLoginAttempt } from "../db/deleteLoginAttempt.js";
 import { deleteSession } from "../db/deleteSession.js";
 import { findOrCreateDocumentToken } from "../db/documentTokens.js";
@@ -47,6 +50,7 @@ import { getLoginAttempt } from "../db/getLoginAttempt.js";
 import { getUser } from "../db/getUser.js";
 import { getUserByUsername } from "../db/getUserByUsername.js";
 import { listDocumentAccessTokensForAdmin } from "../db/listDocumentAccessTokensForAdmin.js";
+import { removeDocumentFromAccount } from "../db/removeDocumentFromAccount.js";
 import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTokenForAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "../db/rotateAnonymousCollaborativeDocumentShareToken.js";
 import {
@@ -85,6 +89,7 @@ const listAccountDocumentSummaries = async (
   return documents.map((doc) => ({
     id: doc.id,
     name: doc.name,
+    isAdmin: doc.isAdmin,
     thumbnailUrl: resolveThumbnailUrl(doc.thumbnailStorageKey),
   })) satisfies AccountDocumentSummary[];
 };
@@ -194,6 +199,7 @@ export const appRouter = router({
     return documents.map((doc) => ({
       documentId: doc.id,
       name: doc.name,
+      isAdmin: doc.isAdmin,
       thumbnailUrl: doc.thumbnailUrl,
     })) satisfies AccountCollaborativeDocumentSummary[];
   }),
@@ -293,6 +299,84 @@ export const appRouter = router({
       return {
         document: { id: document.id, name: document.name },
       } satisfies CreatedAccountDocument;
+    }),
+  deleteDocument: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      try {
+        const deleted = await deleteDocument({
+          documentId: opts.input.id,
+          userId: opts.ctx.session.userId,
+        });
+        return {
+          id: deleted.id,
+          deletedAt: deleted.deletedAt,
+        } satisfies DeletedAccountDocument;
+      } catch (error) {
+        if (error instanceof Error && error.message === "Document not found") {
+          throw appTrpcError(
+            {
+              code: "DOCUMENT_NOT_FOUND",
+              title: "Could not delete drawing",
+              message: "This drawing is no longer available.",
+              severity: "recoverable",
+              retryable: false,
+              details: { documentId: opts.input.id },
+            },
+            "NOT_FOUND",
+          );
+        }
+        if (
+          error instanceof Error &&
+          error.message === "User lacks delete permission"
+        ) {
+          throw appTrpcError(
+            {
+              code: "DOCUMENT_ACCESS_DENIED",
+              title: "Could not delete drawing",
+              message: "Only a drawing owner can delete this shared drawing.",
+              severity: "recoverable",
+              retryable: false,
+              details: { documentId: opts.input.id },
+            },
+            "FORBIDDEN",
+          );
+        }
+        throw error;
+      }
+    }),
+  removeDocumentFromAccount: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      try {
+        return (await removeDocumentFromAccount({
+          documentId: opts.input.id,
+          userId: opts.ctx.session.userId,
+        })) satisfies RemovedAccountDocument;
+      } catch (error) {
+        if (error instanceof Error && error.message === "Document not found") {
+          throw appTrpcError(
+            {
+              code: "DOCUMENT_NOT_FOUND",
+              title: "Could not remove drawing",
+              message: "This drawing is no longer available.",
+              severity: "recoverable",
+              retryable: false,
+              details: { documentId: opts.input.id },
+            },
+            "NOT_FOUND",
+          );
+        }
+        throw error;
+      }
     }),
 
   resolveAccountCollaborativeDocument: protectedProcedure

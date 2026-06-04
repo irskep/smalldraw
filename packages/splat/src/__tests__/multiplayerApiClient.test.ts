@@ -72,11 +72,13 @@ describe("createMultiplayerApiClient", () => {
         {
           documentId: "account-doc-1",
           name: "Kitchen sketch",
+          isAdmin: true,
           thumbnailUrl: "https://cdn.example.com/thumb.png",
         },
         {
           documentId: "account-doc-2",
           name: "Untitled",
+          isAdmin: false,
           thumbnailUrl: null,
         },
       ]);
@@ -91,11 +93,13 @@ describe("createMultiplayerApiClient", () => {
       {
         documentId: "account-doc-1",
         name: "Kitchen sketch",
+        isAdmin: true,
         thumbnailUrl: "https://cdn.example.com/thumb.png",
       },
       {
         documentId: "account-doc-2",
         name: "Untitled",
+        isAdmin: false,
         thumbnailUrl: null,
       },
     ]);

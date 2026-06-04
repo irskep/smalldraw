@@ -11,6 +11,7 @@ export interface KidsDocumentSummary {
   accessToken?: string;
   accessTokenScope?: "owner" | "device";
   accountAttached?: boolean;
+  canDeleteFromServer?: boolean;
   title?: string;
   mode: KidsDocumentMode;
   coloringPageId?: string;
@@ -31,6 +32,7 @@ export interface KidsDocumentCreateInput {
   accessToken?: string;
   accessTokenScope?: "owner" | "device";
   accountAttached?: boolean;
+  canDeleteFromServer?: boolean;
   title?: string;
   mode?: KidsDocumentMode;
   coloringPageId?: string;

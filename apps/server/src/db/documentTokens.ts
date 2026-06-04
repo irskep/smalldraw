@@ -5,6 +5,7 @@ import {
   type DocumentInvitation,
   type DocumentTokenScope,
   documentInvitations,
+  documents,
 } from "./schema.js";
 
 type CreateDocumentTokenParams = {
@@ -56,13 +57,15 @@ export const findActiveDocumentToken = async ({
       ? isNull(documentInvitations.tag)
       : eq(documentInvitations.tag, tag),
     isNull(documentInvitations.revokedAt),
+    isNull(documents.deletedAt),
   );
   const [token] = await db
     .select()
     .from(documentInvitations)
+    .innerJoin(documents, eq(documents.id, documentInvitations.documentId))
     .where(where)
     .limit(1);
-  return token ?? null;
+  return token?.document_invitations ?? null;
 };
 
 export const findOrCreateDocumentToken = async ({
@@ -85,6 +88,7 @@ export const getActiveDocumentTokenByToken = async ({
   const where = and(
     eq(documentInvitations.token, token),
     isNull(documentInvitations.revokedAt),
+    isNull(documents.deletedAt),
     scopes && scopes.length > 0
       ? inArray(documentInvitations.scope, [...scopes])
       : undefined,
@@ -92,9 +96,10 @@ export const getActiveDocumentTokenByToken = async ({
   const [documentToken] = await db
     .select()
     .from(documentInvitations)
+    .innerJoin(documents, eq(documents.id, documentInvitations.documentId))
     .where(where)
     .limit(1);
-  return documentToken ?? null;
+  return documentToken?.document_invitations ?? null;
 };
 
 export const revokeDocumentToken = async ({
