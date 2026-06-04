@@ -6,7 +6,7 @@ import {
   Outlet,
   useNavigate,
 } from "@tanstack/react-router";
-import { LogIn, LogOut, UserPlus } from "lucide";
+import { LogIn, LogOut, Trash2, UserPlus } from "lucide";
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
 import { DsDropdownMenu } from "@/components/DsDropdownMenu/DsDropdownMenu";
 import { appPath, basePath, isAppRoute } from "../config";
@@ -51,6 +51,11 @@ const Root = () => {
   const accountMenuEntries = useMemo<DropdownMenuEntry[]>(() => {
     if (meQuery.data && !isNotAuthorized) {
       return [
+        {
+          id: "deleted-drawings",
+          label: "Deleted drawings",
+          icon: Trash2,
+        },
         {
           id: "logout",
           label: "Log out",
@@ -103,6 +108,10 @@ const Root = () => {
           to: "/register",
           search: { redirect: getRedirectParam() },
         });
+        return;
+      }
+      if (itemId === "deleted-drawings") {
+        navigate({ to: "/drawings/deleted" });
         return;
       }
       if (itemId === "logout") {

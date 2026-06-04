@@ -18,6 +18,7 @@ import { createUser } from "./createUser.js";
 import { deleteDocument } from "./deleteDocument.js";
 import { deleteSession } from "./deleteSession.js";
 import { createDocumentToken } from "./documentTokens.js";
+import { getDeletedDocumentsByUserId } from "./getDeletedDocumentsByUserId.js";
 import { getDocument } from "./getDocument.js";
 import { getDocumentInvitationByToken } from "./getDocumentInvitationByToken.js";
 import { getDocumentsByUserId } from "./getDocumentsByUserId.js";
@@ -28,6 +29,7 @@ import { getUserByUsername } from "./getUserByUsername.js";
 import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
 import { listDocumentAccessTokensForAdmin } from "./listDocumentAccessTokensForAdmin.js";
 import { removeDocumentFromAccount } from "./removeDocumentFromAccount.js";
+import { restoreDocument } from "./restoreDocument.js";
 import { revokeDocumentAccessTokenForAdmin } from "./revokeDocumentAccessTokenForAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "./rotateAnonymousCollaborativeDocumentShareToken.js";
 import { documentInvitations, usersOnDocuments } from "./schema.js";
@@ -281,6 +283,113 @@ describe("Document operations", () => {
       deleteDocument({
         userId: owner.id,
         documentId: "missing-delete-doc",
+      }),
+    ).rejects.toThrow("Document not found");
+  });
+
+  it("getDeletedDocumentsByUserId returns only owner-capable deleted documents", async () => {
+    const owner = await createUser({
+      username: "deleted-list-owner",
+      registrationRecord: "test-registration-record",
+    });
+    const member = await createUser({
+      username: "deleted-list-member",
+      registrationRecord: "test-registration-record-2",
+    });
+    await createDocument({
+      userId: owner.id,
+      documentId: "deleted-list-doc",
+      name: "Deleted List Doc",
+    });
+    await db.insert(usersOnDocuments).values({
+      userId: member.id,
+      documentId: "deleted-list-doc",
+      isAdmin: false,
+    });
+
+    await deleteDocument({
+      userId: owner.id,
+      documentId: "deleted-list-doc",
+    });
+
+    const ownerDeleted = await getDeletedDocumentsByUserId(owner.id);
+    const memberDeleted = await getDeletedDocumentsByUserId(member.id);
+
+    expect(ownerDeleted).toHaveLength(1);
+    expect(ownerDeleted[0]).toMatchObject({
+      id: "deleted-list-doc",
+      name: "Deleted List Doc",
+      isAdmin: true,
+    });
+    expect(ownerDeleted[0].deletedAt).toBeInstanceOf(Date);
+    expect(memberDeleted).toEqual([]);
+  });
+
+  it("restoreDocument restores owner-capable deleted documents", async () => {
+    const user = await createUser({
+      username: "restore-owner",
+      registrationRecord: "test-registration-record",
+    });
+    await createDocument({
+      userId: user.id,
+      documentId: "restore-doc",
+      name: "Restore Doc",
+    });
+    await deleteDocument({
+      userId: user.id,
+      documentId: "restore-doc",
+    });
+
+    const restored = await restoreDocument({
+      userId: user.id,
+      documentId: "restore-doc",
+    });
+
+    expect(restored).toEqual({ id: "restore-doc" });
+    expect(await getDeletedDocumentsByUserId(user.id)).toEqual([]);
+    expect(await getDocumentsByUserId(user.id)).toMatchObject([
+      {
+        id: "restore-doc",
+        name: "Restore Doc",
+        isAdmin: true,
+      },
+    ]);
+  });
+
+  it("restoreDocument distinguishes missing docs from permission failures", async () => {
+    const owner = await createUser({
+      username: "restore-permission-owner",
+      registrationRecord: "test-registration-record",
+    });
+    const member = await createUser({
+      username: "restore-permission-member",
+      registrationRecord: "test-registration-record-2",
+    });
+    await createDocument({
+      userId: owner.id,
+      documentId: "restore-permission-doc",
+      name: "Restore Permission Doc",
+    });
+    await db.insert(usersOnDocuments).values({
+      userId: member.id,
+      documentId: "restore-permission-doc",
+      isAdmin: false,
+    });
+    await deleteDocument({
+      userId: owner.id,
+      documentId: "restore-permission-doc",
+    });
+
+    await expect(
+      restoreDocument({
+        userId: member.id,
+        documentId: "restore-permission-doc",
+      }),
+    ).rejects.toThrow("User lacks restore permission");
+    await expect(
+      restoreDocument({
+        userId: owner.id,
+        documentId: "missing-restore-doc",
       }),
     ).rejects.toThrow("Document not found");
   });

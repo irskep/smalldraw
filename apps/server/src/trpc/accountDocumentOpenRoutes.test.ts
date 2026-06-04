@@ -185,6 +185,46 @@ describe("account document open routes", () => {
         deviceTag: "deleted-doc-device",
       }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(await caller.deletedDocuments()).toMatchObject([
+      {
+        id: document.id,
+        name: "Delete Me",
+        isAdmin: true,
+      },
+    ]);
+  });
+
+  it("restores account documents for owner-capable users", async () => {
+    const user = await createUser({
+      username: "account-restore-owner",
+      registrationRecord: "registration-record",
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "account-restore-owner-session",
+        userId: user.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+    const { document } = await caller.createDocument({
+      name: "Restore Me",
+    });
+    await caller.deleteDocument({ id: document.id });
+
+    const restored = await caller.restoreDocument({ id: document.id });
+
+    expect(restored).toEqual({ id: document.id });
+    expect(await caller.deletedDocuments()).toEqual([]);
+    expect(await caller.documents()).toMatchObject([
+      {
+        id: document.id,
+        name: "Restore Me",
+        isAdmin: true,
+      },
+    ]);
   });
 
   it("rejects account document deletion for non-owner members", async () => {
@@ -219,6 +259,54 @@ describe("account document open routes", () => {
 
     await expect(
       caller.deleteDocument({ id: "member-cannot-delete-doc" }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("hides deleted documents from non-owner members and rejects their restore", async () => {
+    const owner = await createUser({
+      username: "account-restore-doc-owner",
+      registrationRecord: "registration-record",
+    });
+    const member = await createUser({
+      username: "account-restore-doc-member",
+      registrationRecord: "registration-record-2",
+    });
+    await createDocument({
+      userId: owner.id,
+      documentId: "member-cannot-restore-doc",
+      name: "Member Cannot Restore",
+    });
+    await db.insert(usersOnDocuments).values({
+      userId: member.id,
+      documentId: "member-cannot-restore-doc",
+      isAdmin: false,
+    });
+    const ownerCaller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "account-restore-owner-session-2",
+        userId: owner.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+    const memberCaller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "account-restore-member-session",
+        userId: member.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+
+    await ownerCaller.deleteDocument({ id: "member-cannot-restore-doc" });
+
+    expect(await memberCaller.deletedDocuments()).toEqual([]);
+    await expect(
+      memberCaller.restoreDocument({ id: "member-cannot-restore-doc" }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 

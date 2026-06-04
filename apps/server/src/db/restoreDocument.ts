@@ -1,0 +1,56 @@
+import { and, eq, isNotNull } from "drizzle-orm";
+import { db } from "./client.js";
+import { documents, usersOnDocuments } from "./schema.js";
+
+type Params = {
+  documentId: string;
+  userId: string;
+};
+
+export const restoreDocument = async ({ documentId, userId }: Params) => {
+  return db.transaction(async (tx) => {
+    const [documentRow] = await tx
+      .select({ id: documents.id })
+      .from(documents)
+      .where(and(eq(documents.id, documentId), isNotNull(documents.deletedAt)))
+      .limit(1);
+
+    if (!documentRow) {
+      throw new Error("Document not found");
+    }
+
+    const [membership] = await tx
+      .select({ userId: usersOnDocuments.userId })
+      .from(usersOnDocuments)
+      .where(
+        and(
+          eq(usersOnDocuments.documentId, documentId),
+          eq(usersOnDocuments.userId, userId),
+          eq(usersOnDocuments.isAdmin, true),
+        ),
+      )
+      .limit(1);
+
+    if (!membership) {
+      throw new Error("User lacks restore permission");
+    }
+
+    const now = new Date();
+    const [document] = await tx
+      .update(documents)
+      .set({
+        deletedAt: null,
+        updatedAt: now,
+      })
+      .where(and(eq(documents.id, documentId), isNotNull(documents.deletedAt)))
+      .returning({
+        id: documents.id,
+      });
+
+    if (!document) {
+      throw new Error("Document not found");
+    }
+
+    return { id: document.id };
+  });
+};

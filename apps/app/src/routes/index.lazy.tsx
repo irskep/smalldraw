@@ -1,9 +1,11 @@
 import { createLocalDocumentBackend } from "@smalldraw/splat/documents";
-import { createModalDialogView } from "@smalldraw/design-system";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { Trash2 } from "lucide";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { mount, unmount } from "redom";
+import {
+  DsConfirmDialog,
+  type DsConfirmDialogHandle,
+} from "@/components/DsConfirmDialog/DsConfirmDialog";
 import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
 import { buildLauncherDocumentTiles } from "@/utils/documentLauncher";
 import {
@@ -35,7 +37,7 @@ function Index() {
       }),
     [],
   );
-  const modalDialog = useMemo(() => createModalDialogView(), []);
+  const confirmDialogRef = useRef<DsConfirmDialogHandle>(null);
   const localObjectUrlsRef = useRef<string[]>([]);
   const [localCatalog, setLocalCatalog] = useState<LocalCatalogState>({
     type: "loading",
@@ -69,13 +71,6 @@ function Index() {
     localCatalog,
     runtimeConfig,
   ]);
-
-  useEffect(() => {
-    mount(document.body, modalDialog);
-    return () => {
-      unmount(document.body, modalDialog);
-    };
-  }, [modalDialog]);
 
   useEffect(() => {
     let disposed = false;
@@ -157,22 +152,23 @@ function Index() {
     }
     const sharedDelete = tile.deleteAction.type === "shared";
     const sharedRemoval = tile.deleteAction.type === "remove-shared";
-    const confirmed = await modalDialog.showConfirm({
-      title: sharedDelete
-        ? "Delete shared drawing?"
-        : sharedRemoval
-          ? "Remove shared drawing?"
-          : "Delete drawing?",
-      message: sharedDelete
-        ? "This stops syncing and removes server access. People who already opened it may still have a local copy in their browser."
-        : sharedRemoval
-          ? "This removes the drawing from your account. If it was opened in this browser, the local copy will also be removed. People who already opened it may still have a local copy in their browser."
-          : "This deletes the drawing from this browser.",
-      confirmLabel: sharedRemoval ? "Remove" : "Delete",
-      cancelLabel: "Cancel",
-      tone: "danger",
-      icon: Trash2,
-    });
+    const confirmed =
+      (await confirmDialogRef.current?.confirm({
+        title: sharedDelete
+          ? "Delete shared drawing?"
+          : sharedRemoval
+            ? "Remove shared drawing?"
+            : "Delete drawing?",
+        message: sharedDelete
+          ? "This stops syncing and removes server access. People who already opened it may still have a local copy in their browser."
+          : sharedRemoval
+            ? "This removes the drawing from your account. If it was opened in this browser, the local copy will also be removed. People who already opened it may still have a local copy in their browser."
+            : "This deletes the drawing from this browser.",
+        confirmLabel: sharedRemoval ? "Remove" : "Delete",
+        cancelLabel: "Cancel",
+        tone: "danger",
+        icon: Trash2,
+      })) ?? false;
     if (!confirmed) {
       return;
     }
@@ -235,11 +231,7 @@ function Index() {
         {tiles.map((tile) => (
           <div key={tile.key} className="account-launcher-card">
             <DsThumbnailTile
-              badge={{
-                label: tile.badge,
-                tone: tile.badge === "Shared" ? "positive" : "default",
-              }}
-              deleteAction={
+              action={
                 tile.deleteAction
                   ? {
                       label:
@@ -256,6 +248,10 @@ function Index() {
                     }
                   : undefined
               }
+              badge={{
+                label: tile.badge,
+                tone: tile.badge === "Shared" ? "positive" : "default",
+              }}
               emptyLabel="No preview"
               imageAlt={`${tile.title} thumbnail`}
               imageSrc={tile.thumbnailUrl}
@@ -277,6 +273,7 @@ function Index() {
           Account drawings could not be refreshed right now.
         </p>
       ) : null}
+      <DsConfirmDialog ref={confirmDialogRef} />
     </section>
   );
 }

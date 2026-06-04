@@ -8,7 +8,7 @@ import { mount, unmount } from "redom";
 
 export interface DsThumbnailTileProps {
   badge: { label: string; tone?: "default" | "positive" } | null;
-  deleteAction?: {
+  action?: {
     label: string;
     icon: IconNode;
     onPress: () => void;
@@ -17,16 +17,18 @@ export interface DsThumbnailTileProps {
   emptyLabel: string;
   imageAlt: string;
   imageSrc?: string;
-  onOpen: () => void;
+  onOpen?: () => void;
+  openDisabled?: boolean;
   openLabel: string;
 }
 
 export function DsThumbnailTile({
+  action,
   badge,
-  deleteAction,
   emptyLabel,
   imageAlt,
   imageSrc,
+  openDisabled = false,
   onOpen,
   openLabel,
 }: DsThumbnailTileProps) {
@@ -58,15 +60,16 @@ export function DsThumbnailTile({
     tile.setCurrent(false);
     tile.setOpenLabel(openLabel);
     tile.setOpenTitle(openLabel);
-    tile.setOnOpen(onOpen);
+    tile.setOpenDisabled(openDisabled || !onOpen);
+    tile.setOnOpen(onOpen ?? null);
     tile.setBadge(badge);
     tile.setAction(
-      deleteAction
+      action
         ? {
-            label: deleteAction.label,
-            icon: deleteAction.icon,
-            onPress: deleteAction.onPress,
-            disabled: deleteAction.disabled,
+            label: action.label,
+            icon: action.icon,
+            onPress: action.onPress,
+            disabled: action.disabled,
           }
         : null,
     );
@@ -83,7 +86,16 @@ export function DsThumbnailTile({
     empty.className = "account-launcher-card__empty";
     empty.textContent = emptyLabel;
     tile.setMedia(empty);
-  }, [badge, deleteAction, emptyLabel, imageAlt, imageSrc, onOpen, openLabel]);
+  }, [
+    action,
+    badge,
+    emptyLabel,
+    imageAlt,
+    imageSrc,
+    onOpen,
+    openDisabled,
+    openLabel,
+  ]);
 
   return <div ref={hostRef} />;
 }

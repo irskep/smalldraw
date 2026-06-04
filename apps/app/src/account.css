@@ -304,6 +304,12 @@ a {
   color: var(--ds-text-muted);
 }
 
+.account-launcher-card__meta {
+  margin: 0;
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-0);
+}
+
 .account-two-column {
   display: grid;
   gap: var(--size-4);

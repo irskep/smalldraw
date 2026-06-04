@@ -11,12 +11,14 @@ import type {
   ClaimCollaborativeDocumentResult,
   CreatedAccountDocument,
   DeletedAccountDocument,
+  DeletedAccountDocumentSummary,
   DocumentAccessToken,
   DocumentInvitationToken,
   DocumentMember,
   DocumentThumbnailUploadTarget,
   RegisteredCollaborativeDocument,
   RemovedAccountDocument,
+  RestoredAccountDocument,
   RevokeDocumentAccessTokenResult,
 } from "@smalldraw/shared";
 import { isDocumentAccessTokenScope } from "@smalldraw/shared";
@@ -41,6 +43,7 @@ import { deleteDocument } from "../db/deleteDocument.js";
 import { deleteLoginAttempt } from "../db/deleteLoginAttempt.js";
 import { deleteSession } from "../db/deleteSession.js";
 import { findOrCreateDocumentToken } from "../db/documentTokens.js";
+import { getDeletedDocumentsByUserId } from "../db/getDeletedDocumentsByUserId.js";
 import { getDocument } from "../db/getDocument.js";
 import { getDocumentInvitation } from "../db/getDocumentInvitation.js";
 import { getDocumentInvitationByToken } from "../db/getDocumentInvitationByToken.js";
@@ -51,6 +54,7 @@ import { getUser } from "../db/getUser.js";
 import { getUserByUsername } from "../db/getUserByUsername.js";
 import { listDocumentAccessTokensForAdmin } from "../db/listDocumentAccessTokensForAdmin.js";
 import { removeDocumentFromAccount } from "../db/removeDocumentFromAccount.js";
+import { restoreDocument } from "../db/restoreDocument.js";
 import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTokenForAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "../db/rotateAnonymousCollaborativeDocumentShareToken.js";
 import {
@@ -92,6 +96,24 @@ const listAccountDocumentSummaries = async (
     isAdmin: doc.isAdmin,
     thumbnailUrl: resolveThumbnailUrl(doc.thumbnailStorageKey),
   })) satisfies AccountDocumentSummary[];
+};
+
+const listDeletedAccountDocumentSummaries = async (
+  userId: string,
+): Promise<DeletedAccountDocumentSummary[]> => {
+  const documents = await getDeletedDocumentsByUserId(userId);
+  return documents
+    .filter(
+      (doc): doc is typeof doc & { deletedAt: Date } =>
+        doc.deletedAt instanceof Date,
+    )
+    .map((doc) => ({
+      id: doc.id,
+      name: doc.name,
+      isAdmin: doc.isAdmin,
+      thumbnailUrl: resolveThumbnailUrl(doc.thumbnailStorageKey),
+      deletedAt: doc.deletedAt,
+    })) satisfies DeletedAccountDocumentSummary[];
 };
 
 const hasInMemoryRepoHandle = (documentId: string): boolean => {
@@ -191,6 +213,9 @@ export const appRouter = router({
   }),
   documents: protectedProcedure.query(async (opts) => {
     return await listAccountDocumentSummaries(opts.ctx.session.userId);
+  }),
+  deletedDocuments: protectedProcedure.query(async (opts) => {
+    return await listDeletedAccountDocumentSummaries(opts.ctx.session.userId);
   }),
   listAccountCollaborativeDocuments: protectedProcedure.query(async (opts) => {
     const documents = await listAccountDocumentSummaries(
@@ -373,6 +398,51 @@ export const appRouter = router({
               details: { documentId: opts.input.id },
             },
             "NOT_FOUND",
+          );
+        }
+        throw error;
+      }
+    }),
+  restoreDocument: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      try {
+        return (await restoreDocument({
+          documentId: opts.input.id,
+          userId: opts.ctx.session.userId,
+        })) satisfies RestoredAccountDocument;
+      } catch (error) {
+        if (error instanceof Error && error.message === "Document not found") {
+          throw appTrpcError(
+            {
+              code: "DOCUMENT_NOT_FOUND",
+              title: "Could not restore drawing",
+              message: "This deleted drawing is no longer available.",
+              severity: "recoverable",
+              retryable: false,
+              details: { documentId: opts.input.id },
+            },
+            "NOT_FOUND",
+          );
+        }
+        if (
+          error instanceof Error &&
+          error.message === "User lacks restore permission"
+        ) {
+          throw appTrpcError(
+            {
+              code: "DOCUMENT_ACCESS_DENIED",
+              title: "Could not restore drawing",
+              message: "Only a drawing owner can restore this shared drawing.",
+              severity: "recoverable",
+              retryable: false,
+              details: { documentId: opts.input.id },
+            },
+            "FORBIDDEN",
           );
         }
         throw error;

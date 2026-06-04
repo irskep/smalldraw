@@ -144,7 +144,15 @@ export type DeletedAccountDocument = {
   deletedAt: Date;
 };
 
+export type DeletedAccountDocumentSummary = AccountDocumentSummary & {
+  deletedAt: Date;
+};
+
 export type RemovedAccountDocument = {
+  id: string;
+};
+
+export type RestoredAccountDocument = {
   id: string;
 };
 
