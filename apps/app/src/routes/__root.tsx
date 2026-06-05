@@ -4,6 +4,7 @@ import {
   createRootRoute,
   Link,
   Outlet,
+  useLocation,
   useNavigate,
 } from "@tanstack/react-router";
 import { LogIn, LogOut, Shield, Trash2, UserPlus } from "lucide";
@@ -33,6 +34,8 @@ const getRedirectParam = () => {
 
 const Root = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminRoute = location.pathname === "/admin";
 
   const meQuery = trpc.me.useQuery(undefined, {
     // avoid lot's of retries in case of unauthorized blocking a page load
@@ -143,7 +146,7 @@ const Root = () => {
   );
 
   return (
-    <div className="account-shell">
+    <div className="account-shell" data-layout={isAdminRoute ? "admin" : ""}>
       <header className="account-header">
         <Link to="/" className="account-brand">
           Splatterboard

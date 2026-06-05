@@ -62,6 +62,14 @@ a {
   align-items: safe center;
 }
 
+.account-shell[data-layout="admin"] .account-main {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  align-items: start;
+  padding: var(--size-4);
+}
+
 .account-page {
   display: grid;
   gap: var(--size-4);
@@ -72,6 +80,20 @@ a {
   justify-items: center;
   gap: var(--size-2);
   text-align: center;
+}
+
+.account-admin {
+  width: min(100%, 64rem);
+  align-content: start;
+}
+
+.account-admin .account-page__header {
+  justify-items: start;
+  text-align: start;
+}
+
+.account-admin .account-card {
+  box-shadow: none;
 }
 
 .account-title {
