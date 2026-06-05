@@ -114,7 +114,7 @@ const Admin = () => {
             className="account-input account-input--short"
             value={lookupUsername}
             onChange={(event) => setLookupUsername(event.target.value)}
-            placeholder="Username"
+            placeholder="Search account"
             aria-label="User lookup"
             autoCapitalize="none"
             autoComplete="off"
@@ -122,6 +122,7 @@ const Admin = () => {
             inputMode="search"
             name="admin-user-lookup"
             spellCheck={false}
+            type="search"
           />
           <button type="submit" className="ds-button">
             <Search className="account-action-icon" />
