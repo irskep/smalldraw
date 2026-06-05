@@ -178,6 +178,12 @@ export type AdminUserDocumentSummary = AccountDocumentSummary & {
   currentAdminHasAccess: boolean;
 };
 
+export type AdminUserDocumentDetails = {
+  document: AdminUserDocumentSummary;
+  members: DocumentMember[];
+  accessTokens: DocumentAccessToken[];
+};
+
 export type AccountDocumentDetails = AccountDocumentSummary & {
   isAdmin: boolean;
 };

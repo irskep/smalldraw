@@ -125,11 +125,12 @@ Evidence:
 - Added session-backed admin authorization in [apps/server/src/trpc/trpc.ts](../../apps/server/src/trpc/trpc.ts): normal logged-in users with `users.is_server_admin = true` can call admin procedures.
 - Added initial `/admin` browser route in [apps/app/src/routes/admin.lazy.tsx](../../apps/app/src/routes/admin.lazy.tsx) for user lookup and password reset.
 - Added admin document listing for looked-up users. The browser route now opens drawings directly when the viewing admin already has access, and creates confirmed share links only when access is missing.
+- Added read-only admin document inspection for members and non-share access tokens.
 
 Work:
 
 - Add an admin area for user lookup, account recovery, session revocation, document lookup, membership inspection, deleted document inspection, and token inspection.
-- Remaining work: session revocation UI beyond password reset, deeper document inspection, membership inspection, deleted document inspection, token inspection, and audit persistence.
+- Remaining work: session revocation UI beyond password reset, deeper document inspection, deleted document inspection, token revocation, and audit persistence.
 
 Acceptance criteria:
 

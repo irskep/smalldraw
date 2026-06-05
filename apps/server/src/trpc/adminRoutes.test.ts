@@ -6,6 +6,7 @@ import { createDocument } from "../db/createDocument.js";
 import { createLoginAttempt } from "../db/createLoginAttempt.js";
 import { createSession } from "../db/createSession.js";
 import { createUser } from "../db/createUser.js";
+import { createDocumentToken } from "../db/documentTokens.js";
 import { ensureServerAdminUser } from "../db/ensureServerAdminUser.js";
 import { getLoginAttempt } from "../db/getLoginAttempt.js";
 import { getSession } from "../db/getSession.js";
@@ -288,6 +289,91 @@ describe("admin routes", () => {
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
+  it("inspects a user's document members and access tokens", async () => {
+    const targetUser = await createUser({
+      username: "inspection-owner",
+      registrationRecord: "registration-record",
+    });
+    const memberUser = await createUser({
+      username: "inspection-member",
+      registrationRecord: "registration-record",
+    });
+    const document = await createDocument({
+      documentId: "inspection-doc",
+      userId: targetUser.id,
+      name: "Inspection drawing",
+    });
+    await db.insert(usersOnDocuments).values({
+      userId: memberUser.id,
+      documentId: document.id,
+      isAdmin: false,
+    });
+    await createDocumentToken({
+      documentId: document.id,
+      scope: "owner",
+      tag: "owner-device",
+    });
+    await createDocumentToken({
+      documentId: document.id,
+      scope: "device",
+      tag: "joiner-device",
+    });
+    await createDocumentToken({
+      documentId: document.id,
+      scope: "share",
+      tag: "public-link",
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: null,
+      serverAdmin: {
+        id: "server-admin",
+        username: "admin",
+      },
+    });
+
+    await expect(
+      caller.adminGetUserDocumentDetails({
+        username: "inspection-owner",
+        documentId: document.id,
+      }),
+    ).resolves.toMatchObject({
+      document: {
+        id: document.id,
+        name: "Inspection drawing",
+      },
+      members: expect.arrayContaining([
+        expect.objectContaining({
+          username: "inspection-owner",
+          isAdmin: true,
+        }),
+        expect.objectContaining({
+          username: "inspection-member",
+          isAdmin: false,
+        }),
+      ]),
+      accessTokens: expect.arrayContaining([
+        expect.objectContaining({
+          scope: "owner",
+          tag: "owner-device",
+        }),
+        expect.objectContaining({
+          scope: "device",
+          tag: "joiner-device",
+        }),
+      ]),
+    });
+    const details = await caller.adminGetUserDocumentDetails({
+      username: "inspection-owner",
+      documentId: document.id,
+    });
+    expect(details.accessTokens.map((token) => token.scope).sort()).toEqual([
+      "device",
+      "owner",
+    ]);
+  });
+
   it("rejects admin share link creation for documents outside the target user account", async () => {
     await createUser({
       username: "target-without-doc",
@@ -314,6 +400,12 @@ describe("admin routes", () => {
 
     await expect(
       caller.adminCreateUserDocumentShareLink({
+        username: "target-without-doc",
+        documentId: document.id,
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(
+      caller.adminGetUserDocumentDetails({
         username: "target-without-doc",
         documentId: document.id,
       }),

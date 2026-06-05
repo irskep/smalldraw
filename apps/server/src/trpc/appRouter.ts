@@ -7,6 +7,7 @@ import type {
   AccountDocumentDetails,
   AccountDocumentMutationResult,
   AccountDocumentSummary,
+  AdminUserDocumentDetails,
   AdminUserDocumentSummary,
   AnonymousCollaborativeDocumentResolution,
   ClaimCollaborativeDocumentResult,
@@ -56,6 +57,8 @@ import { getUser } from "../db/getUser.js";
 import { getUserByUsername } from "../db/getUserByUsername.js";
 import { getUserHasAccessToDocument } from "../db/getUserHasAccessToDocument.js";
 import { listDocumentAccessTokensForAdmin } from "../db/listDocumentAccessTokensForAdmin.js";
+import { listDocumentAccessTokensForServerAdmin } from "../db/listDocumentAccessTokensForServerAdmin.js";
+import { listDocumentMembersForServerAdmin } from "../db/listDocumentMembersForServerAdmin.js";
 import { removeDocumentFromAccount } from "../db/removeDocumentFromAccount.js";
 import { restoreDocument } from "../db/restoreDocument.js";
 import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTokenForAdmin.js";
@@ -120,6 +123,42 @@ const listAdminUserDocumentSummaries = async ({
       }),
     })),
   );
+};
+
+const getAdminUserDocumentSummary = async ({
+  currentAdminUserId,
+  documentId,
+  targetUserId,
+}: {
+  currentAdminUserId: string;
+  documentId: string;
+  targetUserId: string;
+}): Promise<AdminUserDocumentSummary | null> => {
+  const documents = await listAdminUserDocumentSummaries({
+    currentAdminUserId,
+    targetUserId,
+  });
+  return documents.find((doc) => doc.id === documentId) ?? null;
+};
+
+const listDocumentAccessTokensForAdminSupport = async (
+  documentId: string,
+): Promise<DocumentAccessToken[]> => {
+  const tokens = await listDocumentAccessTokensForServerAdmin({
+    documentId,
+  });
+  return tokens.map((token) => {
+    if (!isDocumentAccessTokenScope(token.scope)) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Invalid document access token scope",
+      });
+    }
+    return {
+      ...token,
+      scope: token.scope,
+    } satisfies DocumentAccessToken;
+  });
 };
 
 const listDeletedAccountDocumentSummaries = async (
@@ -281,6 +320,44 @@ export const appRouter = router({
         currentAdminUserId: opts.ctx.serverAdmin.id,
         targetUserId: user.id,
       });
+    }),
+  adminGetUserDocumentDetails: serverAdminProcedure
+    .input(
+      z.object({
+        username: z.string().min(1),
+        documentId: z.string().min(1),
+      }),
+    )
+    .query(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      const document = await getAdminUserDocumentSummary({
+        currentAdminUserId: opts.ctx.serverAdmin.id,
+        targetUserId: user.id,
+        documentId: opts.input.documentId,
+      });
+      if (!document) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "document not found for user",
+        });
+      }
+      const [members, accessTokens] = await Promise.all([
+        listDocumentMembersForServerAdmin({
+          documentId: opts.input.documentId,
+        }),
+        listDocumentAccessTokensForAdminSupport(opts.input.documentId),
+      ]);
+      return {
+        document,
+        members,
+        accessTokens,
+      } satisfies AdminUserDocumentDetails;
     }),
   adminCreateUserDocumentShareLink: serverAdminProcedure
     .input(
