@@ -30,24 +30,26 @@ Acceptance criteria:
 - Production build hard reloads return the account app for `/`, `/login`, `/register`, `/invitation/example`, and `/drawings/deleted`.
 - A regression test fails when a new account route is not served by the production server fallback.
 
-### Make production database migrations an explicit deploy gate
+### Make production database migrations explicit - done
 
 Evidence:
 
 - [mise.toml](../../mise.toml) has `db:push:prod`.
 - `prod:build` is correctly just a JS/static build and should not mutate the database.
-- The deploy/release workflow does not currently make `db:push:prod` an explicit gate before serving code that depends on new schema.
+- [Dockerfile](../../Dockerfile) starts production with `bunx drizzle-kit push && bun apps/server/src/index.ts`, so the Fly database at `/data/app.db` is migrated before the server process starts.
+- `db:push:prod` targets local `./sqlite/prod.db`; it is useful for production-like local serving, not for migrating the Fly volume.
 - The deleted-drawings page failed locally until `documents.deleted_at` was applied to the dev database.
+- [mise.toml](../../mise.toml) now documents this split on `server:deploy` and `deploy`.
 
 Work:
 
-- Define the production release sequence so schema updates run before a server revision that depends on them.
-- Add a lightweight startup or deploy-time check for required schema shape.
+- Keep production schema mutation out of `prod:build`.
+- Keep the runtime migration behavior visible in deploy task descriptions.
 
 Acceptance criteria:
 
-- A fresh production database can be migrated and served using a documented single command sequence.
-- A server with missing required columns fails early with an actionable migration error, not a user-facing generic page error.
+- A fresh production database is migrated by the server image before the server accepts traffic.
+- Developers can tell from the task descriptions that `prod:build` is pure build work and Fly migration happens in the server image.
 
 ### Add admin-mediated account recovery
 

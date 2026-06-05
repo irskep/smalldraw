@@ -233,7 +233,9 @@ fly secrets set \
 """
 
 [tasks."server:deploy"]
+description = "Deploy server image. The Docker CMD runs drizzle-kit push against the runtime DATABASE_URL before starting the server."
 run = "fly deploy -c apps/server/fly.toml"
 
 [tasks.deploy]
+description = "Build static assets, then deploy the server image. Database migration runs inside the server image at startup."
 run = ["mise run prod:build", "mise run server:deploy"]
