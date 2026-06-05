@@ -51,19 +51,22 @@ Acceptance criteria:
 - A fresh production database is migrated by the server image before the server accepts traffic.
 - Developers can tell from the task descriptions that `prod:build` is pure build work and Fly migration happens in the server image.
 
-### Add admin-mediated account recovery
+### Add admin-mediated account recovery - done
 
 Evidence:
 
 - [apps/server/src/db/schema.ts](../../apps/server/src/db/schema.ts) stores `users.registrationRecord` for OPAQUE auth and has no email field.
 - No `/account`, password-change, password-reset, or recovery routes exist under [apps/app/src/routes](../../apps/app/src/routes).
 - User policy: admin-mediated recovery is acceptable.
+- Implemented `adminResetUserPassword` in [apps/server/src/trpc/appRouter.ts](../../apps/server/src/trpc/appRouter.ts), backed by registration-record update and session revocation helpers.
+- Added `admin reset-password <username> <new-password>` to [packages/server-cli/src/cli.ts](../../packages/server-cli/src/cli.ts).
 
 Work:
 
 - Build an admin path that can reset or replace a user's OPAQUE registration record.
 - Invalidate that user's existing sessions after reset.
 - Record enough audit information to know who performed the reset and when.
+- Browser admin UI and audit persistence remain part of the admin-site P1 work.
 
 Acceptance criteria:
 

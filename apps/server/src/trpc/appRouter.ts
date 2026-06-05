@@ -42,6 +42,7 @@ import { createUser } from "../db/createUser.js";
 import { deleteDocument } from "../db/deleteDocument.js";
 import { deleteLoginAttempt } from "../db/deleteLoginAttempt.js";
 import { deleteSession } from "../db/deleteSession.js";
+import { deleteSessionsForUser } from "../db/deleteSessionsForUser.js";
 import { findOrCreateDocumentToken } from "../db/documentTokens.js";
 import { getDeletedDocumentsByUserId } from "../db/getDeletedDocumentsByUserId.js";
 import { getDocument } from "../db/getDocument.js";
@@ -62,6 +63,7 @@ import {
   buildDocumentThumbnailUrl,
 } from "../db/thumbnailStorage.js";
 import { updateDocument } from "../db/updateDocument.js";
+import { updateUserRegistrationRecord } from "../db/updateUserRegistrationRecord.js";
 import { upsertDocumentThumbnail } from "../db/upsertDocumentThumbnail.js";
 import {
   LoginFinishParams,
@@ -70,6 +72,7 @@ import {
   RegisterStartParams,
 } from "../schema.js";
 import { getDocumentThumbnailStore } from "../storage/documentThumbnailStore.js";
+import { createOpaqueRegistrationRecord } from "../utils/createOpaqueRegistrationRecord.js";
 import { getOpaqueServerSetup } from "../utils/getOpaqueServerSetup.js";
 import {
   appTrpcError,
@@ -200,6 +203,47 @@ export const appRouter = router({
         username: user.username,
         isServerAdmin: user.isServerAdmin,
         createdAt: user.createdAt,
+      };
+    }),
+  adminResetUserPassword: serverAdminProcedure
+    .input(
+      z.object({
+        username: z.string().min(1),
+        newPassword: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+
+      const registrationRecord = await createOpaqueRegistrationRecord({
+        username: user.username,
+        password: opts.input.newPassword,
+      });
+      const updatedUser = await updateUserRegistrationRecord({
+        userId: user.id,
+        registrationRecord,
+      });
+      if (!updatedUser) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "user not found after password reset",
+        });
+      }
+      await deleteSessionsForUser(user.id);
+      await deleteLoginAttempt(user.id);
+
+      return {
+        id: updatedUser.id,
+        username: updatedUser.username,
+        isServerAdmin: updatedUser.isServerAdmin,
+        createdAt: updatedUser.createdAt,
+        sessionsRevoked: true,
       };
     }),
   me: protectedProcedure.query(async (opts) => {

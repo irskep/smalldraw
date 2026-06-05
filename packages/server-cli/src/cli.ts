@@ -79,6 +79,26 @@ export const fetchAdminUserByUsername = async ({
   return await client.query("adminGetUserByUsername", username);
 };
 
+export const resetUserPassword = async ({
+  adminUsername,
+  adminPassword,
+  username,
+  newPassword,
+}: {
+  adminUsername: string;
+  adminPassword: string;
+  username: string;
+  newPassword: string;
+}) => {
+  const client = createClient(
+    createBasicAuthHeader(adminUsername, adminPassword),
+  );
+  return await client.mutation("adminResetUserPassword", {
+    username,
+    newPassword,
+  });
+};
+
 const requireValue = (value: string | undefined, name: string): string => {
   if (!value || value.trim().length === 0) {
     throw new Error(`${name} is required`);
@@ -131,7 +151,22 @@ export const runCli = async (argv: string[]): Promise<unknown> => {
     });
   }
 
+  if (command === "admin" && subcommand === "reset-password") {
+    return await resetUserPassword({
+      adminUsername: requireValue(
+        process.env.SMALLDRAW_ADMIN_USERNAME ?? process.env.ADMIN_USERNAME,
+        "admin username",
+      ),
+      adminPassword: requireValue(
+        process.env.SMALLDRAW_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD,
+        "admin password",
+      ),
+      username: requireValue(rest[0], "target username"),
+      newPassword: requireValue(rest[1], "new password"),
+    });
+  }
+
   throw new Error(
-    "Usage: signup <username> <password> | admin me | admin get-user <username>",
+    "Usage: signup <username> <password> | admin me | admin get-user <username> | admin reset-password <username> <new-password>",
   );
 };
