@@ -154,6 +154,27 @@ a {
   flex-wrap: wrap;
 }
 
+.account-details {
+  display: grid;
+  gap: var(--size-2);
+  margin: 0;
+}
+
+.account-details > div {
+  display: grid;
+  gap: var(--size-1);
+}
+
+.account-details dt {
+  color: var(--ds-ink-muted);
+  font-size: var(--font-size-button-sm);
+  font-weight: var(--font-weight-5);
+}
+
+.account-details dd {
+  margin: 0;
+}
+
 .account-label {
   font-size: var(--font-size-button-md);
   font-weight: var(--font-weight-5);

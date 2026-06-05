@@ -63,6 +63,7 @@ describe("drawing app route helpers", () => {
 describe("account app route helpers", () => {
   test("matches account app routes served by the production server", () => {
     expect(isAccountAppRoutePath("/")).toBe(true);
+    expect(isAccountAppRoutePath("/admin")).toBe(true);
     expect(isAccountAppRoutePath("/login")).toBe(true);
     expect(isAccountAppRoutePath("/register")).toBe(true);
     expect(isAccountAppRoutePath("/drawings/deleted")).toBe(true);

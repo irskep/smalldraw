@@ -9,6 +9,7 @@ import type * as trpcExpress from "@trpc/server/adapters/express";
 import { parseSessionKeyFromCookieHeader } from "../auth/sessionCookie.js";
 import { getServerAdminByBasicAuth } from "../db/getServerAdminByBasicAuth.js";
 import { getSession } from "../db/getSession.js";
+import { getUser } from "../db/getUser.js";
 
 // created for each request
 export const createContext = async ({
@@ -90,13 +91,31 @@ export const protectedProcedure = t.procedure.use(
 export const serverAdminProcedure = t.procedure.use(
   async function isServerAdmin(opts) {
     const { ctx } = opts;
-    if (!ctx.serverAdmin) {
+    if (ctx.serverAdmin) {
+      return opts.next({
+        ctx: {
+          ...ctx,
+          serverAdmin: ctx.serverAdmin,
+        },
+      });
+    }
+
+    if (!ctx.session) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
+    const user = await getUser(ctx.session.userId);
+    if (!user?.isServerAdmin) {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+
     return opts.next({
       ctx: {
         ...ctx,
-        serverAdmin: ctx.serverAdmin,
+        session: ctx.session,
+        serverAdmin: {
+          id: user.id,
+          username: user.username,
+        },
       },
     });
   },

@@ -150,6 +150,51 @@ describe("admin routes", () => {
       }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
+
+  it("allows normal sessions for server-admin users", async () => {
+    const admin = await ensureServerAdminUser({
+      username: "session-admin",
+      password: "asdfjkl;",
+    });
+
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "admin-session",
+        userId: admin!.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+
+    await expect(caller.adminMe()).resolves.toEqual({
+      id: admin!.id,
+      username: "session-admin",
+    });
+  });
+
+  it("rejects normal sessions for non-admin users", async () => {
+    const user = await createUser({
+      username: "not-admin",
+      registrationRecord: "registration-record",
+    });
+
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "plain-session",
+        userId: user.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+
+    await expect(caller.adminMe()).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
 });
 
 function createHeaderRecorder() {

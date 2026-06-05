@@ -6,7 +6,7 @@ import {
   Outlet,
   useNavigate,
 } from "@tanstack/react-router";
-import { LogIn, LogOut, Trash2, UserPlus } from "lucide";
+import { LogIn, LogOut, Shield, Trash2, UserPlus } from "lucide";
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
 import { DsDropdownMenu } from "@/components/DsDropdownMenu/DsDropdownMenu";
 import { appPath, basePath, isAppRoute } from "../config";
@@ -51,6 +51,15 @@ const Root = () => {
   const accountMenuEntries = useMemo<DropdownMenuEntry[]>(() => {
     if (meQuery.data && !isNotAuthorized) {
       return [
+        ...(meQuery.data.isServerAdmin
+          ? [
+              {
+                id: "admin",
+                label: "Admin",
+                icon: Shield,
+              },
+            ]
+          : []),
         {
           id: "deleted-drawings",
           label: "Deleted drawings",
@@ -112,6 +121,10 @@ const Root = () => {
       }
       if (itemId === "deleted-drawings") {
         navigate({ to: "/drawings/deleted" });
+        return;
+      }
+      if (itemId === "admin") {
+        navigate({ to: "/admin" });
         return;
       }
       if (itemId === "logout") {

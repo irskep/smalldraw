@@ -115,17 +115,20 @@ Acceptance criteria:
 
 ## P1: Account And Server Operations
 
-### Build the admin site deliberately
+### Build the admin site deliberately - in progress
 
 Evidence:
 
 - [apps/server/src/trpc/appRouter.ts](../../apps/server/src/trpc/appRouter.ts) exposes `adminMe` and `adminGetUserByUsername`.
 - [packages/server-cli/src/cli.ts](../../packages/server-cli/src/cli.ts) can query admin user data.
 - There is no browser admin surface under [apps/app/src/routes](../../apps/app/src/routes).
+- Added session-backed admin authorization in [apps/server/src/trpc/trpc.ts](../../apps/server/src/trpc/trpc.ts): normal logged-in users with `users.is_server_admin = true` can call admin procedures.
+- Added initial `/admin` browser route in [apps/app/src/routes/admin.lazy.tsx](../../apps/app/src/routes/admin.lazy.tsx) for user lookup and password reset.
 
 Work:
 
 - Add an admin area for user lookup, account recovery, session revocation, document lookup, membership inspection, deleted document inspection, and token inspection.
+- Remaining work: session revocation UI beyond password reset, document lookup, membership inspection, deleted document inspection, token inspection, and audit persistence.
 
 Acceptance criteria:
 
