@@ -12,6 +12,7 @@ import { claimAnonymousCollaborativeDocument } from "./claimAnonymousCollaborati
 import { db } from "./client.js";
 import { createAnonymousCollaborativeDocument } from "./createAnonymousCollaborativeDocument.js";
 import { createDocument } from "./createDocument.js";
+import { createLoginAttempt } from "./createLoginAttempt.js";
 import { createOrRefreshDocumentInvitation } from "./createOrRefreshDocumentInvitation.js";
 import { createSession } from "./createSession.js";
 import { createUser } from "./createUser.js";
@@ -23,6 +24,7 @@ import { getDocument } from "./getDocument.js";
 import { getDocumentInvitationByToken } from "./getDocumentInvitationByToken.js";
 import { getDocumentsByUserId } from "./getDocumentsByUserId.js";
 import { getDocumentThumbnail } from "./getDocumentThumbnail.js";
+import { getLoginAttempt } from "./getLoginAttempt.js";
 import { getSession } from "./getSession.js";
 import { getUser } from "./getUser.js";
 import { getUserByUsername } from "./getUserByUsername.js";
@@ -32,7 +34,11 @@ import { removeDocumentFromAccount } from "./removeDocumentFromAccount.js";
 import { restoreDocument } from "./restoreDocument.js";
 import { revokeDocumentAccessTokenForAdmin } from "./revokeDocumentAccessTokenForAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "./rotateAnonymousCollaborativeDocumentShareToken.js";
-import { documentInvitations, usersOnDocuments } from "./schema.js";
+import {
+  documentInvitations,
+  loginAttempts,
+  usersOnDocuments,
+} from "./schema.js";
 import {
   buildDocumentThumbnailStorageKey,
   buildDocumentThumbnailUrl,
@@ -150,6 +156,67 @@ describe("Session operations", () => {
 
     const retrieved = await getSession("to-delete");
     expect(retrieved).toBeNull();
+  });
+});
+
+describe("Login attempt operations", () => {
+  it("returns active login attempts", async () => {
+    const user = await createUser({
+      username: "login-attempt-user",
+      registrationRecord: "test-registration-record",
+    });
+
+    await createLoginAttempt({
+      userId: user.id,
+      serverLoginState: "active-attempt",
+    });
+
+    await expect(getLoginAttempt("login-attempt-user")).resolves.toMatchObject({
+      userId: user.id,
+      serverLoginState: "active-attempt",
+    });
+  });
+
+  it("refreshes an existing login attempt instead of stranding the user", async () => {
+    const user = await createUser({
+      username: "login-attempt-refresh",
+      registrationRecord: "test-registration-record",
+    });
+
+    await createLoginAttempt({
+      userId: user.id,
+      serverLoginState: "first-attempt",
+    });
+    await createLoginAttempt({
+      userId: user.id,
+      serverLoginState: "second-attempt",
+    });
+
+    const attempts = await db
+      .select()
+      .from(loginAttempts)
+      .where(eq(loginAttempts.userId, user.id));
+
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0].serverLoginState).toBe("second-attempt");
+  });
+
+  it("ignores stale login attempts so interrupted flows can retry", async () => {
+    const user = await createUser({
+      username: "stale-login-attempt",
+      registrationRecord: "test-registration-record",
+    });
+
+    await createLoginAttempt({
+      userId: user.id,
+      serverLoginState: "stale-attempt",
+    });
+    await db
+      .update(loginAttempts)
+      .set({ createdAt: new Date(Date.now() - 9_000) })
+      .where(eq(loginAttempts.userId, user.id));
+
+    await expect(getLoginAttempt("stale-login-attempt")).resolves.toBeNull();
   });
 });
 

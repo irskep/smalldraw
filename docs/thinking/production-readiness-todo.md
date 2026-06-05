@@ -74,13 +74,15 @@ Acceptance criteria:
 - Existing sessions for the recovered account are revoked.
 - The account owner can log in with the new credential.
 
-### Fix stranded login attempts
+### Fix stranded login attempts - done
 
 Evidence:
 
 - [apps/server/src/db/schema.ts](../../apps/server/src/db/schema.ts) makes `login_attempts.user_id` unique.
-- [apps/server/src/trpc/appRouter.ts](../../apps/server/src/trpc/appRouter.ts) rejects `loginStart` with `login already started` if a prior attempt exists.
+- [apps/server/src/trpc/appRouter.ts](../../apps/server/src/trpc/appRouter.ts) rejects `loginStart` with `login already started` if a currently active prior attempt exists.
 - `loginFinish` deletes the attempt only after successful login.
+- [apps/server/src/db/createLoginAttempt.ts](../../apps/server/src/db/createLoginAttempt.ts) upserts by `user_id`, and [apps/server/src/db/getLoginAttempt.ts](../../apps/server/src/db/getLoginAttempt.ts) ignores attempts older than 8 seconds.
+- [apps/server/src/db/db.test.ts](../../apps/server/src/db/db.test.ts) now covers active attempts, repeated attempt refresh, and stale retry.
 
 Work:
 
