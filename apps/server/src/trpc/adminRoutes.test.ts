@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
+import { db } from "../db/client.js";
 import { createDocument } from "../db/createDocument.js";
 import { createLoginAttempt } from "../db/createLoginAttempt.js";
 import { createSession } from "../db/createSession.js";
@@ -9,6 +10,7 @@ import { ensureServerAdminUser } from "../db/ensureServerAdminUser.js";
 import { getLoginAttempt } from "../db/getLoginAttempt.js";
 import { getSession } from "../db/getSession.js";
 import { getUserByUsername } from "../db/getUserByUsername.js";
+import { usersOnDocuments } from "../db/schema.js";
 import { createOpaqueRegistrationRecord } from "../utils/createOpaqueRegistrationRecord.js";
 import { appRouter } from "./appRouter.js";
 
@@ -224,6 +226,7 @@ describe("admin routes", () => {
         id: document.id,
         name: "Admin visible drawing",
         isAdmin: true,
+        currentAdminHasAccess: false,
       },
     ]);
     await expect(
@@ -234,6 +237,55 @@ describe("admin routes", () => {
     ).resolves.toMatchObject({
       token: expect.any(String),
     });
+  });
+
+  it("marks documents the viewing admin can already access", async () => {
+    const admin = await ensureServerAdminUser({
+      username: "document-member-admin",
+      password: "asdfjkl;",
+    });
+    const targetUser = await createUser({
+      username: "drawing-owner-with-admin-access",
+      registrationRecord: "registration-record",
+    });
+    const document = await createDocument({
+      documentId: "admin-member-doc",
+      userId: targetUser.id,
+      name: "Admin member drawing",
+    });
+    await db.insert(usersOnDocuments).values({
+      userId: admin!.id,
+      documentId: document.id,
+      isAdmin: false,
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "document-member-admin-session",
+        userId: admin!.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+
+    await expect(
+      caller.adminListUserDocuments({
+        username: "drawing-owner-with-admin-access",
+      }),
+    ).resolves.toMatchObject([
+      {
+        id: document.id,
+        name: "Admin member drawing",
+        currentAdminHasAccess: true,
+      },
+    ]);
+    await expect(
+      caller.adminCreateUserDocumentShareLink({
+        username: "drawing-owner-with-admin-access",
+        documentId: document.id,
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("rejects admin share link creation for documents outside the target user account", async () => {

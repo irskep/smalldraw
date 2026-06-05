@@ -7,6 +7,7 @@ import type {
   AccountDocumentDetails,
   AccountDocumentMutationResult,
   AccountDocumentSummary,
+  AdminUserDocumentSummary,
   AnonymousCollaborativeDocumentResolution,
   ClaimCollaborativeDocumentResult,
   CreatedAccountDocument,
@@ -53,6 +54,7 @@ import { getDocumentsByUserId } from "../db/getDocumentsByUserId.js";
 import { getLoginAttempt } from "../db/getLoginAttempt.js";
 import { getUser } from "../db/getUser.js";
 import { getUserByUsername } from "../db/getUserByUsername.js";
+import { getUserHasAccessToDocument } from "../db/getUserHasAccessToDocument.js";
 import { listDocumentAccessTokensForAdmin } from "../db/listDocumentAccessTokensForAdmin.js";
 import { removeDocumentFromAccount } from "../db/removeDocumentFromAccount.js";
 import { restoreDocument } from "../db/restoreDocument.js";
@@ -99,6 +101,25 @@ const listAccountDocumentSummaries = async (
     isAdmin: doc.isAdmin,
     thumbnailUrl: resolveThumbnailUrl(doc.thumbnailStorageKey),
   })) satisfies AccountDocumentSummary[];
+};
+
+const listAdminUserDocumentSummaries = async ({
+  currentAdminUserId,
+  targetUserId,
+}: {
+  currentAdminUserId: string;
+  targetUserId: string;
+}): Promise<AdminUserDocumentSummary[]> => {
+  const documents = await listAccountDocumentSummaries(targetUserId);
+  return await Promise.all(
+    documents.map(async (doc) => ({
+      ...doc,
+      currentAdminHasAccess: await getUserHasAccessToDocument({
+        userId: currentAdminUserId,
+        documentId: doc.id,
+      }),
+    })),
+  );
 };
 
 const listDeletedAccountDocumentSummaries = async (
@@ -256,7 +277,10 @@ export const appRouter = router({
           message: "user not found",
         });
       }
-      return await listAccountDocumentSummaries(user.id);
+      return await listAdminUserDocumentSummaries({
+        currentAdminUserId: opts.ctx.serverAdmin.id,
+        targetUserId: user.id,
+      });
     }),
   adminCreateUserDocumentShareLink: serverAdminProcedure
     .input(
@@ -280,6 +304,16 @@ export const appRouter = router({
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "document not found for user",
+        });
+      }
+      const currentAdminHasAccess = await getUserHasAccessToDocument({
+        userId: opts.ctx.serverAdmin.id,
+        documentId: opts.input.documentId,
+      });
+      if (currentAdminHasAccess) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "admin already has access to document",
         });
       }
       const shareToken = await rotateAnonymousCollaborativeDocumentShareToken(

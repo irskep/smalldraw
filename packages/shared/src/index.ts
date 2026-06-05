@@ -174,6 +174,10 @@ export type AccountDocumentSummary = {
   thumbnailUrl: string | null;
 };
 
+export type AdminUserDocumentSummary = AccountDocumentSummary & {
+  currentAdminHasAccess: boolean;
+};
+
 export type AccountDocumentDetails = AccountDocumentSummary & {
   isAdmin: boolean;
 };

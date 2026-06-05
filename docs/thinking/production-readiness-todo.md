@@ -124,7 +124,7 @@ Evidence:
 - There is no browser admin surface under [apps/app/src/routes](../../apps/app/src/routes).
 - Added session-backed admin authorization in [apps/server/src/trpc/trpc.ts](../../apps/server/src/trpc/trpc.ts): normal logged-in users with `users.is_server_admin = true` can call admin procedures.
 - Added initial `/admin` browser route in [apps/app/src/routes/admin.lazy.tsx](../../apps/app/src/routes/admin.lazy.tsx) for user lookup and password reset.
-- Added admin document listing and confirmed share-link creation for a looked-up user's drawings.
+- Added admin document listing for looked-up users. The browser route now opens drawings directly when the viewing admin already has access, and creates confirmed share links only when access is missing.
 
 Work:
 
