@@ -124,11 +124,12 @@ Evidence:
 - There is no browser admin surface under [apps/app/src/routes](../../apps/app/src/routes).
 - Added session-backed admin authorization in [apps/server/src/trpc/trpc.ts](../../apps/server/src/trpc/trpc.ts): normal logged-in users with `users.is_server_admin = true` can call admin procedures.
 - Added initial `/admin` browser route in [apps/app/src/routes/admin.lazy.tsx](../../apps/app/src/routes/admin.lazy.tsx) for user lookup and password reset.
+- Added admin document listing and confirmed share-link creation for a looked-up user's drawings.
 
 Work:
 
 - Add an admin area for user lookup, account recovery, session revocation, document lookup, membership inspection, deleted document inspection, and token inspection.
-- Remaining work: session revocation UI beyond password reset, document lookup, membership inspection, deleted document inspection, token inspection, and audit persistence.
+- Remaining work: session revocation UI beyond password reset, deeper document inspection, membership inspection, deleted document inspection, token inspection, and audit persistence.
 
 Acceptance criteria:
 

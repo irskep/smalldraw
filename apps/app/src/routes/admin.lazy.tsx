@@ -1,11 +1,12 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { KeyRound as KeyRoundIcon } from "lucide";
-import { KeyRound, Search } from "lucide-react";
+import { KeyRound as KeyRoundIcon, Share2 as ShareIcon } from "lucide";
+import { KeyRound, Search, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   DsConfirmDialog,
   type DsConfirmDialogHandle,
 } from "@/components/DsConfirmDialog/DsConfirmDialog";
+import { buildInvitationUrl } from "@/components/DocumentInvitation/buildInvitationUrl";
 import { trpc } from "../utils/trpc";
 
 const Admin = () => {
@@ -15,8 +16,12 @@ const Admin = () => {
     null,
   );
   const [newPassword, setNewPassword] = useState("");
+  const [shareLinksByDocumentId, setShareLinksByDocumentId] = useState<
+    Record<string, string>
+  >({});
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [resetError, setResetError] = useState<string | null>(null);
+  const [shareLinkError, setShareLinkError] = useState<string | null>(null);
   const meQuery = trpc.me.useQuery();
   const userQuery = trpc.adminGetUserByUsername.useQuery(
     submittedUsername ?? "",
@@ -25,7 +30,16 @@ const Admin = () => {
       retry: false,
     },
   );
+  const userDocumentsQuery = trpc.adminListUserDocuments.useQuery(
+    { username: submittedUsername ?? "" },
+    {
+      enabled: Boolean(userQuery.data),
+      retry: false,
+    },
+  );
   const resetPasswordMutation = trpc.adminResetUserPassword.useMutation();
+  const createShareLinkMutation =
+    trpc.adminCreateUserDocumentShareLink.useMutation();
 
   if (meQuery.isLoading) {
     return (
@@ -107,6 +121,8 @@ const Admin = () => {
             }
             setResetMessage(null);
             setResetError(null);
+            setShareLinkError(null);
+            setShareLinksByDocumentId({});
             setSubmittedUsername(username);
           }}
         >
@@ -202,6 +218,89 @@ const Admin = () => {
               <div className="account-alert__body">
                 <div className="account-alert__title">Reset failed</div>
                 <div>{resetError}</div>
+              </div>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {foundUser ? (
+        <section className="account-card account-card--padded">
+          <h2 className="account-title">Drawings</h2>
+          {userDocumentsQuery.isLoading ? (
+            <p className="account-muted">Loading drawings…</p>
+          ) : null}
+          {userDocumentsQuery.data?.length === 0 ? (
+            <p className="account-muted">This user has no shared drawings.</p>
+          ) : null}
+          {userDocumentsQuery.data?.map((document) => {
+            const shareLink = shareLinksByDocumentId[document.id];
+            return (
+              <div key={document.id} className="account-list-item">
+                <div className="account-list-item__main">
+                  <div>{document.name}</div>
+                  <div className="account-muted account-muted--small account-code">
+                    {document.id}
+                  </div>
+                  {shareLink ? (
+                    <input
+                      className="account-input account-input--share"
+                      readOnly
+                      value={shareLink}
+                      onFocus={(event) => event.currentTarget.select()}
+                      aria-label={`Share link for ${document.name}`}
+                    />
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  className="ds-button"
+                  disabled={createShareLinkMutation.isPending}
+                  onClick={async () => {
+                    const confirmed =
+                      (await confirmDialogRef.current?.confirm({
+                        title: "Create share link?",
+                        message: `This creates a link that can open ${document.name}. Anyone with the link can join the drawing.`,
+                        confirmLabel: "Create link",
+                        cancelLabel: "Cancel",
+                        tone: "danger",
+                        icon: ShareIcon,
+                      })) ?? false;
+                    if (!confirmed) {
+                      return;
+                    }
+
+                    setShareLinkError(null);
+                    try {
+                      const result =
+                        await createShareLinkMutation.mutateAsync({
+                          username: foundUser.username,
+                          documentId: document.id,
+                        });
+                      setShareLinksByDocumentId((current) => ({
+                        ...current,
+                        [document.id]: buildInvitationUrl(result.token),
+                      }));
+                    } catch (error) {
+                      setShareLinkError(
+                        error instanceof Error
+                          ? error.message
+                          : "Share link could not be created.",
+                      );
+                    }
+                  }}
+                >
+                  <Share2 className="account-action-icon" />
+                  Create share link
+                </button>
+              </div>
+            );
+          })}
+          {shareLinkError ? (
+            <div className="account-alert" data-tone="danger" role="alert">
+              <div className="account-alert__body">
+                <div className="account-alert__title">Share link failed</div>
+                <div>{shareLinkError}</div>
               </div>
             </div>
           ) : null}

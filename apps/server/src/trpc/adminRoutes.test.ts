@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
+import { createDocument } from "../db/createDocument.js";
 import { createLoginAttempt } from "../db/createLoginAttempt.js";
 import { createSession } from "../db/createSession.js";
 import { createUser } from "../db/createUser.js";
@@ -194,6 +195,77 @@ describe("admin routes", () => {
     await expect(caller.adminMe()).rejects.toMatchObject({
       code: "FORBIDDEN",
     });
+  });
+
+  it("lists user documents and creates share links for them", async () => {
+    const targetUser = await createUser({
+      username: "drawing-owner",
+      registrationRecord: "registration-record",
+    });
+    const document = await createDocument({
+      documentId: "admin-visible-doc",
+      userId: targetUser.id,
+      name: "Admin visible drawing",
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: null,
+      serverAdmin: {
+        id: "server-admin",
+        username: "admin",
+      },
+    });
+
+    await expect(
+      caller.adminListUserDocuments({ username: "drawing-owner" }),
+    ).resolves.toMatchObject([
+      {
+        id: document.id,
+        name: "Admin visible drawing",
+        isAdmin: true,
+      },
+    ]);
+    await expect(
+      caller.adminCreateUserDocumentShareLink({
+        username: "drawing-owner",
+        documentId: document.id,
+      }),
+    ).resolves.toMatchObject({
+      token: expect.any(String),
+    });
+  });
+
+  it("rejects admin share link creation for documents outside the target user account", async () => {
+    await createUser({
+      username: "target-without-doc",
+      registrationRecord: "registration-record",
+    });
+    const otherUser = await createUser({
+      username: "other-owner",
+      registrationRecord: "registration-record",
+    });
+    const document = await createDocument({
+      documentId: "other-user-doc",
+      userId: otherUser.id,
+      name: "Other drawing",
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: null,
+      serverAdmin: {
+        id: "server-admin",
+        username: "admin",
+      },
+    });
+
+    await expect(
+      caller.adminCreateUserDocumentShareLink({
+        username: "target-without-doc",
+        documentId: document.id,
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });
 

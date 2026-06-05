@@ -246,6 +246,47 @@ export const appRouter = router({
         sessionsRevoked: true,
       };
     }),
+  adminListUserDocuments: serverAdminProcedure
+    .input(z.object({ username: z.string().min(1) }))
+    .query(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      return await listAccountDocumentSummaries(user.id);
+    }),
+  adminCreateUserDocumentShareLink: serverAdminProcedure
+    .input(
+      z.object({
+        username: z.string().min(1),
+        documentId: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      const documents = await getDocumentsByUserId(user.id);
+      if (
+        !documents.some((document) => document.id === opts.input.documentId)
+      ) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "document not found for user",
+        });
+      }
+      const shareToken = await rotateAnonymousCollaborativeDocumentShareToken(
+        opts.input.documentId,
+      );
+      return { token: shareToken.token } satisfies DocumentInvitationToken;
+    }),
   me: protectedProcedure.query(async (opts) => {
     const user = await getUser(opts.ctx.session.userId);
     if (!user) return null;
