@@ -27,4 +27,20 @@ describe("AuthForm", () => {
       password: "asdfjkl;",
     });
   });
+
+  test("renders form-level errors", () => {
+    render(
+      <AuthForm
+        onSubmit={vi.fn()}
+        isPending={false}
+        errorMessage="No account exists for that username."
+      >
+        Login
+      </AuthForm>,
+    );
+
+    expect(screen.getByRole("alert").textContent).toContain(
+      "No account exists for that username.",
+    );
+  });
 });

@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { AuthForm } from "../components/AuthForm/AuthForm.js";
 import { basePath } from "../config.js";
@@ -18,28 +17,21 @@ const Login = () => {
     <div className="account-page">
       <AuthForm
         onSubmit={async ({ password, username }) => {
-          const success = await login({
+          setError(null);
+          const result = await login({
             userIdentifier: username,
             password,
           });
-          if (!success) {
-            setError("Failed to login");
+          if (!result.ok) {
+            setError(result.message);
             return;
           }
           window.location.href = redirect || basePath;
         }}
         children="Login"
+        errorMessage={error}
         isPending={isPending}
       />
-      {error && (
-        <div className="account-alert" data-tone="danger" role="alert">
-          <AlertCircle className="account-alert__icon" />
-          <div className="account-alert__body">
-            <div className="account-alert__title">Error</div>
-            <div>Failed to log in</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

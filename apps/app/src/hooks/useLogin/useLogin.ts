@@ -2,6 +2,7 @@ import * as opaque from "@serenity-kit/opaque";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
+import { type AuthResult, getAuthFailureMessage } from "../authErrors";
 
 type LoginParams = {
   userIdentifier: string;
@@ -32,7 +33,10 @@ export const useLogin = () => {
         password,
       });
       if (!loginResult) {
-        return null;
+        return {
+          ok: false,
+          message: "The username or password is incorrect.",
+        } satisfies AuthResult;
       }
       const { finishLoginRequest } = loginResult;
 
@@ -43,9 +47,17 @@ export const useLogin = () => {
 
       queryClient.invalidateQueries();
 
-      return success;
+      return success
+        ? ({ ok: true } satisfies AuthResult)
+        : ({
+            ok: false,
+            message: "The username or password is incorrect.",
+          } satisfies AuthResult);
     } catch (error) {
-      return false;
+      return {
+        ok: false,
+        message: getAuthFailureMessage(error, "login"),
+      } satisfies AuthResult;
     } finally {
       setIsPending(false);
     }

@@ -94,13 +94,14 @@ Acceptance criteria:
 - Interrupting login after `loginStart` does not permanently block future login attempts.
 - Tests cover retry after an abandoned attempt.
 
-### Replace generic auth form errors with specific visible errors
+### Replace generic auth form errors with specific visible errors - done
 
 Evidence:
 
 - [apps/app/src/hooks/useLogin/useLogin.ts](../../apps/app/src/hooks/useLogin/useLogin.ts) catches all errors and returns `false`.
 - [apps/app/src/hooks/useRegisterAndLogin/useRegisterAndLogin.ts](../../apps/app/src/hooks/useRegisterAndLogin/useRegisterAndLogin.ts) catches all errors and returns `false`.
 - [apps/app/src/components/AuthForm/AuthForm.tsx](../../apps/app/src/components/AuthForm/AuthForm.tsx) has no error message slot.
+- Implemented `AuthResult` and `getAuthFailureMessage` in [apps/app/src/hooks/authErrors.ts](../../apps/app/src/hooks/authErrors.ts), updated login/register hooks to preserve messages, and moved rendering into [apps/app/src/components/AuthForm/AuthForm.tsx](../../apps/app/src/components/AuthForm/AuthForm.tsx).
 
 Work:
 

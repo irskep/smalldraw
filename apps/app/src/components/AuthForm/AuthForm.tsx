@@ -1,12 +1,19 @@
+import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 
 type Props = {
   onSubmit: (params: { username: string; password: string }) => void;
   isPending: boolean;
+  errorMessage?: string | null;
   children: React.ReactNode;
 };
 
-export const AuthForm = ({ onSubmit, isPending, children }: Props) => {
+export const AuthForm = ({
+  onSubmit,
+  isPending,
+  errorMessage,
+  children,
+}: Props) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -23,6 +30,15 @@ export const AuthForm = ({ onSubmit, isPending, children }: Props) => {
       }}
     >
       <h1 className="account-title">{children}</h1>
+      {errorMessage ? (
+        <div className="account-alert" data-tone="danger" role="alert">
+          <AlertCircle className="account-alert__icon" />
+          <div className="account-alert__body">
+            <div className="account-alert__title">Could not continue</div>
+            <div>{errorMessage}</div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="account-form-field">
         <input

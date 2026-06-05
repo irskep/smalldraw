@@ -1,6 +1,7 @@
 import * as opaque from "@serenity-kit/opaque";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
+import { type AuthResult, getAuthFailureMessage } from "../authErrors";
 import { useLogin } from "../useLogin/useLogin";
 
 type RegisterParams = {
@@ -38,9 +39,18 @@ export const useRegisterAndLogin = () => {
         registrationRecord,
       });
 
-      return await login({ userIdentifier, password });
+      const loginResult = await login({ userIdentifier, password });
+      return loginResult.ok
+        ? ({ ok: true } satisfies AuthResult)
+        : ({
+            ok: false,
+            message: "Account was created, but login failed. Try logging in.",
+          } satisfies AuthResult);
     } catch (error) {
-      return false;
+      return {
+        ok: false,
+        message: getAuthFailureMessage(error, "register"),
+      } satisfies AuthResult;
     } finally {
       setIsPending(false);
     }
