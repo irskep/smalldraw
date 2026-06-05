@@ -48,6 +48,13 @@ export function isAppError(input: unknown): input is AppError {
 }
 
 export const DRAW_APP_PATH = "/draw/";
+export const ACCOUNT_APP_ROUTE_PATTERNS = [
+  "/",
+  "/login",
+  "/register",
+  "/drawings/deleted",
+  "/invitation/:token",
+] as const;
 
 export type DrawingAppDocumentUrlParams =
   | { type: "new" }
@@ -94,6 +101,13 @@ export function buildDrawingAppRedirectPath(currentHref: string): string {
   return `${url.pathname}${url.search}`;
 }
 
+export function isAccountAppRoutePath(pathname: string): boolean {
+  const normalized = normalizeAccountRoutePath(pathname);
+  return ACCOUNT_APP_ROUTE_PATTERNS.some((pattern) =>
+    accountRoutePatternMatchesPath(pattern, normalized),
+  );
+}
+
 function normalizeDrawPath(pathname: string): string {
   if (pathname === DRAW_APP_PATH) {
     return pathname;
@@ -102,6 +116,35 @@ function normalizeDrawPath(pathname: string): string {
     return DRAW_APP_PATH;
   }
   return pathname.endsWith("/") ? pathname : `${pathname}/`;
+}
+
+function normalizeAccountRoutePath(pathname: string): string {
+  if (pathname === "") {
+    return "/";
+  }
+  if (pathname !== "/" && pathname.endsWith("/")) {
+    return pathname.slice(0, -1);
+  }
+  return pathname;
+}
+
+function accountRoutePatternMatchesPath(
+  pattern: (typeof ACCOUNT_APP_ROUTE_PATTERNS)[number],
+  pathname: string,
+): boolean {
+  if (!pattern.includes(":")) {
+    return pattern === pathname;
+  }
+
+  const patternSegments = pattern.split("/").filter(Boolean);
+  const pathSegments = pathname.split("/").filter(Boolean);
+  if (patternSegments.length !== pathSegments.length) {
+    return false;
+  }
+
+  return patternSegments.every((segment, index) => {
+    return segment.startsWith(":") || segment === pathSegments[index];
+  });
 }
 
 export function getAppError(input: unknown): AppError | null {

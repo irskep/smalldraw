@@ -3,6 +3,7 @@ import {
   buildDrawingAppRedirectPath,
   buildDrawingAppUrl,
   DRAW_APP_PATH,
+  isAccountAppRoutePath,
   resolveDrawingAppBaseUrl,
 } from "./index";
 
@@ -56,5 +57,22 @@ describe("drawing app route helpers", () => {
     expect(
       buildDrawingAppRedirectPath("http://localhost:3000/draw/?doc=server-doc"),
     ).toBe("/draw/?doc=server-doc");
+  });
+});
+
+describe("account app route helpers", () => {
+  test("matches account app routes served by the production server", () => {
+    expect(isAccountAppRoutePath("/")).toBe(true);
+    expect(isAccountAppRoutePath("/login")).toBe(true);
+    expect(isAccountAppRoutePath("/register")).toBe(true);
+    expect(isAccountAppRoutePath("/drawings/deleted")).toBe(true);
+    expect(isAccountAppRoutePath("/invitation/example-token")).toBe(true);
+  });
+
+  test("does not match drawing app, API, asset, or unknown routes", () => {
+    expect(isAccountAppRoutePath("/draw/")).toBe(false);
+    expect(isAccountAppRoutePath("/api/v1/documents")).toBe(false);
+    expect(isAccountAppRoutePath("/_bun/client/index.js")).toBe(false);
+    expect(isAccountAppRoutePath("/missing")).toBe(false);
   });
 });

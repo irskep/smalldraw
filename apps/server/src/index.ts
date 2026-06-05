@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { isAccountAppRoutePath } from "@smalldraw/shared";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import cors, { type CorsOptions } from "cors";
 import express from "express";
@@ -76,7 +77,11 @@ app.get("/draw/*", (_req, res) => {
   res.sendFile(drawIndexHtmlPath);
 });
 
-app.get(["/", "/login", "/register", "/invitation/*"], (_req, res) => {
+app.get("*", (req, res, next) => {
+  if (!isAccountAppRoutePath(req.path)) {
+    next();
+    return;
+  }
   if (!fs.existsSync(indexHtmlPath)) {
     return res.status(404).send("Home app build not found");
   }
