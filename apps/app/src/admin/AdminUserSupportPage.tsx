@@ -38,12 +38,13 @@ export const AdminUserSupportPage: React.FC<Props> = ({
   const [resetError, setResetError] = useState<string | null>(null);
   const [shareLinkError, setShareLinkError] = useState<string | null>(null);
   const userQuery = trpc.adminGetUserByUsername.useQuery(username, {
+    enabled: !documentId,
     retry: false,
   });
   const userDocumentsQuery = trpc.adminListUserDocuments.useQuery(
     { username },
     {
-      enabled: Boolean(userQuery.data),
+      enabled: Boolean(userQuery.data && !documentId),
       retry: false,
     },
   );
@@ -54,7 +55,7 @@ export const AdminUserSupportPage: React.FC<Props> = ({
         documentId: documentId ?? "",
       },
       {
-        enabled: Boolean(userQuery.data && documentId),
+        enabled: Boolean(documentId),
         retry: false,
       },
     );
@@ -122,12 +123,12 @@ export const AdminUserSupportPage: React.FC<Props> = ({
         ) : null}
       </nav>
 
-      {userQuery.isFetching ? (
+      {!documentId && userQuery.isFetching ? (
         <section className="account-card account-card--padded">
           <p className="account-muted">Loading user…</p>
         </section>
       ) : null}
-      {userQuery.data === null ? (
+      {!documentId && userQuery.data === null ? (
         <section className="account-card account-card--padded">
           <div className="account-alert" data-tone="danger" role="alert">
             <div className="account-alert__body">
@@ -138,7 +139,7 @@ export const AdminUserSupportPage: React.FC<Props> = ({
         </section>
       ) : null}
 
-      {foundUser ? (
+      {!documentId && foundUser ? (
         <section className="account-card account-card--padded">
           <h2 className="account-title">{foundUser.username}</h2>
           <dl className="account-details">
@@ -201,7 +202,7 @@ export const AdminUserSupportPage: React.FC<Props> = ({
         </section>
       ) : null}
 
-      {foundUser ? (
+      {!documentId && foundUser ? (
         <section className="account-card account-card--padded">
           <h2 className="account-title">Drawings</h2>
           {userDocumentsQuery.isLoading ? (
@@ -310,7 +311,7 @@ export const AdminUserSupportPage: React.FC<Props> = ({
         </section>
       ) : null}
 
-      {foundUser && documentId ? (
+      {documentId ? (
         <section className="account-card account-card--padded">
           <h2 className="account-title">Document inspection</h2>
           {selectedDocumentDetailsQuery.isLoading ? (
