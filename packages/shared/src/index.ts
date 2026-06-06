@@ -55,6 +55,8 @@ export const ACCOUNT_APP_ROUTE_PATTERNS = [
   "/register",
   "/drawings/deleted",
   "/invitation/:token",
+  "/admin/users/:username",
+  "/admin/users/:username/documents/:documentId",
 ] as const;
 
 export type DrawingAppDocumentUrlParams =

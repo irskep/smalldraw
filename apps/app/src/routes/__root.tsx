@@ -35,7 +35,8 @@ const getRedirectParam = () => {
 const Root = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isAdminRoute = location.pathname === "/admin";
+  const isAdminRoute =
+    location.pathname === "/admin" || location.pathname.startsWith("/admin/");
 
   const meQuery = trpc.me.useQuery(undefined, {
     // avoid lot's of retries in case of unauthorized blocking a page load

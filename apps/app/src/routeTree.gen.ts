@@ -18,6 +18,12 @@ const AdminLazyRouteImport = createFileRoute('/admin')()
 const IndexLazyRouteImport = createFileRoute('/')()
 const InvitationTokenLazyRouteImport = createFileRoute('/invitation/$token')()
 const DrawingsDeletedLazyRouteImport = createFileRoute('/drawings/deleted')()
+const AdminUsersUsernameLazyRouteImport = createFileRoute(
+  '/admin/users/$username',
+)()
+const AdminUsersUsernameDocumentsDocumentIdLazyRouteImport = createFileRoute(
+  '/admin/users/$username/documents/$documentId',
+)()
 
 const AdminLazyRoute = AdminLazyRouteImport.update({
   id: '/admin',
@@ -53,31 +59,54 @@ const DrawingsDeletedLazyRoute = DrawingsDeletedLazyRouteImport.update({
 } as any).lazy(() =>
   import('./routes/drawings/deleted.lazy').then((d) => d.Route),
 )
+const AdminUsersUsernameLazyRoute = AdminUsersUsernameLazyRouteImport.update({
+  id: '/users/$username',
+  path: '/users/$username',
+  getParentRoute: () => AdminLazyRoute,
+} as any).lazy(() =>
+  import('./routes/admin/users/$username.lazy').then((d) => d.Route),
+)
+const AdminUsersUsernameDocumentsDocumentIdLazyRoute =
+  AdminUsersUsernameDocumentsDocumentIdLazyRouteImport.update({
+    id: '/documents/$documentId',
+    path: '/documents/$documentId',
+    getParentRoute: () => AdminUsersUsernameLazyRoute,
+  } as any).lazy(() =>
+    import('./routes/admin/users/$username/documents/$documentId.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/admin': typeof AdminLazyRoute
+  '/admin': typeof AdminLazyRouteWithChildren
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
+  '/admin/users/$username': typeof AdminUsersUsernameLazyRouteWithChildren
+  '/admin/users/$username/documents/$documentId': typeof AdminUsersUsernameDocumentsDocumentIdLazyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexLazyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/admin': typeof AdminLazyRoute
+  '/admin': typeof AdminLazyRouteWithChildren
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
+  '/admin/users/$username': typeof AdminUsersUsernameLazyRouteWithChildren
+  '/admin/users/$username/documents/$documentId': typeof AdminUsersUsernameDocumentsDocumentIdLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexLazyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/admin': typeof AdminLazyRoute
+  '/admin': typeof AdminLazyRouteWithChildren
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
+  '/admin/users/$username': typeof AdminUsersUsernameLazyRouteWithChildren
+  '/admin/users/$username/documents/$documentId': typeof AdminUsersUsernameDocumentsDocumentIdLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -88,6 +117,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/drawings/deleted'
     | '/invitation/$token'
+    | '/admin/users/$username'
+    | '/admin/users/$username/documents/$documentId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -96,6 +127,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/drawings/deleted'
     | '/invitation/$token'
+    | '/admin/users/$username'
+    | '/admin/users/$username/documents/$documentId'
   id:
     | '__root__'
     | '/'
@@ -104,13 +137,15 @@ export interface FileRouteTypes {
     | '/admin'
     | '/drawings/deleted'
     | '/invitation/$token'
+    | '/admin/users/$username'
+    | '/admin/users/$username/documents/$documentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
-  AdminLazyRoute: typeof AdminLazyRoute
+  AdminLazyRoute: typeof AdminLazyRouteWithChildren
   DrawingsDeletedLazyRoute: typeof DrawingsDeletedLazyRoute
   InvitationTokenLazyRoute: typeof InvitationTokenLazyRoute
 }
@@ -159,14 +194,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DrawingsDeletedLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users/$username': {
+      id: '/admin/users/$username'
+      path: '/users/$username'
+      fullPath: '/admin/users/$username'
+      preLoaderRoute: typeof AdminUsersUsernameLazyRouteImport
+      parentRoute: typeof AdminLazyRoute
+    }
+    '/admin/users/$username/documents/$documentId': {
+      id: '/admin/users/$username/documents/$documentId'
+      path: '/documents/$documentId'
+      fullPath: '/admin/users/$username/documents/$documentId'
+      preLoaderRoute: typeof AdminUsersUsernameDocumentsDocumentIdLazyRouteImport
+      parentRoute: typeof AdminUsersUsernameLazyRoute
+    }
   }
 }
+
+interface AdminUsersUsernameLazyRouteChildren {
+  AdminUsersUsernameDocumentsDocumentIdLazyRoute: typeof AdminUsersUsernameDocumentsDocumentIdLazyRoute
+}
+
+const AdminUsersUsernameLazyRouteChildren: AdminUsersUsernameLazyRouteChildren =
+  {
+    AdminUsersUsernameDocumentsDocumentIdLazyRoute:
+      AdminUsersUsernameDocumentsDocumentIdLazyRoute,
+  }
+
+const AdminUsersUsernameLazyRouteWithChildren =
+  AdminUsersUsernameLazyRoute._addFileChildren(
+    AdminUsersUsernameLazyRouteChildren,
+  )
+
+interface AdminLazyRouteChildren {
+  AdminUsersUsernameLazyRoute: typeof AdminUsersUsernameLazyRouteWithChildren
+}
+
+const AdminLazyRouteChildren: AdminLazyRouteChildren = {
+  AdminUsersUsernameLazyRoute: AdminUsersUsernameLazyRouteWithChildren,
+}
+
+const AdminLazyRouteWithChildren = AdminLazyRoute._addFileChildren(
+  AdminLazyRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
-  AdminLazyRoute: AdminLazyRoute,
+  AdminLazyRoute: AdminLazyRouteWithChildren,
   DrawingsDeletedLazyRoute: DrawingsDeletedLazyRoute,
   InvitationTokenLazyRoute: InvitationTokenLazyRoute,
 }
