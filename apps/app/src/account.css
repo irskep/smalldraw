@@ -96,6 +96,118 @@ a {
   box-shadow: none;
 }
 
+.admin-page {
+  width: min(100%, 72rem);
+  display: grid;
+  align-content: start;
+  gap: var(--size-4);
+}
+
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--size-2);
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-button-md);
+}
+
+.admin-toolbar__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-2);
+}
+
+.admin-toolbar__item + .admin-toolbar__item::before {
+  content: "/";
+  color: var(--ds-border-strong);
+}
+
+.admin-toolbar__link {
+  color: var(--ds-ink);
+  text-decoration: none;
+}
+
+.admin-toolbar__link:hover,
+.admin-toolbar__link:focus-visible {
+  text-decoration: underline;
+}
+
+.admin-toolbar__current {
+  color: var(--ds-text-muted);
+}
+
+.admin-panel {
+  display: grid;
+  gap: var(--size-4);
+  padding: var(--size-4);
+  border: var(--border-size-1) solid var(--ds-border);
+  border-radius: var(--radius-3);
+  background: var(--ds-surface);
+}
+
+.admin-panel__header {
+  display: grid;
+  gap: var(--size-1);
+}
+
+.admin-section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: var(--size-5);
+  align-items: start;
+}
+
+.admin-section {
+  min-width: 0;
+  display: grid;
+  gap: var(--size-3);
+}
+
+.admin-section--wide {
+  grid-column: 1 / -1;
+}
+
+.admin-thumbnail {
+  width: min(100%, 22rem);
+}
+
+.admin-record-list {
+  display: grid;
+  gap: var(--size-1);
+}
+
+.admin-record {
+  min-width: 0;
+  display: grid;
+  gap: var(--size-1);
+  padding-block: var(--size-2);
+  border-block-start: var(--border-size-1) solid var(--ds-border);
+}
+
+.admin-record:first-child {
+  border-block-start: 0;
+  padding-block-start: 0;
+}
+
+.admin-record__row {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--size-3);
+}
+
+.admin-record__primary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-record__meta {
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-0);
+}
+
 .account-title {
   margin: 0;
   font-size: var(--font-size-5);
