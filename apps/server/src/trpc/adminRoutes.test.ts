@@ -136,6 +136,61 @@ describe("admin routes", () => {
     ).resolves.toEqual({ success: true });
   });
 
+  it("lists and revokes user sessions", async () => {
+    const user = await ensureServerAdminUser({
+      username: "session-target",
+      password: "asdfjkl;",
+    });
+    await createSession({
+      userId: user!.id,
+      sessionKey: "target-session-1",
+    });
+    await createSession({
+      userId: user!.id,
+      sessionKey: "target-session-2",
+    });
+
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: {
+        sessionKey: "target-session-1",
+        userId: user!.id,
+        createdAt: new Date(),
+      },
+      serverAdmin: null,
+    });
+
+    await expect(
+      caller.adminListUserSessions({ username: "session-target" }),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sessionKey: "target-session-1",
+          isCurrentAdminSession: true,
+        }),
+        expect.objectContaining({
+          sessionKey: "target-session-2",
+          isCurrentAdminSession: false,
+        }),
+      ]),
+    );
+
+    await expect(
+      caller.adminRevokeUserSession({
+        username: "session-target",
+        sessionKey: "target-session-2",
+      }),
+    ).resolves.toEqual({ revoked: 1 });
+    expect(await getSession("target-session-1")).not.toBeNull();
+    expect(await getSession("target-session-2")).toBeNull();
+
+    await expect(
+      caller.adminRevokeUserSessions({ username: "session-target" }),
+    ).resolves.toEqual({ revoked: 1 });
+    expect(await getSession("target-session-1")).toBeNull();
+  });
+
   it("rejects password reset for missing users", async () => {
     const caller = appRouter.createCaller({
       req: { headers: {} } as never,

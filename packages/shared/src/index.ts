@@ -186,6 +186,16 @@ export type AdminUserDocumentDetails = {
   accessTokens: DocumentAccessToken[];
 };
 
+export type AdminUserSession = {
+  sessionKey: string;
+  createdAt: Date;
+  isCurrentAdminSession: boolean;
+};
+
+export type AdminUserSessionMutationResult = {
+  revoked: number;
+};
+
 export type AccountDocumentDetails = AccountDocumentSummary & {
   isAdmin: boolean;
 };

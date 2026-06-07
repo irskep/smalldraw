@@ -1,6 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { KeyRound as KeyRoundIcon, Share2 as ShareIcon } from "lucide";
-import { FileSearch, KeyRound, Share2 } from "lucide-react";
+import {
+  KeyRound as KeyRoundIcon,
+  LogOut as LogOutIcon,
+  Share2 as ShareIcon,
+} from "lucide";
+import { FileSearch, KeyRound, LogOut, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   DsConfirmDialog,
@@ -32,6 +36,9 @@ const formatDateTime = (date: Date | string | null): string => {
   return new Date(date).toLocaleString();
 };
 
+const formatSessionIdentifier = (sessionKey: string): string =>
+  `${sessionKey.slice(0, 6)}...${sessionKey.slice(-6)}`;
+
 export const AdminUserSupportPage: React.FC<Props> = ({
   documentId,
   username,
@@ -53,10 +60,20 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
   >({});
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [resetError, setResetError] = useState<string | null>(null);
+  const [sessionMessage, setSessionMessage] = useState<string | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const [shareLinkError, setShareLinkError] = useState<string | null>(null);
+  const trpcUtils = trpc.useUtils();
   const userQuery = trpc.adminGetUserByUsername.useQuery(username, {
     retry: false,
   });
+  const userSessionsQuery = trpc.adminListUserSessions.useQuery(
+    { username },
+    {
+      enabled: Boolean(userQuery.data),
+      retry: false,
+    },
+  );
   const userDocumentsQuery = trpc.adminListUserDocuments.useQuery(
     { username },
     {
@@ -65,6 +82,8 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
     },
   );
   const resetPasswordMutation = trpc.adminResetUserPassword.useMutation();
+  const revokeSessionMutation = trpc.adminRevokeUserSession.useMutation();
+  const revokeSessionsMutation = trpc.adminRevokeUserSessions.useMutation();
   const createShareLinkMutation =
     trpc.adminCreateUserDocumentShareLink.useMutation();
   const drawingRuntimeConfig = createAccountWebRuntimeConfig();
@@ -96,11 +115,95 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
       });
       setNewPassword("");
       setResetMessage(`Password reset for ${foundUser.username}.`);
+      await trpcUtils.adminListUserSessions.invalidate({
+        username: foundUser.username,
+      });
     } catch (error) {
       setResetError(
         error instanceof Error
           ? error.message
           : "Password reset failed. Please try again.",
+      );
+    }
+  };
+
+  const revokeSession = async (sessionKey: string) => {
+    if (!foundUser) {
+      return;
+    }
+    const confirmed =
+      (await confirmDialogRef.current?.confirm({
+        title: "Revoke session?",
+        message: `This signs ${foundUser.username} out of this session.`,
+        confirmLabel: "Revoke session",
+        cancelLabel: "Cancel",
+        tone: "danger",
+        icon: LogOutIcon,
+      })) ?? false;
+    if (!confirmed) {
+      return;
+    }
+
+    setSessionMessage(null);
+    setSessionError(null);
+    try {
+      const result = await revokeSessionMutation.mutateAsync({
+        username: foundUser.username,
+        sessionKey,
+      });
+      setSessionMessage(
+        result.revoked === 1
+          ? "Session revoked."
+          : "That session was already gone.",
+      );
+      await trpcUtils.adminListUserSessions.invalidate({
+        username: foundUser.username,
+      });
+    } catch (error) {
+      setSessionError(
+        error instanceof Error
+          ? error.message
+          : "Session could not be revoked.",
+      );
+    }
+  };
+
+  const revokeAllSessions = async () => {
+    if (!foundUser) {
+      return;
+    }
+    const confirmed =
+      (await confirmDialogRef.current?.confirm({
+        title: "Revoke all sessions?",
+        message: `This signs ${foundUser.username} out everywhere, including the current browser if this is your account.`,
+        confirmLabel: "Revoke all",
+        cancelLabel: "Cancel",
+        tone: "danger",
+        icon: LogOutIcon,
+      })) ?? false;
+    if (!confirmed) {
+      return;
+    }
+
+    setSessionMessage(null);
+    setSessionError(null);
+    try {
+      const result = await revokeSessionsMutation.mutateAsync({
+        username: foundUser.username,
+      });
+      setSessionMessage(
+        result.revoked === 1
+          ? "1 session revoked."
+          : `${result.revoked} sessions revoked.`,
+      );
+      await trpcUtils.adminListUserSessions.invalidate({
+        username: foundUser.username,
+      });
+    } catch (error) {
+      setSessionError(
+        error instanceof Error
+          ? error.message
+          : "Sessions could not be revoked.",
       );
     }
   };
@@ -198,6 +301,83 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                     <div className="account-alert__body">
                       <div className="account-alert__title">Reset failed</div>
                       <div>{resetError}</div>
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="admin-section" aria-label="Sessions">
+                <div className="admin-section__header">
+                  <h2 className="account-label">Sessions</h2>
+                  <button
+                    type="button"
+                    className="ds-button"
+                    data-tone="danger"
+                    disabled={
+                      !userSessionsQuery.data?.length ||
+                      revokeSessionsMutation.isPending
+                    }
+                    onClick={() => {
+                      void revokeAllSessions();
+                    }}
+                  >
+                    <LogOut className="account-action-icon" />
+                    Revoke all
+                  </button>
+                </div>
+                {userSessionsQuery.isLoading ? (
+                  <p className="account-muted">Loading sessions...</p>
+                ) : null}
+                {userSessionsQuery.data?.length === 0 ? (
+                  <p className="account-muted">No active sessions.</p>
+                ) : null}
+                <div className="admin-record-list">
+                  {userSessionsQuery.data?.map((session) => (
+                    <div key={session.sessionKey} className="admin-record">
+                      <div className="admin-record__row">
+                        <div className="admin-record__primary">
+                          {session.isCurrentAdminSession
+                            ? "Current admin session"
+                            : "Session"}
+                        </div>
+                        <button
+                          type="button"
+                          className="ds-button"
+                          data-tone="danger"
+                          disabled={revokeSessionMutation.isPending}
+                          onClick={() => {
+                            void revokeSession(session.sessionKey);
+                          }}
+                        >
+                          Revoke
+                        </button>
+                      </div>
+                      <div className="admin-record__meta">
+                        Created: {formatDateTime(session.createdAt)}
+                      </div>
+                      <div className="admin-record__meta account-code">
+                        Session ID: {formatSessionIdentifier(session.sessionKey)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {sessionMessage ? (
+                  <div className="account-alert" role="status">
+                    <div className="account-alert__body">
+                      <div className="account-alert__title">
+                        Sessions updated
+                      </div>
+                      <div>{sessionMessage}</div>
+                    </div>
+                  </div>
+                ) : null}
+                {sessionError ? (
+                  <div className="account-alert" data-tone="danger" role="alert">
+                    <div className="account-alert__body">
+                      <div className="account-alert__title">
+                        Session update failed
+                      </div>
+                      <div>{sessionError}</div>
                     </div>
                   </div>
                 ) : null}

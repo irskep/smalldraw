@@ -9,6 +9,8 @@ import type {
   AccountDocumentSummary,
   AdminUserDocumentDetails,
   AdminUserDocumentSummary,
+  AdminUserSession,
+  AdminUserSessionMutationResult,
   AnonymousCollaborativeDocumentResolution,
   ClaimCollaborativeDocumentResult,
   CreatedAccountDocument,
@@ -44,6 +46,7 @@ import { createUser } from "../db/createUser.js";
 import { deleteDocument } from "../db/deleteDocument.js";
 import { deleteLoginAttempt } from "../db/deleteLoginAttempt.js";
 import { deleteSession } from "../db/deleteSession.js";
+import { deleteSessionForUser } from "../db/deleteSessionForUser.js";
 import { deleteSessionsForUser } from "../db/deleteSessionsForUser.js";
 import { findOrCreateDocumentToken } from "../db/documentTokens.js";
 import { getDeletedDocumentsByUserId } from "../db/getDeletedDocumentsByUserId.js";
@@ -59,6 +62,7 @@ import { getUserHasAccessToDocument } from "../db/getUserHasAccessToDocument.js"
 import { listDocumentAccessTokensForAdmin } from "../db/listDocumentAccessTokensForAdmin.js";
 import { listDocumentAccessTokensForServerAdmin } from "../db/listDocumentAccessTokensForServerAdmin.js";
 import { listDocumentMembersForServerAdmin } from "../db/listDocumentMembersForServerAdmin.js";
+import { listSessionsForUser } from "../db/listSessionsForUser.js";
 import { removeDocumentFromAccount } from "../db/removeDocumentFromAccount.js";
 import { restoreDocument } from "../db/restoreDocument.js";
 import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTokenForAdmin.js";
@@ -320,6 +324,63 @@ export const appRouter = router({
         currentAdminUserId: opts.ctx.serverAdmin.id,
         targetUserId: user.id,
       });
+    }),
+  adminListUserSessions: serverAdminProcedure
+    .input(z.object({ username: z.string().min(1) }))
+    .query(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      const sessions = await listSessionsForUser(user.id);
+      return sessions.map((session) => ({
+        sessionKey: session.sessionKey,
+        createdAt: session.createdAt,
+        isCurrentAdminSession:
+          opts.ctx.serverAdminSessionKey === session.sessionKey,
+      })) satisfies AdminUserSession[];
+    }),
+  adminRevokeUserSession: serverAdminProcedure
+    .input(
+      z.object({
+        username: z.string().min(1),
+        sessionKey: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      const revoked = await deleteSessionForUser({
+        userId: user.id,
+        sessionKey: opts.input.sessionKey,
+      });
+      return {
+        revoked: revoked ? 1 : 0,
+      } satisfies AdminUserSessionMutationResult;
+    }),
+  adminRevokeUserSessions: serverAdminProcedure
+    .input(z.object({ username: z.string().min(1) }))
+    .mutation(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      const sessions = await listSessionsForUser(user.id);
+      await deleteSessionsForUser(user.id);
+      return {
+        revoked: sessions.length,
+      } satisfies AdminUserSessionMutationResult;
     }),
   adminGetUserDocumentDetails: serverAdminProcedure
     .input(

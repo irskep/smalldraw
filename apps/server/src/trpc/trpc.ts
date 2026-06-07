@@ -96,6 +96,7 @@ export const serverAdminProcedure = t.procedure.use(
         ctx: {
           ...ctx,
           serverAdmin: ctx.serverAdmin,
+          serverAdminSessionKey: null,
         },
       });
     }
@@ -116,6 +117,7 @@ export const serverAdminProcedure = t.procedure.use(
           id: user.id,
           username: user.username,
         },
+        serverAdminSessionKey: ctx.session.sessionKey,
       },
     });
   },

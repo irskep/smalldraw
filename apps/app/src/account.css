@@ -164,6 +164,14 @@ a {
   gap: var(--size-3);
 }
 
+.admin-section__header {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-3);
+}
+
 .admin-section--wide {
   grid-column: 1 / -1;
 }
