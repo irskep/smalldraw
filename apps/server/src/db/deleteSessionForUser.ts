@@ -12,7 +12,9 @@ export const deleteSessionForUser = async ({
   const existing = await db
     .select({ sessionKey: sessions.sessionKey })
     .from(sessions)
-    .where(and(eq(sessions.userId, userId), eq(sessions.sessionKey, sessionKey)))
+    .where(
+      and(eq(sessions.userId, userId), eq(sessions.sessionKey, sessionKey)),
+    )
     .limit(1);
 
   if (existing.length === 0) {
@@ -21,7 +23,9 @@ export const deleteSessionForUser = async ({
 
   await db
     .delete(sessions)
-    .where(and(eq(sessions.userId, userId), eq(sessions.sessionKey, sessionKey)));
+    .where(
+      and(eq(sessions.userId, userId), eq(sessions.sessionKey, sessionKey)),
+    );
 
   return true;
 };

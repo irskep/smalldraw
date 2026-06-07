@@ -396,14 +396,14 @@ export const appRouter = router({
         });
       }
       const sessions = await listSessionsForUser(user.id);
-      return await Promise.all(
+      return (await Promise.all(
         sessions.map(async (session) => ({
           id: await getPublicSessionId(session.sessionKey),
           createdAt: session.createdAt,
           isCurrentAdminSession:
             opts.ctx.serverAdminSessionKey === session.sessionKey,
         })),
-      ) satisfies AdminUserSession[];
+      )) satisfies AdminUserSession[];
     }),
   adminRevokeUserSession: serverAdminProcedure
     .input(
