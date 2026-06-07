@@ -3,8 +3,9 @@ import {
   KeyRound as KeyRoundIcon,
   LogOut as LogOutIcon,
   Share2 as ShareIcon,
+  Unplug as UnplugIcon,
 } from "lucide";
-import { FileSearch, KeyRound, LogOut, Share2 } from "lucide-react";
+import { FileSearch, KeyRound, LogOut, Share2, Unplug } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   DsConfirmDialog,
@@ -558,6 +559,9 @@ const AdminDocumentInspectionPage: React.FC<{
   const confirmDialogRef = useRef<DsConfirmDialogHandle>(null);
   const [shareLink, setShareLink] = useState<string | undefined>();
   const [shareLinkError, setShareLinkError] = useState<string | null>(null);
+  const [tokenMessage, setTokenMessage] = useState<string | null>(null);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const trpcUtils = trpc.useUtils();
   const documentDetailsQuery = trpc.adminGetUserDocumentDetails.useQuery(
     {
       username,
@@ -569,8 +573,56 @@ const AdminDocumentInspectionPage: React.FC<{
   );
   const createShareLinkMutation =
     trpc.adminCreateUserDocumentShareLink.useMutation();
+  const revokeAccessTokenMutation =
+    trpc.adminRevokeUserDocumentAccessToken.useMutation();
   const drawingRuntimeConfig = createAccountWebRuntimeConfig();
   const details = documentDetailsQuery.data;
+
+  const revokeAccessToken = async ({
+    tokenId,
+    tokenLabel,
+  }: {
+    tokenId: string;
+    tokenLabel: string;
+  }) => {
+    const confirmed =
+      (await confirmDialogRef.current?.confirm({
+        title: "Revoke device access?",
+        message: `This stops ${tokenLabel} from opening or syncing this drawing with its current device token.`,
+        confirmLabel: "Revoke access",
+        cancelLabel: "Cancel",
+        tone: "danger",
+        icon: UnplugIcon,
+      })) ?? false;
+    if (!confirmed) {
+      return;
+    }
+
+    setTokenMessage(null);
+    setTokenError(null);
+    try {
+      const result = await revokeAccessTokenMutation.mutateAsync({
+        username,
+        documentId,
+        tokenId,
+      });
+      setTokenMessage(
+        result.revoked
+          ? "Device access revoked."
+          : "That token could not be revoked.",
+      );
+      await trpcUtils.adminGetUserDocumentDetails.invalidate({
+        username,
+        documentId,
+      });
+    } catch (error) {
+      setTokenError(
+        error instanceof Error
+          ? error.message
+          : "Device access could not be revoked.",
+      );
+    }
+  };
 
   return (
     <section className="admin-page" aria-label="Admin document inspection">
@@ -703,9 +755,27 @@ const AdminDocumentInspectionPage: React.FC<{
                         {token.scope}
                         {token.tag ? `:${token.tag}` : ""}
                       </div>
-                      <div className="admin-record__meta">
-                        {token.revokedAt ? "revoked" : "active"}
-                      </div>
+                      {token.scope === "device" && !token.revokedAt ? (
+                        <button
+                          type="button"
+                          className="ds-button"
+                          data-tone="danger"
+                          disabled={revokeAccessTokenMutation.isPending}
+                          onClick={() => {
+                            void revokeAccessToken({
+                              tokenId: token.id,
+                              tokenLabel: token.tag ?? token.id,
+                            });
+                          }}
+                        >
+                          <Unplug className="account-action-icon" />
+                          Revoke
+                        </button>
+                      ) : (
+                        <div className="admin-record__meta">
+                          {token.revokedAt ? "revoked" : "active"}
+                        </div>
+                      )}
                     </div>
                     <div className="admin-record__meta">
                       Created: {formatDateTime(token.createdAt)}
@@ -716,6 +786,26 @@ const AdminDocumentInspectionPage: React.FC<{
                   </div>
                 ))}
               </div>
+              {tokenMessage ? (
+                <div className="account-alert" role="status">
+                  <div className="account-alert__body">
+                    <div className="account-alert__title">
+                      Access token updated
+                    </div>
+                    <div>{tokenMessage}</div>
+                  </div>
+                </div>
+              ) : null}
+              {tokenError ? (
+                <div className="account-alert" data-tone="danger" role="alert">
+                  <div className="account-alert__body">
+                    <div className="account-alert__title">
+                      Access token update failed
+                    </div>
+                    <div>{tokenError}</div>
+                  </div>
+                </div>
+              ) : null}
             </section>
           </div>
         ) : null}

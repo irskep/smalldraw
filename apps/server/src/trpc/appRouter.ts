@@ -66,6 +66,7 @@ import { listSessionsForUser } from "../db/listSessionsForUser.js";
 import { removeDocumentFromAccount } from "../db/removeDocumentFromAccount.js";
 import { restoreDocument } from "../db/restoreDocument.js";
 import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTokenForAdmin.js";
+import { revokeDocumentAccessTokenForServerAdmin } from "../db/revokeDocumentAccessTokenForServerAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "../db/rotateAnonymousCollaborativeDocumentShareToken.js";
 import {
   buildDocumentThumbnailStorageKey,
@@ -457,6 +458,37 @@ export const appRouter = router({
         members,
         accessTokens,
       } satisfies AdminUserDocumentDetails;
+    }),
+  adminRevokeUserDocumentAccessToken: serverAdminProcedure
+    .input(
+      z.object({
+        username: z.string().min(1),
+        documentId: z.string().min(1),
+        tokenId: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      const documents = await getDocumentsByUserId(user.id);
+      if (
+        !documents.some((document) => document.id === opts.input.documentId)
+      ) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "document not found for user",
+        });
+      }
+      const revoked = await revokeDocumentAccessTokenForServerAdmin({
+        documentId: opts.input.documentId,
+        tokenId: opts.input.tokenId,
+      });
+      return { revoked } satisfies RevokeDocumentAccessTokenResult;
     }),
   adminCreateUserDocumentShareLink: serverAdminProcedure
     .input(

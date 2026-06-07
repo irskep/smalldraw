@@ -376,7 +376,7 @@ describe("admin routes", () => {
       scope: "owner",
       tag: "owner-device",
     });
-    await createDocumentToken({
+    const deviceToken = await createDocumentToken({
       documentId: document.id,
       scope: "device",
       tag: "joiner-device",
@@ -435,6 +435,32 @@ describe("admin routes", () => {
       "device",
       "owner",
     ]);
+    await expect(
+      caller.adminRevokeUserDocumentAccessToken({
+        username: "inspection-owner",
+        documentId: document.id,
+        tokenId: deviceToken.id,
+      }),
+    ).resolves.toEqual({ revoked: true });
+    const afterRevoke = await caller.adminGetUserDocumentDetails({
+      username: "inspection-owner",
+      documentId: document.id,
+    });
+    expect(
+      afterRevoke.accessTokens.find((token) => token.id === deviceToken.id)
+        ?.revokedAt,
+    ).toBeInstanceOf(Date);
+    const ownerToken = afterRevoke.accessTokens.find(
+      (token) => token.scope === "owner",
+    );
+    expect(ownerToken).toBeDefined();
+    await expect(
+      caller.adminRevokeUserDocumentAccessToken({
+        username: "inspection-owner",
+        documentId: document.id,
+        tokenId: ownerToken!.id,
+      }),
+    ).resolves.toEqual({ revoked: false });
   });
 
   it("rejects admin share link creation for documents outside the target user account", async () => {
@@ -471,6 +497,13 @@ describe("admin routes", () => {
       caller.adminGetUserDocumentDetails({
         username: "target-without-doc",
         documentId: document.id,
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(
+      caller.adminRevokeUserDocumentAccessToken({
+        username: "target-without-doc",
+        documentId: document.id,
+        tokenId: "token-id",
       }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });

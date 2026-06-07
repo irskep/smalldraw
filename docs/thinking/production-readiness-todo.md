@@ -127,11 +127,12 @@ Evidence:
 - Added admin document listing for looked-up users. The browser route now opens drawings directly when the viewing admin already has access, and creates confirmed share links only when access is missing.
 - Added read-only admin document inspection for members and non-share access tokens.
 - Added admin session listing and explicit session revocation on the user support page.
+- Added server-admin device-token revocation from document inspection.
 
 Work:
 
 - Add an admin area for user lookup, account recovery, session revocation, document lookup, membership inspection, deleted document inspection, and token inspection.
-- Remaining work: deeper document inspection, deleted document inspection, token revocation, and audit persistence.
+- Remaining work: deeper document inspection, deleted document inspection, and audit persistence.
 
 Acceptance criteria:
 
