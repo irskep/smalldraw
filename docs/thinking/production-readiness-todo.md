@@ -128,11 +128,12 @@ Evidence:
 - Added read-only admin document inspection for members and non-share access tokens.
 - Added admin session listing and explicit session revocation on the user support page.
 - Added server-admin device-token revocation from document inspection.
+- Added admin-side restore for a target user's deleted drawings.
 
 Work:
 
 - Add an admin area for user lookup, account recovery, session revocation, document lookup, membership inspection, deleted document inspection, and token inspection.
-- Remaining work: deeper document inspection, deleted document inspection, and audit persistence.
+- Remaining work: deeper document inspection and audit persistence.
 
 Acceptance criteria:
 

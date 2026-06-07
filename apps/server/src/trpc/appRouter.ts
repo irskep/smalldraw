@@ -353,6 +353,38 @@ export const appRouter = router({
         targetUserId: user.id,
       });
     }),
+  adminListDeletedUserDocuments: serverAdminProcedure
+    .input(z.object({ username: z.string().min(1) }))
+    .query(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      return await listDeletedAccountDocumentSummaries(user.id);
+    }),
+  adminRestoreUserDocument: serverAdminProcedure
+    .input(
+      z.object({
+        username: z.string().min(1),
+        documentId: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      return await restoreDocument({
+        documentId: opts.input.documentId,
+        userId: user.id,
+      });
+    }),
   adminListUserSessions: serverAdminProcedure
     .input(z.object({ username: z.string().min(1) }))
     .query(async (opts) => {

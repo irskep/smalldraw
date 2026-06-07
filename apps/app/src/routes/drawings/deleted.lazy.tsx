@@ -5,7 +5,10 @@ import {
   DsConfirmDialog,
   type DsConfirmDialogHandle,
 } from "@/components/DsConfirmDialog/DsConfirmDialog";
-import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
+import {
+  DeletedDrawingsList,
+  type DeletedDrawingListItem,
+} from "@/components/DeletedDrawingsList/DeletedDrawingsList";
 import { trpc } from "../../utils/trpc";
 
 export const Route = createLazyFileRoute("/drawings/deleted")({
@@ -21,10 +24,9 @@ function DeletedDrawings() {
   });
   const restoreDocumentMutation = trpc.restoreDocument.useMutation();
 
-  const restoreDocument = async (document: {
-    id: string;
-    name: string;
-  }): Promise<void> => {
+  const restoreDocument = async (
+    document: DeletedDrawingListItem,
+  ): Promise<void> => {
     const confirmed =
       (await confirmDialogRef.current?.confirm({
         title: "Restore drawing?",
@@ -76,51 +78,20 @@ function DeletedDrawings() {
         </div>
       ) : null}
 
-      {!deletedDocumentsQuery.isLoading &&
-      !deletedDocumentsQuery.error &&
-      documents.length === 0 ? (
-        <div className="account-card account-card--centered">
-          <p className="account-muted">No deleted drawings.</p>
-        </div>
-      ) : null}
-
-      {documents.length > 0 ? (
-        <div className="account-launcher-grid">
-          {documents.map((document) => (
-            <div key={document.id} className="account-launcher-card">
-              <DsThumbnailTile
-                action={{
-                  label: `Restore ${document.name}`,
-                  icon: RotateCcw,
-                  onPress: () => {
-                    void restoreDocument(document);
-                  },
-                  disabled: restoringId === document.id,
-                }}
-                badge={{ label: "Deleted", tone: "default" }}
-                emptyLabel="No preview"
-                imageAlt={`${document.name} thumbnail`}
-                imageSrc={document.thumbnailUrl ?? undefined}
-                openDisabled
-                openLabel={`${document.name} is deleted`}
-              />
-              <p className="account-launcher-card__meta">
-                Deleted {formatDeletedAt(document.deletedAt)}
-              </p>
-            </div>
-          ))}
-        </div>
+      {!deletedDocumentsQuery.error ? (
+        <DeletedDrawingsList
+          documents={documents}
+          emptyLayout="card"
+          emptyLabel="No deleted drawings."
+          isLoading={deletedDocumentsQuery.isLoading}
+          onRestore={(document) => {
+            void restoreDocument(document);
+          }}
+          restoringId={restoringId}
+        />
       ) : null}
 
       <DsConfirmDialog ref={confirmDialogRef} />
     </section>
   );
-}
-
-function formatDeletedAt(value: Date | string): string {
-  const date = value instanceof Date ? value : new Date(value);
-  if (!Number.isFinite(date.getTime())) {
-    return "at an unknown time";
-  }
-  return date.toLocaleString();
 }

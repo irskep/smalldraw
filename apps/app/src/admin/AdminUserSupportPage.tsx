@@ -2,15 +2,26 @@ import { Link } from "@tanstack/react-router";
 import {
   KeyRound as KeyRoundIcon,
   LogOut as LogOutIcon,
+  RotateCcw as RotateCcwIcon,
   Share2 as ShareIcon,
   Unplug as UnplugIcon,
 } from "lucide";
-import { FileSearch, KeyRound, LogOut, Share2, Unplug } from "lucide-react";
+import {
+  FileSearch,
+  KeyRound,
+  LogOut,
+  Share2,
+  Unplug,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import {
   DsConfirmDialog,
   type DsConfirmDialogHandle,
 } from "@/components/DsConfirmDialog/DsConfirmDialog";
+import {
+  DeletedDrawingsList,
+  type DeletedDrawingListItem,
+} from "@/components/DeletedDrawingsList/DeletedDrawingsList";
 import { buildInvitationUrl } from "@/components/DocumentInvitation/buildInvitationUrl";
 import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
 import {
@@ -63,6 +74,8 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
   const [resetError, setResetError] = useState<string | null>(null);
   const [sessionMessage, setSessionMessage] = useState<string | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
   const [shareLinkError, setShareLinkError] = useState<string | null>(null);
   const trpcUtils = trpc.useUtils();
   const userQuery = trpc.adminGetUserByUsername.useQuery(username, {
@@ -82,9 +95,17 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
       retry: false,
     },
   );
+  const deletedDocumentsQuery = trpc.adminListDeletedUserDocuments.useQuery(
+    { username },
+    {
+      enabled: Boolean(userQuery.data),
+      retry: false,
+    },
+  );
   const resetPasswordMutation = trpc.adminResetUserPassword.useMutation();
   const revokeSessionMutation = trpc.adminRevokeUserSession.useMutation();
   const revokeSessionsMutation = trpc.adminRevokeUserSessions.useMutation();
+  const restoreDocumentMutation = trpc.adminRestoreUserDocument.useMutation();
   const createShareLinkMutation =
     trpc.adminCreateUserDocumentShareLink.useMutation();
   const drawingRuntimeConfig = createAccountWebRuntimeConfig();
@@ -205,6 +226,47 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
         error instanceof Error
           ? error.message
           : "Sessions could not be revoked.",
+      );
+    }
+  };
+
+  const restoreDeletedDocument = async (document: DeletedDrawingListItem) => {
+    if (!foundUser) {
+      return;
+    }
+    const confirmed =
+      (await confirmDialogRef.current?.confirm({
+        title: "Restore drawing?",
+        message: `This restores ${document.name} to ${foundUser.username}'s drawings.`,
+        confirmLabel: "Restore",
+        cancelLabel: "Cancel",
+        icon: RotateCcwIcon,
+      })) ?? false;
+    if (!confirmed) {
+      return;
+    }
+
+    setRestoreMessage(null);
+    setRestoreError(null);
+    try {
+      await restoreDocumentMutation.mutateAsync({
+        username: foundUser.username,
+        documentId: document.id,
+      });
+      setRestoreMessage(`${document.name} restored.`);
+      await Promise.all([
+        trpcUtils.adminListDeletedUserDocuments.invalidate({
+          username: foundUser.username,
+        }),
+        trpcUtils.adminListUserDocuments.invalidate({
+          username: foundUser.username,
+        }),
+      ]);
+    } catch (error) {
+      setRestoreError(
+        error instanceof Error
+          ? error.message
+          : "Drawing could not be restored.",
       );
     }
   };
@@ -448,6 +510,40 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                 <div className="account-alert__body">
                   <div className="account-alert__title">Share link failed</div>
                   <div>{shareLinkError}</div>
+                </div>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="admin-panel">
+            <header className="admin-panel__header">
+              <h2 className="account-title">Deleted drawings</h2>
+            </header>
+            <DeletedDrawingsList
+              documents={deletedDocumentsQuery.data ?? []}
+              emptyLabel="No deleted drawings."
+              isLoading={deletedDocumentsQuery.isLoading}
+              layout="list"
+              onRestore={(document) => {
+                void restoreDeletedDocument(document);
+              }}
+              restoringId={
+                restoreDocumentMutation.variables?.documentId ?? null
+              }
+            />
+            {restoreMessage ? (
+              <div className="account-alert" role="status">
+                <div className="account-alert__body">
+                  <div className="account-alert__title">Drawing restored</div>
+                  <div>{restoreMessage}</div>
+                </div>
+              </div>
+            ) : null}
+            {restoreError ? (
+              <div className="account-alert" data-tone="danger" role="alert">
+                <div className="account-alert__body">
+                  <div className="account-alert__title">Restore failed</div>
+                  <div>{restoreError}</div>
                 </div>
               </div>
             ) : null}

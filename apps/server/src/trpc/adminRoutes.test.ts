@@ -6,6 +6,7 @@ import { createDocument } from "../db/createDocument.js";
 import { createLoginAttempt } from "../db/createLoginAttempt.js";
 import { createSession } from "../db/createSession.js";
 import { createUser } from "../db/createUser.js";
+import { deleteDocument } from "../db/deleteDocument.js";
 import { createDocumentToken } from "../db/documentTokens.js";
 import { ensureServerAdminUser } from "../db/ensureServerAdminUser.js";
 import { getLoginAttempt } from "../db/getLoginAttempt.js";
@@ -301,6 +302,60 @@ describe("admin routes", () => {
     ).resolves.toMatchObject({
       token: expect.any(String),
     });
+  });
+
+  it("lists and restores deleted user documents", async () => {
+    const targetUser = await createUser({
+      username: "deleted-drawing-owner",
+      registrationRecord: "registration-record",
+    });
+    const document = await createDocument({
+      documentId: "admin-deleted-doc",
+      userId: targetUser.id,
+      name: "Deleted drawing",
+    });
+    await deleteDocument({
+      documentId: document.id,
+      userId: targetUser.id,
+    });
+    const caller = appRouter.createCaller({
+      req: { headers: {} } as never,
+      res: {} as never,
+      session: null,
+      serverAdmin: {
+        id: "server-admin",
+        username: "admin",
+      },
+    });
+
+    await expect(
+      caller.adminListDeletedUserDocuments({
+        username: "deleted-drawing-owner",
+      }),
+    ).resolves.toMatchObject([
+      {
+        id: document.id,
+        name: "Deleted drawing",
+        isAdmin: true,
+        deletedAt: expect.any(Date),
+      },
+    ]);
+    await expect(
+      caller.adminRestoreUserDocument({
+        username: "deleted-drawing-owner",
+        documentId: document.id,
+      }),
+    ).resolves.toEqual({ id: document.id });
+    await expect(
+      caller.adminListDeletedUserDocuments({
+        username: "deleted-drawing-owner",
+      }),
+    ).resolves.toEqual([]);
+    await expect(
+      caller.adminListUserDocuments({
+        username: "deleted-drawing-owner",
+      }),
+    ).resolves.toMatchObject([{ id: document.id }]);
   });
 
   it("marks documents the viewing admin can already access", async () => {

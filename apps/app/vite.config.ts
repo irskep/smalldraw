@@ -15,7 +15,7 @@ export default defineConfig({
         target: "http://localhost:3001",
         changeOrigin: true,
       },
-      "/draw": {
+      "^/draw(?:/|$)": {
         target: "http://localhost:3001",
         changeOrigin: true,
         rewrite: (requestPath) => requestPath.replace(/^\/draw\/?/, "/") || "/",
