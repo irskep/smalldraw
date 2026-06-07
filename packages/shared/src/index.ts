@@ -187,7 +187,7 @@ export type AdminUserDocumentDetails = {
 };
 
 export type AdminUserSession = {
-  sessionKey: string;
+  id: string;
   createdAt: Date;
   isCurrentAdminSession: boolean;
 };

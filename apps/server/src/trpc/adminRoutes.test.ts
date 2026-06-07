@@ -161,25 +161,33 @@ describe("admin routes", () => {
       serverAdmin: null,
     });
 
-    await expect(
-      caller.adminListUserSessions({ username: "session-target" }),
-    ).resolves.toEqual(
+    const listedSessions = await caller.adminListUserSessions({
+      username: "session-target",
+    });
+    expect(listedSessions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          sessionKey: "target-session-1",
+          id: expect.any(String),
           isCurrentAdminSession: true,
         }),
         expect.objectContaining({
-          sessionKey: "target-session-2",
+          id: expect.any(String),
           isCurrentAdminSession: false,
         }),
       ]),
     );
+    expect(
+      listedSessions.some((session) => session.id === "target-session-1"),
+    ).toBe(false);
+    const otherSession = listedSessions.find(
+      (session) => !session.isCurrentAdminSession,
+    );
+    expect(otherSession).toBeDefined();
 
     await expect(
       caller.adminRevokeUserSession({
         username: "session-target",
-        sessionKey: "target-session-2",
+        sessionId: otherSession!.id,
       }),
     ).resolves.toEqual({ revoked: 1 });
     expect(await getSession("target-session-1")).not.toBeNull();

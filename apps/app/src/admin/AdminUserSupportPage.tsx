@@ -36,8 +36,8 @@ const formatDateTime = (date: Date | string | null): string => {
   return new Date(date).toLocaleString();
 };
 
-const formatSessionIdentifier = (sessionKey: string): string =>
-  `${sessionKey.slice(0, 6)}...${sessionKey.slice(-6)}`;
+const formatSessionIdentifier = (sessionId: string): string =>
+  `${sessionId.slice(0, 8)}...${sessionId.slice(-8)}`;
 
 export const AdminUserSupportPage: React.FC<Props> = ({
   documentId,
@@ -127,7 +127,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
     }
   };
 
-  const revokeSession = async (sessionKey: string) => {
+  const revokeSession = async (sessionId: string) => {
     if (!foundUser) {
       return;
     }
@@ -149,7 +149,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
     try {
       const result = await revokeSessionMutation.mutateAsync({
         username: foundUser.username,
-        sessionKey,
+        sessionId,
       });
       setSessionMessage(
         result.revoked === 1
@@ -333,7 +333,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                 ) : null}
                 <div className="admin-record-list">
                   {userSessionsQuery.data?.map((session) => (
-                    <div key={session.sessionKey} className="admin-record">
+                    <div key={session.id} className="admin-record">
                       <div className="admin-record__row">
                         <div className="admin-record__primary">
                           {session.isCurrentAdminSession
@@ -346,7 +346,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                           data-tone="danger"
                           disabled={revokeSessionMutation.isPending}
                           onClick={() => {
-                            void revokeSession(session.sessionKey);
+                            void revokeSession(session.id);
                           }}
                         >
                           Revoke
@@ -356,7 +356,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                         Created: {formatDateTime(session.createdAt)}
                       </div>
                       <div className="admin-record__meta account-code">
-                        Session ID: {formatSessionIdentifier(session.sessionKey)}
+                        Session ID: {formatSessionIdentifier(session.id)}
                       </div>
                     </div>
                   ))}

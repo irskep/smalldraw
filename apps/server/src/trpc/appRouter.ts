@@ -165,6 +165,33 @@ const listDocumentAccessTokensForAdminSupport = async (
   });
 };
 
+const getPublicSessionId = async (sessionKey: string): Promise<string> => {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(sessionKey),
+  );
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("")
+    .slice(0, 32);
+};
+
+const findSessionKeyByPublicId = async ({
+  publicSessionId,
+  userId,
+}: {
+  publicSessionId: string;
+  userId: string;
+}): Promise<string | null> => {
+  const sessions = await listSessionsForUser(userId);
+  for (const session of sessions) {
+    if ((await getPublicSessionId(session.sessionKey)) === publicSessionId) {
+      return session.sessionKey;
+    }
+  }
+  return null;
+};
+
 const listDeletedAccountDocumentSummaries = async (
   userId: string,
 ): Promise<DeletedAccountDocumentSummary[]> => {
@@ -336,18 +363,20 @@ export const appRouter = router({
         });
       }
       const sessions = await listSessionsForUser(user.id);
-      return sessions.map((session) => ({
-        sessionKey: session.sessionKey,
-        createdAt: session.createdAt,
-        isCurrentAdminSession:
-          opts.ctx.serverAdminSessionKey === session.sessionKey,
-      })) satisfies AdminUserSession[];
+      return await Promise.all(
+        sessions.map(async (session) => ({
+          id: await getPublicSessionId(session.sessionKey),
+          createdAt: session.createdAt,
+          isCurrentAdminSession:
+            opts.ctx.serverAdminSessionKey === session.sessionKey,
+        })),
+      ) satisfies AdminUserSession[];
     }),
   adminRevokeUserSession: serverAdminProcedure
     .input(
       z.object({
         username: z.string().min(1),
-        sessionKey: z.string().min(1),
+        sessionId: z.string().min(1),
       }),
     )
     .mutation(async (opts) => {
@@ -358,9 +387,18 @@ export const appRouter = router({
           message: "user not found",
         });
       }
+      const sessionKey = await findSessionKeyByPublicId({
+        userId: user.id,
+        publicSessionId: opts.input.sessionId,
+      });
+      if (!sessionKey) {
+        return {
+          revoked: 0,
+        } satisfies AdminUserSessionMutationResult;
+      }
       const revoked = await deleteSessionForUser({
         userId: user.id,
-        sessionKey: opts.input.sessionKey,
+        sessionKey,
       });
       return {
         revoked: revoked ? 1 : 0,
