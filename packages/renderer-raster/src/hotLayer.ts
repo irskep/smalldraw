@@ -22,14 +22,20 @@ export interface HotLayerRenderOptions {
   dirtyBounds?: Box | null;
 }
 
+export interface DraftLayerComposite {
+  below: CanvasImageSource | null;
+  active: CanvasImageSource | null;
+  above: CanvasImageSource | null;
+}
+
 export class HotLayer {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly shapeRendererRegistry: ShapeRendererRegistry;
   private readonly geometryHandlerRegistry?: ShapeHandlerRegistry;
   private readonly backgroundColor?: string;
   private viewport: Viewport | null = null;
-  private backdropImage: CanvasImageSource | null = null;
-  private backdropBackgroundColor: string | null = null;
+  private draftComposite: DraftLayerComposite | null = null;
+  private activeScratch: HTMLCanvasElement | null = null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -69,55 +75,14 @@ export class HotLayer {
       this.clear();
     }
     perfAddTimingMs("hotLayer.clear.ms", perfNowMs() - stepStartMs);
-    if (this.backdropImage) {
-      const backdropStartMs = perfNowMs();
-      this.ctx.save();
-      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-      if (dirtyBounds) {
-        const sourceSize = getImageSourceSize(this.backdropImage);
-        const sourceScale = sourceSize
-          ? new Vec2(sourceSize.width, sourceSize.height).div([
-              this.canvas.width,
-              this.canvas.height,
-            ])
-          : new Vec2(1, 1);
-        const dirty = new BoxOperations(dirtyBounds);
-        const dirtySourceMin = new Vec2(dirty.minX, dirty.minY).mul(
-          sourceScale,
-        );
-        const dirtySourceSize = new Vec2(dirty.width, dirty.height).mul(
-          sourceScale,
-        );
-        this.ctx.drawImage(
-          this.backdropImage,
-          getX(dirtySourceMin),
-          getY(dirtySourceMin),
-          getX(dirtySourceSize),
-          getY(dirtySourceSize),
-          dirty.minX,
-          dirty.minY,
-          dirty.width,
-          dirty.height,
-        );
-      } else {
-        this.ctx.drawImage(
-          this.backdropImage,
-          0,
-          0,
-          this.canvas.width,
-          this.canvas.height,
-        );
-      }
-      this.ctx.restore();
-      perfAddTimingMs(
-        "hotLayer.backdropBlit.ms",
-        perfNowMs() - backdropStartMs,
-      );
-    }
-    if (!shapes.length) {
+    if (this.draftComposite) {
+      this.renderCompositeDrafts(shapes, dirtyBounds);
       return;
     }
-    if (!this.backdropImage && this.backgroundColor) {
+    if (!shapes.length && !this.backgroundColor) {
+      return;
+    }
+    if (this.backgroundColor) {
       const backgroundFillStartMs = perfNowMs();
       this.ctx.save();
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -134,6 +99,9 @@ export class HotLayer {
         "hotLayer.backgroundFill.ms",
         perfNowMs() - backgroundFillStartMs,
       );
+    }
+    if (!shapes.length) {
+      return;
     }
     const draftPaintStartMs = perfNowMs();
     this.ctx.save();
@@ -167,16 +135,92 @@ export class HotLayer {
     this.ctx.clearRect(dirty.minX, dirty.minY, dirty.width, dirty.height);
   }
 
-  setBackdrop(image: CanvasImageSource | null, backgroundColor?: string): void {
-    this.backdropImage = image;
-    this.backdropBackgroundColor = image ? (backgroundColor ?? null) : null;
+  setDraftComposite(
+    composite: DraftLayerComposite | null,
+    backgroundColor?: string,
+  ): void {
+    this.draftComposite = composite;
     const canvasWithOptionalStyle = this.canvas as unknown as {
       style?: { backgroundColor: string };
     };
     if (canvasWithOptionalStyle.style) {
-      canvasWithOptionalStyle.style.backgroundColor =
-        this.backdropBackgroundColor ?? "";
+      canvasWithOptionalStyle.style.backgroundColor = composite
+        ? (backgroundColor ?? "")
+        : "";
     }
+  }
+
+  private renderCompositeDrafts(shapes: AnyShape[], dirtyBounds: Box | null) {
+    const composite = this.draftComposite;
+    if (!composite) {
+      return;
+    }
+    const blitStartMs = perfNowMs();
+    this.ctx.save();
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    drawImageRect(this.ctx, composite.below, this.canvas, dirtyBounds);
+    this.ctx.restore();
+
+    const scratch = this.ensureActiveScratch();
+    const scratchCtx = scratch.getContext("2d");
+    if (!scratchCtx) {
+      return;
+    }
+    scratchCtx.save();
+    scratchCtx.setTransform(1, 0, 0, 1, 0, 0);
+    if (dirtyBounds) {
+      const dirty = new BoxOperations(dirtyBounds);
+      scratchCtx.clearRect(dirty.minX, dirty.minY, dirty.width, dirty.height);
+    } else {
+      scratchCtx.clearRect(0, 0, scratch.width, scratch.height);
+    }
+    drawImageRect(scratchCtx, composite.active, scratch, dirtyBounds);
+    scratchCtx.restore();
+    perfAddTimingMs("hotLayer.backdropBlit.ms", perfNowMs() - blitStartMs);
+
+    if (shapes.length) {
+      const draftPaintStartMs = perfNowMs();
+      scratchCtx.save();
+      if (dirtyBounds) {
+        const dirty = new BoxOperations(dirtyBounds);
+        scratchCtx.beginPath();
+        scratchCtx.rect(dirty.minX, dirty.minY, dirty.width, dirty.height);
+        scratchCtx.clip();
+      }
+      if (this.viewport) {
+        setWorldToBackingTransform(scratchCtx, this.viewport, scratch);
+      }
+      const ordered = orderByZIndex(shapes);
+      renderOrderedShapes(scratchCtx, ordered, {
+        clear: false,
+        registry: this.shapeRendererRegistry,
+        geometryHandlerRegistry: this.geometryHandlerRegistry,
+      });
+      scratchCtx.restore();
+      perfAddTimingMs(
+        "hotLayer.draftPaint.ms",
+        perfNowMs() - draftPaintStartMs,
+      );
+    }
+
+    this.ctx.save();
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    drawImageRect(this.ctx, scratch, this.canvas, dirtyBounds);
+    drawImageRect(this.ctx, composite.above, this.canvas, dirtyBounds);
+    this.ctx.restore();
+  }
+
+  private ensureActiveScratch(): HTMLCanvasElement {
+    if (!this.activeScratch) {
+      this.activeScratch = createScratchCanvas(this.canvas);
+    }
+    if (this.activeScratch.width !== this.canvas.width) {
+      this.activeScratch.width = this.canvas.width;
+    }
+    if (this.activeScratch.height !== this.canvas.height) {
+      this.activeScratch.height = this.canvas.height;
+    }
+    return this.activeScratch;
   }
 }
 
@@ -291,4 +335,50 @@ function getImageSourceSize(
     return null;
   }
   return { width, height };
+}
+
+function drawImageRect(
+  ctx: CanvasRenderingContext2D,
+  image: CanvasImageSource | null,
+  destination: HTMLCanvasElement,
+  dirtyBounds: Box | null,
+): void {
+  if (!image) {
+    return;
+  }
+  if (!dirtyBounds) {
+    ctx.drawImage(image, 0, 0, destination.width, destination.height);
+    return;
+  }
+  const sourceSize = getImageSourceSize(image);
+  const sourceScale = sourceSize
+    ? new Vec2(sourceSize.width, sourceSize.height).div([
+        destination.width,
+        destination.height,
+      ])
+    : new Vec2(1, 1);
+  const dirty = new BoxOperations(dirtyBounds);
+  const dirtySourceMin = new Vec2(dirty.minX, dirty.minY).mul(sourceScale);
+  const dirtySourceSize = new Vec2(dirty.width, dirty.height).mul(sourceScale);
+  ctx.drawImage(
+    image,
+    getX(dirtySourceMin),
+    getY(dirtySourceMin),
+    getX(dirtySourceSize),
+    getY(dirtySourceSize),
+    dirty.minX,
+    dirty.minY,
+    dirty.width,
+    dirty.height,
+  );
+}
+
+function createScratchCanvas(source: HTMLCanvasElement): HTMLCanvasElement {
+  if (typeof document !== "undefined") {
+    return document.createElement("canvas");
+  }
+  const CanvasCtor = source.constructor as {
+    new (width?: number, height?: number): HTMLCanvasElement;
+  };
+  return new CanvasCtor(source.width, source.height);
 }

@@ -138,7 +138,7 @@ export function createRasterPipeline(options: {
     draftCaptureInFlight = layerStack
       .beginActiveLayerDraftSession()
       .then(() => {
-        hotLayer.setBackdrop(layerStack.getActiveLayerBackdropSnapshot());
+        hotLayer.setDraftComposite(layerStack.getActiveLayerDraftComposite());
         draftSessionActive = true;
         draftSessionNeedsFullRender = true;
       })
@@ -153,7 +153,7 @@ export function createRasterPipeline(options: {
       return;
     }
     hotLayer.clear();
-    hotLayer.setBackdrop(null);
+    hotLayer.setDraftComposite(null);
     layerStack.endActiveLayerDraftSession();
     draftSessionActive = false;
     draftSessionNeedsFullRender = false;
@@ -270,6 +270,7 @@ export function createRasterPipeline(options: {
         renderIdentity,
       });
       layerStack.setRenderIdentity(renderIdentity);
+      layerStack.prewarmActiveLayerDraftComposite();
     },
     bakeInitialShapes(shapes) {
       if (!shapes.length) {
@@ -294,6 +295,7 @@ export function createRasterPipeline(options: {
       });
       layerStack.setLayers(orderedLayers);
       layerStack.setActiveLayer(store.getActiveLayerId());
+      layerStack.prewarmActiveLayerDraftComposite();
     },
     scheduleBakeForClear() {
       logDiagnosticEvent("pipeline_schedule_bake_for_clear");
@@ -312,7 +314,7 @@ export function createRasterPipeline(options: {
       endDraftSession();
       layerStack.dispose();
       hotLayer.clear();
-      hotLayer.setBackdrop(null);
+      hotLayer.setDraftComposite(null);
       stage.hotOverlayCanvas.style.display = "none";
     },
   };

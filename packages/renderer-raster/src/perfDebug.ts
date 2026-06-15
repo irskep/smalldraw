@@ -1,7 +1,4 @@
 interface PerfDebugConfig {
-  skipSessionRender?: boolean;
-  skipHotLayerRender?: boolean;
-  skipTileBakeScheduling?: boolean;
   skipTileBakeExecution?: boolean;
   skipSnapshotCapture?: boolean;
 }

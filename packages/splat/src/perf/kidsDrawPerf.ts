@@ -2,9 +2,6 @@ const nowMs = (): number =>
   typeof performance !== "undefined" ? performance.now() : Date.now();
 
 interface KidsDrawPerfConfig {
-  skipSessionRender?: boolean;
-  skipHotLayerRender?: boolean;
-  skipTileBakeScheduling?: boolean;
   skipTileBakeExecution?: boolean;
   skipSnapshotCapture?: boolean;
 }

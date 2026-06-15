@@ -520,7 +520,6 @@ export {
   resolveLayerStrategy,
   type ShapeRegionChange,
 } from "./layerStack";
-export { RasterSession, type RasterSessionOptions } from "./session";
 export { createInMemorySnapshotStore } from "./snapshots";
 export { getVisibleTileCoords, tileKey, tileKeyToCoord } from "./tiles";
 export type {

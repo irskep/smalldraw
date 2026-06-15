@@ -214,7 +214,7 @@ describe("LayerStack", () => {
       expect(labels).toEqual(["base", "lineart", "hot", "stickers"]);
     }));
 
-  test("begin/end draft toggles active layer container visibility", () =>
+  test("begin/end draft hides and restores layer containers", () =>
     withFakeDom(async ({ stack, host }) => {
       stack.setLayers([
         { id: "base", kind: "drawing", zIndex: "a0" },
@@ -227,11 +227,39 @@ describe("LayerStack", () => {
       if (!baseContainer) {
         throw new Error("Missing base layer container");
       }
-      expect(baseContainer.style.visibility ?? "").toBe("");
+      const stickersContainer = (host as unknown as FakeElement).children.find(
+        (child) => child.dataset.layerId === "stickers",
+      );
+      if (!stickersContainer) {
+        throw new Error("Missing stickers layer container");
+      }
+      expect(baseContainer.style.display ?? "").toBe("");
+      expect(stickersContainer.style.display ?? "").toBe("");
       await stack.beginActiveLayerDraftSession();
-      expect(baseContainer.style.visibility).toBe("hidden");
+      expect(baseContainer.style.display).toBe("none");
+      expect(stickersContainer.style.display).toBe("none");
       stack.endActiveLayerDraftSession();
-      expect(baseContainer.style.visibility ?? "").toBe("");
+      expect(baseContainer.style.display ?? "").toBe("");
+      expect(stickersContainer.style.display ?? "").toBe("");
+    }));
+
+  test("begin draft captures below active and above visible groups", () =>
+    withFakeDom(async ({ stack }) => {
+      stack.setLayers([
+        { id: "base", kind: "drawing", zIndex: "a0" },
+        { id: "color", kind: "drawing", zIndex: "a1" },
+        { id: "hidden-lineart", kind: "image", zIndex: "a2", visible: false },
+        { id: "stickers", kind: "drawing", zIndex: "a3" },
+      ]);
+      stack.setActiveLayer("color");
+
+      await stack.beginActiveLayerDraftSession();
+
+      const composite = stack.getActiveLayerDraftComposite();
+      expect(composite).not.toBeNull();
+      expect(composite?.below).not.toBeNull();
+      expect(composite?.active).not.toBeNull();
+      expect(composite?.above).not.toBeNull();
     }));
 
   test("routeDirtyShapes updates only touched layer counters", () =>

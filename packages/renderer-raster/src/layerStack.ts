@@ -7,6 +7,7 @@ import {
 } from "@smalldraw/renderer-canvas";
 import { TILE_SIZE } from "./constants";
 import { createDomTileProvider } from "./dom";
+import type { DraftLayerComposite } from "./hotLayer";
 import { TileRenderer } from "./index";
 import { perfAddCounter, perfAddTimingMs, perfNowMs } from "./perfDebug";
 
@@ -35,9 +36,10 @@ export interface LayerStack {
   scheduleFullInvalidation(): void;
   scheduleFullLayerInvalidation(layerId: string): void;
   flushBakes(): Promise<void>;
+  prewarmActiveLayerDraftComposite(): void;
   beginActiveLayerDraftSession(): Promise<void>;
   endActiveLayerDraftSession(): void;
-  getActiveLayerBackdropSnapshot(): CanvasImageSource | null;
+  getActiveLayerDraftComposite(): DraftLayerComposite | null;
   dispose(): void;
 }
 
@@ -102,7 +104,15 @@ class LayerStackImpl implements LayerStack {
   private viewportDpr = 1;
   private renderIdentity = "";
   private bakeQueue: Promise<void> = Promise.resolve();
-  private activeLayerBackdrop: CanvasImageSource | null = null;
+  private activeLayerDraftComposite: DraftLayerComposite | null = null;
+  private draftHiddenLayerIds: string[] = [];
+  private compositeCache: {
+    key: string;
+    version: number;
+    value: DraftLayerComposite | null;
+    promise: Promise<DraftLayerComposite | null> | null;
+  } | null = null;
+  private compositeCacheVersion = 0;
 
   constructor(options: LayerStackOptions) {
     this.store = options.store;
@@ -180,6 +190,8 @@ class LayerStackImpl implements LayerStack {
     this.reorderDom();
     if (createdNewBackend) {
       this.scheduleFullInvalidation();
+    } else {
+      this.invalidateCompositeCache();
     }
   }
 
@@ -187,8 +199,12 @@ class LayerStackImpl implements LayerStack {
     if (!this.layersById.has(layerId)) {
       return;
     }
+    if (this.activeLayerId !== layerId) {
+      this.invalidateCompositeCache();
+    }
     this.activeLayerId = layerId;
     this.reorderDom();
+    this.prewarmActiveLayerDraftComposite();
   }
 
   updateViewport(width: number, height: number, dpr: number): void {
@@ -202,6 +218,8 @@ class LayerStackImpl implements LayerStack {
         this.viewportDpr,
       );
     }
+    this.invalidateCompositeCache();
+    this.prewarmActiveLayerDraftComposite();
   }
 
   setRenderIdentity(identity: string): void {
@@ -256,7 +274,9 @@ class LayerStackImpl implements LayerStack {
       entry.backend.routeDirty(dirty, deleted);
     }
     if (touchedLayerIds.size > 0) {
+      this.invalidateCompositeCache();
       this.enqueueBake();
+      this.prewarmActiveLayerDraftComposite();
     }
   }
 
@@ -274,7 +294,9 @@ class LayerStackImpl implements LayerStack {
       touched = true;
     }
     if (touched) {
+      this.invalidateCompositeCache();
       this.enqueueBake();
+      this.prewarmActiveLayerDraftComposite();
     }
   }
 
@@ -294,7 +316,9 @@ class LayerStackImpl implements LayerStack {
       touched = true;
     }
     if (touched) {
+      this.invalidateCompositeCache();
       this.enqueueBake();
+      this.prewarmActiveLayerDraftComposite();
     }
   }
 
@@ -304,39 +328,79 @@ class LayerStackImpl implements LayerStack {
       return;
     }
     entry.backend.scheduleFullInvalidation();
+    this.invalidateCompositeCache();
     this.enqueueBake();
+    this.prewarmActiveLayerDraftComposite();
+  }
+
+  prewarmActiveLayerDraftComposite(): void {
+    if (!this.activeLayerId || !this.layersById.has(this.activeLayerId)) {
+      return;
+    }
+    const key = this.getCompositeCacheKey();
+    const version = this.compositeCacheVersion;
+    if (this.compositeCache?.key === key) {
+      return;
+    }
+    const promise = this.captureDraftComposite();
+    this.compositeCache = { key, version, value: null, promise };
+    promise
+      .then((value) => {
+        if (
+          this.compositeCache?.key === key &&
+          this.compositeCache.version === version
+        ) {
+          this.compositeCache = { key, version, value, promise: null };
+        }
+      })
+      .catch(() => {
+        if (
+          this.compositeCache?.key === key &&
+          this.compositeCache.version === version
+        ) {
+          this.compositeCache = null;
+        }
+      });
   }
 
   async beginActiveLayerDraftSession(): Promise<void> {
     const active = this.getActiveEntry();
     if (!active) {
-      this.activeLayerBackdrop = null;
+      this.activeLayerDraftComposite = null;
       return;
     }
-    active.container.style.visibility = "hidden";
-    await this.flushBakes();
     const backdropStartMs = perfNowMs();
-    this.activeLayerBackdrop = await active.backend.captureBackdropSnapshot();
+    this.activeLayerDraftComposite = await this.getOrCaptureDraftComposite();
     perfAddTimingMs("hot.backdrop.ms", perfNowMs() - backdropStartMs);
+    if (!this.activeLayerDraftComposite) {
+      return;
+    }
+    this.hideAllLayerContainersForDraft();
   }
 
   endActiveLayerDraftSession(): void {
-    const active = this.getActiveEntry();
-    if (active) {
-      this.applyLayerVisibility(active.container, active.layer);
+    for (const layerId of this.draftHiddenLayerIds) {
+      const entry = this.layersById.get(layerId);
+      if (entry) {
+        entry.container.style.display = "";
+        this.applyLayerVisibility(entry.container, entry.layer);
+      }
     }
-    this.activeLayerBackdrop = null;
+    this.draftHiddenLayerIds = [];
+    this.activeLayerDraftComposite = null;
   }
 
-  getActiveLayerBackdropSnapshot(): CanvasImageSource | null {
-    return this.activeLayerBackdrop;
+  getActiveLayerDraftComposite(): DraftLayerComposite | null {
+    return this.activeLayerDraftComposite;
   }
 
   scheduleFullInvalidation(): void {
     for (const entry of this.layersById.values()) {
       entry.backend.scheduleFullInvalidation();
     }
+    this.invalidateCompositeCache();
     this.enqueueBake();
+    this.prewarmActiveLayerDraftComposite();
   }
 
   flushBakes(): Promise<void> {
@@ -350,7 +414,9 @@ class LayerStackImpl implements LayerStack {
     }
     this.layersById.clear();
     this.orderedLayerIds = [];
-    this.activeLayerBackdrop = null;
+    this.activeLayerDraftComposite = null;
+    this.draftHiddenLayerIds = [];
+    this.compositeCache = null;
   }
 
   private createLayerContainer(layerId: string): HTMLDivElement {
@@ -422,6 +488,125 @@ class LayerStackImpl implements LayerStack {
     layer: DrawingLayer,
   ): void {
     container.style.visibility = layer.visible === false ? "hidden" : "";
+  }
+
+  private hideAllLayerContainersForDraft(): void {
+    this.draftHiddenLayerIds = [];
+    for (const [layerId, entry] of this.layersById) {
+      entry.container.style.display = "none";
+      this.draftHiddenLayerIds.push(layerId);
+    }
+  }
+
+  private async getOrCaptureDraftComposite(): Promise<DraftLayerComposite | null> {
+    const key = this.getCompositeCacheKey();
+    if (this.compositeCache?.key === key) {
+      if (this.compositeCache.value) {
+        return this.compositeCache.value;
+      }
+      if (this.compositeCache.promise) {
+        return await this.compositeCache.promise;
+      }
+    }
+    const value = await this.captureDraftComposite();
+    this.compositeCache = {
+      key,
+      version: this.compositeCacheVersion,
+      value,
+      promise: null,
+    };
+    return value;
+  }
+
+  private async captureDraftComposite(): Promise<DraftLayerComposite | null> {
+    if (!this.activeLayerId) {
+      return null;
+    }
+    await this.flushBakes();
+    const activeIndex = this.orderedLayerIds.indexOf(this.activeLayerId);
+    if (activeIndex < 0) {
+      return null;
+    }
+    const visibleLayerIds = this.orderedLayerIds.filter((layerId) => {
+      const entry = this.layersById.get(layerId);
+      return entry && entry.layer.visible !== false;
+    });
+    const belowLayerIds = visibleLayerIds.filter(
+      (layerId) => this.orderedLayerIds.indexOf(layerId) < activeIndex,
+    );
+    const aboveLayerIds = visibleLayerIds.filter(
+      (layerId) => this.orderedLayerIds.indexOf(layerId) > activeIndex,
+    );
+    const activeLayerIds = visibleLayerIds.includes(this.activeLayerId)
+      ? [this.activeLayerId]
+      : [];
+
+    return {
+      below: await this.captureLayerGroupSnapshot(belowLayerIds),
+      active: await this.captureLayerGroupSnapshot(activeLayerIds),
+      above: await this.captureLayerGroupSnapshot(aboveLayerIds),
+    };
+  }
+
+  private async captureLayerGroupSnapshot(
+    layerIds: string[],
+  ): Promise<CanvasImageSource | null> {
+    if (!layerIds.length) {
+      return null;
+    }
+    const canvas = this.createSnapshotCanvas();
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return null;
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const layerId of layerIds) {
+      const entry = this.layersById.get(layerId);
+      if (!entry || entry.layer.visible === false) {
+        continue;
+      }
+      const snapshot = await entry.backend.captureBackdropSnapshot();
+      if (!snapshot) {
+        continue;
+      }
+      ctx.drawImage(snapshot, 0, 0, canvas.width, canvas.height);
+    }
+    return canvas;
+  }
+
+  private createSnapshotCanvas(): HTMLCanvasElement {
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(
+      1,
+      Math.round(this.viewportWidth * this.viewportDpr),
+    );
+    canvas.height = Math.max(
+      1,
+      Math.round(this.viewportHeight * this.viewportDpr),
+    );
+    return canvas;
+  }
+
+  private getCompositeCacheKey(): string {
+    return [
+      this.renderIdentity,
+      this.activeLayerId ?? "",
+      this.viewportWidth,
+      this.viewportHeight,
+      this.viewportDpr,
+      ...this.orderedLayerIds.map((layerId) => {
+        const entry = this.layersById.get(layerId);
+        return entry
+          ? `${entry.layer.id}:${entry.layer.kind}:${entry.layer.zIndex}:${entry.layer.visible === false ? "hidden" : "visible"}`
+          : layerId;
+      }),
+    ].join("|");
+  }
+
+  private invalidateCompositeCache(): void {
+    this.compositeCacheVersion += 1;
+    this.compositeCache = null;
   }
 
   private enqueueBake(): void {

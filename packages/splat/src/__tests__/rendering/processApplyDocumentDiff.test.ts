@@ -86,9 +86,10 @@ function createMockLayerStack(): MockLayerStack {
       calls.scheduleFullLayerInvalidation.push(layerId);
     },
     flushBakes: () => Promise.resolve(),
+    prewarmActiveLayerDraftComposite() {},
     beginActiveLayerDraftSession: () => Promise.resolve(),
     endActiveLayerDraftSession() {},
-    getActiveLayerBackdropSnapshot: () => null,
+    getActiveLayerDraftComposite: () => null,
     dispose() {},
   };
   return { layerStack, calls };

@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import type { BoxedGeometry, DraftShape } from "@smalldraw/core";
+import {
+  type BoxedGeometry,
+  createPenJSONGeometry,
+  type DraftShape,
+} from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
 import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
@@ -32,6 +36,42 @@ function draftRect(
     toolId: "brush.freehand",
     temporary: true,
   };
+}
+
+function draftPen(
+  id: string,
+  points: Array<[number, number]>,
+  compositeOp: "source-over" | "destination-out",
+): DraftShape {
+  return {
+    id,
+    type: "pen",
+    zIndex: "a",
+    geometry: createPenJSONGeometry(points),
+    style: {
+      stroke: {
+        type: "brush",
+        color: "#000000",
+        size: 24,
+        brushId: "marker",
+        compositeOp,
+      },
+    },
+    toolId: "eraser.basic",
+    temporary: true,
+  };
+}
+
+function solidCanvas(
+  width: number,
+  height: number,
+  color: string,
+): CanvasImageSource {
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, width, height);
+  return canvas as unknown as CanvasImageSource;
 }
 
 const box = (min: [number, number], max: [number, number]): Box => ({
@@ -197,7 +237,11 @@ describe("HotLayer", () => {
     backdropCtx.fillRect(0, 0, 100, 200);
     backdropCtx.fillStyle = "#0000ff";
     backdropCtx.fillRect(100, 0, 100, 200);
-    hotLayer.setBackdrop(backdrop as unknown as CanvasImageSource);
+    hotLayer.setDraftComposite({
+      below: null,
+      active: backdrop as unknown as CanvasImageSource,
+      above: null,
+    });
 
     hotLayer.renderDrafts([], {
       dirtyBounds: box([100, 0], [200, 200]),
@@ -206,5 +250,95 @@ describe("HotLayer", () => {
     const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
     expect(pixelAt(ctx, 100, 200)[3]).toBe(0);
     expect(pixelAt(ctx, 300, 200)).toEqual([0, 0, 255, 255]);
+  });
+
+  test("composites marker drafts between below and above snapshots", () => {
+    const canvas = createCanvas(200, 200);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
+    hotLayer.setViewport({
+      width: 200,
+      height: 200,
+      center: new Vec2(0, 0),
+      scale: 1,
+    });
+    hotLayer.setDraftComposite({
+      below: solidCanvas(200, 200, "#ff0000"),
+      active: solidCanvas(200, 200, "#00ff00"),
+      above: null,
+    });
+
+    hotLayer.renderDrafts([draftRect("draft-composite", [0, 0], "#0000ff")]);
+
+    const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    expect(pixelAt(ctx, 100, 100)).toEqual([0, 0, 255, 255]);
+    expect(pixelAt(ctx, 10, 10)).toEqual([0, 255, 0, 255]);
+  });
+
+  test("eraser drafts cut only the active snapshot and reveal below", () => {
+    const canvas = createCanvas(200, 200);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
+    hotLayer.setViewport({
+      width: 200,
+      height: 200,
+      center: new Vec2(0, 0),
+      scale: 1,
+    });
+    hotLayer.setDraftComposite({
+      below: solidCanvas(200, 200, "#ff0000"),
+      active: solidCanvas(200, 200, "#00ff00"),
+      above: null,
+    });
+
+    hotLayer.renderDrafts([
+      draftPen(
+        "eraser",
+        [
+          [-60, 0],
+          [60, 0],
+        ],
+        "destination-out",
+      ),
+    ]);
+
+    const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    expect(pixelAt(ctx, 100, 100)).toEqual([255, 0, 0, 255]);
+    expect(pixelAt(ctx, 100, 60)).toEqual([0, 255, 0, 255]);
+  });
+
+  test("eraser drafts do not cut above snapshots", () => {
+    const canvas = createCanvas(200, 200);
+    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+      shapeRendererRegistry,
+    });
+    hotLayer.setViewport({
+      width: 200,
+      height: 200,
+      center: new Vec2(0, 0),
+      scale: 1,
+    });
+    hotLayer.setDraftComposite({
+      below: solidCanvas(200, 200, "#ff0000"),
+      active: solidCanvas(200, 200, "#00ff00"),
+      above: solidCanvas(200, 200, "#0000ff"),
+    });
+
+    hotLayer.renderDrafts([
+      draftPen(
+        "eraser",
+        [
+          [-60, 0],
+          [60, 0],
+        ],
+        "destination-out",
+      ),
+    ]);
+
+    const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+    expect(pixelAt(ctx, 100, 100)).toEqual([0, 0, 255, 255]);
+    expect(pixelAt(ctx, 100, 60)).toEqual([0, 0, 255, 255]);
   });
 });
