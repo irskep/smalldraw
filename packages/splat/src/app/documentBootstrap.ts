@@ -210,6 +210,21 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
         });
         return startupPreImports;
       }
+      if (options.multiplayerApiClient) {
+        const resolved = await resolveAccountDocumentForLocalOpen({
+          documentBackend: options.documentBackend,
+          multiplayerApiClient: options.multiplayerApiClient,
+          localRepo: null,
+          deviceTag: options.deviceTag,
+          summary: existing,
+        });
+        if (resolved) {
+          startupPreImports.push({
+            binary: resolved.binary,
+            docId: resolved.collabDocUrl,
+          });
+        }
+      }
       await options.documentBackend.setCurrentDocument(
         options.startupIntent.docUrl,
       );

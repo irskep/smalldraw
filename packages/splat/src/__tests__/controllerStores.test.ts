@@ -264,4 +264,16 @@ describe("createStartupReadinessStore", () => {
       lastBlockingReason: "asset_timeout",
     });
   });
+
+  test("failed state blocks interaction", () => {
+    const store = createStartupReadinessStore();
+    store.startDocLoad("switch_document");
+    store.markFailed("document_open_failed");
+
+    expect(store.getState()).toMatchObject({
+      phase: "failed",
+      interactionEnabled: false,
+      lastBlockingReason: "document_open_failed",
+    });
+  });
 });

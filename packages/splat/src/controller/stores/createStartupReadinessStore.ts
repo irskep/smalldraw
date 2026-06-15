@@ -6,7 +6,8 @@ export type StartupPhase =
   | "assets_loading"
   | "first_bake"
   | "ready"
-  | "degraded";
+  | "degraded"
+  | "failed";
 
 export interface StartupReadinessState {
   phase: StartupPhase;
@@ -108,6 +109,14 @@ export function createStartupReadinessStore() {
         ...current,
         phase: "degraded",
         interactionEnabled: true,
+        lastBlockingReason: reason,
+      }));
+    },
+    markFailed(reason: string): void {
+      withState((current) => ({
+        ...current,
+        phase: "failed",
+        interactionEnabled: false,
         lastBlockingReason: reason,
       }));
     },

@@ -75,6 +75,7 @@ export function createDocumentRuntimeController(options: {
     | "startFirstBake"
     | "markReady"
     | "markDegraded"
+    | "markFailed"
   >;
   toolbarStateController: Pick<
     ToolbarStateController,
@@ -244,7 +245,7 @@ export function createDocumentRuntimeController(options: {
     if (options.runtimeStore.isDestroyed() || cycleId !== startupCycleId) {
       return;
     }
-    options.startupReadinessStore.markDegraded(reason);
+    options.startupReadinessStore.markFailed(reason);
     options.runtimeStore.setDocumentError({
       requestedDocUrl: documentSessionController.getCurrentCatalogDocUrl(),
       reason,
@@ -543,7 +544,7 @@ export function createDocumentRuntimeController(options: {
             display: options.initialDocumentAccessState.display,
           });
         }
-        options.startupReadinessStore.markDegraded(
+        options.startupReadinessStore.markFailed(
           options.initialDocumentAccessState.reason,
         );
         applyToolbarStateForCurrentDocument(

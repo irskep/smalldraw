@@ -502,7 +502,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
     );
   });
 
-  test("failed document switches leave startup readiness interactive", async () => {
+  test("failed document switches block startup readiness interaction", async () => {
     const store = createTestStore();
     const startupReadinessStore = createStartupReadinessStore();
     const controller = createDocumentRuntimeController({
@@ -583,8 +583,8 @@ describe("createDocumentRuntimeController startup readiness", () => {
       controller.switchToDocument("catalog-collab:broken"),
     ).rejects.toThrow("shared document bootstrap failed");
 
-    expect(startupReadinessStore.getState().phase).toBe("degraded");
-    expect(startupReadinessStore.getState().interactionEnabled).toBeTrue();
+    expect(startupReadinessStore.getState().phase).toBe("failed");
+    expect(startupReadinessStore.getState().interactionEnabled).toBeFalse();
     expect(startupReadinessStore.getState().lastBlockingReason).toBe(
       "document_open_failed",
     );
