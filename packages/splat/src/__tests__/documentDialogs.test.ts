@@ -80,6 +80,45 @@ describe("NewDocumentDialogView", () => {
     expect(summaryTitle?.textContent).toBe("PDR Volume 1");
     expect(pageButton).not.toBeNull();
   });
+
+  test("coloring previews use resolved asset URLs while page ids stay canonical", () => {
+    const dialog = createNewDocumentDialogView({
+      resolveAssetUrl: (src) => `https://assets.example.test/${src}`,
+      onClose: () => {},
+      onCreate: () => {},
+    });
+    document.body.appendChild(dialog.el);
+
+    dialog.setOpen(true);
+
+    const volumeButton = dialog.el.querySelector(
+      '[data-new-document-volume="pdr-v1"]',
+    ) as HTMLButtonElement | null;
+    const volumeImage = volumeButton?.querySelector("img") ?? null;
+    expect(volumeImage?.src).toBe(
+      "https://assets.example.test/coloring/pdr-v1/page-001.png",
+    );
+
+    volumeButton!.click();
+
+    const summaryImage = dialog.el.querySelector(
+      ".kids-draw-new-document-dialog__book-summary-image",
+    ) as HTMLImageElement | null;
+    const pageButton = dialog.el.querySelector(
+      '[data-new-document-page="coloring/pdr-v1/page-001.png"]',
+    ) as HTMLButtonElement | null;
+    const pageImage = pageButton?.querySelector("img") ?? null;
+
+    expect(summaryImage?.src).toBe(
+      "https://assets.example.test/coloring/pdr-v1/page-001.png",
+    );
+    expect(pageImage?.src).toBe(
+      "https://assets.example.test/coloring/pdr-v1/page-001.png",
+    );
+    expect(pageButton?.getAttribute("data-new-document-page")).toBe(
+      "coloring/pdr-v1/page-001.png",
+    );
+  });
 });
 
 describe("DocumentBrowserDialogView", () => {

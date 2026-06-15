@@ -13,5 +13,8 @@ describe("coloring asset URLs", () => {
     expect(resolveAssetUrl("/coloring/pdr-v1/page-005-bwkk1f0d.png")).toBe(
       "https://splatterboard.app/coloring/pdr-v1/page-005.png",
     );
+    expect(resolveAssetUrl("/coloring/pdr-v2/page-005.png")).toBe(
+      "https://splatterboard.app/coloring/pdr-v2/page-005.png",
+    );
   });
 });

@@ -50,9 +50,8 @@ export async function createKidsDrawApp(
   options: KidsDrawAppOptions,
 ): Promise<KidsDrawApp> {
   const uninstallMobileGestureGuards = installMobileGestureGuards();
-  configureRasterImageSourceResolver(
-    createColoringAssetUrlResolver(options.assetBaseUrl),
-  );
+  const resolveAssetUrl = createColoringAssetUrlResolver(options.assetBaseUrl);
+  configureRasterImageSourceResolver(resolveAssetUrl);
   warmImageStampAssets(getImageStampAssets().map((asset) => asset.src));
   const provisionalShapeHandlers = createKidsShapeHandlerRegistry();
   const provisionalShapeRendererRegistry = createKidsShapeRendererRegistry();
@@ -170,6 +169,7 @@ export async function createKidsDrawApp(
     pipeline,
     appElement: presentation.element,
     documentBackend: runtime.documentBackend,
+    resolveAssetUrl,
     collaborationStatusStore: controllerCollaborationStatusStore,
     backgroundColor: runtime.backgroundColor,
     initialSize: runtime.initialSize,

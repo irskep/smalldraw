@@ -123,6 +123,7 @@ export function createKidsDrawController(options: {
   pipeline: RasterPipeline;
   appElement: HTMLDivElement;
   documentBackend: KidsDocumentBackend;
+  resolveAssetUrl?: (src: string) => string;
   collaborationStatusStore: Pick<
     CollaborationStatusStore,
     "setCurrentDocument" | "getStatus" | "subscribe"
@@ -295,6 +296,7 @@ export function createKidsDrawController(options: {
     },
   });
   const newDocumentDialog = createNewDocumentDialogView({
+    resolveAssetUrl: options.resolveAssetUrl,
     onClose: () => {
       documentPickerController.closeCreateDialog();
     },

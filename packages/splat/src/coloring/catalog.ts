@@ -76,17 +76,17 @@ function normalizeColoringPageId(value: string): string | null {
   if (legacyIdMatch) {
     return `coloring/${legacyIdMatch[1]}/page-${legacyIdMatch[2]}.png`;
   }
+  const match = pathname.match(
+    /(?:^|\/)coloring\/([^/]+)\/(page-\d{3})(?:-[^/.]+)?\.png$/,
+  );
+  if (match) {
+    return `coloring/${match[1]}/${match[2]}.png`;
+  }
   const legacyPdrV1Match = /(?:^|\/)(page-\d{3})(?:-[^/.]+)?\.png$/.exec(
     pathname,
   );
   if (legacyPdrV1Match) {
     return `coloring/pdr-v1/${legacyPdrV1Match[1]}.png`;
   }
-  const match = pathname.match(
-    /(?:^|\/)coloring\/([^/]+)\/(page-\d{3})(?:-[^/.]+)?\.png$/,
-  );
-  if (!match) {
-    return null;
-  }
-  return `coloring/${match[1]}/${match[2]}.png`;
+  return null;
 }

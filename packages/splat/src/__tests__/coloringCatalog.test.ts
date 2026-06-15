@@ -16,6 +16,9 @@ describe("coloring catalog", () => {
     expect(extractColoringPageId("/coloring/pdr-v1/page-005.png")).toBe(
       "coloring/pdr-v1/page-005.png",
     );
+    expect(extractColoringPageId("/coloring/pdr-v2/page-005.png")).toBe(
+      "coloring/pdr-v2/page-005.png",
+    );
     expect(
       extractColoringPageId(
         "https://splatterboard.app/coloring/pdr-v1/page-005-bwkk1f0d.png",

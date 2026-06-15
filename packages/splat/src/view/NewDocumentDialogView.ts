@@ -36,9 +36,11 @@ function createBlankThumbnail(): HTMLDivElement {
 export function createNewDocumentDialogView(options: {
   onClose: () => void;
   onCreate: (request: NewDocumentRequest) => void;
+  resolveAssetUrl?: (src: string) => string;
 }): NewDocumentDialogView {
   const books = getColoringBooks();
   const bookById = new Map(books.map((book) => [book.id, book] as const));
+  const resolveAssetUrl = options.resolveAssetUrl ?? ((src: string) => src);
 
   const scaffold = createDialogScaffold();
   scaffold.setDialogClassName("kids-draw-new-document-dialog");
@@ -188,7 +190,7 @@ export function createNewDocumentDialogView(options: {
       });
       if (book.coverPageSrc) {
         const image = document.createElement("img");
-        image.src = book.coverPageSrc;
+        image.src = resolveAssetUrl(book.coverPageSrc);
         image.alt = `${book.title} cover preview`;
         image.loading = "eager";
         image.decoding = "async";
@@ -223,7 +225,7 @@ export function createNewDocumentDialogView(options: {
     }
     bookSummary.hidden = false;
     if (book.coverPageSrc) {
-      bookSummaryImage.src = book.coverPageSrc;
+      bookSummaryImage.src = resolveAssetUrl(book.coverPageSrc);
       bookSummaryImage.hidden = false;
     } else {
       bookSummaryImage.removeAttribute("src");
@@ -237,7 +239,7 @@ export function createNewDocumentDialogView(options: {
         label: `Page ${pageNum}`,
       });
       const image = document.createElement("img");
-      image.src = page.src;
+      image.src = resolveAssetUrl(page.src);
       image.alt = `${page.volumeLabel} Page ${pageNum}`;
       image.loading = "eager";
       image.decoding = "async";
