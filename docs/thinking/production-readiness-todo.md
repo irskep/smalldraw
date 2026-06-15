@@ -140,15 +140,18 @@ Acceptance criteria:
 - Common production support tasks do not require SQLite access or ad-hoc scripts.
 - Admin-only routes use server-admin auth, not normal document membership.
 
-### Add an account settings screen
+### Add an account settings screen - done
 
 Evidence:
 
-- The logged-in menu in [apps/app/src/routes/__root.tsx](../../apps/app/src/routes/__root.tsx) currently exposes drawings, deleted drawings, and logout behavior, but no account settings route.
+- The logged-in menu in [apps/app/src/routes/__root.tsx](../../apps/app/src/routes/__root.tsx) exposes `/account`.
+- Added `/account` with a self-service password change form.
+- Added `changePasswordStart` and `changePasswordFinish` to verify the current password through OPAQUE, replace the user's registration record, and revoke other sessions while keeping the current session active.
 
 Work:
 
 - Add a user-facing account route for viewing account identity, changing password after login, and logging out of current/all sessions if supported.
+- Session-management UI is intentionally deferred; v1 only changes passwords.
 
 Acceptance criteria:
 

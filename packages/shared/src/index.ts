@@ -50,6 +50,7 @@ export function isAppError(input: unknown): input is AppError {
 export const DRAW_APP_PATH = "/draw/";
 export const ACCOUNT_APP_ROUTE_PATTERNS = [
   "/",
+  "/account",
   "/admin",
   "/login",
   "/register",

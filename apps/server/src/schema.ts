@@ -22,6 +22,16 @@ export const LoginFinishParams = z.object({
   finishLoginRequest: noProtoString,
 });
 
+export const ChangePasswordStartParams = z.object({
+  currentPasswordLoginRequest: noProtoString,
+  newPasswordRegistrationRequest: noProtoString,
+});
+
+export const ChangePasswordFinishParams = z.object({
+  currentPasswordFinishRequest: noProtoString,
+  newPasswordRegistrationRecord: noProtoString,
+});
+
 export const RegisterStartParams = z.object({
   userIdentifier: noProtoString,
   registrationRequest: noProtoString,

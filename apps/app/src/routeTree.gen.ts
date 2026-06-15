@@ -15,6 +15,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 
 const AdminLazyRouteImport = createFileRoute('/admin')()
+const AccountLazyRouteImport = createFileRoute('/account')()
 const IndexLazyRouteImport = createFileRoute('/')()
 const InvitationTokenLazyRouteImport = createFileRoute('/invitation/$token')()
 const DrawingsDeletedLazyRouteImport = createFileRoute('/drawings/deleted')()
@@ -30,6 +31,11 @@ const AdminLazyRoute = AdminLazyRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/admin.lazy').then((d) => d.Route))
+const AccountLazyRoute = AccountLazyRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/account.lazy').then((d) => d.Route))
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/account': typeof AccountLazyRoute
   '/admin': typeof AdminLazyRouteWithChildren
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexLazyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/account': typeof AccountLazyRoute
   '/admin': typeof AdminLazyRouteWithChildren
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/': typeof IndexLazyRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/account': typeof AccountLazyRoute
   '/admin': typeof AdminLazyRouteWithChildren
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/account'
     | '/admin'
     | '/drawings/deleted'
     | '/invitation/$token'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/account'
     | '/admin'
     | '/drawings/deleted'
     | '/invitation/$token'
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/account'
     | '/admin'
     | '/drawings/deleted'
     | '/invitation/$token'
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  AccountLazyRoute: typeof AccountLazyRoute
   AdminLazyRoute: typeof AdminLazyRouteWithChildren
   DrawingsDeletedLazyRoute: typeof DrawingsDeletedLazyRoute
   InvitationTokenLazyRoute: typeof InvitationTokenLazyRoute
@@ -157,6 +170,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  AccountLazyRoute: AccountLazyRoute,
   AdminLazyRoute: AdminLazyRouteWithChildren,
   DrawingsDeletedLazyRoute: DrawingsDeletedLazyRoute,
   InvitationTokenLazyRoute: InvitationTokenLazyRoute,

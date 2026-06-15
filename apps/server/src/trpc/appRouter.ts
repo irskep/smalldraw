@@ -45,6 +45,7 @@ import { createSession } from "../db/createSession.js";
 import { createUser } from "../db/createUser.js";
 import { deleteDocument } from "../db/deleteDocument.js";
 import { deleteLoginAttempt } from "../db/deleteLoginAttempt.js";
+import { deleteOtherSessionsForUser } from "../db/deleteOtherSessionsForUser.js";
 import { deleteSession } from "../db/deleteSession.js";
 import { deleteSessionForUser } from "../db/deleteSessionForUser.js";
 import { deleteSessionsForUser } from "../db/deleteSessionsForUser.js";
@@ -76,6 +77,8 @@ import { updateDocument } from "../db/updateDocument.js";
 import { updateUserRegistrationRecord } from "../db/updateUserRegistrationRecord.js";
 import { upsertDocumentThumbnail } from "../db/upsertDocumentThumbnail.js";
 import {
+  ChangePasswordFinishParams,
+  ChangePasswordStartParams,
   LoginFinishParams,
   LoginStartParams,
   RegisterFinishParams,
@@ -570,6 +573,95 @@ export const appRouter = router({
       isServerAdmin: user.isServerAdmin,
     };
   }),
+  changePasswordStart: protectedProcedure
+    .input(ChangePasswordStartParams)
+    .mutation(async (opts) => {
+      const user = await getUser(opts.ctx.session.userId);
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "session user not found",
+        });
+      }
+
+      const { serverLoginState, loginResponse } = opaque.server.startLogin({
+        serverSetup: getOpaqueServerSetup(),
+        userIdentifier: user.username,
+        registrationRecord: user.registrationRecord,
+        startLoginRequest: opts.input.currentPasswordLoginRequest,
+      });
+      const { registrationResponse } = opaque.server.createRegistrationResponse(
+        {
+          serverSetup: getOpaqueServerSetup(),
+          userIdentifier: user.username,
+          registrationRequest: opts.input.newPasswordRegistrationRequest,
+        },
+      );
+
+      await createLoginAttempt({
+        userId: user.id,
+        serverLoginState,
+      });
+
+      return {
+        loginResponse,
+        registrationResponse,
+      };
+    }),
+  changePasswordFinish: protectedProcedure
+    .input(ChangePasswordFinishParams)
+    .mutation(async (opts) => {
+      const user = await getUser(opts.ctx.session.userId);
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "session user not found",
+        });
+      }
+
+      const loginAttempt = await getLoginAttempt(user.username);
+      if (!loginAttempt?.serverLoginState) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "password change not started",
+        });
+      }
+
+      try {
+        opaque.server.finishLogin({
+          finishLoginRequest: opts.input.currentPasswordFinishRequest,
+          serverLoginState: loginAttempt.serverLoginState,
+        });
+      } catch (error) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "current password is incorrect",
+          cause: error,
+        });
+      } finally {
+        await deleteLoginAttempt(user.id);
+      }
+
+      const updatedUser = await updateUserRegistrationRecord({
+        userId: user.id,
+        registrationRecord: opts.input.newPasswordRegistrationRecord,
+      });
+      if (!updatedUser) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "user not found after password change",
+        });
+      }
+      const sessionsRevoked = await deleteOtherSessionsForUser({
+        userId: user.id,
+        currentSessionKey: opts.ctx.session.sessionKey,
+      });
+
+      return {
+        success: true,
+        sessionsRevoked,
+      };
+    }),
   documents: protectedProcedure.query(async (opts) => {
     return await listAccountDocumentSummaries(opts.ctx.session.userId);
   }),

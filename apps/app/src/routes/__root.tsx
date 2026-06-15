@@ -7,7 +7,7 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
-import { LogIn, LogOut, Shield, Trash2, UserPlus } from "lucide";
+import { LogIn, LogOut, Shield, Trash2, User, UserPlus } from "lucide";
 import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
 import { DsDropdownMenu } from "@/components/DsDropdownMenu/DsDropdownMenu";
 import { appPath, basePath, isAppRoute } from "../config";
@@ -64,6 +64,11 @@ const Root = () => {
               },
             ]
           : []),
+        {
+          id: "account",
+          label: "Account",
+          icon: User,
+        },
         {
           id: "deleted-drawings",
           label: "Deleted drawings",
@@ -125,6 +130,10 @@ const Root = () => {
       }
       if (itemId === "deleted-drawings") {
         navigate({ to: "/drawings/deleted" });
+        return;
+      }
+      if (itemId === "account") {
+        navigate({ to: "/account" });
         return;
       }
       if (itemId === "admin") {
