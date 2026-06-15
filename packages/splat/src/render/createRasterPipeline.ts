@@ -42,6 +42,7 @@ export function createRasterPipeline(options: {
   let orderedLayers: DrawingLayer[] = [];
   let currentRenderIdentity = options.renderIdentity;
   let draftSessionActive = false;
+  let draftSessionNeedsFullRender = false;
   let draftCaptureInFlight: Promise<void> | null = null;
   const knownClearShapeIds = new Set<string>();
 
@@ -139,6 +140,7 @@ export function createRasterPipeline(options: {
       .then(() => {
         hotLayer.setBackdrop(layerStack.getActiveLayerBackdropSnapshot());
         draftSessionActive = true;
+        draftSessionNeedsFullRender = true;
       })
       .finally(() => {
         draftCaptureInFlight = null;
@@ -154,6 +156,7 @@ export function createRasterPipeline(options: {
     hotLayer.setBackdrop(null);
     layerStack.endActiveLayerDraftSession();
     draftSessionActive = false;
+    draftSessionNeedsFullRender = false;
     stage.hotCanvas.style.visibility = "hidden";
   };
 
@@ -209,7 +212,13 @@ export function createRasterPipeline(options: {
       return;
     }
 
-    hotLayer.renderDrafts(drafts);
+    const preview = store.consumePreview();
+    hotLayer.renderDrafts(drafts, {
+      dirtyBounds: draftSessionNeedsFullRender
+        ? null
+        : (preview?.dirtyBounds ?? null),
+    });
+    draftSessionNeedsFullRender = false;
     stage.hotCanvas.style.visibility = "";
     updateKnownClearShapeIds();
   };
