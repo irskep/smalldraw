@@ -138,6 +138,21 @@
   min-width: 0;
 }
 
+.kids-draw-new-document-dialog__blank-button {
+  min-height: var(--size-px-8);
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  text-align: center;
+}
+
+.kids-draw-new-document-dialog__blank-button .ds-choice-card__media {
+  display: none;
+}
+
+.kids-draw-new-document-dialog__blank-button .ds-choice-card__body {
+  justify-items: center;
+}
+
 .kids-draw-new-document-dialog__choice .ds-choice-card__title,
 .kids-draw-new-document-dialog__choice .ds-choice-card__subtitle,
 .kids-draw-new-document-dialog__book-summary-title,

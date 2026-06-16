@@ -27,12 +27,6 @@ export interface NewDocumentDialogView extends ReDomLike<HTMLDivElement> {
   setBusy(busy: boolean): void;
 }
 
-function createBlankThumbnail(): HTMLDivElement {
-  const blank = document.createElement("div");
-  blank.textContent = "Blank drawing";
-  return blank;
-}
-
 export function createNewDocumentDialogView(options: {
   onClose: () => void;
   onCreate: (request: NewDocumentRequest) => void;
@@ -169,11 +163,10 @@ export function createNewDocumentDialogView(options: {
 
   const renderRootChoices = (state: NewDocumentDialogState): void => {
     const blankChoice = createChoiceCard({
-      title: "Blank Drawing",
-      subtitle: "Start with an empty page",
-      className: "kids-draw-new-document-dialog__choice",
+      title: "blank drawing",
+      className:
+        "kids-draw-new-document-dialog__choice kids-draw-new-document-dialog__blank-button",
     });
-    blankChoice.setMedia(createBlankThumbnail());
     blankChoice.setAttributes({
       "data-new-document-mode": "normal",
     });
@@ -270,9 +263,7 @@ export function createNewDocumentDialogView(options: {
       selectedBook === null ? "New Drawing" : selectedBook.title,
     );
     scaffold.setSubtitle(
-      selectedBook === null
-        ? "Start blank or pick a page from a coloring book"
-        : `${selectedBook.pageCount} pages`,
+      selectedBook === null ? null : `${selectedBook.pageCount} pages`,
     );
     closeButton.setDisabled(state.busy);
     backButton.setDisabled(state.busy);
