@@ -23,7 +23,7 @@ import {
   type KidsDocumentBackend,
   resolveJoinBaseUrl,
 } from "../documents";
-import { resolvePageSize } from "../layout/responsiveLayout";
+import { resolveLogicalSizeFromAvailableArea } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
@@ -93,6 +93,11 @@ export async function createKidsDrawApp(
   );
   presentation.stage.setCanvasVisible(true);
   presentation.stage.setInteractionEnabled(false);
+
+  const measuredInitialImplicitSize =
+    options.width === undefined && options.height === undefined
+      ? await resolveMeasuredInitialImplicitSize(presentation)
+      : undefined;
   presentation.toolbar.setDocumentSlot(describeInitialBlockingState(options));
 
   let runtime: AppRuntimeAssembly;
@@ -100,6 +105,7 @@ export async function createKidsDrawApp(
     runtime = await assembleAppRuntime(options, {
       shapeHandlers: provisionalShapeHandlers,
       shapeRendererRegistry: provisionalShapeRendererRegistry,
+      initialImplicitDocumentSize: measuredInitialImplicitSize,
     });
   } catch (error) {
     unbindParentalControls();
@@ -264,6 +270,9 @@ async function requestParentalSharePermission(
   return true;
 }
 
+const DEFAULT_PROVISIONAL_WIDTH = 960;
+const DEFAULT_PROVISIONAL_HEIGHT = 600;
+
 function resolveInitialShellSize(
   options: Pick<KidsDrawAppOptions, "width" | "height">,
 ): { width: number; height: number } {
@@ -272,7 +281,35 @@ function resolveInitialShellSize(
   if (options.width !== undefined || options.height !== undefined) {
     return { width: explicitWidth, height: explicitHeight };
   }
-  return resolvePageSize({ width: explicitWidth, height: explicitHeight });
+  return {
+    width: DEFAULT_PROVISIONAL_WIDTH,
+    height: DEFAULT_PROVISIONAL_HEIGHT,
+  };
+}
+
+async function resolveMeasuredInitialImplicitSize(
+  presentation: ReturnType<typeof createPresentationRuntime>,
+): Promise<{ width: number; height: number } | undefined> {
+  presentation.toolbar.syncLayout();
+  await nextAnimationFrame();
+  await nextAnimationFrame();
+
+  const width = presentation.stage.viewportHost.clientWidth;
+  const height = presentation.stage.viewportHost.clientHeight;
+  if (width <= 0 || height <= 0) {
+    return undefined;
+  }
+  return resolveLogicalSizeFromAvailableArea({ width, height });
+}
+
+function nextAnimationFrame(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => resolve());
+      return;
+    }
+    setTimeout(resolve, 16);
+  });
 }
 
 function describeInitialBlockingState(

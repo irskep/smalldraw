@@ -509,10 +509,17 @@ export function createDocumentRuntimeController(options: {
       }
     },
     async createNewDocument(request: NewDocumentRequest): Promise<void> {
+      const measuredDocumentSize =
+        !options.hasExplicitSize && request.mode === "normal"
+          ? options.getDocumentSizeFromViewport()
+          : undefined;
       const cycleId = beginStartupCycle("create_document");
       clearRenderedDocumentSurface();
       try {
-        await documentSessionController.createNewDocument(request);
+        await documentSessionController.createNewDocument(
+          request,
+          measuredDocumentSize,
+        );
       } catch (error) {
         failStartupCycle(cycleId, "document_create_failed", error);
         throw error;

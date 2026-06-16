@@ -7,7 +7,7 @@ import {
   createLocalDocumentBackend,
   type KidsDocumentBackend,
 } from "../documents";
-import { resolveLayoutMode, resolvePageSize } from "../layout/responsiveLayout";
+import { resolveLayoutMode } from "../layout/responsiveLayout";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import {
@@ -55,7 +55,6 @@ export type AppRuntimeAssembly = {
   sizingPolicy: {
     hasExplicitSize: boolean;
     getExplicitSize: () => DrawingDocumentSize;
-    resolvePageSize: () => DrawingDocumentSize;
   };
   prepareDocumentOpen:
     | ((summary: KidsDocumentSummary | null) => Promise<void>)
@@ -67,6 +66,7 @@ export async function assembleAppRuntime(
   injected?: {
     shapeHandlers?: ReturnType<typeof createKidsShapeHandlerRegistry>;
     shapeRendererRegistry?: ReturnType<typeof createKidsShapeRendererRegistry>;
+    initialImplicitDocumentSize?: DrawingDocumentSize;
   },
 ): Promise<AppRuntimeAssembly> {
   const hasExplicitSize =
@@ -75,12 +75,11 @@ export async function assembleAppRuntime(
     width: options.width ?? DEFAULT_WIDTH,
     height: options.height ?? DEFAULT_HEIGHT,
   });
-  const resolveCurrentPageSize = (): DrawingDocumentSize =>
-    resolvePageSize(getExplicitSize());
-  const resolvedImplicitPageSize = resolveCurrentPageSize();
   const desiredInitialSize: DrawingDocumentSize = hasExplicitSize
     ? getExplicitSize()
-    : resolvedImplicitPageSize;
+    : (injected?.initialImplicitDocumentSize ??
+      options.core?.storeAdapter.getDoc().size ??
+      throwMissingImplicitDocumentSize());
 
   if (typeof window !== "undefined") {
     console.info("[kids-draw:size] initial-page-size", {
@@ -88,7 +87,7 @@ export async function assembleAppRuntime(
       layoutMode: resolveLayoutMode(window.innerWidth, window.innerHeight),
       hasExplicitSize,
       explicitFallback: getExplicitSize(),
-      resolvedImplicitPageSize,
+      measuredImplicitSize: injected?.initialImplicitDocumentSize ?? null,
       desiredInitialSize,
     });
   }
@@ -229,10 +228,15 @@ export async function assembleAppRuntime(
     sizingPolicy: {
       hasExplicitSize,
       getExplicitSize,
-      resolvePageSize: resolveCurrentPageSize,
     },
     prepareDocumentOpen,
   };
+}
+
+function throwMissingImplicitDocumentSize(): never {
+  throw new Error(
+    "Cannot create an implicit drawing size before the canvas host has a measurable size.",
+  );
 }
 
 function toStartupDocumentAccessDisplay(

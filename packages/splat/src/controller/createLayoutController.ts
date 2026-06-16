@@ -5,7 +5,7 @@ import {
   normalizePixelRatio,
   type ResponsiveLayoutProfile,
   resolveLayoutProfile,
-  resolveLogicalSizeFromViewportArea,
+  resolveLogicalSizeFromAvailableArea,
 } from "../layout/responsiveLayout";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import type { KidsDrawStage } from "../view/KidsDrawStage";
@@ -16,7 +16,6 @@ import type { KidsDrawRuntimeStore } from "./stores/createKidsDrawRuntimeStore";
 export type LayoutControllerDependencies = {
   stage: KidsDrawStage;
   toolbar: KidsDrawToolbar;
-  resolvePageSize: () => { width: number; height: number };
   getSize: () => { width: number; height: number };
   setSize: (size: DrawingDocumentSize) => void;
   runtimeStore: Pick<
@@ -93,17 +92,17 @@ export class LayoutController {
     width: number;
     height: number;
   } {
-    const fallback = this.options.resolvePageSize();
     const host = this.options.stage.viewportHost;
     const hostWidth = Math.round(host.clientWidth);
     const hostHeight = Math.round(host.clientHeight);
     if (hostWidth <= 0 || hostHeight <= 0) {
-      return fallback;
+      throw new Error(
+        "Cannot create a new drawing before the canvas host has a measurable size.",
+      );
     }
-    return resolveLogicalSizeFromViewportArea({
-      viewportWidth: hostWidth,
-      viewportHeight: hostHeight,
-      padding: this.getViewportPadding(),
+    return resolveLogicalSizeFromAvailableArea({
+      width: hostWidth,
+      height: hostHeight,
     });
   }
 

@@ -74,7 +74,6 @@ export interface KidsDrawController {
 export interface KidsDrawSizingPolicy {
   hasExplicitSize: boolean;
   getExplicitSize: () => DrawingDocumentSize;
-  resolvePageSize: () => DrawingDocumentSize;
 }
 
 function toClaimErrorMessage(
@@ -360,7 +359,6 @@ export function createKidsDrawController(options: {
     pipeline,
     backgroundColor,
     runtimeStore,
-    resolvePageSize: sizingPolicy.resolvePageSize,
     getSize,
     setSize,
     inputSessionController,

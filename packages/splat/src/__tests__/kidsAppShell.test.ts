@@ -19,7 +19,6 @@ import type {
   KidsDocumentCreateInput,
   KidsDocumentSummary,
 } from "../documents";
-import { resolvePageSize } from "../layout/responsiveLayout";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import { createKidsToolCatalog } from "../tools/kidsTools";
@@ -2570,7 +2569,7 @@ describe("splatterboard shell", () => {
     app.destroy();
   });
 
-  test("new drawing re-resolves logical size from page size when size is implicit", async () => {
+  test("new drawing uses measured stage space when size is implicit", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
@@ -2606,6 +2605,18 @@ describe("splatterboard shell", () => {
       expect(hotCanvas!.style.width).toBe("900px");
       expect(hotCanvas!.style.height).toBe("620px");
 
+      const viewportHost = container.querySelector(
+        ".kids-draw-viewport",
+      ) as HTMLElement | null;
+      expect(viewportHost).not.toBeNull();
+      Object.defineProperty(viewportHost, "clientWidth", {
+        configurable: true,
+        value: 392,
+      });
+      Object.defineProperty(viewportHost, "clientHeight", {
+        configurable: true,
+        value: 578,
+      });
       Object.defineProperty(window, "innerWidth", {
         configurable: true,
         writable: true,
@@ -2616,7 +2627,6 @@ describe("splatterboard shell", () => {
         writable: true,
         value: 800,
       });
-      const expectedSize = resolvePageSize({ width: 0, height: 0 });
 
       newDrawingButton!.click();
       const createNormalButton = container.querySelector(
@@ -2626,8 +2636,8 @@ describe("splatterboard shell", () => {
       createNormalButton!.click();
       const resized = await waitUntil(() => {
         return (
-          hotCanvas!.style.width === `${expectedSize.width}px` &&
-          hotCanvas!.style.height === `${expectedSize.height}px`
+          hotCanvas!.style.width === "392px" &&
+          hotCanvas!.style.height === "578px"
         );
       }, 100);
       expect(resized).toBeTrue();

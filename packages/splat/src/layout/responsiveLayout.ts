@@ -1,7 +1,5 @@
 export const MIN_WIDTH = 320;
 export const MIN_HEIGHT = 240;
-export const AUTO_HEIGHT_RESERVED = 0;
-export const IMPLICIT_DOC_VERTICAL_SLACK = 10;
 export const VIEWPORT_PADDING_TOP = 24;
 export const VIEWPORT_PADDING_RIGHT = 24;
 export const VIEWPORT_PADDING_BOTTOM = 24;
@@ -24,34 +22,6 @@ export type ViewportPadding = {
   bottom: number;
   left: number;
 };
-
-const LAYOUT_PROFILE_PADDING: Record<ResponsiveLayoutProfile, ViewportPadding> =
-  {
-    large: {
-      top: 136,
-      right: 140,
-      bottom: 142,
-      left: 140,
-    },
-    medium: {
-      top: 136,
-      right: 96,
-      bottom: 142,
-      left: 80,
-    },
-    "mobile-landscape": {
-      top: 120,
-      right: 84,
-      bottom: 70,
-      left: 52,
-    },
-    "mobile-portrait": {
-      top: 170,
-      right: 24,
-      bottom: 156,
-      left: 24,
-    },
-  };
 
 const safeAreaInset = (
   side: "top" | "right" | "bottom" | "left",
@@ -93,32 +63,16 @@ const getAppliedViewportPadding = (
   };
 };
 
-export function resolveLogicalSizeFromViewportArea(params: {
-  viewportWidth: number;
-  viewportHeight: number;
-  padding: ViewportPadding;
-  verticalSlack?: number;
+export function resolveLogicalSizeFromAvailableArea(params: {
+  width: number;
+  height: number;
 }): {
   width: number;
   height: number;
 } {
-  const verticalSlack = params.verticalSlack ?? IMPLICIT_DOC_VERTICAL_SLACK;
-  const horizontalPadding = params.padding.left + params.padding.right;
-  const verticalPadding = params.padding.top + params.padding.bottom;
   return {
-    width: Math.max(
-      MIN_WIDTH,
-      Math.round(params.viewportWidth - horizontalPadding),
-    ),
-    height: Math.max(
-      MIN_HEIGHT,
-      Math.round(
-        params.viewportHeight -
-          AUTO_HEIGHT_RESERVED -
-          verticalPadding -
-          verticalSlack,
-      ),
-    ),
+    width: Math.max(MIN_WIDTH, Math.round(params.width)),
+    height: Math.max(MIN_HEIGHT, Math.round(params.height)),
   };
 }
 
@@ -127,23 +81,6 @@ export function normalizePixelRatio(value: number | undefined): number {
     return 1;
   }
   return value;
-}
-
-export function resolvePageSize(fallback: { width: number; height: number }): {
-  width: number;
-  height: number;
-} {
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-
-  const profile = resolveLayoutProfile(window.innerWidth, window.innerHeight);
-  const padding = getViewportPaddingForProfile(profile);
-  return resolveLogicalSizeFromViewportArea({
-    viewportWidth: window.innerWidth,
-    viewportHeight: window.innerHeight,
-    padding,
-  });
 }
 
 export function resolveLayoutMode(
@@ -183,12 +120,6 @@ export function resolveLayoutProfile(
   return resolveLayoutOrientation(width, height) === "portrait"
     ? "mobile-portrait"
     : "mobile-landscape";
-}
-
-export function getViewportPaddingForProfile(
-  profile: ResponsiveLayoutProfile,
-): ViewportPadding {
-  return LAYOUT_PROFILE_PADDING[profile];
 }
 
 export function applyResponsiveLayout(params: {

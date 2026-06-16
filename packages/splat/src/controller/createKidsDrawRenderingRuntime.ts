@@ -26,7 +26,6 @@ type RenderingRuntimeOptions = Omit<
     | "$viewportMetrics"
     | "getPresentationIdentity"
   >;
-  resolvePageSize: () => { width: number; height: number };
   getSize: () => { width: number; height: number };
   setSize: (size: { width: number; height: number }) => void;
   inputSessionController: Pick<InputSessionController, "onRenderPass">;

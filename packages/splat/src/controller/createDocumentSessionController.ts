@@ -193,9 +193,13 @@ export class DocumentSessionController {
     this.emitIntent({ type: "switch_or_create_completed" });
   }
 
-  async createNewDocument(request: NewDocumentRequest): Promise<void> {
+  async createNewDocument(
+    request: NewDocumentRequest,
+    measuredDocumentSize?: DrawingDocumentSize,
+  ): Promise<void> {
     const requestPresentation = this.getPresentationForCreateRequest(request);
     const nextDocumentSize =
+      measuredDocumentSize ??
       this.options.getDocumentSizeForCreateRequest(request);
     await this.flushThumbnailSave();
     const { adapter, url } = await this.options.core.createNew({
