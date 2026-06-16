@@ -12,6 +12,7 @@ RUN bun install
 # Copy source files needed at runtime
 COPY drizzle.config.ts ./
 COPY apps/server/src apps/server/src
+COPY apps/server/scripts apps/server/scripts
 COPY packages/shared/src packages/shared/src
 
 # Copy pre-built frontend assets (built by scripts/prod-build.ts before docker build)
