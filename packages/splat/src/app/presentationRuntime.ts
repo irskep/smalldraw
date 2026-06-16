@@ -1,6 +1,8 @@
 import {
   createModalDialogView as createDesignSystemModalDialogView,
+  createParentalControlsDialog as createDesignSystemParentalControlsDialog,
   createShareQrDialog as createDesignSystemShareQrDialog,
+  type ParentalControlsDialog,
   type ShareQrDialog,
 } from "@smalldraw/design-system";
 import { el, mount, unmount } from "redom";
@@ -31,6 +33,7 @@ export type PresentationRuntime = {
   toolbar: KidsDrawToolbar;
   stage: KidsDrawStageView;
   modalDialog: ConfirmDialogViewLike;
+  parentalControlsDialog: ParentalControlsDialog;
   shareQrDialog: ShareQrDialog;
   uiIntentStore: ReturnType<typeof createUiIntentStore>;
   destroy(): void;
@@ -63,11 +66,14 @@ export function createPresentationRuntime(options: {
   });
   const modalDialog: ConfirmDialogViewLike =
     createDesignSystemModalDialogView();
+  const parentalControlsDialog: ParentalControlsDialog =
+    createDesignSystemParentalControlsDialog();
   const shareQrDialog: ShareQrDialog = createDesignSystemShareQrDialog();
 
   toolbar.setCanvasContent(stage.element);
   mount(element, toolbar.el);
   mount(element, modalDialog.el);
+  mount(element, parentalControlsDialog.el);
   mount(element, shareQrDialog.el);
   mount(options.container, element);
 
@@ -76,6 +82,7 @@ export function createPresentationRuntime(options: {
     toolbar,
     stage,
     modalDialog,
+    parentalControlsDialog,
     shareQrDialog,
     uiIntentStore,
     destroy() {

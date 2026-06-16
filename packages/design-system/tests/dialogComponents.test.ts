@@ -3,6 +3,7 @@ import { AlertTriangle } from "lucide";
 import {
   createDocumentAccessState,
   createModalDialogView,
+  createParentalControlsDialog,
   createShareQrDialog,
 } from "../src";
 
@@ -197,6 +198,91 @@ describe("ShareQrDialog", () => {
   });
 });
 
+describe("ParentalControlsDialog", () => {
+  test("requires the math prompt before saving settings", async () => {
+    const dialog = createParentalControlsDialog();
+    document.body.appendChild(dialog.el);
+
+    const pending = dialog.show({
+      initialState: { hasPin: false, sharingHidden: false },
+      verifyPin: async () => false,
+      isCorrectMathAnswer: (answer) => answer.trim() === "30",
+    });
+
+    const accessInput = dialog.el.querySelector(
+      "#ds-parental-controls-access",
+    ) as HTMLInputElement | null;
+    const settingsPanel = dialog.el.querySelector(
+      ".ds-parental-controls-dialog__settings-panel",
+    ) as HTMLDivElement | null;
+    expect(accessInput).not.toBeNull();
+    expect(settingsPanel?.hidden).toBeTrue();
+    accessInput!.value = "29";
+    clickDialogButton(dialog.el, "Continue");
+    await Promise.resolve();
+    expect(dialog.el.textContent).toContain("Try again.");
+
+    accessInput!.value = "30";
+    clickDialogButton(dialog.el, "Continue");
+    await Promise.resolve();
+    expect(settingsPanel?.hidden).toBeFalse();
+
+    const sharingInput = dialog.el.querySelector(
+      ".ds-parental-controls-dialog__checkbox",
+    ) as HTMLInputElement | null;
+    const pinInput = dialog.el.querySelector(
+      "#ds-parental-controls-pin",
+    ) as HTMLInputElement | null;
+    expect(sharingInput).not.toBeNull();
+    expect(pinInput).not.toBeNull();
+    sharingInput!.checked = true;
+    pinInput!.value = "2468";
+    clickDialogButton(dialog.el, "Save");
+
+    expect(await pending).toEqual({
+      sharingHidden: true,
+      pinChange: { type: "set", pin: "2468" },
+    });
+  });
+
+  test("uses the PIN prompt when a PIN exists", async () => {
+    const dialog = createParentalControlsDialog();
+    document.body.appendChild(dialog.el);
+
+    const pending = dialog.show({
+      initialState: { hasPin: true, sharingHidden: true },
+      verifyPin: async (pin) => pin === "1357",
+      isCorrectMathAnswer: () => false,
+    });
+
+    const accessInput = dialog.el.querySelector(
+      "#ds-parental-controls-access",
+    ) as HTMLInputElement | null;
+    const settingsPanel = dialog.el.querySelector(
+      ".ds-parental-controls-dialog__settings-panel",
+    ) as HTMLDivElement | null;
+    expect(accessInput?.type).toBe("password");
+    expect(settingsPanel?.hidden).toBeTrue();
+    accessInput!.value = "0000";
+    clickDialogButton(dialog.el, "Continue");
+    await Promise.resolve();
+    expect(dialog.el.textContent).toContain("Incorrect PIN.");
+
+    accessInput!.value = "1357";
+    clickDialogButton(dialog.el, "Continue");
+    await Promise.resolve();
+    expect(settingsPanel?.hidden).toBeFalse();
+
+    clickDialogButton(dialog.el, "Clear PIN");
+    clickDialogButton(dialog.el, "Save");
+
+    expect(await pending).toEqual({
+      sharingHidden: true,
+      pinChange: { type: "clear" },
+    });
+  });
+});
+
 describe("DocumentAccessState", () => {
   test("renders auth actions and invokes retry/reset handlers", async () => {
     const state = createDocumentAccessState({
@@ -305,3 +391,11 @@ describe("DocumentAccessState", () => {
     expect(utilityActions?.childElementCount).toBe(0);
   });
 });
+
+function clickDialogButton(root: HTMLElement, label: string): void {
+  const button = Array.from(
+    root.querySelectorAll<HTMLButtonElement>(".ds-button"),
+  ).find((candidate) => candidate.textContent?.trim() === label);
+  expect(button).not.toBeUndefined();
+  button!.click();
+}

@@ -51,6 +51,8 @@ export function createKidsDrawCommandController(options: {
   openDocumentPicker: () => Promise<void>;
   openDocumentCreateDialog: () => void;
   shareCurrentDocument: () => Promise<void>;
+  isSharingAllowed?: () => boolean;
+  requestSharePermission?: () => Promise<boolean>;
   onShareError?: (message: string) => void;
   confirmDestructiveAction: (dialog: ConfirmDialogRequest) => Promise<boolean>;
   savePngExport?: (input: {
@@ -176,6 +178,20 @@ export function createKidsDrawCommandController(options: {
     console.info("[kids-draw:multiplayer] command share start", {
       requestId,
     });
+    if (options.isSharingAllowed && !options.isSharingAllowed()) {
+      return;
+    }
+    if (options.requestSharePermission) {
+      const permitted = await options.requestSharePermission();
+      if (
+        !permitted ||
+        options.isDestroyed() ||
+        requestId !== shareRequestId ||
+        (options.isSharingAllowed && !options.isSharingAllowed())
+      ) {
+        return;
+      }
+    }
     options.toolbarUiStore.setSharePending(true);
     try {
       await options.shareCurrentDocument();

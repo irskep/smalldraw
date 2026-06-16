@@ -1,0 +1,88 @@
+.ds-parental-controls-dialog {
+  width: min(var(--width-modal-md), calc(100vw - var(--size-px-7)));
+}
+
+.ds-parental-controls-dialog__shell {
+  display: grid;
+  gap: var(--size-px-4);
+  padding: var(--size-px-4);
+}
+
+.ds-parental-controls-dialog__content {
+  display: grid;
+  gap: var(--size-px-4);
+}
+
+.ds-parental-controls-dialog__form {
+  display: grid;
+  gap: var(--size-px-3);
+}
+
+.ds-parental-controls-dialog__field {
+  display: grid;
+  gap: var(--size-px-2);
+}
+
+.ds-parental-controls-dialog__label {
+  font-size: var(--font-size-button-md);
+  font-weight: var(--font-weight-5);
+}
+
+.ds-parental-controls-dialog__input {
+  min-width: 0;
+  width: 100%;
+  border: var(--border-size-1) solid var(--ds-border-strong);
+  border-radius: var(--radius-2);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
+  padding: var(--space-control-gap-md) var(--size-3);
+  font: inherit;
+  font-size: var(--font-size-button-md);
+  line-height: 1;
+}
+
+.ds-parental-controls-dialog__input:focus-visible {
+  outline: var(--border-size-3) solid var(--ds-focus-ring);
+  outline-offset: calc(var(--border-size-2) * -1);
+}
+
+.ds-parental-controls-dialog__checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: var(--size-px-2);
+  font-size: var(--font-size-button-md);
+}
+
+.ds-parental-controls-dialog__checkbox {
+  inline-size: 1.1em;
+  block-size: 1.1em;
+}
+
+.ds-parental-controls-dialog__hint,
+.ds-parental-controls-dialog__error {
+  margin: 0;
+  font-size: var(--font-size-0);
+}
+
+.ds-parental-controls-dialog__hint {
+  color: var(--ds-text-muted);
+}
+
+.ds-parental-controls-dialog__error {
+  color: var(--ds-danger);
+}
+
+.ds-parental-controls-dialog__error[hidden],
+.ds-parental-controls-dialog__access-panel[hidden],
+.ds-parental-controls-dialog__settings-panel[hidden],
+.ds-parental-controls-dialog__clear-row[hidden] {
+  display: none;
+}
+
+.ds-parental-controls-dialog__actions,
+.ds-parental-controls-dialog__clear-row {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--size-px-2);
+}

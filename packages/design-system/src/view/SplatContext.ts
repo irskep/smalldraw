@@ -107,6 +107,8 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private desktopRedoButton?: Button;
   private desktopShareButton?: Button;
   private mobileShareButton?: Button;
+  private sharingFeaturesVisible = true;
+  private readonly actionDisabledById = new Map<string, boolean>();
   private canvasHost?: HTMLDivElement;
 
   private toolGrid?: PagedButtonGrid<SplatToolItem>;
@@ -190,6 +192,14 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.syncIndicator.setState(state, description);
   }
 
+  setSharingFeaturesVisible(visible: boolean): void {
+    if (this.sharingFeaturesVisible === visible) {
+      return;
+    }
+    this.sharingFeaturesVisible = visible;
+    this.syncSharingFeatureVisibility();
+  }
+
   setTools(tools: readonly SplatToolItem[]): void {
     this.toolItemsStore.set([...tools]);
   }
@@ -223,6 +233,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   setActionDisabled(actionId: string, disabled: boolean): void {
+    this.actionDisabledById.set(actionId, disabled);
     switch (actionId) {
       case "undo":
         this.desktopUndoButton?.setDisabled(disabled);
@@ -231,8 +242,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
         this.desktopRedoButton?.setDisabled(disabled);
         break;
       case "share":
-        this.desktopShareButton?.setDisabled(disabled);
-        this.mobileShareButton?.setDisabled(disabled);
+        this.syncShareDisabled();
         break;
     }
     this.desktopMenu.setItemDisabled(actionId, disabled);
@@ -360,16 +370,31 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private syncVisibleResponsiveState(): void {
-    this.syncMobileShareVisibility(
-      this.responsiveController.getState().showMobileShare,
-    );
+    this.syncSharingFeatureVisibility();
   }
 
-  private syncMobileShareVisibility(showMobileShare: boolean): void {
-    if (!this.mobileShareButton) {
-      return;
+  private syncSharingFeatureVisibility(): void {
+    const showMobileShare =
+      this.sharingFeaturesVisible &&
+      this.responsiveController.getState().showMobileShare;
+    this.syncShareDisabled();
+    if (this.desktopShareButton) {
+      this.desktopShareButton.el.hidden = !this.sharingFeaturesVisible;
     }
-    this.mobileShareButton.el.hidden = !showMobileShare;
+    if (this.mobileShareButton) {
+      this.mobileShareButton.el.hidden = !showMobileShare;
+    }
+    this.syncIndicator.el.hidden = !this.sharingFeaturesVisible;
+    this.desktopMenu.setItemHidden("share", !this.sharingFeaturesVisible);
+    this.mobileMenu.setItemHidden("share", !this.sharingFeaturesVisible);
+  }
+
+  private syncShareDisabled(): void {
+    const disabled =
+      (this.actionDisabledById.get("share") ?? false) ||
+      !this.sharingFeaturesVisible;
+    this.desktopShareButton?.setDisabled(disabled);
+    this.mobileShareButton?.setDisabled(disabled);
   }
 
   private syncOwnedGridLayouts(): void {
@@ -694,6 +719,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.desktopShareButton.el,
       this.desktopMenu.el,
     );
+    this.syncSharingFeatureVisibility();
     return actions;
   }
 
@@ -791,6 +817,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "share",
     );
     trailingActions.append(this.mobileShareButton.el, this.mobileMenu.el);
+    this.syncSharingFeatureVisibility();
     return trailingActions;
   }
 

@@ -301,6 +301,8 @@ export type DocumentThumbnailUploadTarget = {
   uploadUrl: string;
 };
 
+export * from "./parentalControls";
+
 function isAppErrorCode(input: unknown): input is AppErrorCode {
   return (
     input === "DOCUMENT_CONTENT_MISSING" ||

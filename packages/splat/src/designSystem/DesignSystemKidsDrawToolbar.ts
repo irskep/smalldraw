@@ -165,6 +165,10 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
     this.context.setDocumentSlot(slot);
   }
 
+  setSharingFeaturesVisible(visible: boolean): void {
+    this.context.setSharingFeaturesVisible(visible);
+  }
+
   private applyState(state: ToolbarUiState): void {
     const presentation = resolveToolbarPresentationState({
       state,

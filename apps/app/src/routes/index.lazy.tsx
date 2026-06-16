@@ -6,6 +6,10 @@ import {
   DsConfirmDialog,
   type DsConfirmDialogHandle,
 } from "@/components/DsConfirmDialog/DsConfirmDialog";
+import {
+  ParentalControlsDialog,
+  type ParentalControlsDialogHandle,
+} from "@/components/ParentalControlsDialog/ParentalControlsDialog";
 import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
 import { buildLauncherDocumentTiles } from "@/utils/documentLauncher";
 import {
@@ -38,6 +42,7 @@ function Index() {
     [],
   );
   const confirmDialogRef = useRef<DsConfirmDialogHandle>(null);
+  const parentalControlsDialogRef = useRef<ParentalControlsDialogHandle>(null);
   const localObjectUrlsRef = useRef<string[]>([]);
   const [localCatalog, setLocalCatalog] = useState<LocalCatalogState>({
     type: "loading",
@@ -201,79 +206,95 @@ function Index() {
   };
 
   return (
-    <section className="portal-launcher" aria-label="Drawings">
-      {localCatalog.type === "error" ? (
-        <div className="portal-alert" data-tone="danger" role="alert">
-          <div className="portal-alert__body">
-            <div className="portal-alert__title">
-              Local drawings could not be loaded
-            </div>
-            <div>{localCatalog.message}</div>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="portal-launcher-grid">
-        <a
-          href={buildNewDrawingUrl(runtimeConfig)}
-          className="portal-launcher-card portal-launcher-card--new"
-        >
-          <span className="portal-launcher-card__media">
-            <span
-              className="ds-button portal-launcher-card__cta"
-              data-tone="primary"
-            >
-              New Drawing
-            </span>
-          </span>
-        </a>
-
-        {tiles.map((tile) => (
-          <div key={tile.key} className="portal-launcher-card">
-            <DsThumbnailTile
-              action={
-                tile.deleteAction
-                  ? {
-                      label:
-                        tile.deleteAction.type === "shared"
-                          ? "Delete shared drawing"
-                          : tile.deleteAction.type === "remove-shared"
-                            ? "Remove shared drawing"
-                            : "Delete drawing",
-                      icon: Trash2,
-                      onPress: () => {
-                        void confirmDelete(tile);
-                      },
-                      disabled: deletingTileKey === tile.key,
-                    }
-                  : undefined
-              }
-              badge={{
-                label: tile.badge,
-                tone: tile.badge === "Shared" ? "positive" : "default",
-              }}
-              emptyLabel="No preview"
-              imageAlt={`${tile.title} thumbnail`}
-              imageSrc={tile.thumbnailUrl}
-              onOpen={() => {
-                window.location.href = tile.href;
-              }}
-              openLabel={`Open ${tile.title}`}
-            />
-          </div>
-        ))}
-      </div>
-
-      {localCatalog.type === "loading" ? (
-        <p className="portal-muted">Loading drawings…</p>
-      ) : null}
-
-      {isLoggedIn && documentsQuery.error ? (
-        <p className="portal-muted">
-          Account drawings could not be refreshed right now.
+    <>
+      <section className="portal-info">
+        <p>
+          Splatterboard is a free drawing app for kids. No data is stored on the
+          server unless you use the draw-together feature.{" "}
+          <button
+            className="portal-link-button"
+            type="button"
+            onClick={() => void parentalControlsDialogRef.current?.open()}
+          >
+            Parental controls can hide sharing.
+          </button>
         </p>
-      ) : null}
+      </section>
+      <section className="portal-launcher" aria-label="Drawings">
+        {localCatalog.type === "error" ? (
+          <div className="portal-alert" data-tone="danger" role="alert">
+            <div className="portal-alert__body">
+              <div className="portal-alert__title">
+                Local drawings could not be loaded
+              </div>
+              <div>{localCatalog.message}</div>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="portal-launcher-grid">
+          <a
+            href={buildNewDrawingUrl(runtimeConfig)}
+            className="portal-launcher-card portal-launcher-card--new"
+          >
+            <span className="portal-launcher-card__media">
+              <span
+                className="ds-button portal-launcher-card__cta"
+                data-tone="primary"
+              >
+                New Drawing
+              </span>
+            </span>
+          </a>
+
+          {tiles.map((tile) => (
+            <div key={tile.key} className="portal-launcher-card">
+              <DsThumbnailTile
+                action={
+                  tile.deleteAction
+                    ? {
+                        label:
+                          tile.deleteAction.type === "shared"
+                            ? "Delete shared drawing"
+                            : tile.deleteAction.type === "remove-shared"
+                              ? "Remove shared drawing"
+                              : "Delete drawing",
+                        icon: Trash2,
+                        onPress: () => {
+                          void confirmDelete(tile);
+                        },
+                        disabled: deletingTileKey === tile.key,
+                      }
+                    : undefined
+                }
+                badge={{
+                  label: tile.badge,
+                  tone: tile.badge === "Shared" ? "positive" : "default",
+                }}
+                emptyLabel="No preview"
+                imageAlt={`${tile.title} thumbnail`}
+                imageSrc={tile.thumbnailUrl}
+                onOpen={() => {
+                  window.location.href = tile.href;
+                }}
+                openLabel={`Open ${tile.title}`}
+              />
+            </div>
+          ))}
+        </div>
+
+        {localCatalog.type === "loading" ? (
+          <p className="portal-muted">Loading drawings…</p>
+        ) : null}
+
+        {isLoggedIn && documentsQuery.error ? (
+          <p className="portal-muted">
+            Account drawings could not be refreshed right now.
+          </p>
+        ) : null}
+      </section>
       <DsConfirmDialog ref={confirmDialogRef} />
-    </section>
+      <ParentalControlsDialog ref={parentalControlsDialogRef} />
+    </>
   );
 }

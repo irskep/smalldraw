@@ -17,4 +17,5 @@ export interface KidsDrawToolbar {
   syncLayout(): void;
   setCanvasContent(content: HTMLElement): void;
   setDocumentSlot(slot: SplatContextDocumentSlot): void;
+  setSharingFeaturesVisible(visible: boolean): void;
 }

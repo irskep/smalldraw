@@ -175,6 +175,8 @@ export function createKidsDrawController(options: {
   ) => Promise<void> | void;
   resolveJoinBaseUrl?: () => string;
   showShareDialog: (payload: SharePayload) => Promise<void>;
+  isSharingAllowed?: () => boolean;
+  requestSharePermission?: () => Promise<boolean>;
   onShareError?: (message: string) => void;
   onClaimError?: (message: string) => void;
   onDocumentOpenRequested?: (
@@ -215,6 +217,8 @@ export function createKidsDrawController(options: {
     beforeOpenDocument,
     resolveJoinBaseUrl,
     showShareDialog,
+    isSharingAllowed,
+    requestSharePermission,
     onShareError,
     onClaimError,
     onDocumentOpenRequested,
@@ -521,6 +525,8 @@ export function createKidsDrawController(options: {
         await showShareDialog(payload);
         console.info("[kids-draw:multiplayer] ui share dialog shown");
       },
+      isSharingAllowed,
+      requestSharePermission,
     },
     snapshotService,
     getSize,

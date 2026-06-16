@@ -76,6 +76,10 @@ class DropdownMenuItemView implements ReDomLike<HTMLButtonElement> {
     this.el.disabled = disabled;
   }
 
+  setHidden(hidden: boolean): void {
+    this.el.hidden = hidden;
+  }
+
   setOnPress(handler: (() => void) | null): void {
     if (this.clickHandler) {
       this.el.removeEventListener("click", this.clickHandler);
@@ -180,6 +184,10 @@ export class DropdownMenu implements ReDomLike<HTMLDivElement> {
 
   setItemDisabled(itemId: string, disabled: boolean): void {
     this.itemViewById.get(itemId)?.setDisabled(disabled);
+  }
+
+  setItemHidden(itemId: string, hidden: boolean): void {
+    this.itemViewById.get(itemId)?.setHidden(hidden);
   }
 
   setOnSelect(handler: ((itemId: string) => void) | null): void {

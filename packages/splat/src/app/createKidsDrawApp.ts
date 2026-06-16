@@ -1,6 +1,15 @@
 import "@smalldraw/design-system/styles.css";
 import { DrawingStore } from "@smalldraw/core";
-import type { SplatContextDocumentSlot } from "@smalldraw/design-system";
+import type {
+  ParentalControlsDialog,
+  SplatContextDocumentSlot,
+} from "@smalldraw/design-system";
+import {
+  applyParentalControlsSettingsResult,
+  createParentalControlsAccessOptions,
+  loadParentalControlsState,
+  subscribeToParentalControlsState,
+} from "@smalldraw/shared";
 import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
 import { createQrCodeDataUrl } from "../controller/createQrCodeDataUrl";
 import { createKidsDrawController } from "../controller/KidsDrawController";
@@ -73,6 +82,15 @@ export async function createKidsDrawApp(
   const unbindToolbarUi = presentation.toolbar.bindUiState(
     toolbarUiStore.$state,
   );
+  const syncParentalControlsVisibility = (): void => {
+    presentation.toolbar.setSharingFeaturesVisible(
+      !loadParentalControlsState().sharingHidden,
+    );
+  };
+  syncParentalControlsVisibility();
+  const unbindParentalControls = subscribeToParentalControlsState(
+    syncParentalControlsVisibility,
+  );
   presentation.stage.setCanvasVisible(true);
   presentation.stage.setInteractionEnabled(false);
   presentation.toolbar.setDocumentSlot(describeInitialBlockingState(options));
@@ -84,6 +102,7 @@ export async function createKidsDrawApp(
       shapeRendererRegistry: provisionalShapeRendererRegistry,
     });
   } catch (error) {
+    unbindParentalControls();
     presentation.destroy();
     uninstallMobileGestureGuards();
     throw error;
@@ -196,6 +215,9 @@ export async function createKidsDrawApp(
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
     showShareDialog: controllerMultiplayerAdapters.showShareDialog,
+    isSharingAllowed: () => !loadParentalControlsState().sharingHidden,
+    requestSharePermission: async () =>
+      await requestParentalSharePermission(presentation.parentalControlsDialog),
     onShareError: controllerMultiplayerAdapters.onShareError,
     onClaimError: controllerMultiplayerAdapters.onClaimError,
     onDocumentOpenRequested: options.onDocumentOpenRequested,
@@ -216,11 +238,30 @@ export async function createKidsDrawApp(
     destroy() {
       controller.destroy();
       unbindToolbarUi();
+      unbindParentalControls();
       unbindCollaborativeSyncErrorSurface();
       presentation.destroy();
       uninstallMobileGestureGuards();
     },
   };
+}
+
+async function requestParentalSharePermission(
+  dialog: ParentalControlsDialog,
+): Promise<boolean> {
+  const state = loadParentalControlsState();
+  if (state.sharingHidden) {
+    return false;
+  }
+  if (state.promptSeen) {
+    return true;
+  }
+  const result = await dialog.show(createParentalControlsAccessOptions());
+  if (!result) {
+    return false;
+  }
+  await applyParentalControlsSettingsResult(result);
+  return true;
 }
 
 function resolveInitialShellSize(

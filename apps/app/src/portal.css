@@ -64,6 +64,32 @@ a {
   align-items: safe center;
 }
 
+.portal-info {
+  margin-block-end: var(--size-4);
+  color: var(--ds-text-muted);
+}
+
+.portal-info p {
+  margin: 0;
+}
+
+.portal-link-button {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ds-ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.portal-link-button:hover,
+.portal-link-button:focus-visible {
+  color: var(--ds-accent);
+}
+
 .portal-shell[data-layout="admin"] .portal-main {
   width: 100%;
   max-width: none;

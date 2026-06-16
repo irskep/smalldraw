@@ -33,6 +33,8 @@ export function createKidsDrawInteractionRuntime(options: {
     closeDocumentPicker: () => void;
     openDocumentPicker: () => Promise<void>;
     shareCurrentDocument: () => Promise<void>;
+    isSharingAllowed?: () => boolean;
+    requestSharePermission?: () => Promise<boolean>;
   };
   snapshotService: SnapshotService;
   getSize: () => { width: number; height: number };
@@ -70,6 +72,9 @@ export function createKidsDrawInteractionRuntime(options: {
     openDocumentCreateDialog: () =>
       options.documentPickerController.openCreateDialog(),
     shareCurrentDocument,
+    isSharingAllowed: options.documentBrowserCommands.isSharingAllowed,
+    requestSharePermission:
+      options.documentBrowserCommands.requestSharePermission,
     confirmDestructiveAction: options.confirmDestructiveAction,
     savePngExport: options.savePngExport,
     clearConfirmationIcon: Trash2,

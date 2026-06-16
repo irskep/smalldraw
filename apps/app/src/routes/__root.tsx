@@ -7,9 +7,21 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
-import { LogIn, LogOut, Shield, Trash2, User, UserPlus } from "lucide";
-import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
+import {
+  LogIn,
+  LogOut,
+  Shield,
+  ShieldCheck,
+  Trash2,
+  User,
+  UserPlus,
+} from "lucide";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import { DsDropdownMenu } from "@/components/DsDropdownMenu/DsDropdownMenu";
+import {
+  ParentalControlsDialog,
+  type ParentalControlsDialogHandle,
+} from "@/components/ParentalControlsDialog/ParentalControlsDialog";
 import { appPath, basePath, isAppRoute } from "../config";
 import { trpc } from "../utils/trpc";
 
@@ -34,6 +46,7 @@ const getRedirectParam = () => {
 
 const Root = () => {
   const navigate = useNavigate();
+  const parentalControlsDialogRef = useRef<ParentalControlsDialogHandle>(null);
   const location = useLocation();
   const isAdminRoute =
     location.pathname === "/admin" || location.pathname.startsWith("/admin/");
@@ -75,6 +88,11 @@ const Root = () => {
           icon: Trash2,
         },
         {
+          id: "parental-controls",
+          label: "Parental controls",
+          icon: ShieldCheck,
+        },
+        {
           id: "logout",
           label: "Log out",
           icon: LogOut,
@@ -86,9 +104,20 @@ const Root = () => {
       return [
         { id: "login", label: "Login", icon: LogIn },
         { id: "register", label: "Sign up", icon: UserPlus },
+        {
+          id: "parental-controls",
+          label: "Parental controls",
+          icon: ShieldCheck,
+        },
       ];
     }
-    return [];
+    return [
+      {
+        id: "parental-controls",
+        label: "Parental controls",
+        icon: ShieldCheck,
+      },
+    ];
   }, [
     isNotAuthorized,
     logoutMutation.isPending,
@@ -140,6 +169,10 @@ const Root = () => {
         navigate({ to: "/admin" });
         return;
       }
+      if (itemId === "parental-controls") {
+        void parentalControlsDialogRef.current?.open();
+        return;
+      }
       if (itemId === "logout") {
         logoutMutation.mutate(undefined, {
           onSuccess: () => {
@@ -182,6 +215,7 @@ const Root = () => {
       <Suspense>
         <TanStackRouterDevtools />
       </Suspense>{" "}
+      <ParentalControlsDialog ref={parentalControlsDialogRef} />
     </div>
   );
 };

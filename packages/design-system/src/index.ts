@@ -59,6 +59,14 @@ export {
   type PagedButtonGridLargeLayout,
 } from "./view/PagedButtonGrid";
 export {
+  createParentalControlsDialog,
+  type ParentalControlsDialog,
+  type ParentalControlsDialogInitialState,
+  type ParentalControlsDialogOptions,
+  type ParentalControlsDialogResult,
+  ParentalControlsDialogView,
+} from "./view/ParentalControlsDialog";
+export {
   createPosterCard,
   PosterCard,
   type PosterCardOptions,
