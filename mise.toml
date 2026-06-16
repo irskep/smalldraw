@@ -67,7 +67,7 @@ run = "bun run scripts/bootstrap-admin.ts"
 
 [tasks."server:promote-admin:prod"]
 description = "Promote the existing prod 'admin' user for browser admin access. Requires a deployed image that includes apps/server/scripts."
-run = "fly ssh console -a splatterboard -C 'cd /app && DATABASE_URL=/data/app.db ADMIN_USERNAME=admin bun apps/server/scripts/promote-existing-admin.ts'"
+run = "fly ssh console -a splatterboard -C \"sh -lc 'cd /app && DATABASE_URL=/data/app.db ADMIN_USERNAME=admin bun apps/server/scripts/promote-existing-admin.ts'\""
 
 [tasks."db:studio"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
