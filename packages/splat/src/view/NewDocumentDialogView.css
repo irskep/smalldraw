@@ -20,6 +20,34 @@
   overflow-x: hidden;
 }
 
+.kids-draw-new-document-dialog .ds-dialog-scaffold__header-bar {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.kids-draw-new-document-dialog .ds-dialog-scaffold__leading,
+.kids-draw-new-document-dialog .ds-dialog-scaffold__heading,
+.kids-draw-new-document-dialog .ds-dialog-scaffold__trailing {
+  grid-area: 1 / 1;
+}
+
+.kids-draw-new-document-dialog .ds-dialog-scaffold__leading {
+  justify-self: start;
+  z-index: 1;
+}
+
+.kids-draw-new-document-dialog .ds-dialog-scaffold__heading {
+  justify-self: center;
+  max-width: min(100%, 34rem);
+  padding-inline: 9rem;
+}
+
+.kids-draw-new-document-dialog .ds-dialog-scaffold__trailing {
+  justify-self: end;
+  z-index: 1;
+}
+
 .kids-draw-new-document-dialog__body {
   min-height: 0;
   min-width: 0;
@@ -132,21 +160,9 @@
     gap: var(--size-3);
   }
 
-  .kids-draw-new-document-dialog .ds-dialog-scaffold__header-bar {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-  }
-
-  .kids-draw-new-document-dialog
-    .ds-dialog-scaffold__header-bar:has(
-      .ds-dialog-scaffold__leading:not([hidden])
-    ) {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
-  .kids-draw-new-document-dialog .ds-dialog-scaffold__heading[data-align] {
-    justify-items: start;
-    text-align: left;
+  .kids-draw-new-document-dialog .ds-dialog-scaffold__heading {
+    justify-self: start;
+    padding-inline: 0 8rem;
   }
 
   .kids-draw-new-document-dialog .ds-dialog-scaffold__subtitle {
