@@ -1,18 +1,23 @@
 .kids-draw-new-document-dialog {
   width: min(calc(100vw - var(--size-px-4)), 61.25rem);
+  max-width: calc(100vw - var(--size-px-4));
   max-height: calc(100vh - var(--size-px-4));
+  box-sizing: border-box;
 }
 
 .kids-draw-new-document-dialog__card {
   width: 100%;
+  min-width: 0;
   max-height: min(calc(100vh - var(--size-px-4)), 55rem);
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .kids-draw-new-document-dialog .ds-dialog-scaffold__body {
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
+  overflow-x: hidden;
 }
 
 .kids-draw-new-document-dialog__body {
@@ -28,7 +33,7 @@
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr);
   gap: var(--size-3);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .kids-draw-new-document-dialog__page-section {
@@ -37,7 +42,7 @@
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr);
   gap: var(--size-3);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .kids-draw-new-document-dialog__blank-choice {
@@ -116,12 +121,42 @@
 
 @media (max-width: 720px) {
   .kids-draw-new-document-dialog {
-    width: min(calc(100vw - var(--size-px-3)), 32rem);
-    max-height: calc(100vh - var(--size-px-3));
+    width: calc(100dvw - var(--size-px-4));
+    max-width: calc(100dvw - var(--size-px-4));
+    max-height: calc(100dvh - var(--size-px-4));
   }
 
   .kids-draw-new-document-dialog__card {
-    max-height: calc(100vh - var(--size-px-3));
+    max-height: calc(100dvh - var(--size-px-4));
+    padding: var(--size-3);
+    gap: var(--size-3);
+  }
+
+  .kids-draw-new-document-dialog .ds-dialog-scaffold__header-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .kids-draw-new-document-dialog
+    .ds-dialog-scaffold__header-bar:has(
+      .ds-dialog-scaffold__leading:not([hidden])
+    ) {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .kids-draw-new-document-dialog .ds-dialog-scaffold__heading[data-align] {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .kids-draw-new-document-dialog .ds-dialog-scaffold__subtitle {
+    max-width: 16rem;
+  }
+
+  .kids-draw-new-document-dialog__choices,
+  .kids-draw-new-document-dialog__page-section {
+    grid-template-rows: auto auto auto auto;
+    gap: var(--size-3);
   }
 
   .kids-draw-new-document-dialog__choice {
@@ -130,10 +165,14 @@
 
   .kids-draw-new-document-dialog__volume-grid {
     grid-template-columns: minmax(0, 1fr);
+    overflow: visible;
+    padding-right: 0;
   }
 
   .kids-draw-new-document-dialog__pages {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 7rem), 1fr));
+    overflow: visible;
+    padding-right: 0;
   }
 
   .kids-draw-new-document-dialog__book-summary {
