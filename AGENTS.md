@@ -1,5 +1,7 @@
 Project workflows live in @mise.toml. Prefer `mise run ...` tasks over ad hoc package commands.
 
+Local dev is orchestrated with Tilt. Assume `tilt up` may already be running; use `tilt logs` and inspect @Tiltfile before making assumptions about which services run or which ports they use.
+
 If you do not commit a set of changes, use 'localci wait --no-clone' to run all tests and static analysis.
 
 Run 'mise tasks lint' to see all tasks. Tasks with :fix suffixes will write fixes.

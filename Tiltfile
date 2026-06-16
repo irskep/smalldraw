@@ -53,7 +53,7 @@ local_dev_server(
 
 local_dev_server(
     "app-frontend",
-    "mise run account:web:dev",
+    "mise run portal:web:dev",
     deps=[
         "apps/app/src",
         "apps/app/package.json",
