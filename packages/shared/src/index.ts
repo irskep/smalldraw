@@ -48,7 +48,7 @@ export function isAppError(input: unknown): input is AppError {
 }
 
 export const DRAW_APP_PATH = "/draw/";
-export const ACCOUNT_APP_ROUTE_PATTERNS = [
+export const PORTAL_ROUTE_PATTERNS = [
   "/",
   "/account",
   "/admin",
@@ -105,10 +105,10 @@ export function buildDrawingAppRedirectPath(currentHref: string): string {
   return `${url.pathname}${url.search}`;
 }
 
-export function isAccountAppRoutePath(pathname: string): boolean {
-  const normalized = normalizeAccountRoutePath(pathname);
-  return ACCOUNT_APP_ROUTE_PATTERNS.some((pattern) =>
-    accountRoutePatternMatchesPath(pattern, normalized),
+export function isPortalRoutePath(pathname: string): boolean {
+  const normalized = normalizePortalRoutePath(pathname);
+  return PORTAL_ROUTE_PATTERNS.some((pattern) =>
+    portalRoutePatternMatchesPath(pattern, normalized),
   );
 }
 
@@ -122,7 +122,7 @@ function normalizeDrawPath(pathname: string): string {
   return pathname.endsWith("/") ? pathname : `${pathname}/`;
 }
 
-function normalizeAccountRoutePath(pathname: string): string {
+function normalizePortalRoutePath(pathname: string): string {
   if (pathname === "") {
     return "/";
   }
@@ -132,8 +132,8 @@ function normalizeAccountRoutePath(pathname: string): string {
   return pathname;
 }
 
-function accountRoutePatternMatchesPath(
-  pattern: (typeof ACCOUNT_APP_ROUTE_PATTERNS)[number],
+function portalRoutePatternMatchesPath(
+  pattern: (typeof PORTAL_ROUTE_PATTERNS)[number],
   pathname: string,
 ): boolean {
   if (!pattern.includes(":")) {

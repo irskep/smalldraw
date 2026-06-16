@@ -29,31 +29,31 @@ export const DeletedDrawingsList: React.FC<Props> = ({
   restoringId,
 }) => {
   if (isLoading) {
-    return <p className="account-muted">Loading deleted drawings...</p>;
+    return <p className="portal-muted">Loading deleted drawings...</p>;
   }
 
   if (documents.length === 0) {
     if (emptyLayout === "card") {
       return (
-        <div className="account-card account-card--centered">
-          <p className="account-muted">{emptyLabel}</p>
+        <div className="portal-card portal-card--centered">
+          <p className="portal-muted">{emptyLabel}</p>
         </div>
       );
     }
-    return <p className="account-muted">{emptyLabel}</p>;
+    return <p className="portal-muted">{emptyLabel}</p>;
   }
 
   if (layout === "list") {
     return (
-      <div className="account-list">
+      <div className="portal-list">
         {documents.map((document) => (
-          <div key={document.id} className="account-list-item">
-            <div className="account-list-item__main">
+          <div key={document.id} className="portal-list-item">
+            <div className="portal-list-item__main">
               <div>{document.name}</div>
-              <div className="account-muted account-muted--small account-code">
+              <div className="portal-muted portal-muted--small portal-code">
                 {document.id}
               </div>
-              <div className="account-muted account-muted--small">
+              <div className="portal-muted portal-muted--small">
                 Deleted {formatDeletedAt(document.deletedAt)}
               </div>
             </div>
@@ -63,7 +63,7 @@ export const DeletedDrawingsList: React.FC<Props> = ({
               disabled={restoringId === document.id}
               onClick={() => onRestore(document)}
             >
-              <RotateCcw className="account-action-icon" />
+              <RotateCcw className="portal-action-icon" />
               Restore
             </button>
           </div>
@@ -73,9 +73,9 @@ export const DeletedDrawingsList: React.FC<Props> = ({
   }
 
   return (
-    <div className="account-launcher-grid">
+    <div className="portal-launcher-grid">
       {documents.map((document) => (
-        <div key={document.id} className="account-launcher-card">
+        <div key={document.id} className="portal-launcher-card">
           <DsThumbnailTile
             action={{
               label: `Restore ${document.name}`,
@@ -90,7 +90,7 @@ export const DeletedDrawingsList: React.FC<Props> = ({
             openDisabled
             openLabel={`${document.name} is deleted`}
           />
-          <p className="account-launcher-card__meta">
+          <p className="portal-launcher-card__meta">
             Deleted {formatDeletedAt(document.deletedAt)}
           </p>
         </div>

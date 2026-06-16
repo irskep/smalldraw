@@ -13,7 +13,7 @@ This document is the source of truth for integrating `apps/splat-web` with `apps
   - Production: `https://splatterboard.app`
   - Local dev:
     - `http://localhost:3000` for `splat-web`
-    - `http://localhost:3001` for `account-web`
+    - `http://localhost:3001` for `portal-web`
 - Override with `FRONTEND_ORIGINS` as a comma-separated list.
   - Example: `FRONTEND_ORIGINS=https://splatterboard.app,http://localhost:3000,http://localhost:3001`
 

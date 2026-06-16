@@ -16,16 +16,16 @@ const Admin = () => {
   return (
     <AdminAccessGate>
       {location.pathname === "/admin" ? (
-        <section className="account-page account-admin" aria-label="Admin">
-          <div className="account-page__header">
-            <h1 className="account-title">Admin</h1>
-            <p className="account-subtitle">User support tools.</p>
+        <section className="portal-page portal-admin" aria-label="Admin">
+          <div className="portal-page__header">
+            <h1 className="portal-title">Admin</h1>
+            <p className="portal-subtitle">User support tools.</p>
           </div>
 
-          <section className="account-card account-card--padded">
-            <h2 className="account-title">Find user</h2>
+          <section className="portal-card portal-card--padded">
+            <h2 className="portal-title">Find user</h2>
             <form
-              className="account-form account-form--inline"
+              className="portal-form portal-form--inline"
               onSubmit={(event) => {
                 event.preventDefault();
                 const username = lookupUsername.trim();
@@ -39,7 +39,7 @@ const Admin = () => {
               }}
             >
               <input
-                className="account-input account-input--short"
+                className="portal-input portal-input--short"
                 value={lookupUsername}
                 onChange={(event) => setLookupUsername(event.target.value)}
                 placeholder="Search account"
@@ -53,7 +53,7 @@ const Admin = () => {
                 type="search"
               />
               <button type="submit" className="ds-button">
-                <Search className="account-action-icon" />
+                <Search className="portal-action-icon" />
                 Search
               </button>
             </form>

@@ -19,7 +19,7 @@ export const AuthForm = ({
 
   return (
     <form
-      className="account-card account-card--centered account-form"
+      className="portal-card portal-card--centered portal-form"
       onSubmit={(
         e: React.FormEvent<HTMLFormElement> & {
           nativeEvent: { submitter: HTMLButtonElement };
@@ -29,25 +29,25 @@ export const AuthForm = ({
         onSubmit({ username, password });
       }}
     >
-      <h1 className="account-title">{children}</h1>
+      <h1 className="portal-title">{children}</h1>
       {errorMessage ? (
-        <div className="account-alert" data-tone="danger" role="alert">
-          <AlertCircle className="account-alert__icon" />
-          <div className="account-alert__body">
-            <div className="account-alert__title">Could not continue</div>
+        <div className="portal-alert" data-tone="danger" role="alert">
+          <AlertCircle className="portal-alert__icon" />
+          <div className="portal-alert__body">
+            <div className="portal-alert__title">Could not continue</div>
             <div>{errorMessage}</div>
           </div>
         </div>
       ) : null}
 
-      <div className="account-form-field">
+      <div className="portal-form-field">
         <input
           required
           name="username"
           placeholder="Username"
           type="text"
           autoComplete="off"
-          className="account-input"
+          className="portal-input"
           value={username}
           onChange={(e) => {
             setUsername(e.target.value);
@@ -60,7 +60,7 @@ export const AuthForm = ({
           placeholder="Password"
           type="password"
           autoComplete="off"
-          className="account-input"
+          className="portal-input"
           value={password}
           onChange={(e) => {
             setPassword(e.target.value);

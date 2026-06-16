@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import path from "node:path";
-import { isAccountAppRoutePath } from "@smalldraw/shared";
+import { isPortalRoutePath } from "@smalldraw/shared";
 
-describe("account app production fallback routes", () => {
-  test("cover every generated account app route", async () => {
+describe("portal production fallback routes", () => {
+  test("cover every generated portal route", async () => {
     const generatedRouteTreePath = path.resolve(
       import.meta.dir,
       "../../app/src/routeTree.gen.ts",
@@ -15,16 +15,16 @@ describe("account app production fallback routes", () => {
 
     expect(fullPathUnion).not.toBeNull();
 
-    const accountRoutes = Array.from(
+    const portalRoutes = Array.from(
       fullPathUnion?.[1].matchAll(/\|\s*'([^']+)'/g) ?? [],
       ([, route]) => route,
     );
 
-    expect(accountRoutes).toContain("/");
-    expect(accountRoutes.length).toBeGreaterThan(0);
+    expect(portalRoutes).toContain("/");
+    expect(portalRoutes.length).toBeGreaterThan(0);
 
-    const uncoveredRoutes = accountRoutes.filter((route) => {
-      return !isAccountAppRoutePath(toSamplePath(route));
+    const uncoveredRoutes = portalRoutes.filter((route) => {
+      return !isPortalRoutePath(toSamplePath(route));
     });
 
     expect(uncoveredRoutes).toEqual([]);

@@ -30,7 +30,7 @@ Overwrite-in-place on upload.
 ## Auth model
 
 - Only authenticated document admins can upload/update a thumbnail.
-- Account app reads thumbnail URL from document list/get APIs.
+- Portal reads thumbnail URL from document list/get APIs.
 - Anonymous/token auth is not sufficient for this server-managed thumbnail path.
 
 ## API shape
@@ -51,8 +51,8 @@ Overwrite-in-place on upload.
 2. Green: DB helper + migration
 3. Red: server route tests for admin/member upload auth and list/get projection
 4. Green: Bun.S3Client-backed storage adapter + route wiring
-5. Red: account app component test for document list thumbnail rendering
-6. Green: account app list UI update
+5. Red: portal component test for document list thumbnail rendering
+6. Green: portal list UI update
 7. Red: drawing app test proving account-attached docs attempt thumbnail upload
 8. Green: drawing app upload hook
 

@@ -1,5 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query";
 import type { DropdownMenuEntry } from "@smalldraw/design-system/dropdown-menu";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createRootRoute,
   Link,
@@ -156,14 +156,14 @@ const Root = () => {
   );
 
   return (
-    <div className="account-shell" data-layout={isAdminRoute ? "admin" : ""}>
-      <header className="account-header">
-        <Link to="/" className="account-brand">
+    <div className="portal-shell" data-layout={isAdminRoute ? "admin" : ""}>
+      <header className="portal-header">
+        <Link to="/" className="portal-brand">
           Splatterboard
         </Link>
-        <nav className="account-nav" aria-label="Account">
+        <nav className="portal-nav" aria-label="Account">
           {meQuery.data && !isNotAuthorized ? (
-            <div className="account-nav__identity" aria-live="polite">
+            <div className="portal-nav__identity" aria-live="polite">
               {meQuery.data.username}
               {meQuery.data.isServerAdmin ? " (admin)" : ""}
             </div>
@@ -176,7 +176,7 @@ const Root = () => {
           />
         </nav>
       </header>
-      <main className="account-main">
+      <main className="portal-main">
         <Outlet />
       </main>
       <Suspense>

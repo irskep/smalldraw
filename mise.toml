@@ -73,7 +73,7 @@ run = "fly ssh console -a splatterboard -C \"sh -lc 'cd /app && DATABASE_URL=/da
 env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
 run = "bunx drizzle-kit studio"
 
-[tasks."account:web:dev"]
+[tasks."portal:web:dev"]
 dir = "apps/app"
 env = { VITE_API_URL = "http://localhost:3030/api/v1", VITE_BASE = "/" }
 run = "bun run dev"

@@ -83,7 +83,7 @@ export function DsThumbnailTile({
     }
 
     const empty = document.createElement("span");
-    empty.className = "account-launcher-card__empty";
+    empty.className = "portal-launcher-card__empty";
     empty.textContent = emptyLabel;
     tile.setMedia(empty);
   }, [

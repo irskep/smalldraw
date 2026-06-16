@@ -48,7 +48,7 @@ Green:
 - read cookie in `createContext`
 - keep header fallback temporarily during migration
 
-### Slice 2: Account app switches to cookie auth
+### Slice 2: Portal switches to cookie auth
 
 Red:
 

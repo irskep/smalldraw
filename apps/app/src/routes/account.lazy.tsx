@@ -78,13 +78,13 @@ export const AccountSettings = () => {
   };
 
   return (
-    <section className="account-page" aria-label="Account settings">
-      <div className="account-page__header">
-        <h1 className="account-title">Account</h1>
+    <section className="portal-page" aria-label="Account settings">
+      <div className="portal-page__header">
+        <h1 className="portal-title">Account</h1>
       </div>
 
-      <section className="account-card account-card--padded">
-        <dl className="account-details">
+      <section className="portal-card portal-card--padded">
+        <dl className="portal-details">
           <div>
             <dt>Username</dt>
             <dd>
@@ -95,22 +95,22 @@ export const AccountSettings = () => {
         </dl>
       </section>
 
-      <section className="account-card account-card--padded">
-        <h2 className="account-title">Change password</h2>
-        <form className="account-form" onSubmit={changePassword}>
+      <section className="portal-card portal-card--padded">
+        <h2 className="portal-title">Change password</h2>
+        <form className="portal-form" onSubmit={changePassword}>
           {message ? (
-            <div className="account-alert" role="status">
-              <div className="account-alert__body">
-                <div className="account-alert__title">Password changed</div>
+            <div className="portal-alert" role="status">
+              <div className="portal-alert__body">
+                <div className="portal-alert__title">Password changed</div>
                 <div>{message}</div>
               </div>
             </div>
           ) : null}
           {error ? (
-            <div className="account-alert" data-tone="danger" role="alert">
-              <AlertCircle className="account-alert__icon" />
-              <div className="account-alert__body">
-                <div className="account-alert__title">
+            <div className="portal-alert" data-tone="danger" role="alert">
+              <AlertCircle className="portal-alert__icon" />
+              <div className="portal-alert__body">
+                <div className="portal-alert__title">
                   Could not change password
                 </div>
                 <div>{error}</div>
@@ -118,11 +118,11 @@ export const AccountSettings = () => {
             </div>
           ) : null}
 
-          <div className="account-form-field">
+          <div className="portal-form-field">
             <input
               required
               autoComplete="current-password"
-              className="account-input"
+              className="portal-input"
               name="current-password"
               onChange={(event) => setCurrentPassword(event.target.value)}
               placeholder="Current password"
@@ -132,7 +132,7 @@ export const AccountSettings = () => {
             <input
               required
               autoComplete="new-password"
-              className="account-input"
+              className="portal-input"
               name="new-password"
               onChange={(event) => setNewPassword(event.target.value)}
               placeholder="New password"
@@ -142,7 +142,7 @@ export const AccountSettings = () => {
             <input
               required
               autoComplete="new-password"
-              className="account-input"
+              className="portal-input"
               name="confirm-new-password"
               onChange={(event) => setConfirmPassword(event.target.value)}
               placeholder="Confirm new password"

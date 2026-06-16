@@ -27,24 +27,24 @@ export const DocumentMembers: React.FC<Props> = ({
     });
 
   return (
-    <div className="account-two-column">
-      <section className="account-card">
-        <header className="account-card__header">
-          <h2 className="account-title">Members</h2>
+    <div className="portal-two-column">
+      <section className="portal-card">
+        <header className="portal-card__header">
+          <h2 className="portal-title">Members</h2>
         </header>
-        <div className="account-card__body">
+        <div className="portal-card__body">
           {documentMembersQuery.isLoading ? (
-            <p className="account-muted">Loading members…</p>
+            <p className="portal-muted">Loading members…</p>
           ) : null}
           {documentMembersQuery.data?.map((user) => (
-            <div key={user.id} className="account-list-item">
-              <div className="account-list-item__main">
+            <div key={user.id} className="portal-list-item">
+              <div className="portal-list-item__main">
                 <div>{user.username}</div>
-                <div className="account-muted account-muted--small account-code">
+                <div className="portal-muted portal-muted--small portal-code">
                   {user.id}
                 </div>
               </div>
-              <div className="account-muted account-muted--small">
+              <div className="portal-muted portal-muted--small">
                 {user.isAdmin ? "document admin" : "member"}
               </div>
             </div>
@@ -52,48 +52,48 @@ export const DocumentMembers: React.FC<Props> = ({
         </div>
       </section>
 
-      <section className="account-card">
-        <header className="account-card__header">
-          <h2 className="account-title">Access</h2>
+      <section className="portal-card">
+        <header className="portal-card__header">
+          <h2 className="portal-title">Access</h2>
         </header>
-        <div className="account-card__body">
+        <div className="portal-card__body">
           {currentUserIsAdmin ? (
             <DocumentInvitation documentId={documentId} />
           ) : (
-            <p className="account-muted">
+            <p className="portal-muted">
               Only document admins can manage access tokens.
             </p>
           )}
 
           {currentUserIsAdmin ? (
-            <div className="account-list">
-              <h3 className="account-label">Active non-share tokens</h3>
+            <div className="portal-list">
+              <h3 className="portal-label">Active non-share tokens</h3>
               {documentAccessTokensQuery.isLoading ? (
-                <p className="account-muted">Loading tokens…</p>
+                <p className="portal-muted">Loading tokens…</p>
               ) : null}
               {documentAccessTokensQuery.data?.length === 0 ? (
-                <p className="account-muted">
+                <p className="portal-muted">
                   No owner or device tokens recorded.
                 </p>
               ) : null}
               {documentAccessTokensQuery.data?.map((token) => (
                 <div
                   key={token.id}
-                  className="account-list-item account-list-item--stacked"
+                  className="portal-list-item portal-list-item--stacked"
                 >
-                  <div className="account-list-item">
+                  <div className="portal-list-item">
                     <div>
                       {token.scope}
                       {token.tag ? `:${token.tag}` : ""}
                     </div>
-                    <div className="account-muted account-muted--small">
+                    <div className="portal-muted portal-muted--small">
                       {token.revokedAt ? "revoked" : "active"}
                     </div>
                   </div>
-                  <div className="account-muted account-muted--small">
+                  <div className="portal-muted portal-muted--small">
                     Created: {new Date(token.createdAt).toLocaleString()}
                   </div>
-                  <div className="account-muted account-muted--small">
+                  <div className="portal-muted portal-muted--small">
                     Last used:{" "}
                     {token.lastUsedAt
                       ? new Date(token.lastUsedAt).toLocaleString()

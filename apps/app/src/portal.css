@@ -13,14 +13,14 @@ a {
   color: inherit;
 }
 
-.account-shell {
+.portal-shell {
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   background: var(--ds-surface-muted);
 }
 
-.account-header {
+.portal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -28,7 +28,7 @@ a {
   padding: var(--size-2);
 }
 
-.account-brand {
+.portal-brand {
   display: inline-flex;
   align-items: center;
   gap: var(--size-2);
@@ -38,12 +38,12 @@ a {
   text-decoration: none;
 }
 
-.account-action-icon {
+.portal-action-icon {
   width: 1em;
   height: 1em;
 }
 
-.account-nav {
+.portal-nav {
   position: relative;
   display: flex;
   align-items: center;
@@ -51,12 +51,12 @@ a {
   gap: var(--size-3);
 }
 
-.account-nav__identity {
+.portal-nav__identity {
   color: var(--ds-text-muted);
   font-size: var(--font-size-1);
 }
 
-.account-main {
+.portal-main {
   width: min(100%, 88rem);
   margin-inline: auto;
   padding: var(--size-2);
@@ -64,7 +64,7 @@ a {
   align-items: safe center;
 }
 
-.account-shell[data-layout="admin"] .account-main {
+.portal-shell[data-layout="admin"] .portal-main {
   width: 100%;
   max-width: none;
   margin-inline: 0;
@@ -72,29 +72,29 @@ a {
   padding: var(--size-4);
 }
 
-.account-page {
+.portal-page {
   display: grid;
   gap: var(--size-4);
 }
 
-.account-page__header {
+.portal-page__header {
   display: grid;
   justify-items: center;
   gap: var(--size-2);
   text-align: center;
 }
 
-.account-admin {
+.portal-admin {
   width: min(100%, 64rem);
   align-content: start;
 }
 
-.account-admin .account-page__header {
+.portal-admin .portal-page__header {
   justify-items: start;
   text-align: start;
 }
 
-.account-admin .account-card {
+.portal-admin .portal-card {
   box-shadow: none;
 }
 
@@ -218,55 +218,55 @@ a {
   font-size: var(--font-size-0);
 }
 
-.account-title {
+.portal-title {
   margin: 0;
   font-size: var(--font-size-5);
   line-height: 1.1;
 }
 
-.account-title--large {
+.portal-title--large {
   font-size: var(--font-size-7);
 }
 
-.account-subtitle,
-.account-muted {
+.portal-subtitle,
+.portal-muted {
   margin: 0;
   color: var(--ds-text-muted);
 }
 
-.account-muted--small {
+.portal-muted--small {
   font-size: var(--font-size-0);
 }
 
-.account-card {
+.portal-card {
   border: var(--border-size-1) solid var(--ds-border);
   border-radius: var(--radius-3);
   background: var(--ds-surface);
   box-shadow: var(--shadow-2);
 }
 
-.account-card--centered {
+.portal-card--centered {
   width: min(100%, var(--width-frame-sm));
   margin-inline: auto;
   padding: var(--size-6);
   text-align: center;
 }
 
-.account-card--padded {
+.portal-card--padded {
   padding: var(--size-4);
 }
 
-.account-card__header {
+.portal-card__header {
   padding: var(--size-4) var(--size-4) 0;
 }
 
-.account-card__body {
+.portal-card__body {
   display: grid;
   gap: var(--size-3);
   padding: var(--size-4);
 }
 
-.account-actions {
+.portal-actions {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,57 +274,57 @@ a {
   gap: var(--size-3);
 }
 
-.account-form {
+.portal-form {
   display: grid;
   gap: var(--size-4);
 }
 
-.account-form--inline {
+.portal-form--inline {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
 }
 
-.account-form-field {
+.portal-form-field {
   display: grid;
   gap: var(--size-2);
 }
 
-.account-form-row {
+.portal-form-row {
   display: flex;
   align-items: center;
   gap: var(--size-2);
   flex-wrap: wrap;
 }
 
-.account-details {
+.portal-details {
   display: grid;
   gap: var(--size-2);
   margin: 0;
 }
 
-.account-details > div {
+.portal-details > div {
   display: grid;
   gap: var(--size-1);
 }
 
-.account-details dt {
+.portal-details dt {
   color: var(--ds-ink-muted);
   font-size: var(--font-size-button-sm);
   font-weight: var(--font-weight-5);
 }
 
-.account-details dd {
+.portal-details dd {
   margin: 0;
 }
 
-.account-label {
+.portal-label {
   font-size: var(--font-size-button-md);
   font-weight: var(--font-weight-5);
 }
 
-.account-input {
+.portal-input {
   appearance: none;
   width: 100%;
   min-width: 0;
@@ -338,20 +338,20 @@ a {
   line-height: 1;
 }
 
-.account-input--short {
+.portal-input--short {
   width: min(100%, 14rem);
 }
 
-.account-input--share {
+.portal-input--share {
   width: min(100%, var(--width-dialog-md));
 }
 
-.account-input:focus-visible {
+.portal-input:focus-visible {
   outline: var(--border-size-3) solid var(--ds-focus-ring);
   outline-offset: calc(var(--border-size-2) * -1);
 }
 
-.account-alert {
+.portal-alert {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--size-2);
@@ -362,38 +362,38 @@ a {
   background: var(--ds-surface);
 }
 
-.account-alert[data-tone="danger"] {
+.portal-alert[data-tone="danger"] {
   border-color: var(--ds-danger);
   color: var(--ds-danger);
 }
 
-.account-alert__body {
+.portal-alert__body {
   display: grid;
   gap: var(--size-1);
 }
 
-.account-alert__icon {
+.portal-alert__icon {
   width: 1em;
   height: 1em;
 }
 
-.account-alert__title {
+.portal-alert__title {
   font-weight: var(--font-weight-6);
 }
 
-.account-launcher {
+.portal-launcher {
   display: grid;
   gap: var(--size-5);
 }
 
-.account-launcher-grid {
+.portal-launcher-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
   gap: var(--size-4);
   align-items: stretch;
 }
 
-.account-launcher-card {
+.portal-launcher-card {
   position: relative;
   min-width: 0;
   display: grid;
@@ -403,7 +403,7 @@ a {
   cursor: var(--ds-cursor-interactive-hover);
 }
 
-.account-launcher-card__media {
+.portal-launcher-card__media {
   position: relative;
   aspect-ratio: 4 / 3;
   display: grid;
@@ -419,40 +419,40 @@ a {
     transform 120ms var(--ease-out-3);
 }
 
-.account-launcher-card:hover .account-launcher-card__media,
-.account-launcher-card:focus-visible .account-launcher-card__media {
+.portal-launcher-card:hover .portal-launcher-card__media,
+.portal-launcher-card:focus-visible .portal-launcher-card__media {
   border-color: var(--ds-focus-ring);
   box-shadow: var(--shadow-3);
   transform: translateY(-1px);
 }
 
-.account-launcher-card:focus-visible {
+.portal-launcher-card:focus-visible {
   outline: none;
 }
 
-.account-launcher-card:focus-visible .account-launcher-card__media {
+.portal-launcher-card:focus-visible .portal-launcher-card__media {
   outline: var(--border-size-3) solid var(--ds-focus-ring);
   outline-offset: var(--size-1);
 }
 
-.account-launcher-card--new .account-launcher-card__media {
+.portal-launcher-card--new .portal-launcher-card__media {
   gap: var(--size-4);
   border-style: dashed;
   background: var(--ds-surface-muted);
 }
 
-.account-launcher-card__cta {
+.portal-launcher-card__cta {
   pointer-events: none;
 }
 
-.account-launcher-card__media img {
+.portal-launcher-card__media img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   background: var(--ds-surface);
 }
 
-.account-launcher-card__badge {
+.portal-launcher-card__badge {
   position: absolute;
   z-index: 1;
   inset-block-start: var(--size-2);
@@ -465,28 +465,28 @@ a {
   font-weight: var(--font-weight-6);
 }
 
-.account-launcher-card__empty {
+.portal-launcher-card__empty {
   color: var(--ds-text-muted);
 }
 
-.account-launcher-card__meta {
+.portal-launcher-card__meta {
   margin: 0;
   color: var(--ds-text-muted);
   font-size: var(--font-size-0);
 }
 
-.account-two-column {
+.portal-two-column {
   display: grid;
   gap: var(--size-4);
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 }
 
-.account-list {
+.portal-list {
   display: grid;
   gap: var(--size-3);
 }
 
-.account-list-item {
+.portal-list-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -496,18 +496,18 @@ a {
   border-radius: var(--radius-2);
 }
 
-.account-list-item--stacked {
+.portal-list-item--stacked {
   display: grid;
   align-items: stretch;
 }
 
-.account-list-item__main {
+.portal-list-item__main {
   min-width: 0;
   display: grid;
   gap: var(--size-1);
 }
 
-.account-code {
+.portal-code {
   overflow-wrap: anywhere;
   font-family: var(--font-mono);
 }

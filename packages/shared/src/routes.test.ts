@@ -3,7 +3,7 @@ import {
   buildDrawingAppRedirectPath,
   buildDrawingAppUrl,
   DRAW_APP_PATH,
-  isAccountAppRoutePath,
+  isPortalRoutePath,
   resolveDrawingAppBaseUrl,
 } from "./index";
 
@@ -60,21 +60,21 @@ describe("drawing app route helpers", () => {
   });
 });
 
-describe("account app route helpers", () => {
-  test("matches account app routes served by the production server", () => {
-    expect(isAccountAppRoutePath("/")).toBe(true);
-    expect(isAccountAppRoutePath("/account")).toBe(true);
-    expect(isAccountAppRoutePath("/admin")).toBe(true);
-    expect(isAccountAppRoutePath("/login")).toBe(true);
-    expect(isAccountAppRoutePath("/register")).toBe(true);
-    expect(isAccountAppRoutePath("/drawings/deleted")).toBe(true);
-    expect(isAccountAppRoutePath("/invitation/example-token")).toBe(true);
+describe("portal route helpers", () => {
+  test("matches portal routes served by the production server", () => {
+    expect(isPortalRoutePath("/")).toBe(true);
+    expect(isPortalRoutePath("/account")).toBe(true);
+    expect(isPortalRoutePath("/admin")).toBe(true);
+    expect(isPortalRoutePath("/login")).toBe(true);
+    expect(isPortalRoutePath("/register")).toBe(true);
+    expect(isPortalRoutePath("/drawings/deleted")).toBe(true);
+    expect(isPortalRoutePath("/invitation/example-token")).toBe(true);
   });
 
   test("does not match drawing app, API, asset, or unknown routes", () => {
-    expect(isAccountAppRoutePath("/draw/")).toBe(false);
-    expect(isAccountAppRoutePath("/api/v1/documents")).toBe(false);
-    expect(isAccountAppRoutePath("/_bun/client/index.js")).toBe(false);
-    expect(isAccountAppRoutePath("/missing")).toBe(false);
+    expect(isPortalRoutePath("/draw/")).toBe(false);
+    expect(isPortalRoutePath("/api/v1/documents")).toBe(false);
+    expect(isPortalRoutePath("/_bun/client/index.js")).toBe(false);
+    expect(isPortalRoutePath("/missing")).toBe(false);
   });
 });

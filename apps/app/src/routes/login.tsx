@@ -14,7 +14,7 @@ const Login = () => {
   useRedirectIfAuthenticated(redirect);
 
   return (
-    <div className="account-page">
+    <div className="portal-page">
       <AuthForm
         onSubmit={async ({ password, username }) => {
           setError(null);

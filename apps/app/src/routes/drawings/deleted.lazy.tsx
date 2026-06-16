@@ -54,23 +54,23 @@ function DeletedDrawings() {
   const documents = deletedDocumentsQuery.data ?? [];
 
   return (
-    <section className="account-page" aria-label="Deleted drawings">
-      <div className="account-page__header">
-        <h1 className="account-title">Deleted drawings</h1>
-        <p className="account-muted">
+    <section className="portal-page" aria-label="Deleted drawings">
+      <div className="portal-page__header">
+        <h1 className="portal-title">Deleted drawings</h1>
+        <p className="portal-muted">
           These shared drawings are hidden from your regular drawings until you
           restore them.
         </p>
       </div>
 
       {deletedDocumentsQuery.isLoading ? (
-        <p className="account-muted">Loading deleted drawings…</p>
+        <p className="portal-muted">Loading deleted drawings…</p>
       ) : null}
 
       {deletedDocumentsQuery.error ? (
-        <div className="account-alert" data-tone="danger" role="alert">
-          <div className="account-alert__body">
-            <div className="account-alert__title">
+        <div className="portal-alert" data-tone="danger" role="alert">
+          <div className="portal-alert__body">
+            <div className="portal-alert__title">
               Deleted drawings could not be loaded
             </div>
             <div>Please try again.</div>

@@ -24,7 +24,7 @@ describe("drawing app links", () => {
     });
   });
 
-  test("derives drawing app base URL from account-web host", () => {
+  test("derives drawing app base URL from portal-web host", () => {
     expect(
       createAccountWebRuntimeConfig(
         {},

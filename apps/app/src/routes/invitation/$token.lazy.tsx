@@ -30,12 +30,10 @@ const Invitation: React.FC = () => {
   };
 
   return (
-    <section className="account-card account-card--centered">
-      <h1 className="account-title">Document invitation</h1>
-      <p className="account-subtitle">
-        Accept the invitation to this document.
-      </p>
-      <div className="account-actions">
+    <section className="portal-card portal-card--centered">
+      <h1 className="portal-title">Document invitation</h1>
+      <p className="portal-subtitle">Accept the invitation to this document.</p>
+      <div className="portal-actions">
         <button
           type="button"
           className="ds-button"

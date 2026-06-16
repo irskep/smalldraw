@@ -21,17 +21,17 @@ export const DocumentInvitationView: React.FC<DocumentInvitationViewProps> = ({
   const id = useId();
 
   return (
-    <div className="account-form-field">
-      <label htmlFor={id} className="account-label">
+    <div className="portal-form-field">
+      <label htmlFor={id} className="portal-label">
         Share link
       </label>
-      <div className="account-form-row">
+      <div className="portal-form-row">
         <input
           id={id}
           value={invitationUrl}
           readOnly
           onFocus={(event) => event.target.select()}
-          className="account-input account-input--share"
+          className="portal-input portal-input--share"
         />
         <button
           type="button"
@@ -39,7 +39,7 @@ export const DocumentInvitationView: React.FC<DocumentInvitationViewProps> = ({
           disabled={isPending}
           onClick={onRotate}
         >
-          <RefreshCcw className="account-action-icon" />
+          <RefreshCcw className="portal-action-icon" />
           Rotate
         </button>
       </div>

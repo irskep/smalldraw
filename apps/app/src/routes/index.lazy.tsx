@@ -201,11 +201,11 @@ function Index() {
   };
 
   return (
-    <section className="account-launcher" aria-label="Drawings">
+    <section className="portal-launcher" aria-label="Drawings">
       {localCatalog.type === "error" ? (
-        <div className="account-alert" data-tone="danger" role="alert">
-          <div className="account-alert__body">
-            <div className="account-alert__title">
+        <div className="portal-alert" data-tone="danger" role="alert">
+          <div className="portal-alert__body">
+            <div className="portal-alert__title">
               Local drawings could not be loaded
             </div>
             <div>{localCatalog.message}</div>
@@ -213,14 +213,14 @@ function Index() {
         </div>
       ) : null}
 
-      <div className="account-launcher-grid">
+      <div className="portal-launcher-grid">
         <a
           href={buildNewDrawingUrl(runtimeConfig)}
-          className="account-launcher-card account-launcher-card--new"
+          className="portal-launcher-card portal-launcher-card--new"
         >
-          <span className="account-launcher-card__media">
+          <span className="portal-launcher-card__media">
             <span
-              className="ds-button account-launcher-card__cta"
+              className="ds-button portal-launcher-card__cta"
               data-tone="primary"
             >
               New Drawing
@@ -229,7 +229,7 @@ function Index() {
         </a>
 
         {tiles.map((tile) => (
-          <div key={tile.key} className="account-launcher-card">
+          <div key={tile.key} className="portal-launcher-card">
             <DsThumbnailTile
               action={
                 tile.deleteAction
@@ -265,11 +265,11 @@ function Index() {
       </div>
 
       {localCatalog.type === "loading" ? (
-        <p className="account-muted">Loading drawings…</p>
+        <p className="portal-muted">Loading drawings…</p>
       ) : null}
 
       {isLoggedIn && documentsQuery.error ? (
-        <p className="account-muted">
+        <p className="portal-muted">
           Account drawings could not be refreshed right now.
         </p>
       ) : null}

@@ -18,7 +18,7 @@ This folder documents the server contracts frontend engineers should use when bu
   - multiplayer drawing frontend
   - URL: `http://localhost:3000`
 
-- `mise run account:web:dev`
+- `mise run portal:web:dev`
   - authenticated account/document management frontend
   - URL: `http://localhost:3001`
 

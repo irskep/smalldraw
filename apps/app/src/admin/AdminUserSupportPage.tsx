@@ -6,13 +6,7 @@ import {
   Share2 as ShareIcon,
   Unplug as UnplugIcon,
 } from "lucide";
-import {
-  FileSearch,
-  KeyRound,
-  LogOut,
-  Share2,
-  Unplug,
-} from "lucide-react";
+import { FileSearch, KeyRound, LogOut, Share2, Unplug } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   DsConfirmDialog,
@@ -57,14 +51,19 @@ export const AdminUserSupportPage: React.FC<Props> = ({
 }) => {
   if (documentId) {
     return (
-      <AdminDocumentInspectionPage documentId={documentId} username={username} />
+      <AdminDocumentInspectionPage
+        documentId={documentId}
+        username={username}
+      />
     );
   }
 
   return <AdminUserOverviewPage username={username} />;
 };
 
-const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => {
+const AdminUserOverviewPage: React.FC<{ username: string }> = ({
+  username,
+}) => {
   const confirmDialogRef = useRef<DsConfirmDialogHandle>(null);
   const [newPassword, setNewPassword] = useState("");
   const [shareLinksByDocumentId, setShareLinksByDocumentId] = useState<
@@ -274,22 +273,19 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
   return (
     <section className="admin-page" aria-label="Admin user support">
       <AdminBreadcrumbs
-        items={[
-          { label: "Admin", to: "/admin" },
-          { label: username },
-        ]}
+        items={[{ label: "Admin", to: "/admin" }, { label: username }]}
       />
 
       {userQuery.isFetching ? (
         <section className="admin-panel">
-          <p className="account-muted">Loading user...</p>
+          <p className="portal-muted">Loading user...</p>
         </section>
       ) : null}
       {userQuery.data === null ? (
         <section className="admin-panel">
-          <div className="account-alert" data-tone="danger" role="alert">
-            <div className="account-alert__body">
-              <div className="account-alert__title">User not found</div>
+          <div className="portal-alert" data-tone="danger" role="alert">
+            <div className="portal-alert__body">
+              <div className="portal-alert__title">User not found</div>
               <div>No account exists for {username}.</div>
             </div>
           </div>
@@ -300,15 +296,15 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
         <>
           <section className="admin-panel">
             <header className="admin-panel__header">
-              <h1 className="account-title">{foundUser.username}</h1>
+              <h1 className="portal-title">{foundUser.username}</h1>
             </header>
             <div className="admin-section-grid">
               <section className="admin-section" aria-label="User details">
-                <h2 className="account-label">Account</h2>
-                <dl className="account-details">
+                <h2 className="portal-label">Account</h2>
+                <dl className="portal-details">
                   <div>
                     <dt>User ID</dt>
-                    <dd className="account-code">{foundUser.id}</dd>
+                    <dd className="portal-code">{foundUser.id}</dd>
                   </div>
                   <div>
                     <dt>Role</dt>
@@ -322,16 +318,16 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
               </section>
 
               <section className="admin-section" aria-label="Password reset">
-                <h2 className="account-label">Recovery</h2>
+                <h2 className="portal-label">Recovery</h2>
                 <form
-                  className="account-form"
+                  className="portal-form"
                   onSubmit={(event) => {
                     event.preventDefault();
                     void resetPassword();
                   }}
                 >
                   <input
-                    className="account-input account-input--short"
+                    className="portal-input portal-input--short"
                     type="password"
                     value={newPassword}
                     onChange={(event) => setNewPassword(event.target.value)}
@@ -346,23 +342,23 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                       !newPassword.trim() || resetPasswordMutation.isPending
                     }
                   >
-                    <KeyRound className="account-action-icon" />
+                    <KeyRound className="portal-action-icon" />
                     Reset password
                   </button>
                 </form>
 
                 {resetMessage ? (
-                  <div className="account-alert" role="status">
-                    <div className="account-alert__body">
-                      <div className="account-alert__title">Password reset</div>
+                  <div className="portal-alert" role="status">
+                    <div className="portal-alert__body">
+                      <div className="portal-alert__title">Password reset</div>
                       <div>{resetMessage}</div>
                     </div>
                   </div>
                 ) : null}
                 {resetError ? (
-                  <div className="account-alert" data-tone="danger" role="alert">
-                    <div className="account-alert__body">
-                      <div className="account-alert__title">Reset failed</div>
+                  <div className="portal-alert" data-tone="danger" role="alert">
+                    <div className="portal-alert__body">
+                      <div className="portal-alert__title">Reset failed</div>
                       <div>{resetError}</div>
                     </div>
                   </div>
@@ -371,7 +367,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
 
               <section className="admin-section" aria-label="Sessions">
                 <div className="admin-section__header">
-                  <h2 className="account-label">Sessions</h2>
+                  <h2 className="portal-label">Sessions</h2>
                   <button
                     type="button"
                     className="ds-button"
@@ -384,15 +380,15 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                       void revokeAllSessions();
                     }}
                   >
-                    <LogOut className="account-action-icon" />
+                    <LogOut className="portal-action-icon" />
                     Revoke all
                   </button>
                 </div>
                 {userSessionsQuery.isLoading ? (
-                  <p className="account-muted">Loading sessions...</p>
+                  <p className="portal-muted">Loading sessions...</p>
                 ) : null}
                 {userSessionsQuery.data?.length === 0 ? (
-                  <p className="account-muted">No active sessions.</p>
+                  <p className="portal-muted">No active sessions.</p>
                 ) : null}
                 <div className="admin-record-list">
                   {userSessionsQuery.data?.map((session) => (
@@ -418,16 +414,16 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                       <div className="admin-record__meta">
                         Created: {formatDateTime(session.createdAt)}
                       </div>
-                      <div className="admin-record__meta account-code">
+                      <div className="admin-record__meta portal-code">
                         Session ID: {formatSessionIdentifier(session.id)}
                       </div>
                     </div>
                   ))}
                 </div>
                 {sessionMessage ? (
-                  <div className="account-alert" role="status">
-                    <div className="account-alert__body">
-                      <div className="account-alert__title">
+                  <div className="portal-alert" role="status">
+                    <div className="portal-alert__body">
+                      <div className="portal-alert__title">
                         Sessions updated
                       </div>
                       <div>{sessionMessage}</div>
@@ -435,9 +431,9 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                   </div>
                 ) : null}
                 {sessionError ? (
-                  <div className="account-alert" data-tone="danger" role="alert">
-                    <div className="account-alert__body">
-                      <div className="account-alert__title">
+                  <div className="portal-alert" data-tone="danger" role="alert">
+                    <div className="portal-alert__body">
+                      <div className="portal-alert__title">
                         Session update failed
                       </div>
                       <div>{sessionError}</div>
@@ -450,27 +446,27 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
 
           <section className="admin-panel">
             <header className="admin-panel__header">
-              <h2 className="account-title">Drawings</h2>
+              <h2 className="portal-title">Drawings</h2>
             </header>
             {userDocumentsQuery.isLoading ? (
-              <p className="account-muted">Loading drawings...</p>
+              <p className="portal-muted">Loading drawings...</p>
             ) : null}
             {userDocumentsQuery.data?.length === 0 ? (
-              <p className="account-muted">This user has no shared drawings.</p>
+              <p className="portal-muted">This user has no shared drawings.</p>
             ) : null}
-            <div className="account-list">
+            <div className="portal-list">
               {userDocumentsQuery.data?.map((document) => {
                 const shareLink = shareLinksByDocumentId[document.id];
                 return (
-                  <div key={document.id} className="account-list-item">
-                    <div className="account-list-item__main">
+                  <div key={document.id} className="portal-list-item">
+                    <div className="portal-list-item__main">
                       <div>{document.name}</div>
-                      <div className="account-muted account-muted--small account-code">
+                      <div className="portal-muted portal-muted--small portal-code">
                         {document.id}
                       </div>
                       {shareLink ? (
                         <input
-                          className="account-input account-input--share"
+                          className="portal-input portal-input--share"
                           readOnly
                           value={shareLink}
                           onFocus={(event) => event.currentTarget.select()}
@@ -488,7 +484,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
                             documentId: document.id,
                           }}
                         >
-                          <FileSearch className="account-action-icon" />
+                          <FileSearch className="portal-action-icon" />
                           Inspect
                         </Link>
                       }
@@ -506,9 +502,9 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
               })}
             </div>
             {shareLinkError ? (
-              <div className="account-alert" data-tone="danger" role="alert">
-                <div className="account-alert__body">
-                  <div className="account-alert__title">Share link failed</div>
+              <div className="portal-alert" data-tone="danger" role="alert">
+                <div className="portal-alert__body">
+                  <div className="portal-alert__title">Share link failed</div>
                   <div>{shareLinkError}</div>
                 </div>
               </div>
@@ -517,7 +513,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
 
           <section className="admin-panel">
             <header className="admin-panel__header">
-              <h2 className="account-title">Deleted drawings</h2>
+              <h2 className="portal-title">Deleted drawings</h2>
             </header>
             <DeletedDrawingsList
               documents={deletedDocumentsQuery.data ?? []}
@@ -532,17 +528,17 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({ username }) => 
               }
             />
             {restoreMessage ? (
-              <div className="account-alert" role="status">
-                <div className="account-alert__body">
-                  <div className="account-alert__title">Drawing restored</div>
+              <div className="portal-alert" role="status">
+                <div className="portal-alert__body">
+                  <div className="portal-alert__title">Drawing restored</div>
                   <div>{restoreMessage}</div>
                 </div>
               </div>
             ) : null}
             {restoreError ? (
-              <div className="account-alert" data-tone="danger" role="alert">
-                <div className="account-alert__body">
-                  <div className="account-alert__title">Restore failed</div>
+              <div className="portal-alert" data-tone="danger" role="alert">
+                <div className="portal-alert__body">
+                  <div className="portal-alert__title">Restore failed</div>
                   <div>{restoreError}</div>
                 </div>
               </div>
@@ -588,11 +584,11 @@ const AdminDocumentActions: React.FC<AdminDocumentActionsProps> = ({
   setShareLinkError,
   username,
 }) => (
-  <div className="account-form-row">
+  <div className="portal-form-row">
     {beforeActions}
     {shareLink ? (
       <input
-        className="account-input account-input--share"
+        className="portal-input portal-input--share"
         readOnly
         value={shareLink}
         onFocus={(event) => event.currentTarget.select()}
@@ -641,7 +637,7 @@ const AdminDocumentActions: React.FC<AdminDocumentActionsProps> = ({
           }
         }}
       >
-        <Share2 className="account-action-icon" />
+        <Share2 className="portal-action-icon" />
         Create share link
       </button>
     )}
@@ -736,8 +732,8 @@ const AdminDocumentInspectionPage: React.FC<{
 
       <section className="admin-panel">
         <header className="admin-panel__header">
-          <h1 className="account-title">Document inspection</h1>
-          <p className="account-muted account-code">{documentId}</p>
+          <h1 className="portal-title">Document inspection</h1>
+          <p className="portal-muted portal-code">{documentId}</p>
           {details ? (
             <AdminDocumentActions
               confirmDialogRef={confirmDialogRef}
@@ -753,12 +749,12 @@ const AdminDocumentInspectionPage: React.FC<{
         </header>
 
         {documentDetailsQuery.isLoading ? (
-          <p className="account-muted">Loading document details...</p>
+          <p className="portal-muted">Loading document details...</p>
         ) : null}
         {documentDetailsQuery.error ? (
-          <div className="account-alert" data-tone="danger" role="alert">
-            <div className="account-alert__body">
-              <div className="account-alert__title">
+          <div className="portal-alert" data-tone="danger" role="alert">
+            <div className="portal-alert__body">
+              <div className="portal-alert__title">
                 Document details could not be loaded
               </div>
               <div>{documentDetailsQuery.error.message}</div>
@@ -768,7 +764,7 @@ const AdminDocumentInspectionPage: React.FC<{
         {details ? (
           <div className="admin-section-grid">
             <section className="admin-section" aria-label="Document details">
-              <h2 className="account-label">Drawing</h2>
+              <h2 className="portal-label">Drawing</h2>
               <div className="admin-thumbnail">
                 <DsThumbnailTile
                   badge={null}
@@ -787,7 +783,7 @@ const AdminDocumentInspectionPage: React.FC<{
                   openLabel={`Open ${details.document.name}`}
                 />
               </div>
-              <dl className="account-details">
+              <dl className="portal-details">
                 <div>
                   <dt>Name</dt>
                   <dd>{details.document.name}</dd>
@@ -810,10 +806,10 @@ const AdminDocumentInspectionPage: React.FC<{
             </section>
 
             <section className="admin-section" aria-label="Members">
-              <h2 className="account-label">Members</h2>
+              <h2 className="portal-label">Members</h2>
               <div className="admin-record-list">
                 {details.members.length === 0 ? (
-                  <p className="account-muted">No members found.</p>
+                  <p className="portal-muted">No members found.</p>
                 ) : null}
                 {details.members.map((member) => (
                   <div key={member.id} className="admin-record">
@@ -825,7 +821,7 @@ const AdminDocumentInspectionPage: React.FC<{
                         {member.isAdmin ? "document admin" : "member"}
                       </div>
                     </div>
-                    <div className="admin-record__meta account-code">
+                    <div className="admin-record__meta portal-code">
                       {member.id}
                     </div>
                   </div>
@@ -837,17 +833,17 @@ const AdminDocumentInspectionPage: React.FC<{
               className="admin-section admin-section--wide"
               aria-label="Access tokens"
             >
-              <h2 className="account-label">Access tokens</h2>
+              <h2 className="portal-label">Access tokens</h2>
               <div className="admin-record-list">
                 {details.accessTokens.length === 0 ? (
-                  <p className="account-muted">
+                  <p className="portal-muted">
                     No owner or device tokens recorded.
                   </p>
                 ) : null}
                 {details.accessTokens.map((token) => (
                   <div key={token.id} className="admin-record">
                     <div className="admin-record__row">
-                      <div className="admin-record__primary account-code">
+                      <div className="admin-record__primary portal-code">
                         {token.scope}
                         {token.tag ? `:${token.tag}` : ""}
                       </div>
@@ -864,7 +860,7 @@ const AdminDocumentInspectionPage: React.FC<{
                             });
                           }}
                         >
-                          <Unplug className="account-action-icon" />
+                          <Unplug className="portal-action-icon" />
                           Revoke
                         </button>
                       ) : (
@@ -883,9 +879,9 @@ const AdminDocumentInspectionPage: React.FC<{
                 ))}
               </div>
               {tokenMessage ? (
-                <div className="account-alert" role="status">
-                  <div className="account-alert__body">
-                    <div className="account-alert__title">
+                <div className="portal-alert" role="status">
+                  <div className="portal-alert__body">
+                    <div className="portal-alert__title">
                       Access token updated
                     </div>
                     <div>{tokenMessage}</div>
@@ -893,9 +889,9 @@ const AdminDocumentInspectionPage: React.FC<{
                 </div>
               ) : null}
               {tokenError ? (
-                <div className="account-alert" data-tone="danger" role="alert">
-                  <div className="account-alert__body">
-                    <div className="account-alert__title">
+                <div className="portal-alert" data-tone="danger" role="alert">
+                  <div className="portal-alert__body">
+                    <div className="portal-alert__title">
                       Access token update failed
                     </div>
                     <div>{tokenError}</div>
@@ -906,9 +902,9 @@ const AdminDocumentInspectionPage: React.FC<{
           </div>
         ) : null}
         {shareLinkError ? (
-          <div className="account-alert" data-tone="danger" role="alert">
-            <div className="account-alert__body">
-              <div className="account-alert__title">Share link failed</div>
+          <div className="portal-alert" data-tone="danger" role="alert">
+            <div className="portal-alert__body">
+              <div className="portal-alert__title">Share link failed</div>
               <div>{shareLinkError}</div>
             </div>
           </div>
