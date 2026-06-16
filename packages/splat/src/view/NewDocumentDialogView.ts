@@ -185,7 +185,7 @@ export function createNewDocumentDialogView(options: {
     const volumeCards = books.map((book) => {
       const card = createChoiceCard({
         title: book.title,
-        subtitle: `${book.pageCount} pages · ${book.sourceLabel}`,
+        subtitle: `${book.pageCount} pages`,
         className: "kids-draw-new-document-dialog__choice",
       });
       if (book.coverPageSrc) {
@@ -232,7 +232,7 @@ export function createNewDocumentDialogView(options: {
       bookSummaryImage.hidden = true;
     }
     bookSummaryTitle.setText(book.title);
-    bookSummaryCopy.setText(`${book.pageCount} pages · ${book.sourceLabel}`);
+    bookSummaryCopy.setText(`${book.pageCount} pages`);
     const cards = book.pages.map((page) => {
       const pageNum = String(page.pageNumber).padStart(3, "0");
       const card = createPosterCard({
@@ -272,7 +272,7 @@ export function createNewDocumentDialogView(options: {
     scaffold.setSubtitle(
       selectedBook === null
         ? "Start blank or pick a page from a coloring book"
-        : `${selectedBook.pageCount} pages · ${selectedBook.sourceLabel}`,
+        : `${selectedBook.pageCount} pages`,
     );
     closeButton.setDisabled(state.busy);
     backButton.setDisabled(state.busy);

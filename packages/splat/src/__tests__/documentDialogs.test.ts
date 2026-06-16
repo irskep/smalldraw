@@ -78,6 +78,7 @@ describe("NewDocumentDialogView", () => {
     ) as HTMLButtonElement | null;
 
     expect(summaryTitle?.textContent).toBe("PDR Volume 1");
+    expect(dialog.el.textContent).not.toContain("Built in");
     expect(pageButton).not.toBeNull();
   });
 

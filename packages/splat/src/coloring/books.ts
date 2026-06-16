@@ -4,12 +4,13 @@ export interface ColoringBookSpec {
   id: string;
   title: string;
   volumeLabel: string;
-  sourceLabel: string;
   sourceUrl: string | null;
   pageCount: number;
   coverPageSrc: string | null;
   pages: readonly ColoringPageSpec[];
 }
+
+const HIDDEN_COLORING_BOOK_IDS = new Set(["nyam-lib-2024-v2"]);
 
 function simplifyVolumeTitle(volumeLabel: string): string {
   const colonIndex = volumeLabel.indexOf(":");
@@ -18,25 +19,13 @@ function simplifyVolumeTitle(volumeLabel: string): string {
   return candidate.replace(/\s*\([^)]*\)\s*$/, "").trim();
 }
 
-function resolveSourceLabel(sourceUrl: string | null): string {
-  if (!sourceUrl) {
-    return "Built in";
-  }
-  try {
-    const url = new URL(sourceUrl);
-    if (url.hostname === "library.nyam.org") {
-      return "NYAM ColorOurCollections";
-    }
-    return url.hostname.replace(/^www\./, "");
-  } catch {
-    return "External source";
-  }
-}
-
 export function getColoringBooks(): readonly ColoringBookSpec[] {
   const pages = getColoringPages();
   const pagesByVolume = new Map<string, ColoringPageSpec[]>();
   for (const page of pages) {
+    if (HIDDEN_COLORING_BOOK_IDS.has(page.volumeId)) {
+      continue;
+    }
     const volumePages = pagesByVolume.get(page.volumeId) ?? [];
     volumePages.push(page);
     pagesByVolume.set(page.volumeId, volumePages);
@@ -52,7 +41,6 @@ export function getColoringBooks(): readonly ColoringBookSpec[] {
         id,
         title: simplifyVolumeTitle(firstPage?.volumeLabel ?? id),
         volumeLabel: firstPage?.volumeLabel ?? id,
-        sourceLabel: resolveSourceLabel(firstPage?.sourceUrl ?? null),
         sourceUrl: firstPage?.sourceUrl ?? null,
         pageCount: sortedPages.length,
         coverPageSrc: firstPage?.src ?? null,
