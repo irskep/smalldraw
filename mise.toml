@@ -129,6 +129,15 @@ run = "tilt up"
 [tasks."tilt:down"]
 run = "tilt down"
 
+[tasks."update-logo"]
+description = "Copy the root logo.svg into browser app favicon assets"
+run = """
+mkdir -p apps/app/public apps/splat-web/public
+cp logo.svg apps/app/public/favicon.svg
+cp logo.svg apps/splat-web/public/favicon.svg
+cp logo.svg apps/splat-web/src/favicon.svg
+"""
+
 [tasks."db:push:prod"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/prod.db" }
 run = "bunx drizzle-kit push"

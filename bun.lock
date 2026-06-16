@@ -20,6 +20,7 @@
         "@automerge/automerge-repo-network-websocket": "2.5.1",
         "@automerge/automerge-repo-react-hooks": "2.5.1",
         "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
+        "@fontsource-variable/shantell-sans": "5.2.7",
         "@serenity-kit/opaque": "^0.8.4",
         "@smalldraw/design-system": "workspace:*",
         "@smalldraw/shared": "workspace:*",
@@ -430,6 +431,8 @@
     "@eslint/eslintrc": ["@eslint/eslintrc@2.1.4", "", { "dependencies": { "ajv": "^6.12.4", "debug": "^4.3.2", "espree": "^9.6.0", "globals": "^13.19.0", "ignore": "^5.2.0", "import-fresh": "^3.2.1", "js-yaml": "^4.1.0", "minimatch": "^3.1.2", "strip-json-comments": "^3.1.1" } }, "sha512-269Z39MS6wVJtsoUl10L60WdkhJVdPG24Q4eZTH3nnF6lpvSShEK3wQjDX9JRWAUPvPh7COouPpU9IrqaZFvtQ=="],
 
     "@eslint/js": ["@eslint/js@8.57.1", "", {}, "sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q=="],
+
+    "@fontsource-variable/shantell-sans": ["@fontsource-variable/shantell-sans@5.2.7", "", {}, "sha512-CwzNHajhSz2cHyRKhCUmh5i4B/GruozH2dNvCTtsDLs0ezNUpWixSP1WccEWVU2dcFti+c7xHFiYng/vs1c+PA=="],
 
     "@gerrit0/mini-shiki": ["@gerrit0/mini-shiki@3.21.0", "", { "dependencies": { "@shikijs/engine-oniguruma": "^3.21.0", "@shikijs/langs": "^3.21.0", "@shikijs/themes": "^3.21.0", "@shikijs/types": "^3.21.0", "@shikijs/vscode-textmate": "^10.0.2" } }, "sha512-9PrsT5DjZA+w3lur/aOIx3FlDeHdyCEFlv9U+fmsVyjPZh61G5SYURQ/1ebe2U63KbDmI2V8IhIUegWb8hjOyg=="],
 
