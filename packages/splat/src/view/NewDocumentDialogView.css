@@ -75,6 +75,8 @@
 
 .kids-draw-new-document-dialog__blank-choice {
   min-width: 0;
+  display: grid;
+  justify-items: center;
 }
 
 .kids-draw-new-document-dialog__book-summary {
@@ -139,6 +141,7 @@
 }
 
 .kids-draw-new-document-dialog__blank-button {
+  width: min(100%, 22rem);
   min-height: var(--size-px-8);
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;

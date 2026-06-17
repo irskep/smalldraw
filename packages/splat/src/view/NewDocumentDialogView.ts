@@ -163,7 +163,7 @@ export function createNewDocumentDialogView(options: {
 
   const renderRootChoices = (state: NewDocumentDialogState): void => {
     const blankChoice = createChoiceCard({
-      title: "blank drawing",
+      title: "Blank Drawing",
       className:
         "kids-draw-new-document-dialog__choice kids-draw-new-document-dialog__blank-button",
     });
