@@ -69,6 +69,31 @@ a {
   color: var(--ds-text-muted);
 }
 
+.portal-home {
+  width: 100%;
+  align-self: start;
+  display: grid;
+  align-content: start;
+}
+
+.portal-home[data-state="empty"] {
+  gap: var(--size-3);
+  padding-block-start: var(--size-2);
+}
+
+.portal-home[data-state="empty"] .portal-info {
+  max-width: 42rem;
+  margin-block-end: 0;
+}
+
+.portal-home[data-state="empty"] .portal-launcher {
+  max-width: 22rem;
+}
+
+.portal-home[data-state="empty"] .portal-launcher-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .portal-info p {
   margin: 0;
 }

@@ -76,6 +76,12 @@ function Index() {
     localCatalog,
     runtimeConfig,
   ]);
+  const launcherState =
+    localCatalog.type === "loaded" &&
+    tiles.length === 0 &&
+    (!isLoggedIn || !documentsQuery.isLoading)
+      ? "empty"
+      : "active";
 
   useEffect(() => {
     let disposed = false;
@@ -206,7 +212,7 @@ function Index() {
   };
 
   return (
-    <>
+    <div className="portal-home" data-state={launcherState}>
       <section className="portal-info">
         <p>
           Splatterboard is a free drawing app for families. It collects only
@@ -296,6 +302,6 @@ function Index() {
       </section>
       <DsConfirmDialog ref={confirmDialogRef} />
       <ParentalControlsDialog ref={parentalControlsDialogRef} />
-    </>
+    </div>
   );
 }
