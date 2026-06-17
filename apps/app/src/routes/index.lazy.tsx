@@ -6,11 +6,11 @@ import {
   DsConfirmDialog,
   type DsConfirmDialogHandle,
 } from "@/components/DsConfirmDialog/DsConfirmDialog";
+import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
 import {
   ParentalControlsDialog,
   type ParentalControlsDialogHandle,
 } from "@/components/ParentalControlsDialog/ParentalControlsDialog";
-import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
 import { buildLauncherDocumentTiles } from "@/utils/documentLauncher";
 import {
   buildNewDrawingUrl,
@@ -209,14 +209,15 @@ function Index() {
     <>
       <section className="portal-info">
         <p>
-          Splatterboard is a free drawing app for kids. No data is stored on the
-          server unless you use the draw-together feature.{" "}
+          Splatterboard is a free drawing app for families. It collects only
+          necessary data and is local (not stored on a server) by default. There
+          are no ads or payments.{" "}
           <button
             className="portal-link-button"
             type="button"
             onClick={() => void parentalControlsDialogRef.current?.open()}
           >
-            Parental controls can hide sharing.
+            Parental controls manage sharing.
           </button>
         </p>
       </section>

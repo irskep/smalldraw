@@ -46,18 +46,6 @@
   outline-offset: calc(var(--border-size-2) * -1);
 }
 
-.ds-parental-controls-dialog__checkbox-field {
-  display: flex;
-  align-items: center;
-  gap: var(--size-px-2);
-  font-size: var(--font-size-button-md);
-}
-
-.ds-parental-controls-dialog__checkbox {
-  inline-size: 1.1em;
-  block-size: 1.1em;
-}
-
 .ds-parental-controls-dialog__hint,
 .ds-parental-controls-dialog__error {
   margin: 0;
@@ -85,4 +73,46 @@
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: var(--size-px-2);
+}
+
+.ds-parental-controls-dialog__radio-group {
+  min-width: 0;
+  display: grid;
+  gap: var(--size-px-2);
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+
+.ds-parental-controls-dialog__radio-option {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--size-px-2);
+  align-items: start;
+  padding: var(--size-px-2);
+  border: var(--border-size-1) solid var(--ds-border);
+  border-radius: var(--radius-2);
+}
+
+.ds-parental-controls-dialog__radio {
+  margin-block-start: 0.2em;
+  inline-size: 1.1em;
+  block-size: 1.1em;
+}
+
+.ds-parental-controls-dialog__radio-text {
+  min-width: 0;
+  display: grid;
+  gap: var(--size-px-1);
+}
+
+.ds-parental-controls-dialog__radio-title {
+  font-size: var(--font-size-button-md);
+  font-weight: var(--font-weight-5);
+}
+
+.ds-parental-controls-dialog__radio-copy {
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-0);
 }

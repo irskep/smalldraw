@@ -7,12 +7,11 @@ import {
   hasParentalControlsPin,
   isCorrectParentalControlsMathAnswer,
   loadParentalControlsState,
-  markParentalControlsPromptSeen,
   openParentalControlsSettings,
   PARENTAL_CONTROLS_STORAGE_KEY,
   type ParentalControlsStorageLike,
   setParentalControlsPin,
-  setParentalControlsSharingHidden,
+  setParentalControlsSharingMode,
   verifyParentalControlsPin,
 } from "./parentalControls";
 
@@ -29,15 +28,13 @@ describe("parental controls storage", () => {
     );
   });
 
-  test("stores prompt and sharing settings", () => {
+  test("stores sharing mode", () => {
     const storage = createMemoryStorage();
 
-    markParentalControlsPromptSeen(storage);
-    setParentalControlsSharingHidden(true, storage);
+    setParentalControlsSharingMode("offline_only", storage);
 
     expect(loadParentalControlsState(storage)).toMatchObject({
-      promptSeen: true,
-      sharingHidden: true,
+      sharingMode: "offline_only",
     });
   });
 
@@ -66,7 +63,7 @@ describe("parental controls storage", () => {
       const options = createParentalControlsAccessOptions();
       expect(options.initialState).toEqual({
         hasPin: true,
-        sharingHidden: false,
+        sharingMode: "allowed",
       });
       expect(await options.verifyPin("1234")).toBeTrue();
       expect(options.isCorrectMathAnswer("30")).toBeTrue();
@@ -87,13 +84,12 @@ describe("parental controls storage", () => {
     });
     try {
       await applyParentalControlsSettingsResult({
-        sharingHidden: true,
+        sharingMode: "pin_required",
         pinChange: { type: "set", pin: "2468" },
       });
 
       const state = loadParentalControlsState(storage);
-      expect(state.promptSeen).toBeTrue();
-      expect(state.sharingHidden).toBeTrue();
+      expect(state.sharingMode).toBe("pin_required");
       expect(await verifyParentalControlsPin("2468", state)).toBeTrue();
     } finally {
       Object.defineProperty(globalThis, "localStorage", {
@@ -115,19 +111,21 @@ describe("parental controls storage", () => {
         async show(options) {
           expect(options.initialState).toEqual({
             hasPin: false,
-            sharingHidden: false,
+            sharingMode: "allowed",
           });
           return {
-            sharingHidden: true,
+            sharingMode: "offline_only",
             pinChange: { type: "unchanged" },
           };
+        },
+        async requestAccess() {
+          return false;
         },
       });
 
       expect(opened).toBeTrue();
       expect(loadParentalControlsState(storage)).toMatchObject({
-        promptSeen: true,
-        sharingHidden: true,
+        sharingMode: "offline_only",
       });
     } finally {
       Object.defineProperty(globalThis, "localStorage", {

@@ -204,7 +204,7 @@ describe("ParentalControlsDialog", () => {
     document.body.appendChild(dialog.el);
 
     const pending = dialog.show({
-      initialState: { hasPin: false, sharingHidden: false },
+      initialState: { hasPin: false, sharingMode: "allowed" },
       verifyPin: async () => false,
       isCorrectMathAnswer: (answer) => answer.trim() === "30",
     });
@@ -228,7 +228,7 @@ describe("ParentalControlsDialog", () => {
     expect(settingsPanel?.hidden).toBeFalse();
 
     const sharingInput = dialog.el.querySelector(
-      ".ds-parental-controls-dialog__checkbox",
+      'input[name="ds-parental-controls-sharing-mode"][value="offline_only"]',
     ) as HTMLInputElement | null;
     const pinInput = dialog.el.querySelector(
       "#ds-parental-controls-pin",
@@ -240,7 +240,7 @@ describe("ParentalControlsDialog", () => {
     clickDialogButton(dialog.el, "Save");
 
     expect(await pending).toEqual({
-      sharingHidden: true,
+      sharingMode: "offline_only",
       pinChange: { type: "set", pin: "2468" },
     });
   });
@@ -250,7 +250,7 @@ describe("ParentalControlsDialog", () => {
     document.body.appendChild(dialog.el);
 
     const pending = dialog.show({
-      initialState: { hasPin: true, sharingHidden: true },
+      initialState: { hasPin: true, sharingMode: "offline_only" },
       verifyPin: async (pin) => pin === "1357",
       isCorrectMathAnswer: () => false,
     });
@@ -277,7 +277,7 @@ describe("ParentalControlsDialog", () => {
     clickDialogButton(dialog.el, "Save");
 
     expect(await pending).toEqual({
-      sharingHidden: true,
+      sharingMode: "offline_only",
       pinChange: { type: "clear" },
     });
   });

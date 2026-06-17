@@ -3,16 +3,20 @@ export const PARENTAL_CONTROLS_STORAGE_KEY = "smalldraw:parental-controls:v1";
 const PARENTAL_CONTROLS_EVENT = "smalldraw:parental-controls-change";
 const PIN_SALT_BYTES = 16;
 
+export type ParentalControlsSharingMode =
+  | "offline_only"
+  | "pin_required"
+  | "allowed";
+
 export type ParentalControlsState = {
   version: 1;
-  promptSeen: boolean;
-  sharingHidden: boolean;
+  sharingMode: ParentalControlsSharingMode;
   pinHash?: string;
   pinSalt?: string;
 };
 
 export type ParentalControlsSettingsResult = {
-  sharingHidden: boolean;
+  sharingMode: ParentalControlsSharingMode;
   pinChange:
     | { type: "unchanged" }
     | { type: "set"; pin: string }
@@ -22,7 +26,7 @@ export type ParentalControlsSettingsResult = {
 export type ParentalControlsAccessOptions = {
   initialState: {
     hasPin: boolean;
-    sharingHidden: boolean;
+    sharingMode: ParentalControlsSharingMode;
   };
   verifyPin: (pin: string) => Promise<boolean>;
   isCorrectMathAnswer: (answer: string) => boolean;
@@ -32,6 +36,7 @@ export type ParentalControlsDialogLike = {
   show(
     options: ParentalControlsAccessOptions,
   ): Promise<ParentalControlsSettingsResult | null>;
+  requestAccess(options: ParentalControlsAccessOptions): Promise<boolean>;
 };
 
 export type ParentalControlsStorageLike = {
@@ -67,8 +72,7 @@ type ParentalControlsRuntimeLike = {
 export const DEFAULT_PARENTAL_CONTROLS_STATE: ParentalControlsState =
   Object.freeze({
     version: 1,
-    promptSeen: false,
-    sharingHidden: false,
+    sharingMode: "allowed",
   });
 
 export function loadParentalControlsState(
@@ -118,21 +122,12 @@ export function hasParentalControlsPin(
   return Boolean(state.pinHash && state.pinSalt);
 }
 
-export function markParentalControlsPromptSeen(
+export function setParentalControlsSharingMode(
+  sharingMode: ParentalControlsSharingMode,
   storage?: ParentalControlsStorageLike,
 ): ParentalControlsState {
   return updateParentalControlsState(
-    (state) => ({ ...state, promptSeen: true }),
-    storage,
-  );
-}
-
-export function setParentalControlsSharingHidden(
-  sharingHidden: boolean,
-  storage?: ParentalControlsStorageLike,
-): ParentalControlsState {
-  return updateParentalControlsState(
-    (state) => ({ ...state, sharingHidden }),
+    (state) => ({ ...state, sharingMode }),
     storage,
   );
 }
@@ -181,7 +176,7 @@ export function createParentalControlsAccessOptions(): ParentalControlsAccessOpt
   return {
     initialState: {
       hasPin: hasParentalControlsPin(state),
-      sharingHidden: state.sharingHidden,
+      sharingMode: state.sharingMode,
     },
     verifyPin: async (pin) =>
       await verifyParentalControlsPin(pin, loadParentalControlsState()),
@@ -192,13 +187,22 @@ export function createParentalControlsAccessOptions(): ParentalControlsAccessOpt
 export async function applyParentalControlsSettingsResult(
   result: ParentalControlsSettingsResult,
 ): Promise<void> {
-  markParentalControlsPromptSeen();
-  setParentalControlsSharingHidden(result.sharingHidden);
+  if (
+    result.sharingMode === "pin_required" &&
+    result.pinChange.type !== "set" &&
+    !hasParentalControlsPin()
+  ) {
+    throw new Error("A PIN is required before sharing can require a PIN");
+  }
   if (result.pinChange.type === "set") {
     await setParentalControlsPin(result.pinChange.pin);
   } else if (result.pinChange.type === "clear") {
+    if (result.sharingMode === "pin_required") {
+      throw new Error("Cannot clear the PIN while sharing requires a PIN");
+    }
     clearParentalControlsPin();
   }
+  setParentalControlsSharingMode(result.sharingMode);
 }
 
 export async function openParentalControlsSettings(
@@ -210,6 +214,24 @@ export async function openParentalControlsSettings(
   }
   await applyParentalControlsSettingsResult(result);
   return true;
+}
+
+export async function requestParentalControlsAccess(
+  dialog: ParentalControlsDialogLike,
+): Promise<boolean> {
+  return await dialog.requestAccess(createParentalControlsAccessOptions());
+}
+
+export function areParentalControlsSharingFeaturesVisible(
+  state: ParentalControlsState = loadParentalControlsState(),
+): boolean {
+  return state.sharingMode !== "offline_only";
+}
+
+export function doesParentalControlsShareRequirePin(
+  state: ParentalControlsState = loadParentalControlsState(),
+): boolean {
+  return state.sharingMode === "pin_required";
 }
 
 export function subscribeToParentalControlsState(
@@ -243,10 +265,17 @@ function isParentalControlsState(
     candidate.pinSalt === undefined || typeof candidate.pinSalt === "string";
   return (
     candidate.version === 1 &&
-    typeof candidate.promptSeen === "boolean" &&
-    typeof candidate.sharingHidden === "boolean" &&
+    isParentalControlsSharingMode(candidate.sharingMode) &&
     hasPinHash &&
     hasPinSalt
+  );
+}
+
+function isParentalControlsSharingMode(
+  value: unknown,
+): value is ParentalControlsSharingMode {
+  return (
+    value === "offline_only" || value === "pin_required" || value === "allowed"
   );
 }
 

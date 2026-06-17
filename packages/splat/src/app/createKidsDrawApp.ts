@@ -5,8 +5,12 @@ import type {
   SplatContextDocumentSlot,
 } from "@smalldraw/design-system";
 import {
+  areParentalControlsSharingFeaturesVisible,
+  doesParentalControlsShareRequirePin,
+  hasParentalControlsPin,
   loadParentalControlsState,
   openParentalControlsSettings,
+  requestParentalControlsAccess,
   subscribeToParentalControlsState,
 } from "@smalldraw/shared";
 import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
@@ -83,7 +87,7 @@ export async function createKidsDrawApp(
   );
   const syncParentalControlsVisibility = (): void => {
     presentation.toolbar.setSharingFeaturesVisible(
-      !loadParentalControlsState().sharingHidden,
+      areParentalControlsSharingFeaturesVisible(),
     );
   };
   syncParentalControlsVisibility();
@@ -220,7 +224,7 @@ export async function createKidsDrawApp(
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
     showShareDialog: controllerMultiplayerAdapters.showShareDialog,
-    isSharingAllowed: () => !loadParentalControlsState().sharingHidden,
+    isSharingAllowed: () => areParentalControlsSharingFeaturesVisible(),
     requestSharePermission: async () =>
       await requestParentalSharePermission(presentation.parentalControlsDialog),
     openParentalControls: async () =>
@@ -257,13 +261,16 @@ async function requestParentalSharePermission(
   dialog: ParentalControlsDialog,
 ): Promise<boolean> {
   const state = loadParentalControlsState();
-  if (state.sharingHidden) {
+  if (!areParentalControlsSharingFeaturesVisible(state)) {
     return false;
   }
-  if (state.promptSeen) {
+  if (!doesParentalControlsShareRequirePin(state)) {
     return true;
   }
-  return await openParentalControlsSettings(dialog);
+  if (!hasParentalControlsPin(state)) {
+    return false;
+  }
+  return await requestParentalControlsAccess(dialog);
 }
 
 const DEFAULT_PROVISIONAL_WIDTH = 960;
