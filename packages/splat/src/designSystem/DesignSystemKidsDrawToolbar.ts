@@ -11,6 +11,7 @@ import {
   FolderOpen,
   Redo2,
   Share2,
+  ShieldCheck,
   Trash2,
   Undo2,
 } from "lucide";
@@ -41,6 +42,7 @@ const DESKTOP_MENU_ENTRIES: readonly DropdownMenuEntry[] = [
   { id: "new-drawing", label: "New Drawing", icon: FilePlus },
   { id: "browse", label: "Browse Drawings", icon: FolderOpen },
   { id: "export", label: "Export PNG", icon: Download },
+  { id: "parental-controls", label: "Parental controls", icon: ShieldCheck },
   { type: "separator" },
   { id: "clear", label: "Clear Canvas", icon: Trash2, danger: true },
 ];
@@ -58,6 +60,7 @@ const MOBILE_MENU_ENTRIES: readonly DropdownMenuEntry[] = [
   { id: "new-drawing", label: "New Drawing", icon: FilePlus },
   { id: "browse", label: "Browse Drawings", icon: FolderOpen },
   { id: "export", label: "Export PNG", icon: Download },
+  { id: "parental-controls", label: "Parental controls", icon: ShieldCheck },
   { id: "share", label: "Share", icon: Share2 },
   { type: "separator" },
   { id: "clear", label: "Clear Canvas", icon: Trash2, danger: true },
@@ -257,16 +260,27 @@ function toUiActionIntent(actionId: string): Extract<
       | "export"
       | "new_drawing"
       | "browse"
-      | "share";
+      | "share"
+      | "parental_controls";
   }
 >["type"] {
   if (actionId === "new-drawing") {
     return "new_drawing";
   }
+  if (actionId === "parental-controls") {
+    return "parental_controls";
+  }
   return actionId as Extract<
     KidsDrawUiIntent,
     {
-      type: "undo" | "redo" | "clear" | "export" | "browse" | "share";
+      type:
+        | "undo"
+        | "redo"
+        | "clear"
+        | "export"
+        | "browse"
+        | "share"
+        | "parental_controls";
     }
   >["type"];
 }

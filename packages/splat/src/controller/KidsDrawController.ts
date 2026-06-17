@@ -176,6 +176,7 @@ export function createKidsDrawController(options: {
   showShareDialog: (payload: SharePayload) => Promise<void>;
   isSharingAllowed?: () => boolean;
   requestSharePermission?: () => Promise<boolean>;
+  openParentalControls: () => Promise<boolean>;
   onShareError?: (message: string) => void;
   onClaimError?: (message: string) => void;
   onDocumentOpenRequested?: (
@@ -218,6 +219,7 @@ export function createKidsDrawController(options: {
     showShareDialog,
     isSharingAllowed,
     requestSharePermission,
+    openParentalControls,
     onShareError,
     onClaimError,
     onDocumentOpenRequested,
@@ -526,6 +528,7 @@ export function createKidsDrawController(options: {
       isSharingAllowed,
       requestSharePermission,
     },
+    openParentalControls,
     snapshotService,
     getSize,
     confirmDestructiveAction,

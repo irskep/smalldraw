@@ -28,6 +28,12 @@ export type ParentalControlsAccessOptions = {
   isCorrectMathAnswer: (answer: string) => boolean;
 };
 
+export type ParentalControlsDialogLike = {
+  show(
+    options: ParentalControlsAccessOptions,
+  ): Promise<ParentalControlsSettingsResult | null>;
+};
+
 export type ParentalControlsStorageLike = {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
@@ -193,6 +199,17 @@ export async function applyParentalControlsSettingsResult(
   } else if (result.pinChange.type === "clear") {
     clearParentalControlsPin();
   }
+}
+
+export async function openParentalControlsSettings(
+  dialog: ParentalControlsDialogLike,
+): Promise<boolean> {
+  const result = await dialog.show(createParentalControlsAccessOptions());
+  if (!result) {
+    return false;
+  }
+  await applyParentalControlsSettingsResult(result);
+  return true;
 }
 
 export function subscribeToParentalControlsState(

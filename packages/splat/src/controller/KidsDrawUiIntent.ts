@@ -9,6 +9,7 @@ export type KidsDrawUiIntent =
   | { type: "new_drawing" }
   | { type: "browse" }
   | { type: "share" }
+  | { type: "parental_controls" }
   | { type: "set_stroke_color"; strokeColor: string }
   | { type: "set_stroke_width"; strokeWidth: number }
   | { type: "pointer_down"; event: PointerEvent }

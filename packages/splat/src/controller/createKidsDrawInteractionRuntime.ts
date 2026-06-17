@@ -36,6 +36,7 @@ export function createKidsDrawInteractionRuntime(options: {
     isSharingAllowed?: () => boolean;
     requestSharePermission?: () => Promise<boolean>;
   };
+  openParentalControls: () => Promise<boolean>;
   snapshotService: SnapshotService;
   getSize: () => { width: number; height: number };
   confirmDestructiveAction: (dialog: ConfirmDialogRequest) => Promise<boolean>;
@@ -100,6 +101,9 @@ export function createKidsDrawInteractionRuntime(options: {
       newDrawing: commandController.newDrawingAndClose,
       browse: commandController.browseAndClose,
       share: commandController.shareAndClose,
+      parentalControls: () => {
+        void options.openParentalControls();
+      },
       closeDocumentPicker,
     },
   });

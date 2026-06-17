@@ -35,6 +35,7 @@ export function createKidsDrawUiIntentController(options: {
     newDrawing: () => void;
     browse: () => void;
     share: () => void;
+    parentalControls: () => void;
     closeDocumentPicker: () => void;
   };
 }) {
@@ -73,6 +74,9 @@ export function createKidsDrawUiIntentController(options: {
         return;
       case "share":
         options.commands.share();
+        return;
+      case "parental_controls":
+        options.commands.parentalControls();
         return;
       case "set_stroke_color":
         options.runtime.drawingStore.updateSharedSettings({

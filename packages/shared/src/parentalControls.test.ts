@@ -8,6 +8,7 @@ import {
   isCorrectParentalControlsMathAnswer,
   loadParentalControlsState,
   markParentalControlsPromptSeen,
+  openParentalControlsSettings,
   PARENTAL_CONTROLS_STORAGE_KEY,
   type ParentalControlsStorageLike,
   setParentalControlsPin,
@@ -94,6 +95,40 @@ describe("parental controls storage", () => {
       expect(state.promptSeen).toBeTrue();
       expect(state.sharingHidden).toBeTrue();
       expect(await verifyParentalControlsPin("2468", state)).toBeTrue();
+    } finally {
+      Object.defineProperty(globalThis, "localStorage", {
+        configurable: true,
+        value: originalLocalStorage,
+      });
+    }
+  });
+
+  test("opens dialog and applies accepted settings", async () => {
+    const storage = createMemoryStorage();
+    const originalLocalStorage = globalThis.localStorage;
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: storage,
+    });
+    try {
+      const opened = await openParentalControlsSettings({
+        async show(options) {
+          expect(options.initialState).toEqual({
+            hasPin: false,
+            sharingHidden: false,
+          });
+          return {
+            sharingHidden: true,
+            pinChange: { type: "unchanged" },
+          };
+        },
+      });
+
+      expect(opened).toBeTrue();
+      expect(loadParentalControlsState(storage)).toMatchObject({
+        promptSeen: true,
+        sharingHidden: true,
+      });
     } finally {
       Object.defineProperty(globalThis, "localStorage", {
         configurable: true,

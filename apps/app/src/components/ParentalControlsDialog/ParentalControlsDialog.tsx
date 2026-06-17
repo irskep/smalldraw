@@ -2,10 +2,7 @@ import {
   createParentalControlsDialog,
   type ParentalControlsDialog as DsParentalControlsDialog,
 } from "@smalldraw/design-system";
-import {
-  applyParentalControlsSettingsResult,
-  createParentalControlsAccessOptions,
-} from "@smalldraw/shared";
+import { openParentalControlsSettings } from "@smalldraw/shared";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { mount, unmount } from "redom";
 
@@ -49,10 +46,5 @@ export const ParentalControlsDialog = forwardRef<ParentalControlsDialogHandle>(
 async function openParentalControlsDialog(
   dialog: DsParentalControlsDialog,
 ): Promise<boolean> {
-  const result = await dialog.show(createParentalControlsAccessOptions());
-  if (!result) {
-    return false;
-  }
-  await applyParentalControlsSettingsResult(result);
-  return true;
+  return await openParentalControlsSettings(dialog);
 }

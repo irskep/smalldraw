@@ -5,9 +5,8 @@ import type {
   SplatContextDocumentSlot,
 } from "@smalldraw/design-system";
 import {
-  applyParentalControlsSettingsResult,
-  createParentalControlsAccessOptions,
   loadParentalControlsState,
+  openParentalControlsSettings,
   subscribeToParentalControlsState,
 } from "@smalldraw/shared";
 import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
@@ -224,6 +223,8 @@ export async function createKidsDrawApp(
     isSharingAllowed: () => !loadParentalControlsState().sharingHidden,
     requestSharePermission: async () =>
       await requestParentalSharePermission(presentation.parentalControlsDialog),
+    openParentalControls: async () =>
+      await openParentalControlsSettings(presentation.parentalControlsDialog),
     onShareError: controllerMultiplayerAdapters.onShareError,
     onClaimError: controllerMultiplayerAdapters.onClaimError,
     onDocumentOpenRequested: options.onDocumentOpenRequested,
@@ -262,12 +263,7 @@ async function requestParentalSharePermission(
   if (state.promptSeen) {
     return true;
   }
-  const result = await dialog.show(createParentalControlsAccessOptions());
-  if (!result) {
-    return false;
-  }
-  await applyParentalControlsSettingsResult(result);
-  return true;
+  return await openParentalControlsSettings(dialog);
 }
 
 const DEFAULT_PROVISIONAL_WIDTH = 960;

@@ -1841,6 +1841,47 @@ describe("splatterboard shell", () => {
     app.destroy();
   });
 
+  test("drawing app menu opens parental controls", async () => {
+    localStorage.clear();
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    const app = await createKidsDrawApp({
+      container,
+      width: 640,
+      height: 480,
+      core: createMockCore({ width: 640, height: 480 }),
+      confirmDestructiveAction: async () => true,
+    });
+
+    const menuTrigger = Array.from(
+      container.querySelectorAll<HTMLButtonElement>(
+        'button[aria-haspopup="menu"]',
+      ),
+    ).find((button) => button.textContent?.includes("Menu"));
+    expect(menuTrigger).not.toBeUndefined();
+    menuTrigger!.click();
+
+    const parentalControlsAction = container.querySelector(
+      '.ds-dropdown-menu__item[data-action="parental-controls"]',
+    ) as HTMLButtonElement | null;
+    expect(parentalControlsAction).not.toBeNull();
+    expect(parentalControlsAction?.textContent).toContain("Parental controls");
+    parentalControlsAction!.click();
+
+    const dialog = container.querySelector(
+      "dialog.ds-parental-controls-dialog",
+    ) as HTMLDialogElement | null;
+    expect(dialog).not.toBeNull();
+    const dialogOpened = await waitUntil(() => dialog?.open === true);
+    expect(dialogOpened).toBeTrue();
+    expect(
+      dialog?.querySelector("#ds-parental-controls-access"),
+    ).not.toBeNull();
+    app.destroy();
+    localStorage.clear();
+  });
+
   test("filled/outline shape families preserve sub-shape and draw boxed kinds", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
