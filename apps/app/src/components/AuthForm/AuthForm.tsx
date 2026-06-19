@@ -91,7 +91,7 @@ export const AuthForm = ({
                 }
               }}
             />
-            <span>I am at least 13 years old</span>
+            <span>I am at least 16 years old</span>
           </label>
         ) : null}
 

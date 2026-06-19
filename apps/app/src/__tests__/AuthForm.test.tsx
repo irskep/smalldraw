@@ -92,7 +92,7 @@ describe("AuthForm", () => {
     fireEvent.input(screen.getByPlaceholderText("Password"), {
       target: { value: "asdfjkl;" },
     });
-    fireEvent.click(screen.getByLabelText("I am at least 13 years old"));
+    fireEvent.click(screen.getByLabelText("I am at least 16 years old"));
     fireEvent.submit(
       screen.getByRole("button", { name: "Sign up" }).closest("form")!,
     );
