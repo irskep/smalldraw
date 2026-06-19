@@ -349,6 +349,22 @@ a {
   flex-wrap: wrap;
 }
 
+.portal-checkbox-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--size-2);
+  color: var(--ds-ink);
+  font-size: var(--font-size-1);
+  text-align: start;
+}
+
+.portal-checkbox {
+  inline-size: 1.1em;
+  block-size: 1.1em;
+  margin-block-start: 0.15em;
+}
+
 .portal-details {
   display: grid;
   gap: var(--size-2);

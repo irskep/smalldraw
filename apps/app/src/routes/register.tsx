@@ -31,6 +31,7 @@ const Register = () => {
         children="Sign up"
         errorMessage={error}
         isPending={isPending}
+        requireAgeConfirmation
       />
     </div>
   );

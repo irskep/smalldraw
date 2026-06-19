@@ -5,6 +5,7 @@ type Props = {
   onSubmit: (params: { username: string; password: string }) => void;
   isPending: boolean;
   errorMessage?: string | null;
+  requireAgeConfirmation?: boolean;
   children: React.ReactNode;
 };
 
@@ -12,10 +13,14 @@ export const AuthForm = ({
   onSubmit,
   isPending,
   errorMessage,
+  requireAgeConfirmation = false,
   children,
 }: Props) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [ageError, setAgeError] = useState<string | null>(null);
+  const displayedError = ageError ?? errorMessage;
 
   return (
     <form
@@ -26,16 +31,21 @@ export const AuthForm = ({
         },
       ) => {
         e.preventDefault();
+        if (requireAgeConfirmation && !ageConfirmed) {
+          setAgeError("A parent must make the account.");
+          return;
+        }
+        setAgeError(null);
         onSubmit({ username, password });
       }}
     >
       <h1 className="portal-title">{children}</h1>
-      {errorMessage ? (
+      {displayedError ? (
         <div className="portal-alert" data-tone="danger" role="alert">
           <AlertCircle className="portal-alert__icon" />
           <div className="portal-alert__body">
             <div className="portal-alert__title">Could not continue</div>
-            <div>{errorMessage}</div>
+            <div>{displayedError}</div>
           </div>
         </div>
       ) : null}
@@ -66,6 +76,24 @@ export const AuthForm = ({
             setPassword(e.target.value);
           }}
         />
+
+        {requireAgeConfirmation ? (
+          <label className="portal-checkbox-field">
+            <input
+              checked={ageConfirmed}
+              className="portal-checkbox"
+              name="age-confirmation"
+              type="checkbox"
+              onChange={(e) => {
+                setAgeConfirmed(e.target.checked);
+                if (e.target.checked) {
+                  setAgeError(null);
+                }
+              }}
+            />
+            <span>I am at least 13 years old</span>
+          </label>
+        ) : null}
 
         <button
           type="submit"

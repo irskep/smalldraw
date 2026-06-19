@@ -43,4 +43,63 @@ describe("AuthForm", () => {
       "No account exists for that username.",
     );
   });
+
+  test("blocks signup when age confirmation is unchecked", () => {
+    const onSubmit = vi.fn();
+
+    render(
+      <AuthForm
+        onSubmit={onSubmit}
+        isPending={false}
+        requireAgeConfirmation
+      >
+        Sign up
+      </AuthForm>,
+    );
+
+    fireEvent.input(screen.getByPlaceholderText("Username"), {
+      target: { value: "new-user" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("Password"), {
+      target: { value: "asdfjkl;" },
+    });
+    fireEvent.submit(
+      screen.getByRole("button", { name: "Sign up" }).closest("form")!,
+    );
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert").textContent).toContain(
+      "A parent must make the account.",
+    );
+  });
+
+  test("submits signup when age confirmation is checked", () => {
+    const onSubmit = vi.fn();
+
+    render(
+      <AuthForm
+        onSubmit={onSubmit}
+        isPending={false}
+        requireAgeConfirmation
+      >
+        Sign up
+      </AuthForm>,
+    );
+
+    fireEvent.input(screen.getByPlaceholderText("Username"), {
+      target: { value: "new-user" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("Password"), {
+      target: { value: "asdfjkl;" },
+    });
+    fireEvent.click(screen.getByLabelText("I am at least 13 years old"));
+    fireEvent.submit(
+      screen.getByRole("button", { name: "Sign up" }).closest("form")!,
+    );
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      username: "new-user",
+      password: "asdfjkl;",
+    });
+  });
 });
