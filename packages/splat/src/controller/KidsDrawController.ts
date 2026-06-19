@@ -386,6 +386,7 @@ export function createKidsDrawController(options: {
     applyCanvasSize,
     getDocumentSizeFromViewport: () =>
       resolveImplicitDocumentSizeFromViewport(),
+    fallbackDocumentSizeForCreate: initialSize,
     hasExplicitSize: sizingPolicy.hasExplicitSize,
     getExplicitSize: sizingPolicy.getExplicitSize,
     createDocumentCopy,

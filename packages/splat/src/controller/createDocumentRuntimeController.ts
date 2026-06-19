@@ -23,6 +23,7 @@ import {
   DocumentSessionController,
   type DocumentSessionPresentation,
 } from "./createDocumentSessionController";
+import { CanvasHostNotMeasurableError } from "./createLayoutController";
 import type { RenderLoopController } from "./createRenderLoopController";
 import type { SnapshotService } from "./createSnapshotService";
 import type { ToolbarStateController } from "./createToolbarStateController";
@@ -92,6 +93,7 @@ export function createDocumentRuntimeController(options: {
   syncToolbarUi: () => void;
   applyCanvasSize: (width: number, height: number) => void;
   getDocumentSizeFromViewport: () => DrawingDocumentSize;
+  fallbackDocumentSizeForCreate: DrawingDocumentSize;
   hasExplicitSize: boolean;
   getExplicitSize: () => DrawingDocumentSize;
   createDocumentCopy?: () => { url: string; binary: Uint8Array };
@@ -509,13 +511,17 @@ export function createDocumentRuntimeController(options: {
       }
     },
     async createNewDocument(request: NewDocumentRequest): Promise<void> {
-      const measuredDocumentSize =
-        !options.hasExplicitSize && request.mode === "normal"
-          ? options.getDocumentSizeFromViewport()
-          : undefined;
       const cycleId = beginStartupCycle("create_document");
       clearRenderedDocumentSurface();
       try {
+        const measuredDocumentSize =
+          !options.hasExplicitSize && request.mode === "normal"
+            ? resolveDocumentSizeForImplicitCreate({
+                getDocumentSizeFromViewport:
+                  options.getDocumentSizeFromViewport,
+                fallbackDocumentSize: options.fallbackDocumentSizeForCreate,
+              })
+            : undefined;
         await documentSessionController.createNewDocument(
           request,
           measuredDocumentSize,
@@ -595,6 +601,20 @@ export function createDocumentRuntimeController(options: {
       documentSessionController.dispose();
     },
   } satisfies DocumentRuntimeController;
+}
+
+function resolveDocumentSizeForImplicitCreate(options: {
+  getDocumentSizeFromViewport: () => DrawingDocumentSize;
+  fallbackDocumentSize: DrawingDocumentSize;
+}): DrawingDocumentSize {
+  try {
+    return options.getDocumentSizeFromViewport();
+  } catch (error) {
+    if (error instanceof CanvasHostNotMeasurableError) {
+      return options.fallbackDocumentSize;
+    }
+    throw error;
+  }
 }
 
 function toDocumentAccessDisplay(

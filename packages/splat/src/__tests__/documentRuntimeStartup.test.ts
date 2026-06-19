@@ -8,6 +8,7 @@ import {
   createDocumentRuntimeController,
   DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS,
 } from "../controller/createDocumentRuntimeController";
+import { CanvasHostNotMeasurableError } from "../controller/createLayoutController";
 import { createStartupReadinessStore } from "../controller/stores/createStartupReadinessStore";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 
@@ -166,6 +167,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
       syncToolbarUi: () => {},
       applyCanvasSize: () => {},
       getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+      fallbackDocumentSizeForCreate: { width: 640, height: 480 },
       hasExplicitSize: false,
       getExplicitSize: () => ({ width: 640, height: 480 }),
       thumbnailSaveDebounceMs: DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS,
@@ -268,6 +270,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
         syncToolbarUi: () => {},
         applyCanvasSize: () => {},
         getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+        fallbackDocumentSizeForCreate: { width: 640, height: 480 },
         hasExplicitSize: false,
         getExplicitSize: () => ({ width: 640, height: 480 }),
       });
@@ -370,6 +373,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
         syncToolbarUi: () => {},
         applyCanvasSize: () => {},
         getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+        fallbackDocumentSizeForCreate: { width: 640, height: 480 },
         hasExplicitSize: false,
         getExplicitSize: () => ({ width: 640, height: 480 }),
       });
@@ -390,6 +394,85 @@ describe("createDocumentRuntimeController startup readiness", () => {
         value: originalImage,
       });
     }
+  });
+
+  test("implicit new document uses initial size when canvas host is not mounted yet", async () => {
+    const store = createTestStore();
+    const startupReadinessStore = createStartupReadinessStore();
+    let createdDocumentSize: { width: number; height: number } | undefined;
+    const baseCore = createTestCore(store);
+    const controller = createDocumentRuntimeController({
+      store,
+      core: {
+        ...baseCore,
+        createNew: async (options) => {
+          createdDocumentSize = options?.documentSize;
+          return await baseCore.createNew(options);
+        },
+      },
+      documentBackend: {
+        mode: "local",
+        listDocuments: async () => [],
+        getDocument: async () => null,
+        createDocument: async () => ({
+          docUrl: "automerge:test-2",
+          mode: "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        touchDocument: async () => ({
+          docUrl: "automerge:test-2",
+          mode: "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        deleteDocument: async () => {},
+        saveThumbnail: async () => {},
+        getThumbnail: async () => null,
+        setCurrentDocument: async () => {},
+        getCurrentDocument: async () => null,
+      },
+      snapshotService: {
+        createThumbnailBlob: async () => null,
+      },
+      runtimeStore: {
+        setDocumentLoading: () => {},
+        setDocumentLoaded: () => {},
+        setDocumentError: () => {},
+        setNoDocument: () => {},
+        getActiveDocumentDocUrl: () => null,
+        isDestroyed: () => false,
+      },
+      startupReadinessStore,
+      toolbarStateController: {
+        applyToolbarStateForCurrentDocument: () => {},
+        getCurrentToolbarSignature: () => "sig",
+      },
+      renderLoopController: {
+        updateRenderIdentity: () => {},
+        requestRenderFromModel: () => {},
+      },
+      pipeline: {
+        setLayers: () => {},
+        scheduleBakeForClear: () => {},
+        bakePendingTiles: () => {},
+        flushBakes: async () => {},
+      },
+      syncToolbarUi: () => {},
+      applyCanvasSize: () => {},
+      getDocumentSizeFromViewport: () => {
+        throw new CanvasHostNotMeasurableError();
+      },
+      fallbackDocumentSizeForCreate: { width: 384, height: 710 },
+      hasExplicitSize: false,
+      getExplicitSize: () => ({ width: 640, height: 480 }),
+    });
+
+    await controller.createNewDocument({ mode: "normal" });
+
+    expect(createdDocumentSize).toEqual({ width: 384, height: 710 });
   });
 
   test("share register failure surfaces error", async () => {
@@ -485,6 +568,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
       syncToolbarUi: () => {},
       applyCanvasSize: () => {},
       getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+      fallbackDocumentSizeForCreate: { width: 640, height: 480 },
       hasExplicitSize: false,
       getExplicitSize: () => ({ width: 640, height: 480 }),
       createDocumentCopy: () => ({
@@ -575,6 +659,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
       syncToolbarUi: () => {},
       applyCanvasSize: () => {},
       getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+      fallbackDocumentSizeForCreate: { width: 640, height: 480 },
       hasExplicitSize: false,
       getExplicitSize: () => ({ width: 640, height: 480 }),
     });

@@ -124,13 +124,18 @@ export async function assembleAppRuntime(
     throw new Error("Multiplayer API is not configured.");
   }
 
-  const syncedAccountDocument = await syncAccountCatalog({
-    documentBackend,
-    multiplayerApiClient,
-    selectFirstIfNoCurrent:
-      startupIntent.kind === "open-last-local" ||
-      startupIntent.kind === "open-local-document",
-  });
+  const shouldRefreshAccountCatalog =
+    startupIntent.kind === "open-last-local" ||
+    startupIntent.kind === "open-local-document";
+  const syncedAccountDocument = shouldRefreshAccountCatalog
+    ? await syncAccountCatalog({
+        documentBackend,
+        multiplayerApiClient,
+        selectFirstIfNoCurrent:
+          startupIntent.kind === "open-last-local" ||
+          startupIntent.kind === "open-local-document",
+      })
+    : null;
   let startupPreImports: Array<{ binary: Uint8Array; docId: string }> = [];
   let initialCatalogDocUrlOverride: string | null | undefined;
   let initialDocumentAccessState: AppRuntimeAssembly["initialDocumentAccessState"] =

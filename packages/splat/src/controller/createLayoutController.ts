@@ -32,6 +32,15 @@ export type LayoutControllerDependencies = {
   >;
 };
 
+export class CanvasHostNotMeasurableError extends Error {
+  constructor() {
+    super(
+      "Cannot create a new drawing before the canvas host has a measurable size.",
+    );
+    this.name = "CanvasHostNotMeasurableError";
+  }
+}
+
 export class LayoutController {
   private displayScale = 1;
   private displayWidth: number;
@@ -96,9 +105,7 @@ export class LayoutController {
     const hostWidth = Math.round(host.clientWidth);
     const hostHeight = Math.round(host.clientHeight);
     if (hostWidth <= 0 || hostHeight <= 0) {
-      throw new Error(
-        "Cannot create a new drawing before the canvas host has a measurable size.",
-      );
+      throw new CanvasHostNotMeasurableError();
     }
     return resolveLogicalSizeFromAvailableArea({
       width: hostWidth,

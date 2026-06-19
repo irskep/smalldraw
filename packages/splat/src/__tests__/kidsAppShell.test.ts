@@ -942,6 +942,67 @@ describe("splatterboard shell", () => {
     }
   });
 
+  test("new document startup creates locally without account catalog sync", async () => {
+    const originalFetch = globalThis.fetch;
+    const requests: string[] = [];
+    const fetchMock = (async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      requests.push(url);
+      throw new Error(`Unexpected request: ${url}`);
+    }) as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
+    if (typeof window !== "undefined") {
+      window.fetch = fetchMock;
+    }
+
+    try {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      const backend = createMockDocumentBackend([], null);
+
+      const app = await createKidsDrawApp({
+        container,
+        width: 640,
+        height: 480,
+        core: createMockCore({ width: 640, height: 480 }),
+        documentBackend: backend,
+        confirmDestructiveAction: async () => true,
+        multiplayer: {
+          syncServerHttpUrl: "http://localhost:3030/api",
+          startupIntent: {
+            kind: "create-new-document",
+          },
+          deviceTag: "device-1",
+        },
+      });
+
+      let documents = await backend.listDocuments();
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        if (
+          documents.some((document) =>
+            document.docUrl.startsWith("automerge:mock-"),
+          )
+        ) {
+          break;
+        }
+        await waitForTurn();
+        documents = await backend.listDocuments();
+      }
+      const created = documents.some((document) =>
+        document.docUrl.startsWith("automerge:mock-"),
+      );
+      expect(created).toBeTrue();
+      expect(requests).toEqual([]);
+
+      app.destroy();
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (typeof window !== "undefined") {
+        window.fetch = originalFetch;
+      }
+    }
+  });
+
   test("account document bootstrap falls back to cached local access when auth is missing", async () => {
     const originalFetch = globalThis.fetch;
     const fetchMock = (async (input: RequestInfo | URL) => {
