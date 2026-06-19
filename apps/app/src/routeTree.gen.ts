@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 
 const TermsLazyRouteImport = createFileRoute('/terms')()
 const PrivacyLazyRouteImport = createFileRoute('/privacy')()
+const DataLazyRouteImport = createFileRoute('/data')()
 const AdminLazyRouteImport = createFileRoute('/admin')()
 const AccountLazyRouteImport = createFileRoute('/account')()
 const IndexLazyRouteImport = createFileRoute('/')()
@@ -38,6 +39,11 @@ const PrivacyLazyRoute = PrivacyLazyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/privacy.lazy').then((d) => d.Route))
+const DataLazyRoute = DataLazyRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/data.lazy').then((d) => d.Route))
 const AdminLazyRoute = AdminLazyRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/account': typeof AccountLazyRoute
   '/admin': typeof AdminLazyRouteWithChildren
+  '/data': typeof DataLazyRoute
   '/privacy': typeof PrivacyLazyRoute
   '/terms': typeof TermsLazyRoute
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/account': typeof AccountLazyRoute
   '/admin': typeof AdminLazyRouteWithChildren
+  '/data': typeof DataLazyRoute
   '/privacy': typeof PrivacyLazyRoute
   '/terms': typeof TermsLazyRoute
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/account': typeof AccountLazyRoute
   '/admin': typeof AdminLazyRouteWithChildren
+  '/data': typeof DataLazyRoute
   '/privacy': typeof PrivacyLazyRoute
   '/terms': typeof TermsLazyRoute
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/account'
     | '/admin'
+    | '/data'
     | '/privacy'
     | '/terms'
     | '/drawings/deleted'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/account'
     | '/admin'
+    | '/data'
     | '/privacy'
     | '/terms'
     | '/drawings/deleted'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/account'
     | '/admin'
+    | '/data'
     | '/privacy'
     | '/terms'
     | '/drawings/deleted'
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   AccountLazyRoute: typeof AccountLazyRoute
   AdminLazyRoute: typeof AdminLazyRouteWithChildren
+  DataLazyRoute: typeof DataLazyRoute
   PrivacyLazyRoute: typeof PrivacyLazyRoute
   TermsLazyRoute: typeof TermsLazyRoute
   DrawingsDeletedLazyRoute: typeof DrawingsDeletedLazyRoute
@@ -203,6 +216,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data': {
+      id: '/data'
+      path: '/data'
+      fullPath: '/data'
+      preLoaderRoute: typeof DataLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -304,6 +324,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   AccountLazyRoute: AccountLazyRoute,
   AdminLazyRoute: AdminLazyRouteWithChildren,
+  DataLazyRoute: DataLazyRoute,
   PrivacyLazyRoute: PrivacyLazyRoute,
   TermsLazyRoute: TermsLazyRoute,
   DrawingsDeletedLazyRoute: DrawingsDeletedLazyRoute,

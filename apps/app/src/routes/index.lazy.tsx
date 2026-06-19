@@ -226,6 +226,11 @@ function Index() {
             Parental controls manage sharing.
           </button>
         </p>
+        <p>
+          <a className="portal-link" href="/data">
+            Learn how Splatterboard stores data
+          </a>
+        </p>
       </section>
       <section className="portal-launcher" aria-label="Drawings">
         {localCatalog.type === "error" ? (

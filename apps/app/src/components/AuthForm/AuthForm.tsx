@@ -78,21 +78,28 @@ export const AuthForm = ({
         />
 
         {requireAgeConfirmation ? (
-          <label className="portal-checkbox-field">
-            <input
-              checked={ageConfirmed}
-              className="portal-checkbox"
-              name="age-confirmation"
-              type="checkbox"
-              onChange={(e) => {
-                setAgeConfirmed(e.target.checked);
-                if (e.target.checked) {
-                  setAgeError(null);
-                }
-              }}
-            />
-            <span>I am at least 16 years old</span>
-          </label>
+          <>
+            <label className="portal-checkbox-field">
+              <input
+                checked={ageConfirmed}
+                className="portal-checkbox"
+                name="age-confirmation"
+                type="checkbox"
+                onChange={(e) => {
+                  setAgeConfirmed(e.target.checked);
+                  if (e.target.checked) {
+                    setAgeError(null);
+                  }
+                }}
+              />
+              <span>I am at least 16 years old</span>
+            </label>
+            <p className="portal-form-note">
+              <a className="portal-link" href="/data">
+                Learn how Splatterboard stores data.
+              </a>
+            </p>
+          </>
         ) : null}
 
         <button
