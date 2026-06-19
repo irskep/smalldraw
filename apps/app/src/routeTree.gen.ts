@@ -14,6 +14,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 
+const TermsLazyRouteImport = createFileRoute('/terms')()
+const PrivacyLazyRouteImport = createFileRoute('/privacy')()
 const AdminLazyRouteImport = createFileRoute('/admin')()
 const AccountLazyRouteImport = createFileRoute('/account')()
 const IndexLazyRouteImport = createFileRoute('/')()
@@ -26,6 +28,16 @@ const AdminUsersUsernameDocumentsDocumentIdLazyRouteImport = createFileRoute(
   '/admin/users/$username/documents/$documentId',
 )()
 
+const TermsLazyRoute = TermsLazyRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/terms.lazy').then((d) => d.Route))
+const PrivacyLazyRoute = PrivacyLazyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/privacy.lazy').then((d) => d.Route))
 const AdminLazyRoute = AdminLazyRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -89,6 +101,8 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/account': typeof AccountLazyRoute
   '/admin': typeof AdminLazyRouteWithChildren
+  '/privacy': typeof PrivacyLazyRoute
+  '/terms': typeof TermsLazyRoute
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
   '/admin/users/$username': typeof AdminUsersUsernameLazyRouteWithChildren
@@ -100,6 +114,8 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/account': typeof AccountLazyRoute
   '/admin': typeof AdminLazyRouteWithChildren
+  '/privacy': typeof PrivacyLazyRoute
+  '/terms': typeof TermsLazyRoute
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
   '/admin/users/$username': typeof AdminUsersUsernameLazyRouteWithChildren
@@ -112,6 +128,8 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/account': typeof AccountLazyRoute
   '/admin': typeof AdminLazyRouteWithChildren
+  '/privacy': typeof PrivacyLazyRoute
+  '/terms': typeof TermsLazyRoute
   '/drawings/deleted': typeof DrawingsDeletedLazyRoute
   '/invitation/$token': typeof InvitationTokenLazyRoute
   '/admin/users/$username': typeof AdminUsersUsernameLazyRouteWithChildren
@@ -125,6 +143,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/account'
     | '/admin'
+    | '/privacy'
+    | '/terms'
     | '/drawings/deleted'
     | '/invitation/$token'
     | '/admin/users/$username'
@@ -136,6 +156,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/account'
     | '/admin'
+    | '/privacy'
+    | '/terms'
     | '/drawings/deleted'
     | '/invitation/$token'
     | '/admin/users/$username'
@@ -147,6 +169,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/account'
     | '/admin'
+    | '/privacy'
+    | '/terms'
     | '/drawings/deleted'
     | '/invitation/$token'
     | '/admin/users/$username'
@@ -159,12 +183,28 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   AccountLazyRoute: typeof AccountLazyRoute
   AdminLazyRoute: typeof AdminLazyRouteWithChildren
+  PrivacyLazyRoute: typeof PrivacyLazyRoute
+  TermsLazyRoute: typeof TermsLazyRoute
   DrawingsDeletedLazyRoute: typeof DrawingsDeletedLazyRoute
   InvitationTokenLazyRoute: typeof InvitationTokenLazyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -264,6 +304,8 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   AccountLazyRoute: AccountLazyRoute,
   AdminLazyRoute: AdminLazyRouteWithChildren,
+  PrivacyLazyRoute: PrivacyLazyRoute,
+  TermsLazyRoute: TermsLazyRoute,
   DrawingsDeletedLazyRoute: DrawingsDeletedLazyRoute,
   InvitationTokenLazyRoute: InvitationTokenLazyRoute,
 }

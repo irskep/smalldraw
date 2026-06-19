@@ -67,6 +67,8 @@ describe("portal route helpers", () => {
     expect(isPortalRoutePath("/admin")).toBe(true);
     expect(isPortalRoutePath("/login")).toBe(true);
     expect(isPortalRoutePath("/register")).toBe(true);
+    expect(isPortalRoutePath("/privacy")).toBe(true);
+    expect(isPortalRoutePath("/terms")).toBe(true);
     expect(isPortalRoutePath("/drawings/deleted")).toBe(true);
     expect(isPortalRoutePath("/invitation/example-token")).toBe(true);
   });

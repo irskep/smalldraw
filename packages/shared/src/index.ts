@@ -54,6 +54,8 @@ export const PORTAL_ROUTE_PATTERNS = [
   "/admin",
   "/login",
   "/register",
+  "/privacy",
+  "/terms",
   "/drawings/deleted",
   "/invitation/:token",
   "/admin/users/:username",
