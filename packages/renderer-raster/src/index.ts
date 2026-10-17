@@ -95,6 +95,8 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   private lastTilesByShape = new Map<string, Set<string>>();
   private pendingBakeTiles = new Set<string>();
   private invalidateAll = false;
+  private disposed = false;
+  private bakeQueue: Promise<void> = Promise.resolve();
 
   constructor(
     coreStore: DrawingStore,
@@ -123,8 +125,16 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
   }
 
   dispose(): void {
+    this.disposed = true;
     this.unsubscribe?.();
     this.unsubscribe = undefined;
+    this.releaseAllVisibleTiles();
+    this.visibleOrder = [];
+    this.pendingBakeTiles.clear();
+    this.touchedTilesByShape.clear();
+    this.lastTilesByShape.clear();
+    this.snapshotStore.clearSnapshots?.();
+    this.viewport = null;
   }
 
   getViewport(): Box | null {
@@ -290,58 +300,63 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     return tiles;
   }
 
-  async bakePendingTiles(): Promise<void> {
+  bakePendingTiles(): Promise<void> {
+    this.bakeQueue = this.bakeQueue
+      .catch(() => {})
+      .then(() => this.bakePendingBatch());
+    void this.bakeQueue.catch(() => {});
+    return this.bakeQueue;
+  }
+
+  private async bakePendingBatch(): Promise<void> {
+    if (this.disposed || !this.baker) return;
     const bakeStartMs = perfNowMs();
     perfAddCounter("tileRenderer.bakePendingTiles.calls");
     if (perfFlagEnabled("skipTileBakeExecution")) {
       perfAddCounter("tileRenderer.bakePendingTiles.skipped");
       return;
     }
-    if (!this.baker) return;
-    if (this.invalidateAll) {
+    const fullInvalidation = this.invalidateAll;
+    const keys = fullInvalidation
+      ? new Set(this.visibleTiles.keys())
+      : new Set(this.pendingBakeTiles);
+    // Consume before awaiting so invalidations arriving during the bake survive.
+    this.invalidateAll = false;
+    this.pendingBakeTiles.clear();
+    if (fullInvalidation)
       perfAddCounter("tileRenderer.bakePendingTiles.fullInvalidationRuns");
-      perfAddCounter(
-        "tileRenderer.bakePendingTiles.tilesBaked",
-        this.visibleTiles.size,
-      );
-      for (const entry of this.visibleTiles.values()) {
+    perfAddCounter("tileRenderer.bakePendingTiles.tilesBaked", keys.size);
+    try {
+      for (const key of keys) {
+        if (this.disposed) return;
+        const entry = this.visibleTiles.get(key);
+        if (!entry) continue;
         await this.baker.bakeTile(entry.coord, entry.canvas);
-        if (this.snapshotAdapter) {
+        if (this.disposed) return;
+        if (
+          this.snapshotAdapter &&
+          !this.invalidateAll &&
+          !this.pendingBakeTiles.has(key)
+        ) {
           const snapshot = this.snapshotAdapter.captureSnapshot(entry.canvas);
           this.snapshotStore.setSnapshot(
-            this.snapshotKeyForCoord(entry.coord),
+            this.snapshotKeyForCoordKey(key),
             snapshot,
           );
         }
       }
-      this.invalidateAll = false;
+    } catch (error) {
+      if (!this.disposed) {
+        if (fullInvalidation) this.invalidateAll = true;
+        for (const key of keys) this.pendingBakeTiles.add(key);
+      }
+      throw error;
+    } finally {
       perfAddTimingMs(
         "tileRenderer.bakePendingTiles.ms",
         perfNowMs() - bakeStartMs,
       );
-      return;
     }
-    perfAddCounter(
-      "tileRenderer.bakePendingTiles.tilesBaked",
-      this.pendingBakeTiles.size,
-    );
-    for (const key of this.pendingBakeTiles) {
-      const entry = this.visibleTiles.get(key);
-      if (!entry) continue;
-      await this.baker.bakeTile(entry.coord, entry.canvas);
-      if (this.snapshotAdapter) {
-        const snapshot = this.snapshotAdapter.captureSnapshot(entry.canvas);
-        this.snapshotStore.setSnapshot(
-          this.snapshotKeyForCoordKey(key),
-          snapshot,
-        );
-      }
-    }
-    this.pendingBakeTiles.clear();
-    perfAddTimingMs(
-      "tileRenderer.bakePendingTiles.ms",
-      perfNowMs() - bakeStartMs,
-    );
   }
 
   getTilePixelRatio(): number {
@@ -439,6 +454,8 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
           !this.invalidateAll
         ) {
           this.snapshotAdapter.applySnapshot(canvas, snapshot);
+        } else {
+          this.pendingBakeTiles.add(key);
         }
       }
     }

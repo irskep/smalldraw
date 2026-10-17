@@ -16,6 +16,88 @@ import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 describe("TileRenderer", () => {
   const shapeRendererRegistry = createTestShapeRendererRegistry();
 
+  test("preserves invalidations arriving during a bake and retries failures", async () => {
+    let release!: () => void;
+    let began!: () => void;
+    const started = new Promise<void>((resolve) => {
+      began = resolve;
+    });
+    let calls = 0;
+    let fail = false;
+    const renderer = new TileRenderer(
+      new DrawingStore({ tools: [] }),
+      {
+        getTileCanvas: () => ({}),
+      },
+      {
+        shapeRendererRegistry,
+        baker: {
+          bakeTile: async () => {
+            calls++;
+            if (calls === 1) {
+              began();
+              await new Promise<void>((resolve) => {
+                release = resolve;
+              });
+            }
+            if (fail) throw new Error("bake failed");
+          },
+        },
+      },
+    );
+    const bounds = {
+      min: [0, 0] as [number, number],
+      max: [256, 256] as [number, number],
+    };
+    renderer.updateViewport(bounds);
+    const first = renderer.bakePendingTiles();
+    await started;
+    renderer.markRegionDirty(bounds);
+    release();
+    await first;
+    expect(renderer.getPendingBakeTiles()).toHaveLength(1);
+    fail = true;
+    await expect(renderer.bakePendingTiles()).rejects.toThrow("bake failed");
+    expect(renderer.getPendingBakeTiles()).toHaveLength(1);
+    fail = false;
+    await renderer.bakePendingTiles();
+    expect(calls).toBe(3);
+    expect(renderer.getPendingBakeTiles()).toHaveLength(0);
+  });
+
+  test("bakes newly visible uncached tiles and releases them on disposal", async () => {
+    const baked: string[] = [];
+    const released: string[] = [];
+    const renderer = new TileRenderer(
+      new DrawingStore({ tools: [] }),
+      {
+        getTileCanvas: () => ({}),
+        releaseTileCanvas: (coord) => {
+          released.push(tileKey(coord));
+        },
+      },
+      {
+        shapeRendererRegistry,
+        baker: {
+          bakeTile: async (coord) => {
+            baked.push(tileKey(coord));
+          },
+        },
+      },
+    );
+    renderer.updateViewport({ min: [0, 0], max: [TILE_SIZE, TILE_SIZE] });
+    await renderer.bakePendingTiles();
+    renderer.updateViewport({
+      min: [TILE_SIZE, 0],
+      max: [TILE_SIZE * 2, TILE_SIZE],
+    });
+    await renderer.bakePendingTiles();
+    expect(baked).toEqual(["0,0", "1,0"]);
+    renderer.dispose();
+    expect(released).toEqual(["0,0", "1,0"]);
+    expect(renderer.getVisibleTiles()).toHaveLength(0);
+  });
+
   test("tracks viewport updates", () => {
     const store = new DrawingStore({ tools: [] });
     const provider = {

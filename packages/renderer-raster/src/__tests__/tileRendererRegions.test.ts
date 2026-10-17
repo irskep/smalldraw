@@ -55,8 +55,9 @@ function createRenderer() {
 }
 
 describe("TileRenderer region dirtying", () => {
-  test("markShapeRegionDirty schedules tiles for both previous and next bounds", () => {
+  test("markShapeRegionDirty schedules tiles for both previous and next bounds", async () => {
     const renderer = createRenderer();
+    await renderer.bakePendingTiles();
 
     renderer.markShapeRegionDirty(
       "shape-1",

@@ -113,6 +113,8 @@ class LayerStackImpl implements LayerStack {
     promise: Promise<DraftLayerComposite | null> | null;
   } | null = null;
   private compositeCacheVersion = 0;
+  private draftSessionGeneration = 0;
+  private disposed = false;
 
   constructor(options: LayerStackOptions) {
     this.store = options.store;
@@ -192,6 +194,7 @@ class LayerStackImpl implements LayerStack {
       this.scheduleFullInvalidation();
     } else {
       this.invalidateCompositeCache();
+      this.enqueueBake();
     }
   }
 
@@ -199,9 +202,9 @@ class LayerStackImpl implements LayerStack {
     if (!this.layersById.has(layerId)) {
       return;
     }
-    if (this.activeLayerId !== layerId) {
-      this.invalidateCompositeCache();
-    }
+    if (this.activeLayerId === layerId) return;
+    this.endActiveLayerDraftSession();
+    this.invalidateCompositeCache();
     this.activeLayerId = layerId;
     this.reorderDom();
     this.prewarmActiveLayerDraftComposite();
@@ -334,7 +337,11 @@ class LayerStackImpl implements LayerStack {
   }
 
   prewarmActiveLayerDraftComposite(): void {
-    if (!this.activeLayerId || !this.layersById.has(this.activeLayerId)) {
+    if (
+      this.disposed ||
+      !this.activeLayerId ||
+      !this.layersById.has(this.activeLayerId)
+    ) {
       return;
     }
     const key = this.getCompositeCacheKey();
@@ -369,8 +376,11 @@ class LayerStackImpl implements LayerStack {
       this.activeLayerDraftComposite = null;
       return;
     }
+    const generation = ++this.draftSessionGeneration;
     const backdropStartMs = perfNowMs();
-    this.activeLayerDraftComposite = await this.getOrCaptureDraftComposite();
+    const composite = await this.getOrCaptureDraftComposite();
+    if (this.disposed || generation !== this.draftSessionGeneration) return;
+    this.activeLayerDraftComposite = composite;
     perfAddTimingMs("hot.backdrop.ms", perfNowMs() - backdropStartMs);
     if (!this.activeLayerDraftComposite) {
       return;
@@ -379,6 +389,7 @@ class LayerStackImpl implements LayerStack {
   }
 
   endActiveLayerDraftSession(): void {
+    this.draftSessionGeneration++;
     for (const layerId of this.draftHiddenLayerIds) {
       const entry = this.layersById.get(layerId);
       if (entry) {
@@ -403,11 +414,18 @@ class LayerStackImpl implements LayerStack {
     this.prewarmActiveLayerDraftComposite();
   }
 
-  flushBakes(): Promise<void> {
-    return this.bakeQueue;
+  async flushBakes(): Promise<void> {
+    let pending: Promise<void>;
+    do {
+      pending = this.bakeQueue;
+      await pending;
+    } while (pending !== this.bakeQueue && !this.disposed);
   }
 
   dispose(): void {
+    this.disposed = true;
+    this.endActiveLayerDraftSession();
+    this.invalidateCompositeCache();
     for (const entry of this.layersById.values()) {
       entry.backend.dispose();
       entry.container.remove();
@@ -499,23 +517,20 @@ class LayerStackImpl implements LayerStack {
   }
 
   private async getOrCaptureDraftComposite(): Promise<DraftLayerComposite | null> {
-    const key = this.getCompositeCacheKey();
-    if (this.compositeCache?.key === key) {
-      if (this.compositeCache.value) {
-        return this.compositeCache.value;
-      }
-      if (this.compositeCache.promise) {
-        return await this.compositeCache.promise;
+    while (!this.disposed) {
+      this.prewarmActiveLayerDraftComposite();
+      const cache = this.compositeCache;
+      if (!cache) return null;
+      const value = cache.promise ? await cache.promise : cache.value;
+      if (this.disposed) return null;
+      if (
+        cache.version === this.compositeCacheVersion &&
+        cache.key === this.getCompositeCacheKey()
+      ) {
+        return value;
       }
     }
-    const value = await this.captureDraftComposite();
-    this.compositeCache = {
-      key,
-      version: this.compositeCacheVersion,
-      value,
-      promise: null,
-    };
-    return value;
+    return null;
   }
 
   private async captureDraftComposite(): Promise<DraftLayerComposite | null> {
@@ -610,15 +625,22 @@ class LayerStackImpl implements LayerStack {
   }
 
   private enqueueBake(): void {
-    this.bakeQueue = this.bakeQueue.then(async () => {
-      for (const layerId of this.orderedLayerIds) {
-        const entry = this.layersById.get(layerId);
-        if (!entry) {
-          continue;
+    // A failed bake remains observable through flushBakes, but does not poison
+    // subsequent invalidations after the underlying problem is corrected.
+    this.bakeQueue = this.bakeQueue
+      .catch(() => {})
+      .then(async () => {
+        if (this.disposed) return;
+        for (const layerId of this.orderedLayerIds) {
+          const entry = this.layersById.get(layerId);
+          if (!entry) {
+            continue;
+          }
+          await entry.backend.bakePending();
+          if (this.disposed) return;
         }
-        await entry.backend.bakePending();
-      }
-    });
+      });
+    void this.bakeQueue.catch(() => {});
   }
 
   private rebuildShapeLayerIndex(): void {
@@ -683,12 +705,15 @@ class TileLayerBackend implements LayerBackend {
             -coord.y * TILE_SIZE * tileScaleY,
           );
           const shapes = this.store.getOrderedShapesForLayer(this.layerId);
-          renderOrderedShapes(ctx, shapes, {
-            registry: options.shapeRendererRegistry,
-            geometryHandlerRegistry: this.store.getShapeHandlers(),
-            clear: false,
-          });
-          ctx.restore();
+          try {
+            renderOrderedShapes(ctx, shapes, {
+              registry: options.shapeRendererRegistry,
+              geometryHandlerRegistry: this.store.getShapeHandlers(),
+              clear: false,
+            });
+          } finally {
+            ctx.restore();
+          }
         },
       },
     });

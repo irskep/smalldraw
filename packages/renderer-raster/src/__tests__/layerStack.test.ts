@@ -81,6 +81,8 @@ function createFakeElement(tagName: string): FakeElement {
       rect: () => {},
       clip: () => {},
       translate: () => {},
+      rotate: () => {},
+      scale: () => {},
       fillStyle: "",
     });
   }
@@ -89,6 +91,7 @@ function createFakeElement(tagName: string): FakeElement {
 
 function withFakeDom<T>(
   fn: (env: {
+    registry: ReturnType<typeof createTestShapeRendererRegistry>;
     store: DrawingStore;
     host: HTMLElement;
     hotCanvas: HTMLCanvasElement;
@@ -115,11 +118,12 @@ function withFakeDom<T>(
   });
 
   const store = new DrawingStore({ tools: [] });
+  const registry = createTestShapeRendererRegistry();
   const stack = createLayerStack({
     store,
     host: host as unknown as HTMLElement,
     hotCanvas: hotCanvas as unknown as HTMLCanvasElement,
-    shapeRendererRegistry: createTestShapeRendererRegistry(),
+    shapeRendererRegistry: registry,
     resolveImage: () => null,
   });
 
@@ -137,6 +141,7 @@ function withFakeDom<T>(
 
   try {
     const result = fn({
+      registry,
       store,
       host: host as unknown as HTMLElement,
       hotCanvas: hotCanvas as unknown as HTMLCanvasElement,
@@ -174,6 +179,69 @@ function createRectShape(id: string, layerId: string, zIndex: string) {
 }
 
 describe("LayerStack", () => {
+  test("unchanged active layer does not move DOM nodes", () =>
+    withFakeDom(async ({ stack, host }) => {
+      stack.setLayers([{ id: "base", kind: "drawing", zIndex: "a0" }]);
+      await stack.flushBakes();
+      let moves = 0;
+      const append = host.appendChild.bind(host);
+      host.appendChild = ((child: Node) => {
+        moves++;
+        return append(child);
+      }) as typeof host.appendChild;
+      stack.setActiveLayer("base");
+      stack.setActiveLayer("base");
+      expect(moves).toBe(0);
+    }));
+
+  test.each([
+    "cancel",
+    "dispose",
+  ])("pending capture cannot hide layers after %s", (operation) =>
+    withFakeDom(async ({ stack, host }) => {
+      stack.setLayers([{ id: "base", kind: "drawing", zIndex: "a0" }]);
+      const pending = stack.beginActiveLayerDraftSession();
+      if (operation === "dispose") stack.dispose();
+      else stack.endActiveLayerDraftSession();
+      await pending;
+      expect(stack.getActiveLayerDraftComposite()).toBeNull();
+      for (const child of (host as unknown as FakeElement).children)
+        expect(child.style.display).not.toBe("none");
+    }));
+
+  test("remote invalidation preserves the current frozen draft and refreshes the next", () =>
+    withFakeDom(async ({ stack }) => {
+      stack.setLayers([{ id: "base", kind: "drawing", zIndex: "a0" }]);
+      await stack.beginActiveLayerDraftSession();
+      const frozen = stack.getActiveLayerDraftComposite();
+      stack.scheduleFullInvalidation();
+      await stack.flushBakes();
+      expect(stack.getActiveLayerDraftComposite()).toBe(frozen);
+      stack.endActiveLayerDraftSession();
+      await stack.beginActiveLayerDraftSession();
+      expect(stack.getActiveLayerDraftComposite()).not.toBe(frozen);
+    }));
+
+  test("a failed bake does not poison later invalidations", () =>
+    withFakeDom(async ({ stack, store, registry }) => {
+      store.mutateDocument(
+        new AddShape(createRectShape("shape", "base", "a0")),
+      );
+      const render = registry.get("boxed")!;
+      registry.set("boxed", () => {
+        throw new Error("temporary render failure");
+      });
+      stack.setLayers([{ id: "base", kind: "drawing", zIndex: "a0" }]);
+      await expect(stack.flushBakes()).rejects.toThrow(
+        "temporary render failure",
+      );
+      registry.set("boxed", render);
+      stack.scheduleFullInvalidation();
+      await stack.flushBakes();
+      await stack.beginActiveLayerDraftSession();
+      expect(stack.getActiveLayerDraftComposite()).not.toBeNull();
+    }));
+
   test("resolveLayerStrategy is centralized by layer kind", () => {
     expect(
       resolveLayerStrategy({

@@ -2,6 +2,7 @@ import type { AnyShape, DrawingLayer, DrawingStore } from "@smalldraw/core";
 import { BoxOperations, Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { createLayerStack, HotLayer } from "@smalldraw/renderer-raster";
+import { atom } from "nanostores";
 import { logDiagnosticEvent } from "../controller/diagnostics/diagnosticLogger";
 import {
   getLoadedRasterImage,
@@ -41,9 +42,14 @@ export function createRasterPipeline(options: {
   let tilePixelRatio = options.tilePixelRatio;
   let orderedLayers: DrawingLayer[] = [];
   let currentRenderIdentity = options.renderIdentity;
-  let draftSessionActive = false;
+  const draftSession = atom<{
+    phase: "idle" | "capturing" | "active" | "ending";
+    draftId?: string;
+    layerId?: string;
+  }>({ phase: "idle" });
   let draftSessionNeedsFullRender = false;
-  let draftCaptureInFlight: Promise<void> | null = null;
+  let disposed = false;
+  let clearIndexDocument: ReturnType<DrawingStore["getDocument"]> | null = null;
   const knownClearShapeIds = new Set<string>();
 
   const layerStack = createLayerStack({
@@ -89,6 +95,7 @@ export function createRasterPipeline(options: {
     );
     stage.hotOverlayCanvas.style.display = "none";
     layerStack.updateViewport(width, height, tilePixelRatio);
+    draftSessionNeedsFullRender = true;
     hotLayer.setViewport({
       width,
       height,
@@ -123,44 +130,88 @@ export function createRasterPipeline(options: {
   };
 
   const updateKnownClearShapeIds = (): void => {
+    const document = store.getDocument();
+    if (document === clearIndexDocument) return;
+    clearIndexDocument = document;
     knownClearShapeIds.clear();
-    for (const [shapeId, shape] of Object.entries(store.getDocument().shapes)) {
+    for (const [shapeId, shape] of Object.entries(document.shapes)) {
       if (shape.type === "clear") {
         knownClearShapeIds.add(shapeId);
       }
     }
   };
 
-  const beginDraftSession = (): void => {
-    if (draftSessionActive || draftCaptureInFlight) {
-      return;
-    }
-    draftCaptureInFlight = layerStack
-      .beginActiveLayerDraftSession()
-      .then(() => {
-        hotLayer.setDraftComposite(layerStack.getActiveLayerDraftComposite());
-        draftSessionActive = true;
-        draftSessionNeedsFullRender = true;
-      })
-      .finally(() => {
-        draftCaptureInFlight = null;
-        renderInternal();
-      });
-  };
-
   const endDraftSession = (): void => {
-    if (!draftSessionActive) {
-      return;
-    }
+    draftSession.set({ phase: "idle" });
     hotLayer.clear();
     hotLayer.setDraftComposite(null);
     layerStack.endActiveLayerDraftSession();
-    draftSessionActive = false;
     draftSessionNeedsFullRender = false;
     stage.hotCanvas.style.visibility = "hidden";
   };
 
+  const reportRenderError = (error: unknown): void => {
+    logDiagnosticEvent(
+      "pipeline_render_failed",
+      {
+        message: error instanceof Error ? error.message : String(error),
+      },
+      "error",
+    );
+  };
+
+  const beginDraftSession = (draftId: string): void => {
+    const session = {
+      phase: "capturing" as const,
+      draftId,
+      layerId: store.getActiveLayerId(),
+    };
+    draftSession.set(session);
+    void layerStack
+      .beginActiveLayerDraftSession()
+      .then(() => {
+        if (disposed || draftSession.get() !== session) return;
+        const composite = layerStack.getActiveLayerDraftComposite();
+        if (!composite) {
+          endDraftSession();
+          return;
+        }
+        hotLayer.setDraftComposite(composite);
+        draftSession.set({ ...session, phase: "active" });
+        draftSessionNeedsFullRender = true;
+        renderInternal();
+      })
+      .catch((error) => {
+        if (disposed || draftSession.get().draftId !== session.draftId) return;
+        endDraftSession();
+        reportRenderError(error);
+      });
+  };
+
+  const finishDraftSession = (): void => {
+    const current = draftSession.get();
+    if (current.phase === "idle" || current.phase === "ending") return;
+    if (current.phase === "capturing") {
+      endDraftSession();
+      return;
+    }
+    // Keep the completed stroke visible until its committed tiles are ready.
+    const ending = { ...current, phase: "ending" as const };
+    draftSession.set(ending);
+    void layerStack
+      .flushBakes()
+      .then(() => {
+        if (!disposed && draftSession.get() === ending) endDraftSession();
+      })
+      .catch((error) => {
+        if (disposed || draftSession.get() !== ending) return;
+        endDraftSession();
+        reportRenderError(error);
+      });
+  };
+
   const renderInternal = (): void => {
+    if (disposed) return;
     layerStack.setActiveLayer(store.getActiveLayerId());
     const applyDiff = store.consumeApplyDocumentDiff();
     if (applyDiff) {
@@ -201,13 +252,22 @@ export function createRasterPipeline(options: {
 
     const drafts = getActiveLayerDrafts();
     if (drafts.length === 0) {
-      endDraftSession();
+      finishDraftSession();
       updateKnownClearShapeIds();
       return;
     }
 
-    if (!draftSessionActive) {
-      beginDraftSession();
+    const session = draftSession.get();
+    if (
+      session.phase !== "idle" &&
+      (session.draftId !== drafts[0].id ||
+        session.layerId !== store.getActiveLayerId() ||
+        session.phase === "ending")
+    ) {
+      endDraftSession();
+    }
+    if (draftSession.get().phase !== "active") {
+      if (draftSession.get().phase === "idle") beginDraftSession(drafts[0].id);
       updateKnownClearShapeIds();
       return;
     }
@@ -280,6 +340,7 @@ export function createRasterPipeline(options: {
       layerStack.routeDirtyShapes(shapeIds, []);
     },
     setLayers(layers) {
+      endDraftSession();
       orderedLayers = [...layers].sort((a, b) => {
         if (a.zIndex === b.zIndex) {
           return 0;
@@ -303,13 +364,14 @@ export function createRasterPipeline(options: {
     },
     bakePendingTiles() {
       logDiagnosticEvent("pipeline_bake_pending_tiles_requested");
-      void layerStack.flushBakes();
+      void layerStack.flushBakes().catch(reportRenderError);
     },
     flushBakes() {
       logDiagnosticEvent("pipeline_flush_bakes_requested");
       return layerStack.flushBakes();
     },
     dispose() {
+      disposed = true;
       disposeDeferredImageListener();
       endDraftSession();
       layerStack.dispose();
