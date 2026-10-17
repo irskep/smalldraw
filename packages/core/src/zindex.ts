@@ -1,6 +1,7 @@
 import { generateKeyBetween } from "jittered-fractional-indexing";
 import { filterShapesAfterClear } from "./model/clear";
 import {
+  DEFAULT_LAYER_ID,
   type DrawingDocument,
   type DrawingLayer,
   normalizeDocumentLayers,
@@ -42,11 +43,14 @@ export function getTopZIndexInLayer(
   doc: DrawingDocument,
   layerId: string,
 ): string | null {
-  const layerShapes = getShapesInLayer(doc, layerId);
-  if (!layerShapes.length) {
-    return null;
+  // Cleared shapes can reappear on undo. Reserve their positions so newer
+  // drawing stays above them even if the clear is undone during a draft.
+  let top: string | null = null;
+  for (const shape of Object.values(doc.shapes)) {
+    if ((shape.layerId ?? DEFAULT_LAYER_ID) !== layerId) continue;
+    if (top === null || shape.zIndex > top) top = shape.zIndex;
   }
-  return layerShapes[layerShapes.length - 1].zIndex;
+  return top;
 }
 
 export function getZIndexBetween(

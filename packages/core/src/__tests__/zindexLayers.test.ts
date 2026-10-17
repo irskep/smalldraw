@@ -67,3 +67,28 @@ describe("layer z-index helpers", () => {
     expect(getTopZIndexInLayer(doc, "missing")).toBeNull();
   });
 });
+
+test("new layer positions stay above shapes hidden by a clear", () => {
+  const registry = getDefaultShapeHandlerRegistry();
+  const doc = change(createDocument(undefined, registry), (draft) => {
+    draft.shapes.hidden = {
+      id: "hidden",
+      type: "boxed",
+      geometry: { type: "boxed", kind: "rect", size: [10, 10] },
+      style: {},
+      zIndex: "a5",
+      layerId: "default",
+      temporalOrder: 0,
+    } as BoxedShape;
+    draft.shapes.clear = {
+      id: "clear",
+      type: "clear",
+      geometry: { type: "clear" },
+      style: {},
+      zIndex: "a0",
+      temporalOrder: 1,
+    };
+  });
+  expect(getShapesInLayer(doc, "default")).toHaveLength(0);
+  expect(getTopZIndexInLayer(doc, "default")).toBe("a5");
+});

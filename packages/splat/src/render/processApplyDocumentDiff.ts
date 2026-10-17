@@ -23,7 +23,7 @@ export function processApplyDocumentDiff(
     layerTopologyChanged: diff.layerTopologyChanged,
   });
 
-  if (diff.requiresFullInvalidation) {
+  if (diff.requiresFullInvalidation || hasClearChange(diff)) {
     layerStack.scheduleFullInvalidation();
     return;
   }
@@ -174,4 +174,19 @@ function tryGetShapeBounds(
   } catch {
     return null;
   }
+}
+
+// Clear affects visibility across all layers, not the zero-sized bounds returned
+// by generic geometry helpers. Removing it (remote undo) also reveals old shapes.
+function hasClearChange(diff: ApplyDocumentDiff): boolean {
+  for (const ids of [diff.added, diff.removed, diff.changed]) {
+    for (const id of ids) {
+      if (
+        diff.prevDoc.shapes[id]?.type === "clear" ||
+        diff.nextDoc.shapes[id]?.type === "clear"
+      )
+        return true;
+    }
+  }
+  return false;
 }
