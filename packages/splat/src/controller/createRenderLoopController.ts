@@ -6,6 +6,7 @@ export const DEFAULT_RESIZE_BAKE_DEBOUNCE_MS = 120;
 
 export class RenderLoopController {
   private rafRenderState: RafRenderState = "idle";
+  private disposed = false;
   private rafHandle: number | null = null;
   private resizeBakeHandle: ReturnType<typeof setTimeout> | null = null;
   private tilePixelRatio: number;
@@ -56,6 +57,7 @@ export class RenderLoopController {
   }
 
   requestRenderFromModel(): void {
+    if (this.disposed) return;
     if (this.rafRenderState === "idle") {
       this.rafRenderState = "modelRequested";
       this.ensureRafScheduled();
@@ -67,6 +69,7 @@ export class RenderLoopController {
   }
 
   scheduleResizeBake(): void {
+    if (this.disposed) return;
     if (this.resizeBakeHandle !== null) {
       clearTimeout(this.resizeBakeHandle);
     }
@@ -79,6 +82,8 @@ export class RenderLoopController {
   }
 
   dispose(): void {
+    this.disposed = true;
+    this.rafRenderState = "idle";
     if (this.resizeBakeHandle !== null) {
       clearTimeout(this.resizeBakeHandle);
       this.resizeBakeHandle = null;
@@ -103,7 +108,7 @@ export class RenderLoopController {
   }
 
   private ensureRafScheduled(): void {
-    if (this.rafHandle !== null) {
+    if (this.disposed || this.rafHandle !== null) {
       return;
     }
     this.rafHandle = this.scheduleAnimationFrame(() => {
@@ -113,9 +118,12 @@ export class RenderLoopController {
         return;
       }
       if (this.rafRenderState === "modelRequested") {
-        this.options.onRenderPass();
         this.rafRenderState = "anticipatory";
-        this.ensureRafScheduled();
+        try {
+          this.options.onRenderPass();
+        } finally {
+          this.ensureRafScheduled();
+        }
         return;
       }
       this.rafRenderState = "idle";

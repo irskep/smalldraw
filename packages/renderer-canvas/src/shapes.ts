@@ -26,11 +26,14 @@ export function renderShape(
     return;
   }
   ctx.save();
-  applyShapeTransform(ctx, shape);
-  const opacity = shape.style.opacity ?? 1;
-  ctx.globalAlpha = ctx.globalAlpha * opacity;
-  renderer(ctx, shape, geometryRegistry);
-  ctx.restore();
+  try {
+    applyShapeTransform(ctx, shape);
+    const opacity = shape.style.opacity ?? 1;
+    ctx.globalAlpha = ctx.globalAlpha * opacity;
+    renderer(ctx, shape, geometryRegistry);
+  } finally {
+    ctx.restore();
+  }
 }
 
 function applyShapeTransform(
