@@ -88,6 +88,7 @@ test("failed image loading rejects export and skips thumbnail replacement", asyn
     }
   } as unknown as typeof Image;
   const exported = f.service.createPngExport({ width: 20, height: 20 });
+  expect(await f.service.createThumbnailBlob()).toBeNull();
   fail!();
   await expect(exported).rejects.toThrow("Some images could not load");
   expect(await f.service.createThumbnailBlob()).toBeNull();

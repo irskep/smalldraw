@@ -33,7 +33,10 @@ export class SnapshotService {
     const targetWidth = Math.max(1, Math.round(width * scale));
     const targetHeight = Math.max(1, Math.round(height * scale));
     const layers = getOrderedLayers(doc);
-    if (!(await waitForDocumentImages(doc))) return null;
+    // Thumbnail saving is on navigation paths: skip pending assets instead of
+    // delaying document switching. Image completion schedules another save.
+    if (!getDocumentImageSources(doc).every((src) => getLoadedRasterImage(src)))
+      return null;
     const canvas = document.createElement("canvas");
     canvas.width = targetWidth;
     canvas.height = targetHeight;
@@ -118,7 +121,7 @@ export class SnapshotService {
   }
 }
 
-async function waitForDocumentImages(doc: DrawingDocument): Promise<boolean> {
+function getDocumentImageSources(doc: DrawingDocument): string[] {
   const sources = new Set<string>();
   const layers = getOrderedLayers(doc);
   const visibleLayers = new Set(
@@ -134,7 +137,13 @@ async function waitForDocumentImages(doc: DrawingDocument): Promise<boolean> {
     if ("src" in geometry && typeof geometry.src === "string")
       sources.add(geometry.src);
   }
+  return [...sources];
+}
+
+async function waitForDocumentImages(doc: DrawingDocument): Promise<boolean> {
   return (
-    await Promise.all([...sources].map((src) => waitForRasterImage(src)))
+    await Promise.all(
+      getDocumentImageSources(doc).map((src) => waitForRasterImage(src)),
+    )
   ).every(Boolean);
 }
