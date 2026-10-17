@@ -146,6 +146,15 @@ export function createKidsDrawController(options: {
     accessToken: string;
     accessTokenScope: "owner";
   }>;
+  registerAccountSyncedDocument?: (
+    documentId: string,
+    content: Uint8Array,
+  ) => Promise<{
+    accessToken: string;
+    accessTokenScope: "owner";
+  }>;
+  createShareInvitation?: (documentId: string) => Promise<{ token: string }>;
+  shouldSyncNewDrawingsByDefault?: () => boolean;
   claimCollaborativeDocument?: (accessToken: string) => Promise<void>;
   deleteCollaborativeDocument?: (documentId: string) => Promise<void>;
   removeCollaborativeDocumentFromAccount?: (
@@ -210,6 +219,9 @@ export function createKidsDrawController(options: {
     savePngExport,
     createDocumentCopy,
     registerCollaborativeDocument,
+    registerAccountSyncedDocument,
+    createShareInvitation,
+    shouldSyncNewDrawingsByDefault,
     onThumbnailSaved,
     initialCatalogDocUrl,
     initialDocumentAccessState,
@@ -391,6 +403,9 @@ export function createKidsDrawController(options: {
     getExplicitSize: sizingPolicy.getExplicitSize,
     createDocumentCopy,
     registerCollaborativeDocument,
+    registerAccountSyncedDocument,
+    createShareInvitation,
+    shouldSyncNewDrawingsByDefault,
     onThumbnailSaved,
     initialCatalogDocUrl,
     initialDocumentAccessState,

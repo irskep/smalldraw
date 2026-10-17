@@ -71,6 +71,12 @@ function normalizeDocumentSummary(
     accountAttached: value.accountAttached === true ? true : undefined,
     canDeleteFromServer:
       collaborative && value.canDeleteFromServer === true ? true : undefined,
+    accountSyncPending:
+      value.accountSyncPending === true && !collaborative ? true : undefined,
+    accountSyncLastAttemptAt:
+      typeof value.accountSyncLastAttemptAt === "string"
+        ? value.accountSyncLastAttemptAt
+        : undefined,
     title: value.title,
     mode: normalizeMode(value.mode),
     coloringPageId,
@@ -365,6 +371,13 @@ class IndexedDbDocumentRepository implements DocumentRepository {
           accountAttached: input.accountAttached ?? existing?.accountAttached,
           canDeleteFromServer:
             input.canDeleteFromServer ?? existing?.canDeleteFromServer,
+          accountSyncPending: collaborative
+            ? undefined
+            : (input.accountSyncPending ?? existing?.accountSyncPending),
+          accountSyncLastAttemptAt: collaborative
+            ? undefined
+            : (input.accountSyncLastAttemptAt ??
+              existing?.accountSyncLastAttemptAt),
           title: input.title ?? existing?.title,
           mode: input.mode ?? existing?.mode ?? "normal",
           coloringPageId:

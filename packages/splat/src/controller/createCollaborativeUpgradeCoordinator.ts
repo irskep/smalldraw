@@ -1,5 +1,9 @@
 import type { KidsDocumentBackend } from "../documents";
-import { buildJoinUrl, isCollaborativeDocument } from "../documents";
+import {
+  automergeUrlToDocumentId,
+  buildJoinUrl,
+  isCollaborativeDocument,
+} from "../documents";
 import type { KidsDocumentSummary } from "../documents/types";
 
 export type SharePayload = {
@@ -10,6 +14,14 @@ export type SharePayload = {
   accessTokenScope: "owner";
   joinUrl: string;
   upgraded: boolean;
+};
+
+export type AccountSyncPayload = {
+  catalogDocUrl: string;
+  collabDocUrl: string;
+  accessToken: string;
+  accessTokenScope: "owner";
+  synced: boolean;
 };
 
 export function createCollaborativeUpgradeCoordinator(options: {
@@ -27,6 +39,14 @@ export function createCollaborativeUpgradeCoordinator(options: {
     accessToken: string;
     accessTokenScope: "owner";
   }>;
+  registerAccountSyncedDocument?: (
+    documentId: string,
+    content: Uint8Array,
+  ) => Promise<{
+    accessToken: string;
+    accessTokenScope: "owner";
+  }>;
+  createShareInvitation?: (documentId: string) => Promise<{ token: string }>;
   switchToDocument: (catalogDocUrl: string) => Promise<void>;
   resolveJoinBaseUrl: () => string;
   onCollaborativeMetadataPersisted?: (
@@ -51,9 +71,9 @@ export function createCollaborativeUpgradeCoordinator(options: {
     });
     const existing = await options.documentBackend.getDocument(catalogDocUrl);
     if (isCollaborativeDocument(existing) && existing.joinSecret) {
-      if (!existing.accessToken) {
+      if (!existing.accessToken || existing.accessTokenScope !== "owner") {
         throw new Error(
-          "Collaborative document metadata is missing its access token.",
+          "Collaborative document metadata is missing its owner access token.",
         );
       }
       console.info(
@@ -73,6 +93,41 @@ export function createCollaborativeUpgradeCoordinator(options: {
           existing.joinSecret,
           options.resolveJoinBaseUrl(),
         ),
+        upgraded: false,
+      };
+    }
+    if (isCollaborativeDocument(existing) && !existing.joinSecret) {
+      if (!existing.accessToken || existing.accessTokenScope !== "owner") {
+        throw new Error(
+          "Collaborative document metadata is missing its owner access token.",
+        );
+      }
+      if (!options.createShareInvitation) {
+        throw new Error("Share invitation API is not configured");
+      }
+      const documentId = automergeUrlToDocumentId(existing.collabDocUrl);
+      if (!documentId) {
+        throw new Error("Collaborative document URL is invalid.");
+      }
+      const invitation = await options.createShareInvitation(documentId);
+      const persistedSummary = await options.documentBackend.createDocument({
+        docUrl: catalogDocUrl,
+        collaborative: true,
+        collabDocUrl: existing.collabDocUrl,
+        joinSecret: invitation.token,
+        accessToken: existing.accessToken,
+        accessTokenScope: existing.accessTokenScope,
+        accountAttached: existing.accountAttached,
+        canDeleteFromServer: existing.canDeleteFromServer,
+      });
+      await options.onCollaborativeMetadataPersisted?.(persistedSummary);
+      return {
+        catalogDocUrl,
+        collabDocUrl: existing.collabDocUrl,
+        joinSecret: invitation.token,
+        accessToken: existing.accessToken,
+        accessTokenScope: "owner",
+        joinUrl: buildJoinUrl(invitation.token, options.resolveJoinBaseUrl()),
         upgraded: false,
       };
     }
@@ -159,7 +214,59 @@ export function createCollaborativeUpgradeCoordinator(options: {
     };
   };
 
+  const ensureAccountSynced = async (): Promise<AccountSyncPayload> => {
+    const catalogDocUrl = options.getCurrentCatalogDocUrl();
+    const existing = await options.documentBackend.getDocument(catalogDocUrl);
+    if (
+      isCollaborativeDocument(existing) &&
+      existing.accessToken &&
+      existing.accessTokenScope === "owner"
+    ) {
+      return {
+        catalogDocUrl,
+        collabDocUrl: existing.collabDocUrl,
+        accessToken: existing.accessToken,
+        accessTokenScope: "owner",
+        synced: false,
+      };
+    }
+    if (!options.registerAccountSyncedDocument) {
+      throw new Error("Account sync API is not configured");
+    }
+    await options.documentBackend.createDocument({
+      docUrl: catalogDocUrl,
+      accountSyncPending: true,
+      accountSyncLastAttemptAt: new Date().toISOString(),
+    });
+    const copy = options.createDocumentCopy();
+    const registered = await options.registerAccountSyncedDocument(
+      copy.url,
+      copy.binary,
+    );
+    const persistedSummary = await options.documentBackend.createDocument({
+      docUrl: catalogDocUrl,
+      collaborative: true,
+      collabDocUrl: copy.url,
+      accessToken: registered.accessToken,
+      accessTokenScope: "owner",
+      accountAttached: true,
+      canDeleteFromServer: true,
+      accountSyncPending: false,
+    });
+    await options.onCollaborativeMetadataPersisted?.(persistedSummary);
+    await options.switchToDocument(catalogDocUrl);
+    await options.documentBackend.setCurrentDocument(catalogDocUrl);
+    return {
+      catalogDocUrl,
+      collabDocUrl: copy.url,
+      accessToken: registered.accessToken,
+      accessTokenScope: "owner",
+      synced: true,
+    };
+  };
+
   return {
     ensureCollaborative,
+    ensureAccountSynced,
   };
 }

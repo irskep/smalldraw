@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import type { AccountShareMode } from "@smalldraw/shared";
 import {
   KeyRound as KeyRoundIcon,
   LogOut as LogOutIcon,
@@ -7,7 +8,7 @@ import {
   Unplug as UnplugIcon,
 } from "lucide";
 import { FileSearch, KeyRound, LogOut, Share2, Unplug } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DsConfirmDialog,
   type DsConfirmDialogHandle,
@@ -76,6 +77,13 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [shareLinkError, setShareLinkError] = useState<string | null>(null);
+  const [settingsShareMode, setSettingsShareMode] =
+    useState<AccountShareMode>("allowed");
+  const [settingsSyncNew, setSettingsSyncNew] = useState(false);
+  const [settingsPin, setSettingsPin] = useState("");
+  const [settingsClearPin, setSettingsClearPin] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
   const trpcUtils = trpc.useUtils();
   const userQuery = trpc.adminGetUserByUsername.useQuery(username, {
     retry: false,
@@ -101,14 +109,33 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
       retry: false,
     },
   );
+  const accountSettingsQuery = trpc.adminGetUserAccountSettings.useQuery(
+    { username },
+    {
+      enabled: Boolean(userQuery.data),
+      retry: false,
+    },
+  );
   const resetPasswordMutation = trpc.adminResetUserPassword.useMutation();
   const revokeSessionMutation = trpc.adminRevokeUserSession.useMutation();
   const revokeSessionsMutation = trpc.adminRevokeUserSessions.useMutation();
   const restoreDocumentMutation = trpc.adminRestoreUserDocument.useMutation();
   const createShareLinkMutation =
     trpc.adminCreateUserDocumentShareLink.useMutation();
+  const saveAccountSettingsMutation =
+    trpc.adminSaveUserAccountSettings.useMutation();
   const drawingRuntimeConfig = createAccountWebRuntimeConfig();
   const foundUser = userQuery.data;
+
+  useEffect(() => {
+    if (!accountSettingsQuery.data) {
+      return;
+    }
+    setSettingsShareMode(accountSettingsQuery.data.shareMode);
+    setSettingsSyncNew(accountSettingsQuery.data.syncNewDrawingsByDefault);
+    setSettingsPin("");
+    setSettingsClearPin(false);
+  }, [accountSettingsQuery.data]);
 
   const resetPassword = async () => {
     if (!foundUser || !newPassword.trim()) {
@@ -225,6 +252,46 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
         error instanceof Error
           ? error.message
           : "Sessions could not be revoked.",
+      );
+    }
+  };
+
+  const saveSettings = async () => {
+    if (!foundUser) {
+      return;
+    }
+    if (
+      settingsShareMode === "pin_required" &&
+      !settingsPin.trim() &&
+      !accountSettingsQuery.data?.hasPin
+    ) {
+      setSettingsError("Set a PIN before requiring a PIN for sharing.");
+      return;
+    }
+    setSettingsMessage(null);
+    setSettingsError(null);
+    try {
+      await saveAccountSettingsMutation.mutateAsync({
+        username: foundUser.username,
+        settings: {
+          shareMode: settingsShareMode,
+          syncNewDrawingsByDefault: settingsSyncNew,
+          pinChange: settingsPin.trim()
+            ? { type: "set", pin: settingsPin.trim() }
+            : settingsClearPin
+              ? { type: "clear" }
+              : { type: "unchanged" },
+        },
+      });
+      setSettingsMessage("Settings saved.");
+      setSettingsPin("");
+      setSettingsClearPin(false);
+      await trpcUtils.adminGetUserAccountSettings.invalidate({
+        username: foundUser.username,
+      });
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error ? error.message : "Settings could not be saved.",
       );
     }
   };
@@ -437,6 +504,98 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                         Session update failed
                       </div>
                       <div>{sessionError}</div>
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="admin-section" aria-label="Settings">
+                <h2 className="portal-label">Settings</h2>
+                {accountSettingsQuery.isLoading ? (
+                  <p className="portal-muted">Loading settings...</p>
+                ) : null}
+                <form
+                  className="portal-form"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void saveSettings();
+                  }}
+                >
+                  <select
+                    className="portal-input portal-input--short"
+                    value={settingsShareMode}
+                    onChange={(event) =>
+                      setSettingsShareMode(
+                        event.target.value as AccountShareMode,
+                      )
+                    }
+                    aria-label="Share mode"
+                  >
+                    <option value="allowed">Allow sharing</option>
+                    <option value="pin_required">
+                      Allow sharing with PIN
+                    </option>
+                    <option value="private_sync">Private Sync</option>
+                  </select>
+                  <label className="portal-checkbox-field">
+                    <input
+                      checked={settingsSyncNew}
+                      className="portal-checkbox"
+                      type="checkbox"
+                      onChange={(event) =>
+                        setSettingsSyncNew(event.target.checked)
+                      }
+                    />
+                    <span>Sync new drawings automatically</span>
+                  </label>
+                  <input
+                    className="portal-input portal-input--short"
+                    placeholder={
+                      accountSettingsQuery.data?.hasPin
+                        ? "New PIN (optional)"
+                        : "PIN (optional)"
+                    }
+                    type="password"
+                    value={settingsPin}
+                    onChange={(event) => setSettingsPin(event.target.value)}
+                    aria-label="New parental controls PIN"
+                  />
+                  {accountSettingsQuery.data?.hasPin ? (
+                    <label className="portal-checkbox-field">
+                      <input
+                        checked={settingsClearPin}
+                        className="portal-checkbox"
+                        disabled={Boolean(settingsPin.trim())}
+                        type="checkbox"
+                        onChange={(event) =>
+                          setSettingsClearPin(event.target.checked)
+                        }
+                      />
+                      <span>Clear existing PIN</span>
+                    </label>
+                  ) : null}
+                  <button
+                    type="submit"
+                    className="ds-button"
+                    data-tone="primary"
+                    disabled={saveAccountSettingsMutation.isPending}
+                  >
+                    Save settings
+                  </button>
+                </form>
+                {settingsMessage ? (
+                  <div className="portal-alert" role="status">
+                    <div className="portal-alert__body">
+                      <div className="portal-alert__title">Settings saved</div>
+                      <div>{settingsMessage}</div>
+                    </div>
+                  </div>
+                ) : null}
+                {settingsError ? (
+                  <div className="portal-alert" data-tone="danger" role="alert">
+                    <div className="portal-alert__body">
+                      <div className="portal-alert__title">Settings failed</div>
+                      <div>{settingsError}</div>
                     </div>
                   </div>
                 ) : null}

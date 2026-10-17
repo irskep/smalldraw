@@ -3,6 +3,7 @@ import path from "node:path";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import { db } from "../db/client.js";
 import {
+  accountSettings,
   documentInvitations,
   documents,
   documentThumbnails,
@@ -27,5 +28,6 @@ beforeEach(async () => {
   await db.delete(documents);
   await db.delete(loginAttempts);
   await db.delete(sessions);
+  await db.delete(accountSettings);
   await db.delete(users);
 });

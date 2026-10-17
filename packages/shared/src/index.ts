@@ -64,7 +64,7 @@ export const PORTAL_ROUTE_PATTERNS = [
 ] as const;
 
 export type DrawingAppDocumentUrlParams =
-  | { type: "new" }
+  | { type: "new"; account?: boolean }
   | { type: "account"; documentId: string }
   | { type: "local"; docUrl: string }
   | { type: "join"; joinSecret: string };
@@ -81,6 +81,9 @@ export function buildDrawingAppUrl(
   switch (params.type) {
     case "new":
       url.searchParams.set("new", "1");
+      if (params.account) {
+        url.searchParams.set("account", "1");
+      }
       break;
     case "account":
       url.searchParams.set("doc", params.documentId);
@@ -209,6 +212,27 @@ export type AccountDocumentMutationResult = {
   name: string;
 };
 
+export type AccountShareMode = "private_sync" | "pin_required" | "allowed";
+
+export type AccountSettings = {
+  shareMode: AccountShareMode;
+  syncNewDrawingsByDefault: boolean;
+  hasPin: boolean;
+};
+
+export type AccountSettingsInput = {
+  shareMode: AccountShareMode;
+  syncNewDrawingsByDefault: boolean;
+  pinChange:
+    | { type: "unchanged" }
+    | { type: "set"; pin: string }
+    | { type: "clear" };
+};
+
+export type AccountSettingsPinVerification = {
+  valid: boolean;
+};
+
 export type DeletedAccountDocument = {
   id: string;
   deletedAt: Date;
@@ -275,6 +299,12 @@ export type AccountCollaborativeDocumentSummary = {
 export type RegisteredCollaborativeDocument = {
   collabDocUrl: string;
   joinSecret: string;
+  accessToken: string;
+  accessTokenScope: "owner";
+};
+
+export type SyncedAccountDocument = {
+  collabDocUrl: string;
   accessToken: string;
   accessTokenScope: "owner";
 };

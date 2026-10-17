@@ -384,7 +384,6 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     if (this.mobileShareButton) {
       this.mobileShareButton.el.hidden = !showMobileShare;
     }
-    this.syncIndicator.el.hidden = !this.sharingFeaturesVisible;
     this.desktopMenu.setItemHidden("share", !this.sharingFeaturesVisible);
     this.mobileMenu.setItemHidden("share", !this.sharingFeaturesVisible);
   }

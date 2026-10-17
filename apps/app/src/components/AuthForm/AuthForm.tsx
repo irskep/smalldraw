@@ -1,8 +1,17 @@
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
+import {
+  loadParentalControlsState,
+  type AccountSettingsInput,
+  type AccountShareMode,
+} from "@smalldraw/shared";
 
 type Props = {
-  onSubmit: (params: { username: string; password: string }) => void;
+  onSubmit: (params: {
+    username: string;
+    password: string;
+    initialSettings?: AccountSettingsInput;
+  }) => void;
   isPending: boolean;
   errorMessage?: string | null;
   requireAgeConfirmation?: boolean;
@@ -18,6 +27,14 @@ export const AuthForm = ({
 }: Props) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const localControls = loadParentalControlsState();
+  const [shareMode, setShareMode] = useState<AccountShareMode>(
+    localControls.shareMode,
+  );
+  const [syncNewDrawingsByDefault, setSyncNewDrawingsByDefault] = useState(
+    localControls.syncNewDrawingsByDefault,
+  );
+  const [pin, setPin] = useState("");
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [ageError, setAgeError] = useState<string | null>(null);
   const displayedError = ageError ?? errorMessage;
@@ -35,8 +52,24 @@ export const AuthForm = ({
           setAgeError("A parent must make the account.");
           return;
         }
+        if (requireAgeConfirmation && shareMode === "pin_required" && !pin.trim()) {
+          setAgeError("Set a PIN before requiring a PIN for sharing.");
+          return;
+        }
         setAgeError(null);
-        onSubmit({ username, password });
+        onSubmit({
+          username,
+          password,
+          initialSettings: requireAgeConfirmation
+            ? {
+                shareMode,
+                syncNewDrawingsByDefault,
+                pinChange: pin.trim()
+                  ? { type: "set", pin: pin.trim() }
+                  : { type: "unchanged" },
+              }
+            : undefined,
+        });
       }}
     >
       <h1 className="portal-title">{children}</h1>
@@ -99,6 +132,56 @@ export const AuthForm = ({
                 Learn how Splatterboard stores data.
               </a>
             </p>
+            <fieldset className="portal-form-field">
+              <legend className="portal-label">Sharing</legend>
+              <label className="portal-checkbox-field">
+                <input
+                  checked={shareMode === "allowed"}
+                  name="share-mode"
+                  type="radio"
+                  onChange={() => setShareMode("allowed")}
+                />
+                <span>Allow sharing</span>
+              </label>
+              <label className="portal-checkbox-field">
+                <input
+                  checked={shareMode === "pin_required"}
+                  name="share-mode"
+                  type="radio"
+                  onChange={() => setShareMode("pin_required")}
+                />
+                <span>Allow sharing with PIN</span>
+              </label>
+              <label className="portal-checkbox-field">
+                <input
+                  checked={shareMode === "private_sync"}
+                  name="share-mode"
+                  type="radio"
+                  onChange={() => setShareMode("private_sync")}
+                />
+                <span>Private Sync</span>
+              </label>
+            </fieldset>
+            <label className="portal-checkbox-field">
+              <input
+                checked={syncNewDrawingsByDefault}
+                className="portal-checkbox"
+                name="sync-new-drawings"
+                type="checkbox"
+                onChange={(e) =>
+                  setSyncNewDrawingsByDefault(e.target.checked)
+                }
+              />
+              <span>Sync new drawings automatically</span>
+            </label>
+            <input
+              className="portal-input"
+              name="parent-pin"
+              placeholder="Optional PIN"
+              type="password"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+            />
           </>
         ) : null}
 

@@ -1,4 +1,5 @@
 import * as opaque from "@serenity-kit/opaque";
+import type { AccountSettingsInput } from "@smalldraw/shared";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
 import { type AuthResult, getAuthFailureMessage } from "../authErrors";
@@ -7,6 +8,7 @@ import { useLogin } from "../useLogin/useLogin";
 type RegisterParams = {
   userIdentifier: string;
   password: string;
+  initialSettings?: AccountSettingsInput;
 };
 
 export const useRegisterAndLogin = () => {
@@ -16,6 +18,7 @@ export const useRegisterAndLogin = () => {
   const { login } = useLogin();
 
   const registerAndLogin = async ({
+    initialSettings,
     userIdentifier,
     password,
   }: RegisterParams) => {
@@ -37,6 +40,7 @@ export const useRegisterAndLogin = () => {
       await registerFinishMutation.mutateAsync({
         userIdentifier,
         registrationRecord,
+        initialSettings,
       });
 
       const loginResult = await login({ userIdentifier, password });

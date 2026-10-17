@@ -5,13 +5,13 @@ import type {
   SplatContextDocumentSlot,
 } from "@smalldraw/design-system";
 import {
-  areParentalControlsSharingFeaturesVisible,
-  doesParentalControlsShareRequirePin,
-  hasParentalControlsPin,
+  type AccountSettings,
+  type AccountShareMode,
+  isCorrectParentalControlsMathAnswer,
   loadParentalControlsState,
   openParentalControlsSettings,
-  requestParentalControlsAccess,
   subscribeToParentalControlsState,
+  verifyParentalControlsPin,
 } from "@smalldraw/shared";
 import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
 import { createQrCodeDataUrl } from "../controller/createQrCodeDataUrl";
@@ -85,10 +85,16 @@ export async function createKidsDrawApp(
   const unbindToolbarUi = presentation.toolbar.bindUiState(
     toolbarUiStore.$state,
   );
+  let accountSettings: AccountSettings | null = null;
+  const getEffectiveShareMode = (): AccountShareMode =>
+    accountSettings?.shareMode ??
+    (shouldLoadAccountSettings(options.multiplayer)
+      ? "private_sync"
+      : loadParentalControlsState().shareMode);
+  const isShareFeatureVisible = (): boolean =>
+    getEffectiveShareMode() !== "private_sync";
   const syncParentalControlsVisibility = (): void => {
-    presentation.toolbar.setSharingFeaturesVisible(
-      areParentalControlsSharingFeaturesVisible(),
-    );
+    presentation.toolbar.setSharingFeaturesVisible(isShareFeatureVisible());
   };
   syncParentalControlsVisibility();
   const unbindParentalControls = subscribeToParentalControlsState(
@@ -143,6 +149,19 @@ export async function createKidsDrawApp(
     appOptions: options,
     collaborationStatusStore: runtime.collaborationStatusStore,
   });
+  if (
+    runtime.multiplayerApiClient &&
+    shouldLoadAccountSettings(options.multiplayer)
+  ) {
+    try {
+      accountSettings = await runtime.multiplayerApiClient.getAccountSettings();
+      syncParentalControlsVisibility();
+    } catch (error) {
+      console.warn("[kids-draw:settings] account settings unavailable", {
+        error,
+      });
+    }
+  }
   const unbindCollaborativeSyncErrorSurface = bindCollaborativeSyncErrorSurface(
     {
       windowTarget: window,
@@ -210,6 +229,11 @@ export async function createKidsDrawApp(
     createDocumentCopy: controllerMultiplayerAdapters.createDocumentCopy,
     registerCollaborativeDocument:
       controllerMultiplayerAdapters.registerCollaborativeDocument,
+    registerAccountSyncedDocument:
+      controllerMultiplayerAdapters.registerAccountSyncedDocument,
+    createShareInvitation: controllerMultiplayerAdapters.createShareInvitation,
+    shouldSyncNewDrawingsByDefault: () =>
+      accountSettings?.syncNewDrawingsByDefault === true,
     claimCollaborativeDocument:
       controllerMultiplayerAdapters.claimCollaborativeDocument,
     deleteCollaborativeDocument:
@@ -224,11 +248,59 @@ export async function createKidsDrawApp(
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),
     showShareDialog: controllerMultiplayerAdapters.showShareDialog,
-    isSharingAllowed: () => areParentalControlsSharingFeaturesVisible(),
-    requestSharePermission: async () =>
-      await requestParentalSharePermission(presentation.parentalControlsDialog),
-    openParentalControls: async () =>
-      await openParentalControlsSettings(presentation.parentalControlsDialog),
+    isSharingAllowed: () => isShareFeatureVisible(),
+    requestSharePermission: async () => {
+      try {
+        if (
+          runtime.multiplayerApiClient &&
+          shouldLoadAccountSettings(options.multiplayer)
+        ) {
+          accountSettings =
+            await runtime.multiplayerApiClient.getAccountSettings();
+          syncParentalControlsVisibility();
+        }
+        return await requestParentalSharePermission({
+          accountSettings,
+          dialog: presentation.parentalControlsDialog,
+          multiplayerApiClient: runtime.multiplayerApiClient,
+        });
+      } catch {
+        controllerMultiplayerAdapters.onShareError?.(
+          "Could not load parental controls. Please try again.",
+        );
+        return false;
+      }
+    },
+    openParentalControls: async () => {
+      try {
+        if (
+          runtime.multiplayerApiClient &&
+          shouldLoadAccountSettings(options.multiplayer)
+        ) {
+          accountSettings =
+            await runtime.multiplayerApiClient.getAccountSettings();
+          syncParentalControlsVisibility();
+        }
+        return await openParentalControls({
+          accountSettings,
+          dialog: presentation.parentalControlsDialog,
+          multiplayerApiClient: runtime.multiplayerApiClient,
+          onAccountSettingsChanged(nextSettings) {
+            accountSettings = nextSettings;
+            syncParentalControlsVisibility();
+          },
+        });
+      } catch {
+        await presentation.modalDialog.showConfirm({
+          title: "Unable to update parental controls",
+          message:
+            "Your settings could not be loaded or saved. Please try again.",
+          confirmLabel: "OK",
+          cancelLabel: "Dismiss",
+        });
+        return false;
+      }
+    },
     onShareError: controllerMultiplayerAdapters.onShareError,
     onClaimError: controllerMultiplayerAdapters.onClaimError,
     onDocumentOpenRequested: options.onDocumentOpenRequested,
@@ -257,20 +329,84 @@ export async function createKidsDrawApp(
   };
 }
 
-async function requestParentalSharePermission(
-  dialog: ParentalControlsDialog,
-): Promise<boolean> {
-  const state = loadParentalControlsState();
-  if (!areParentalControlsSharingFeaturesVisible(state)) {
+function shouldLoadAccountSettings(
+  multiplayer: KidsDrawAppOptions["multiplayer"],
+): boolean {
+  if (!multiplayer) {
     return false;
   }
-  if (!doesParentalControlsShareRequirePin(state)) {
+  return (
+    multiplayer.accountSessionExpected === true ||
+    multiplayer.startupIntent?.kind === "open-account-document"
+  );
+}
+
+async function requestParentalSharePermission(options: {
+  accountSettings: AccountSettings | null;
+  dialog: ParentalControlsDialog;
+  multiplayerApiClient: MultiplayerApiClient | null;
+}): Promise<boolean> {
+  if (options.accountSettings) {
+    if (options.accountSettings.shareMode === "private_sync") {
+      return false;
+    }
+    if (options.accountSettings.shareMode === "allowed") {
+      return true;
+    }
+    const multiplayerApiClient = options.multiplayerApiClient;
+    if (!options.accountSettings.hasPin || !multiplayerApiClient) {
+      return false;
+    }
+    return await options.dialog.requestAccess({
+      initialState: options.accountSettings,
+      verifyPin: (pin) => multiplayerApiClient.verifyAccountSettingsPin(pin),
+      isCorrectMathAnswer: isCorrectParentalControlsMathAnswer,
+    });
+  }
+  const state = loadParentalControlsState();
+  if (state.shareMode === "private_sync") {
+    return false;
+  }
+  if (state.shareMode !== "pin_required") {
     return true;
   }
-  if (!hasParentalControlsPin(state)) {
+  if (!state.pinHash || !state.pinSalt) {
     return false;
   }
-  return await requestParentalControlsAccess(dialog);
+  return await options.dialog.requestAccess({
+    initialState: {
+      hasPin: true,
+      shareMode: state.shareMode,
+      syncNewDrawingsByDefault: state.syncNewDrawingsByDefault,
+    },
+    verifyPin: async (pin) => {
+      return await verifyParentalControlsPin(pin, loadParentalControlsState());
+    },
+    isCorrectMathAnswer: isCorrectParentalControlsMathAnswer,
+  });
+}
+
+async function openParentalControls(options: {
+  accountSettings: AccountSettings | null;
+  dialog: ParentalControlsDialog;
+  multiplayerApiClient: MultiplayerApiClient | null;
+  onAccountSettingsChanged(settings: AccountSettings): void;
+}): Promise<boolean> {
+  const multiplayerApiClient = options.multiplayerApiClient;
+  if (!options.accountSettings || !multiplayerApiClient) {
+    return await openParentalControlsSettings(options.dialog);
+  }
+  const result = await options.dialog.show({
+    initialState: options.accountSettings,
+    verifyPin: (pin) => multiplayerApiClient.verifyAccountSettingsPin(pin),
+    isCorrectMathAnswer: isCorrectParentalControlsMathAnswer,
+  });
+  if (!result) {
+    return false;
+  }
+  const saved = await multiplayerApiClient.saveAccountSettings(result);
+  options.onAccountSettingsChanged(saved);
+  return true;
 }
 
 const DEFAULT_PROVISIONAL_WIDTH = 960;
@@ -422,6 +558,8 @@ function createControllerMultiplayerAdapters(options: {
   Parameters<typeof createKidsDrawController>[0],
   | "createDocumentCopy"
   | "registerCollaborativeDocument"
+  | "registerAccountSyncedDocument"
+  | "createShareInvitation"
   | "claimCollaborativeDocument"
   | "deleteCollaborativeDocument"
   | "removeCollaborativeDocumentFromAccount"
@@ -461,6 +599,27 @@ function createControllerMultiplayerAdapters(options: {
             options.localRepo.setWebsocketAuthToken(result.accessToken);
           }
           return result;
+        }
+      : undefined,
+    registerAccountSyncedDocument: multiplayerApiClient
+      ? async (documentId: string, content: Uint8Array) => {
+          const result =
+            await multiplayerApiClient.registerAccountSyncedDocument(
+              documentId,
+              content,
+            );
+          if (options.localRepo) {
+            options.localRepo.setWebsocketAuthorizedDocumentId(
+              resolveCollaborativeDocumentId(documentId),
+            );
+            options.localRepo.setWebsocketAuthToken(result.accessToken);
+          }
+          return result;
+        }
+      : undefined,
+    createShareInvitation: multiplayerApiClient
+      ? async (documentId: string) => {
+          return await multiplayerApiClient.createShareInvitation(documentId);
         }
       : undefined,
     claimCollaborativeDocument: multiplayerApiClient

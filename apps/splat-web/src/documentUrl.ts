@@ -11,8 +11,19 @@ export function buildSplatCurrentDocumentUrl(
   currentHref: string,
   summary: SplatDocumentUrlSummary | null,
 ): string {
+  const currentUrl = new URL(currentHref);
+  const accountSessionExpected =
+    currentUrl.searchParams.get("account") === "1" ||
+    currentUrl.searchParams.has("doc");
+  const preserveAccount = (href: string): string => {
+    const url = new URL(href);
+    if (accountSessionExpected && !url.searchParams.has("doc")) {
+      url.searchParams.set("account", "1");
+    }
+    return url.toString();
+  };
   if (!summary) {
-    return buildDrawingAppUrl(currentHref);
+    return preserveAccount(buildDrawingAppUrl(currentHref));
   }
 
   if (summary.accountAttached && summary.collabDocUrl) {
@@ -22,10 +33,12 @@ export function buildSplatCurrentDocumentUrl(
     });
   }
 
-  return buildDrawingAppUrl(currentHref, {
-    type: "local",
-    docUrl: summary.docUrl,
-  });
+  return preserveAccount(
+    buildDrawingAppUrl(currentHref, {
+      type: "local",
+      docUrl: summary.docUrl,
+    }),
+  );
 }
 
 function toDocumentId(docUrl: string): string {

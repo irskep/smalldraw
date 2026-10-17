@@ -59,6 +59,23 @@ export const loginAttempts = sqliteTable(
   }),
 );
 
+export const accountSettings = sqliteTable("account_settings", {
+  userId: text("user_id")
+    .primaryKey()
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  shareMode: text("share_mode").notNull().default("allowed"),
+  syncNewDrawingsByDefault: integer("sync_new_drawings_by_default", {
+    mode: "boolean",
+  })
+    .notNull()
+    .default(false),
+  pinHash: text("pin_hash"),
+  pinSalt: text("pin_salt"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});
+
 export const documents = sqliteTable("documents", {
   id: text("id").primaryKey().notNull(),
   name: text("name").notNull().default("Untitled"),
@@ -113,6 +130,7 @@ export const documentTokenScopes = ["share", "owner", "device"] as const;
 export type DocumentTokenScope = (typeof documentTokenScopes)[number];
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
+export type AccountSettingsRecord = typeof accountSettings.$inferSelect;
 export type Document = typeof documents.$inferSelect;
 export type DocumentThumbnail = typeof documentThumbnails.$inferSelect;
 export type DocumentInvitation = typeof documentInvitations.$inferSelect;

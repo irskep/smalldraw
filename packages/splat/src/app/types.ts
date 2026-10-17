@@ -26,6 +26,7 @@ export interface KidsDrawAppOptions {
     joinBaseUrl?: string;
     startupIntent?: SplatDocumentOpenIntent;
     deviceTag?: string;
+    accountSessionExpected?: boolean;
   };
   confirmDestructiveAction?: (dialog: ConfirmDialogRequest) => Promise<boolean>;
   savePngExport?: (input: {

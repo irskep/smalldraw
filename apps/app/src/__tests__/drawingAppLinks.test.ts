@@ -71,6 +71,14 @@ describe("drawing app links", () => {
       }),
     ).toBe("http://localhost:3000/draw/?new=1");
     expect(
+      buildNewDrawingUrl(
+        {
+          drawingAppBaseUrl: "http://localhost:3000/draw/",
+        },
+        { account: true },
+      ),
+    ).toBe("http://localhost:3000/draw/?new=1&account=1");
+    expect(
       buildLocalDrawingUrl("automerge:local doc", {
         drawingAppBaseUrl: "http://localhost:3000/draw/",
       }),

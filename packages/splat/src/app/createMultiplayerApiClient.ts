@@ -1,14 +1,18 @@
 import {
   type AccountCollaborativeDocumentResolution,
   type AccountCollaborativeDocumentSummary,
+  type AccountSettings,
+  type AccountSettingsInput,
   type AnonymousCollaborativeDocumentResolution,
   type AppError,
   type ClaimCollaborativeDocumentResult,
   createAppError,
   type DeletedAccountDocument,
+  type DocumentInvitationToken,
   isAppError,
   type RegisteredCollaborativeDocument,
   type RemovedAccountDocument,
+  type SyncedAccountDocument,
 } from "@smalldraw/shared";
 import {
   createTRPCUntypedClient,
@@ -42,6 +46,14 @@ export interface MultiplayerApiClient {
     content: Uint8Array,
     deviceTag: string,
   ): Promise<RegisteredCollaborativeDocument>;
+  registerAccountSyncedDocument(
+    documentId: string,
+    content: Uint8Array,
+  ): Promise<SyncedAccountDocument>;
+  createShareInvitation(documentId: string): Promise<DocumentInvitationToken>;
+  getAccountSettings(): Promise<AccountSettings>;
+  saveAccountSettings(input: AccountSettingsInput): Promise<AccountSettings>;
+  verifyAccountSettingsPin(pin: string): Promise<boolean>;
   resolveCollaborativeDocumentByJoinSecret(
     joinSecret: string,
     deviceTag: string,
@@ -118,6 +130,100 @@ export function createMultiplayerApiClient(options: {
         throw new Error("Invalid response from registerCollaborativeDocument");
       }
       return parsed;
+    },
+    async registerAccountSyncedDocument(documentId, content) {
+      const contentBase64 = uint8ArrayToBase64(content);
+      let result: unknown;
+      try {
+        result = await client.mutation("registerAccountSyncedDocument", {
+          documentId,
+          content: contentBase64,
+        });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to sync drawing to your account.",
+        );
+      }
+      const parsed = parseAccountSyncResult(result);
+      if (!parsed) {
+        throw new Error("Invalid response from registerAccountSyncedDocument");
+      }
+      return parsed;
+    },
+    async createShareInvitation(documentId) {
+      let result: unknown;
+      try {
+        result = await client.mutation("createOrRefreshDocumentInvitation", {
+          documentId,
+        });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to create share link.",
+        );
+      }
+      if (
+        !result ||
+        typeof result !== "object" ||
+        typeof (result as { token?: unknown }).token !== "string"
+      ) {
+        throw new Error(
+          "Invalid response from createOrRefreshDocumentInvitation",
+        );
+      }
+      return { token: (result as { token: string }).token };
+    },
+    async getAccountSettings() {
+      let result: unknown;
+      try {
+        result = await client.query("accountSettings");
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to load account settings.",
+        );
+      }
+      const parsed = parseAccountSettings(result);
+      if (!parsed) {
+        throw new Error("Invalid response from accountSettings");
+      }
+      return parsed;
+    },
+    async saveAccountSettings(input) {
+      let result: unknown;
+      try {
+        result = await client.mutation("saveAccountSettings", input);
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to save account settings.",
+        );
+      }
+      const parsed = parseAccountSettings(result);
+      if (!parsed) {
+        throw new Error("Invalid response from saveAccountSettings");
+      }
+      return parsed;
+    },
+    async verifyAccountSettingsPin(pin) {
+      let result: unknown;
+      try {
+        result = await client.mutation("verifyAccountSettingsPin", { pin });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "Failed to verify account settings PIN.",
+        );
+      }
+      if (
+        !result ||
+        typeof result !== "object" ||
+        typeof (result as { valid?: unknown }).valid !== "boolean"
+      ) {
+        throw new Error("Invalid response from verifyAccountSettingsPin");
+      }
+      return (result as { valid: boolean }).valid;
     },
     async resolveCollaborativeDocumentByJoinSecret(joinSecret, deviceTag) {
       let result: unknown;
@@ -379,6 +485,50 @@ function parseRegisterResult(
     accessToken: (input as { accessToken: string }).accessToken,
     accessTokenScope: (input as { accessTokenScope: "owner" }).accessTokenScope,
   };
+}
+
+function parseAccountSyncResult(input: unknown): SyncedAccountDocument | null {
+  if (
+    !input ||
+    typeof input !== "object" ||
+    typeof (input as { collabDocUrl?: unknown }).collabDocUrl !== "string" ||
+    typeof (input as { accessToken?: unknown }).accessToken !== "string" ||
+    (input as { accessTokenScope?: unknown }).accessTokenScope !== "owner"
+  ) {
+    return null;
+  }
+  return {
+    collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
+    accessToken: (input as { accessToken: string }).accessToken,
+    accessTokenScope: "owner",
+  };
+}
+
+function parseAccountSettings(input: unknown): AccountSettings | null {
+  if (
+    !input ||
+    typeof input !== "object" ||
+    !isAccountShareMode((input as { shareMode?: unknown }).shareMode) ||
+    typeof (input as { syncNewDrawingsByDefault?: unknown })
+      .syncNewDrawingsByDefault !== "boolean" ||
+    typeof (input as { hasPin?: unknown }).hasPin !== "boolean"
+  ) {
+    return null;
+  }
+  return {
+    shareMode: (input as { shareMode: AccountSettings["shareMode"] }).shareMode,
+    syncNewDrawingsByDefault: (input as { syncNewDrawingsByDefault: boolean })
+      .syncNewDrawingsByDefault,
+    hasPin: (input as { hasPin: boolean }).hasPin,
+  };
+}
+
+function isAccountShareMode(
+  input: unknown,
+): input is AccountSettings["shareMode"] {
+  return (
+    input === "private_sync" || input === "pin_required" || input === "allowed"
+  );
 }
 
 function parseResolveResult(

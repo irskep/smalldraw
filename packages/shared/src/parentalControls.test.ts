@@ -11,7 +11,8 @@ import {
   PARENTAL_CONTROLS_STORAGE_KEY,
   type ParentalControlsStorageLike,
   setParentalControlsPin,
-  setParentalControlsSharingMode,
+  setParentalControlsShareMode,
+  setParentalControlsSyncNewDrawingsByDefault,
   verifyParentalControlsPin,
 } from "./parentalControls";
 
@@ -28,13 +29,23 @@ describe("parental controls storage", () => {
     );
   });
 
-  test("stores sharing mode", () => {
+  test("stores share mode", () => {
     const storage = createMemoryStorage();
 
-    setParentalControlsSharingMode("offline_only", storage);
+    setParentalControlsShareMode("private_sync", storage);
 
     expect(loadParentalControlsState(storage)).toMatchObject({
-      sharingMode: "offline_only",
+      shareMode: "private_sync",
+    });
+  });
+
+  test("stores sync-new-drawings default", () => {
+    const storage = createMemoryStorage();
+
+    setParentalControlsSyncNewDrawingsByDefault(true, storage);
+
+    expect(loadParentalControlsState(storage)).toMatchObject({
+      syncNewDrawingsByDefault: true,
     });
   });
 
@@ -63,7 +74,8 @@ describe("parental controls storage", () => {
       const options = createParentalControlsAccessOptions();
       expect(options.initialState).toEqual({
         hasPin: true,
-        sharingMode: "allowed",
+        shareMode: "allowed",
+        syncNewDrawingsByDefault: false,
       });
       expect(await options.verifyPin("1234")).toBeTrue();
       expect(options.isCorrectMathAnswer("30")).toBeTrue();
@@ -84,12 +96,14 @@ describe("parental controls storage", () => {
     });
     try {
       await applyParentalControlsSettingsResult({
-        sharingMode: "pin_required",
+        shareMode: "pin_required",
+        syncNewDrawingsByDefault: true,
         pinChange: { type: "set", pin: "2468" },
       });
 
       const state = loadParentalControlsState(storage);
-      expect(state.sharingMode).toBe("pin_required");
+      expect(state.shareMode).toBe("pin_required");
+      expect(state.syncNewDrawingsByDefault).toBeTrue();
       expect(await verifyParentalControlsPin("2468", state)).toBeTrue();
     } finally {
       Object.defineProperty(globalThis, "localStorage", {
@@ -111,10 +125,12 @@ describe("parental controls storage", () => {
         async show(options) {
           expect(options.initialState).toEqual({
             hasPin: false,
-            sharingMode: "allowed",
+            shareMode: "allowed",
+            syncNewDrawingsByDefault: false,
           });
           return {
-            sharingMode: "offline_only",
+            shareMode: "private_sync",
+            syncNewDrawingsByDefault: true,
             pinChange: { type: "unchanged" },
           };
         },
@@ -125,7 +141,8 @@ describe("parental controls storage", () => {
 
       expect(opened).toBeTrue();
       expect(loadParentalControlsState(storage)).toMatchObject({
-        sharingMode: "offline_only",
+        shareMode: "private_sync",
+        syncNewDrawingsByDefault: true,
       });
     } finally {
       Object.defineProperty(globalThis, "localStorage", {

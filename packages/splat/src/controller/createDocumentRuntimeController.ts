@@ -16,6 +16,7 @@ import {
   warmRasterImage,
 } from "../shapes/rasterImageCache";
 import {
+  type AccountSyncPayload,
   createCollaborativeUpgradeCoordinator,
   type SharePayload,
 } from "./createCollaborativeUpgradeCoordinator";
@@ -46,6 +47,7 @@ export interface DocumentRuntimeController {
   flushThumbnailSave(): Promise<void>;
   scheduleThumbnailSave(delayMs?: number): void;
   shareCurrentDocument(): Promise<SharePayload>;
+  syncCurrentDocumentToAccount(): Promise<AccountSyncPayload>;
   start(): void;
   dispose(): void;
 }
@@ -105,6 +107,15 @@ export function createDocumentRuntimeController(options: {
     accessToken: string;
     accessTokenScope: "owner";
   }>;
+  registerAccountSyncedDocument?: (
+    documentId: string,
+    content: Uint8Array,
+  ) => Promise<{
+    accessToken: string;
+    accessTokenScope: "owner";
+  }>;
+  createShareInvitation?: (documentId: string) => Promise<{ token: string }>;
+  shouldSyncNewDrawingsByDefault?: () => boolean;
   initialCatalogDocUrl?: string;
   initialDocumentAccessState?:
     | {
@@ -197,6 +208,18 @@ export function createDocumentRuntimeController(options: {
       }
       return await options.registerCollaborativeDocument(documentId, content);
     },
+    registerAccountSyncedDocument: async (documentId, content) => {
+      if (!options.registerAccountSyncedDocument) {
+        throw new Error("Account sync API is not configured");
+      }
+      return await options.registerAccountSyncedDocument(documentId, content);
+    },
+    createShareInvitation: async (documentId) => {
+      if (!options.createShareInvitation) {
+        throw new Error("Share invitation API is not configured");
+      }
+      return await options.createShareInvitation(documentId);
+    },
     switchToDocument: async (catalogDocUrl) => {
       await documentSessionController.switchToDocument(catalogDocUrl);
     },
@@ -216,6 +239,34 @@ export function createDocumentRuntimeController(options: {
       return url;
     },
   });
+
+  const retryPendingAccountSyncForCurrentDocument = async (
+    reason: string,
+  ): Promise<void> => {
+    if (!options.shouldSyncNewDrawingsByDefault?.()) {
+      return;
+    }
+    const docUrl = documentSessionController.getCurrentCatalogDocUrl();
+    const summary = await options.documentBackend.getDocument(docUrl);
+    if (options.runtimeStore.isDestroyed()) {
+      return;
+    }
+    if (docUrl !== documentSessionController.getCurrentCatalogDocUrl()) {
+      return;
+    }
+    if (!summary?.accountSyncPending || summary.collaborative) {
+      return;
+    }
+    try {
+      await upgradeCoordinator.ensureAccountSynced();
+    } catch (syncError) {
+      console.warn("[kids-draw:documents] account sync still pending", {
+        reason,
+        docUrl,
+        error: syncError,
+      });
+    }
+  };
 
   const beginStartupCycle = (reason: string): number => {
     startupCycleId += 1;
@@ -462,6 +513,9 @@ export function createDocumentRuntimeController(options: {
           void syncCurrentDocumentSummary(
             documentSessionController.getCurrentCatalogDocUrl(),
           );
+          void retryPendingAccountSyncForCurrentDocument(
+            "switch_or_create_completed",
+          );
           logStartupEvent("document_load_switch_complete", {
             docUrl: options.core.getCurrentDocUrl(),
           });
@@ -486,6 +540,7 @@ export function createDocumentRuntimeController(options: {
       documentSize: options.store.getDocument().size,
     });
     await syncCurrentDocumentSummary(docUrl);
+    await retryPendingAccountSyncForCurrentDocument("startup_metadata");
     if (docUrl !== documentSessionController.getCurrentCatalogDocUrl()) {
       return { presentation, stillCurrent: false };
     }
@@ -526,6 +581,15 @@ export function createDocumentRuntimeController(options: {
           request,
           measuredDocumentSize,
         );
+        if (options.shouldSyncNewDrawingsByDefault?.()) {
+          try {
+            await upgradeCoordinator.ensureAccountSynced();
+          } catch (syncError) {
+            console.warn("[kids-draw:documents] account sync pending", {
+              error: syncError,
+            });
+          }
+        }
       } catch (error) {
         failStartupCycle(cycleId, "document_create_failed", error);
         throw error;
@@ -542,6 +606,9 @@ export function createDocumentRuntimeController(options: {
         SHARE_TIMEOUT_MS,
         "Share timed out while connecting to collaborative sync. Check server connection and try again.",
       );
+    },
+    async syncCurrentDocumentToAccount(): Promise<AccountSyncPayload> {
+      return await upgradeCoordinator.ensureAccountSynced();
     },
     start(): void {
       if (options.initialDocumentAccessState) {

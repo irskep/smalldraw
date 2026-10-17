@@ -246,7 +246,7 @@ function Index() {
 
         <div className="portal-launcher-grid">
           <a
-            href={buildNewDrawingUrl(runtimeConfig)}
+            href={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn })}
             className="portal-launcher-card portal-launcher-card--new"
           >
             <span className="portal-launcher-card__media">
@@ -287,7 +287,9 @@ function Index() {
                 imageAlt={`${tile.title} thumbnail`}
                 imageSrc={tile.thumbnailUrl}
                 onOpen={() => {
-                  window.location.href = tile.href;
+                  const url = new URL(tile.href);
+                  if (isLoggedIn) url.searchParams.set("account", "1");
+                  window.location.href = url.toString();
                 }}
                 openLabel={`Open ${tile.title}`}
               />
@@ -306,7 +308,10 @@ function Index() {
         ) : null}
       </section>
       <DsConfirmDialog ref={confirmDialogRef} />
-      <ParentalControlsDialog ref={parentalControlsDialogRef} />
+      <ParentalControlsDialog
+        ref={parentalControlsDialogRef}
+        accountSessionExpected={isLoggedIn}
+      />
     </div>
   );
 }

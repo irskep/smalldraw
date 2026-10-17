@@ -3,20 +3,22 @@ export const PARENTAL_CONTROLS_STORAGE_KEY = "smalldraw:parental-controls:v1";
 const PARENTAL_CONTROLS_EVENT = "smalldraw:parental-controls-change";
 const PIN_SALT_BYTES = 16;
 
-export type ParentalControlsSharingMode =
-  | "offline_only"
+export type ParentalControlsShareMode =
+  | "private_sync"
   | "pin_required"
   | "allowed";
 
 export type ParentalControlsState = {
   version: 1;
-  sharingMode: ParentalControlsSharingMode;
+  shareMode: ParentalControlsShareMode;
+  syncNewDrawingsByDefault: boolean;
   pinHash?: string;
   pinSalt?: string;
 };
 
 export type ParentalControlsSettingsResult = {
-  sharingMode: ParentalControlsSharingMode;
+  shareMode: ParentalControlsShareMode;
+  syncNewDrawingsByDefault: boolean;
   pinChange:
     | { type: "unchanged" }
     | { type: "set"; pin: string }
@@ -26,7 +28,8 @@ export type ParentalControlsSettingsResult = {
 export type ParentalControlsAccessOptions = {
   initialState: {
     hasPin: boolean;
-    sharingMode: ParentalControlsSharingMode;
+    shareMode: ParentalControlsShareMode;
+    syncNewDrawingsByDefault: boolean;
   };
   verifyPin: (pin: string) => Promise<boolean>;
   isCorrectMathAnswer: (answer: string) => boolean;
@@ -72,7 +75,8 @@ type ParentalControlsRuntimeLike = {
 export const DEFAULT_PARENTAL_CONTROLS_STATE: ParentalControlsState =
   Object.freeze({
     version: 1,
-    sharingMode: "allowed",
+    shareMode: "allowed",
+    syncNewDrawingsByDefault: false,
   });
 
 export function loadParentalControlsState(
@@ -122,12 +126,22 @@ export function hasParentalControlsPin(
   return Boolean(state.pinHash && state.pinSalt);
 }
 
-export function setParentalControlsSharingMode(
-  sharingMode: ParentalControlsSharingMode,
+export function setParentalControlsShareMode(
+  shareMode: ParentalControlsShareMode,
   storage?: ParentalControlsStorageLike,
 ): ParentalControlsState {
   return updateParentalControlsState(
-    (state) => ({ ...state, sharingMode }),
+    (state) => ({ ...state, shareMode }),
+    storage,
+  );
+}
+
+export function setParentalControlsSyncNewDrawingsByDefault(
+  syncNewDrawingsByDefault: boolean,
+  storage?: ParentalControlsStorageLike,
+): ParentalControlsState {
+  return updateParentalControlsState(
+    (state) => ({ ...state, syncNewDrawingsByDefault }),
     storage,
   );
 }
@@ -176,7 +190,8 @@ export function createParentalControlsAccessOptions(): ParentalControlsAccessOpt
   return {
     initialState: {
       hasPin: hasParentalControlsPin(state),
-      sharingMode: state.sharingMode,
+      shareMode: state.shareMode,
+      syncNewDrawingsByDefault: state.syncNewDrawingsByDefault,
     },
     verifyPin: async (pin) =>
       await verifyParentalControlsPin(pin, loadParentalControlsState()),
@@ -188,7 +203,7 @@ export async function applyParentalControlsSettingsResult(
   result: ParentalControlsSettingsResult,
 ): Promise<void> {
   if (
-    result.sharingMode === "pin_required" &&
+    result.shareMode === "pin_required" &&
     result.pinChange.type !== "set" &&
     !hasParentalControlsPin()
   ) {
@@ -197,12 +212,13 @@ export async function applyParentalControlsSettingsResult(
   if (result.pinChange.type === "set") {
     await setParentalControlsPin(result.pinChange.pin);
   } else if (result.pinChange.type === "clear") {
-    if (result.sharingMode === "pin_required") {
+    if (result.shareMode === "pin_required") {
       throw new Error("Cannot clear the PIN while sharing requires a PIN");
     }
     clearParentalControlsPin();
   }
-  setParentalControlsSharingMode(result.sharingMode);
+  setParentalControlsShareMode(result.shareMode);
+  setParentalControlsSyncNewDrawingsByDefault(result.syncNewDrawingsByDefault);
 }
 
 export async function openParentalControlsSettings(
@@ -225,13 +241,19 @@ export async function requestParentalControlsAccess(
 export function areParentalControlsSharingFeaturesVisible(
   state: ParentalControlsState = loadParentalControlsState(),
 ): boolean {
-  return state.sharingMode !== "offline_only";
+  return state.shareMode !== "private_sync";
 }
 
 export function doesParentalControlsShareRequirePin(
   state: ParentalControlsState = loadParentalControlsState(),
 ): boolean {
-  return state.sharingMode === "pin_required";
+  return state.shareMode === "pin_required";
+}
+
+export function shouldSyncNewDrawingsByDefault(
+  state: ParentalControlsState = loadParentalControlsState(),
+): boolean {
+  return state.syncNewDrawingsByDefault;
 }
 
 export function subscribeToParentalControlsState(
@@ -265,17 +287,18 @@ function isParentalControlsState(
     candidate.pinSalt === undefined || typeof candidate.pinSalt === "string";
   return (
     candidate.version === 1 &&
-    isParentalControlsSharingMode(candidate.sharingMode) &&
+    isParentalControlsShareMode(candidate.shareMode) &&
+    typeof candidate.syncNewDrawingsByDefault === "boolean" &&
     hasPinHash &&
     hasPinSalt
   );
 }
 
-function isParentalControlsSharingMode(
+function isParentalControlsShareMode(
   value: unknown,
-): value is ParentalControlsSharingMode {
+): value is ParentalControlsShareMode {
   return (
-    value === "offline_only" || value === "pin_required" || value === "allowed"
+    value === "private_sync" || value === "pin_required" || value === "allowed"
   );
 }
 

@@ -204,7 +204,11 @@ describe("ParentalControlsDialog", () => {
     document.body.appendChild(dialog.el);
 
     const pending = dialog.show({
-      initialState: { hasPin: false, sharingMode: "allowed" },
+      initialState: {
+        hasPin: false,
+        shareMode: "allowed",
+        syncNewDrawingsByDefault: false,
+      },
       verifyPin: async () => false,
       isCorrectMathAnswer: (answer) => answer.trim() === "30",
     });
@@ -228,21 +232,90 @@ describe("ParentalControlsDialog", () => {
     expect(settingsPanel?.hidden).toBeFalse();
 
     const sharingInput = dialog.el.querySelector(
-      'input[name="ds-parental-controls-sharing-mode"][value="offline_only"]',
+      'input[name="ds-parental-controls-sharing-mode"][value="private_sync"]',
+    ) as HTMLInputElement | null;
+    const syncInput = dialog.el.querySelector(
+      "#ds-parental-controls-sync-new",
     ) as HTMLInputElement | null;
     const pinInput = dialog.el.querySelector(
       "#ds-parental-controls-pin",
     ) as HTMLInputElement | null;
     expect(sharingInput).not.toBeNull();
+    expect(syncInput).not.toBeNull();
     expect(pinInput).not.toBeNull();
     sharingInput!.checked = true;
+    syncInput!.checked = true;
     pinInput!.value = "2468";
     clickDialogButton(dialog.el, "Save");
 
     expect(await pending).toEqual({
-      sharingMode: "offline_only",
+      shareMode: "private_sync",
+      syncNewDrawingsByDefault: true,
       pinChange: { type: "set", pin: "2468" },
     });
+  });
+
+  test("handles verification failures and allows retry", async () => {
+    const dialog = createParentalControlsDialog();
+    document.body.appendChild(dialog.el);
+    let attempts = 0;
+    const pending = dialog.requestAccess({
+      initialState: {
+        hasPin: true,
+        shareMode: "pin_required",
+        syncNewDrawingsByDefault: false,
+      },
+      verifyPin: async () => {
+        if (++attempts === 1) throw new Error("Network unavailable");
+        return true;
+      },
+      isCorrectMathAnswer: () => false,
+    });
+    clickDialogButton(dialog.el, "Continue");
+    await Promise.resolve();
+    expect(dialog.el.textContent).toContain("Could not verify PIN");
+    clickDialogButton(dialog.el, "Continue");
+    expect(await pending).toBeTrue();
+    expect(attempts).toBe(2);
+  });
+
+  test("ignores a PIN verification completed after cancellation and reopening", async () => {
+    const dialog = createParentalControlsDialog();
+    document.body.appendChild(dialog.el);
+    let verify!: (valid: boolean) => void;
+    let attempts = 0;
+    const options = {
+      initialState: {
+        hasPin: true,
+        shareMode: "pin_required" as const,
+        syncNewDrawingsByDefault: false,
+      },
+      verifyPin: () => {
+        attempts++;
+        return new Promise<boolean>((resolve) => {
+          verify = resolve;
+        });
+      },
+      isCorrectMathAnswer: () => false,
+    };
+    const first = dialog.requestAccess(options);
+    clickDialogButton(dialog.el, "Continue");
+    clickDialogButton(dialog.el, "Continue");
+    expect(attempts).toBe(1);
+    clickDialogButton(dialog.el, "Cancel");
+    expect(await first).toBeFalse();
+    const second = dialog.show(options);
+    verify(true);
+    await Promise.resolve();
+    expect(
+      (
+        dialog.el.querySelector(
+          ".ds-parental-controls-dialog__settings-panel",
+        ) as HTMLElement
+      ).hidden,
+    ).toBeTrue();
+    clickDialogButton(dialog.el, "Cancel");
+    expect(await second).toBeNull();
   });
 
   test("uses the PIN prompt when a PIN exists", async () => {
@@ -250,7 +323,11 @@ describe("ParentalControlsDialog", () => {
     document.body.appendChild(dialog.el);
 
     const pending = dialog.show({
-      initialState: { hasPin: true, sharingMode: "offline_only" },
+      initialState: {
+        hasPin: true,
+        shareMode: "private_sync",
+        syncNewDrawingsByDefault: true,
+      },
       verifyPin: async (pin) => pin === "1357",
       isCorrectMathAnswer: () => false,
     });
@@ -277,7 +354,8 @@ describe("ParentalControlsDialog", () => {
     clickDialogButton(dialog.el, "Save");
 
     expect(await pending).toEqual({
-      sharingMode: "offline_only",
+      shareMode: "private_sync",
+      syncNewDrawingsByDefault: true,
       pinChange: { type: "clear" },
     });
   });

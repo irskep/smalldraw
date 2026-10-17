@@ -2,6 +2,19 @@ import { describe, expect, test } from "bun:test";
 import { buildSplatCurrentDocumentUrl } from "./documentUrl";
 
 describe("buildSplatCurrentDocumentUrl", () => {
+  test("preserves account parental controls when navigating to local drawings", () => {
+    for (const href of [
+      "http://localhost:3000/draw/?new=1&account=1",
+      "http://localhost:3000/draw/?doc=server-doc",
+    ]) {
+      const result = new URL(
+        buildSplatCurrentDocumentUrl(href, { docUrl: "automerge:local-doc" }),
+      );
+      expect(result.searchParams.get("account")).toBe("1");
+      expect(result.searchParams.get("local")).toBe("automerge:local-doc");
+    }
+  });
+
   test("uses local catalog urls for browser-local drawings", () => {
     expect(
       buildSplatCurrentDocumentUrl("http://localhost:3000/", {

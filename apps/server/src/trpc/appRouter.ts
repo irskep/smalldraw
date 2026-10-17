@@ -7,6 +7,8 @@ import type {
   AccountDocumentDetails,
   AccountDocumentMutationResult,
   AccountDocumentSummary,
+  AccountSettings,
+  AccountSettingsPinVerification,
   AdminUserDocumentDetails,
   AdminUserDocumentSummary,
   AdminUserSession,
@@ -24,6 +26,7 @@ import type {
   RemovedAccountDocument,
   RestoredAccountDocument,
   RevokeDocumentAccessTokenResult,
+  SyncedAccountDocument,
 } from "@smalldraw/shared";
 import { isDocumentAccessTokenScope } from "@smalldraw/shared";
 import { TRPCError } from "@trpc/server";
@@ -35,6 +38,11 @@ import {
 } from "../auth/sessionCookie.js";
 import { repo, repoStorage } from "../automergeRepo/automergeRepo.js";
 import { toAutomergeUrl } from "../automergeRepo/automergeUrl.js";
+import {
+  getAccountSettings,
+  saveAccountSettings,
+  verifyAccountSettingsPin,
+} from "../db/accountSettings.js";
 import { addUserToDocument } from "../db/addUserToDocument.js";
 import { claimAnonymousCollaborativeDocument } from "../db/claimAnonymousCollaborativeDocument.js";
 import { createAnonymousCollaborativeDocument } from "../db/createAnonymousCollaborativeDocument.js";
@@ -70,6 +78,10 @@ import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTok
 import { revokeDocumentAccessTokenForServerAdmin } from "../db/revokeDocumentAccessTokenForServerAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "../db/rotateAnonymousCollaborativeDocumentShareToken.js";
 import {
+  getOrCreateAccountDocumentOwnerToken,
+  syncAccountDocument,
+} from "../db/syncAccountDocument.js";
+import {
   buildDocumentThumbnailStorageKey,
   buildDocumentThumbnailUrl,
 } from "../db/thumbnailStorage.js";
@@ -77,6 +89,7 @@ import { updateDocument } from "../db/updateDocument.js";
 import { updateUserRegistrationRecord } from "../db/updateUserRegistrationRecord.js";
 import { upsertDocumentThumbnail } from "../db/upsertDocumentThumbnail.js";
 import {
+  AccountSettingsParams,
   ChangePasswordFinishParams,
   ChangePasswordStartParams,
   LoginFinishParams,
@@ -341,6 +354,38 @@ export const appRouter = router({
         sessionsRevoked: true,
       };
     }),
+  adminGetUserAccountSettings: serverAdminProcedure
+    .input(z.object({ username: z.string().min(1) }))
+    .query(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      return (await getAccountSettings(user.id)) satisfies AccountSettings;
+    }),
+  adminSaveUserAccountSettings: serverAdminProcedure
+    .input(
+      z.object({
+        username: z.string().min(1),
+        settings: AccountSettingsParams,
+      }),
+    )
+    .mutation(async (opts) => {
+      const user = await getUserByUsername(opts.input.username);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "user not found",
+        });
+      }
+      return (await saveAccountSettings(
+        user.id,
+        opts.input.settings,
+      )) satisfies AccountSettings;
+    }),
   adminListUserDocuments: serverAdminProcedure
     .input(z.object({ username: z.string().min(1) }))
     .query(async (opts) => {
@@ -573,6 +618,29 @@ export const appRouter = router({
       isServerAdmin: user.isServerAdmin,
     };
   }),
+  accountSettings: protectedProcedure.query(async (opts) => {
+    return (await getAccountSettings(
+      opts.ctx.session.userId,
+    )) satisfies AccountSettings;
+  }),
+  saveAccountSettings: protectedProcedure
+    .input(AccountSettingsParams)
+    .mutation(async (opts) => {
+      return (await saveAccountSettings(
+        opts.ctx.session.userId,
+        opts.input,
+      )) satisfies AccountSettings;
+    }),
+  verifyAccountSettingsPin: protectedProcedure
+    .input(z.object({ pin: z.string() }))
+    .mutation(async (opts) => {
+      return {
+        valid: await verifyAccountSettingsPin(
+          opts.ctx.session.userId,
+          opts.input.pin,
+        ),
+      } satisfies AccountSettingsPinVerification;
+    }),
   changePasswordStart: protectedProcedure
     .input(ChangePasswordStartParams)
     .mutation(async (opts) => {
@@ -992,6 +1060,32 @@ export const appRouter = router({
       } satisfies RegisteredCollaborativeDocument;
     }),
 
+  registerAccountSyncedDocument: protectedProcedure
+    .input(
+      z.object({
+        documentId: z.string().min(1),
+        content: z.string().min(1),
+      }),
+    )
+    .mutation(async (opts) => {
+      const rawDocId = opts.input.documentId.replace(
+        /^automerge:/,
+        "",
+      ) as DocumentId;
+      const binary = new Uint8Array(Buffer.from(opts.input.content, "base64"));
+      repo.import(binary, { docId: rawDocId });
+      await syncAccountDocument({
+        documentId: rawDocId,
+        userId: opts.ctx.session.userId,
+      });
+      const accessToken = await getOrCreateAccountDocumentOwnerToken(rawDocId);
+      return {
+        collabDocUrl: toAutomergeUrl(rawDocId),
+        accessToken: accessToken.token,
+        accessTokenScope: "owner",
+      } satisfies SyncedAccountDocument;
+    }),
+
   resolveAnonymousCollaborativeDocument: publicProcedure
     .input(
       z.object({
@@ -1203,11 +1297,18 @@ export const appRouter = router({
   registerFinish: publicProcedure
     .input(RegisterFinishParams)
     .mutation(async (opts) => {
-      const { userIdentifier, registrationRecord } = opts.input;
+      const { initialSettings, userIdentifier, registrationRecord } =
+        opts.input;
 
       const existingUser = await getUserByUsername(userIdentifier);
       if (!existingUser) {
-        await createUser({ username: userIdentifier, registrationRecord });
+        const user = await createUser({
+          username: userIdentifier,
+          registrationRecord,
+        });
+        if (initialSettings) {
+          await saveAccountSettings(user.id, initialSettings);
+        }
       }
 
       // return always the same result even if the user already exists to

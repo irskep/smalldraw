@@ -6,16 +6,18 @@ import type { ReDomLike } from "./ReDomLike";
 
 export type ParentalControlsDialogInitialState = {
   hasPin: boolean;
-  sharingMode: ParentalControlsSharingMode;
+  shareMode: ParentalControlsShareMode;
+  syncNewDrawingsByDefault: boolean;
 };
 
-export type ParentalControlsSharingMode =
-  | "offline_only"
+export type ParentalControlsShareMode =
+  | "private_sync"
   | "pin_required"
   | "allowed";
 
 export type ParentalControlsDialogResult = {
-  sharingMode: ParentalControlsSharingMode;
+  shareMode: ParentalControlsShareMode;
+  syncNewDrawingsByDefault: boolean;
   pinChange:
     | { type: "unchanged" }
     | { type: "set"; pin: string }
@@ -51,9 +53,12 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   readonly #sharingField = document.createElement("fieldset");
   readonly #sharingLegend = document.createElement("legend");
   readonly #sharingInputs = new Map<
-    ParentalControlsSharingMode,
+    ParentalControlsShareMode,
     HTMLInputElement
   >();
+  readonly #syncField = document.createElement("label");
+  readonly #syncInput = document.createElement("input");
+  readonly #syncText = document.createElement("span");
   readonly #pinField = document.createElement("div");
   readonly #pinLabel = document.createElement("label");
   readonly #pinInput = document.createElement("input");
@@ -72,6 +77,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   #resolve: ((value: ParentalControlsDialogResult | null) => void) | null =
     null;
   #resolveAccess: ((value: boolean) => void) | null = null;
+  #verification: object | null = null;
   #step: Step = "access";
   #accessOnly = false;
   #pinChange: ParentalControlsDialogResult["pinChange"] = {
@@ -116,11 +122,18 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
         "Ask for the PIN before sharing a drawing.",
       ),
       this.#createSharingOption(
-        "offline_only",
-        "Offline only",
-        "Use this browser without sharing or connection status.",
+        "private_sync",
+        "Private Sync",
+        "Sync to your account without showing share links or QR codes.",
       ),
     );
+
+    this.#syncField.className = "ds-parental-controls-dialog__checkbox-option";
+    this.#syncInput.type = "checkbox";
+    this.#syncInput.className = "ds-parental-controls-dialog__checkbox";
+    this.#syncInput.id = "ds-parental-controls-sync-new";
+    this.#syncText.textContent = "Sync new drawings automatically";
+    this.#syncField.append(this.#syncInput, this.#syncText);
 
     this.#pinField.className = "ds-parental-controls-dialog__field";
     this.#pinLabel.className = "ds-parental-controls-dialog__label";
@@ -137,6 +150,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#clearPinRow.append(this.#clearPinButton.el);
     this.#settingsPanel.append(
       this.#sharingField,
+      this.#syncField,
       this.#pinField,
       this.#clearPinRow,
     );
@@ -180,10 +194,13 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   ): Promise<ParentalControlsDialogResult | null> {
     this.#resolve?.(null);
     this.#resolveAccess?.(false);
+    this.#verification = null;
+    this.#confirmButton.setDisabled(false);
     this.#options = options;
     this.#accessOnly = false;
     this.#pinChange = { type: "unchanged" };
-    this.#setSharingMode(options.initialState.sharingMode);
+    this.#setSharingMode(options.initialState.shareMode);
+    this.#syncInput.checked = options.initialState.syncNewDrawingsByDefault;
     this.#pinInput.value = "";
     this.#accessInput.value = "";
     this.#clearPinRow.hidden = !options.initialState.hasPin;
@@ -201,6 +218,8 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   ): Promise<boolean> {
     this.#resolve?.(null);
     this.#resolveAccess?.(false);
+    this.#verification = null;
+    this.#confirmButton.setDisabled(false);
     this.#options = options;
     this.#accessOnly = true;
     this.#pinChange = { type: "unchanged" };
@@ -216,6 +235,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   }
 
   onunmount(): void {
+    this.#verification = null;
     this.#scaffold.onunmount?.();
     this.#resolve?.(null);
     this.#resolve = null;
@@ -224,6 +244,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   }
 
   async #submit(): Promise<void> {
+    if (!this.#options) return;
     if (this.#step === "access") {
       await this.#submitAccess();
       return;
@@ -232,11 +253,35 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   }
 
   async #submitAccess(): Promise<void> {
-    const options = this.#requireOptions();
-    const value = this.#accessInput.value;
-    const allowed = options.initialState.hasPin
-      ? await options.verifyPin(value)
-      : options.isCorrectMathAnswer(value);
+    if (this.#verification || !this.#options) {
+      return;
+    }
+    const options = this.#options;
+    const verification = {};
+    this.#verification = verification;
+    this.#confirmButton.setDisabled(true);
+    let allowed: boolean;
+    try {
+      const value = this.#accessInput.value;
+      allowed = options.initialState.hasPin
+        ? await options.verifyPin(value)
+        : options.isCorrectMathAnswer(value);
+    } catch {
+      if (this.#verification === verification) {
+        this.#setError("Could not verify PIN. Please try again.");
+        this.#verification = null;
+        this.#confirmButton.setDisabled(false);
+      }
+      return;
+    } finally {
+      if (this.#verification === verification) {
+        this.#confirmButton.setDisabled(false);
+      }
+    }
+    if (this.#verification !== verification) {
+      return;
+    }
+    this.#verification = null;
     if (!allowed) {
       this.#setError(
         options.initialState.hasPin ? "Incorrect PIN." : "Try again.",
@@ -255,9 +300,9 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   async #submitSettings(): Promise<void> {
     const pin = this.#pinInput.value.trim();
     const pinChange = pin ? ({ type: "set", pin } as const) : this.#pinChange;
-    const sharingMode = this.#getSharingMode();
+    const shareMode = this.#getSharingMode();
     if (
-      sharingMode === "pin_required" &&
+      shareMode === "pin_required" &&
       pinChange.type !== "set" &&
       !this.#requireOptions().initialState.hasPin
     ) {
@@ -265,13 +310,14 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
       this.#pinInput.focus();
       return;
     }
-    if (sharingMode === "pin_required" && pinChange.type === "clear") {
+    if (shareMode === "pin_required" && pinChange.type === "clear") {
       this.#setError("Keep or set a PIN before requiring a PIN for sharing.");
       this.#pinInput.focus();
       return;
     }
     await this.#finish({
-      sharingMode,
+      shareMode,
+      syncNewDrawingsByDefault: this.#syncInput.checked,
       pinChange,
     });
   }
@@ -290,11 +336,12 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
       );
       this.#accessLabel.textContent = hasPin ? "PIN" : "What is 5 x 6?";
       this.#accessInput.type = hasPin ? "password" : "text";
+      this.#accessInput.inputMode = hasPin ? "text" : "numeric";
       this.#hint.textContent = "";
       return;
     }
     this.#scaffold.setTitle("Parental controls");
-    this.#scaffold.setSubtitle("Manage local controls for this browser.");
+    this.#scaffold.setSubtitle("Manage drawing sync and share controls.");
     this.#hint.textContent = hasPin
       ? "Leave PIN blank to keep the current PIN."
       : "Set a PIN to skip the math puzzle next time.";
@@ -304,14 +351,15 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     if (!this.#resolve) {
       return;
     }
-    await this.#scaffold.close({ animated: true });
     const resolve = this.#resolve;
     this.#resolve = null;
     this.#options = null;
+    await this.#scaffold.close({ animated: true });
     resolve(value);
   }
 
   async #cancel(): Promise<void> {
+    this.#verification = null;
     if (this.#resolveAccess) {
       await this.#finishAccess(false);
       return;
@@ -323,10 +371,10 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     if (!this.#resolveAccess) {
       return;
     }
-    await this.#scaffold.close({ animated: true });
     const resolve = this.#resolveAccess;
     this.#resolveAccess = null;
     this.#options = null;
+    await this.#scaffold.close({ animated: true });
     resolve(value);
   }
 
@@ -343,7 +391,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   }
 
   #createSharingOption(
-    value: ParentalControlsSharingMode,
+    value: ParentalControlsShareMode,
     title: string,
     description: string,
   ): HTMLLabelElement {
@@ -368,7 +416,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     return label;
   }
 
-  #setSharingMode(value: ParentalControlsSharingMode): void {
+  #setSharingMode(value: ParentalControlsShareMode): void {
     const input = this.#sharingInputs.get(value);
     if (!input) {
       throw new Error(`Unknown parental controls sharing mode: ${value}`);
@@ -376,7 +424,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     input.checked = true;
   }
 
-  #getSharingMode(): ParentalControlsSharingMode {
+  #getSharingMode(): ParentalControlsShareMode {
     for (const [mode, input] of this.#sharingInputs) {
       if (input.checked) {
         return mode;

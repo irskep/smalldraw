@@ -15,6 +15,8 @@ if (!container) {
 try {
   const multiplayerConfig = createBrowserMultiplayerConfig();
   const startupIntent = resolveSplatStartupIntent(window.location.search);
+  const accountSessionExpected =
+    new URLSearchParams(window.location.search).get("account") === "1";
   if (startupIntent.kind === "startup-error") {
     throw new Error(startupIntent.message);
   }
@@ -26,6 +28,7 @@ try {
     multiplayer: {
       ...multiplayerConfig,
       startupIntent,
+      accountSessionExpected,
     },
     onDocumentOpenRequested: (summary, docUrl) => {
       documentNavigation.pushDocument(summary, docUrl);

@@ -16,11 +16,12 @@ const Register = () => {
   return (
     <div className="portal-page">
       <AuthForm
-        onSubmit={async ({ password, username }) => {
+        onSubmit={async ({ initialSettings, password, username }) => {
           setError(null);
           const result = await registerAndLogin({
             userIdentifier: username,
             password,
+            initialSettings,
           });
           if (!result.ok) {
             setError(result.message);

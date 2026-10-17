@@ -40,4 +40,25 @@ export const RegisterStartParams = z.object({
 export const RegisterFinishParams = z.object({
   userIdentifier: noProtoString,
   registrationRecord: noProtoString,
+  initialSettings: z
+    .object({
+      shareMode: z.enum(["private_sync", "pin_required", "allowed"]),
+      syncNewDrawingsByDefault: z.boolean(),
+      pinChange: z.discriminatedUnion("type", [
+        z.object({ type: z.literal("unchanged") }),
+        z.object({ type: z.literal("clear") }),
+        z.object({ type: z.literal("set"), pin: z.string() }),
+      ]),
+    })
+    .optional(),
+});
+
+export const AccountSettingsParams = z.object({
+  shareMode: z.enum(["private_sync", "pin_required", "allowed"]),
+  syncNewDrawingsByDefault: z.boolean(),
+  pinChange: z.discriminatedUnion("type", [
+    z.object({ type: z.literal("unchanged") }),
+    z.object({ type: z.literal("clear") }),
+    z.object({ type: z.literal("set"), pin: z.string() }),
+  ]),
 });

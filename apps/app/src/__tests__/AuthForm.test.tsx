@@ -100,6 +100,11 @@ describe("AuthForm", () => {
     expect(onSubmit).toHaveBeenCalledWith({
       username: "new-user",
       password: "asdfjkl;",
+      initialSettings: {
+        shareMode: "allowed",
+        syncNewDrawingsByDefault: false,
+        pinChange: { type: "unchanged" },
+      },
     });
   });
 });

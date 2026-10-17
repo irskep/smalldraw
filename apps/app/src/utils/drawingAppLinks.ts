@@ -49,8 +49,12 @@ export function buildDrawingDocumentUrl(
 
 export function buildNewDrawingUrl(
   config: AccountWebRuntimeConfig = createAccountWebRuntimeConfig(),
+  options?: { account?: boolean },
 ): string {
-  return buildDrawingAppUrl(config.drawingAppBaseUrl, { type: "new" });
+  return buildDrawingAppUrl(config.drawingAppBaseUrl, {
+    type: "new",
+    account: options?.account,
+  });
 }
 
 export function buildLocalDrawingUrl(

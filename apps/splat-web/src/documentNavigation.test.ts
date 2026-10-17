@@ -138,7 +138,7 @@ describe("createSplatDocumentNavigationStore", () => {
     });
 
     expect(window.location.href).toBe(
-      "http://localhost:3000/draw/?local=automerge%3Alocal",
+      "http://localhost:3000/draw/?local=automerge%3Alocal&account=1",
     );
     expect(store.get()).toEqual({
       type: "open-document",

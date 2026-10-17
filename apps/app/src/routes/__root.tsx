@@ -215,7 +215,10 @@ const Root = () => {
       <Suspense>
         <TanStackRouterDevtools />
       </Suspense>{" "}
-      <ParentalControlsDialog ref={parentalControlsDialogRef} />
+      <ParentalControlsDialog
+        ref={parentalControlsDialogRef}
+        accountSessionExpected={Boolean(meQuery.data) && !isNotAuthorized}
+      />
     </div>
   );
 };
