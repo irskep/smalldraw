@@ -68,3 +68,11 @@ typings/
 .rodney
 test-results
 /apps/splat-desktop/.generated
+
+# Local OS metadata and design-editor locks
+.DS_Store
+*.afdesign~lock~
+
+# Downloaded coloring sources and generated processing intermediates
+/packages/splat/src/coloring/intake/
+/packages/splat/src/coloring/assets/*-input/
