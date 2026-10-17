@@ -3,6 +3,26 @@ import { Trash2 } from "lucide";
 import { createKidsDrawCommandController } from "../controller/createKidsDrawCommandController";
 
 describe("createKidsDrawCommandController share controls", () => {
+  test("failed export displays an error instead of saving incomplete content", async () => {
+    let message = "";
+    const controller = createController({
+      isSharingAllowed: () => false,
+      requestSharePermission: async () => false,
+      shareCurrentDocument: async () => {},
+      setSharePending() {},
+      createPngExport: async () => {
+        throw new Error("Image failed to load");
+      },
+      confirm: async (dialog) => {
+        message = dialog.message;
+        return true;
+      },
+    });
+    controller.exportAndClose();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(message).toBe("Image failed to load");
+  });
   test("does not run share when sharing is hidden", async () => {
     const events: string[] = [];
     const controller = createController({
@@ -77,6 +97,11 @@ describe("createKidsDrawCommandController share controls", () => {
 });
 
 function createController(options: {
+  createPngExport?: () => Promise<{
+    blob: Blob | null;
+    dataUrl: string | null;
+  }>;
+  confirm?: (dialog: { message: string }) => Promise<boolean>;
   isSharingAllowed: () => boolean;
   requestSharePermission: () => Promise<boolean>;
   shareCurrentDocument: () => Promise<void>;
@@ -96,9 +121,9 @@ function createController(options: {
       setSharePending: options.setSharePending,
     },
     snapshotService: {
-      async createPngExport() {
-        return { blob: null, dataUrl: null };
-      },
+      createPngExport:
+        options.createPngExport ??
+        (async () => ({ blob: null, dataUrl: null })),
     },
     getSize: () => ({ width: 100, height: 100 }),
     openDocumentPicker: async () => {},
@@ -106,7 +131,7 @@ function createController(options: {
     shareCurrentDocument: options.shareCurrentDocument,
     isSharingAllowed: options.isSharingAllowed,
     requestSharePermission: options.requestSharePermission,
-    confirmDestructiveAction: async () => true,
+    confirmDestructiveAction: options.confirm ?? (async () => true),
     clearConfirmationIcon: Trash2,
     loadedDocumentCommands: {
       run(command) {

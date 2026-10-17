@@ -1,9 +1,17 @@
-import { type DrawingStore, getOrderedLayers } from "@smalldraw/core";
+import {
+  type DrawingDocument,
+  type DrawingStore,
+  getOrderedLayers,
+  getOrderedShapes,
+} from "@smalldraw/core";
 import {
   renderLayerStack,
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
-import { getLoadedRasterImage } from "../shapes/rasterImageCache";
+import {
+  getLoadedRasterImage,
+  waitForRasterImage,
+} from "../shapes/rasterImageCache";
 
 export class SnapshotService {
   constructor(
@@ -17,6 +25,7 @@ export class SnapshotService {
   async createThumbnailBlob(): Promise<Blob | null> {
     const { store, shapeRendererRegistry, backgroundColor } = this.options;
     const doc = store.getDocument();
+    const shapes = getOrderedShapes(doc);
     const width = Math.max(1, Math.round(doc.size.width));
     const height = Math.max(1, Math.round(doc.size.height));
     const maxDimension = 640;
@@ -24,6 +33,7 @@ export class SnapshotService {
     const targetWidth = Math.max(1, Math.round(width * scale));
     const targetHeight = Math.max(1, Math.round(height * scale));
     const layers = getOrderedLayers(doc);
+    if (!(await waitForDocumentImages(doc))) return null;
     const canvas = document.createElement("canvas");
     canvas.width = targetWidth;
     canvas.height = targetHeight;
@@ -34,7 +44,7 @@ export class SnapshotService {
 
     ctx.save();
     ctx.scale(scale, scale);
-    renderLayerStack(ctx, layers, store.getOrderedShapes(), {
+    renderLayerStack(ctx, layers, shapes, {
       registry: shapeRendererRegistry,
       geometryHandlerRegistry: store.getShapeHandlers(),
       clear: false,
@@ -61,6 +71,12 @@ export class SnapshotService {
   }): Promise<{ blob: Blob | null; dataUrl: string | null }> {
     const { store, shapeRendererRegistry, backgroundColor } = this.options;
     const doc = store.getDocument();
+    const shapes = getOrderedShapes(doc);
+    if (!(await waitForDocumentImages(doc))) {
+      throw new Error(
+        "Some images could not load. Please try exporting again.",
+      );
+    }
     const layers = getOrderedLayers(doc);
     const docWidth = Math.max(1, Math.round(doc.size.width));
     const docHeight = Math.max(1, Math.round(doc.size.height));
@@ -72,7 +88,9 @@ export class SnapshotService {
       return { blob: null, dataUrl: null };
     }
 
-    renderLayerStack(ctx, layers, store.getOrderedShapes(), {
+    ctx.save();
+    ctx.scale(canvas.width / docWidth, canvas.height / docHeight);
+    renderLayerStack(ctx, layers, shapes, {
       registry: shapeRendererRegistry,
       geometryHandlerRegistry: store.getShapeHandlers(),
       clear: false,
@@ -80,6 +98,7 @@ export class SnapshotService {
       documentWidth: docWidth,
       documentHeight: docHeight,
     });
+    ctx.restore();
     ctx.save();
     ctx.globalCompositeOperation = "destination-over";
     ctx.fillStyle = backgroundColor;
@@ -97,4 +116,25 @@ export class SnapshotService {
       dataUrl: canvas.toDataURL("image/png"),
     };
   }
+}
+
+async function waitForDocumentImages(doc: DrawingDocument): Promise<boolean> {
+  const sources = new Set<string>();
+  const layers = getOrderedLayers(doc);
+  const visibleLayers = new Set(
+    layers.filter((layer) => layer.visible !== false).map((layer) => layer.id),
+  );
+  for (const layer of layers) {
+    if (layer.visible !== false && layer.kind === "image" && layer.image?.src)
+      sources.add(layer.image.src);
+  }
+  for (const shape of getOrderedShapes(doc)) {
+    if (!visibleLayers.has(shape.layerId ?? "default")) continue;
+    const geometry = shape.geometry;
+    if ("src" in geometry && typeof geometry.src === "string")
+      sources.add(geometry.src);
+  }
+  return (
+    await Promise.all([...sources].map((src) => waitForRasterImage(src)))
+  ).every(Boolean);
 }

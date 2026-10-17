@@ -4,6 +4,12 @@ type ImageSourceResolver = (src: string) => string;
 const imageCache = new Map<string, CacheEntry>();
 const failedImageSources = new Map<string, number>();
 const IMAGE_RETRY_DELAY_MS = 5000;
+const settlementListeners = new Map<string, Set<() => void>>();
+
+function notifySettlement(src: string): void {
+  for (const listener of settlementListeners.get(src) ?? []) listener();
+}
+
 const deferredLoadListeners = new Set<() => void>();
 let imageSourceResolver: ImageSourceResolver = (src) => src;
 
@@ -58,6 +64,7 @@ export function getLoadedRasterImage(src: string): CacheEntry | null {
     if (imageCache.get(src) !== image) return;
     image.onload = null;
     image.onerror = null;
+    notifySettlement(src);
     for (const listener of deferredLoadListeners) {
       listener();
     }
@@ -68,6 +75,7 @@ export function getLoadedRasterImage(src: string): CacheEntry | null {
     image.onerror = null;
     imageCache.delete(src);
     failedImageSources.set(src, Date.now());
+    notifySettlement(src);
   };
   imageCache.set(src, image);
   image.src = resolveRasterImageSource(src);
@@ -77,6 +85,7 @@ export function getLoadedRasterImage(src: string): CacheEntry | null {
 export function registerRasterImage(src: string, image: CacheEntry): void {
   failedImageSources.delete(src);
   imageCache.set(src, image);
+  notifySettlement(src);
 }
 
 export function warmRasterImage(src: string): void {
@@ -95,4 +104,27 @@ export function resetRasterImageCache(): void {
   failedImageSources.clear();
   deferredLoadListeners.clear();
   imageSourceResolver = (src) => src;
+}
+
+/** Wait for the shared load; never export an image with missing raster content. */
+export function waitForRasterImage(
+  src: string,
+  timeoutMs = 10000,
+): Promise<boolean> {
+  if (getLoadedRasterImage(src)) return Promise.resolve(true);
+  if (failedImageSources.has(src) || !imageCache.has(src))
+    return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const listeners = settlementListeners.get(src) ?? new Set<() => void>();
+    settlementListeners.set(src, listeners);
+    const finish = (ready: boolean) => {
+      clearTimeout(timer);
+      listeners.delete(onSettled);
+      if (listeners.size === 0) settlementListeners.delete(src);
+      resolve(ready);
+    };
+    const onSettled = () => finish(!!getLoadedRasterImage(src));
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    listeners.add(onSettled);
+  });
 }

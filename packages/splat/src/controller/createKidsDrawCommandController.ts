@@ -93,10 +93,24 @@ export function createKidsDrawCommandController(options: {
 
   const exportDrawing = async (): Promise<void> => {
     const size = options.getSize();
-    const exported = await options.snapshotService.createPngExport({
-      width: size.width,
-      height: size.height,
-    });
+    let exported: Awaited<ReturnType<SnapshotService["createPngExport"]>>;
+    try {
+      exported = await options.snapshotService.createPngExport({
+        width: size.width,
+        height: size.height,
+      });
+    } catch (error) {
+      if (!options.isDestroyed())
+        await options.confirmDestructiveAction({
+          title: "Could not export drawing",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Please try exporting again.",
+          confirmLabel: "OK",
+        });
+      return;
+    }
     if (!exported.blob && !exported.dataUrl) {
       return;
     }

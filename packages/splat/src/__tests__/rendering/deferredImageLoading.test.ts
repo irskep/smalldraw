@@ -4,6 +4,7 @@ import {
   onDeferredImageLoaded,
   registerRasterImage,
   resetRasterImageCache,
+  waitForRasterImage,
 } from "../../shapes/rasterImageCache";
 
 const originalImage = globalThis.Image;
@@ -67,6 +68,30 @@ function createFakeImage(opts?: { immediatelyReady?: boolean }): {
 }
 
 describe("deferred image loading", () => {
+  test("waiters share a pending load and settle on success, failure, or timeout", async () => {
+    const { FakeImageClass, getInstance } = createFakeImage();
+    globalThis.Image = FakeImageClass as unknown as typeof Image;
+    const first = waitForRasterImage("ready");
+    const image = getInstance()!;
+    const second = waitForRasterImage("ready");
+    expect(getInstance()).toBe(image);
+    image.complete = true;
+    image.naturalWidth = image.naturalHeight = 10;
+    image.onload!();
+    expect(await first).toBe(true);
+    expect(await second).toBe(true);
+    const failed = waitForRasterImage("failed");
+    getInstance()!.onerror!();
+    expect(await failed).toBe(false);
+    expect(await waitForRasterImage("timeout", 1)).toBe(false);
+    const replacement = waitForRasterImage("replacement");
+    registerRasterImage("replacement", {
+      width: 10,
+      height: 10,
+    } as HTMLCanvasElement);
+    expect(await replacement).toBe(true);
+  });
+
   test("reuses the pending image and ignores superseded load callbacks", () => {
     const { FakeImageClass, getInstance, getOnloadHandler } = createFakeImage();
     globalThis.Image = FakeImageClass as unknown as typeof Image;
