@@ -28,6 +28,7 @@ tilt = "0.37.1"
 node = "24"
 "pipx:persistproc" = "latest"
 "npm:wrangler" = "latest"
+"pipx:zensical" = "0.0.71"
 
 [tasks."localci:setup"]
 description = "Install dependencies for LocalCI runs"
