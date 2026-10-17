@@ -22,6 +22,13 @@ export interface PenGeometry {
 export type PenShape = Shape & { geometry: PenGeometry };
 
 const decodedPointCache = new WeakMap<PenGeometry, Vec2Tuple[]>();
+// Local previews already have decoded coordinates. A geometry owns a fixed-length
+// view of its encoder's append-only buffer until first read; afterward only its
+// materialized snapshot remains. Weak keys keep this cache scoped to draft lifetime.
+const encodedPointSources = new WeakMap<
+  PenGeometry,
+  { points: Vec2Tuple[]; count: number }
+>();
 const decodedPointsByJson = new Map<string, Vec2Tuple[]>();
 const MAX_DECODED_JSON_CACHE_SIZE = 64;
 
@@ -107,6 +114,17 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
 export function getPenGeometryPoints(geometry: PenGeometry): Vec2Tuple[] {
   const cached = decodedPointCache.get(geometry);
   if (cached) return cached;
+  const source = encodedPointSources.get(geometry);
+  if (source) {
+    // Copy tuples as well as the outer array: callers of the existing mutable
+    // accessor must not be able to alter another preview's coordinates.
+    const snapshot: Vec2Tuple[] = new Array(source.count);
+    for (let i = 0; i < source.count; i++)
+      snapshot[i] = [source.points[i][0], source.points[i][1]];
+    encodedPointSources.delete(geometry);
+    decodedPointCache.set(geometry, snapshot);
+    return snapshot;
+  }
   const cachedByJson = decodedPointsByJson.get(geometry.pointsJson);
   if (cachedByJson) {
     decodedPointCache.set(geometry, cachedByJson);
@@ -184,19 +202,29 @@ export function createAppendOnlyPenGeometryEncoder(): (
 ) => PenGeometry {
   let encodedCount = 0;
   let prefix = "[";
+  const decodedPoints: Vec2Tuple[] = [];
   return (points, pressures) => {
     if (points.length < encodedCount)
       throw new Error("Stroke encoder requires append-only points");
     if (points.length > encodedCount) {
       const suffix = encodePenPointsJson(points.slice(encodedCount));
+      // Decode only the appended batch so the cached coordinates exactly match
+      // JSON normalization (including -0 and rejected non-finite coordinates).
+      for (const point of decodePenPointsJson(suffix))
+        decodedPoints.push(point);
       prefix += (encodedCount ? "," : "") + suffix.slice(1, -1);
       encodedCount = points.length;
     }
-    return {
+    const geometry: PenGeometry = {
       type: "pen-json",
       pointsJson: `${prefix}]`,
       pointCount: encodedCount,
       ...(pressures ? { pressures } : {}),
     };
+    encodedPointSources.set(geometry, {
+      points: decodedPoints,
+      count: decodedPoints.length,
+    });
+    return geometry;
   };
 }
