@@ -195,8 +195,12 @@ export function createStrokeTool(
       return;
     }
     state.drawing.geometry.points.push(toVec2Like(point));
-    if (state.drawing.geometry.pressures && isPressureSample(pressure)) {
-      state.drawing.geometry.pressures.push(pressure);
+    const pressures = state.drawing.geometry.pressures;
+    if (pressures) {
+      // A missing sample must not misalign all later pressure values.
+      pressures.push(
+        isPressureSample(pressure) ? pressure : pressures[pressures.length - 1],
+      );
     }
     state.drawing.lastInputPoint = new Vec2(point);
     updateDraft(runtime);

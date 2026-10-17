@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import {
   getLoadedRasterImage,
   onDeferredImageLoaded,
+  registerRasterImage,
   resetRasterImageCache,
 } from "../../shapes/rasterImageCache";
 
@@ -66,6 +67,46 @@ function createFakeImage(opts?: { immediatelyReady?: boolean }): {
 }
 
 describe("deferred image loading", () => {
+  test("reuses the pending image and ignores superseded load callbacks", () => {
+    const { FakeImageClass, getInstance, getOnloadHandler } = createFakeImage();
+    globalThis.Image = FakeImageClass as unknown as typeof Image;
+    let notifications = 0;
+    onDeferredImageLoaded(() => notifications++);
+    getLoadedRasterImage("pending");
+    const first = getInstance();
+    for (let i = 0; i < 10; i++)
+      expect(getLoadedRasterImage("pending")).toBeNull();
+    expect(getInstance()).toBe(first);
+    const staleLoad = getOnloadHandler()!;
+    const staleError = first!.onerror!;
+    const replacement = { width: 10, height: 10 } as HTMLCanvasElement;
+    registerRasterImage("pending", replacement);
+    staleLoad();
+    staleError();
+    expect(notifications).toBe(0);
+    expect(getLoadedRasterImage("pending")).toBe(replacement);
+  });
+
+  test("retries failed loads after a cooldown instead of permanently blacklisting them", () => {
+    const originalNow = Date.now;
+    let now = 100;
+    Date.now = () => now;
+    try {
+      const { FakeImageClass, getInstance } = createFakeImage();
+      globalThis.Image = FakeImageClass as unknown as typeof Image;
+      getLoadedRasterImage("retry");
+      const first = getInstance()!;
+      first.onerror!();
+      expect(getLoadedRasterImage("retry")).toBeNull();
+      expect(getInstance()).toBe(first);
+      now += 5000;
+      getLoadedRasterImage("retry");
+      expect(getInstance()).not.toBe(first);
+    } finally {
+      Date.now = originalNow;
+    }
+  });
+
   test("listener fires when a deferred image finishes loading", () => {
     const { FakeImageClass, getOnloadHandler } = createFakeImage();
     globalThis.Image = FakeImageClass as unknown as typeof Image;

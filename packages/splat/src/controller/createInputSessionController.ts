@@ -90,6 +90,7 @@ export class InputSessionController {
         this.options.store.dispatch("pointerDown", {
           point: this.lastPointerPoint,
           buttons: event.buttons,
+          pressure: event.pointerType === "mouse" ? undefined : event.pressure,
         });
       },
     );
@@ -113,7 +114,7 @@ export class InputSessionController {
     const pointerSamples = samples.map((sample) => ({
       point: this.options.toPoint(sample),
       buttons: sample.buttons,
-      pressure: sample.pressure,
+      pressure: event.pointerType === "mouse" ? undefined : sample.pressure,
       shiftKey: sample.shiftKey,
       altKey: sample.altKey,
     }));
@@ -242,6 +243,8 @@ export class InputSessionController {
           this.options.store.dispatch(type, {
             point: this.lastPointerPoint,
             buttons: event.buttons,
+            pressure:
+              event.pointerType === "mouse" ? undefined : event.pressure,
           });
         },
       );
@@ -249,6 +252,7 @@ export class InputSessionController {
       this.options.store.dispatch(type, {
         point: this.lastPointerPoint,
         buttons: event.buttons,
+        pressure: event.pointerType === "mouse" ? undefined : event.pressure,
       });
     }
     const actionSequenceAfter = this.options.store.getActionSequence();
@@ -262,6 +266,7 @@ export class InputSessionController {
       moveSamples: this.activeStrokeMoveSampleCount,
       coalescedMoveEvents: this.activeStrokeCoalescedEventCount,
       buttons: event.buttons,
+      pressure: event.pointerType === "mouse" ? undefined : event.pressure,
     });
     if (type === "pointerUp" && deltaActions === 0) {
       logDiagnosticEvent(

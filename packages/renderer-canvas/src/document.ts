@@ -69,6 +69,7 @@ export function renderLayerStack(
   }
 
   const shapesByLayer = partitionShapesByLayer(shapes);
+  let layerCanvas: HTMLCanvasElement | null = null;
   for (const layer of layers) {
     if (layer.visible === false) {
       continue;
@@ -89,11 +90,39 @@ export function renderLayerStack(
     if (!layerShapes || layerShapes.length === 0) {
       continue;
     }
-    renderOrderedShapes(ctx, layerShapes, {
+    // Composite each drawing layer as a unit so destination-out cannot erase
+    // pixels belonging to earlier layers (including reference images).
+    layerCanvas ??= createLayerCanvas(ctx.canvas);
+    const layerCtx = layerCanvas.getContext("2d");
+    if (!layerCtx) throw new Error("Layer rendering requires a 2D context");
+    layerCtx.setTransform(1, 0, 0, 1, 0, 0);
+    layerCtx.clearRect(0, 0, layerCanvas.width, layerCanvas.height);
+    layerCtx.setTransform(ctx.getTransform());
+    layerCtx.globalAlpha = ctx.globalAlpha;
+    renderOrderedShapes(layerCtx, layerShapes, {
       ...renderOptions,
       clear: false,
     });
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.drawImage(layerCanvas, 0, 0);
+    ctx.restore();
   }
+}
+
+function createLayerCanvas(source: HTMLCanvasElement): HTMLCanvasElement {
+  const canvas = source.ownerDocument
+    ? source.ownerDocument.createElement("canvas")
+    : new (
+        source.constructor as new (
+          width: number,
+          height: number,
+        ) => HTMLCanvasElement
+      )(source.width, source.height);
+  canvas.width = source.width;
+  canvas.height = source.height;
+  return canvas;
 }
 
 function partitionShapesByLayer(shapes: Shape[]): Map<string, Shape[]> {

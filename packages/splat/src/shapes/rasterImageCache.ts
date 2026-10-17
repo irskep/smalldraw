@@ -2,7 +2,8 @@ type CacheEntry = HTMLImageElement | HTMLCanvasElement;
 type ImageSourceResolver = (src: string) => string;
 
 const imageCache = new Map<string, CacheEntry>();
-const failedImageSources = new Set<string>();
+const failedImageSources = new Map<string, number>();
+const IMAGE_RETRY_DELAY_MS = 5000;
 const deferredLoadListeners = new Set<() => void>();
 let imageSourceResolver: ImageSourceResolver = (src) => src;
 
@@ -35,13 +36,15 @@ const isImageReady = (image: CacheEntry): boolean => {
 };
 
 export function getLoadedRasterImage(src: string): CacheEntry | null {
-  if (failedImageSources.has(src)) {
-    return null;
+  const failedAt = failedImageSources.get(src);
+  if (failedAt !== undefined) {
+    if (Date.now() - failedAt < IMAGE_RETRY_DELAY_MS) return null;
+    failedImageSources.delete(src);
   }
 
   const cached = imageCache.get(src);
-  if (cached && isImageReady(cached)) {
-    return cached;
+  if (cached) {
+    return isImageReady(cached) ? cached : null;
   }
 
   if (typeof Image !== "function") {
@@ -52,19 +55,27 @@ export function getLoadedRasterImage(src: string): CacheEntry | null {
   image.decoding = "async";
   image.crossOrigin = "anonymous";
   image.onload = () => {
+    if (imageCache.get(src) !== image) return;
+    image.onload = null;
+    image.onerror = null;
     for (const listener of deferredLoadListeners) {
       listener();
     }
   };
   image.onerror = () => {
-    failedImageSources.add(src);
+    if (imageCache.get(src) !== image) return;
+    image.onload = null;
+    image.onerror = null;
+    imageCache.delete(src);
+    failedImageSources.set(src, Date.now());
   };
-  image.src = resolveRasterImageSource(src);
   imageCache.set(src, image);
+  image.src = resolveRasterImageSource(src);
   return isImageReady(image) ? image : null;
 }
 
 export function registerRasterImage(src: string, image: CacheEntry): void {
+  failedImageSources.delete(src);
   imageCache.set(src, image);
 }
 
