@@ -1,6 +1,7 @@
 import {
   AddShape,
   attachPointerHandlers,
+  createAppendOnlyPenGeometryEncoder,
   createDisposerBucket,
   createPenJSONGeometry,
   type DisposerBucket,
@@ -46,6 +47,7 @@ interface ActiveStrokeState {
 }
 
 interface StrokeDraftState {
+  encodePreview: ReturnType<typeof createAppendOnlyPenGeometryEncoder>;
   id: string;
   geometry: {
     points: Array<[number, number]>;
@@ -131,6 +133,7 @@ export function createStrokeTool(
     const stroke = resolveStroke(runtime);
     const sprayMode = getSprayMode(stroke.brushId);
     const drawing: StrokeDraftState = {
+      encodePreview: createAppendOnlyPenGeometryEncoder(),
       id: draftId,
       geometry: {
         points: sprayMode ? [] : [toVec2Like(point)],
@@ -696,7 +699,7 @@ function createPreviewStrokeShape(
   return {
     id: draft.id,
     type: "pen",
-    geometry: createPenJSONGeometry(
+    geometry: draft.encodePreview(
       draft.geometry.points,
       draft.geometry.pressures,
     ),

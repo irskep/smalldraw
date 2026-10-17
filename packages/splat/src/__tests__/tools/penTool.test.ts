@@ -48,6 +48,36 @@ describe("pen tool integration with runtime", () => {
     };
   }
 
+  test("long strokes retain every input and commit the same canonical geometry", () => {
+    const { runtime, getDocument, deactivate } = setup();
+    const points: [number, number][] = [];
+    for (let i = 0; i < 4000; i++) {
+      const point = new Vec2(i % 700, 200 + Math.sin(i * 0.03) * 100);
+      points.push([point[0], point[1]]);
+      runtime.dispatch(i === 0 ? "pointerDown" : "pointerMove", {
+        point,
+        buttons: 1,
+        pressure: (i % 10) / 10,
+      });
+    }
+    const draft = runtime.getDraft() as PenShape;
+    expect(draft.geometry.pointsJson).toBe(JSON.stringify(points));
+    expect(draft.geometry.pressures).toHaveLength(points.length);
+    runtime.dispatch("pointerUp", {
+      point: new Vec2(points.at(-1)!),
+      buttons: 0,
+    });
+    const committed = Object.values(getDocument().shapes) as PenShape[];
+    expect(committed).toHaveLength(1);
+    expect(committed[0].geometry.pointCount).toBe(points.length);
+    expect(committed[0].geometry.pressures).toEqual(draft.geometry.pressures);
+    expect(runtime.getDraft()).toBeNull();
+    // Canonicalization changes the origin, not the world-space stroke.
+    const actual = getWorldPointsFromShape(committed[0]);
+    expectPointsClose(actual, points, 0.001);
+    deactivate?.();
+  });
+
   test("collects pointer events into draft stroke and commits at pointer up", () => {
     const { runtime, getDocument } = setup();
 

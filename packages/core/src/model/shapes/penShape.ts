@@ -105,14 +105,12 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
 };
 
 export function getPenGeometryPoints(geometry: PenGeometry): Vec2Tuple[] {
+  const cached = decodedPointCache.get(geometry);
+  if (cached) return cached;
   const cachedByJson = decodedPointsByJson.get(geometry.pointsJson);
   if (cachedByJson) {
     decodedPointCache.set(geometry, cachedByJson);
     return cachedByJson;
-  }
-  const cached = decodedPointCache.get(geometry);
-  if (cached) {
-    return cached;
   }
   const decoded = decodePenPointsJson(geometry.pointsJson);
   decodedPointsByJson.set(geometry.pointsJson, decoded);
@@ -172,4 +170,33 @@ export function decodePenPointsJson(
   } catch {
     return [];
   }
+}
+
+/**
+ * Encoder owned by one active stroke. Points must only be appended, never edited.
+ * Only new points are encoded; each returned geometry retains its own JSON string.
+ * Keeping the unclosed prefix avoids slicing/flattening the growing JSON on input.
+ * Commit still canonicalizes and serializes the complete stroke once.
+ */
+export function createAppendOnlyPenGeometryEncoder(): (
+  points: Vec2Tuple[],
+  pressures?: number[],
+) => PenGeometry {
+  let encodedCount = 0;
+  let prefix = "[";
+  return (points, pressures) => {
+    if (points.length < encodedCount)
+      throw new Error("Stroke encoder requires append-only points");
+    if (points.length > encodedCount) {
+      const suffix = encodePenPointsJson(points.slice(encodedCount));
+      prefix += (encodedCount ? "," : "") + suffix.slice(1, -1);
+      encodedCount = points.length;
+    }
+    return {
+      type: "pen-json",
+      pointsJson: `${prefix}]`,
+      pointCount: encodedCount,
+      ...(pressures ? { pressures } : {}),
+    };
+  };
 }
