@@ -80,8 +80,8 @@ const PEN_BRUSH_RENDERERS = new Map<string, PenBrushRenderer>([
   ["freehand", renderFreehandPenBrush],
   [
     "marker",
-    ({ ctx, points, strokeSize }) => {
-      renderMarkerPath(ctx, points, strokeSize);
+    ({ ctx, points, strokeSize, isTemporary }) => {
+      renderMarkerPath(ctx, points, strokeSize, isTemporary);
     },
   ],
   ["even-spraycan", renderSprayPenBrush],

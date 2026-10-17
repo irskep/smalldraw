@@ -49,3 +49,24 @@ function dual(points: Vec2Tuple[]): Vec2Tuple[] {
 function midpoint(a: Vec2Tuple, b: Vec2Tuple): Vec2Tuple {
   return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
 }
+
+/**
+ * Smooth only the appended region plus four input points of overlap. Three
+ * refinement rounds affect at most 14 outputs at either padded boundary;
+ * four inputs provide 32 outputs of overlap, including cubic neighbours.
+ * Indices in the full smoothed stroke equal local indices plus `offset`.
+ */
+export function smoothMarkerTail(
+  points: Vec2Tuple[],
+  previousPointCount: number,
+) {
+  const scale = 2 ** DEFAULT_MARKER_SMOOTHING_ORDER;
+  const start = Math.max(0, previousPointCount - 4);
+  const smoothed = smoothMarkerPoints(points.slice(start));
+  const fullLength = points.length ? scale * points.length + scale - 1 : 0;
+  return {
+    points: smoothed,
+    offset: scale * start,
+    stableCount: Math.max(0, fullLength - 2 * (scale - 1)),
+  };
+}
