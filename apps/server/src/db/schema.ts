@@ -65,11 +65,6 @@ export const accountSettings = sqliteTable("account_settings", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   shareMode: text("share_mode").notNull().default("allowed"),
-  syncNewDrawingsByDefault: integer("sync_new_drawings_by_default", {
-    mode: "boolean",
-  })
-    .notNull()
-    .default(false),
   pinHash: text("pin_hash"),
   pinSalt: text("pin_salt"),
   createdAt: timestamp("created_at"),

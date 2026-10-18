@@ -17,10 +17,10 @@ function DataPage() {
       </div>
 
       <div className="portal-text-page__body">
-        <h2>By Default, Nothing Is Stored on the Server</h2>
+        <h2>Without an Account, Drawings Stay on This Device</h2>
         <p>
-          When you make a drawing, it stays in your browser. It does not get
-          stored on splatterboard.app&apos;s server.
+          When you draw without signing in, your drawings are saved on this device.
+          They are uploaded only if you share them.
         </p>
 
         <h2>When You Click Share, Drawings Are Stored on the Server</h2>
@@ -37,8 +37,9 @@ function DataPage() {
           splatterboard.app on your phone, you won&apos;t see your drawing.
         </p>
         <p>
-          If you create an account, your shared drawings will be accessible to
-          all your devices.
+          When you sign in or create an account, drawings on this device are added
+          to your account. All your drawings then sync automatically, so you can
+          open them on another device. Sharing is a separate choice.
         </p>
 
         <h2>A Warning About Safari</h2>
@@ -62,11 +63,12 @@ function DataPage() {
           your password, there is no recourse.
         </p>
 
-        <h2>How to Tell Where Your Drawing Is</h2>
+        <h2>Signing Out</h2>
         <p>
-          In the upper right corner, there is some text that will say
-          &quot;Offline&quot; or &quot;Online&quot;. If it says
-          &quot;Online&quot;, your document is stored on the server.
+          Signing out waits until your drawings have finished syncing, then removes
+          your account’s drawings from this device. They stay in your account and
+          return when you sign in again. If syncing fails, your drawings stay on
+          this device until you can reconnect and try again.
         </p>
       </div>
     </section>

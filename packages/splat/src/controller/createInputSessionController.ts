@@ -174,7 +174,9 @@ export class InputSessionController {
     this.endPointerSession(event, "pointerCancel");
   }
 
-  forceCancelPointerSession(): void {
+  forceCancelPointerSession(
+    endType: PointerSessionEndType = "pointerCancel",
+  ): void {
     if (!this.pointerIsDown) {
       return;
     }
@@ -187,14 +189,14 @@ export class InputSessionController {
           pointerPhase: "force_cancel",
         },
         () => {
-          this.options.store.dispatch("pointerCancel", {
+          this.options.store.dispatch(endType, {
             point: this.lastPointerPoint,
             buttons: 0,
           });
         },
       );
     } else {
-      this.options.store.dispatch("pointerCancel", {
+      this.options.store.dispatch(endType, {
         point: this.lastPointerPoint,
         buttons: 0,
       });

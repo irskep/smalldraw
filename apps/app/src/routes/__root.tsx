@@ -1,5 +1,7 @@
+import { DsConfirmDialog, type DsConfirmDialogHandle } from "../components/DsConfirmDialog/DsConfirmDialog";
+import { $accountSync, retryAccountSync } from "@smalldraw/splat/account";
+import { initializeAccountWorkspace, signOutWorkspace } from "../utils/accountWorkspace";
 import type { DropdownMenuEntry } from "@smalldraw/design-system/dropdown-menu";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   createRootRoute,
   Link,
@@ -16,7 +18,7 @@ import {
   User,
   UserPlus,
 } from "lucide";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DsDropdownMenu } from "@/components/DsDropdownMenu/DsDropdownMenu";
 import {
   ParentalControlsDialog,
@@ -46,6 +48,7 @@ const getRedirectParam = () => {
 
 const Root = () => {
   const navigate = useNavigate();
+  const accountDialogRef = useRef<DsConfirmDialogHandle>(null);
   const parentalControlsDialogRef = useRef<ParentalControlsDialogHandle>(null);
   const location = useLocation();
   const isAdminRoute =
@@ -61,8 +64,14 @@ const Root = () => {
       return true;
     },
   });
-  const logoutMutation = trpc.logout.useMutation();
-  const queryClient = useQueryClient();
+  const [syncStatus, setSyncStatus] = useState($accountSync.get());
+  useEffect(() => $accountSync.subscribe(setSyncStatus), []);
+  const [workspaceReady, setWorkspaceReady] = useState(false);
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+  useEffect(() => {
+    void initializeAccountWorkspace().then(() => setWorkspaceReady(true)).catch((error) => setWorkspaceError(String(error)));
+  }, []);
 
   const isNotAuthorized = meQuery.error?.data?.code === "UNAUTHORIZED";
   const accountMenuEntries = useMemo<DropdownMenuEntry[]>(() => {
@@ -96,7 +105,7 @@ const Root = () => {
           id: "logout",
           label: "Log out",
           icon: LogOut,
-          disabled: logoutMutation.isPending,
+          disabled: signingOut,
         },
       ];
     }
@@ -120,7 +129,7 @@ const Root = () => {
     ];
   }, [
     isNotAuthorized,
-    logoutMutation.isPending,
+    signingOut,
     meQuery.data,
     meQuery.isLoading,
   ]);
@@ -167,18 +176,32 @@ const Root = () => {
         return;
       }
       if (itemId === "logout") {
-        logoutMutation.mutate(undefined, {
-          onSuccess: () => {
-            queryClient.invalidateQueries();
-            window.location.href = appPath("login");
-          },
-          onError: () => {
-            alert("Failed to logout");
-          },
-        });
+        void (async () => {
+          const confirmed = await accountDialogRef.current?.confirm({
+            title: "Sign out?",
+            message: "Your drawings will stay in your account. They’ll be removed from this device.",
+            confirmLabel: "Sign out", cancelLabel: "Cancel",
+          });
+          if (!confirmed) return;
+          setSigningOut(true);
+          for (;;) {
+            try {
+              await signOutWorkspace();
+              window.location.href = appPath("");
+              return;
+            } catch {
+              const retry = await accountDialogRef.current?.confirm({
+                title: "Drawings haven’t finished syncing",
+                message: "Connect to the internet and try again. Your drawings are still on this device.",
+                confirmLabel: "Try again", cancelLabel: "Cancel",
+              });
+              if (!retry) { window.location.reload(); return; }
+            }
+          }
+        })();
       }
     },
-    [logoutMutation, navigate, queryClient],
+    [navigate],
   );
 
   return (
@@ -207,12 +230,14 @@ const Root = () => {
           />
         </nav>
       </header>
+      {syncStatus.error ? <div role="status">{syncStatus.error} <button className="ds-button" onClick={retryAccountSync}>Try again</button></div> : null}
       <main className="portal-main">
-        <Outlet />
+        {workspaceReady ? <Outlet /> : <p role="status">{workspaceError ?? "Opening your drawings…"} {workspaceError ? <button className="ds-button" onClick={() => window.location.reload()}>Try again</button> : null}</p>}
       </main>
       <Suspense>
         <TanStackRouterDevtools />
       </Suspense>{" "}
+      <DsConfirmDialog ref={accountDialogRef} />
       <ParentalControlsDialog
         ref={parentalControlsDialogRef}
         accountSessionExpected={Boolean(meQuery.data) && !isNotAuthorized}

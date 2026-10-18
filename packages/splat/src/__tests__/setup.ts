@@ -9,6 +9,8 @@ const { document } = windowInstance;
 
 (globalThis as any).window = windowInstance;
 (globalThis as any).document = document;
+(globalThis as any).ShadowRoot = windowInstance.ShadowRoot;
+(globalThis as any).Node = windowInstance.Node;
 (globalThis as any).Element = windowInstance.Element;
 (globalThis as any).HTMLElement = windowInstance.HTMLElement;
 (globalThis as any).HTMLCanvasElement = windowInstance.HTMLCanvasElement;

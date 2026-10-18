@@ -102,7 +102,6 @@ describe("AuthForm", () => {
       password: "asdfjkl;",
       initialSettings: {
         shareMode: "allowed",
-        syncNewDrawingsByDefault: false,
         pinChange: { type: "unchanged" },
       },
     });

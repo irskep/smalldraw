@@ -43,7 +43,6 @@ export const RegisterFinishParams = z.object({
   initialSettings: z
     .object({
       shareMode: z.enum(["private_sync", "pin_required", "allowed"]),
-      syncNewDrawingsByDefault: z.boolean(),
       pinChange: z.discriminatedUnion("type", [
         z.object({ type: z.literal("unchanged") }),
         z.object({ type: z.literal("clear") }),
@@ -55,7 +54,6 @@ export const RegisterFinishParams = z.object({
 
 export const AccountSettingsParams = z.object({
   shareMode: z.enum(["private_sync", "pin_required", "allowed"]),
-  syncNewDrawingsByDefault: z.boolean(),
   pinChange: z.discriminatedUnion("type", [
     z.object({ type: z.literal("unchanged") }),
     z.object({ type: z.literal("clear") }),

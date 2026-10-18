@@ -43,6 +43,13 @@
       "when": 1782014400000,
       "tag": "0005_account_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792351392447,
+      "tag": "0006_account_wide_sync",
+      "breakpoints": true
     }
   ]
 }

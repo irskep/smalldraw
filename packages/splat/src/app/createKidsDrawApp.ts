@@ -1,3 +1,7 @@
+import {
+  signOutAccountWorkspace,
+  watchAccountWorkspace,
+} from "../documents/accountWorkspace";
 import "@smalldraw/design-system/styles.css";
 import { DrawingStore } from "@smalldraw/core";
 import type {
@@ -163,10 +167,47 @@ export async function createKidsDrawApp(
     appOptions: options,
     collaborationStatusStore: runtime.collaborationStatusStore,
   });
+  let workspaceWatcher: ReturnType<typeof watchAccountWorkspace> | undefined;
   if (runtime.multiplayerApiClient && options.multiplayer?.joinBaseUrl) {
     const joinBaseUrl = resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl);
+    const accountApi = runtime.multiplayerApiClient;
     accountSession = createAccountSession({
-      client: runtime.multiplayerApiClient,
+      client: {
+        getCurrentAccount: () => accountApi.getCurrentAccount(),
+        signOut: async () => {
+          for (;;) {
+            try {
+              const watcher = workspaceWatcher;
+              if (!watcher) throw new Error("Drawing workspace is not ready.");
+              await signOutAccountWorkspace(accountApi, () => watcher.freeze());
+              return;
+            } catch {
+              options.container.inert = false;
+              const retry = await presentation.modalDialog.showConfirm({
+                title: "Drawings haven’t finished syncing",
+                message:
+                  "Connect to the internet and try again. Your drawings are still on this device.",
+                confirmLabel: "Try again",
+                cancelLabel: "Cancel",
+              });
+              if (!retry) {
+                window.location.reload();
+                throw new Error(
+                  "Sign-out cancelled. Your drawings are still on this device.",
+                );
+              }
+            }
+          }
+        },
+      },
+      confirmSignOut: () =>
+        presentation.modalDialog.showConfirm({
+          title: "Sign out?",
+          message:
+            "Your drawings will stay in your account. They’ll be removed from this device.",
+          confirmLabel: "Sign out",
+          cancelLabel: "Cancel",
+        }),
       navigateToSignIn: (docUrl) => {
         const drawing = new URL(
           buildDrawingAppUrl(joinBaseUrl, {
@@ -185,7 +226,11 @@ export async function createKidsDrawApp(
       },
       onSignedOut: () =>
         window.location.assign(new URL("../", joinBaseUrl).href),
-      onIdentityChanged: () => window.location.reload(),
+      onIdentityChanged: () => {
+        if (workspaceWatcher)
+          void workspaceWatcher.freeze().then(() => window.location.reload());
+        else window.location.reload();
+      },
     });
     await accountSession.refresh();
     syncParentalControlsVisibility();
@@ -275,8 +320,6 @@ export async function createKidsDrawApp(
     registerAccountSyncedDocument:
       controllerMultiplayerAdapters.registerAccountSyncedDocument,
     createShareInvitation: controllerMultiplayerAdapters.createShareInvitation,
-    shouldSyncNewDrawingsByDefault: () =>
-      accountSettings?.syncNewDrawingsByDefault === true,
     claimCollaborativeDocument:
       controllerMultiplayerAdapters.claimCollaborativeDocument,
     deleteCollaborativeDocument:
@@ -345,6 +388,23 @@ export async function createKidsDrawApp(
     onCurrentDocumentSummaryChanged: options.onCurrentDocumentSummaryChanged,
   });
 
+  if (runtime.multiplayerApiClient && runtime.localRepo) {
+    workspaceWatcher = watchAccountWorkspace({
+      api: runtime.multiplayerApiClient,
+      repo: runtime.localRepo,
+      backend: runtime.documentBackend,
+      onSignedOut: () =>
+        window.location.assign(
+          options.multiplayer?.joinBaseUrl
+            ? new URL("../", options.multiplayer.joinBaseUrl).href
+            : "/",
+        ),
+      beforeFreeze: async () => {
+        await controller.freezeForAccountTransition();
+        options.container.inert = true;
+      },
+    });
+  }
   const commands = {
     ...createUiIntentCommands(presentation.uiIntentStore),
     openDocument: (docUrl: string) => controller.openDocument(docUrl),
@@ -358,6 +418,7 @@ export async function createKidsDrawApp(
     commands,
     destroy() {
       window.removeEventListener("focus", refreshAccountSession);
+      workspaceWatcher?.dispose();
       accountSession?.dispose();
       controller.destroy();
       unbindToolbarUi();
@@ -417,7 +478,6 @@ async function requestParentalSharePermission(options: {
     initialState: {
       hasPin: true,
       shareMode: state.shareMode,
-      syncNewDrawingsByDefault: state.syncNewDrawingsByDefault,
     },
     verifyPin: async (pin) => {
       return await verifyParentalControlsPin(pin, loadParentalControlsState());
@@ -435,14 +495,7 @@ async function openParentalControls(options: {
 }): Promise<boolean> {
   const multiplayerApiClient = options.multiplayerApiClient;
   if (!options.accountSettings || !multiplayerApiClient) {
-    return await openParentalControlsSettings(options.dialog, {
-      loginHref: options.joinBaseUrl
-        ? new URL("../login", options.joinBaseUrl).href
-        : "/login",
-      signupHref: options.joinBaseUrl
-        ? new URL("../register", options.joinBaseUrl).href
-        : "/register",
-    });
+    return await openParentalControlsSettings(options.dialog);
   }
   const result = await options.dialog.show({
     initialState: options.accountSettings,

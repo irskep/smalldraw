@@ -216,13 +216,11 @@ export type AccountShareMode = "private_sync" | "pin_required" | "allowed";
 
 export type AccountSettings = {
   shareMode: AccountShareMode;
-  syncNewDrawingsByDefault: boolean;
   hasPin: boolean;
 };
 
 export type AccountSettingsInput = {
   shareMode: AccountShareMode;
-  syncNewDrawingsByDefault: boolean;
   pinChange:
     | { type: "unchanged" }
     | { type: "set"; pin: string }

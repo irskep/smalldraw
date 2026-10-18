@@ -1,5 +1,4 @@
 import "./ParentalControlsDialog.css";
-import { el, mount } from "redom";
 
 import { Button } from "./Button";
 import { DialogScaffold } from "./DialogScaffold";
@@ -8,7 +7,6 @@ import type { ReDomLike } from "./ReDomLike";
 export type ParentalControlsDialogInitialState = {
   hasPin: boolean;
   shareMode: ParentalControlsShareMode;
-  syncNewDrawingsByDefault: boolean;
 };
 
 export type ParentalControlsShareMode =
@@ -18,7 +16,6 @@ export type ParentalControlsShareMode =
 
 export type ParentalControlsDialogResult = {
   shareMode: ParentalControlsShareMode;
-  syncNewDrawingsByDefault: boolean;
   pinChange:
     | { type: "unchanged" }
     | { type: "set"; pin: string }
@@ -26,7 +23,6 @@ export type ParentalControlsDialogResult = {
 };
 
 export type ParentalControlsDialogOptions = {
-  signInLinks?: { loginHref: string; signupHref: string };
   initialState: ParentalControlsDialogInitialState;
   verifyPin: (pin: string) => Promise<boolean>;
   isCorrectMathAnswer: (answer: string) => boolean;
@@ -58,12 +54,6 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     ParentalControlsShareMode,
     HTMLInputElement
   >();
-  readonly #syncField = document.createElement("label");
-  readonly #signIn = el("p.ds-parental-controls-dialog__sign-in");
-  readonly #loginLink = el("a", "Log in") as HTMLAnchorElement;
-  readonly #signupLink = el("a", "Sign up") as HTMLAnchorElement;
-  readonly #syncInput = document.createElement("input");
-  readonly #syncText = document.createElement("span");
   readonly #pinField = document.createElement("div");
   readonly #pinLabel = document.createElement("label");
   readonly #pinInput = document.createElement("input");
@@ -122,26 +112,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
       this.#sharingLegend,
       this.#createSharingOption("allowed", "Allow sharing"),
       this.#createSharingOption("pin_required", "Allow sharing with PIN"),
-      this.#createSharingOption(
-        "private_sync",
-        "Private Sync",
-        "Save to your account without offering share links.",
-      ),
-    );
-
-    this.#syncField.className = "ds-parental-controls-dialog__checkbox-option";
-    this.#syncInput.type = "checkbox";
-    this.#syncInput.className = "ds-parental-controls-dialog__checkbox";
-    this.#syncInput.id = "ds-parental-controls-sync-new";
-    this.#syncText.textContent =
-      "Automatically save new drawings to my account";
-    this.#syncField.append(this.#syncInput, this.#syncText);
-    mount(this.#signIn, this.#loginLink);
-    mount(this.#signIn, document.createTextNode(" or "));
-    mount(this.#signIn, this.#signupLink);
-    mount(
-      this.#signIn,
-      document.createTextNode(" to save drawings to your account."),
+      this.#createSharingOption("private_sync", "Don’t allow sharing"),
     );
 
     this.#pinField.className = "ds-parental-controls-dialog__field";
@@ -159,8 +130,6 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#clearPinRow.append(this.#clearPinButton.el);
     this.#settingsPanel.append(
       this.#sharingField,
-      this.#syncField,
-      this.#signIn,
       this.#pinField,
       this.#clearPinRow,
     );
@@ -207,13 +176,6 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#accessOnly = false;
     this.#pinChange = { type: "unchanged" };
     this.#setSharingMode(options.initialState.shareMode);
-    this.#syncInput.checked = options.initialState.syncNewDrawingsByDefault;
-    this.#syncInput.disabled = Boolean(options.signInLinks);
-    this.#signIn.hidden = !options.signInLinks;
-    if (options.signInLinks) {
-      this.#loginLink.href = options.signInLinks.loginHref;
-      this.#signupLink.href = options.signInLinks.signupHref;
-    }
     this.#pinInput.value = "";
     this.#accessInput.value = "";
     this.#clearPinRow.hidden = !options.initialState.hasPin;
@@ -330,7 +292,6 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     }
     await this.#finish({
       shareMode,
-      syncNewDrawingsByDefault: this.#syncInput.checked,
       pinChange,
     });
   }

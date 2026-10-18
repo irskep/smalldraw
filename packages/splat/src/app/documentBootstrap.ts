@@ -11,6 +11,7 @@ import {
   buildJoinedCatalogDocUrl,
   isCollaborativeDocument,
 } from "../documents";
+import { getDrawingWorkspace } from "../documents/workspace";
 import {
   isMultiplayerApiAuthError,
   type MultiplayerApiClient,
@@ -391,6 +392,10 @@ export async function resolveAccountDocumentForLocalOpen(options: {
     options.localRepo?.setWebsocketAuthorizedDocumentId(documentId);
     options.localRepo?.setWebsocketAuthToken(resolved.accessToken);
     if (options.localRepo && !options.localRepo.handles[automergeDocumentId]) {
+      if (
+        await options.localRepo.storageSubsystem?.loadDoc(automergeDocumentId)
+      )
+        await options.localRepo.find(automergeDocumentId);
       options.localRepo.import(binary, { docId: automergeDocumentId });
     }
     await options.documentBackend.createDocument({
@@ -406,7 +411,7 @@ export async function resolveAccountDocumentForLocalOpen(options: {
     return { binary, collabDocUrl: resolved.collabDocUrl };
   } catch (error) {
     if (
-      isMultiplayerApiAuthError(error) &&
+      canOpenAccountOffline(error) &&
       canUseLocalCollaborativeAccess(summary)
     ) {
       configureLocalCollaborativeAccess({
@@ -552,4 +557,12 @@ function configureLocalCollaborativeAccess(options: {
     resolveCollaborativeDocumentId(options.summary.collabDocUrl),
   );
   options.localRepo.setWebsocketAuthToken(options.summary.accessToken);
+}
+
+function canOpenAccountOffline(error: unknown): boolean {
+  return (
+    getDrawingWorkspace() !== null &&
+    error instanceof MultiplayerApiError &&
+    error.appError.code === "NETWORK_UNAVAILABLE"
+  );
 }

@@ -134,7 +134,7 @@ describe("admin routes", () => {
         userIdentifier: username,
         finishLoginRequest: loginResult!.finishLoginRequest,
       }),
-    ).resolves.toEqual({ success: true });
+    ).resolves.toEqual({ success: true, userId: expect.any(String) });
   });
 
   it("lists and revokes user sessions", async () => {

@@ -1,3 +1,4 @@
+import { rememberAccountLogin } from "@smalldraw/splat/account";
 import * as opaque from "@serenity-kit/opaque";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -40,11 +41,12 @@ export const useLogin = () => {
       }
       const { finishLoginRequest } = loginResult;
 
-      const { success } = await loginFinishMutation.mutateAsync({
+      const { success, userId } = await loginFinishMutation.mutateAsync({
         finishLoginRequest,
         userIdentifier,
       });
 
+      if (success) rememberAccountLogin(userId);
       queryClient.invalidateQueries();
 
       return success

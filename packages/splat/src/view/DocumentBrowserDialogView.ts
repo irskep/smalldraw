@@ -1,3 +1,4 @@
+import { AccountSyncNotice } from "./AccountSyncNotice";
 import "./DocumentBrowserDialogView.css";
 
 import {
@@ -8,7 +9,7 @@ import {
   createThumbnailTile,
   type ThumbnailTile,
 } from "@smalldraw/design-system";
-import { KeyRound, Trash2, X } from "lucide";
+import { Trash2, X } from "lucide";
 import { atom } from "nanostores";
 import { el, list, mount, setChildren } from "redom";
 import type { AccountSessionState } from "../app/createAccountSession";
@@ -115,7 +116,7 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
   }
 
   update(item: DocumentTileItem): void {
-    const { document, busy, claimable } = item;
+    const { document, busy } = item;
     const nextThumbnailUrl = item.thumbnailUrl;
     const openLabel = toFallbackTitle(document);
     const openTitle = getMetadataTooltip(document);
@@ -137,18 +138,13 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     this.#tile.setOnOpenPointerUp(() => item.onPointerEnd());
     this.#tile.setOnOpenPointerCancel(() => item.onPointerEnd());
     this.#tile.setOnOpenPointerLeave(() => item.onPointerEnd());
-    this.#tile.setBadge({
-      label: item.isCurrent
-        ? "Open now"
-        : document.accountAttached
-          ? document.joinSecret
-            ? "Shared · Saved"
-            : "Saved to account"
-          : document.collaborative
-            ? "Shared"
-            : "On this device",
-      tone: document.collaborative ? "positive" : "default",
-    });
+    this.#tile.setBadge(
+      item.isCurrent
+        ? { label: "Current drawing" }
+        : document.joinSecret
+          ? { label: "Shared", tone: "positive" }
+          : null,
+    );
     this.#tile.setAction({
       label: "Delete drawing",
       icon: Trash2,
@@ -159,33 +155,6 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     this.#tile.setActionAttributes({
       "data-document-browser-delete": document.docUrl,
     });
-    this.#tile.setSecondaryAction(
-      claimable
-        ? {
-            label: "Save drawing to your account",
-            text: "Save to account",
-            icon: KeyRound,
-            onPress: () => item.onClaim(document.docUrl),
-            disabled:
-              busy ||
-              !!item.account?.busy ||
-              (item.account !== null &&
-                item.account.status !== "signed-in" &&
-                item.account.status !== "signed-out"),
-            hidden: false,
-          }
-        : null,
-    );
-    this.#tile.setSecondaryActionAttributes(
-      claimable
-        ? {
-            "data-document-browser-claim": document.docUrl,
-          }
-        : {
-            "data-document-browser-claim": null,
-          },
-    );
-
     if (nextThumbnailUrl !== this.#thumbnailUrl) {
       if (nextThumbnailUrl) {
         this.#thumbnailImage.src = nextThumbnailUrl;
@@ -242,6 +211,7 @@ export function createDocumentBrowserDialogView(options: {
   accountButton.setOnPress(() => options.onAccountAction?.());
   const accountBar = el("div.kids-draw-document-browser-dialog__account");
   mount(accountBar, accountStatus);
+  mount(accountBar, new AccountSyncNotice());
   mount(accountBar, accountButton);
   scaffold.setFooterAlignment("start");
   mount(body, grid);
@@ -403,7 +373,7 @@ export function createDocumentBrowserDialogView(options: {
         (account.status === "signed-in"
           ? `Signed in as ${account.username}`
           : account.status === "signed-out"
-            ? "Not signed in"
+            ? "Drawings are saved on this device."
             : account.status === "loading"
               ? "Checking sign-in status…"
               : "Sign-in status unavailable.");

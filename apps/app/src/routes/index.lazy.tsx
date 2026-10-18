@@ -37,9 +37,7 @@ function Index() {
   const trpcUtils = trpc.useUtils();
   const documentBackend = useMemo(
     () =>
-      createLocalDocumentBackend({
-        currentDocStorageKey: "kids-draw-doc-url",
-      }),
+      createLocalDocumentBackend(),
     [],
   );
   const confirmDialogRef = useRef<DsConfirmDialogHandle>(null);
@@ -127,9 +125,11 @@ function Index() {
     };
 
     void loadLocalCatalog();
+    window.addEventListener("drawing-catalog-change", loadLocalCatalog);
 
     return () => {
       disposed = true;
+      window.removeEventListener("drawing-catalog-change", loadLocalCatalog);
       for (const objectUrl of localObjectUrlsRef.current) {
         URL.revokeObjectURL(objectUrl);
       }
@@ -273,10 +273,7 @@ function Index() {
                       }
                     : undefined
                 }
-                badge={{
-                  label: tile.badge,
-                  tone: tile.badge === "Shared" ? "positive" : "default",
-                }}
+                badge={tile.badge === "Shared" ? { label: "Shared", tone: "positive" } : null}
                 emptyLabel="No preview"
                 imageAlt={`${tile.title} thumbnail`}
                 imageSrc={tile.thumbnailUrl}
@@ -311,7 +308,7 @@ function Index() {
         </div>
         <div className="art-table-about__parents">
           <p>
-            Drawings stay in this browser by default. You decide when to share.
+            {isLoggedIn ? "Your drawings sync to your account. You decide when to share." : "Drawings are saved on this device. Sign in to keep them in your account."}
           </p>
           <div className="art-table-about__links">
             <button

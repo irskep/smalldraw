@@ -27,7 +27,7 @@ describe("document launcher", () => {
         key: "local:automerge:local-doc",
         title: "Local sketch",
         href: "http://localhost:3000/draw/?local=automerge%3Alocal-doc",
-        badge: "Local",
+        badge: null,
         thumbnailUrl: undefined,
         deleteAction: { type: "local", docUrl: "automerge:local-doc" },
       },
@@ -65,7 +65,7 @@ describe("document launcher", () => {
     expect(tiles[0]).toMatchObject({
       key: "local:catalog-collab:shared-doc",
       title: "Local copy",
-      badge: "Shared",
+      badge: null,
       deleteAction: {
         type: "shared",
         documentId: "shared-doc",

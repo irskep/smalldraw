@@ -79,7 +79,6 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
   const [shareLinkError, setShareLinkError] = useState<string | null>(null);
   const [settingsShareMode, setSettingsShareMode] =
     useState<AccountShareMode>("allowed");
-  const [settingsSyncNew, setSettingsSyncNew] = useState(false);
   const [settingsPin, setSettingsPin] = useState("");
   const [settingsClearPin, setSettingsClearPin] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
@@ -132,7 +131,6 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
       return;
     }
     setSettingsShareMode(accountSettingsQuery.data.shareMode);
-    setSettingsSyncNew(accountSettingsQuery.data.syncNewDrawingsByDefault);
     setSettingsPin("");
     setSettingsClearPin(false);
   }, [accountSettingsQuery.data]);
@@ -275,7 +273,6 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
         username: foundUser.username,
         settings: {
           shareMode: settingsShareMode,
-          syncNewDrawingsByDefault: settingsSyncNew,
           pinChange: settingsPin.trim()
             ? { type: "set", pin: settingsPin.trim() }
             : settingsClearPin
@@ -535,19 +532,8 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                     <option value="pin_required">
                       Allow sharing with PIN
                     </option>
-                    <option value="private_sync">Private Sync</option>
+                    <option value="private_sync">Don’t allow sharing</option>
                   </select>
-                  <label className="portal-checkbox-field">
-                    <input
-                      checked={settingsSyncNew}
-                      className="portal-checkbox"
-                      type="checkbox"
-                      onChange={(event) =>
-                        setSettingsSyncNew(event.target.checked)
-                      }
-                    />
-                    <span>Sync new drawings automatically</span>
-                  </label>
                   <input
                     className="portal-input portal-input--short"
                     placeholder={

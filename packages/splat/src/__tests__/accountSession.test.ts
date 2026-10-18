@@ -97,10 +97,33 @@ test("failed logout keeps account identity and exposes a retryable error", async
   await session.signOut();
   expect(session.$state.get()).toEqual({
     status: "signed-in",
+    userId: "user",
     username: "Pat",
     busy: false,
     error: "Offline",
   });
   expect(navigated).toBe(false);
+  session.dispose();
+});
+
+test("cancelling sign-out keeps the account without a misleading error", async () => {
+  let signedOut = false;
+  const session = createAccountSession({
+    client: {
+      getCurrentAccount: async () => ({ id: "parent", username: "Parent" }),
+      signOut: async () => {
+        signedOut = true;
+      },
+    },
+    navigateToSignIn() {},
+    onSignedOut() {},
+    onIdentityChanged() {},
+    confirmSignOut: async () => false,
+  });
+  await session.refresh();
+  await session.signOut();
+  expect(signedOut).toBe(false);
+  expect(session.$state.get().status).toBe("signed-in");
+  expect(session.$state.get().error).toBeNull();
   session.dispose();
 });

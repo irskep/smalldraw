@@ -10,7 +10,7 @@ export type LauncherDocumentTile = {
   key: string;
   title: string;
   href: string;
-  badge: "Local" | "Shared";
+  badge: "Shared" | null;
   thumbnailUrl?: string;
   deleteAction?: LauncherDocumentDeleteAction;
 };
@@ -40,7 +40,7 @@ export function buildLauncherDocumentTiles(options: {
     key: `local:${document.docUrl}`,
     title: resolveLocalDocumentTitle(document),
     href: buildLocalDrawingUrl(document.docUrl, options.config),
-    badge: document.collaborative ? ("Shared" as const) : ("Local" as const),
+    badge: document.joinSecret ? ("Shared" as const) : null,
     thumbnailUrl: document.thumbnailUrl ?? document.remoteThumbnailUrl,
     deleteAction: resolveLocalDocumentDeleteAction(document),
   }));
@@ -51,7 +51,7 @@ export function buildLauncherDocumentTiles(options: {
       key: `account:${document.id}`,
       title: document.name,
       href: buildDrawingDocumentUrl(document.id, options.config),
-      badge: "Shared" as const,
+      badge: null,
       thumbnailUrl: document.thumbnailUrl ?? undefined,
       deleteAction: document.isAdmin
         ? { type: "shared" as const, documentId: document.id }

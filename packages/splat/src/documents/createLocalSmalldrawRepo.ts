@@ -4,8 +4,11 @@ import { BroadcastChannelNetworkAdapter } from "@automerge/automerge-repo-networ
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import { createServerAnnouncePolicy } from "./repoSharePolicy";
+import { type DrawingWorkspace, workspaceNames } from "./workspace";
 
 export interface CreateLocalSmalldrawRepoOptions {
+  workspace?: DrawingWorkspace;
+  localOnly?: boolean;
   websocketUrl?: string;
   websocketAuthToken?: string;
   websocketAuthorizedDocumentId?: string;
@@ -40,9 +43,10 @@ export function shouldAnnounceDocumentToServer(options: {
 export function createLocalSmalldrawRepo(
   options: CreateLocalSmalldrawRepoOptions = {},
 ): LocalSmalldrawRepo {
-  const network: NetworkAdapterInterface[] = [
-    new BroadcastChannelNetworkAdapter(),
-  ];
+  const names = workspaceNames(options.workspace);
+  const network: NetworkAdapterInterface[] = options.localOnly
+    ? []
+    : [new BroadcastChannelNetworkAdapter({ channelName: names.channel })];
   let serverPeerId: string | null = null;
   let websocketConnected = false;
   let websocketAuthToken = options.websocketAuthToken ?? null;
@@ -105,7 +109,7 @@ export function createLocalSmalldrawRepo(
   };
 
   const repo = new Repo({
-    storage: new IndexedDBStorageAdapter(),
+    storage: new IndexedDBStorageAdapter(names.repo),
     network,
     shareConfig: {
       announce: createServerAnnouncePolicy({

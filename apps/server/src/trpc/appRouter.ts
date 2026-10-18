@@ -1,3 +1,4 @@
+import { getHeads, load, merge, save } from "@automerge/automerge";
 import type { DocumentId } from "@automerge/automerge-repo";
 import * as opaque from "@serenity-kit/opaque";
 import type {
@@ -1073,17 +1074,60 @@ export const appRouter = router({
         "",
       ) as DocumentId;
       const binary = new Uint8Array(Buffer.from(opts.input.content, "base64"));
-      repo.import(binary, { docId: rawDocId });
-      await syncAccountDocument({
-        documentId: rawDocId,
-        userId: opts.ctx.session.userId,
-      });
+      if (getHeads(load(binary)).length === 0)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Drawing content is empty",
+        });
+      // Reserve ownership atomically before importing any client content.
+      // Retries from the same account reuse the ID; another account cannot claim it.
+      if (
+        !(await syncAccountDocument({
+          documentId: rawDocId,
+          userId: opts.ctx.session.userId,
+        }))
+      ) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      const handle = repo.import(binary, { docId: rawDocId });
+      await handle.whenReady();
+      await repo.flush([rawDocId]);
       const accessToken = await getOrCreateAccountDocumentOwnerToken(rawDocId);
       return {
         collabDocUrl: toAutomergeUrl(rawDocId),
         accessToken: accessToken.token,
         accessTokenScope: "owner",
       } satisfies SyncedAccountDocument;
+    }),
+
+  checkpointAccountDrawing: protectedProcedure
+    .input(
+      z.object({ documentId: z.string().min(1), content: z.string().min(1) }),
+    )
+    .mutation(async (opts) => {
+      const documentId = opts.input.documentId.replace(
+        /^automerge:/,
+        "",
+      ) as DocumentId;
+      if (
+        !(await getUserHasAccessToDocument({
+          documentId,
+          userId: opts.ctx.session.userId,
+        }))
+      ) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      const incoming = load(
+        new Uint8Array(Buffer.from(opts.input.content, "base64")),
+      );
+      const heads = getHeads(incoming);
+      const handle = await repo.find(documentId);
+      handle.update((current) => merge(current, incoming));
+      await repo.flush([documentId]);
+      return {
+        heads,
+        content: Buffer.from(save(handle.doc())).toString("base64"),
+      };
     }),
 
   resolveAnonymousCollaborativeDocument: publicProcedure
@@ -1374,7 +1418,7 @@ export const appRouter = router({
       await deleteLoginAttempt(user.id);
       appendSetCookieHeader(opts.ctx.res, buildSessionCookie(sessionKey));
 
-      return { success: true };
+      return { success: true, userId: user.id };
     }),
 });
 

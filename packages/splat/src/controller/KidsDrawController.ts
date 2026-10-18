@@ -68,6 +68,7 @@ type ConfirmDialogRequest = {
 };
 
 export interface KidsDrawController {
+  freezeForAccountTransition(): Promise<void>;
   openDocument(docUrl: string): Promise<void>;
   destroy(): void;
 }
@@ -155,7 +156,6 @@ export function createKidsDrawController(options: {
     accessTokenScope: "owner";
   }>;
   createShareInvitation?: (documentId: string) => Promise<{ token: string }>;
-  shouldSyncNewDrawingsByDefault?: () => boolean;
   accountSession?: AccountSession;
   claimCollaborativeDocument?: (accessToken: string) => Promise<void>;
   deleteCollaborativeDocument?: (documentId: string) => Promise<void>;
@@ -223,7 +223,6 @@ export function createKidsDrawController(options: {
     registerCollaborativeDocument,
     registerAccountSyncedDocument,
     createShareInvitation,
-    shouldSyncNewDrawingsByDefault,
     onThumbnailSaved,
     initialCatalogDocUrl,
     initialDocumentAccessState,
@@ -432,7 +431,6 @@ export function createKidsDrawController(options: {
     registerCollaborativeDocument,
     registerAccountSyncedDocument,
     createShareInvitation,
-    shouldSyncNewDrawingsByDefault,
     onThumbnailSaved,
     initialCatalogDocUrl,
     initialDocumentAccessState,
@@ -676,6 +674,14 @@ export function createKidsDrawController(options: {
   renderLoopController.requestRenderFromModel();
 
   return {
+    async freezeForAccountTransition() {
+      inputSessionController.forceCancelPointerSession("pointerUp");
+      stage.setInteractionEnabled(false);
+      commandController.destroy();
+      await runtimeDocumentController.flushThumbnailSave();
+      runtimeStore.setDestroyed(true);
+      runtimeDocumentController.dispose();
+    },
     async openDocument(docUrl: string): Promise<void> {
       await runtimeDocumentController.switchToDocument(docUrl);
     },

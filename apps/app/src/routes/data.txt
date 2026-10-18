@@ -2,7 +2,7 @@ This page details how Splatterboard handles your data in practical terms. These 
 
 ## By default, nothing is stored on the server
 
-When you make a drawing, it stays in your browser. It does not get stored on splatterboard.app's server.
+Without signing in, drawings are saved on this device. They are uploaded only if you share them.
 
 ## When you click Share, drawings are stored on the server
 
@@ -12,7 +12,7 @@ Sharing requires storing the document on the server so it can be sent to multipl
 
 Without an account, your data is owned by your device. If you share a drawing, it gets stored on the server, but only devices with the share link can see it. This means if you share a drawing, and then open splatterboard.app on your phone, you won't see your drawing.
 
-If you create an account, your shared drawings will be accessible to all your devices.
+When you sign in or create an account, drawings on this device are added to your account. All drawings then sync automatically. Sharing is a separate choice.
 
 ## A warning about Safari
 
@@ -24,6 +24,6 @@ Other browsers, like Chrome and Firefox, do not proactively delete your data.
 
 You are not asked for your email when you sign up, just for a username and password. Splatterboard is not interested in getting in touch with you, marketing to you, or contacting you for any reason. If you lose your password, there is no recourse.
 
-## How to tell where your drawing is
+## Signing out
 
-In the upper right corner, there is some text that will say "Offline" or "Online". If it says "Online", your document is stored on the server.
+Signing out waits until drawings have finished syncing, then removes account drawings from this device. They stay in your account and return when you sign in again. If syncing fails, drawings stay on this device until you reconnect and try again.

@@ -199,51 +199,6 @@ describe("ShareQrDialog", () => {
 });
 
 describe("ParentalControlsDialog", () => {
-  test("offers sign-in links with disabled account saving, then enables it for an account", async () => {
-    const dialog = createParentalControlsDialog();
-    document.body.appendChild(dialog.el);
-    const options = {
-      initialState: {
-        hasPin: false,
-        shareMode: "allowed" as const,
-        syncNewDrawingsByDefault: false,
-      },
-      verifyPin: async () => false,
-      isCorrectMathAnswer: (answer: string) => answer === "30",
-    };
-    const pending = dialog.show({
-      ...options,
-      signInLinks: { loginHref: "/login", signupHref: "/register" },
-    });
-    const input = dialog.el.querySelector<HTMLInputElement>(
-      "#ds-parental-controls-access",
-    )!;
-    input.value = "30";
-    clickDialogButton(dialog.el, "Continue");
-    await Promise.resolve();
-    const checkbox = dialog.el.querySelector<HTMLInputElement>(
-      "#ds-parental-controls-sync-new",
-    )!;
-    expect(checkbox.disabled).toBeTrue();
-    expect(checkbox.checked).toBeFalse();
-    const signIn = dialog.el.querySelector<HTMLElement>(
-      ".ds-parental-controls-dialog__sign-in",
-    )!;
-    expect(signIn.hidden).toBeFalse();
-    expect(
-      Array.from(signIn.querySelectorAll("a"), (link) =>
-        link.getAttribute("href"),
-      ),
-    ).toEqual(["/login", "/register"]);
-    clickDialogButton(dialog.el, "Cancel");
-    await pending;
-    const signedIn = dialog.show(options);
-    expect(checkbox.disabled).toBeFalse();
-    expect(signIn.hidden).toBeTrue();
-    clickDialogButton(dialog.el, "Cancel");
-    await signedIn;
-  });
-
   test("requires the math prompt before saving settings", async () => {
     const dialog = createParentalControlsDialog();
     document.body.appendChild(dialog.el);
@@ -252,7 +207,6 @@ describe("ParentalControlsDialog", () => {
       initialState: {
         hasPin: false,
         shareMode: "allowed",
-        syncNewDrawingsByDefault: false,
       },
       verifyPin: async () => false,
       isCorrectMathAnswer: (answer) => answer.trim() === "30",
@@ -279,23 +233,17 @@ describe("ParentalControlsDialog", () => {
     const sharingInput = dialog.el.querySelector(
       'input[name="ds-parental-controls-sharing-mode"][value="private_sync"]',
     ) as HTMLInputElement | null;
-    const syncInput = dialog.el.querySelector(
-      "#ds-parental-controls-sync-new",
-    ) as HTMLInputElement | null;
     const pinInput = dialog.el.querySelector(
       "#ds-parental-controls-pin",
     ) as HTMLInputElement | null;
     expect(sharingInput).not.toBeNull();
-    expect(syncInput).not.toBeNull();
     expect(pinInput).not.toBeNull();
     sharingInput!.checked = true;
-    syncInput!.checked = true;
     pinInput!.value = "2468";
     clickDialogButton(dialog.el, "Save");
 
     expect(await pending).toEqual({
       shareMode: "private_sync",
-      syncNewDrawingsByDefault: true,
       pinChange: { type: "set", pin: "2468" },
     });
   });
@@ -308,7 +256,6 @@ describe("ParentalControlsDialog", () => {
       initialState: {
         hasPin: true,
         shareMode: "pin_required",
-        syncNewDrawingsByDefault: false,
       },
       verifyPin: async () => {
         if (++attempts === 1) throw new Error("Network unavailable");
@@ -333,7 +280,6 @@ describe("ParentalControlsDialog", () => {
       initialState: {
         hasPin: true,
         shareMode: "pin_required" as const,
-        syncNewDrawingsByDefault: false,
       },
       verifyPin: () => {
         attempts++;
@@ -371,7 +317,6 @@ describe("ParentalControlsDialog", () => {
       initialState: {
         hasPin: true,
         shareMode: "private_sync",
-        syncNewDrawingsByDefault: true,
       },
       verifyPin: async (pin) => pin === "1357",
       isCorrectMathAnswer: () => false,
@@ -400,7 +345,6 @@ describe("ParentalControlsDialog", () => {
 
     expect(await pending).toEqual({
       shareMode: "private_sync",
-      syncNewDrawingsByDefault: true,
       pinChange: { type: "clear" },
     });
   });

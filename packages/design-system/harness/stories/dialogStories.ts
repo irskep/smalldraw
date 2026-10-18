@@ -71,7 +71,6 @@ export const dialogStories: HarnessStory[] = [
             initialState: {
               hasPin: false,
               shareMode: "allowed",
-              syncNewDrawingsByDefault: false,
             },
             verifyPin: async () => false,
             isCorrectMathAnswer: (answer) => answer.trim() === "30",

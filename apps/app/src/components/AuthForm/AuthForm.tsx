@@ -31,9 +31,6 @@ export const AuthForm = ({
   const [shareMode, setShareMode] = useState<AccountShareMode>(
     localControls.shareMode,
   );
-  const [syncNewDrawingsByDefault, setSyncNewDrawingsByDefault] = useState(
-    localControls.syncNewDrawingsByDefault,
-  );
   const [pin, setPin] = useState("");
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [ageError, setAgeError] = useState<string | null>(null);
@@ -67,7 +64,6 @@ export const AuthForm = ({
           initialSettings: requireAgeConfirmation
             ? {
                 shareMode,
-                syncNewDrawingsByDefault,
                 pinChange: pin.trim()
                   ? { type: "set", pin: pin.trim() }
                   : { type: "unchanged" },
@@ -77,6 +73,7 @@ export const AuthForm = ({
       }}
     >
       <h1 className="portal-title">{children}</h1>
+      <p>Drawings on this device will be added to your account.</p>
       {displayedError ? (
         <div className="portal-alert" data-tone="danger" role="alert">
           <AlertCircle className="portal-alert__icon" />
@@ -163,19 +160,9 @@ export const AuthForm = ({
                   type="radio"
                   onChange={() => setShareMode("private_sync")}
                 />
-                <span>Private Sync</span>
+                <span>Don’t allow sharing</span>
               </label>
             </fieldset>
-            <label className="portal-checkbox-field">
-              <input
-                checked={syncNewDrawingsByDefault}
-                className="portal-checkbox"
-                name="sync-new-drawings"
-                type="checkbox"
-                onChange={(e) => setSyncNewDrawingsByDefault(e.target.checked)}
-              />
-              <span>Automatically save new drawings to my account</span>
-            </label>
             <input
               className="portal-input"
               name="parent-pin"

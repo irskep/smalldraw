@@ -145,6 +145,9 @@ export async function createSmalldraw(
 
   for (const preImport of preImports) {
     const docId = stripAutomergePrefix(preImport.docId);
+    // Load the durable local history before merging a server snapshot.
+    // Importing into a fresh handle would otherwise replace unsynced offline edits.
+    if (await repo.storageSubsystem?.loadDoc(docId)) await repo.find(docId);
     repo.import(preImport.binary, { docId });
     if (debug) {
       console.debug("[createSmalldraw] pre-imported doc:", preImport.docId, {

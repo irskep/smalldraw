@@ -116,19 +116,16 @@ describe("account routes", () => {
 
     expect(await caller.accountSettings()).toEqual({
       shareMode: "allowed",
-      syncNewDrawingsByDefault: false,
       hasPin: false,
     });
 
     await expect(
       caller.saveAccountSettings({
         shareMode: "pin_required",
-        syncNewDrawingsByDefault: true,
         pinChange: { type: "set", pin: "2468" },
       }),
     ).resolves.toEqual({
       shareMode: "pin_required",
-      syncNewDrawingsByDefault: true,
       hasPin: true,
     });
 
@@ -148,7 +145,6 @@ describe("account routes", () => {
     const caller = createAuthenticatedCaller(user.id, "pin-session");
     const settings = {
       shareMode: "pin_required" as const,
-      syncNewDrawingsByDefault: false,
     };
     await expect(
       caller.saveAccountSettings({
@@ -210,7 +206,6 @@ describe("account routes", () => {
       }),
     ).toEqual({
       shareMode: "allowed",
-      syncNewDrawingsByDefault: false,
       hasPin: false,
     });
 
@@ -219,13 +214,11 @@ describe("account routes", () => {
         username: user.username,
         settings: {
           shareMode: "private_sync",
-          syncNewDrawingsByDefault: true,
           pinChange: { type: "unchanged" },
         },
       }),
     ).resolves.toEqual({
       shareMode: "private_sync",
-      syncNewDrawingsByDefault: true,
       hasPin: false,
     });
   });
@@ -293,7 +286,7 @@ function createAuthenticatedCaller(userId: string, sessionKey: string) {
 
 async function createAutomergeContent(): Promise<string> {
   const { from, save } = await import("@automerge/automerge");
-  return Buffer.from(save(from({}))).toString("base64");
+  return Buffer.from(save(from({ title: "Drawing" }))).toString("base64");
 }
 
 async function expectPasswordLogin(username: string, password: string) {

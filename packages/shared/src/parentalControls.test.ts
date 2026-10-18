@@ -12,7 +12,6 @@ import {
   type ParentalControlsStorageLike,
   setParentalControlsPin,
   setParentalControlsShareMode,
-  setParentalControlsSyncNewDrawingsByDefault,
   verifyParentalControlsPin,
 } from "./parentalControls";
 
@@ -36,16 +35,6 @@ describe("parental controls storage", () => {
 
     expect(loadParentalControlsState(storage)).toMatchObject({
       shareMode: "private_sync",
-    });
-  });
-
-  test("stores sync-new-drawings default", () => {
-    const storage = createMemoryStorage();
-
-    setParentalControlsSyncNewDrawingsByDefault(true, storage);
-
-    expect(loadParentalControlsState(storage)).toMatchObject({
-      syncNewDrawingsByDefault: true,
     });
   });
 
@@ -75,7 +64,6 @@ describe("parental controls storage", () => {
       expect(options.initialState).toEqual({
         hasPin: true,
         shareMode: "allowed",
-        syncNewDrawingsByDefault: false,
       });
       expect(await options.verifyPin("1234")).toBeTrue();
       expect(options.isCorrectMathAnswer("30")).toBeTrue();
@@ -97,13 +85,11 @@ describe("parental controls storage", () => {
     try {
       await applyParentalControlsSettingsResult({
         shareMode: "pin_required",
-        syncNewDrawingsByDefault: true,
         pinChange: { type: "set", pin: "2468" },
       });
 
       const state = loadParentalControlsState(storage);
       expect(state.shareMode).toBe("pin_required");
-      expect(state.syncNewDrawingsByDefault).toBeTrue();
       expect(await verifyParentalControlsPin("2468", state)).toBeTrue();
     } finally {
       Object.defineProperty(globalThis, "localStorage", {
@@ -121,35 +107,25 @@ describe("parental controls storage", () => {
       value: storage,
     });
     try {
-      const opened = await openParentalControlsSettings(
-        {
-          async show(options) {
-            expect(options.signInLinks).toEqual({
-              loginHref: "/login",
-              signupHref: "/register",
-            });
-            expect(options.initialState).toEqual({
-              hasPin: false,
-              shareMode: "allowed",
-              syncNewDrawingsByDefault: false,
-            });
-            return {
-              shareMode: "private_sync",
-              syncNewDrawingsByDefault: true,
-              pinChange: { type: "unchanged" },
-            };
-          },
-          async requestAccess() {
-            return false;
-          },
+      const opened = await openParentalControlsSettings({
+        async show(options) {
+          expect(options.initialState).toEqual({
+            hasPin: false,
+            shareMode: "allowed",
+          });
+          return {
+            shareMode: "private_sync",
+            pinChange: { type: "unchanged" },
+          };
         },
-        { loginHref: "/login", signupHref: "/register" },
-      );
+        async requestAccess() {
+          return false;
+        },
+      });
 
       expect(opened).toBeTrue();
       expect(loadParentalControlsState(storage)).toMatchObject({
         shareMode: "private_sync",
-        syncNewDrawingsByDefault: true,
       });
     } finally {
       Object.defineProperty(globalThis, "localStorage", {

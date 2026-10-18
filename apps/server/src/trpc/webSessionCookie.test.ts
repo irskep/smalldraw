@@ -35,7 +35,7 @@ describe("web session cookies", () => {
       username,
       password,
     });
-    await createUser({ username, registrationRecord });
+    const user = await createUser({ username, registrationRecord });
 
     const fakeRes = new FakeResponse();
     const caller = appRouter.createCaller({
@@ -64,7 +64,7 @@ describe("web session cookies", () => {
         userIdentifier: username,
         finishLoginRequest: loginResult!.finishLoginRequest,
       }),
-    ).resolves.toEqual({ success: true });
+    ).resolves.toEqual({ success: true, userId: user.id });
 
     const setCookie = fakeRes.getHeader("Set-Cookie");
     expect(setCookie).toBeTruthy();

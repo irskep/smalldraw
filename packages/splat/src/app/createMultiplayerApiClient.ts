@@ -40,6 +40,11 @@ export class MultiplayerApiError extends Error {
 export interface MultiplayerApiClient {
   getCurrentAccount(): Promise<{ id: string; username: string } | null>;
   signOut(): Promise<void>;
+  checkpointAccountDrawing(
+    documentId: string,
+    content: Uint8Array,
+  ): Promise<{ heads: string[]; content: string }>;
+  acceptDocumentInvitation(token: string): Promise<void>;
   listAccountCollaborativeDocuments(): Promise<
     AccountCollaborativeDocumentSummary[]
   >;
@@ -114,6 +119,15 @@ export function createMultiplayerApiClient(options: {
       )
         throw new Error("Invalid account response");
       return result as { id: string; username: string };
+    },
+    async checkpointAccountDrawing(documentId, content) {
+      return (await client.mutation("checkpointAccountDrawing", {
+        documentId,
+        content: uint8ArrayToBase64(content),
+      })) as { heads: string[]; content: string };
+    },
+    async acceptDocumentInvitation(token) {
+      await client.mutation("acceptDocumentInvitation", { token });
     },
     async signOut() {
       try {
@@ -543,16 +557,12 @@ function parseAccountSettings(input: unknown): AccountSettings | null {
     !input ||
     typeof input !== "object" ||
     !isAccountShareMode((input as { shareMode?: unknown }).shareMode) ||
-    typeof (input as { syncNewDrawingsByDefault?: unknown })
-      .syncNewDrawingsByDefault !== "boolean" ||
     typeof (input as { hasPin?: unknown }).hasPin !== "boolean"
   ) {
     return null;
   }
   return {
     shareMode: (input as { shareMode: AccountSettings["shareMode"] }).shareMode,
-    syncNewDrawingsByDefault: (input as { syncNewDrawingsByDefault: boolean })
-      .syncNewDrawingsByDefault,
     hasPin: (input as { hasPin: boolean }).hasPin,
   };
 }

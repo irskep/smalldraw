@@ -7,6 +7,7 @@ import {
   createLocalDocumentBackend,
   type KidsDocumentBackend,
 } from "../documents";
+import { prepareAccountWorkspace } from "../documents/accountWorkspace";
 import { resolveLayoutMode } from "../layout/responsiveLayout";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
@@ -96,21 +97,21 @@ export async function assembleAppRuntime(
     injected?.shapeHandlers ?? createKidsShapeHandlerRegistry();
   const shapeRendererRegistry =
     injected?.shapeRendererRegistry ?? createKidsShapeRendererRegistry();
-  const documentBackend =
-    options.documentBackend ??
-    createLocalDocumentBackend({
-      currentDocStorageKey: "kids-draw-doc-url",
-    });
-  const providedCore = options.core;
-  const collaborationStatusStore = createCollaborationStatusStore();
-  const collaborativeDocumentIndex = createCollaborativeDocumentIndex({
-    listDocuments: () => documentBackend.listDocuments(),
-  });
   const multiplayerApiClient = options.multiplayer?.syncServerHttpUrl
     ? createMultiplayerApiClient({
         apiUrl: options.multiplayer.syncServerHttpUrl,
       })
     : null;
+  if (multiplayerApiClient && !options.core && !options.documentBackend) {
+    await prepareAccountWorkspace(multiplayerApiClient);
+  }
+  const documentBackend =
+    options.documentBackend ?? createLocalDocumentBackend();
+  const providedCore = options.core;
+  const collaborationStatusStore = createCollaborationStatusStore();
+  const collaborativeDocumentIndex = createCollaborativeDocumentIndex({
+    listDocuments: () => documentBackend.listDocuments(),
+  });
   const startupIntent = options.multiplayer?.startupIntent ?? {
     kind: "open-last-local" as const,
   };

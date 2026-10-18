@@ -10,7 +10,6 @@ type AccountSettingsRow = typeof accountSettings.$inferSelect;
 
 export const DEFAULT_ACCOUNT_SETTINGS: AccountSettings = Object.freeze({
   shareMode: "allowed",
-  syncNewDrawingsByDefault: false,
   hasPin: false,
 });
 
@@ -41,7 +40,6 @@ export async function saveAccountSettings(
     .values({
       userId,
       shareMode: input.shareMode,
-      syncNewDrawingsByDefault: input.syncNewDrawingsByDefault,
       ...pinUpdate,
       updatedAt: new Date(),
     })
@@ -49,7 +47,6 @@ export async function saveAccountSettings(
       target: accountSettings.userId,
       set: {
         shareMode: input.shareMode,
-        syncNewDrawingsByDefault: input.syncNewDrawingsByDefault,
         ...pinUpdate,
         updatedAt: new Date(),
       },
@@ -84,7 +81,6 @@ function toAccountSettings(row: AccountSettingsRow): AccountSettings {
       row.shareMode === "private_sync" || row.shareMode === "pin_required"
         ? row.shareMode
         : "allowed",
-    syncNewDrawingsByDefault: row.syncNewDrawingsByDefault,
     hasPin: Boolean(row.pinHash && row.pinSalt),
   };
 }

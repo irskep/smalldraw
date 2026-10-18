@@ -3,6 +3,7 @@ import type { MultiplayerApiClient } from "./createMultiplayerApiClient";
 
 export interface AccountSessionState {
   status: "loading" | "signed-out" | "signed-in" | "unavailable";
+  userId: string | null;
   username: string | null;
   busy: boolean;
   error: string | null;
@@ -15,10 +16,12 @@ export function createAccountSession(options: {
   client: Pick<MultiplayerApiClient, "getCurrentAccount" | "signOut">;
   navigateToSignIn: (docUrl?: string) => void;
   onSignedOut: () => void;
+  confirmSignOut?: () => Promise<boolean>;
   onIdentityChanged: () => void;
 }) {
   const $state = atom<AccountSessionState>({
     status: "loading",
+    userId: null,
     username: null,
     busy: false,
     error: null,
@@ -40,6 +43,7 @@ export function createAccountSession(options: {
         identity = user?.id ?? null;
         $state.set({
           status: user ? "signed-in" : "signed-out",
+          userId: user?.id ?? null,
           username: user?.username ?? null,
           busy: false,
           error: null,
@@ -49,6 +53,7 @@ export function createAccountSession(options: {
         if (disposed || current !== generation) return;
         $state.set({
           status: "unavailable",
+          userId: null,
           username: null,
           busy: false,
           error:
@@ -70,6 +75,8 @@ export function createAccountSession(options: {
     },
     async signOut() {
       if (disposed || $state.get().busy) return;
+      if (options.confirmSignOut && !(await options.confirmSignOut())) return;
+      if (disposed || $state.get().busy) return;
       const current = ++generation;
       pending = null;
       $state.set({ ...$state.get(), busy: true, error: null });
@@ -79,6 +86,7 @@ export function createAccountSession(options: {
         identity = null;
         $state.set({
           status: "signed-out",
+          userId: null,
           username: null,
           busy: false,
           error: null,

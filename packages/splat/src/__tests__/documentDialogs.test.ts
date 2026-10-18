@@ -243,7 +243,7 @@ describe("DocumentBrowserDialogView", () => {
     expect(preview!.hidden).toBeTrue();
   });
 
-  test("claim button is shown for claimable drawings and dispatches callback", () => {
+  test("account saving is automatic rather than a per-drawing action", () => {
     const claimed: string[] = [];
     const dialog = createDocumentBrowserDialogView({
       onClose: () => {},
@@ -266,11 +266,8 @@ describe("DocumentBrowserDialogView", () => {
     const claimButton = dialog.el.querySelector(
       `[data-document-browser-claim="${doc.docUrl}"]`,
     ) as HTMLButtonElement | null;
-    expect(claimButton).not.toBeNull();
-    expect(claimButton?.hidden).toBeFalse();
-
-    claimButton?.click();
-    expect(claimed).toEqual([doc.docUrl]);
+    expect(claimButton).toBeNull();
+    expect(claimed).toEqual([]);
   });
 
   test("document tiles identify the open drawing and show storage status for others", () => {
@@ -288,6 +285,7 @@ describe("DocumentBrowserDialogView", () => {
       ...createDocument("doc://shared"),
       collaborative: true,
       collabDocUrl: "automerge:shared-1",
+      joinSecret: "share-link",
     };
     dialog.setOpen(true);
     dialog.setDocuments([localDoc, sharedDoc]);
@@ -303,13 +301,13 @@ describe("DocumentBrowserDialogView", () => {
     }));
 
     expect(statuses).toEqual([
-      { text: "Open now", shared: false },
+      { text: "Current drawing", shared: false },
       { text: "Shared", shared: true },
     ]);
     dialog.setCurrentDocument(null);
     expect(
       dialog.el.querySelector(".ds-thumbnail-tile__badge")?.textContent,
-    ).toBe("On this device");
+    ).toBe("");
   });
 
   test("initial loading shows loading state before any documents exist", () => {
@@ -395,31 +393,34 @@ test("document browser reflects account state in status and save actions", () =>
     )!;
   dialog.setAccountState({
     status: "signed-out",
+    userId: null,
     username: null,
     busy: false,
     error: null,
   });
-  expect(dialog.el.textContent).toContain("Not signed in");
-  expect(action().textContent).toContain("Save to account");
+  expect(dialog.el.textContent).toContain("Drawings are saved on this device.");
+  expect(action()).toBeNull();
   dialog.setAccountState({
     status: "signed-in",
+    userId: "pat",
     username: "Pat",
     busy: false,
     error: null,
   });
   expect(dialog.el.textContent).toContain("Signed in as Pat");
-  expect(action().textContent).toContain("Save to account");
+  expect(action()).toBeNull();
   expect(dialog.el.textContent).toContain("Sign out");
   dialog.setAccountState({
     status: "unavailable",
+    userId: null,
     username: null,
     busy: false,
     error: "Offline",
   });
-  expect(action().disabled).toBe(true);
+  expect(action()).toBeNull();
   expect(dialog.el.textContent).toContain("Try again");
   dialog.setDocuments([{ ...doc, accountAttached: true }]);
   dialog.setClaimableDocuments(new Set());
-  expect(dialog.el.textContent).toContain("Shared · Saved");
+  expect(dialog.el.textContent).toContain("Shared");
   expect(action()).toBeNull();
 });

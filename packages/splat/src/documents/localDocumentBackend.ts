@@ -5,12 +5,11 @@ import type {
   KidsDocumentMode,
   KidsDocumentSummary,
 } from "./types";
+import { getDrawingWorkspace, workspaceNames } from "./workspace";
 
-const DB_NAME = "kids-draw-documents";
 const DB_VERSION = 2;
 const DOCUMENTS_STORE = "documents";
 const THUMBNAILS_STORE = "thumbnails";
-const DEFAULT_CURRENT_DOC_STORAGE_KEY = "kids-draw-doc-url";
 
 type DocumentRecord = KidsDocumentSummary;
 type ThumbnailRecord = {
@@ -649,22 +648,32 @@ class LocalDocumentBackend implements KidsDocumentBackend {
   private readonly thumbnailRepository: ThumbnailRepository;
   private readonly currentDocumentRepository: CurrentDocumentRepository;
 
+  private readonly hideAccountCaches: boolean;
+
   constructor(options: {
+    hideAccountCaches?: boolean;
     documentRepository: DocumentRepository;
     thumbnailRepository: ThumbnailRepository;
     currentDocumentRepository: CurrentDocumentRepository;
   }) {
+    this.hideAccountCaches = options.hideAccountCaches ?? false;
     this.documentRepository = options.documentRepository;
     this.thumbnailRepository = options.thumbnailRepository;
     this.currentDocumentRepository = options.currentDocumentRepository;
   }
 
   async listDocuments(): Promise<KidsDocumentSummary[]> {
-    return await this.documentRepository.listDocuments();
+    const documents = await this.documentRepository.listDocuments();
+    return this.hideAccountCaches
+      ? documents.filter((document) => !document.accountAttached)
+      : documents;
   }
 
   async getDocument(docUrl: string): Promise<KidsDocumentSummary | null> {
-    return await this.documentRepository.getDocument(docUrl);
+    const document = await this.documentRepository.getDocument(docUrl);
+    return this.hideAccountCaches && document?.accountAttached
+      ? null
+      : document;
   }
 
   async createDocument(
@@ -713,7 +722,10 @@ class LocalDocumentBackend implements KidsDocumentBackend {
   }
 
   async getCurrentDocument(): Promise<string | null> {
-    return await this.currentDocumentRepository.getCurrentDocument();
+    const docUrl = await this.currentDocumentRepository.getCurrentDocument();
+    return this.hideAccountCaches && docUrl && !(await this.getDocument(docUrl))
+      ? null
+      : docUrl;
   }
 }
 
@@ -721,8 +733,8 @@ export function createLocalDocumentBackend(
   options: LocalDocumentBackendOptions = {},
 ): KidsDocumentBackend {
   const currentDocStorageKey =
-    options.currentDocStorageKey ?? DEFAULT_CURRENT_DOC_STORAGE_KEY;
-  const databaseName = options.databaseName ?? DB_NAME;
+    options.currentDocStorageKey ?? workspaceNames().current;
+  const databaseName = options.databaseName ?? workspaceNames().catalog;
   const currentDocumentRepository = new LocalStorageCurrentDocumentRepository(
     currentDocStorageKey,
   );
@@ -737,6 +749,8 @@ export function createLocalDocumentBackend(
 
   const connection = new IndexedDbConnection(databaseName);
   return new LocalDocumentBackend({
+    hideAccountCaches:
+      options.databaseName === undefined && getDrawingWorkspace() === null,
     documentRepository: new IndexedDbDocumentRepository(connection),
     thumbnailRepository: new IndexedDbThumbnailRepository(connection),
     currentDocumentRepository,
