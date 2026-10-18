@@ -182,7 +182,12 @@ const Root = () => {
   );
 
   return (
-    <div className="portal-shell" data-layout={isAdminRoute ? "admin" : ""}>
+    <div
+      className="portal-shell"
+      data-layout={
+        isAdminRoute ? "admin" : location.pathname === "/" ? "home" : ""
+      }
+    >
       <header className="portal-header">
         <Link to="/" className="portal-brand">
           Splatterboard

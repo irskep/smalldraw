@@ -1,6 +1,7 @@
 import { createLocalDocumentBackend } from "@smalldraw/splat/documents";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { Trash2 } from "lucide";
+import { ArtTable } from "@/components/ArtTable/ArtTable";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DsConfirmDialog,
@@ -213,25 +214,11 @@ function Index() {
 
   return (
     <div className="portal-home" data-state={launcherState}>
-      <section className="portal-info">
-        <p>
-          Splatterboard is a free drawing app for families. It collects only
-          necessary data and is local (not stored on a server) by default. There
-          are no ads or payments.{" "}
-          <button
-            className="portal-link-button"
-            type="button"
-            onClick={() => void parentalControlsDialogRef.current?.open()}
-          >
-            Parental controls manage sharing.
-          </button>
-        </p>
-        <p>
-          <a className="portal-link" href="/data">
-            Learn how Splatterboard stores data
-          </a>
-        </p>
-      </section>
+      {launcherState === "empty" ? (
+        <ArtTable
+          href={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn })}
+        />
+      ) : null}
       <section className="portal-launcher" aria-label="Drawings">
         {localCatalog.type === "error" ? (
           <div className="portal-alert" data-tone="danger" role="alert">
@@ -244,7 +231,13 @@ function Index() {
           </div>
         ) : null}
 
-        <div className="portal-launcher-grid">
+        {tiles.length > 0 ? (
+          <h1 className="portal-drawings-title">Your drawings</h1>
+        ) : null}
+        <div
+          className="portal-launcher-grid"
+          hidden={launcherState === "empty"}
+        >
           <a
             href={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn })}
             className="portal-launcher-card portal-launcher-card--new"
@@ -306,6 +299,29 @@ function Index() {
             Account drawings could not be refreshed right now.
           </p>
         ) : null}
+      </section>
+      <section className="art-table-about" aria-label="Made for families">
+        <div>
+          <h2>All the fun. None of the fuss.</h2>
+          <p>Free to use. No ads. No payments. Just room to make things.</p>
+        </div>
+        <div className="art-table-about__parents">
+          <p>
+            Drawings stay in this browser by default. You decide when to share.
+          </p>
+          <div className="art-table-about__links">
+            <button
+              className="portal-link-button"
+              type="button"
+              onClick={() => void parentalControlsDialogRef.current?.open()}
+            >
+              Parental controls
+            </button>
+            <a className="portal-link" href="/data">
+              How we store your drawings
+            </a>
+          </div>
+        </div>
       </section>
       <DsConfirmDialog ref={confirmDialogRef} />
       <ParentalControlsDialog
