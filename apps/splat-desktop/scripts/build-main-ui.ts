@@ -20,3 +20,14 @@ if (!result.success) {
   }
   process.exit(1);
 }
+
+const worker = await Bun.build({
+  entrypoints: [
+    resolve(appDir, "../../packages/splat/src/tools/fillWorker.ts"),
+  ],
+  target: "browser",
+  outdir: generatedMainUiDir,
+  naming: "fill-worker.js",
+});
+if (!worker.success)
+  throw new AggregateError(worker.logs, "Fill worker build failed");

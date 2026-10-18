@@ -22,7 +22,7 @@ A viewport change during drawing preserves the captured scene's logical extent. 
 
 `createSnapshotService.ts` captures output state and holds image ownership through loading/encoding. A later UI switch must not cause an export to substitute the newly active document's images. Pipeline disposal releases its own assets and listeners independently.
 
-Account workspace selection and repository lifetime are being revised concurrently; check `packages/splat/src/documents/workspace.ts`, `accountWorkspace.ts`, and `app/runtimeAssembly.ts` for current integration. The renderer contracts above remain applicable across workspace changes.
+Account workspace selection and repository lifetime are implemented in `packages/splat/src/documents/workspace.ts`, `accountWorkspace.ts`, and `app/runtimeAssembly.ts` for integration. Every open workspace holds a shared writer lease. Logout freezes writers, waits for their flushes, checkpoints all drawings, and only then clears local storage. Interrupted purge recovery takes the same exclusive writer lock. Registration and checkpoint requests name their intended account; the server rejects a changed login before importing content. The renderer contracts above remain applicable across workspace changes.
 
 ## Offline and reconnect
 

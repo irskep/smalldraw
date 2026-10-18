@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "bun run ./scripts/build.ts",
-    "dev": "bun ./src/index.html --watch --host=0.0.0.0:3001",
+    "dev": "bun --watch scripts/dev.ts",
     "serve": "bunx serve dist",
     "test": "bun test --timeout 4000 --pass-with-no-tests",
     "lint": "bunx biome check .",

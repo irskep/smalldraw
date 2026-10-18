@@ -70,7 +70,20 @@ This does not weaken tests for layer isolation, stable pixels during remote chan
 - Can valid captures avoid selected group/per-layer copies while preserving immutable ownership?
 - How often do overlapping prewarms occur in real browser workloads with large drawings?
 - How much do full-composite line/shape/stamp previews cost compared with their geometry work?
-- Can large fills move off the main thread or use bounded regions without changing sampling and lifecycle behavior?
+- Can fill sampling/readback and PNG encoding be reduced further? Mask computation now runs in a worker; those remaining stages still block the main thread.
 - What does real stylus input show on target devices beyond synthetic pressure tests?
 
 These are opportunities to measure, not confirmed user-visible regressions. The evidence does not justify replacing the whole pipeline.
+
+
+## Fill worker measurements (2026-10-18)
+
+Headless Chromium, 4096×2048, four alternating runs of each implementation. The existing blank, 600-stroke and enclosed-cell fixtures produced identical RGBA SHA-256 hashes before and after. Median total fill time includes worker startup and transfer; timer gaps measure main-thread availability, not worker CPU time or peak memory.
+
+| Fixture | Total, synchronous → worker | Worst timer gap, synchronous → worker |
+| --- | --- | --- |
+| Blank | 280 → 287 ms | 314 → 74 ms |
+| 600 strokes | 372 → 381 ms | 409 → 107 ms |
+| Enclosed cells | 132 → 143 ms | 167 → 76 ms |
+
+The timer probe also includes post-fill pixel readback/hash setup, so its gap is not a pure fill-stage duration. The worker improves responsiveness without claiming faster total completion. A horizontal-span flood experiment was rejected because repeated large fills regressed. Permanent tests exercise real worker transfers, exact pixels, cancellation, and stale-result rejection through the tool runtime.

@@ -36,7 +36,9 @@ Pressure travels from browser input through `ToolPointerEvent` to stroke geometr
 
 `fillTool.ts` composes layers through `renderer-canvas`, then `floodFill.ts` computes a connected mask and feathering. Existing optimizations enqueue each pixel at most once and traverse vertical feathering with contiguous row access. They preserve tolerance, connectivity and numerical output.
 
-A small enclosed fill can still pay for full-document composition, readback and feathering. Large fills remain synchronous main-thread work. Moving this work to a worker or cropping it would require new ownership and correctness guarantees; neither follows automatically from the stroke renderer optimizations.
+A small enclosed fill can still pay for full-document composition, readback and feathering. Mask traversal, feathering and colorization run in `fillWorker.ts`, using the same pure computation tested in-process. Sampling, readback and PNG encoding remain on the main thread. The worker owns transferred input/output pixel buffers; the tool owns its lifetime and terminates it on deactivation or pointer cancellation. Only one fill runs per activation at a time; additional taps while pending are ignored.
+
+Before encoding or committing, the tool checks that the sampled immutable document and active layer are still current. Remote edits, undo, layer changes and document switches invalidate the result. Both web and desktop builds emit `fill-worker.js` beside their HTML entry point; the web development server serves the same bundled worker.
 
 ## Adding or changing a tool
 

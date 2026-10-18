@@ -13,7 +13,8 @@ import {
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
 import { registerRasterImage } from "../shapes/rasterImageCache";
-import { featherMask, floodFillMask } from "./floodFill";
+import { createFillComputation } from "./fillComputation";
+import type { FillPixelsRequest } from "./fillPixels";
 
 const PRIMARY_BUTTON_MASK = 1;
 const DEFAULT_TOLERANCE = 30;
@@ -22,6 +23,7 @@ const DEFAULT_BACKGROUND_COLOR = "#ffffff";
 
 export interface FillToolOptions {
   shapeRendererRegistry: ShapeRendererRegistry;
+  workerUrl?: URL;
   tolerance?: number;
   featherRadius?: number;
   backgroundColor?: string;
@@ -87,14 +89,15 @@ interface FillImageResult {
   canvas: HTMLCanvasElement;
 }
 
-function createFillImage(params: {
+async function createFillImage(params: {
   sourceCanvas: HTMLCanvasElement;
+  compute: (request: FillPixelsRequest) => Promise<Uint8ClampedArray | null>;
   x: number;
   y: number;
   fillColor: string;
   tolerance: number;
   featherRadius: number;
-}): FillImageResult | null {
+}): Promise<FillImageResult | null> {
   const sourceCtx = params.sourceCanvas.getContext("2d", {
     willReadFrequently: true,
   });
@@ -109,32 +112,19 @@ function createFillImage(params: {
   const width = params.sourceCanvas.width;
   const height = params.sourceCanvas.height;
   const sourceImage = sourceCtx.getImageData(0, 0, width, height);
-  const baseMask = floodFillMask({
+  const pixels = await params.compute({
     imageData: sourceImage.data,
     width,
     height,
     x: params.x,
     y: params.y,
-    options: {
-      tolerance: params.tolerance,
-    },
+    color: parseHexColor(params.fillColor),
+    tolerance: params.tolerance,
+    featherRadius: params.featherRadius,
   });
-  const alphaMask = featherMask(baseMask, width, height, {
-    radius: params.featherRadius,
-  });
+  if (!pixels) return null;
   const fillImage = sourceCtx.createImageData(width, height);
-  const { r, g, b } = parseHexColor(params.fillColor);
-  for (let i = 0; i < alphaMask.length; i += 1) {
-    const alpha = alphaMask[i];
-    if (alpha === 0) {
-      continue;
-    }
-    const offset = i * 4;
-    fillImage.data[offset] = r;
-    fillImage.data[offset + 1] = g;
-    fillImage.data[offset + 2] = b;
-    fillImage.data[offset + 3] = alpha;
-  }
+  fillImage.data.set(pixels);
 
   const fillCanvas = document.createElement("canvas");
   fillCanvas.width = width;
@@ -161,6 +151,13 @@ export function createFillTool(options: FillToolOptions): ToolDefinition {
     },
     activate(runtime) {
       const disposers = createDisposerBucket();
+      const computation = createFillComputation(options.workerUrl);
+      let active = true;
+      let pending = false;
+      disposers.add(() => {
+        active = false;
+        computation.dispose();
+      });
       const fillOptions = runtime.getOptions<FillToolOptions>() ?? options;
       const tolerance = fillOptions.tolerance ?? DEFAULT_TOLERANCE;
       const featherRadius = fillOptions.featherRadius ?? DEFAULT_FEATHER_RADIUS;
@@ -170,14 +167,17 @@ export function createFillTool(options: FillToolOptions): ToolDefinition {
 
       disposers.add(
         attachPointerHandlers(runtime, {
-          onPointerDown(event) {
+          async onPointerDown(event) {
+            if (pending) return;
             if (
               ((event.buttons ?? PRIMARY_BUTTON_MASK) & PRIMARY_BUTTON_MASK) ===
               0
             ) {
               return;
             }
-            const documentSize = runtime.getDocument().size;
+            const sampledDocument = runtime.getDocument();
+            const layerId = runtime.getActiveLayerId();
+            const documentSize = sampledDocument.size;
             const sourceCanvas = renderCurrentCanvas(
               runtime,
               documentSize.width,
@@ -191,15 +191,39 @@ export function createFillTool(options: FillToolOptions): ToolDefinition {
             }
             const shared = runtime.getSharedSettings();
             const fillColor = shared.strokeColor ?? "#000000";
-            const fillResult = createFillImage({
-              sourceCanvas,
-              x: getX(event.point),
-              y: getY(event.point),
-              fillColor,
-              tolerance,
-              featherRadius,
-            });
-            if (!fillResult) {
+            pending = true;
+            let fillResult: FillImageResult | null;
+            try {
+              fillResult = await createFillImage({
+                compute: async (request) => {
+                  const pixels = await computation.compute(request);
+                  return active &&
+                    runtime.getDocument() === sampledDocument &&
+                    runtime.getActiveLayerId() === layerId
+                    ? pixels
+                    : null;
+                },
+                sourceCanvas,
+                x: getX(event.point),
+                y: getY(event.point),
+                fillColor,
+                tolerance,
+                featherRadius,
+              });
+            } catch (error) {
+              console.error("Fill computation failed", error);
+              return;
+            } finally {
+              pending = false;
+            }
+            // A result belongs to exactly the sampled scene and layer. This also
+            // rejects undo, remote edits, layer deletion, and document switches.
+            if (
+              !active ||
+              runtime.getDocument() !== sampledDocument ||
+              runtime.getActiveLayerId() !== layerId ||
+              !fillResult
+            ) {
               return;
             }
             registerRasterImage(fillResult.dataUrl, fillResult.canvas);
@@ -207,7 +231,7 @@ export function createFillTool(options: FillToolOptions): ToolDefinition {
               id: runtime.generateShapeId("fill"),
               type: "raster-fill",
               zIndex: runtime.getNextZIndexInLayer(),
-              layerId: runtime.getActiveLayerId(),
+              layerId,
               geometry: {
                 type: "raster-fill",
                 src: fillResult.dataUrl,
@@ -223,7 +247,9 @@ export function createFillTool(options: FillToolOptions): ToolDefinition {
           },
           onPointerMove() {},
           onPointerUp() {},
-          onPointerCancel() {},
+          onPointerCancel() {
+            computation.dispose();
+          },
         }),
       );
 
