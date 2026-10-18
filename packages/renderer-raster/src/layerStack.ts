@@ -557,6 +557,8 @@ class LayerStackImpl implements LayerStack {
       : [];
 
     return {
+      width: this.viewportWidth,
+      height: this.viewportHeight,
       below: await this.captureLayerGroupSnapshot(belowLayerIds),
       active: await this.captureLayerGroupSnapshot(activeLayerIds),
       above: await this.captureLayerGroupSnapshot(aboveLayerIds),

@@ -23,6 +23,9 @@ export interface HotLayerRenderOptions {
 }
 
 export interface DraftLayerComposite {
+  /** Logical viewport extent at capture; independent of backing resolution. */
+  width: number;
+  height: number;
   below: CanvasImageSource | null;
   active: CanvasImageSource | null;
   above: CanvasImageSource | null;
@@ -35,6 +38,7 @@ export class HotLayer {
   private readonly backgroundColor?: string;
   private viewport: Viewport | null = null;
   private draftComposite: DraftLayerComposite | null = null;
+  private compositeBackingSize: { width: number; height: number } | null = null;
   private activeScratch: HTMLCanvasElement | null = null;
 
   constructor(
@@ -53,6 +57,7 @@ export class HotLayer {
 
   setViewport(viewport: Viewport): void {
     this.viewport = viewport;
+    this.updateCompositeBackingSize();
   }
 
   renderDrafts(
@@ -140,6 +145,7 @@ export class HotLayer {
     backgroundColor?: string,
   ): void {
     this.draftComposite = composite;
+    this.updateCompositeBackingSize();
     const canvasWithOptionalStyle = this.canvas as unknown as {
       style?: { backgroundColor: string };
     };
@@ -150,15 +156,35 @@ export class HotLayer {
     }
   }
 
+  private updateCompositeBackingSize(): void {
+    const composite = this.draftComposite;
+    if (!composite || !this.viewport) {
+      this.compositeBackingSize = null;
+      return;
+    }
+    if (
+      composite.width === this.viewport.width &&
+      composite.height === this.viewport.height
+    ) {
+      this.compositeBackingSize = this.canvas;
+      return;
+    }
+    const size = new Vec2(composite.width, composite.height)
+      .mul([this.canvas.width, this.canvas.height])
+      .div([this.viewport.width, this.viewport.height]);
+    this.compositeBackingSize = { width: getX(size), height: getY(size) };
+  }
+
   private renderCompositeDrafts(shapes: AnyShape[], dirtyBounds: Box | null) {
     const composite = this.draftComposite;
     if (!composite) {
       return;
     }
+    const compositeSize = this.compositeBackingSize ?? this.canvas;
     const blitStartMs = perfNowMs();
     this.ctx.save();
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-    drawImageRect(this.ctx, composite.below, this.canvas, dirtyBounds);
+    drawImageRect(this.ctx, composite.below, compositeSize, dirtyBounds);
     this.ctx.restore();
 
     const scratch = this.ensureActiveScratch();
@@ -174,7 +200,7 @@ export class HotLayer {
     } else {
       scratchCtx.clearRect(0, 0, scratch.width, scratch.height);
     }
-    drawImageRect(scratchCtx, composite.active, scratch, dirtyBounds);
+    drawImageRect(scratchCtx, composite.active, compositeSize, dirtyBounds);
     scratchCtx.restore();
     perfAddTimingMs("hotLayer.backdropBlit.ms", perfNowMs() - blitStartMs);
 
@@ -206,7 +232,7 @@ export class HotLayer {
     this.ctx.save();
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     drawImageRect(this.ctx, scratch, this.canvas, dirtyBounds);
-    drawImageRect(this.ctx, composite.above, this.canvas, dirtyBounds);
+    drawImageRect(this.ctx, composite.above, compositeSize, dirtyBounds);
     this.ctx.restore();
   }
 
@@ -340,7 +366,7 @@ function getImageSourceSize(
 function drawImageRect(
   ctx: CanvasRenderingContext2D,
   image: CanvasImageSource | null,
-  destination: HTMLCanvasElement,
+  destination: { width: number; height: number },
   dirtyBounds: Box | null,
 ): void {
   if (!image) {
