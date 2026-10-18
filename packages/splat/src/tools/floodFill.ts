@@ -45,17 +45,16 @@ export function floodFillMask(params: {
 
   const mask = new Uint8Array(pixelCount);
   const visited = new Uint8Array(pixelCount);
-  const queue = new Int32Array(Math.max(1, pixelCount * 4));
+  // Mark on enqueue: each pixel enters the queue at most once.
+  const queue = new Int32Array(Math.max(1, pixelCount));
   let head = 0;
   let tail = 0;
   queue[tail++] = startIndex;
+  visited[startIndex] = 1;
 
   while (head < tail) {
     const current = queue[head++];
-    if (current < 0 || current >= pixelCount || visited[current]) {
-      continue;
-    }
-    visited[current] = 1;
+    if (current < 0 || current >= pixelCount) continue;
     if (
       colorDistanceSquared(
         imageData,
@@ -73,10 +72,22 @@ export function floodFillMask(params: {
     const x = current % width;
     const y = Math.floor(current / width);
 
-    if (x > 0) queue[tail++] = current - 1;
-    if (x < width - 1) queue[tail++] = current + 1;
-    if (y > 0) queue[tail++] = current - width;
-    if (y < height - 1) queue[tail++] = current + width;
+    if (x > 0 && !visited[current - 1]) {
+      visited[current - 1] = 1;
+      queue[tail++] = current - 1;
+    }
+    if (x < width - 1 && !visited[current + 1]) {
+      visited[current + 1] = 1;
+      queue[tail++] = current + 1;
+    }
+    if (y > 0 && !visited[current - width]) {
+      visited[current - width] = 1;
+      queue[tail++] = current - width;
+    }
+    if (y < height - 1 && !visited[current + width]) {
+      visited[current + width] = 1;
+      queue[tail++] = current + width;
+    }
   }
 
   return mask;
@@ -110,24 +121,32 @@ function blurHorizontal(
 
 function blurVertical(
   source: Float32Array,
+  mask: Uint8Array,
   width: number,
   height: number,
   radius: number,
 ): Uint8Array {
   const destination = new Uint8Array(width * height);
   const kernelSize = radius * 2 + 1;
-  for (let x = 0; x < width; x += 1) {
-    let sum = 0;
-    for (let dy = -radius; dy <= radius; dy += 1) {
-      const sampleY = Math.min(height - 1, Math.max(0, dy));
-      sum += source[sampleY * width + x];
-    }
-    destination[x] = Math.round(sum / kernelSize);
-    for (let y = 1; y < height; y += 1) {
-      const prevY = Math.max(0, y - radius - 1);
-      const nextY = Math.min(height - 1, y + radius);
-      sum += source[nextY * width + x] - source[prevY * width + x];
-      destination[y * width + x] = Math.round(sum / kernelSize);
+  // Keep each column's double-precision running sum, but visit contiguous
+  // rows. The summation and rounding order for each pixel stays unchanged.
+  const sums = new Float64Array(width);
+  for (let dy = -radius; dy <= radius; dy += 1) {
+    const rowStart = Math.min(height - 1, Math.max(0, dy)) * width;
+    for (let x = 0; x < width; x += 1) sums[x] += source[rowStart + x];
+  }
+  for (let x = 0; x < width; x += 1)
+    destination[x] = Math.max(mask[x], Math.round(sums[x] / kernelSize));
+  for (let y = 1; y < height; y += 1) {
+    const rowStart = y * width;
+    const prevRow = Math.max(0, y - radius - 1) * width;
+    const nextRow = Math.min(height - 1, y + radius) * width;
+    for (let x = 0; x < width; x += 1) {
+      sums[x] += source[nextRow + x] - source[prevRow + x];
+      destination[rowStart + x] = Math.max(
+        mask[rowStart + x],
+        Math.round(sums[x] / kernelSize),
+      );
     }
   }
   return destination;
@@ -144,10 +163,5 @@ export function featherMask(
     return mask;
   }
   const horizontal = blurHorizontal(mask, width, height, radius);
-  const blurred = blurVertical(horizontal, width, height, radius);
-  const combined = new Uint8Array(mask.length);
-  for (let i = 0; i < mask.length; i += 1) {
-    combined[i] = Math.max(mask[i], blurred[i]);
-  }
-  return combined;
+  return blurVertical(horizontal, mask, width, height, radius);
 }

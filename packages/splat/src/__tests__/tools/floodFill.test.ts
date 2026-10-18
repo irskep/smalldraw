@@ -106,3 +106,121 @@ describe("flood fill", () => {
     expect(feathered[6]).toBe(0);
   });
 });
+
+// Independent small-image oracle: walk matching neighbours with a JS stack.
+function referenceFlood(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  startX: number,
+  startY: number,
+  tolerance: number,
+): Uint8Array {
+  const start =
+    Math.min(height - 1, Math.max(0, Math.floor(startY))) * width +
+    Math.min(width - 1, Math.max(0, Math.floor(startX)));
+  const pending = [start];
+  const seen = new Set<number>();
+  const mask = new Uint8Array(width * height);
+  while (pending.length) {
+    const index = pending.pop()!;
+    if (seen.has(index)) continue;
+    seen.add(index);
+    let distance = 0;
+    for (let channel = 0; channel < 4; channel++)
+      distance += (data[index * 4 + channel] - data[start * 4 + channel]) ** 2;
+    if (distance > Math.max(0, tolerance) ** 2 * 4) continue;
+    mask[index] = 255;
+    if (index % width > 0) pending.push(index - 1);
+    if (index % width < width - 1) pending.push(index + 1);
+    if (index >= width) pending.push(index - width);
+    if (index < width * (height - 1)) pending.push(index + width);
+  }
+  return mask;
+}
+
+// Direct box-kernel convolution, with the same Float32 horizontal precision
+// as the renderer. No sliding sums or traversal shared with production code.
+function referenceFeather(
+  mask: Uint8Array,
+  width: number,
+  height: number,
+  radius: number,
+): Uint8Array {
+  const result = new Uint8Array(mask.length);
+  const sample = (x: number, y: number) =>
+    mask[
+      Math.max(0, Math.min(height - 1, y)) * width +
+        Math.max(0, Math.min(width - 1, x))
+    ];
+  const kernel = radius * 2 + 1;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sum = 0;
+      for (let dy = -radius; dy <= radius; dy++) {
+        let horizontal = 0;
+        for (let dx = -radius; dx <= radius; dx++)
+          horizontal += sample(x + dx, y + dy);
+        sum += Math.fround(horizontal / kernel);
+      }
+      result[y * width + x] = Math.max(
+        mask[y * width + x],
+        Math.round(sum / kernel),
+      );
+    }
+  }
+  return result;
+}
+
+test("flood and feather match independent pixel oracles across boundaries and tolerances", () => {
+  let seed = 123456;
+  const random = () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed;
+  };
+  for (const [width, height] of [
+    [1, 1],
+    [1, 19],
+    [23, 1],
+    [17, 13],
+    [64, 31],
+  ]) {
+    for (const tolerance of [-1, 0, 30, 128, 255]) {
+      const data = new Uint8ClampedArray(width * height * 4);
+      for (let i = 0; i < data.length; i++) data[i] = (random() >>> 24) & 192;
+      for (const [x, y] of [
+        [-4, -2],
+        [width / 2, height / 2],
+        [width + 8, height + 2],
+      ]) {
+        const expected = referenceFlood(data, width, height, x, y, tolerance);
+        const actual = floodFillMask({
+          imageData: data,
+          width,
+          height,
+          x,
+          y,
+          options: { tolerance },
+        });
+        expect(actual).toEqual(expected);
+        for (const radius of [0, 1, 2, 8])
+          expect(featherMask(actual, width, height, { radius })).toEqual(
+            referenceFeather(expected, width, height, radius),
+          );
+      }
+    }
+  }
+});
+
+test("feather preserves fractional horizontal precision for arbitrary alpha masks", () => {
+  const width = 37;
+  const height = 23;
+  const mask = Uint8Array.from(
+    { length: width * height },
+    (_, i) => (i * 73 + Math.floor(i / width) * 29) % 256,
+  );
+  for (const radius of [1, 2, 3, 9])
+    expect(featherMask(mask, width, height, { radius })).toEqual(
+      referenceFeather(mask, width, height, radius),
+    );
+});
