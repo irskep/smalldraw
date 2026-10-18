@@ -201,19 +201,14 @@ run = [
 ]
 
 [tasks."docs:typedoc"]
-run = """
-bun x typedoc \
-  --tsconfig packages/core/tsconfig.typedoc.json \
-  --entryPoints packages/core/src/index.ts \
-  --out docs/.vuepress/public/api
-"""
+dir = "apps/docs-site"
+run = "bun run api"
 
 [tasks."docs:dev"]
 dir = "apps/docs-site"
 run = "bun run dev"
 
 [tasks."docs:build"]
-depends = ["docs:typedoc"]
 dir = "apps/docs-site"
 run = "bun run build"
 

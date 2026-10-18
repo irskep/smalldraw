@@ -4,20 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vuepress dev ../../docs",
-    "build": "vuepress build ../../docs"
+    "api": "bunx --bun typedoc --tsconfig ../../packages/core/tsconfig.typedoc.json --entryPoints ../../packages/core/src/index.ts --out ../../docs/reference --readme none",
+    "dev": "bun run assets && bun run api && zensical serve --config-file ../../zensical.toml",
+    "build": "bun run assets && bun run api && zensical build --strict --config-file ../../zensical.toml",
+    "assets": "bun scripts/prepare-assets.ts"
   },
   "devDependencies": {
-    "@vuepress/bundler-vite": "^2.0.0-rc.30",
-    "@vuepress/theme-default": "^2.0.0-rc.130",
-    "sass-embedded": "^1.99.0",
-    "vue": "^3.5.34",
-    "vuepress": "^2.0.0-rc.30"
-  },
-  "dependencies": {
-    "@vuepress/plugin-markdown-chart": "^2.0.0-rc.130",
-    "mermaid": "^11.14.0",
     "typedoc": "^0.28.16",
-    "typedoc-plugin-markdown": "^4.9.0"
+    "mermaid": "11.14.0"
   }
 }

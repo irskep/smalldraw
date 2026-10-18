@@ -51,6 +51,8 @@ For uncommitted work, follow the repository requirement to run `localci wait --n
 mise run //apps/docs-site:build
 ```
 
-This builds the prose site. `mise run docs:build` also generates TypeDoc first. The sidebar is generated from Markdown files by `docs/.vuepress/config.ts`. Keep existing page paths when rewriting explanations so links remain useful; label retained design proposals as historical.
+Both this task and `mise run docs:build` generate the TypeDoc API reference, then build the Zensical site into `site/`. `mise run docs:dev` serves it at `http://localhost:8000` with live reload. Zensical is installed/pinned by mise; the docs workspace uses Bun for TypeDoc and a pinned local Mermaid bundle.
+
+`zensical.toml` configures navigation and Markdown/Mermaid support. Update its navigation when adding pages. Generated API HTML (`docs/reference/`), the copied Mermaid bundle (`docs/assets/mermaid.min.js`), site output, and caches are ignored by Git. Label retained design proposals as historical.
 
 Performance probes need a quieter environment than ordinary linting. A timeout while several builds and browsers are active is not enough evidence to change a rendering algorithm. Inspect the first failure, distinguish cascading failures, and rerun the relevant suite after competing work settles.

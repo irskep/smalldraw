@@ -1,0 +1,72 @@
+[project]
+site_name = "Smalldraw internal docs"
+site_description = "Splatterboard architecture, rendering, tools, and development"
+docs_dir = "docs"
+site_dir = "site"
+use_directory_urls = false
+dev_addr = "localhost:8000"
+extra_javascript = ["assets/mermaid.min.js"]
+repo_url = "https://github.com/irskep/smalldraw"
+nav = [
+  { "Start here" = "index.md" },
+  { "Architecture" = [
+    { "Overview" = "explanation/architecture-overview.md" },
+    { "Rendering pipeline" = "explanation/rendering-pipeline.md" },
+    { "Tool rendering paths" = "explanation/tool-rendering-paths.md" },
+    { "Draft shapes" = "explanation/draft-shapes.md" },
+    { "Cache ownership" = "explanation/rendering-cache-ownership.md" },
+    { "Tool runtime" = "explanation/tool-runtime-model.md" },
+    { "Actions and undo" = "explanation/action-and-undo-system.md" },
+    { "Canonical transforms" = "explanation/canonical-transforms.md" },
+    { "Geometry and bounds" = "explanation/geometry-local-space.md" },
+  ] },
+  { "Multiplayer" = [
+    { "Identity and overview" = "explanation/multiplayer/index.md" },
+    { "Document layer" = "explanation/multiplayer/01-automerge-as-document-layer.md" },
+    { "Catalog and workspaces" = "explanation/multiplayer/02-document-catalog.md" },
+    { "Sharing" = "explanation/multiplayer/03-sharing.md" },
+    { "Joining" = "explanation/multiplayer/04-joining.md" },
+    { "Server" = "explanation/multiplayer/05-server.md" },
+    { "Sync and authorization" = "explanation/multiplayer/06-realtime-sync.md" },
+    { "Rendering lifecycle" = "explanation/multiplayer/lifecycle.md" },
+  ] },
+  { "Guides" = [
+    { "Development" = "guides/development.md" },
+    { "Rendering validation" = "guides/rendering-validation.md" },
+    { "Creating a tool" = "guides/creating-a-drawing-tool.md" },
+    { "Tool state and settings" = "guides/tool-state-and-settings.md" },
+    { "Handle interactions" = "guides/handle-based-interactions.md" },
+  ] },
+  { "API reference" = "api.md" },
+  { "Historical notes" = [
+    { "Thinking" = [
+      { "bugs" = "thinking/bugs.md" },
+      { "design" = "thinking/kids_draw/design.md" },
+      { "Layers Design (Core + Splatterboard)" = "thinking/layers_design.md" },
+      { "Production Readiness TODO" = "thinking/production-readiness-todo.md" },
+      { "tool_matrix" = "thinking/tool_matrix.md" },
+      { "tools_to_make" = "thinking/tools_to_make.md" },
+      { "Vision" = "thinking/use_cases.md" },
+    ] },
+    { "Region Based Applydocument Dirtying" = [
+      { "Step 1: `diffDocumentShapes` Pure Function" = "region-based-applydocument-dirtying/01-diffDocumentShapes.md" },
+      { "Step 2: Store Diff Storage and Consume API" = "region-based-applydocument-dirtying/02-store-consume-api.md" },
+      { "Step 3: Pipeline Consumes the Diff" = "region-based-applydocument-dirtying/03-pipeline-integration.md" },
+      { "Step 4: Integration Tests and Validation" = "region-based-applydocument-dirtying/04-tests-and-validation.md" },
+      { "Region-Based Dirtying For `applyDocument()`" = "region-based-applydocument-dirtying/design_doc.md" },
+      { "Edge Case: `lastTilesByShape` staleness after diff-path invalidation" = "region-based-applydocument-dirtying/edge-case-lastTilesByShape-staleness.md" },
+    ] },
+  ] },
+]
+
+[project.theme]
+features = ["navigation.footer", "content.code.copy", "search.highlight"]
+
+[project.markdown_extensions]
+tables = {}
+toc.permalink = true
+pymdownx.highlight = {}
+pymdownx.tasklist.custom_checkbox = true
+pymdownx.superfences.custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]

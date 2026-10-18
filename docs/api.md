@@ -1,7 +1,5 @@
----
-title: API
----
+# API reference
 
-The full API reference lives at the generated TypeDoc site:
+[Open the generated core API reference](reference/index.html).
 
-<a href="/api/index.html" data-no-router>Open the API reference</a>
+Both `mise run docs:dev` and `mise run docs:build` regenerate this reference with TypeDoc before running Zensical. Generated HTML lives in `docs/reference/` and is copied into the site; it is not committed.

@@ -27,7 +27,7 @@ The app stores drawing documents in Automerge, renders committed content into ra
 | `apps/splat-web`, `apps/splat-desktop` | Web and desktop drawing hosts |
 | `apps/app` | React home/account portal; proxies the drawing app in development |
 | `apps/server` | HTTP API, authentication, metadata, thumbnails, Automerge sync/storage |
-| `apps/docs-site` | VuePress host for `docs/` |
+| `apps/docs-site` | Zensical tasks and TypeDoc generation for `docs/` |
 
 ## Local development
 
