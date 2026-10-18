@@ -140,7 +140,7 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     this.#tile.setOnOpenPointerLeave(() => item.onPointerEnd());
     this.#tile.setBadge(
       item.isCurrent
-        ? { label: "Current drawing" }
+        ? { label: "Currently open" }
         : document.joinSecret
           ? { label: "Shared", tone: "positive" }
           : null,

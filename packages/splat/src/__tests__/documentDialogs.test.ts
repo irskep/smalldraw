@@ -301,7 +301,7 @@ describe("DocumentBrowserDialogView", () => {
     }));
 
     expect(statuses).toEqual([
-      { text: "Current drawing", shared: false },
+      { text: "Currently open", shared: false },
       { text: "Shared", shared: true },
     ]);
     dialog.setCurrentDocument(null);

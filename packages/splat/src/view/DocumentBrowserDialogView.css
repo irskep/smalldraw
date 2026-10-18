@@ -201,6 +201,7 @@
 .kids-draw-document-browser-dialog__grid
   .ds-thumbnail-tile[data-current="true"] {
   border-color: var(--ds-accent-border);
+  background: var(--ds-accent-subtle-surface);
 }
 
 .kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__open {
@@ -244,7 +245,7 @@
 .kids-draw-document-browser-dialog__grid
   [data-current="true"]
   .ds-thumbnail-tile__badge {
-  color: var(--ds-ink);
+  color: var(--ds-accent-ink);
   font-weight: var(--font-weight-6);
 }
 
