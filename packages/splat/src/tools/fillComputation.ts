@@ -17,9 +17,11 @@ export function createFillComputation(workerUrl?: URL) {
         const url = workerUrl ?? new URL("fill-worker.js", document.baseURI);
         worker = new Worker(url, { type: "module" });
       }
+      let rejectRequest!: (error: Error) => void;
       const result = new Promise<Uint8ClampedArray | null>(
         (resolve, reject) => {
           pending = { resolve, reject };
+          rejectRequest = reject;
         },
       );
       worker.onmessage = (event: MessageEvent<Uint8ClampedArray>) => {
@@ -37,7 +39,7 @@ export function createFillComputation(workerUrl?: URL) {
       try {
         worker.postMessage(request, [request.imageData.buffer]);
       } catch (error) {
-        pending?.reject(
+        rejectRequest(
           error instanceof Error ? error : new Error(String(error)),
         );
         pending = undefined;

@@ -69,12 +69,11 @@ This does not weaken tests for layer isolation, stable pixels during remote chan
 
 - Can valid captures avoid selected group/per-layer copies while preserving immutable ownership?
 - How often do overlapping prewarms occur in real browser workloads with large drawings?
-- How much do full-composite line/shape/stamp previews cost compared with their geometry work?
+- Do line/shape/stamp previews show a bottleneck on target tablets? The desktop Chromium profile below does not justify changing their full-composite path.
 - Can fill sampling/readback and PNG encoding be reduced further? Mask computation now runs in a worker; those remaining stages still block the main thread.
 - What does real stylus input show on target devices beyond synthetic pressure tests?
 
 These are opportunities to measure, not confirmed user-visible regressions. The evidence does not justify replacing the whole pipeline.
-
 
 ## Fill worker measurements (2026-10-18)
 
@@ -87,3 +86,16 @@ Headless Chromium, 4096×2048, four alternating runs of each implementation. The
 | Enclosed cells | 132 → 143 ms | 167 → 76 ms |
 
 The timer probe also includes post-fill pixel readback/hash setup, so its gap is not a pure fill-stage duration. The worker improves responsiveness without claiming faster total completion. A horizontal-span flood experiment was rejected because repeated large fills regressed. Permanent tests exercise real worker transfers, exact pixels, cancellation, and stale-result rejection through the tool runtime.
+
+## Line, shape and stamp previews (2026-10-18)
+
+Profiled the running app in headless Chromium with a 1280×900 browser viewport, DPR1/DPR2, and one blank layer or three layers containing broad translucent marker strokes. Each of line, filled rectangle and alphabet stamp received 90 pointer moves paced by RAF, three runs per configuration. Exclude the first run: startup layout/DPR changes can still invalidate captures during it. The two warm runs per configuration showed:
+
+- Median RAF interval: 7.4–8.3 ms; 95th percentile: 9.2–13.3 ms.
+- Tool input processing: 0.016–0.034 ms per move.
+- Recorded draft-paint canvas commands: 0.026–0.066 ms per move.
+- Recorded backdrop-blit commands: 0.013–0.025 ms per move.
+
+These are ranges across configuration averages (RAF values are percentiles over each configuration's warm frames). Canvas command timings do not include all deferred GPU execution, and the existing backdrop timer omits final scratch/above-layer blits. The RAF observations are therefore the more useful end-to-end check. The test exercises small moving drafts, not viewport-filling geometry or low-end tablet hardware.
+
+No rendering policy changed: this workload did not establish a bottleneck worth the correctness and lifecycle risk of another preview path. Investigate real tablet behavior or larger drafts before adding dirty-region machinery for these tools.
