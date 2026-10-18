@@ -189,6 +189,253 @@ describe("createDocumentRuntimeController startup readiness", () => {
     controller.dispose();
   });
 
+  test.each([
+    ["loading", "resolve"],
+    ["loading", "reject"],
+    ["switch", "resolve"],
+    ["switch", "reject"],
+    ["dispose", "resolve"],
+    ["dispose", "reject"],
+  ])("ignores a first bake that completes after %s (%s)", async (action, outcome) => {
+    const store = createTestStore();
+    const startupReadinessStore = createStartupReadinessStore();
+    let resolveFlush!: () => void;
+    let rejectFlush!: (error: Error) => void;
+    let renderRequests = 0;
+    let releaseOpen!: () => void;
+    const openGate = new Promise<void>((resolve) => {
+      releaseOpen = resolve;
+    });
+    let pendingSwitch: Promise<void> | undefined;
+    const flushPromise = new Promise<void>((resolve, reject) => {
+      resolveFlush = resolve;
+      rejectFlush = reject;
+    });
+    const controller = createDocumentRuntimeController({
+      store,
+      core: {
+        ...createTestCore(store),
+        open: async () => {
+          if (action === "loading") await openGate;
+          throw new Error("new document failed");
+        },
+      },
+      documentBackend: {
+        mode: "local",
+        listDocuments: async () => [],
+        getDocument: async () => null,
+        createDocument: async () => ({
+          docUrl: "automerge:test-1",
+          mode: "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        touchDocument: async () => ({
+          docUrl: "automerge:test-1",
+          mode: "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        deleteDocument: async () => {},
+        saveThumbnail: async () => {},
+        getThumbnail: async () => null,
+        setCurrentDocument: async () => {},
+        getCurrentDocument: async () => null,
+      },
+      snapshotService: {
+        createThumbnailBlob: async () => null,
+      },
+      runtimeStore: {
+        setDocumentLoading: () => {},
+        setDocumentLoaded: () => {},
+        setDocumentError: () => {},
+        setNoDocument: () => {},
+        getActiveDocumentDocUrl: () => null,
+        isDestroyed: () => false,
+      },
+      startupReadinessStore,
+      toolbarStateController: {
+        applyToolbarStateForCurrentDocument: () => {},
+        getCurrentToolbarSignature: () => "sig",
+      },
+      renderLoopController: {
+        updateRenderIdentity: () => {},
+        requestRenderFromModel: () => {
+          renderRequests += 1;
+        },
+      },
+      pipeline: {
+        setLayers: () => {},
+        scheduleBakeForClear: () => {},
+        bakePendingTiles: () => {},
+        flushBakes: () => flushPromise,
+      },
+      syncToolbarUi: () => {},
+      applyCanvasSize: () => {},
+      getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+      fallbackDocumentSizeForCreate: { width: 640, height: 480 },
+      hasExplicitSize: false,
+      getExplicitSize: () => ({ width: 640, height: 480 }),
+      thumbnailSaveDebounceMs: DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS,
+    });
+    try {
+      controller.start();
+      await waitForTurn();
+      expect(startupReadinessStore.getState().phase).toBe("first_bake");
+      if (action === "loading") {
+        pendingSwitch = controller
+          .switchToDocument("automerge:other")
+          .catch(() => {});
+        await waitForTurn();
+        expect(startupReadinessStore.getState().phase).toBe("doc_loading");
+      } else if (action === "switch") {
+        await expect(
+          controller.switchToDocument("automerge:other"),
+        ).rejects.toThrow("new document failed");
+        expect(startupReadinessStore.getState().phase).toBe("failed");
+      } else {
+        controller.dispose();
+      }
+      const state = startupReadinessStore.getState();
+      const requests = renderRequests;
+      if (outcome === "resolve") resolveFlush();
+      else rejectFlush(new Error("old bake failed"));
+      await waitForTurn();
+      expect(startupReadinessStore.getState()).toEqual(state);
+      expect(renderRequests).toBe(requests);
+    } finally {
+      controller.dispose();
+      releaseOpen();
+      await pendingSwitch;
+    }
+  });
+
+  test.each([
+    ["switch", "load"],
+    ["switch", "error"],
+    ["dispose", "load"],
+    ["dispose", "error"],
+  ])("ignores asset progress after %s (%s)", async (action, outcome) => {
+    const originalImage = globalThis.Image;
+    const images: ControlledImage[] = [];
+    class ControlledImage {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      decoding = "async";
+      src = "";
+      constructor() {
+        images.push(this);
+      }
+    }
+    Object.defineProperty(globalThis, "Image", {
+      configurable: true,
+      value: ControlledImage,
+    });
+    const store = createTestStore(`/old-${action}-${outcome}.png`);
+    const startupReadinessStore = createStartupReadinessStore();
+    let renderRequests = 0;
+    const controller = createDocumentRuntimeController({
+      store,
+      core: createTestCore(store),
+      documentBackend: {
+        mode: "local",
+        listDocuments: async () => [],
+        getDocument: async () => null,
+        createDocument: async () => ({
+          docUrl: "automerge:test-1",
+          mode: "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        touchDocument: async () => ({
+          docUrl: "automerge:test-1",
+          mode: "normal",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastOpenedAt: new Date().toISOString(),
+        }),
+        deleteDocument: async () => {},
+        saveThumbnail: async () => {},
+        getThumbnail: async () => null,
+        setCurrentDocument: async () => {},
+        getCurrentDocument: async () => null,
+      },
+      snapshotService: {
+        createThumbnailBlob: async () => null,
+      },
+      runtimeStore: {
+        setDocumentLoading: () => {},
+        setDocumentLoaded: () => {},
+        setDocumentError: () => {},
+        setNoDocument: () => {},
+        getActiveDocumentDocUrl: () => null,
+        isDestroyed: () => false,
+      },
+      startupReadinessStore,
+      toolbarStateController: {
+        applyToolbarStateForCurrentDocument: () => {},
+        getCurrentToolbarSignature: () => "sig",
+      },
+      renderLoopController: {
+        updateRenderIdentity: () => {},
+        requestRenderFromModel: () => {
+          renderRequests += 1;
+        },
+      },
+      pipeline: {
+        setLayers: () => {},
+        scheduleBakeForClear: () => {},
+        bakePendingTiles: () => {},
+        flushBakes: async () => {},
+      },
+      syncToolbarUi: () => {},
+      applyCanvasSize: () => {},
+      getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+      fallbackDocumentSizeForCreate: { width: 640, height: 480 },
+      hasExplicitSize: false,
+      getExplicitSize: () => ({ width: 640, height: 480 }),
+      thumbnailSaveDebounceMs: DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS,
+    });
+    try {
+      controller.start();
+      await waitForTurn();
+      expect(startupReadinessStore.getState().phase).toBe("assets_loading");
+      const oldImages = [...images];
+      if (action === "switch") {
+        store.applyDocument(
+          createTestStore(`/new-${outcome}.png`).getDocument(),
+        );
+        await controller.switchToDocument("automerge:other");
+        await waitForTurn();
+      } else {
+        controller.dispose();
+      }
+      const state = startupReadinessStore.getState();
+      const requests = renderRequests;
+      expect(state.assetsTotal).toBe(1);
+      expect(state.assetsLoaded).toBe(0);
+      expect(state.assetsFailed).toBe(0);
+      for (const image of oldImages) {
+        if (outcome === "load") image.onload?.();
+        else image.onerror?.();
+      }
+      await waitForTurn();
+      expect(startupReadinessStore.getState()).toEqual(state);
+      expect(renderRequests).toBe(requests);
+    } finally {
+      controller.dispose();
+      for (const image of images) image.onerror?.();
+      await waitForTurn();
+      Object.defineProperty(globalThis, "Image", {
+        configurable: true,
+        value: originalImage,
+      });
+    }
+  });
+
   test("asset load success path reaches ready and reports progress", async () => {
     const originalImage = globalThis.Image;
     class SuccessImage {

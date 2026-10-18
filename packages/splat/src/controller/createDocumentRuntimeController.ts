@@ -139,6 +139,11 @@ export function createDocumentRuntimeController(options: {
   const thumbnailSaveDebounceMs =
     options.thumbnailSaveDebounceMs ?? DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS;
   let startupCycleId = 0;
+  let disposed = false;
+  const isCurrentStartupCycle = (cycleId: number): boolean =>
+    !disposed &&
+    !options.runtimeStore.isDestroyed() &&
+    cycleId === startupCycleId;
   const pendingImageLoads = new Map<string, Promise<boolean>>();
   const documentSessionController = new DocumentSessionController({
     store: options.store,
@@ -295,7 +300,7 @@ export function createDocumentRuntimeController(options: {
     reason: string,
     error: unknown,
   ): void => {
-    if (options.runtimeStore.isDestroyed() || cycleId !== startupCycleId) {
+    if (!isCurrentStartupCycle(cycleId)) {
       return;
     }
     options.startupReadinessStore.markFailed(reason);
@@ -348,7 +353,7 @@ export function createDocumentRuntimeController(options: {
       loader.onload = () => {
         clearTimeout(timeoutHandle);
         registerRasterImage(referenceImageSrc, loader);
-        if (!options.runtimeStore.isDestroyed() && cycleId === startupCycleId) {
+        if (isCurrentStartupCycle(cycleId)) {
           options.pipeline.scheduleBakeForClear();
           options.pipeline.bakePendingTiles();
           options.renderLoopController.requestRenderFromModel();
@@ -399,6 +404,7 @@ export function createDocumentRuntimeController(options: {
       sources.map(async (src) => {
         warmRasterImage(src);
         const loaded = await loadReferenceImage(src, cycleId);
+        if (!isCurrentStartupCycle(cycleId)) return loaded;
         if (loaded) {
           options.startupReadinessStore.markAssetLoaded();
           logStartupEvent("asset_loaded", { cycleId, src });
@@ -421,6 +427,7 @@ export function createDocumentRuntimeController(options: {
   const applyDocumentPresentation = (
     presentation: DocumentSessionPresentation,
   ): void => {
+    if (disposed || options.runtimeStore.isDestroyed()) return;
     const cycleId = beginStartupCycle("apply_presentation");
     options.runtimeStore.setDocumentLoaded({
       docUrl: documentSessionController.getCurrentCatalogDocUrl(),
@@ -429,7 +436,7 @@ export function createDocumentRuntimeController(options: {
     const layers = getOrderedLayersFromDoc(options.store.getDocument());
     void (async () => {
       const { expected, failed } = await warmLayerImageLoads(layers, cycleId);
-      if (options.runtimeStore.isDestroyed() || cycleId !== startupCycleId) {
+      if (!isCurrentStartupCycle(cycleId)) {
         return;
       }
       options.startupReadinessStore.startFirstBake();
@@ -444,6 +451,7 @@ export function createDocumentRuntimeController(options: {
       options.pipeline.bakePendingTiles();
       try {
         await options.pipeline.flushBakes();
+        if (!isCurrentStartupCycle(cycleId)) return;
         options.renderLoopController.requestRenderFromModel();
         if (failed > 0) {
           options.startupReadinessStore.markDegraded(
@@ -467,6 +475,7 @@ export function createDocumentRuntimeController(options: {
           status: failed > 0 ? "degraded" : "ready",
         });
       } catch (error) {
+        if (!isCurrentStartupCycle(cycleId)) return;
         options.startupReadinessStore.markDegraded("first_bake_failed");
         logStartupEvent(
           "first_bake_error",
@@ -664,6 +673,7 @@ export function createDocumentRuntimeController(options: {
       documentSessionController.scheduleDocumentTouch();
     },
     dispose(): void {
+      disposed = true;
       unbindDocumentSessionIntents();
       documentSessionController.dispose();
     },
