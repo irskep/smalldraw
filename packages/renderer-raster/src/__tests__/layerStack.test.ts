@@ -179,6 +179,114 @@ function createRectShape(id: string, layerId: string, zIndex: string) {
 }
 
 describe("LayerStack", () => {
+  test("tile replay filters by location and refreshes after move, delete, clear and undo-clear", () =>
+    withFakeDom(async ({ stack, store, registry }) => {
+      const near = createRectShape("near", "base", "a0");
+      near.transform.translation = [100, 100];
+      const far = createRectShape("far", "base", "a1");
+      far.transform.translation = [1500, 100];
+      store.mutateDocument(new AddShape(near));
+      store.mutateDocument(new AddShape(far));
+      const calls: string[] = [];
+      registry.set("boxed", (_ctx, shape) => {
+        calls.push(shape.id);
+      });
+      stack.updateViewport(2048, 1024, 1);
+      stack.setLayers([{ id: "base", kind: "drawing", zIndex: "a0" }]);
+      await stack.flushBakes();
+      expect(calls).toEqual(["near", "far"]);
+      calls.length = 0;
+      stack.routeDirtyRegions(
+        new Map([["base", [{ min: [80, 80], max: [120, 120] }]]]),
+      );
+      await stack.flushBakes();
+      expect(calls).toEqual(["near"]);
+
+      const doc = store.getDocument();
+      store.applyDocument({
+        ...doc,
+        shapes: {
+          ...doc.shapes,
+          far: { ...doc.shapes.far, transform: { translation: [120, 100] } },
+        },
+      });
+      calls.length = 0;
+      stack.routeDirtyShapeRegions(
+        new Map([
+          [
+            "base",
+            [
+              {
+                shapeId: "far",
+                prevBounds: { min: [1450, 75], max: [1550, 125] },
+                nextBounds: { min: [70, 75], max: [170, 125] },
+              },
+            ],
+          ],
+        ]),
+      );
+      await stack.flushBakes();
+      expect(calls).toEqual(["near", "far"]);
+
+      const moved = store.getDocument();
+      const { near: _deleted, ...remaining } = moved.shapes;
+      store.applyDocument({ ...moved, shapes: remaining });
+      calls.length = 0;
+      stack.scheduleFullInvalidation();
+      await stack.flushBakes();
+      expect(calls).toEqual(["far"]);
+
+      const beforeClear = store.getDocument();
+      store.applyDocument({
+        ...beforeClear,
+        shapes: {
+          ...beforeClear.shapes,
+          clear: {
+            id: "clear",
+            type: "clear",
+            geometry: { type: "clear" },
+            zIndex: "a2",
+            temporalOrder: 100,
+            style: {},
+          },
+        },
+      });
+      calls.length = 0;
+      stack.scheduleFullInvalidation();
+      await stack.flushBakes();
+      expect(calls).toEqual([]);
+      store.applyDocument(beforeClear);
+      stack.scheduleFullInvalidation();
+      await stack.flushBakes();
+      expect(calls).toEqual(["far"]);
+    }));
+
+  test("a single-tile viewport avoids bounds preparation for replay filtering", () =>
+    withFakeDom(async ({ stack, store, registry }) => {
+      store.mutateDocument(
+        new AddShape(createRectShape("shape", "base", "a0")),
+      );
+      stack.updateViewport(500, 500, 1);
+      stack.setLayers([{ id: "base", kind: "drawing", zIndex: "a0" }]);
+      await stack.flushBakes();
+      let renders = 0;
+      registry.set("boxed", () => {
+        renders++;
+      });
+      const handler = store.getShapeHandlers().get("boxed")!;
+      const previous = handler.geometry!.getBounds;
+      handler.geometry!.getBounds = () => {
+        throw new Error("unexpected bounds work");
+      };
+      try {
+        stack.scheduleFullInvalidation();
+        await stack.flushBakes();
+        expect(renders).toBe(1);
+      } finally {
+        handler.geometry!.getBounds = previous;
+      }
+    }));
+
   test("unchanged active layer does not move DOM nodes", () =>
     withFakeDom(async ({ stack, host }) => {
       stack.setLayers([{ id: "base", kind: "drawing", zIndex: "a0" }]);

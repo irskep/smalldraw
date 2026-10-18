@@ -1,5 +1,5 @@
 import type { AnyShape, DrawingLayer, DrawingStore } from "@smalldraw/core";
-import type { Box } from "@smalldraw/geometry";
+import { type Box, BoxOperations, Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import {
   renderLayerStack,
@@ -10,6 +10,7 @@ import { createDomTileProvider } from "./dom";
 import type { DraftLayerComposite } from "./hotLayer";
 import { TileRenderer } from "./index";
 import { perfAddCounter, perfAddTimingMs, perfNowMs } from "./perfDebug";
+import { createTileShapeFilter } from "./tileShapeFilter";
 
 export type LayerRenderStrategy = "tile" | "canvas";
 
@@ -658,6 +659,7 @@ class TileLayerBackend implements LayerBackend {
   private readonly layerId: string;
   private layer: DrawingLayer;
   private readonly tileRenderer: TileRenderer<HTMLCanvasElement, unknown>;
+  private readonly selectTileShapes: ReturnType<typeof createTileShapeFilter>;
   private width = 1;
   private height = 1;
   private dpr = 1;
@@ -671,6 +673,9 @@ class TileLayerBackend implements LayerBackend {
     this.store = options.store;
     this.layer = options.layer;
     this.layerId = options.layer.id;
+    this.selectTileShapes = createTileShapeFilter(
+      this.store.getShapeHandlers(),
+    );
     const tileProvider = createDomTileProvider(options.container, {
       getPixelRatio: () => this.dpr,
       getTileIdentity: () => this.layerId,
@@ -706,8 +711,29 @@ class TileLayerBackend implements LayerBackend {
             -coord.x * TILE_SIZE * tileScaleX,
             -coord.y * TILE_SIZE * tileScaleY,
           );
-          const shapes = this.store.getOrderedShapesForLayer(this.layerId);
           try {
+            const orderedShapes = this.store.getOrderedShapesForLayer(
+              this.layerId,
+            );
+            const guard = 2 / Math.min(tileScaleX, tileScaleY);
+            const tileBounds = BoxOperations.fromMinAndSize(
+              new Vec2(coord.x, coord.y).scale(TILE_SIZE).sub([guard, guard]),
+              new Vec2(TILE_SIZE + 2 * guard),
+            );
+            // A one-tile viewport usually contains the whole drawing. Avoid
+            // paying to populate a bounds cache when there is no tile fan-out.
+            const shapes =
+              this.width <= TILE_SIZE && this.height <= TILE_SIZE
+                ? orderedShapes
+                : this.selectTileShapes(orderedShapes, tileBounds);
+            perfAddCounter(
+              `layer.${this.layerId}.bake.candidates`,
+              orderedShapes.length,
+            );
+            perfAddCounter(
+              `layer.${this.layerId}.bake.replayed`,
+              shapes.length,
+            );
             renderOrderedShapes(ctx, shapes, {
               registry: options.shapeRendererRegistry,
               geometryHandlerRegistry: this.store.getShapeHandlers(),
