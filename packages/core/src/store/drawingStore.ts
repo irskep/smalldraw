@@ -791,6 +791,14 @@ export class DrawingStore {
     this.activeLayerId = layers[DEFAULT_LAYER_ID]
       ? DEFAULT_LAYER_ID
       : (Object.keys(layers)[0] ?? DEFAULT_LAYER_ID);
+    // A remote layer deletion invalidates the tool's captured layer. Reset the
+    // tool through its lifecycle so a later pointer-up cannot commit an orphan
+    // shape, and timer-driven tools stop producing draft content.
+    const toolId = this.activeToolId;
+    if (toolId) {
+      this.deactivateActiveTool();
+      this.activateTool(toolId);
+    }
   }
 
   private rebuildShapeLayerIndex(): void {

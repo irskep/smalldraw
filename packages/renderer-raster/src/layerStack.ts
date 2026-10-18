@@ -184,6 +184,9 @@ class LayerStackImpl implements LayerStack {
     }
 
     this.orderedLayerIds = ordered.map((layer) => layer.id);
+    // A topology update can create containers during the commit handoff. They
+    // must join the hidden set until the frozen hot frame yields to the bakes.
+    if (this.activeLayerDraftComposite) this.hideAllLayerContainersForDraft();
     if (
       this.activeLayerId === null ||
       !this.layersById.has(this.activeLayerId)

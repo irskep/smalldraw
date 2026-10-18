@@ -1,4 +1,9 @@
-import type { AnyShape, DrawingLayer, DrawingStore } from "@smalldraw/core";
+import {
+  type AnyShape,
+  type DrawingLayer,
+  type DrawingStore,
+  getOrderedLayers,
+} from "@smalldraw/core";
 import { BoxOperations, Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { createLayerStack, HotLayer } from "@smalldraw/renderer-raster";
@@ -43,6 +48,8 @@ export function createRasterPipeline(options: {
   let height = options.height;
   let tilePixelRatio = options.tilePixelRatio;
   let orderedLayers: DrawingLayer[] = [];
+  let renderedLayers = store.getDocument().layers;
+  let renderedPresentation = store.getDocument().presentation;
   let currentRenderIdentity = options.renderIdentity;
   const draftSession = atom<{
     phase: "idle" | "capturing" | "active" | "ending";
@@ -303,6 +310,19 @@ export function createRasterPipeline(options: {
 
     const drafts = getActiveLayerDrafts();
     if (drafts.length === 0) {
+      const doc = store.getDocument();
+      if (
+        doc.layers !== renderedLayers ||
+        doc.presentation !== renderedPresentation
+      ) {
+        // Layer changes are part of the frozen scene. Apply the latest metadata
+        // at handoff, before flushBakes decides the new frame is ready.
+        renderedLayers = doc.layers;
+        renderedPresentation = doc.presentation;
+        orderedLayers = getOrderedLayers(doc);
+        layerStack.setLayers(orderedLayers);
+        layerStack.setActiveLayer(store.getActiveLayerId());
+      }
       finishDraftSession();
       updateKnownClearShapeIds();
       return;
@@ -393,6 +413,8 @@ export function createRasterPipeline(options: {
       layerStack.routeDirtyShapes(shapeIds, []);
     },
     setLayers(layers) {
+      renderedLayers = store.getDocument().layers;
+      renderedPresentation = store.getDocument().presentation;
       updateImageOwnership();
       endDraftSession();
       orderedLayers = [...layers].sort((a, b) => {
