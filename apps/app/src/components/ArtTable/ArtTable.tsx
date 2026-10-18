@@ -5,7 +5,7 @@ export function ArtTable({ href }: { href: string }) {
     <section className="art-table" aria-labelledby="art-table-title">
       <h1 id="art-table-title">A free drawing app for kids</h1>
       <a className="art-table__start" href={href}>
-        Start drawing
+        <span aria-hidden="true">+</span> Start drawing
       </a>
       <figure className="art-table__example">
         <img

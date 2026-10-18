@@ -1,8 +1,8 @@
 import {
   Download,
-  FilePlus,
   FolderOpen,
   MoreHorizontal,
+  Plus,
   Redo2,
   Share2,
   Trash2,
@@ -22,7 +22,7 @@ const MOBILE_ACTIONS_MENU_ENTRIES: DropdownMenuEntry[] = [
     ],
   },
   { type: "separator" },
-  { id: "new-drawing", label: "New Drawing", icon: FilePlus },
+  { id: "new-drawing", label: "New Drawing", icon: Plus },
   { id: "browse", label: "Browse Drawings", icon: FolderOpen },
   { id: "export", label: "Export PNG", icon: Download },
   { id: "share", label: "Share", icon: Share2 },

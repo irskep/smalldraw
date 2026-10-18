@@ -285,7 +285,12 @@ export function createDocumentBrowserDialogView(options: {
   const newCard = el(
     "button.kids-draw-document-browser-dialog__new-card",
     { type: "button", onclick: options.onOpenCreateDialog },
-    el("span.ds-button", { "data-tone": "primary" }, "New Drawing"),
+    el(
+      "span.ds-button",
+      { "data-tone": "primary" },
+      el("span", { "aria-hidden": "true" }, "+"),
+      "New Drawing",
+    ),
   ) as HTMLButtonElement;
   const tileList = list(
     "div.kids-draw-document-browser-dialog__tiles",

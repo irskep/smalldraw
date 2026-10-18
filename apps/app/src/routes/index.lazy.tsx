@@ -1,8 +1,8 @@
 import { createLocalDocumentBackend } from "@smalldraw/splat/documents";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { Trash2 } from "lucide";
-import { ArtTable } from "@/components/ArtTable/ArtTable";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ArtTable } from "@/components/ArtTable/ArtTable";
 import {
   DsConfirmDialog,
   type DsConfirmDialogHandle,
@@ -247,6 +247,7 @@ function Index() {
                 className="ds-button portal-launcher-card__cta"
                 data-tone="primary"
               >
+                <span aria-hidden="true">+</span>
                 New Drawing
               </span>
             </span>

@@ -3,12 +3,12 @@ import {
   Circle,
   Download,
   Eraser,
-  FilePlus,
   FolderOpen,
   Highlighter,
   type IconNode,
   PaintBucket,
   Pen,
+  Plus,
   Redo2,
   Share2,
   SprayCan,
@@ -80,7 +80,7 @@ const COLOR_SWATCHES: readonly ColorPickerSwatch[] = [
 const STROKE_WIDTHS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
 
 const DESKTOP_MENU_ENTRIES: DropdownMenuEntry[] = [
-  { id: "new-drawing", label: "New Drawing", icon: FilePlus },
+  { id: "new-drawing", label: "New Drawing", icon: Plus },
   { id: "browse", label: "Browse Drawings", icon: FolderOpen },
   { id: "export", label: "Export PNG", icon: Download },
   { type: "separator" },
@@ -97,7 +97,7 @@ const MOBILE_MENU_ENTRIES: DropdownMenuEntry[] = [
     ],
   },
   { type: "separator" },
-  { id: "new-drawing", label: "New Drawing", icon: FilePlus },
+  { id: "new-drawing", label: "New Drawing", icon: Plus },
   { id: "browse", label: "Browse Drawings", icon: FolderOpen },
   { id: "export", label: "Export PNG", icon: Download },
   { id: "share", label: "Share", icon: Share2 },

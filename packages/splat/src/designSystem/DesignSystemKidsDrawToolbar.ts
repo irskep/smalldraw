@@ -7,8 +7,8 @@ import {
 } from "@smalldraw/design-system";
 import {
   Download,
-  FilePlus,
   FolderOpen,
+  Plus,
   Redo2,
   Share2,
   ShieldCheck,
@@ -39,7 +39,7 @@ import {
 } from "./toolbarProjection";
 
 const DESKTOP_MENU_ENTRIES: readonly DropdownMenuEntry[] = [
-  { id: "new-drawing", label: "New Drawing", icon: FilePlus },
+  { id: "new-drawing", label: "New Drawing", icon: Plus },
   { id: "browse", label: "Browse Drawings", icon: FolderOpen },
   { id: "export", label: "Export PNG", icon: Download },
   { id: "parental-controls", label: "Parental controls", icon: ShieldCheck },
@@ -57,7 +57,7 @@ const MOBILE_MENU_ENTRIES: readonly DropdownMenuEntry[] = [
     ],
   },
   { type: "separator" },
-  { id: "new-drawing", label: "New Drawing", icon: FilePlus },
+  { id: "new-drawing", label: "New Drawing", icon: Plus },
   { id: "browse", label: "Browse Drawings", icon: FolderOpen },
   { id: "export", label: "Export PNG", icon: Download },
   { id: "parental-controls", label: "Parental controls", icon: ShieldCheck },
