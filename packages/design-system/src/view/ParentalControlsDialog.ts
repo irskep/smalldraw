@@ -1,4 +1,5 @@
 import "./ParentalControlsDialog.css";
+import { el, mount } from "redom";
 
 import { Button } from "./Button";
 import { DialogScaffold } from "./DialogScaffold";
@@ -25,6 +26,7 @@ export type ParentalControlsDialogResult = {
 };
 
 export type ParentalControlsDialogOptions = {
+  signInLinks?: { loginHref: string; signupHref: string };
   initialState: ParentalControlsDialogInitialState;
   verifyPin: (pin: string) => Promise<boolean>;
   isCorrectMathAnswer: (answer: string) => boolean;
@@ -57,6 +59,9 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     HTMLInputElement
   >();
   readonly #syncField = document.createElement("label");
+  readonly #signIn = el("p.ds-parental-controls-dialog__sign-in");
+  readonly #loginLink = el("a", "Log in") as HTMLAnchorElement;
+  readonly #signupLink = el("a", "Sign up") as HTMLAnchorElement;
   readonly #syncInput = document.createElement("input");
   readonly #syncText = document.createElement("span");
   readonly #pinField = document.createElement("div");
@@ -131,6 +136,13 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#syncText.textContent =
       "Automatically save new drawings to my account";
     this.#syncField.append(this.#syncInput, this.#syncText);
+    mount(this.#signIn, this.#loginLink);
+    mount(this.#signIn, document.createTextNode(" or "));
+    mount(this.#signIn, this.#signupLink);
+    mount(
+      this.#signIn,
+      document.createTextNode(" to save drawings to your account."),
+    );
 
     this.#pinField.className = "ds-parental-controls-dialog__field";
     this.#pinLabel.className = "ds-parental-controls-dialog__label";
@@ -148,6 +160,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#settingsPanel.append(
       this.#sharingField,
       this.#syncField,
+      this.#signIn,
       this.#pinField,
       this.#clearPinRow,
     );
@@ -195,6 +208,12 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#pinChange = { type: "unchanged" };
     this.#setSharingMode(options.initialState.shareMode);
     this.#syncInput.checked = options.initialState.syncNewDrawingsByDefault;
+    this.#syncInput.disabled = Boolean(options.signInLinks);
+    this.#signIn.hidden = !options.signInLinks;
+    if (options.signInLinks) {
+      this.#loginLink.href = options.signInLinks.loginHref;
+      this.#signupLink.href = options.signInLinks.signupHref;
+    }
     this.#pinInput.value = "";
     this.#accessInput.value = "";
     this.#clearPinRow.hidden = !options.initialState.hasPin;

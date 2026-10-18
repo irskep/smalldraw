@@ -118,3 +118,18 @@
   color: var(--ds-text-muted);
   font-size: var(--font-size-0);
 }
+
+.ds-parental-controls-dialog__checkbox-option:has(input:disabled) {
+  color: var(--ds-text-muted);
+}
+
+.ds-parental-controls-dialog__sign-in {
+  margin: 0;
+  font-size: var(--font-size-button-md);
+  line-height: 1.5;
+}
+
+.ds-parental-controls-dialog__sign-in a {
+  color: var(--ds-ink);
+  text-underline-offset: 0.15em;
+}

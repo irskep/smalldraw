@@ -282,6 +282,7 @@ export async function createKidsDrawApp(
           syncParentalControlsVisibility();
         }
         return await openParentalControls({
+          joinBaseUrl: options.multiplayer?.joinBaseUrl ?? window.location.href,
           accountSettings,
           dialog: presentation.parentalControlsDialog,
           multiplayerApiClient: runtime.multiplayerApiClient,
@@ -387,6 +388,7 @@ async function requestParentalSharePermission(options: {
 }
 
 async function openParentalControls(options: {
+  joinBaseUrl: string;
   accountSettings: AccountSettings | null;
   dialog: ParentalControlsDialog;
   multiplayerApiClient: MultiplayerApiClient | null;
@@ -394,7 +396,10 @@ async function openParentalControls(options: {
 }): Promise<boolean> {
   const multiplayerApiClient = options.multiplayerApiClient;
   if (!options.accountSettings || !multiplayerApiClient) {
-    return await openParentalControlsSettings(options.dialog);
+    return await openParentalControlsSettings(options.dialog, {
+      loginHref: new URL("../login", options.joinBaseUrl).href,
+      signupHref: new URL("../register", options.joinBaseUrl).href,
+    });
   }
   const result = await options.dialog.show({
     initialState: options.accountSettings,

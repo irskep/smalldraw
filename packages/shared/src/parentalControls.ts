@@ -26,6 +26,7 @@ export type ParentalControlsSettingsResult = {
 };
 
 export type ParentalControlsAccessOptions = {
+  signInLinks?: { loginHref: string; signupHref: string };
   initialState: {
     hasPin: boolean;
     shareMode: ParentalControlsShareMode;
@@ -223,8 +224,12 @@ export async function applyParentalControlsSettingsResult(
 
 export async function openParentalControlsSettings(
   dialog: ParentalControlsDialogLike,
+  signInLinks: { loginHref: string; signupHref: string },
 ): Promise<boolean> {
-  const result = await dialog.show(createParentalControlsAccessOptions());
+  const result = await dialog.show({
+    ...createParentalControlsAccessOptions(),
+    signInLinks,
+  });
   if (!result) {
     return false;
   }

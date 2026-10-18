@@ -9,6 +9,7 @@ import {
 } from "@smalldraw/shared";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { mount, unmount } from "redom";
+import { appPath } from "@/config";
 import { trpc } from "@/utils/trpc";
 
 export interface ParentalControlsDialogHandle {
@@ -99,5 +100,8 @@ export const ParentalControlsDialog = forwardRef<
 async function openParentalControlsDialog(
   dialog: DsParentalControlsDialog,
 ): Promise<boolean> {
-  return await openParentalControlsSettings(dialog);
+  return await openParentalControlsSettings(dialog, {
+    loginHref: appPath("login"),
+    signupHref: appPath("register"),
+  });
 }

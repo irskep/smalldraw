@@ -199,6 +199,51 @@ describe("ShareQrDialog", () => {
 });
 
 describe("ParentalControlsDialog", () => {
+  test("offers sign-in links with disabled account saving, then enables it for an account", async () => {
+    const dialog = createParentalControlsDialog();
+    document.body.appendChild(dialog.el);
+    const options = {
+      initialState: {
+        hasPin: false,
+        shareMode: "allowed" as const,
+        syncNewDrawingsByDefault: false,
+      },
+      verifyPin: async () => false,
+      isCorrectMathAnswer: (answer: string) => answer === "30",
+    };
+    const pending = dialog.show({
+      ...options,
+      signInLinks: { loginHref: "/login", signupHref: "/register" },
+    });
+    const input = dialog.el.querySelector<HTMLInputElement>(
+      "#ds-parental-controls-access",
+    )!;
+    input.value = "30";
+    clickDialogButton(dialog.el, "Continue");
+    await Promise.resolve();
+    const checkbox = dialog.el.querySelector<HTMLInputElement>(
+      "#ds-parental-controls-sync-new",
+    )!;
+    expect(checkbox.disabled).toBeTrue();
+    expect(checkbox.checked).toBeFalse();
+    const signIn = dialog.el.querySelector<HTMLElement>(
+      ".ds-parental-controls-dialog__sign-in",
+    )!;
+    expect(signIn.hidden).toBeFalse();
+    expect(
+      Array.from(signIn.querySelectorAll("a"), (link) =>
+        link.getAttribute("href"),
+      ),
+    ).toEqual(["/login", "/register"]);
+    clickDialogButton(dialog.el, "Cancel");
+    await pending;
+    const signedIn = dialog.show(options);
+    expect(checkbox.disabled).toBeFalse();
+    expect(signIn.hidden).toBeTrue();
+    clickDialogButton(dialog.el, "Cancel");
+    await signedIn;
+  });
+
   test("requires the math prompt before saving settings", async () => {
     const dialog = createParentalControlsDialog();
     document.body.appendChild(dialog.el);
