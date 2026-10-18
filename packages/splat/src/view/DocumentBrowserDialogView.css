@@ -11,13 +11,18 @@
 
 .kids-draw-document-browser-dialog__panel {
   width: 100%;
-  max-height: min(92vh, 55rem);
-  grid-template-rows: auto minmax(0, 1fr);
+  min-height: min(92dvh, 48rem);
+  max-height: 92dvh;
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .kids-draw-document-browser-dialog__body {
   position: relative;
   min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  gap: var(--size-3);
 }
 
 .kids-draw-document-browser-dialog__grid {
@@ -47,6 +52,12 @@
 .kids-draw-document-browser-dialog__thumbnail-media > div:first-child {
   width: 100%;
   height: 100%;
+}
+
+/* Keep the drawing's proportions inside the shared 4:3 thumbnail card. */
+.kids-draw-document-browser-dialog__thumbnail-media > img {
+  display: block;
+  object-fit: contain;
 }
 
 .kids-draw-document-browser-dialog__sync-issue {
@@ -105,4 +116,22 @@
   .kids-draw-document-browser-dialog__grid {
     --ds-card-grid-item-min-width: clamp(6.25rem, 28vw, 11.25rem);
   }
+}
+
+.kids-draw-document-browser-dialog__account {
+  width: 100%;
+  border-top: var(--border-size-1) solid var(--ds-border);
+  padding-top: var(--size-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--size-3);
+}
+.kids-draw-document-browser-dialog__account[hidden] {
+  display: none;
+}
+.kids-draw-document-browser-dialog__account p {
+  margin: 0;
+  color: var(--ds-text-muted);
 }

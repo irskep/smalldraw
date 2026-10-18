@@ -7,6 +7,7 @@ import type {
 import {
   type AccountSettings,
   type AccountShareMode,
+  buildDrawingAppUrl,
   isCorrectParentalControlsMathAnswer,
   loadParentalControlsState,
   openParentalControlsSettings,
@@ -43,6 +44,10 @@ import {
   bindCollaborativeSyncErrorSurface,
   isSyncIssueShareMessage,
 } from "./collaborativeSyncErrorSurface";
+import {
+  type AccountSession,
+  createAccountSession,
+} from "./createAccountSession";
 import type { MultiplayerApiClient } from "./createMultiplayerApiClient";
 import {
   resolveCollaborativeDocumentId,
@@ -86,9 +91,18 @@ export async function createKidsDrawApp(
     toolbarUiStore.$state,
   );
   let accountSettings: AccountSettings | null = null;
+  let accountSession: AccountSession | null = null;
+  const shouldUseAccountSettings = () => {
+    const status = accountSession?.$state.get().status;
+    return (
+      status === "signed-in" ||
+      ((status === undefined || status === "unavailable") &&
+        shouldLoadAccountSettings(options.multiplayer))
+    );
+  };
   const getEffectiveShareMode = (): AccountShareMode =>
     accountSettings?.shareMode ??
-    (shouldLoadAccountSettings(options.multiplayer)
+    (shouldUseAccountSettings()
       ? "private_sync"
       : loadParentalControlsState().shareMode);
   const isShareFeatureVisible = (): boolean =>
@@ -149,10 +163,38 @@ export async function createKidsDrawApp(
     appOptions: options,
     collaborationStatusStore: runtime.collaborationStatusStore,
   });
-  if (
-    runtime.multiplayerApiClient &&
-    shouldLoadAccountSettings(options.multiplayer)
-  ) {
+  if (runtime.multiplayerApiClient && options.multiplayer?.joinBaseUrl) {
+    const joinBaseUrl = resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl);
+    accountSession = createAccountSession({
+      client: runtime.multiplayerApiClient,
+      navigateToSignIn: (docUrl) => {
+        const drawing = new URL(
+          buildDrawingAppUrl(joinBaseUrl, {
+            type: "local",
+            docUrl: docUrl ?? runtime.core.getCurrentDocUrl(),
+          }),
+        );
+        drawing.searchParams.set("browse", "1");
+        drawing.searchParams.set("account", "1");
+        const login = new URL("../login", joinBaseUrl);
+        login.searchParams.set(
+          "redirect",
+          `${drawing.pathname}${drawing.search}`,
+        );
+        window.location.assign(login.href);
+      },
+      onSignedOut: () =>
+        window.location.assign(new URL("../", joinBaseUrl).href),
+      onIdentityChanged: () => window.location.reload(),
+    });
+    await accountSession.refresh();
+    syncParentalControlsVisibility();
+  }
+  const refreshAccountSession = () => {
+    void accountSession?.refresh();
+  };
+  window.addEventListener("focus", refreshAccountSession);
+  if (runtime.multiplayerApiClient && shouldUseAccountSettings()) {
     try {
       accountSettings = await runtime.multiplayerApiClient.getAccountSettings();
       syncParentalControlsVisibility();
@@ -204,6 +246,7 @@ export async function createKidsDrawApp(
 
   const controller = createKidsDrawController({
     store,
+    accountSession: accountSession ?? undefined,
     core: runtime.core,
     toolbar: presentation.toolbar,
     catalog,
@@ -251,10 +294,7 @@ export async function createKidsDrawApp(
     isSharingAllowed: () => isShareFeatureVisible(),
     requestSharePermission: async () => {
       try {
-        if (
-          runtime.multiplayerApiClient &&
-          shouldLoadAccountSettings(options.multiplayer)
-        ) {
+        if (runtime.multiplayerApiClient && shouldUseAccountSettings()) {
           accountSettings =
             await runtime.multiplayerApiClient.getAccountSettings();
           syncParentalControlsVisibility();
@@ -273,10 +313,7 @@ export async function createKidsDrawApp(
     },
     openParentalControls: async () => {
       try {
-        if (
-          runtime.multiplayerApiClient &&
-          shouldLoadAccountSettings(options.multiplayer)
-        ) {
+        if (runtime.multiplayerApiClient && shouldUseAccountSettings()) {
           accountSettings =
             await runtime.multiplayerApiClient.getAccountSettings();
           syncParentalControlsVisibility();
@@ -320,6 +357,8 @@ export async function createKidsDrawApp(
     core: runtime.core,
     commands,
     destroy() {
+      window.removeEventListener("focus", refreshAccountSession);
+      accountSession?.dispose();
       controller.destroy();
       unbindToolbarUi();
       unbindParentalControls();

@@ -38,6 +38,8 @@ export class MultiplayerApiError extends Error {
 }
 
 export interface MultiplayerApiClient {
+  getCurrentAccount(): Promise<{ id: string; username: string } | null>;
+  signOut(): Promise<void>;
   listAccountCollaborativeDocuments(): Promise<
     AccountCollaborativeDocumentSummary[]
   >;
@@ -92,6 +94,38 @@ export function createMultiplayerApiClient(options: {
   });
 
   return {
+    async getCurrentAccount() {
+      let result: unknown;
+      try {
+        result = await client.query("me");
+      } catch (error) {
+        if (isMultiplayerApiAuthError(error)) return null;
+        throw normalizeMultiplayerApiError(
+          error,
+          "Could not check your sign-in status.",
+        );
+      }
+      if (result === null) return null;
+      if (
+        !result ||
+        typeof result !== "object" ||
+        typeof (result as { id?: unknown }).id !== "string" ||
+        typeof (result as { username?: unknown }).username !== "string"
+      )
+        throw new Error("Invalid account response");
+      return result as { id: string; username: string };
+    },
+    async signOut() {
+      try {
+        await client.mutation("logout");
+      } catch (error) {
+        if (!isMultiplayerApiAuthError(error))
+          throw normalizeMultiplayerApiError(
+            error,
+            "Could not sign out. Please try again.",
+          );
+      }
+    },
     async listAccountCollaborativeDocuments() {
       let result: unknown;
       try {

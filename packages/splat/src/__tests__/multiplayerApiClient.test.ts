@@ -389,3 +389,48 @@ describe("createMultiplayerApiClient", () => {
     expect(requests[1]?.contentType).toBe("image/png");
   });
 });
+
+test("account session queries and logout use browser credentials", async () => {
+  const requests: Array<{ url: string; credentials: string | undefined }> = [];
+  installFetchMock(async (input, init) => {
+    requests.push({ url: input.toString(), credentials: init?.credentials });
+    return mockJsonResponse(
+      input.toString().includes("me?")
+        ? { id: "account-1", username: "Pat" }
+        : null,
+    );
+  });
+  const client = createMultiplayerApiClient({ apiUrl: "http://localhost/api" });
+  expect(await client.getCurrentAccount()).toEqual({
+    id: "account-1",
+    username: "Pat",
+  });
+  await client.signOut();
+  expect(requests.map((r) => r.credentials)).toEqual(["include", "include"]);
+  expect(requests[1].url).toContain("logout");
+});
+
+test("only an unauthorized account response becomes signed-out", async () => {
+  installFetchMock(async () =>
+    mockTrpcErrorResponse({
+      message: "UNAUTHORIZED",
+      trpcCode: "UNAUTHORIZED",
+      httpStatus: 401,
+      appError: createAppError({
+        code: "DOCUMENT_AUTH_REQUIRED",
+        title: "Sign in",
+        message: "Sign in",
+        severity: "recoverable",
+        retryable: false,
+      }),
+    }),
+  );
+  const client = createMultiplayerApiClient({ apiUrl: "http://localhost/api" });
+  expect(await client.getCurrentAccount()).toBeNull();
+  // Expired sessions can still complete a sign-out action successfully.
+  await client.signOut();
+  installFetchMock(async () => {
+    throw new Error("Offline");
+  });
+  await expect(client.getCurrentAccount()).rejects.toThrow();
+});

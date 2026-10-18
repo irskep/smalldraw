@@ -10,7 +10,8 @@ import {
 } from "@smalldraw/design-system";
 import { KeyRound, Trash2, X } from "lucide";
 import { atom } from "nanostores";
-import { list } from "redom";
+import { el, list, mount } from "redom";
+import type { AccountSessionState } from "../app/createAccountSession";
 import type { KidsDocumentSummary } from "../documents";
 import { bindAtom } from "./atomBindings";
 import type { ReDomLike } from "./ReDomLike";
@@ -18,6 +19,7 @@ import type { ReDomLike } from "./ReDomLike";
 const LONG_PRESS_PREVIEW_MS = 320;
 
 type DocumentBrowserDialogState = {
+  account: AccountSessionState | null;
   open: boolean;
   loading: boolean;
   busyDocUrl: string | null;
@@ -33,6 +35,7 @@ type DocumentBrowserDialogState = {
 };
 
 type DocumentTileItem = {
+  account: AccountSessionState | null;
   docUrl: string;
   document: KidsDocumentSummary;
   isCurrent: boolean;
@@ -49,6 +52,7 @@ type DocumentTileItem = {
 };
 
 export interface DocumentBrowserDialogView extends ReDomLike<HTMLDivElement> {
+  setAccountState(state: AccountSessionState | null): void;
   setOpen(open: boolean): void;
   isOpen(): boolean;
   setLoading(loading: boolean): void;
@@ -143,7 +147,13 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     this.#tile.setOnOpenPointerCancel(() => item.onPointerEnd());
     this.#tile.setOnOpenPointerLeave(() => item.onPointerEnd());
     this.#tile.setBadge({
-      label: document.collaborative ? "Shared" : "Local",
+      label: document.accountAttached
+        ? document.joinSecret
+          ? "Shared · Saved"
+          : "Saved to account"
+        : document.collaborative
+          ? "Shared"
+          : "On this device",
       tone: document.collaborative ? "positive" : "default",
     });
     this.#tile.setAction({
@@ -159,11 +169,22 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     this.#tile.setSecondaryAction(
       claimable
         ? {
-            label: "Claim drawing to your account",
-            text: "Claim",
+            label:
+              item.account?.status === "signed-out"
+                ? "Sign in to save this drawing"
+                : "Save drawing to your account",
+            text:
+              item.account?.status === "signed-out"
+                ? "Sign in to save"
+                : "Save to account",
             icon: KeyRound,
             onPress: () => item.onClaim(document.docUrl),
-            disabled: busy,
+            disabled:
+              busy ||
+              !!item.account?.busy ||
+              (item.account !== null &&
+                item.account.status !== "signed-in" &&
+                item.account.status !== "signed-out"),
             hidden: false,
           }
         : null,
@@ -194,6 +215,8 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
 
 export function createDocumentBrowserDialogView(options: {
   onClose: () => void;
+  onOpen?: () => void;
+  onAccountAction?: () => void;
   onOpenCreateDialog: () => void;
   onOpenDocument: (docUrl: string) => void;
   onClaimDocument?: (docUrl: string) => void;
@@ -235,7 +258,15 @@ export function createDocumentBrowserDialogView(options: {
   });
   const body = document.createElement("div");
   body.className = "kids-draw-document-browser-dialog__body";
-  body.append(grid.el);
+  const accountStatus = el("p", { "aria-live": "polite" });
+  const accountButton = new Button({ label: "Sign in", tone: "neutral" });
+  accountButton.setOnPress(() => options.onAccountAction?.());
+  const accountBar = el("div.kids-draw-document-browser-dialog__account");
+  mount(accountBar, accountStatus);
+  mount(accountBar, accountButton);
+  scaffold.setFooterAlignment("start");
+  mount(body, grid);
+
   scaffold.setBody(body);
 
   const previewCard = createPreviewCard();
@@ -262,6 +293,7 @@ export function createDocumentBrowserDialogView(options: {
   const tileList = list(grid.el, DocumentTileView, "docUrl");
 
   const $state = atom<DocumentBrowserDialogState>({
+    account: null,
     open: false,
     loading: false,
     busyDocUrl: null,
@@ -368,6 +400,29 @@ export function createDocumentBrowserDialogView(options: {
       );
     }
 
+    const account = state.account;
+    scaffold.setFooter(account ? accountBar : null);
+    if (account) {
+      accountStatus.textContent =
+        account.error ??
+        (account.status === "signed-in"
+          ? `Signed in as ${account.username}`
+          : account.status === "signed-out"
+            ? "Not signed in"
+            : account.status === "loading"
+              ? "Checking sign-in status…"
+              : "Sign-in status unavailable.");
+      accountButton.setLabel(
+        account.busy
+          ? "Signing out…"
+          : account.status === "signed-in"
+            ? "Sign out"
+            : account.status === "unavailable"
+              ? "Try again"
+              : "Sign in",
+      );
+      accountButton.setDisabled(account.busy || account.status === "loading");
+    }
     const showInitialLoading = state.loading && state.documents.length === 0;
     const showEmpty = !state.loading && state.documents.length === 0;
     loadingEl.hidden = !showInitialLoading;
@@ -376,13 +431,18 @@ export function createDocumentBrowserDialogView(options: {
 
     tileList.update(
       state.documents.map((document) => ({
+        account: state.account,
         docUrl: document.docUrl,
         document,
         isCurrent: document.docUrl === state.currentDocUrl,
         busy: state.busyDocUrl === document.docUrl,
         removing: state.removingDocUrl === document.docUrl,
         claimable: state.claimableDocUrls.has(document.docUrl),
-        deletable: state.deletableDocUrls.has(document.docUrl),
+        deletable:
+          state.deletableDocUrls.has(document.docUrl) &&
+          (!document.accountAttached ||
+            state.account === null ||
+            state.account.status === "signed-in"),
         thumbnailUrl: state.thumbnailUrlByDocUrl.get(document.docUrl) ?? null,
         onOpen: openDocument,
         onDelete: options.onDeleteDocument,
@@ -395,7 +455,11 @@ export function createDocumentBrowserDialogView(options: {
 
   return {
     el: root,
+    setAccountState(account) {
+      updateState((state) => ({ ...state, account }));
+    },
     setOpen(open) {
+      if (open) options.onOpen?.();
       if (!open) {
         clearLongPressTimeout();
       }

@@ -14,6 +14,8 @@ if (!container) {
 
 try {
   const multiplayerConfig = createBrowserMultiplayerConfig();
+  const browseOnStart =
+    new URLSearchParams(window.location.search).get("browse") === "1";
   const startupIntent = resolveSplatStartupIntent(window.location.search);
   const accountSessionExpected =
     new URLSearchParams(window.location.search).get("account") === "1";
@@ -38,6 +40,7 @@ try {
         documentNavigation.replaceCurrentDocument(summary).key;
     },
   });
+  if (browseOnStart) baseApp.commands.browse();
   const unbindNavigation = documentNavigation.subscribe((navigation) => {
     if (navigation.key === lastOpenedNavigationKey) {
       return;

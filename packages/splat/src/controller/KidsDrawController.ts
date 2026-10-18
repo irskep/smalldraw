@@ -8,6 +8,7 @@ import { Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { type IconNode, Trash2 } from "lucide";
 import { mount, unmount } from "redom";
+import type { AccountSession } from "../app/createAccountSession";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 import {
   automergeUrlToDocumentId,
@@ -155,6 +156,7 @@ export function createKidsDrawController(options: {
   }>;
   createShareInvitation?: (documentId: string) => Promise<{ token: string }>;
   shouldSyncNewDrawingsByDefault?: () => boolean;
+  accountSession?: AccountSession;
   claimCollaborativeDocument?: (accessToken: string) => Promise<void>;
   deleteCollaborativeDocument?: (documentId: string) => Promise<void>;
   removeCollaborativeDocumentFromAccount?: (
@@ -289,6 +291,20 @@ export function createKidsDrawController(options: {
   };
 
   const documentBrowserDialog = createDocumentBrowserDialogView({
+    onOpen: () => {
+      void options.accountSession?.refresh();
+    },
+    onAccountAction: () => {
+      const account = options.accountSession;
+      if (!account) return;
+      const state = account.$state.get();
+      if (state.status === "signed-in") void account.signOut();
+      else if (state.status === "signed-out")
+        account.signIn(
+          runtimeDocumentController.getActiveDocumentDocUrl() ?? undefined,
+        );
+      else void account.refresh();
+    },
     onClose: () => {
       documentPickerController.close();
     },
@@ -306,12 +322,23 @@ export function createKidsDrawController(options: {
       });
     },
     onClaimDocument: (docUrl) => {
+      if (options.accountSession?.$state.get().status === "signed-out") {
+        options.accountSession.signIn(docUrl);
+        return;
+      }
       void claimDocumentFromBrowser(docUrl);
     },
     onDeleteDocument: (docUrl) => {
       void deleteDocumentFromBrowser(docUrl);
     },
   });
+  if (options.accountSession) {
+    add(
+      options.accountSession.$state.subscribe((state) =>
+        documentBrowserDialog.setAccountState(state),
+      ),
+    );
+  }
   const newDocumentDialog = createNewDocumentDialogView({
     resolveAssetUrl: options.resolveAssetUrl,
     onClose: () => {
@@ -428,6 +455,22 @@ export function createKidsDrawController(options: {
     flushThumbnailSave: () => runtimeDocumentController.flushThumbnailSave(),
     listDocuments: () => documentBackend.listDocuments(),
     claimDocument: async (document) => {
+      if (options.accountSession) {
+        await options.accountSession.refresh();
+        if (options.accountSession.$state.get().status === "signed-out") {
+          options.accountSession.signIn(document.docUrl);
+          return;
+        }
+        if (options.accountSession.$state.get().status !== "signed-in")
+          throw new Error(
+            "Could not check your sign-in status. Please try again.",
+          );
+      }
+      if (!document.collaborative) {
+        await runtimeDocumentController.switchToDocument(document.docUrl);
+        await runtimeDocumentController.syncCurrentDocumentToAccount();
+        return;
+      }
       if (!options.claimCollaborativeDocument) {
         throw new Error("Account claim is not configured");
       }
@@ -454,6 +497,9 @@ export function createKidsDrawController(options: {
       }
     },
     isClaimableDocument: (document) =>
+      (!document.collaborative &&
+        !document.accountAttached &&
+        !!options.accountSession) ||
       resolveDocumentClaimState(document).claimable,
     describeClaimability: (document) => ({
       claimState: resolveDocumentClaimState(document),

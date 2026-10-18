@@ -309,7 +309,7 @@ describe("DocumentBrowserDialogView", () => {
     }));
 
     expect(statuses).toEqual([
-      { text: "Local", shared: false },
+      { text: "On this device", shared: false },
       { text: "Shared", shared: true },
     ]);
   });
@@ -375,4 +375,53 @@ describe("DocumentBrowserDialogView", () => {
     expect(grid?.hidden).toBeFalse();
     expect(loading?.hidden).toBeTrue();
   });
+});
+
+test("document browser reflects account state in status and save actions", () => {
+  const dialog = createDocumentBrowserDialogView({
+    onClose() {},
+    onOpenCreateDialog() {},
+    onOpenDocument() {},
+    onDeleteDocument() {},
+  });
+  const doc = {
+    ...createDocument("doc://shared"),
+    collaborative: true,
+    joinSecret: "join",
+  };
+  dialog.setDocuments([doc]);
+  dialog.setClaimableDocuments(new Set([doc.docUrl]));
+  const action = () =>
+    dialog.el.querySelector<HTMLButtonElement>(
+      `[data-document-browser-claim="${doc.docUrl}"]`,
+    )!;
+  dialog.setAccountState({
+    status: "signed-out",
+    username: null,
+    busy: false,
+    error: null,
+  });
+  expect(dialog.el.textContent).toContain("Not signed in");
+  expect(action().textContent).toContain("Sign in to save");
+  dialog.setAccountState({
+    status: "signed-in",
+    username: "Pat",
+    busy: false,
+    error: null,
+  });
+  expect(dialog.el.textContent).toContain("Signed in as Pat");
+  expect(action().textContent).toContain("Save to account");
+  expect(dialog.el.textContent).toContain("Sign out");
+  dialog.setAccountState({
+    status: "unavailable",
+    username: null,
+    busy: false,
+    error: "Offline",
+  });
+  expect(action().disabled).toBe(true);
+  expect(dialog.el.textContent).toContain("Try again");
+  dialog.setDocuments([{ ...doc, accountAttached: true }]);
+  dialog.setClaimableDocuments(new Set());
+  expect(dialog.el.textContent).toContain("Shared · Saved");
+  expect(action()).toBeNull();
 });
