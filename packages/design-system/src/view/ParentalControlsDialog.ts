@@ -115,20 +115,12 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#sharingLegend.textContent = "Sharing";
     this.#sharingField.append(
       this.#sharingLegend,
-      this.#createSharingOption(
-        "allowed",
-        "Allow sharing",
-        "Share drawings without another prompt.",
-      ),
-      this.#createSharingOption(
-        "pin_required",
-        "Allow sharing with PIN",
-        "Ask for the PIN before sharing a drawing.",
-      ),
+      this.#createSharingOption("allowed", "Allow sharing"),
+      this.#createSharingOption("pin_required", "Allow sharing with PIN"),
       this.#createSharingOption(
         "private_sync",
         "Private Sync",
-        "Sync to your account without showing share links or QR codes.",
+        "Save to your account without offering share links.",
       ),
     );
 
@@ -332,9 +324,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#confirmButton.setLabel(step === "access" ? "Continue" : "Save");
     if (step === "access") {
       this.#scaffold.setTitle("Parental controls");
-      this.#scaffold.setSubtitle(
-        hasPin ? "Enter your PIN to continue." : "Solve 5 x 6 to continue.",
-      );
+      this.#scaffold.setSubtitle(null);
       this.#accessLabel.textContent = hasPin ? "PIN" : "What is 5 x 6?";
       this.#accessInput.type = hasPin ? "password" : "text";
       this.#accessInput.inputMode = hasPin ? "text" : "numeric";
@@ -342,7 +332,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
       return;
     }
     this.#scaffold.setTitle("Parental controls");
-    this.#scaffold.setSubtitle("Manage drawing sync and share controls.");
+    this.#scaffold.setSubtitle(null);
     this.#hint.textContent = hasPin
       ? "Leave PIN blank to keep the current PIN."
       : "Set a PIN to skip the math puzzle next time.";
@@ -394,7 +384,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   #createSharingOption(
     value: ParentalControlsShareMode,
     title: string,
-    description: string,
+    description?: string,
   ): HTMLLabelElement {
     const label = document.createElement("label");
     label.className = "ds-parental-controls-dialog__radio-option";
@@ -408,10 +398,13 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     const titleEl = document.createElement("span");
     titleEl.className = "ds-parental-controls-dialog__radio-title";
     titleEl.textContent = title;
-    const descriptionEl = document.createElement("span");
-    descriptionEl.className = "ds-parental-controls-dialog__radio-copy";
-    descriptionEl.textContent = description;
-    text.append(titleEl, descriptionEl);
+    text.append(titleEl);
+    if (description) {
+      const descriptionEl = document.createElement("span");
+      descriptionEl.className = "ds-parental-controls-dialog__radio-copy";
+      descriptionEl.textContent = description;
+      text.append(descriptionEl);
+    }
     label.append(input, text);
     this.#sharingInputs.set(value, input);
     return label;
