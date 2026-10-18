@@ -4,6 +4,15 @@
 
 Use Open Props as the token system, not as raw material for clever arithmetic.
 
+### Visual Design
+
+- Design for clarity, approachability, and character. Minimalism is not a requirement; color, illustration, and expressive typography are appropriate when they support the experience.
+- Keep a coherent visual language. Reuse established palette, type, spacing, and control treatments. Extend the shared system deliberately rather than creating a new style for each screen.
+- Give styling a purpose: communicate hierarchy, explain an action, show state, or establish personality. Avoid decorative effects that compete with content or obscure controls.
+- Use shared components for repeated UI. Keep reusable styling in this package and page-specific composition in the application. Keep feature briefs and individual redesign plans out of these guidelines.
+- Preserve readability, visible keyboard focus, distinct interaction states, and comfortable touch targets. Do not rely on color alone to communicate meaning. Respect reduced-motion preferences.
+- Review visual changes in the running app and relevant harness stories, at desktop and mobile sizes and in relevant interaction and content states. Judge the rendered result, not just the CSS.
+
 ### Working Rules
 
 - Prefer clarity over ideological purity.
