@@ -302,8 +302,11 @@ function Index() {
       </section>
       <section className="art-table-about" aria-label="Made for families">
         <div>
-          <h2>All the fun. None of the fuss.</h2>
-          <p>Free to use. No ads. No payments. Just room to make things.</p>
+          <h2>How is this free?</h2>
+          <p>
+            I’m a dad who made this so my kid could draw without gimmicks or
+            ads. I’m sharing it so your family can use it too.
+          </p>
         </div>
         <div className="art-table-about__parents">
           <p>
