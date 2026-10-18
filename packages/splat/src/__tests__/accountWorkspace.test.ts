@@ -18,20 +18,41 @@ import {
   workspaceNames,
 } from "../documents/workspace";
 
+// Model shared/exclusive exclusion and FIFO queuing; storage and repos remain real.
+function createTestLocks() {
+  const tails = new Map<string, Promise<unknown>>();
+  const readers = new Map<string, Promise<unknown>[]>();
+  return {
+    request(name: string, options: unknown, callback?: () => unknown) {
+      const shared = (options as { mode?: string }).mode === "shared";
+      const run = callback ?? (options as () => unknown);
+      const writer = tails.get(name) ?? Promise.resolve();
+      if (shared) {
+        const result = writer.then(run);
+        const group = readers.get(name) ?? [];
+        group.push(result.catch(() => {}));
+        readers.set(name, group);
+        return result;
+      }
+      const result = Promise.all([writer, ...(readers.get(name) ?? [])]).then(
+        run,
+      );
+      readers.delete(name);
+      tails.set(
+        name,
+        result.catch(() => {}),
+      );
+      return result;
+    },
+  };
+}
+
 const previousIndexedDB = globalThis.indexedDB;
 beforeEach(() => {
   Object.assign(globalThis, { indexedDB, IDBKeyRange });
   Object.defineProperty(navigator, "locks", {
     configurable: true,
-    value: {
-      request: async (
-        _name: string,
-        options: unknown,
-        callback?: () => unknown,
-      ) => {
-        return await (callback ?? (options as () => unknown))();
-      },
-    },
+    value: createTestLocks(),
   });
 });
 const repos: Repo[] = [];
@@ -310,4 +331,107 @@ test("concurrent freeze requests wait for the same completed local flush", async
   await first;
   await second;
   watcher.dispose();
+});
+
+test("logout recovery waits for another tab to flush and release its writer lease", async () => {
+  const { api, id } = fakeApi();
+  const { repo, backend } = workspace(id);
+  const drawing = repo.create({ marks: ["saved"] });
+  await backend.createDocument({ docUrl: drawing.url });
+  await repo.flush();
+  localStorage.setItem("drawing-account-purge", id);
+  await api.signOut();
+  let release!: () => void;
+  let acquired!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    acquired = resolve;
+  });
+  const barrier = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const writer = navigator.locks.request(
+    workspaceNames(id).lock,
+    { mode: "shared" },
+    async () => {
+      acquired();
+      await barrier;
+      await repo.shutdown();
+    },
+  );
+  await ready;
+  let frozen!: () => void;
+  const freezeReceived = new Promise<void>((resolve) => {
+    frozen = resolve;
+  });
+  const bus = new BroadcastChannel("drawing-account-transition");
+  bus.onmessage = (event) => {
+    if (event.data?.type === "freeze" && event.data.workspace === id) frozen();
+  };
+  const recovery = prepareAccountWorkspace(api);
+  try {
+    await freezeReceived;
+    expect(await backend.getDocument(drawing.url)).not.toBeNull();
+    expect(localStorage.getItem("drawing-account-purge")).toBe(id);
+  } finally {
+    release();
+    await writer;
+    await recovery;
+    bus.close();
+  }
+  expect(await backend.listDocuments()).toEqual([]);
+  expect(
+    await new IndexedDBStorageAdapter(workspaceNames(id).repo).loadRange([]),
+  ).toEqual([]);
+});
+
+test("logout checkpoints the final edits from two open writers before purging", async () => {
+  const { api, id } = fakeApi();
+  const first = workspace(id);
+  const second = workspace(id);
+  const a = first.repo.create({ marks: ["a"] });
+  const b = second.repo.create({ marks: ["b"] });
+  await first.backend.createDocument({ docUrl: a.url });
+  await second.backend.createDocument({ docUrl: b.url });
+  await Promise.all([first.repo.flush(), second.repo.flush()]);
+  const saved: unknown[] = [];
+  const checkpoint = api.checkpointAccountDrawing;
+  api.checkpointAccountDrawing = async (...args) => {
+    saved.push(load(args[1]));
+    return checkpoint(...args);
+  };
+  let finishSecond!: () => void;
+  const barrier = new Promise<void>((resolve) => {
+    finishSecond = resolve;
+  });
+  let freezing!: () => void;
+  const started = new Promise<void>((resolve) => {
+    freezing = resolve;
+  });
+  const one = watchAccountWorkspace({ api, ...first });
+  const two = watchAccountWorkspace({
+    api,
+    ...second,
+    beforeFreeze: async () => {
+      freezing();
+      await barrier;
+      b.change((doc) => {
+        doc.marks.push("last edit");
+      });
+    },
+  });
+  const logout = signOutAccountWorkspace(api, one.freeze);
+  try {
+    await started;
+    expect(await api.getCurrentAccount()).not.toBeNull();
+    expect(await first.backend.listDocuments()).toHaveLength(2);
+    finishSecond();
+    await logout;
+    expect(saved).toContainEqual({ marks: ["b", "last edit"] });
+    expect(await first.backend.listDocuments()).toEqual([]);
+  } finally {
+    finishSecond();
+    await Promise.all([one.freeze(), two.freeze()]);
+    one.dispose();
+    two.dispose();
+  }
 });

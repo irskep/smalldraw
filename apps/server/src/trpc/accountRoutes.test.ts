@@ -233,6 +233,7 @@ describe("account routes", () => {
     const content = await createAutomergeContent();
 
     const result = await caller.registerAccountSyncedDocument({
+      accountId: user.id,
       documentId,
       content,
     });

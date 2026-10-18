@@ -57,9 +57,24 @@ export async function prepareAccountWorkspace(
   await navigator.locks.request(TRANSITION, async () => {
     const pendingPurge = localStorage.getItem(PURGE);
     if (pendingPurge) {
-      const current = await api.getCurrentAccount();
-      if (current?.id === pendingPurge) await api.signOut();
-      await finishPurge();
+      const bus = channel();
+      try {
+        bus.postMessage({ type: "freeze", workspace: pendingPurge });
+        await navigator.locks.request(
+          workspaceNames(pendingPurge).lock,
+          async () => {
+            const current = await api.getCurrentAccount();
+            if (current?.id === pendingPurge) await api.signOut();
+            await finishPurge();
+          },
+        );
+        bus.postMessage("reload");
+      } catch (error) {
+        bus.postMessage({ type: "resume", initiator: TAB });
+        throw error;
+      } finally {
+        bus.close();
+      }
     }
     let user: Awaited<ReturnType<MultiplayerApiClient["getCurrentAccount"]>>;
     try {
@@ -213,7 +228,11 @@ export async function syncAccountWorkspace(
           canDeleteFromServer: document.accessTokenScope === "owner",
         });
       } else {
-        const registered = await api.registerAccountSyncedDocument(id, binary);
+        const registered = await api.registerAccountSyncedDocument(
+          id,
+          binary,
+          userId,
+        );
         await backend.createDocument({
           docUrl: document.docUrl,
           collaborative: true,
@@ -236,7 +255,7 @@ export async function syncAccountWorkspace(
     if (!binary)
       throw new Error("A drawing changed while syncing. Please try again.");
     const heads = getHeads(load(binary));
-    const result = await api.checkpointAccountDrawing(id, binary);
+    const result = await api.checkpointAccountDrawing(id, binary, userId);
     if (heads.some((head) => !result.heads.includes(head)))
       throw new Error("The server has not saved every change yet.");
     const remote = load(

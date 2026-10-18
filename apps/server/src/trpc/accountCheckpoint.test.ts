@@ -20,10 +20,12 @@ test("account registration is repeatable, and checkpoints persist and merge edit
   const handle = repo.create({ marks: ["first"] });
   const content = Buffer.from(save(handle.doc())).toString("base64");
   const first = await api.registerAccountSyncedDocument({
+    accountId: (await api.me()).id,
     documentId: handle.documentId,
     content,
   });
   const second = await api.registerAccountSyncedDocument({
+    accountId: (await api.me()).id,
     documentId: handle.documentId,
     content,
   });
@@ -38,6 +40,7 @@ test("account registration is repeatable, and checkpoints persist and merge edit
     doc.marks.push("remote");
   });
   const result = await api.checkpointAccountDrawing({
+    accountId: (await api.me()).id,
     documentId: handle.documentId,
     content: Buffer.from(save(local)).toString("base64"),
   });
@@ -59,6 +62,7 @@ test("an unrelated account cannot overwrite or claim an existing document ID", a
   const stranger = await caller("checkpoint-stranger");
   const handle = repo.create({ private: true });
   const input = {
+    accountId: (await owner.me()).id,
     documentId: handle.documentId,
     content: Buffer.from(save(handle.doc())).toString("base64"),
   };
@@ -66,4 +70,20 @@ test("an unrelated account cannot overwrite or claim an existing document ID", a
   await expect(stranger.registerAccountSyncedDocument(input)).rejects.toThrow();
   await expect(stranger.checkpointAccountDrawing(input)).rejects.toThrow();
   expect(handle.doc()).toEqual({ private: true });
+});
+
+test("a changed login cannot register an unsynced drawing for the wrong account", async () => {
+  const original = await caller("original-account");
+  const changed = await caller("changed-account");
+  const handle = repo.create({ marks: ["private offline work"] });
+  const input = {
+    accountId: (await original.me()).id,
+    documentId: handle.documentId,
+    content: Buffer.from(save(handle.doc())).toString("base64"),
+  };
+  await expect(changed.registerAccountSyncedDocument(input)).rejects.toThrow(
+    "Account changed",
+  );
+  // A rejected request must not reserve ownership for the new login.
+  await original.registerAccountSyncedDocument(input);
 });

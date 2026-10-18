@@ -43,6 +43,7 @@ export interface MultiplayerApiClient {
   checkpointAccountDrawing(
     documentId: string,
     content: Uint8Array,
+    accountId: string,
   ): Promise<{ heads: string[]; content: string }>;
   acceptDocumentInvitation(token: string): Promise<void>;
   listAccountCollaborativeDocuments(): Promise<
@@ -56,6 +57,7 @@ export interface MultiplayerApiClient {
   registerAccountSyncedDocument(
     documentId: string,
     content: Uint8Array,
+    accountId: string,
   ): Promise<SyncedAccountDocument>;
   createShareInvitation(documentId: string): Promise<DocumentInvitationToken>;
   getAccountSettings(): Promise<AccountSettings>;
@@ -120,8 +122,9 @@ export function createMultiplayerApiClient(options: {
         throw new Error("Invalid account response");
       return result as { id: string; username: string };
     },
-    async checkpointAccountDrawing(documentId, content) {
+    async checkpointAccountDrawing(documentId, content, accountId) {
       return (await client.mutation("checkpointAccountDrawing", {
+        accountId,
         documentId,
         content: uint8ArrayToBase64(content),
       })) as { heads: string[]; content: string };
@@ -179,11 +182,12 @@ export function createMultiplayerApiClient(options: {
       }
       return parsed;
     },
-    async registerAccountSyncedDocument(documentId, content) {
+    async registerAccountSyncedDocument(documentId, content, accountId) {
       const contentBase64 = uint8ArrayToBase64(content);
       let result: unknown;
       try {
         result = await client.mutation("registerAccountSyncedDocument", {
+          accountId,
           documentId,
           content: contentBase64,
         });

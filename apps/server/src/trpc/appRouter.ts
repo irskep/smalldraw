@@ -1064,11 +1064,17 @@ export const appRouter = router({
   registerAccountSyncedDocument: protectedProcedure
     .input(
       z.object({
+        accountId: z.string().min(1),
         documentId: z.string().min(1),
         content: z.string().min(1),
       }),
     )
     .mutation(async (opts) => {
+      if (opts.input.accountId !== opts.ctx.session.userId)
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Account changed during sync",
+        });
       const rawDocId = opts.input.documentId.replace(
         /^automerge:/,
         "",
@@ -1102,9 +1108,18 @@ export const appRouter = router({
 
   checkpointAccountDrawing: protectedProcedure
     .input(
-      z.object({ documentId: z.string().min(1), content: z.string().min(1) }),
+      z.object({
+        accountId: z.string().min(1),
+        documentId: z.string().min(1),
+        content: z.string().min(1),
+      }),
     )
     .mutation(async (opts) => {
+      if (opts.input.accountId !== opts.ctx.session.userId)
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Account changed during sync",
+        });
       const documentId = opts.input.documentId.replace(
         /^automerge:/,
         "",

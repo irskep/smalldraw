@@ -2,6 +2,7 @@ import {
   signOutAccountWorkspace,
   watchAccountWorkspace,
 } from "../documents/accountWorkspace";
+import { getDrawingWorkspace } from "../documents/workspace";
 import "@smalldraw/design-system/styles.css";
 import { DrawingStore } from "@smalldraw/core";
 import type {
@@ -704,10 +705,14 @@ function createControllerMultiplayerAdapters(options: {
       : undefined,
     registerAccountSyncedDocument: multiplayerApiClient
       ? async (documentId: string, content: Uint8Array) => {
+          const accountId = getDrawingWorkspace();
+          if (!accountId)
+            throw new Error("Sign in before saving to an account.");
           const result =
             await multiplayerApiClient.registerAccountSyncedDocument(
               documentId,
               content,
+              accountId,
             );
           if (options.localRepo) {
             options.localRepo.setWebsocketAuthorizedDocumentId(
