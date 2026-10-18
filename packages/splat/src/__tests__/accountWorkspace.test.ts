@@ -8,6 +8,7 @@ import {
   prepareAccountWorkspace,
   signOutAccountWorkspace,
   syncAccountWorkspace,
+  watchAccountWorkspace,
 } from "../documents/accountWorkspace";
 import { createLocalSmalldrawRepo } from "../documents/createLocalSmalldrawRepo";
 import { createLocalDocumentBackend } from "../documents/localDocumentBackend";
@@ -282,4 +283,31 @@ test("interrupted logout resumes purging the old account before exposing a guest
   ).toEqual([]);
   expect(localStorage.getItem("drawing-account-purge")).toBeNull();
   expect(getDrawingWorkspace()).toBeNull();
+});
+
+test("concurrent freeze requests wait for the same completed local flush", async () => {
+  const { api, id } = fakeApi();
+  const { repo, backend } = workspace(id);
+  let release!: () => void;
+  const barrier = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let freezes = 0;
+  const watcher = watchAccountWorkspace({
+    api,
+    repo,
+    backend,
+    beforeFreeze: async () => {
+      freezes++;
+      await barrier;
+    },
+  });
+  const first = watcher.freeze();
+  const second = watcher.freeze();
+  expect(first).toBe(second);
+  expect(freezes).toBe(1);
+  release();
+  await first;
+  await second;
+  watcher.dispose();
 });
