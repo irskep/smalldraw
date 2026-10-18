@@ -242,15 +242,7 @@ export function createDocumentBrowserDialogView(options: {
   closeButton.setOnPress(() => {
     options.onClose();
   });
-  const newButton = new Button({
-    label: "New Drawing",
-    tone: "primary",
-  });
-  newButton.setOnPress(() => {
-    options.onOpenCreateDialog();
-  });
   scaffold.setLeading(closeButton);
-  scaffold.setTrailing(newButton);
 
   const grid = createCardGrid({
     className: "kids-draw-document-browser-dialog__grid",
@@ -290,7 +282,18 @@ export function createDocumentBrowserDialogView(options: {
   emptyStateEl.textContent = "No drawings yet. Start a new one.";
   body.append(loadingEl, emptyStateEl);
 
-  const tileList = list(grid.el, DocumentTileView, "docUrl");
+  const newCard = el(
+    "button.kids-draw-document-browser-dialog__new-card",
+    { type: "button", onclick: options.onOpenCreateDialog },
+    el("span.ds-button", { "data-tone": "primary" }, "New Drawing"),
+  ) as HTMLButtonElement;
+  const tileList = list(
+    "div.kids-draw-document-browser-dialog__tiles",
+    DocumentTileView,
+    "docUrl",
+  );
+  mount(grid, newCard);
+  mount(grid, tileList);
 
   const $state = atom<DocumentBrowserDialogState>({
     account: null,
@@ -376,7 +379,7 @@ export function createDocumentBrowserDialogView(options: {
 
   bindAtom($state, (state) => {
     closeButton.setDisabled(state.busyDocUrl !== null);
-    newButton.setDisabled(state.busyDocUrl === "__new__");
+    newCard.disabled = state.busyDocUrl === "__new__";
 
     const previewDocument = state.previewDocUrl
       ? (state.documents.find(
@@ -427,7 +430,7 @@ export function createDocumentBrowserDialogView(options: {
     const showEmpty = !state.loading && state.documents.length === 0;
     loadingEl.hidden = !showInitialLoading;
     emptyStateEl.hidden = !showEmpty;
-    grid.el.hidden = showInitialLoading || showEmpty;
+    grid.el.hidden = showInitialLoading;
 
     tileList.update(
       state.documents.map((document) => ({
