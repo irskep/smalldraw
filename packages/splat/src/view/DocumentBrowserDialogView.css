@@ -11,7 +11,6 @@
 
 .kids-draw-document-browser-dialog__panel {
   width: 100%;
-  min-height: min(92dvh, 48rem);
   max-height: 92dvh;
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
@@ -19,17 +18,18 @@
 .kids-draw-document-browser-dialog__body {
   position: relative;
   min-height: 0;
-  height: 100%;
   display: grid;
   grid-template-rows: minmax(0, 1fr);
   gap: var(--size-3);
 }
 
 .kids-draw-document-browser-dialog__grid {
-  --ds-card-grid-item-min-width: clamp(7rem, 18vw, 15rem);
+  --ds-card-grid-item-min-width: min(100%, 16rem);
 
   min-height: 0;
-  padding-right: var(--size-1);
+  gap: var(--size-4);
+  align-items: start;
+  padding: var(--size-1);
 }
 
 .kids-draw-document-browser-dialog__grid .ds-thumbnail-tile {
@@ -100,7 +100,7 @@
   display: grid;
   place-items: center;
   padding: var(--size-4);
-  background: rgb(2 6 23 / 45%);
+  background: rgb(48 47 42 / 45%);
   pointer-events: auto;
 }
 
@@ -111,10 +111,6 @@
 @media (max-width: 720px) {
   .kids-draw-document-browser-dialog {
     width: min(92vw, 32rem);
-  }
-
-  .kids-draw-document-browser-dialog__grid {
-    --ds-card-grid-item-min-width: clamp(6.25rem, 28vw, 11.25rem);
   }
 }
 
@@ -148,10 +144,10 @@
   display: grid;
   place-items: center;
   padding: var(--size-2);
-  border: var(--border-size-1) dashed var(--ds-border);
+  border: var(--border-size-1) solid var(--ds-accent-border);
   border-radius: var(--radius-3);
-  background: var(--ds-surface-muted);
-  box-shadow: var(--shadow-1);
+  background: var(--ds-accent-subtle-surface);
+  box-shadow: none;
   cursor: var(--ds-cursor-interactive-hover);
   transition:
     border-color 120ms var(--ease-out-3),
@@ -175,4 +171,148 @@
   pointer-events: none;
   max-width: 100%;
   white-space: normal;
+}
+
+/* Keep the artwork clear; storage and account actions sit beneath it. */
+.kids-draw-document-browser-dialog .ds-dialog-scaffold__header-bar {
+  align-items: center;
+}
+
+.kids-draw-document-browser-dialog .ds-dialog-scaffold__title.ds-text {
+  font-size: var(--font-size-5);
+}
+
+.kids-draw-document-browser-dialog .ds-dialog-scaffold__header .ds-button {
+  min-height: 44px;
+  --font-size-button-md: var(--font-size-2);
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile {
+  aspect-ratio: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: var(--size-1) var(--size-2);
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__open {
+  grid-column: 1 / -1;
+  aspect-ratio: 4 / 3;
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__badge,
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__action,
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__secondary-action {
+  position: static;
+  box-shadow: none;
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__badge {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
+  justify-self: start;
+  padding: var(--size-1) 0;
+  background: transparent;
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-4);
+}
+
+.kids-draw-document-browser-dialog__grid
+  [data-current="true"]
+  .ds-thumbnail-tile__badge {
+  color: var(--ds-ink);
+  font-weight: var(--font-weight-6);
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__action {
+  grid-column: 2;
+  grid-row: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-2);
+  background: transparent;
+  color: var(--ds-text-muted);
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__action:hover {
+  background: var(--red-1);
+  color: var(--ds-danger);
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__action svg {
+  width: 22px;
+  height: 22px;
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__secondary-action {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  min-height: 44px;
+  justify-content: center;
+  border-radius: var(--radius-2);
+  font-size: var(--font-size-1);
+  background: var(--ds-surface-muted);
+  color: var(--ds-ink);
+}
+
+.kids-draw-document-browser-dialog__new-card {
+  align-content: center;
+  gap: var(--size-2);
+  font: inherit;
+  font-size: var(--font-size-4);
+  font-weight: var(--font-weight-6);
+  color: var(--ds-ink);
+}
+
+.kids-draw-document-browser-dialog__new-plus {
+  font-size: var(--font-size-7);
+  font-weight: var(--font-weight-4);
+  line-height: 1;
+  color: var(--ds-accent-border);
+}
+
+@media (max-width: 600px) {
+  .kids-draw-document-browser-dialog {
+    width: calc(100dvw - 24px);
+    max-width: calc(100dvw - 24px);
+  }
+
+  .kids-draw-document-browser-dialog__panel {
+    padding: var(--size-3);
+  }
+
+  .kids-draw-document-browser-dialog .ds-dialog-scaffold__title.ds-text {
+    font-size: var(--font-size-4);
+  }
+
+  .kids-draw-document-browser-dialog__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--size-3) var(--size-2);
+  }
+
+  .kids-draw-document-browser-dialog__new-card {
+    font-size: var(--font-size-2);
+  }
+
+  .kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__badge {
+    font-size: var(--font-size-0);
+  }
+}
+
+.kids-draw-document-browser-dialog .ds-dialog-scaffold__leading {
+  grid-column: 1;
+  grid-row: 1;
+}
+.kids-draw-document-browser-dialog .ds-dialog-scaffold__heading {
+  grid-column: 2;
+  grid-row: 1;
+}
+.kids-draw-document-browser-dialog .ds-dialog-scaffold__trailing {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__media {
+  background: white;
 }

@@ -55,7 +55,7 @@ describe("NewDocumentDialogView", () => {
     expect(created).toEqual([]);
   });
 
-  test("selecting a book shows its summary and page choices", () => {
+  test("selecting a book shows its name and page choices", () => {
     const dialog = createNewDocumentDialogView({
       onClose: () => {},
       onCreate: () => {},
@@ -71,7 +71,7 @@ describe("NewDocumentDialogView", () => {
     volumeButton!.click();
 
     const summaryTitle = dialog.el.querySelector(
-      ".kids-draw-new-document-dialog__book-summary-title",
+      ".ds-dialog-scaffold__subtitle",
     ) as HTMLElement | null;
     const pageButton = dialog.el.querySelector(
       '[data-new-document-page="coloring/pdr-v1/page-001.png"]',
@@ -102,17 +102,11 @@ describe("NewDocumentDialogView", () => {
 
     volumeButton!.click();
 
-    const summaryImage = dialog.el.querySelector(
-      ".kids-draw-new-document-dialog__book-summary-image",
-    ) as HTMLImageElement | null;
     const pageButton = dialog.el.querySelector(
       '[data-new-document-page="coloring/pdr-v1/page-001.png"]',
     ) as HTMLButtonElement | null;
     const pageImage = pageButton?.querySelector("img") ?? null;
 
-    expect(summaryImage?.src).toBe(
-      "https://assets.example.test/coloring/pdr-v1/page-001.png",
-    );
     expect(pageImage?.src).toBe(
       "https://assets.example.test/coloring/pdr-v1/page-001.png",
     );
@@ -279,7 +273,7 @@ describe("DocumentBrowserDialogView", () => {
     expect(claimed).toEqual([doc.docUrl]);
   });
 
-  test("document tiles show shared vs local status", () => {
+  test("document tiles identify the open drawing and show storage status for others", () => {
     const dialog = createDocumentBrowserDialogView({
       onClose: () => {},
       onOpenCreateDialog: () => {},
@@ -309,9 +303,13 @@ describe("DocumentBrowserDialogView", () => {
     }));
 
     expect(statuses).toEqual([
-      { text: "On this device", shared: false },
+      { text: "Open now", shared: false },
       { text: "Shared", shared: true },
     ]);
+    dialog.setCurrentDocument(null);
+    expect(
+      dialog.el.querySelector(".ds-thumbnail-tile__badge")?.textContent,
+    ).toBe("On this device");
   });
 
   test("initial loading shows loading state before any documents exist", () => {

@@ -10,7 +10,7 @@ import {
 } from "@smalldraw/design-system";
 import { KeyRound, Trash2, X } from "lucide";
 import { atom } from "nanostores";
-import { el, list, mount } from "redom";
+import { el, list, mount, setChildren } from "redom";
 import type { AccountSessionState } from "../app/createAccountSession";
 import type { KidsDocumentSummary } from "../documents";
 import { bindAtom } from "./atomBindings";
@@ -78,20 +78,11 @@ function toFallbackTitle(document: KidsDocumentSummary): string {
   if (document.title && document.title.trim().length > 0) {
     return document.title;
   }
-  return `Drawing ${document.docUrl.slice(-8)}`;
+  return "Drawing";
 }
 
 function getMetadataTooltip(document: KidsDocumentSummary): string {
-  const mode = (() => {
-    if (document.mode === "coloring" && document.coloringPageId) {
-      return `\nMode: Coloring (${document.coloringPageId})`;
-    }
-    if (document.mode === "markup") {
-      return "\nMode: Markup";
-    }
-    return "\nMode: Normal";
-  })();
-  return `${toFallbackTitle(document)}\nLast opened: ${formatTimestamp(document.lastOpenedAt)}${mode}`;
+  return `${toFallbackTitle(document)}\nLast opened: ${formatTimestamp(document.lastOpenedAt)}`;
 }
 
 function toViewTransitionName(docUrl: string): string {
@@ -147,13 +138,15 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     this.#tile.setOnOpenPointerCancel(() => item.onPointerEnd());
     this.#tile.setOnOpenPointerLeave(() => item.onPointerEnd());
     this.#tile.setBadge({
-      label: document.accountAttached
-        ? document.joinSecret
-          ? "Shared · Saved"
-          : "Saved to account"
-        : document.collaborative
-          ? "Shared"
-          : "On this device",
+      label: item.isCurrent
+        ? "Open now"
+        : document.accountAttached
+          ? document.joinSecret
+            ? "Shared · Saved"
+            : "Saved to account"
+          : document.collaborative
+            ? "Shared"
+            : "On this device",
       tone: document.collaborative ? "positive" : "default",
     });
     this.#tile.setAction({
@@ -207,9 +200,9 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
       }
       this.#thumbnailUrl = nextThumbnailUrl;
     }
-    this.#thumbnailMedia.replaceChildren(
+    setChildren(this.#thumbnailMedia, [
       nextThumbnailUrl ? this.#thumbnailImage : this.#thumbnailFallback,
-    );
+    ]);
   }
 }
 
@@ -229,7 +222,7 @@ export function createDocumentBrowserDialogView(options: {
   scaffold.setDialogClassName("kids-draw-document-browser-dialog");
   scaffold.setSurfaceClassName("kids-draw-document-browser-dialog__panel");
   scaffold.setTitleAlignment("center");
-  scaffold.setTitle("Browse Drawings");
+  scaffold.setTitle("Your drawings");
   scaffold.setOnDismiss(() => {
     options.onClose();
   });
@@ -242,11 +235,11 @@ export function createDocumentBrowserDialogView(options: {
   closeButton.setOnPress(() => {
     options.onClose();
   });
-  scaffold.setLeading(closeButton);
+  scaffold.setTrailing(closeButton);
 
   const grid = createCardGrid({
     className: "kids-draw-document-browser-dialog__grid",
-    ariaLabel: "Browse drawings",
+    ariaLabel: "Your drawings",
   });
   const body = document.createElement("div");
   body.className = "kids-draw-document-browser-dialog__body";
@@ -286,11 +279,11 @@ export function createDocumentBrowserDialogView(options: {
     "button.kids-draw-document-browser-dialog__new-card",
     { type: "button", onclick: options.onOpenCreateDialog },
     el(
-      "span.ds-button",
-      { "data-tone": "primary" },
-      el("span", { "aria-hidden": "true" }, "+"),
-      "New Drawing",
+      "span.kids-draw-document-browser-dialog__new-plus",
+      { "aria-hidden": "true" },
+      "+",
     ),
+    el("span", "New drawing"),
   ) as HTMLButtonElement;
   const tileList = list(
     "div.kids-draw-document-browser-dialog__tiles",

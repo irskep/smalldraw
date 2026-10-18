@@ -10,6 +10,7 @@ import {
 } from "@smalldraw/design-system";
 import { ArrowLeft, X } from "lucide";
 import { atom } from "nanostores";
+import { el, mount, setChildren } from "redom";
 import { getColoringBooks } from "../coloring/books";
 import type { NewDocumentRequest } from "../documents/newDocumentRequest";
 import { bindAtom } from "./atomBindings";
@@ -71,16 +72,9 @@ export function createNewDocumentDialogView(options: {
   blankChoiceSlot.className = "kids-draw-new-document-dialog__blank-choice";
   const booksHeading = createText({
     tag: "h3",
-    text: "Coloring Books",
+    text: "Coloring books",
     kind: "title",
     className: "kids-draw-new-document-dialog__section-title",
-  });
-  const booksDescription = createText({
-    tag: "p",
-    text: "Choose a book, then pick a page to color.",
-    kind: "body",
-    tone: "secondary",
-    className: "kids-draw-new-document-dialog__section-copy",
   });
   const volumeGrid = createCardGrid({
     className: "kids-draw-new-document-dialog__volume-grid",
@@ -94,59 +88,12 @@ export function createNewDocumentDialogView(options: {
   });
   const pageSection = document.createElement("section");
   pageSection.className = "kids-draw-new-document-dialog__page-section";
-  const bookSummary = document.createElement("div");
-  bookSummary.className = "kids-draw-new-document-dialog__book-summary";
-  const bookSummaryImage = document.createElement("img");
-  bookSummaryImage.className =
-    "kids-draw-new-document-dialog__book-summary-image";
-  bookSummaryImage.alt = "";
-  bookSummaryImage.loading = "eager";
-  bookSummaryImage.decoding = "async";
-  bookSummaryImage.draggable = false;
-  const bookSummaryMeta = document.createElement("div");
-  bookSummaryMeta.className =
-    "kids-draw-new-document-dialog__book-summary-meta";
-  const bookSummaryTitle = createText({
-    tag: "h3",
-    text: "",
-    kind: "title",
-    className: "kids-draw-new-document-dialog__book-summary-title",
-  });
-  const bookSummaryCopy = createText({
-    tag: "p",
-    text: "",
-    kind: "body",
-    tone: "secondary",
-    className: "kids-draw-new-document-dialog__book-summary-copy",
-  });
-  const pagesHeading = createText({
-    tag: "h3",
-    text: "Choose a Page",
-    kind: "title",
-    className: "kids-draw-new-document-dialog__section-title",
-  });
-  const pagesDescription = createText({
-    tag: "p",
-    text: "Pick the page you want to color.",
-    kind: "body",
-    tone: "secondary",
-    className: "kids-draw-new-document-dialog__section-copy",
-  });
-  bookSummaryMeta.append(bookSummaryTitle.el, bookSummaryCopy.el);
-  bookSummary.append(bookSummaryImage, bookSummaryMeta);
-  pageSection.append(
-    bookSummary,
-    pagesHeading.el,
-    pagesDescription.el,
-    pageGrid.el,
-  );
-  rootChoices.append(
-    blankChoiceSlot,
-    booksHeading.el,
-    booksDescription.el,
-    volumeGrid.el,
-  );
-  body.append(rootChoices, pageSection);
+  mount(pageSection, pageGrid);
+  mount(rootChoices, blankChoiceSlot);
+  mount(rootChoices, booksHeading);
+  mount(rootChoices, volumeGrid);
+  mount(body, rootChoices);
+  mount(body, pageSection);
   scaffold.setBody(body);
 
   const $state = atom<NewDocumentDialogState>({
@@ -163,10 +110,17 @@ export function createNewDocumentDialogView(options: {
 
   const renderRootChoices = (state: NewDocumentDialogState): void => {
     const blankChoice = createChoiceCard({
-      title: "Blank Drawing",
+      title: "Blank page",
       className:
         "kids-draw-new-document-dialog__choice kids-draw-new-document-dialog__blank-button",
     });
+    blankChoice.setMedia(
+      el(
+        "span.kids-draw-new-document-dialog__blank-paper",
+        { "aria-hidden": "true" },
+        "+",
+      ),
+    );
     blankChoice.setAttributes({
       "data-new-document-mode": "normal",
     });
@@ -178,7 +132,6 @@ export function createNewDocumentDialogView(options: {
     const volumeCards = books.map((book) => {
       const card = createChoiceCard({
         title: book.title,
-        subtitle: `${book.pageCount} pages`,
         className: "kids-draw-new-document-dialog__choice",
       });
       if (book.coverPageSrc) {
@@ -200,34 +153,22 @@ export function createNewDocumentDialogView(options: {
       return card;
     });
 
-    blankChoiceSlot.replaceChildren(blankChoice.el);
+    setChildren(blankChoiceSlot, [blankChoice]);
     volumeGrid.setItems(volumeCards);
   };
 
   const renderPageGrid = (state: NewDocumentDialogState): void => {
     if (!state.selectedVolumeId) {
-      bookSummary.hidden = true;
       pageGrid.setItems([]);
       return;
     }
     const book = bookById.get(state.selectedVolumeId) ?? null;
     if (!book) {
-      bookSummary.hidden = true;
       pageGrid.setItems([]);
       return;
     }
-    bookSummary.hidden = false;
-    if (book.coverPageSrc) {
-      bookSummaryImage.src = resolveAssetUrl(book.coverPageSrc);
-      bookSummaryImage.hidden = false;
-    } else {
-      bookSummaryImage.removeAttribute("src");
-      bookSummaryImage.hidden = true;
-    }
-    bookSummaryTitle.setText(book.title);
-    bookSummaryCopy.setText(`${book.pageCount} pages`);
     const cards = book.pages.map((page) => {
-      const pageNum = String(page.pageNumber).padStart(3, "0");
+      const pageNum = String(page.pageNumber);
       const card = createPosterCard({
         label: `Page ${pageNum}`,
       });
@@ -259,12 +200,8 @@ export function createNewDocumentDialogView(options: {
         ? null
         : (bookById.get(state.selectedVolumeId) ?? null);
     scaffold.setLeading(selectedBook === null ? null : backButton);
-    scaffold.setTitle(
-      selectedBook === null ? "New Drawing" : selectedBook.title,
-    );
-    scaffold.setSubtitle(
-      selectedBook === null ? null : `${selectedBook.pageCount} pages`,
-    );
+    scaffold.setTitle(selectedBook === null ? "New drawing" : "Pick a page");
+    scaffold.setSubtitle(selectedBook?.title ?? null);
     closeButton.setDisabled(state.busy);
     backButton.setDisabled(state.busy);
     renderRootChoices(state);
