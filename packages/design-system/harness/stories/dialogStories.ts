@@ -7,6 +7,7 @@ import {
   createDialogScaffold,
   createModalDialogView,
   createPosterCard,
+  createParentalControlsDialog,
   createPreviewCard,
   createShareQrDialog,
   createText,
@@ -56,6 +57,34 @@ function getBookCoverLabel(book: MockColoringBook): string {
 }
 
 export const dialogStories: HarnessStory[] = [
+  {
+    id: "parental-controls",
+    title: "Parental Controls",
+    description: "Math access prompt followed by sharing settings.",
+    mount: (container) => {
+      const dialog = createParentalControlsDialog();
+      const status = el("output", "Not saved");
+      const open = new Button({ label: "Open parental controls" });
+      open.setOnPress(() => {
+        void dialog
+          .show({
+            initialState: {
+              hasPin: false,
+              shareMode: "allowed",
+              syncNewDrawingsByDefault: false,
+            },
+            verifyPin: async () => false,
+            isCorrectMathAnswer: (answer) => answer.trim() === "30",
+          })
+          .then((result) => {
+            status.textContent = result ? "Saved" : "Cancelled";
+          });
+      });
+      mount(container, open);
+      mount(container, status);
+      mount(container, dialog);
+    },
+  },
   {
     id: "modal-dialog",
     title: "Modal Dialog",

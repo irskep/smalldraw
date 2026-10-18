@@ -70,7 +70,11 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
   readonly #error = document.createElement("p");
   readonly #hint = document.createElement("p");
   readonly #cancelButton = new Button({ label: "Cancel", tone: "neutral" });
-  readonly #confirmButton = new Button({ label: "Continue", tone: "primary" });
+  readonly #confirmButton = new Button({
+    label: "Continue",
+    tone: "primary",
+    attributes: { type: "submit" },
+  });
   readonly #actions = document.createElement("div");
 
   #options: ParentalControlsDialogOptions | null = null;
@@ -177,9 +181,6 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     });
     this.#cancelButton.setOnPress(() => {
       void this.#cancel();
-    });
-    this.#confirmButton.setOnPress(() => {
-      void this.#submit();
     });
     this.#clearPinButton.setOnPress(() => {
       this.#pinChange = { type: "clear" };

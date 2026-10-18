@@ -1315,3 +1315,22 @@ test.describe("Dropdown Menu", () => {
     await expect(trigger).toBeFocused();
   });
 });
+
+test("parental controls submits answers and settings with Enter", async ({
+  page,
+}) => {
+  await page.goto(testStoryUrl("parental-controls"));
+  await page.getByRole("button", { name: "Open parental controls" }).click();
+  const answer = page.getByLabel("What is 5 x 6?");
+  await answer.fill("29");
+  await answer.press("Enter");
+  await expect(page.getByText("Try again.", { exact: true })).toBeVisible();
+  await answer.fill("30");
+  await answer.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Save", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("PIN", { exact: true }).fill("2468");
+  await page.getByLabel("PIN", { exact: true }).press("Enter");
+  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
+});
