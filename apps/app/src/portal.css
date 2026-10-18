@@ -641,7 +641,7 @@ a {
 
 .art-table {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 3fr) minmax(200px, 1fr);
   grid-template-areas: "title title" "preview start";
   align-items: start;
   justify-items: start;
@@ -661,6 +661,7 @@ a {
 
 .art-table__start {
   grid-area: start;
+  place-self: center;
   display: inline-flex;
   align-items: center;
   padding: 17px 24px;
