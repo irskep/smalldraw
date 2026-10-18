@@ -20,12 +20,12 @@ test("account registration is repeatable, and checkpoints persist and merge edit
   const handle = repo.create({ marks: ["first"] });
   const content = Buffer.from(save(handle.doc())).toString("base64");
   const first = await api.registerAccountSyncedDocument({
-    accountId: (await api.me()).id,
+    accountId: (await api.me())!.id,
     documentId: handle.documentId,
     content,
   });
   const second = await api.registerAccountSyncedDocument({
-    accountId: (await api.me()).id,
+    accountId: (await api.me())!.id,
     documentId: handle.documentId,
     content,
   });
@@ -40,7 +40,7 @@ test("account registration is repeatable, and checkpoints persist and merge edit
     doc.marks.push("remote");
   });
   const result = await api.checkpointAccountDrawing({
-    accountId: (await api.me()).id,
+    accountId: (await api.me())!.id,
     documentId: handle.documentId,
     content: Buffer.from(save(local)).toString("base64"),
   });
@@ -62,7 +62,7 @@ test("an unrelated account cannot overwrite or claim an existing document ID", a
   const stranger = await caller("checkpoint-stranger");
   const handle = repo.create({ private: true });
   const input = {
-    accountId: (await owner.me()).id,
+    accountId: (await owner.me())!.id,
     documentId: handle.documentId,
     content: Buffer.from(save(handle.doc())).toString("base64"),
   };
@@ -77,7 +77,7 @@ test("a changed login cannot register an unsynced drawing for the wrong account"
   const changed = await caller("changed-account");
   const handle = repo.create({ marks: ["private offline work"] });
   const input = {
-    accountId: (await original.me()).id,
+    accountId: (await original.me())!.id,
     documentId: handle.documentId,
     content: Buffer.from(save(handle.doc())).toString("base64"),
   };
