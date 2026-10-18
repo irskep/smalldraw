@@ -1,65 +1,26 @@
-# Draft Shapes
+# Draft shapes
 
-When you draw a stroke, you see it appear immediately—before you lift your finger. This in-progress preview is a draft shape.
+A draft is local visual feedback outside the committed drawing document. Pointer movement changes the draft; committing an action changes the document. Drafts are not persisted, synchronized as shapes, or recorded as intermediate undo entries.
 
-## What Drafts Are
+The source contract is `DraftShape` in `packages/core/src/tools/types.ts`: an `AnyShape` plus `toolId` and `temporary: true`. The runtime exposes `setDraft`, `setDrafts`, `clearDraft`, and `setPreview`. Preview dirty bounds are a rendering hint, not geometry stored in the document.
 
-A draft renders on the canvas but isn't in the document. It's temporary visual feedback.
+## Tool lifecycle
 
-```typescript
-interface DraftShape extends Shape {
-  toolId: string;
-  temporary: true;
-}
-```
+A typical drawing tool captures settings and the active layer on pointer-down, updates a draft during movement, commits an `AddShape` on pointer-up, and clears on cancellation. Deactivation must dispose handlers/timers and clear transient state. Do not carry an unfinished drag into a later activation just because persistent tool settings survive tool switches.
 
-Same structure as regular shapes, plus metadata identifying which tool created it.
+| Property | Draft | Committed shape |
+| --- | --- | --- |
+| Document storage and sync | No | Yes |
+| Local undo history | No | Through an action |
+| Can use temporary preview caches | Yes | Uses committed geometry/rendering contracts |
+| Lifetime | Current interaction | Until document mutation removes it |
 
-## Why Drafts Exist
+## Renderer lifecycle is separate
 
-Without drafts, tools would commit shapes immediately, then update them as the interaction continues. This would pollute undo history with intermediate states and make canceling awkward.
+A tool's draft can disappear before the renderer is ready to stop displaying it. The pipeline captures a frozen committed scene, draws the draft against it, and retains the completed visible frame until committed tiles are ready. Its phases are `idle`, `capturing`, `active`, and `ending`.
 
-Drafts keep in-progress work outside the document until it's final.
+This is why clearing a runtime draft is not equivalent to clearing the hot canvas immediately. The renderer also needs generation/session guards: a late capture must not revive a cancelled draft, and an old bake completion must not hide a newer stroke.
 
-## The Draft Lifecycle
+Remote committed changes can be processed behind the frozen display. If a collaborator deletes the local draft's layer, the stroke is cancelled. Reassigning the draft to another layer would change its meaning.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Drawing: pointerDown
-    Drawing --> Drawing: pointerMove (update draft)
-    Drawing --> Committed: pointerUp (commit action)
-    Drawing --> Cleared: pointerCancel (discard)
-    Committed --> [*]
-    Cleared --> [*]
-```
-
-On commit, the tool creates an action with the final geometry and clears the draft. On cancel, it just clears.
-
-## Rendering
-
-The UI merges document shapes and drafts before rendering:
-
-```
-render(documentShapes + draftShapes)
-```
-
-Drafts use the same rendering code as document shapes. No special handling needed.
-
-## Managing Drafts
-
-- `runtime.setDraft(shape)` — set or replace the draft
-- `runtime.setDrafts(shapes)` — set multiple drafts
-- `runtime.clearDraft()` — remove drafts for this tool
-
-Drafts are scoped by tool. When a tool deactivates, its drafts clear automatically.
-
-## Draft vs Document
-
-| Aspect | Draft | Document |
-|--------|-------|----------|
-| Persisted | No | Yes |
-| In undo history | No | Yes |
-| Survives tool switch | No | Yes |
-| Rendered | Yes | Yes |
-
-The transition is explicit: commit an action. Until then, the shape is temporary feedback.
+Read [the rendering pipeline](rendering-pipeline.md) for the surfaces and handoff, and [multiplayer lifecycle](multiplayer/lifecycle.md) for boundary cases.

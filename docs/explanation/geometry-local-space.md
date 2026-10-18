@@ -1,87 +1,23 @@
-# Geometry Local Space
+# Geometry, bounds and coordinate spaces
 
-Shapes use two coordinate systems: local space for geometry, world space for document position.
+The pipeline uses local geometry, document/world coordinates, and canvas backing pixels. Mixing these can produce bugs that appear only at a different DPR, viewport size or shape transform.
 
-## Local vs World
+| Space | Meaning | Examples |
+| --- | --- | --- |
+| Shape local | Coordinates before the shape transform | Centered pen points, boxed geometry, stamp placement data |
+| Document/world | Drawing coordinates after the shape transform | Tool input, shape dirty bounds, layer composition |
+| Canvas backing | Physical raster coordinates | DPR-scaled tile/hot canvases and clip rectangles |
 
-**Local space** is relative to the shape's center. A 100×50 rectangle spans (-50, -25) to (50, 25)—centered at the origin.
+Use `Vec2`, `BoxOperations` and the transform helpers rather than copying scalar coordinate arithmetic between layers. The shape renderer and bounds calculation must apply the same transform, including origin, rotation and nonuniform/reflected scale.
 
-**World space** is the document. Apply the transform to convert local to world.
+## Bounds have purposes
 
-```mermaid
-flowchart LR
-    subgraph Local["Local Space"]
-        L["-50,-25 to 50,25"]
-    end
-    subgraph Transform
-        T["translate(200, 150)<br/>rotate(45°)"]
-    end
-    subgraph World["World Space"]
-        W["rotated rect at 200,150"]
-    end
-    Local --> Transform --> World
-```
+A handler's local geometry bounds, selection bounds and conservative paint bounds are not interchangeable. Thick strokes, smoothing, joins and antialiasing can extend beyond the raw point box. `tileShapeFilter.ts` deliberately adds conservative stroke padding and includes shapes with unknown bounds instead of incorrectly excluding them.
 
-## Why Local Space
+`processApplyDocumentDiff.ts` uses previous and next snapshots to dirty old and new footprints. Clearing only the new location leaves stale pixels. Changing a layer or z-order may require broader invalidation than the shape's new box.
 
-**Rotation.** Just change the angle. Geometry stays the same.
+## Snapshot extent versus resolution
 
-**Scaling.** Multiply local coordinates directly.
+A frozen snapshot records its logical width/height. Its backing pixels are sampled at a resolution, but changing DPR or viewport must not relocate or stretch the captured drawing. `HotLayer` converts the captured extent into the current backing size; the pipeline forces a full repaint after viewport changes.
 
-**Bounds.** Local bounds are constant. World bounds = transform corners.
-
-If geometry were in world space, rotating would recalculate every point.
-
-## Local Bounds by Geometry Type
-
-| Geometry | Local Bounds |
-|----------|--------------|
-| `rect` | `(-width/2, -height/2)` to `(width/2, height/2)` |
-| `ellipse` | `(-radiusX, -radiusY)` to `(radiusX, radiusY)` |
-| `regularPolygon` | `(-radius, -radius)` to `(radius, radius)` |
-| `pen`, `stroke`, `polygon` | bounding box of points |
-| `path`, `bezier` | bounding box of all points/handles |
-
-For rect/ellipse, the center is (0, 0) by definition. For point-based geometries, canonicalization shifts points to be relative to their center.
-
-## Converting Between Spaces
-
-Local point to world:
-
-```typescript
-function applyTransformToPoint(point, transform): Point {
-  // 1. Scale around origin
-  // 2. Rotate around origin
-  // 3. Translate to world position
-}
-```
-
-Shape to world bounds:
-
-```typescript
-function getShapeBounds(shape, registry): Bounds {
-  const localBounds = getGeometryLocalBounds(shape.geometry, registry);
-  const corners = [topLeft, topRight, bottomRight, bottomLeft];
-  const worldCorners = corners.map(c => applyTransformToPoint(c, shape.transform));
-  return boundingBoxOf(worldCorners);
-}
-```
-
-World bounds of a rotated shape is axis-aligned—larger than local bounds.
-
-In application code, the registry comes from `store.getShapeHandlers()` or `runtime.getShapeHandlers()`.
-
-## When Each Space Matters
-
-**Local space:** geometry definition, rendering, geometry-specific calculations
-
-**World space:** hit testing, selection frames, handle positioning, distances between shapes
-
-## Rendering
-
-The Konva renderer works in local space:
-
-1. Create a group with the shape's transform
-2. Draw geometry at the origin
-
-The group's transform handles local-to-world conversion. The renderer never computes world positions for individual points.
+For the exact shape transform convention, see [canonical transforms](canonical-transforms.md). For partial repaint and pixel-comparison limits, see [rendering validation](../guides/rendering-validation.md).

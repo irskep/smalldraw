@@ -1,140 +1,33 @@
-# Action and Undo System
+# Actions and undo
 
-All document changes go through actions. An action knows how to apply a change and how to reverse it.
+Local editing intent is represented by an `UndoableAction`. Remote document updates arrive through the store adapter and do not enter the local undo stack as new actions.
 
-## The Action Interface
+## Action contract
 
-```typescript
-interface ActionContext {
-  registry: ShapeHandlerRegistry;
-}
+`packages/core/src/actions/types.ts` defines `redo`, `undo`, `affectedShapeIds`, and `affectsZOrder`. Both `redo` and `undo` return a `DrawingDocument`. `ActionContext` supplies the shape-handler registry and a `change(doc, update)` operation.
 
-interface UndoableAction {
-  redo(doc: DrawingDocument, ctx: ActionContext): void;
-  undo(doc: DrawingDocument, ctx: ActionContext): void;
-  affectedShapeIds(): string[];
-  affectsZOrder(): boolean;
-}
-```
+The `change` abstraction matters: the direct document path can create a new Automerge snapshot, while the repo adapter runs updates inside an existing `handle.change` transaction. An action must use that context rather than assuming every input is a freely mutable plain object.
 
-Both methods receive the document and action context and mutate the document directly. `redo` applies the change; `undo` reverses it. The context currently carries the shape handler registry for canonicalization and geometry logic. The metadata helpers (`affectedShapeIds`, `affectsZOrder`) let the store update dirty state and caches efficiently.
+`AddShape`, geometry/style/transform updates, deletion, clear and composite operations live under `packages/core/src/actions/`. Consult the implementation instead of copying an old abbreviated action example: canonicalization, ordering and undo data are part of the contract.
 
-## Redo-First Design
+## Store, adapter and history
 
-When you commit an action, the system calls `redo`, not a separate "do" method:
+1. A tool calls `runtime.commit(action)`.
+2. `DrawingStore` applies the action, records it in local history, tracks dirty state, and requests rendering. With an external adapter it also dispatches the action event.
+3. `createAutomergeStoreAdapter` applies the operation to the current handle inside `handle.change`.
+4. Handle changes update the store's document snapshot. Received remote changes use this notification path too.
+5. Undo/redo operates on a locally recorded action against current state and sends the resulting mutation through the adapter.
 
-```mermaid
-sequenceDiagram
-    participant Tool
-    participant UndoManager
-    participant Action
-    participant Document
+`UndoManager` offers both direct apply/undo/redo and record/take operations used by the store's adapter path. Do not bypass the store with direct stack manipulation in UI code.
 
-    Tool->>UndoManager: apply(action)
-    UndoManager->>Action: redo(doc, ctx)
-    Action->>Document: mutate
-    UndoManager->>UndoManager: push to undo stack
-```
+A new local action clears the redo stack. `CompositeAction` applies members in order and undoes them in reverse, letting a multi-shape operation appear as one local history entry.
 
-No distinction between first apply and reapply after undo.
+## What undo does not guarantee
 
-## Recording Undo Data
+This is action-based local history, not a global rewind of the shared document. Reconnect tests verify that undoing our stroke preserves independently received collaborator shapes. They do not establish a universal semantic conflict policy for every concurrent edit to the same shape or deleted layer. Actions need explicit behavior for missing/replaced targets.
 
-Actions capture what they need to reverse themselves. `AddShape` keeps the shape:
+## Dirty tracking is part of correctness
 
-```typescript
-class AddShape implements UndoableAction {
-  constructor(private shape: Shape) {}
+`affectedShapeIds` and `affectsZOrder` feed rendering work. External document application also computes a structural diff between immutable snapshots. A shape that moves or changes layers must invalidate both its old and new footprints; clears and order changes can require broader invalidation.
 
-  redo(doc: DrawingDocument, ctx: ActionContext): void {
-    doc.shapes[this.shape.id] = canonicalizeShape(this.shape, ctx.registry);
-  }
-
-  undo(doc: DrawingDocument, ctx: ActionContext): void {
-    delete doc.shapes[this.shape.id];
-  }
-
-  affectedShapeIds(): string[] {
-    return [this.shape.id];
-  }
-
-  affectsZOrder(): boolean {
-    return true;
-  }
-}
-```
-
-Actions that modify existing data capture previous state during `redo`:
-
-```typescript
-redo(doc: DrawingDocument, ctx: ActionContext): void {
-  const shape = doc.shapes[this.shapeId];
-  this.previousTransform = shape.transform;  // capture for undo
-  shape.transform = this.newTransform;
-}
-```
-
-## The Undo Manager
-
-Two stacks:
-
-```mermaid
-flowchart LR
-    subgraph UndoStack
-        A1[Action 1]
-        A2[Action 2]
-        A3[Action 3]
-    end
-    subgraph RedoStack
-        B1[Action 4]
-    end
-```
-
-- `apply(action)` — calls `redo`, pushes to undo stack, clears redo stack
-- `undo()` — pops from undo, calls `undo`, pushes to redo
-- `redo()` — pops from redo, calls `redo`, pushes to undo
-
-New actions clear the redo stack.
-
-## Composite Actions
-
-Multiple changes that should undo together:
-
-```typescript
-class CompositeAction implements UndoableAction {
-  constructor(private actions: UndoableAction[]) {}
-
-  redo(doc, ctx): void {
-    this.actions.forEach(a => a.redo(doc, ctx));
-  }
-
-  undo(doc, ctx): void {
-    // Reverse order
-    [...this.actions].reverse().forEach(a => a.undo(doc, ctx));
-  }
-
-  affectedShapeIds(): string[] {
-    return this.actions.flatMap(action => action.affectedShapeIds());
-  }
-
-  affectsZOrder(): boolean {
-    return this.actions.some(action => action.affectsZOrder());
-  }
-}
-```
-
-Moving multiple selected shapes creates one `CompositeAction`. One undo reverts all.
-
-## Available Actions
-
-| Action | Purpose |
-|--------|---------|
-| `AddShape` | Insert shape |
-| `DeleteShape` | Remove shape |
-| `UpdateShapeGeometry` | Change geometry |
-| `UpdateShapeTransform` | Change position/rotation/scale |
-| `UpdateShapeFill` | Change fill |
-| `UpdateShapeStroke` | Change stroke |
-| `UpdateShapeOpacity` | Change opacity |
-| `UpdateZIndex` | Change stacking order |
-| `CompositeAction` | Group actions |
+Returning correct document data with incomplete dirty metadata can leave stale pixels. Test document results and the resulting render when changing action semantics.

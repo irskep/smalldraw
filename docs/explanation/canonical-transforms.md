@@ -1,64 +1,25 @@
-# Canonical Transforms
+# Canonical transforms
 
-Every shape has a transform that positions it in the document. The transform system uses a specific convention—canonical form—that makes rotation and scaling predictable.
+The model's transform contract is in `packages/core/src/model/shape.ts`. Translation, scale and origin are vector tuples; rotation is in radians. Normalization supplies translation/origin `[0, 0]`, scale `[1, 1]`, and rotation `0` when omitted.
 
-## The Transform Structure
+## Coordinate convention
 
-A shape transform has four components:
+Committed shapes normally use geometry centered around a local origin and translation for their world-space center. The renderer applies `T(translation) × R(rotation) × S(scale) × T(-origin)`. Nonzero origins, reflected scales and nonuniform scales must be respected by bounds and painting alike.
 
-- **translation** — the shape's center point in world coordinates
-- **rotation** — angle in radians
-- **scale** — x and y scale factors
-- **origin** — the local point that translation refers to (usually 0,0)
+For an untransformed stroke from `[100, 100]` to `[200, 150]`, a centered representation has local endpoints `[-50, -25]` and `[50, 25]`, with translation `[150, 125]`.
 
-## Center-Based Positioning
+## Handler-owned canonicalization
 
-The key convention: **translation stores the center of the shape, not the top-left corner**.
+`canonicalizeShape` normalizes the transform and default layer, then asks the registered shape handler for geometry bounds/canonicalization. Shapes without a canonicalizer retain their geometry. Concrete handlers are responsible for the representation they support; do not assume a generic rewrite of arbitrary already-transformed geometry is harmless.
 
-Most graphics systems position shapes by their top-left. Smalldraw positions by the center. This matters because rotation happens around the translation point.
+New stroke tools may construct drafts in document coordinates with an identity transform and construct centered committed geometry at completion. The important contract is that both representations paint the intended world-space shape. Use existing action/handler helpers and tests rather than adding a second centering convention.
 
-A shape positioned by its top-left swings in an arc when rotated. A shape positioned by its center spins in place.
+## Changes requiring extra care
 
-## What Canonicalization Does
+- Re-centering already rotated/scaled geometry.
+- Bounds used for tile filtering versus selection/hit testing.
+- Origin offsets in image/stamp shapes.
+- Old/new footprints when geometry or transform changes.
+- Immutable shape identity used by bounds caches.
 
-When a shape enters the document, it gets *canonicalized* to follow the center-based convention.
-
-For rectangles and ellipses, the center is implicit. A 100x50 rectangle is centered at (0,0) in local space by definition.
-
-For point-based geometries, canonicalization shifts the points. If you draw a stroke from (100, 100) to (200, 150):
-
-1. Compute the bounding box center: (150, 125)
-2. Shift points to be relative to center: (-50, -25) to (50, 25)
-3. Add the offset to translation: (150, 125)
-
-The shape appears in the same place, but points are now in local space and translation holds the world position.
-
-## Why This Matters
-
-Canonical form simplifies the math for:
-
-**Rotation.** Just change the angle. No pivot offset calculations.
-
-**Scaling.** The shape grows outward uniformly from its center.
-
-**Bounds calculation.** Local bounds plus transform gives world bounds consistently.
-
-**Selection handles.** Dragging a corner to resize keeps the opposite corner fixed.
-
-## Two Coordinate Spaces
-
-**Local space** — relative to the shape's center. A 100x50 rectangle spans (-50, -25) to (50, 25).
-
-**World space** — in the document. Apply the transform to convert local to world.
-
-The renderer draws in local space, then the transform positions it. Selection and hit-testing work in world space.
-
-## Which Shapes Get Canonicalized
-
-| Geometry | Canonicalized? | Reason |
-|----------|---------------|--------|
-| rect, ellipse, regularPolygon | No | Center is implicit |
-| pen, stroke, polygon | Yes | Points need recentering |
-| path, bezier | Yes | Points and handles need recentering |
-
-The `AddShape` action canonicalizes automatically.
+See [local geometry and bounds](geometry-local-space.md) and [rendering validation](../guides/rendering-validation.md).

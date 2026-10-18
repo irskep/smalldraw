@@ -1,3 +1,5 @@
+> Historical design/work notes. Claims about “current” behavior and unchecked tasks refer to the original investigation, not a verified present-day backlog. Start with the [maintained internal docs](../../docs/index.md).
+
 # Work Sequence
 
 How to get from where we are to working Splatterboard multiplayer, in order.

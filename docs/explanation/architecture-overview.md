@@ -1,76 +1,52 @@
-# Architecture Overview
+# Architecture overview
 
-Smalldraw separates concerns into three layers: core logic, rendering, and UI.
+Splatterboard combines an Automerge drawing document with local interaction state and raster caches. Understanding which of those three owns a value is more useful than treating every visible change as a document mutation.
 
-```mermaid
-graph TB
-    subgraph UI["UI Layer"]
-        direction LR
-        VanillaUI["ui-vanillajs"]
-    end
+## Package boundaries
 
-    subgraph Renderer["Rendering Layer"]
-        Konva["renderer-konva"]
-    end
+| Owner | Responsibility | Main entry points |
+| --- | --- | --- |
+| `core` | Document semantics, shape handlers, actions/undo, tool runtime, store and Automerge adapter | `packages/core/src/createSmalldraw.ts`, `store/drawingStore.ts`, `automerge/storeAdapter.ts` |
+| `renderer-canvas` | Execute shape renderers and compose layers with correct isolation | `packages/renderer-canvas/src/shapes.ts`, `document.ts` |
+| `renderer-raster` | Raster tiles, committed layer backends, frozen snapshot acquisition, hot composition | `packages/renderer-raster/src/index.ts`, `layerStack.ts`, `hotLayer.ts` |
+| `splat` | Concrete drawing tools/shapes, application assembly, input, document lifecycle, renderer coordination | `packages/splat/src/app/createKidsDrawApp.ts`, `render/createRasterPipeline.ts` |
+| `design-system` | Shared UI components and visual contracts | `packages/design-system/src/` |
+| App hosts | Startup configuration, navigation and platform integration | `apps/splat-web`, `apps/splat-desktop`, `apps/app` |
+| Server | Accounts, document access/metadata, thumbnails and Automerge storage/sync | `apps/server/src/` |
 
-    subgraph Core["Core Layer"]
-        direction LR
-        Store["DrawingStore"]
-        Tools["Tools"]
-        Actions["Actions"]
-        Model["Document Model"]
-    end
+Concrete Splatterboard tools and their shape renderers live in `splat`. The renderer packages accept registries rather than importing those tools. The React account portal and re:dom editor share components/contracts, but are separate applications.
 
-    UI --> Renderer
-    UI --> Core
-    Renderer --> Model
-    Store --> Tools
-    Store --> Actions
-    Tools --> Actions
-    Actions --> Model
-```
-
-**Core** (`@smalldraw/core`) contains the document model, tools, actions, and undo system. It has no dependencies on rendering or DOM APIs.
-
-**Renderer** (`@smalldraw/renderer-konva`) translates the document model into Konva canvas elements. It doesn't know about tools or interaction.
-
-**UI** (`@smalldraw/ui-vanillajs`) handles DOM, pointer events, and toolbar. It connects user input to tools and triggers re-renders.
-
-## Data Flow
-
-Data flows in one direction:
+## Two update paths
 
 ```mermaid
-flowchart LR
-    A[Pointer Event] --> B[Tool]
-    B --> C[Action]
-    C --> D[Document]
-    D --> E[Renderer]
-    E --> F[Canvas]
+flowchart TD
+    Pointer[Pointer input] --> Tool[Active tool runtime]
+    Tool --> Draft[Local draft and preview bounds]
+    Draft --> Hot[Hot canvas composition]
+    Tool --> Action[Commit undoable action]
+    Action --> Adapter[Automerge store adapter]
+    Remote[Remote committed changes] --> Handle[Document handle]
+    Adapter --> Handle
+    Handle --> Store[DrawingStore document snapshot]
+    Store --> Dirty[Document diff and dirty state]
+    Dirty --> Tiles[Committed layer tiles]
+    Tiles --> Capture[Snapshot for a draft session]
+    Capture --> Hot
 ```
 
-The UI dispatches pointer events to the active tool. The tool creates an action. The action mutates the document. The renderer draws the result. Every visual change traces back to an action.
+Pointer movement normally changes a local draft, not the document. Pointer-up commits an action. The store adapter applies that action through the document handle; received remote edits also reach the store through handle changes. Undo history records local actions, not another participant's received operations.
 
-## The DrawingStore
+The rendering pipeline consumes both document changes and draft changes. It does not render `document shapes + drafts` into one undifferentiated canvas. During drawing it displays a frozen scene plus the local draft; committed tiles can be updated behind it. At handoff it reveals the latest committed scene.
 
-The `DrawingStore` coordinates everything. It holds the document, the active tool, and the undo manager. To build a UI, you create a store, register tools, and pipe pointer events to it.
+## State ownership
 
-## Where to Find Things
+- The document contains size, presentation, layers and committed shapes. It is persisted and synchronized through Automerge-repo.
+- Tool drafts, preview bounds, pointer sessions, local selection and UI state are transient. They do not become remote in-progress strokes.
+- The catalog stores document-list metadata and local access/navigation information. A catalog key is not necessarily the Automerge identity used for sync.
+- Tiles, snapshots, decoded image assets and cached paths are derived state. Their owners must release or invalidate them without changing document semantics.
 
-| If you want to... | Look in... |
-|-------------------|------------|
-| Understand shape data | `core/model/` |
-| See how tools work | `core/tools/` |
-| Understand undo/redo | `core/undo.ts`, `core/actions/` |
-| See how shapes render | `renderer-konva/shapes.ts` |
-| See a complete UI | `ui-vanillajs/` |
+See [the rendering pipeline](rendering-pipeline.md) for the canvas lifecycle, [cache ownership](rendering-cache-ownership.md) for derived data, and [multiplayer](multiplayer/index.md) for document identities.
 
-## Why This Structure
+## Invariants when changing boundaries
 
-**Testable.** Core logic runs anywhere. Unit test tools and actions without a browser.
-
-**Swappable rendering.** Write `renderer-svg` or `renderer-pdf` without touching core.
-
-**Custom UIs.** The vanilla UI is one implementation. Use React, Vue, or anything else by wiring up the store yourself.
-
-**Predictable state.** All changes flow through actions. Log them, replay them, or sync them for collaboration.
+Keep document mutation in actions/store adapters, painting in renderers, and host navigation in app integration. Use explicit disposable subscriptions and narrow nanostore state where appropriate. A simplification that removes a canvas but changes erasing, remote visibility, or committed-stroke handoff is a behavioral change and needs evidence.

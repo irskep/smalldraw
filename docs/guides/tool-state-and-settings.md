@@ -58,13 +58,11 @@ function readStroke(runtime: ToolRuntime) {
 }
 ```
 
-### Two common patterns
+### Capture interaction settings deliberately
 
-**Read once on activate.** Use this if you want tools to take a snapshot of the shared settings when you switch to them (stable for a full stroke).
+For a stroke, capture the relevant shared settings at pointer-down so its color, size and target layer remain coherent until completion. Reading only at activation can miss a toolbar change before the next stroke. Reading on every move can restyle an unfinished stroke; do that only when it is the intended behavior.
 
-**Read on every event.** Use this if you want changes to apply immediately while dragging (live preview updates).
-
-Pick one pattern and keep it consistent so your UI feels predictable.
+Persistent tool preferences and the current gesture are different lifetimes. Deactivation should discard unfinished interaction state even when settings survive the switch.
 
 ## Using Store-Level Settings
 

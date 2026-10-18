@@ -1,31 +1,30 @@
-# Multiplayer and Client-Server Interactions
+# Multiplayer and document identity
 
-This section explains how smalldraw turns a local, single-user drawing into a collaborative document that syncs between browsers in real time. It's structured to build understanding from the ground up.
+A drawing's local catalog entry, Automerge identity, account membership, and invitation credentials answer different questions. Treating them as a single “shared” flag leads to confusing UI and incorrect lifecycle assumptions.
 
-## Reading Order
+## Reading order
 
-1. **[Automerge as the Document Layer](./01-automerge-as-document-layer.md)** — How the drawing document lives inside an Automerge CRDT, how changes propagate through the store adapter, and what the repo abstraction provides.
+1. [Document layer](01-automerge-as-document-layer.md): handles, actions and incoming changes.
+2. [Catalog and workspaces](02-document-catalog.md): local metadata versus synchronized content.
+3. [Sharing](03-sharing.md): publishing an invitation versus saving to an account.
+4. [Joining](04-joining.md): resolving a link and opening the intended drawing.
+5. [Server responsibilities](05-server.md): API, access metadata and binary storage.
+6. [Sync and authorization](06-realtime-sync.md): HTTP sessions versus document-scoped WebSockets.
+7. [Rendering lifecycle](lifecycle.md): what remains frozen, what cancels, and what reconnect tests prove.
 
-2. **[The Document Catalog](./02-document-catalog.md)** — How the app tracks multiple documents, distinguishes local from collaborative, and persists metadata in IndexedDB alongside the Automerge data.
-
-3. **[Sharing: Upgrading a Local Document](./03-sharing.md)** — What happens when a user clicks "Share." The document copy, server registration, join secret generation, and the collaborative upgrade coordinator. Introduces the controller layer.
-
-4. **[Joining: Resolving a Share Link](./04-joining.md)** — The joiner's perspective. URL parsing, server resolution, binary import, and bootstrapping the collaborative session.
-
-5. **[The Server](./05-server.md)** — Express + tRPC + Automerge repo. Document storage, invitation management, and the anonymous collaboration flow.
-
-6. **[Real-Time Sync and Authorization](./06-realtime-sync.md)** — WebSocket upgrade, the auth adapter, announce policies, and how Automerge-repo handles the actual CRDT synchronization.
-
-## Key Terminology
+## Terms
 
 | Term | Meaning |
-|------|---------|
-| **CRDT** | Conflict-free Replicated Data Type. A data structure that merges concurrent edits without conflicts and without a central coordinator. Automerge is one implementation. |
-| **Automerge-repo** | Library that manages Automerge document handles, persistence, and network sync. Both client and server run their own repo instance. |
-| **Document handle** | Automerge-repo's `DocHandle<T>` — a reactive reference to a document that emits change events when the document is mutated locally or remotely. |
-| **Catalog document** | Local metadata entry in IndexedDB (a `KidsDocumentSummary`). Tracks title, timestamps, thumbnails, and whether the document is collaborative. Identified by `docUrl`. |
-| **Collaborative document** | An Automerge document that syncs to the server. Has a `collabDocUrl` (e.g. `automerge:abc123`) and a `joinSecret`. |
-| **`docUrl` vs `collabDocUrl`** | A collaborative document has two URLs. `docUrl` is the local catalog key. `collabDocUrl` is the Automerge-repo identity known to the server and other peers. |
-| **Join secret** | A random token embedded in share URLs. The server maps it to a document. Also used as the WebSocket auth token for anonymous collaboration. |
-| **Announce policy** | A function that decides whether to announce a document to a given peer. Controls what syncs to the server vs. what stays local. |
-| **tRPC** | A TypeScript RPC framework providing end-to-end type safety between client and server. The server exposes tRPC procedures; the client calls them as typed functions. |
+| --- | --- |
+| Document handle | Automerge-repo's reactive reference to drawing content |
+| `docUrl` | Catalog key used by local browsing/navigation; may differ from sync identity |
+| `collabDocUrl` | Automerge identity for the server-connected document |
+| Join secret | Credential embedded in an invitation URL, resolved by the server |
+| Access token | Credential with a particular document scope, such as owner or device access |
+| Account attachment | Server account membership/ownership metadata; independent of having a share link |
+| Workspace | Guest or account-specific local storage and cross-tab namespace |
+| Announce policy | Client decision about which documents to offer to a peer; not a replacement for server authorization |
+
+An invitation can exist without the creator being signed in. Private account synchronization does not imply an invitation exists. Browser login state must come from the account session, not a drawing's collaborative metadata or a URL hint.
+
+Account-wide synchronization/workspace integration is under active revision during this pass. These pages describe the stable boundaries and point to the current implementation; they do not freeze an unreviewed migration protocol into a public API promise.

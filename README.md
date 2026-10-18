@@ -1,170 +1,45 @@
-# Steve's drawing program experiments
+# Splatterboard / Smalldraw
 
-This repo, although public, is not written for public consumption. It is not licensed as open source. It is a work in progress, full of random text files and unfinished work. Do not look here for anything interesting.
+This repository contains [Splatterboard](https://splatterboard.app/), a drawing app, and the Smalldraw packages it is built from. The repository is public, but is not licensed as open source.
 
-That said, it is the source code for https://splatterboard.app/.
+The app stores drawing documents in Automerge, renders committed content into raster tiles, and uses an isolated canvas composition for in-progress strokes. The web editor uses re:dom; the account portal uses React.
 
----
+## Start here
 
-This is a greenfield prototype of a "drawing program construction kit." It is a vector/raster hybrid but can be used to specialize in vector or raster work.
+- [Internal documentation](docs/index.md): architecture, rendering, tools, multiplayer, and validation.
+- [Design principles](design_principles.md): package boundaries, state ownership, rendering, and component conventions.
+- [Development guide](docs/guides/development.md): local services and checks.
+- [Rendering pipeline](docs/explanation/rendering-pipeline.md): what each canvas/cache does and why it exists.
 
-## Packages
+## Workspace
 
-### `@smalldraw/geometry`
+| Location | Responsibility |
+| --- | --- |
+| `packages/core` | Drawing model, actions, undo, tool runtime, store, Automerge adapter |
+| `packages/geometry` | Geometry and vector/bounds helpers |
+| `packages/renderer-canvas` | Shape dispatch, ordered painting, isolated layer composition |
+| `packages/renderer-raster` | Tiles, layer backends, snapshot preparation, hot canvas composition |
+| `packages/splat` | Drawing app assembly, concrete tools/shapes, input and document lifecycle |
+| `packages/design-system` | Shared re:dom UI components and browser harness |
+| `packages/shared` | Shared routes, account/parental-control contracts and helpers |
+| `packages/testing` | Test infrastructure |
+| `packages/server-cli` | Server administration client |
+| `apps/splat-web`, `apps/splat-desktop` | Web and desktop drawing hosts |
+| `apps/app` | React home/account portal; proxies the drawing app in development |
+| `apps/server` | HTTP API, authentication, metadata, thumbnails, Automerge sync/storage |
+| `apps/docs-site` | VuePress host for `docs/` |
 
-Contains:
-- What is a shape geometrically
-- What is true about a given shape geometrically
+## Local development
 
-Depends on: third party libs only (Euclid.ts)
-
-Exposes: geometry types and functions, wrapping any third party stuff and not just re-exporting it
-
-### `@smalldraw/core`
-
-Contains: 
-- Frontend-framework-agnostic model and reactive datastore for illustration programs
-- Tool implementations in pure logic, no UI framework integrations. What is a selection tool, what does it need, what does it do?
-- Later on (do not do now): will be based on Automerge for local-first and multiplayer
-
-Depends on: geometry, third party libraries, but not Euclid.ts because its logic comes in through geometry
-
-Exposes: generic interfaces, stores, controllers, managers, and registries for UI layers to use
-
-DOES NOT expose: individual shape types. the abstractions of the module should allow UI layer to be shape-agnostic.
-
-### `@smalldraw/renderer-konva`
-
-Contains:
-- Code to render core's data model on an HTML canvas using the Konva library, in an incremental way
-
-Depends on: core
-
-Exposes: as small a surface area as possible to keep a canvas updated
-
-### `@smalldraw/ui-vanillajs`
-
-Contains:
-- Complete implementation of a minimalistic drawing app using all features of Smalldraw, mountable in a DOM element
-
-Depends on: core, renderer-konva, re:dom
-
-Exposes: an object that can mount/unmount the app; eventually, access to core objects for serialization/deserialization/sync
-
-## Current status
-
-Codebase is messy and needs to be further conformed to the module boundaries. Code reuse is suboptimal. Many types are copy/pasted across files, especially in tests. The geometry package in particular should be beefed up substantially, but new abstractions are needed for generic shape intersections (do we even need that?) and hit testing (we definitely need that).
-
-## Roadmap
-
-- Polish the abstractions for the current feature set (YOU ARE HERE)
-  - pen and rect shapes
-  - selection tool that supports multi-select, scaling, and rotation
-    - scaling rotated shapes is buggy, but the fix will be easy
-- Move data model to Automerge; tackle JSON save/load
-- Add the rest of the main shapes
-  - ellipse
-  - line
-  - polygon
-  - emoji stamp
-  - perfect-freehand (note that we SHOULD NOT be using perfect-freehand right now as we are not at this stage)
-  - eraser (this will be complex, since this is a hybrid vector-raster program)
-- Develop web component color pickers
-- Develop a rich React UI
-- Iterate on the design
-- Write docs
-- Iterate on the design
-- Write docs
-- Release
-
----
-
-Original README continues below.
-
----
-
-# Automerge Jumpstart
-
-A comprehensive boilerplate for building real-time
-collaborative editing applications with Automerge, React,
-tRPC, and more.
-
-Website incl. explanation videos: [https://www.automerge-jumpstart.com/](https://www.automerge-jumpstart.com/)
-
-## Development
-
-### Setup
+Use Bun and the tasks in `mise.toml`. Tilt orchestrates the local services; check whether it is already running before starting another instance.
 
 ```sh
+mise install
 bun install
-cp .env.example .env
-# optional: generate a real OPAQUE setup string with
-# bunx @serenity-kit/opaque@latest create-server-setup
-mise run db:push
-mise run server:dev
+# Configure .env from .env.example for a fresh checkout.
+mise run tilt:up
 ```
 
-```sh
-# in another tab
-cd apps/app
-bun run dev
-```
+The normal browser entry is `http://localhost:3000`; the drawing app is at `/draw/`. See the development guide before operating the database or running services individually.
 
-### Updating the Database Schema
-
-1. Make changes
-2. Update `apps/server/src/db/schema.ts`
-3. Run `mise run db:generate -- --name my-migration`
-4. Run `mise run db:push`
-5. Restart the TS server in your editor
-
-### DB UI
-
-```bash
-mise run db:studio
-```
-
-### Wipe all local data
-
-```bash
-rm -f apps/server/sqlite/dev.db automerge.db
-mise run db:push
-```
-
-## Setup Production Environment and CI
-
-see [docs/setup-production-environment-and-ci.md](docs/setup-production-environment-and-ci.md)
-
-## Connect to the Production Database
-
-```sh
-fly postgres connect -a automerge-jumpstart-db
-```
-
-```sh
-# list dbs
-\list;
-# connect to a db
-\c automerge_jumpstart;
-# list tables
-\dt
-# query a table
-SELECT * FROM "Document";
-```
-
-## Upgrading Dependencies
-
-Note: Automerge version is pinned in the root `package.json` file to avoid issues arising from different automerge versions.
-
-```sh
-bun update
-cd apps/app && bun update
-cd apps/server && bun update
-mise run db:push
-```
-
-## Architecture
-
-### Authentication
-
-Users use OPAQUE to authenticate with the server. After Login the server creates a session in the database which includes Opaque's `sessionKey`. The `sessionKey` is used as `bearer` token to authenticate the user for authenticated requests and also to connect to the Websocket.
+Root lab notebooks, `thinking/`, and old design proposals record historical experiments. They are evidence, not descriptions of the current architecture or an authoritative backlog. Current explanations live under `docs/explanation/`.

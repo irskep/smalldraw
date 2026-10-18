@@ -1,3 +1,5 @@
+> Historical design/work notes. Claims about “current” behavior and unchecked tasks refer to the original investigation, not a verified present-day backlog. Start with the [maintained internal docs](../../docs/index.md).
+
 # Splatterboard Multiplayer: High-Level Engineering Design
 
 Translates the PRD into architectural decisions and phased delivery. Intentionally above implementation detail — focuses on boundaries, runtime model, migration, and responsibilities.

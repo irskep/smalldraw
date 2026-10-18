@@ -1,92 +1,35 @@
-# Tool Runtime Model
+# Tool runtime model
 
-Tools don't manipulate the document or render anything directly. They interact with a runtime that provides controlled access to the system.
+A tool defines an `id`, a label, optional style support, and `activate(runtime)`. Activation registers handlers and may return a disposer. The exact interfaces are in `packages/core/src/tools/types.ts`; runtime behavior is in `tools/runtime.ts` and `store/drawingStore.ts`.
 
-## What a Tool Is
+## Runtime capabilities
 
-A tool is an object with an `id`, a `label`, and an `activate` function:
+| Capability | API | Ownership |
+| --- | --- | --- |
+| Input | `on`, or `attachPointerHandlers` | Handlers must be disposed on deactivation |
+| Temporary geometry | `setDraft`, `setDrafts`, `clearDraft` | Local interaction only |
+| Paint hints | `setPreview`, `getPreview` | Conservative dirty bounds, consumed by rendering |
+| Document mutation | `commit` with an undoable action | Store/adapter owns application and history |
+| Layer/order | `getActiveLayerId`, `getNextZIndexInLayer` | Capture the intended layer for the interaction |
+| Settings | `getSharedSettings`, `updateSharedSettings`, `getOptions` | Host configuration and shared drawing choices |
+| Persistent tool preferences | `getToolState`, `setToolState`, `updateToolState` | Survive tool activation changes within the store |
+| Selection and handles | Selection helpers, `emit`, `onEvent` | Transient editor interaction state |
+| Read model | `getDocument`, `getShape`, `getOrderedShapes`, `getShapeHandlers` | Read current committed state; mutate through actions |
 
-```typescript
-interface ToolDefinition {
-  id: string;
-  label: string;
-  activate(runtime: ToolRuntime): void | undefined | (() => void);
-  // activate()'s return value is run at deactivation time
-}
-```
+The tool runtime is a capability interface, not a security sandbox. Concrete fill tools use canvas APIs in `splat`; generic core tool contracts do not require a DOM.
 
-When activated, the tool receives a runtime. It uses this runtime to handle events, show previews, and commit changes.
+## Input and rendering are different clocks
 
-## The Runtime as a Sandbox
+Browser input is adapted by `packages/splat/src/controller/createInputSessionController.ts`. Tools receive document-space `Vec2` points, button state, optional pressure/modifiers, and optional handle identity. They do not need raw browser pointer events.
 
-The `ToolRuntime` gives the tool controlled capabilities:
+A batch of input can publish several draft updates before a frame is rendered. Keep input updates cheap and preserve the latest geometry. Do not assume one move equals one canvas paint or one network operation.
 
-```mermaid
-flowchart TB
-    Tool --> Runtime
-    Runtime --> Events[Event Handlers]
-    Runtime --> Drafts[Draft Shapes]
-    Runtime --> Actions[Commit Actions]
-    Runtime --> Selection
-    Runtime --> Settings[Shared Settings]
-```
+`setPreview` supplies a paint-region hint. If a tool cannot prove conservative dirty bounds, a full repaint is safer than dropping changed pixels. The renderer remains responsible for world-to-backing conversion and clipping.
 
-**Event subscription.** Tools receive pointer events through `runtime.on()`, not DOM events directly.
+## Activation and cancellation
 
-**Draft shapes.** `runtime.setDraft()` shows in-progress work that renders but isn't in the document.
+Tool deactivation must stop producers as well as remove consumers: dispose event subscriptions, stop spray animation callbacks, clear draft/preview state, and discard any unfinished interaction. Persistent preferences are separate from an active stroke.
 
-**Actions.** `runtime.commit(action)` changes the document. Tools can't mutate it directly.
+The store resets the active tool when its layer disappears. This uses the same cleanup contract to prevent orphan commits and timer-driven draft resurrection. Tests should send pointer-up after cancellation to verify that it cannot commit stale state.
 
-**Selection.** `runtime.getSelection()` and `runtime.setSelection()` manage what's selected.
-
-**Settings.** `runtime.getSharedSettings()` provides stroke color, fill, and other shared state.
-
-## Event Flow
-
-```mermaid
-sequenceDiagram
-    participant UI
-    participant Store
-    participant Runtime
-    participant Tool
-
-    UI->>Store: dispatch('pointerDown', event)
-    Store->>Runtime: route to active tool
-    Runtime->>Tool: call registered handler
-    Tool->>Runtime: setDraft() or commit()
-```
-
-Events the tool can subscribe to:
-
-- `pointerDown` — press
-- `pointerMove` — drag or movement
-- `pointerUp` — release
-- `pointerCancel` — interrupted
-- `hover` — movement without button
-
-## Why Tools Can't Mutate Directly
-
-**Undo works automatically.** Actions know how to undo themselves.
-
-**Consistent state.** All changes flow through actions. Log them, replay them, sync them.
-
-**Testability.** Test tools by checking what actions they commit.
-
-## Tool Lifecycle
-
-1. **Registration.** Store learns about available tools
-2. **Activation.** `activate(runtime)` called when tool selected
-3. **Interaction.** Tool handles events, sets drafts, commits actions
-4. **Deactivation.** `activate()`'s return value is called when switching away
-
-The runtime persists. State stored with `runtime.setToolState()` survives deactivation.
-
-## Tool-to-UI Communication
-
-Tools emit events for the UI:
-
-- `handles` — interactive handle positions (for resize/rotate)
-- `handle-hover` — which handle the cursor is over
-- `selection-frame` — bounds during drag selection
-
-The UI listens with `runtime.onEvent()` and renders accordingly. This decouples tools from specific UI implementations.
+See [draft shapes](draft-shapes.md), [tool paths](tool-rendering-paths.md), and [the implementation guide](../guides/creating-a-drawing-tool.md).

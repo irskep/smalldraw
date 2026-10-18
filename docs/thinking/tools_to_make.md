@@ -1,3 +1,5 @@
+> Historical design/work notes. Claims about “current” behavior and unchecked tasks refer to the original investigation, not a verified present-day backlog. Start with the [maintained internal docs](../index.md).
+
 - spiral: hold your finger down and it slowly makes a spiral out from your finger
 - raster rect copy
 - brush variant: dotted stroke (`brushId: "dotted"`). Renderer-driven effect only; reuse existing pen geometry and tool runtime.

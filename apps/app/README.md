@@ -1,30 +1,9 @@
-# React + TypeScript + Vite
+# Account portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This React/Vite app owns the home page, account/session UI, account document listing and administration. The drawing editor is a separate re:dom app in `apps/splat-web`, assembled from `packages/splat`.
 
-Currently, two official plugins are available:
+In local development, Tilt serves this portal at `http://localhost:3000` and proxies `/draw/` to the standalone editor at port 3001. Use that combined origin when checking login, navigation and shared drawing links.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+See [development](../../docs/guides/development.md), [architecture](../../docs/explanation/architecture-overview.md), and [document identity](../../docs/explanation/multiplayer/index.md). Shared UI components live in `packages/design-system`; portal wrappers adapt those components to React.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
-
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+The source of task commands is `mise.toml`. Focused checks include `mise run //apps/app:test`, `mise run //apps/app:ts:check`, and `mise run //apps/app:lint`.
