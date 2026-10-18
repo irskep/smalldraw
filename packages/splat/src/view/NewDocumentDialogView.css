@@ -86,9 +86,9 @@
   gap: var(--size-3);
   align-items: center;
   padding: var(--size-3);
-  border: var(--border-size-1) solid var(--gray-5);
+  border: var(--border-size-1) solid var(--ds-border-strong);
   border-radius: var(--radius-3);
-  background: var(--gray-0);
+  background: var(--ds-surface);
 }
 
 .kids-draw-new-document-dialog__book-summary-image {
@@ -96,7 +96,7 @@
   aspect-ratio: 1;
   object-fit: contain;
   border-radius: var(--radius-2);
-  border: var(--border-size-1) solid var(--gray-4);
+  border: var(--border-size-1) solid var(--ds-border);
   background: white;
 }
 

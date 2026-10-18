@@ -54,8 +54,8 @@
 .ds-dropdown-chrome__panel {
   overflow-y: auto;
   overscroll-behavior: contain;
-  background: var(--gray-0);
-  border: var(--border-size-1) solid var(--gray-5);
+  background: var(--ds-surface);
+  border: var(--border-size-1) solid var(--ds-border-strong);
   border-radius: var(--radius-2);
   box-shadow: var(--shadow-4);
 }

@@ -19,7 +19,7 @@
 .ds-dropdown-menu__divider {
   height: var(--border-size-1);
   margin: var(--size-px-1) 0;
-  background: var(--gray-4);
+  background: var(--ds-border);
 }
 
 .ds-dropdown-menu__item {
@@ -30,7 +30,7 @@
   margin: 0;
   border: 0;
   background: transparent;
-  color: var(--gray-9);
+  color: var(--ds-ink);
   font: inherit;
   font-size: var(--font-size-1);
   font-weight: var(--font-weight-4);
@@ -50,7 +50,7 @@
 }
 
 .ds-dropdown-menu__item:hover:not(:disabled) {
-  background: var(--gray-2);
+  background: var(--ds-surface-hover);
 }
 
 .ds-dropdown-menu__item:focus-visible {

@@ -1,6 +1,6 @@
 .ds-poster-card {
   width: 100%;
-  border: var(--border-size-1) solid var(--gray-4);
+  border: var(--border-size-1) solid var(--ds-border);
   border-radius: var(--radius-3);
   background: white;
   padding: var(--size-1);
@@ -12,7 +12,7 @@
 
 .ds-poster-card:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--blue-6) 38%, white);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ds-accent-border) 38%, white);
 }
 
 .ds-poster-card:disabled {
@@ -27,8 +27,8 @@
   place-items: center;
   overflow: hidden;
   border-radius: var(--radius-2);
-  background: color-mix(in oklch, var(--gray-1) 90%, white);
-  border: var(--border-size-1) solid var(--gray-3);
+  background: color-mix(in oklch, var(--ds-surface-muted) 90%, white);
+  border: var(--border-size-1) solid var(--ds-surface-pressed);
 }
 
 .ds-poster-card__media > img {

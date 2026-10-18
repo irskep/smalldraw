@@ -8,8 +8,8 @@
  */
 
 .ds-button {
-  --ds-control-bg-hover: var(--gray-2);
-  --ds-control-bg-active: var(--gray-3);
+  --ds-control-bg-hover: var(--ds-surface-hover);
+  --ds-control-bg-active: var(--ds-surface-pressed);
   appearance: none;
   -webkit-appearance: none;
   display: inline-flex;
@@ -17,7 +17,7 @@
   justify-content: center;
   gap: var(--size-1);
   margin: 0;
-  border: var(--border-size-1) solid var(--gray-5);
+  border: var(--border-size-1) solid var(--ds-border-strong);
   border-radius: var(--radius-2);
   padding: var(--space-control-gap-md) var(--size-px-3);
   font: inherit;
@@ -50,8 +50,8 @@
 
 .ds-button[data-tone="neutral"],
 .ds-button:not([data-tone]) {
-  background: var(--gray-0);
-  color: var(--gray-9);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
 }
 
 .ds-button[data-tone="primary"] {
@@ -59,7 +59,7 @@
   --ds-control-bg-active: var(--ds-accent-fill-pressed);
   background: var(--ds-accent-fill);
   border-color: var(--ds-accent-border);
-  color: white;
+  color: var(--ds-accent-ink);
 }
 
 .ds-button[data-tone="danger"] {
@@ -84,7 +84,7 @@
 
 .ds-button.is-selected {
   background: var(--ds-accent-subtle-surface);
-  color: var(--gray-10);
+  color: var(--ds-ink);
   border-color: var(--ds-accent-border);
 }
 

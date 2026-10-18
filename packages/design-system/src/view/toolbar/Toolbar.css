@@ -2,7 +2,7 @@
   display: flex;
   gap: var(--ds-toolbar-gap, 0);
   padding: var(--ds-toolbar-padding, var(--size-2));
-  background: var(--ds-toolbar-bg, var(--gray-1));
+  background: var(--ds-toolbar-bg, var(--ds-surface-muted));
   border: none;
 }
 

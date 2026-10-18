@@ -1,6 +1,6 @@
 .ds-choice-card {
   width: 100%;
-  border: var(--border-size-1) solid var(--gray-4);
+  border: var(--border-size-1) solid var(--ds-border);
   border-radius: var(--radius-3);
   background: white;
   padding: var(--size-2);
@@ -14,7 +14,7 @@
 
 .ds-choice-card:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--blue-6) 38%, white);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ds-accent-border) 38%, white);
 }
 
 .ds-choice-card:disabled {
@@ -29,8 +29,8 @@
   overflow: hidden;
   display: grid;
   place-items: center;
-  background: color-mix(in oklch, var(--gray-1) 90%, white);
-  border: var(--border-size-1) solid var(--gray-3);
+  background: color-mix(in oklch, var(--ds-surface-muted) 90%, white);
+  border: var(--border-size-1) solid var(--ds-surface-pressed);
 }
 
 .ds-choice-card__media > img {

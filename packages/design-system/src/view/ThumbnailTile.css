@@ -6,7 +6,7 @@
 .ds-thumbnail-tile__open {
   width: 100%;
   height: 100%;
-  border: var(--border-size-1) solid var(--gray-4);
+  border: var(--border-size-1) solid var(--ds-border);
   border-radius: var(--radius-3);
   background: white;
   overflow: hidden;
@@ -19,12 +19,13 @@
 .ds-thumbnail-tile__action:focus-visible,
 .ds-thumbnail-tile__secondary-action:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--blue-6) 40%, white);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ds-accent-border) 40%, white);
 }
 
 .ds-thumbnail-tile[data-current="true"] .ds-thumbnail-tile__open {
-  border-color: var(--blue-6);
-  box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--blue-6) 38%, white);
+  border-color: var(--ds-accent-border);
+  box-shadow: inset 0 0 0 2px
+    color-mix(in oklch, var(--ds-accent-border) 38%, white);
 }
 
 .ds-thumbnail-tile__open:disabled,
@@ -41,10 +42,10 @@
   place-items: center;
   background: linear-gradient(
     45deg,
-    color-mix(in oklch, var(--gray-3) 70%, white) 0 25%,
-    color-mix(in oklch, var(--gray-2) 65%, white) 25% 50%,
-    color-mix(in oklch, var(--gray-3) 70%, white) 50% 75%,
-    color-mix(in oklch, var(--gray-2) 65%, white) 75% 100%
+    color-mix(in oklch, var(--ds-surface-pressed) 70%, white) 0 25%,
+    color-mix(in oklch, var(--ds-surface-hover) 65%, white) 25% 50%,
+    color-mix(in oklch, var(--ds-surface-pressed) 70%, white) 50% 75%,
+    color-mix(in oklch, var(--ds-surface-hover) 65%, white) 75% 100%
   );
   background-size: 24px 24px;
 }
@@ -68,7 +69,7 @@
   left: var(--size-1);
   border-radius: 999px;
   padding: 5px 9px;
-  background: color-mix(in oklch, var(--gray-12) 68%, white);
+  background: color-mix(in oklch, var(--ds-ink) 68%, white);
   color: white;
   font-size: var(--font-size-0);
   line-height: 1;
@@ -114,8 +115,8 @@
   border: 0;
   border-radius: 999px;
   padding: 6px 10px;
-  background: color-mix(in oklch, var(--blue-6) 88%, white);
-  color: white;
+  background: var(--ds-accent-fill);
+  color: var(--ds-accent-ink);
   display: inline-flex;
   align-items: center;
   gap: 6px;

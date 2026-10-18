@@ -14,7 +14,7 @@
 .kids-draw-frame {
   position: relative;
   box-shadow: var(--shadow-4);
-  background: var(--ds-surface);
+  background: white;
   box-sizing: border-box;
   flex-shrink: 0;
 }
@@ -81,8 +81,8 @@
   max-width: min(32rem, 80vw);
   padding: var(--size-3);
   border-radius: var(--radius-2);
-  background: color-mix(in oklch, var(--gray-0) 88%, white);
-  border: 1px solid color-mix(in oklch, var(--gray-5) 60%, white);
+  background: color-mix(in oklch, var(--ds-surface) 88%, white);
+  border: 1px solid color-mix(in oklch, var(--ds-border-strong) 60%, white);
   box-shadow: var(--shadow-2);
 }
 
@@ -96,13 +96,13 @@
   font-size: var(--font-size-3);
   font-weight: var(--font-weight-6);
   line-height: var(--font-lineheight-1);
-  color: var(--gray-9);
+  color: var(--ds-ink);
 }
 
 .kids-draw-startup-detail {
   font-size: var(--font-size-1);
   line-height: var(--font-lineheight-3);
-  color: var(--gray-7);
+  color: var(--ds-text-muted);
 }
 
 .kids-draw-dirty-rect {

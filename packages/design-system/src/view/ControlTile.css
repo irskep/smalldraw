@@ -2,13 +2,13 @@
 
 :where(.ds-icon-button, .ds-control-tile) {
   --ds-control-tile-border-width: var(--border-size-1);
-  --ds-control-tile-border: var(--gray-5);
-  --ds-control-tile-bg: var(--gray-0);
+  --ds-control-tile-border: var(--ds-border-strong);
+  --ds-control-tile-bg: var(--ds-surface);
   --ds-control-tile-bg-hover: var(--ds-control-tile-bg);
-  --ds-control-tile-bg-active: var(--gray-4);
+  --ds-control-tile-bg-active: var(--ds-surface-pressed);
   --ds-control-bg-hover: var(--ds-control-tile-bg-hover);
   --ds-control-bg-active: var(--ds-control-tile-bg-active);
-  --ds-control-tile-color: var(--gray-8);
+  --ds-control-tile-color: var(--ds-ink);
 
   appearance: none;
   -webkit-appearance: none;

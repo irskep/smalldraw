@@ -117,7 +117,7 @@ a {
 .portal-link:focus-visible,
 .portal-link-button:hover,
 .portal-link-button:focus-visible {
-  color: var(--ds-accent);
+  color: var(--ds-accent-border);
 }
 
 .portal-shell[data-layout="admin"] .portal-main {
@@ -416,7 +416,7 @@ a {
 }
 
 .portal-details dt {
-  color: var(--ds-ink-muted);
+  color: var(--ds-text-muted);
   font-size: var(--font-size-button-sm);
   font-weight: var(--font-weight-5);
 }
@@ -620,8 +620,8 @@ a {
 
 /* The welcome page is an art table; application controls retain their own theme. */
 .portal-shell[data-layout="home"] {
-  background: #f6f2e9;
-  color: #302f2a;
+  background: var(--ds-surface-muted);
+  color: var(--ds-ink);
 }
 
 .portal-shell[data-layout="home"] .portal-header {
@@ -665,25 +665,25 @@ a {
   display: inline-flex;
   align-items: center;
   padding: 17px 24px;
-  border: 1px solid #ad4b35;
+  border: 1px solid var(--ds-accent-border);
   border-radius: 6px;
-  background: #f28b70;
-  color: #302018;
+  background: var(--ds-accent-fill);
+  color: var(--ds-accent-ink);
   font-size: 20px;
   font-weight: 650;
   text-decoration: none;
 }
 
 .art-table__start:hover {
-  background: #f7a58f;
+  background: var(--ds-accent-fill-hover);
 }
 
 .art-table__start:active {
-  background: #e97b60;
+  background: var(--ds-accent-fill-pressed);
 }
 
 .art-table__start:focus-visible {
-  outline: 3px solid #302f2a;
+  outline: 3px solid var(--ds-ink);
   outline-offset: 6px;
 }
 
@@ -698,7 +698,7 @@ a {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid #d8d1c3;
+  border: 1px solid var(--ds-border);
   border-radius: 4px;
 }
 
@@ -708,7 +708,7 @@ a {
   width: 100%;
   margin: 12px auto 0;
   padding-top: 28px;
-  border-top: 1px solid #d8d1c3;
+  border-top: 1px solid var(--ds-border);
 }
 
 .art-table-about p {
@@ -724,7 +724,7 @@ a {
 
 .art-table-about p {
   margin: 0 0 12px;
-  color: #646057;
+  color: var(--ds-text-muted);
   font-size: 14px;
   line-height: 1.6;
 }

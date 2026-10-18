@@ -1219,7 +1219,7 @@ test.describe("Button", () => {
     await expect(deleteWithIcon.locator("svg").first()).toBeVisible();
   });
 
-  test("primary and danger button labels inherit white text", async ({
+  test("primary and danger button labels use their contrasting text colors", async ({
     page,
   }) => {
     const primary = page.getByRole("button", { name: "Save" }).first();
@@ -1233,7 +1233,7 @@ test.describe("Button", () => {
       ),
     );
 
-    expect(colors).toEqual(["rgb(255, 255, 255)", "rgb(255, 255, 255)"]);
+    expect(colors).toEqual(["rgb(48, 32, 24)", "rgb(255, 255, 255)"]);
   });
 
   test("disabled buttons are not interactive", async ({ page }) => {

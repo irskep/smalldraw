@@ -29,7 +29,7 @@
   aspect-ratio: 1;
   border-radius: var(--radius-2);
   background: white;
-  border: var(--border-size-1) solid var(--gray-5);
+  border: var(--border-size-1) solid var(--ds-border-strong);
 }
 
 .ds-share-dialog__body {
@@ -57,7 +57,7 @@
   width: 100%;
   min-width: 0;
   padding: var(--size-2) var(--size-3);
-  border: var(--border-size-1) solid var(--gray-5);
+  border: var(--border-size-1) solid var(--ds-border-strong);
   border-radius: var(--radius-2);
   background: white;
   color: var(--ds-ink);

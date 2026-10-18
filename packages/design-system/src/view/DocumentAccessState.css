@@ -60,10 +60,10 @@
     (var(--border-size-1) * 2)
   );
   padding: var(--space-control-gap-md) var(--size-px-3);
-  border: var(--border-size-1) solid var(--gray-5);
+  border: var(--border-size-1) solid var(--ds-border-strong);
   border-radius: var(--radius-2);
-  background: var(--gray-0);
-  color: var(--gray-9);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
   font-size: var(--font-size-button-md);
   font-weight: var(--font-weight-5);
   line-height: 1;
@@ -72,8 +72,8 @@
 }
 
 .ds-document-access-state__auth-link--neutral {
-  background: var(--gray-0);
-  color: var(--gray-9);
+  background: var(--ds-surface);
+  color: var(--ds-ink);
 }
 
 .ds-document-access-state__auth-link--primary {

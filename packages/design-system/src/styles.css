@@ -11,20 +11,23 @@
 
 :root {
   --ds-font-sans: system-ui, sans-serif;
-  --ds-surface: var(--gray-0);
-  --ds-surface-muted: var(--gray-1);
-  --ds-ink: var(--gray-9);
-  --ds-text-muted: var(--gray-6);
-  --ds-accent-fill: var(--blue-6);
-  --ds-accent-fill-hover: var(--blue-5);
-  --ds-accent-fill-pressed: var(--blue-3);
-  --ds-accent-border: var(--blue-7);
-  --ds-accent-subtle-surface: var(--blue-1);
+  --ds-surface: #fffdf7;
+  --ds-surface-muted: #f6f2e9;
+  --ds-surface-hover: #eee7da;
+  --ds-surface-pressed: #e3d9c9;
+  --ds-ink: #302f2a;
+  --ds-text-muted: #646057;
+  --ds-accent-fill: #f28b70;
+  --ds-accent-fill-hover: #f7a58f;
+  --ds-accent-fill-pressed: #e97b60;
+  --ds-accent-ink: #302018;
+  --ds-accent-border: #ad4b35;
+  --ds-accent-subtle-surface: #fbe0d6;
   --ds-danger: var(--red-7);
-  --ds-border: var(--gray-4);
-  --ds-border-subtle: var(--gray-3);
-  --ds-border-strong: var(--gray-5);
-  --ds-focus-ring: var(--gray-12);
+  --ds-border: #d8d1c3;
+  --ds-border-subtle: #e5dfd3;
+  --ds-border-strong: #9b9181;
+  --ds-focus-ring: var(--ds-ink);
   --ds-cursor-interactive-hover: default; /* not pointer! */
 }
 
@@ -519,13 +522,13 @@ body {
 }
 
 .ds-splat-context__scene {
-  --ds-splat-context-surface-app: var(--gray-1);
-  --ds-splat-context-surface-viewport: var(--gray-1);
-  --ds-splat-context-surface-toolbar-panel: var(--gray-1);
-  --ds-splat-context-surface-button: var(--gray-1);
-  --ds-splat-context-surface-button-selected: var(--amber-5);
-  --ds-splat-context-text-default: var(--gray-8);
-  --ds-splat-context-text-strong: var(--gray-10);
+  --ds-splat-context-surface-app: var(--ds-surface-muted);
+  --ds-splat-context-surface-viewport: var(--ds-surface-muted);
+  --ds-splat-context-surface-toolbar-panel: var(--ds-surface-muted);
+  --ds-splat-context-surface-button: var(--ds-surface-muted);
+  --ds-splat-context-surface-button-selected: var(--ds-accent-subtle-surface);
+  --ds-splat-context-text-default: var(--ds-ink);
+  --ds-splat-context-text-strong: var(--ds-ink);
   --ds-splat-context-toolbar-label-size-sm: var(--font-size-toolbar-sm);
   --ds-splat-context-toolbar-label-size-md: var(--font-size-toolbar-md);
   --ds-splat-context-toolbar-label-size-lg: var(--font-size-toolbar-lg);
@@ -539,7 +542,7 @@ body {
 
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--gray-4);
+  border: 1px solid var(--ds-border);
   background: var(--ds-splat-context-surface-viewport);
   color: var(--ds-splat-context-text-default);
   min-width: 0;
@@ -676,8 +679,8 @@ body {
 .ds-splat-context__paper {
   width: 100%;
   height: 100%;
-  background: var(--gray-0);
-  border: 1px solid var(--gray-4);
+  background: white;
+  border: 1px solid var(--ds-border);
 }
 
 .ds-splat-context__scene--desktop .ds-splat-context__paper {
@@ -714,7 +717,7 @@ body {
   align-items: stretch;
   min-height: 100%;
   padding: var(--size-2);
-  background: var(--gray-1);
+  background: var(--ds-surface-muted);
 }
 
 .ds-splat-context__left-controls {
@@ -734,7 +737,7 @@ body {
 
 .ds-splat-context__top-actions {
   --ds-toolbar-padding: var(--size-2) var(--size-2) 0;
-  --ds-toolbar-bg: var(--gray-1);
+  --ds-toolbar-bg: var(--ds-surface-muted);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -812,7 +815,7 @@ body {
 
 .ds-splat-context__tool-dropdown-panel {
   padding: var(--size-2);
-  border: 1px solid var(--gray-4);
+  border: 1px solid var(--ds-border);
   background: var(--ds-splat-context-surface-toolbar-panel);
   box-shadow: var(--shadow-4);
 }

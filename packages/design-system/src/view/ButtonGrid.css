@@ -58,7 +58,7 @@
   display: flex;
   align-items: center;
   gap: var(--size-2);
-  background: var(--ds-button-grid-surface, var(--gray-1));
+  background: var(--ds-button-grid-surface, var(--ds-surface-muted));
   border: none;
   border-radius: 0;
   width: max-content;

@@ -11,11 +11,14 @@
   --ds-icon-button-size-default: var(--size-px-44x);
   --ds-icon-button-size-large: var(--size-px-88x);
   --ds-control-tile-border-width: var(--border-size-1);
-  --ds-control-tile-border: var(--gray-5);
-  --ds-control-tile-bg: var(--ds-icon-button-bg, var(--gray-0));
+  --ds-control-tile-border: var(--ds-border-strong);
+  --ds-control-tile-bg: var(--ds-icon-button-bg, var(--ds-surface));
   --ds-control-tile-bg-hover: var(--ds-control-tile-bg);
-  --ds-control-tile-bg-active: var(--ds-icon-button-bg-active, var(--gray-4));
-  --ds-control-tile-color: var(--ds-icon-button-color, var(--gray-8));
+  --ds-control-tile-bg-active: var(
+    --ds-icon-button-bg-active,
+    var(--ds-surface-pressed)
+  );
+  --ds-control-tile-color: var(--ds-icon-button-color, var(--ds-ink));
   --ds-control-tile-border-selected: var(--ds-accent-border);
 
   width: var(--ds-icon-button-size, var(--ds-icon-button-size-default));
@@ -137,7 +140,7 @@
 .ds-icon-button.is-selected {
   --ds-control-bg-hover: var(--sq-bg-selected, var(--ds-accent-subtle-surface));
   background: var(--sq-bg-selected, var(--ds-accent-subtle-surface));
-  color: var(--sq-color-selected, var(--gray-10));
+  color: var(--sq-color-selected, var(--ds-ink));
   border-color: var(--sq-border-selected, var(--ds-accent-border));
 }
 
