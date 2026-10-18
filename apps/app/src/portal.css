@@ -653,7 +653,7 @@ a {
 .art-table h1 {
   grid-area: title;
   margin: 0;
-  font-family: var(--ds-font-sans);
+  font-family: "Shantell Sans Variable", var(--ds-font-sans);
   font-size: clamp(26px, 3vw, 36px);
   font-weight: 600;
   line-height: 1.25;
