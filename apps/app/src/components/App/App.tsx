@@ -7,7 +7,11 @@ import {
 import { RouterProvider } from "@tanstack/react-router";
 import { TRPCClientError } from "@trpc/client";
 import { useState } from "react";
-import { appPath, basePath, isAppRoute } from "../../config.js";
+import {
+  appPath,
+  basePath,
+  isPublicUnauthenticatedRoute,
+} from "../../config.js";
 import { router } from "../../utils/router.js";
 import { trpc, trpcClient } from "../../utils/trpc.js";
 
@@ -15,7 +19,7 @@ const handleError = (error: Error, queryClient: QueryClient) => {
   if (
     error instanceof TRPCClientError &&
     error.data?.code === "UNAUTHORIZED" &&
-    !isPublicUnauthenticatedRoute()
+    !isPublicUnauthenticatedRoute(window.location.pathname)
   ) {
     queryClient.clear();
 
@@ -29,14 +33,6 @@ const handleError = (error: Error, queryClient: QueryClient) => {
 
   return false;
 };
-
-function isPublicUnauthenticatedRoute(): boolean {
-  return (
-    window.location.pathname === basePath ||
-    isAppRoute("login") ||
-    isAppRoute("register")
-  );
-}
 
 export const App: React.FC = () => {
   const [queryClient] = useState(

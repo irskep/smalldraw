@@ -22,7 +22,7 @@ import {
   ParentalControlsDialog,
   type ParentalControlsDialogHandle,
 } from "@/components/ParentalControlsDialog/ParentalControlsDialog";
-import { appPath, basePath, isAppRoute } from "../config";
+import { appPath, isPublicUnauthenticatedRoute } from "../config";
 import { trpc } from "../utils/trpc";
 
 const TanStackRouterDevtools =
@@ -126,20 +126,13 @@ const Root = () => {
   ]);
 
   useEffect(() => {
-    if (!isNotAuthorized || isAppRoute("login") || isAppRoute("register")) {
+    if (!isNotAuthorized || isPublicUnauthenticatedRoute(location.pathname))
       return;
-    }
-    if (window.location.pathname === basePath) {
-      return;
-    }
     navigate({
       to: "/login",
-      search:
-        window.location.pathname !== basePath
-          ? { redirect: window.location.pathname }
-          : undefined,
+      search: { redirect: location.pathname },
     });
-  }, [isNotAuthorized, navigate]);
+  }, [isNotAuthorized, location.pathname, navigate]);
 
   const handleMenuSelect = useCallback(
     (itemId: string) => {

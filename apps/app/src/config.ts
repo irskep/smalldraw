@@ -6,14 +6,17 @@ export function appPath(relative: string): string {
   return `${basePath}${relative}`;
 }
 
-/** Check if the current pathname matches a route under the app's base */
-export function isAppRoute(route: string): boolean {
-  return window.location.pathname === appPath(route);
-}
-
 function normalizeBasePath(value: string | undefined): string {
   if (!value || value === "/") {
     return "/";
   }
   return value.endsWith("/") ? value : `${value}/`;
+}
+
+/** Public pages must survive anonymous session-query failures. */
+export function isPublicUnauthenticatedRoute(pathname: string): boolean {
+  const normalized = pathname.replace(/\/+$/, "") || "/";
+  return ["", "login", "register", "data", "privacy", "terms"].some(
+    (route) => (appPath(route).replace(/\/+$/, "") || "/") === normalized,
+  );
 }
