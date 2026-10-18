@@ -60,7 +60,9 @@ export function createRasterPipeline(options: {
     const doc = store.getDocument();
     if (doc === imageDocument) return;
     imageDocument = doc;
-    images.update(getDocumentImageSources(doc, store.getOrderedShapes()));
+    images.update(
+      getDocumentImageSources(doc, store.getOrderedShapes() as AnyShape[]),
+    );
   };
   updateImageOwnership();
 
