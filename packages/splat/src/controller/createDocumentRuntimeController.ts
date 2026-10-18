@@ -352,7 +352,9 @@ export function createDocumentRuntimeController(options: {
       loader.crossOrigin = "anonymous";
       loader.onload = () => {
         clearTimeout(timeoutHandle);
-        registerRasterImage(referenceImageSrc, loader);
+        if (!settled && isCurrentStartupCycle(cycleId)) {
+          registerRasterImage(referenceImageSrc, loader);
+        }
         if (isCurrentStartupCycle(cycleId)) {
           options.pipeline.scheduleBakeForClear();
           options.pipeline.bakePendingTiles();

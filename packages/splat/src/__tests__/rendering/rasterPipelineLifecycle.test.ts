@@ -5,6 +5,11 @@ import { HotLayer } from "@smalldraw/renderer-raster";
 import { createCanvas } from "canvas";
 import { createRasterPipeline } from "../../render/createRasterPipeline";
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
+import {
+  getLoadedRasterImage,
+  registerRasterImage,
+  resetRasterImageCache,
+} from "../../shapes/rasterImageCache";
 import { createPenTool } from "../../tools/drawingTools";
 import { KidsDrawStageView } from "../../view/KidsDrawStage";
 
@@ -208,4 +213,50 @@ describe("raster pipeline lifecycle", () => {
       f.stage.destroy();
     }
   });
+});
+
+test("pipeline releases old document images on switch and disposal", () => {
+  const originalImage = globalThis.Image;
+  globalThis.Image = undefined as unknown as typeof Image;
+  const f = fixture();
+  try {
+    const empty = f.store.getDocument();
+    const withImage = {
+      ...empty,
+      layers: {
+        ...empty.layers,
+        reference: {
+          id: "reference",
+          kind: "image" as const,
+          zIndex: "a1",
+          image: { src: "pipeline-owned" },
+        },
+      },
+    };
+    f.store.applyDocument(withImage);
+    f.pipeline.render();
+    const image = document.createElement("canvas");
+    image.width = image.height = 1024;
+    registerRasterImage("pipeline-owned", image);
+    for (let i = 0; i < 40; i++)
+      registerRasterImage(`pressure-${i}`, {
+        width: 1024,
+        height: 1024,
+      } as HTMLCanvasElement);
+    expect(getLoadedRasterImage("pipeline-owned")).toBe(image);
+    f.store.applyDocument(empty);
+    f.pipeline.render();
+    expect(getLoadedRasterImage("pipeline-owned")).toBeNull();
+    f.store.applyDocument(withImage);
+    f.pipeline.render();
+    registerRasterImage("pipeline-owned", image);
+    expect(getLoadedRasterImage("pipeline-owned")).toBe(image);
+    f.pipeline.dispose();
+    expect(getLoadedRasterImage("pipeline-owned")).toBeNull();
+  } finally {
+    f.pipeline.dispose();
+    f.stage.destroy();
+    resetRasterImageCache();
+    globalThis.Image = originalImage;
+  }
 });

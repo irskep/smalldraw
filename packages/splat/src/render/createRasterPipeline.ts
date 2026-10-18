@@ -4,7 +4,9 @@ import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { createLayerStack, HotLayer } from "@smalldraw/renderer-raster";
 import { atom } from "nanostores";
 import { logDiagnosticEvent } from "../controller/diagnostics/diagnosticLogger";
+import { getDocumentImageSources } from "../shapes/getDocumentImageSources";
 import {
+  createRasterImageLease,
   getLoadedRasterImage,
   onDeferredImageLoaded,
 } from "../shapes/rasterImageCache";
@@ -52,6 +54,15 @@ export function createRasterPipeline(options: {
   let disposed = false;
   let clearIndexDocument: ReturnType<DrawingStore["getDocument"]> | null = null;
   const knownClearShapeIds = new Set<string>();
+  const images = createRasterImageLease();
+  let imageDocument: ReturnType<DrawingStore["getDocument"]> | null = null;
+  const updateImageOwnership = () => {
+    const doc = store.getDocument();
+    if (doc === imageDocument) return;
+    imageDocument = doc;
+    images.update(getDocumentImageSources(doc, store.getOrderedShapes()));
+  };
+  updateImageOwnership();
 
   const layerStack = createLayerStack({
     store,
@@ -249,6 +260,7 @@ export function createRasterPipeline(options: {
 
   const renderInternal = (): void => {
     if (disposed) return;
+    updateImageOwnership();
     layerStack.setActiveLayer(store.getActiveLayerId());
     const applyDiff = store.consumeApplyDocumentDiff();
     if (applyDiff) {
@@ -379,6 +391,7 @@ export function createRasterPipeline(options: {
       layerStack.routeDirtyShapes(shapeIds, []);
     },
     setLayers(layers) {
+      updateImageOwnership();
       endDraftSession();
       orderedLayers = [...layers].sort((a, b) => {
         if (a.zIndex === b.zIndex) {
@@ -414,6 +427,8 @@ export function createRasterPipeline(options: {
       disposeDeferredImageListener();
       endDraftSession();
       layerStack.dispose();
+      images.dispose();
+      imageDocument = null;
       hotLayer.clear();
       hotLayer.setDraftComposite(null);
       stage.hotOverlayCanvas.style.display = "none";

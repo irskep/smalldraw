@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import {
+  createRasterImageLease,
   getLoadedRasterImage,
   onDeferredImageLoaded,
   registerRasterImage,
@@ -232,5 +233,76 @@ describe("deferred image loading", () => {
     expect(second).not.toBeNull();
     // Listener count unchanged
     expect(callCount).toBe(1);
+  });
+});
+
+describe("image cache retention", () => {
+  test("100 unused 4 MiB fill canvases retain at most 32 MiB", () => {
+    globalThis.Image = undefined as unknown as typeof Image;
+    for (let i = 0; i < 100; i++) {
+      registerRasterImage(`fill-${i}`, {
+        width: 1024,
+        height: 1024,
+      } as HTMLCanvasElement);
+    }
+    let retained = 0;
+    for (let i = 0; i < 100; i++) {
+      if (getLoadedRasterImage(`fill-${i}`)) retained++;
+    }
+    expect(retained).toBe(7); // Source strings count toward the budget too.
+    expect(getLoadedRasterImage("fill-99")).not.toBeNull();
+  });
+
+  test("documents and exports share ownership, then release decoded canvases", () => {
+    globalThis.Image = undefined as unknown as typeof Image;
+    const document = createRasterImageLease();
+    const exporting = createRasterImageLease();
+    const sources = Array.from({ length: 40 }, (_, i) => `owned-${i}`);
+    document.update(sources);
+    for (const src of sources)
+      registerRasterImage(src, {
+        width: 1024,
+        height: 1024,
+      } as HTMLCanvasElement);
+    expect(sources.every((src) => getLoadedRasterImage(src))).toBe(true);
+    exporting.update(sources);
+    document.update(["new-document"]);
+    expect(sources.every((src) => getLoadedRasterImage(src))).toBe(true);
+    exporting.dispose();
+    expect(sources.every((src) => getLoadedRasterImage(src) === null)).toBe(
+      true,
+    );
+    exporting.dispose();
+    document.dispose();
+  });
+
+  test("released pending loads cannot resurrect cache entries; undo can reload", () => {
+    const { FakeImageClass, getInstance } = createFakeImage();
+    globalThis.Image = FakeImageClass as unknown as typeof Image;
+    const owner = createRasterImageLease();
+    owner.update(["fill-data-url"]);
+    getLoadedRasterImage("fill-data-url");
+    const first = getInstance()!;
+    const lateLoad = first.onload!;
+    owner.update([]);
+    expect(first.onload).toBeNull();
+    lateLoad();
+    owner.update(["fill-data-url"]);
+    expect(getLoadedRasterImage("fill-data-url")).toBeNull();
+    expect(getInstance()).not.toBe(first);
+    owner.dispose();
+  });
+
+  test("pending waiters survive unused-entry pressure", async () => {
+    const { FakeImageClass, getInstance } = createFakeImage();
+    globalThis.Image = FakeImageClass as unknown as typeof Image;
+    const pending = waitForRasterImage("waiting");
+    const image = getInstance()!;
+    for (let i = 0; i < 100; i++) getLoadedRasterImage(`unused-${i}`);
+    expect(image.onload).not.toBeNull();
+    image.complete = true;
+    image.naturalWidth = image.naturalHeight = 10;
+    image.onload!();
+    expect(await pending).toBe(true);
   });
 });

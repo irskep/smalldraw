@@ -3,6 +3,7 @@ import { type DrawingDocument, DrawingStore } from "@smalldraw/core";
 import { createCanvas } from "canvas";
 import { SnapshotService } from "../../controller/createSnapshotService";
 import {
+  getLoadedRasterImage,
   registerRasterImage,
   resetRasterImageCache,
 } from "../../shapes/rasterImageCache";
@@ -61,6 +62,12 @@ test("export waits for reference pixels and preserves the original document acro
     const result = f.service.createPngExport({ width: 40, height: 40 });
     f.switchDocument();
     registerRasterImage("pending", image as unknown as HTMLCanvasElement);
+    // The export must retain its image while unrelated documents warm assets.
+    for (let i = 0; i < 40; i++)
+      registerRasterImage(`pressure-${i}`, {
+        width: 1024,
+        height: 1024,
+      } as HTMLCanvasElement);
     const exported = await result;
     expect(exported.dataUrl).toContain("data:image/png");
     const output = createElement.mock.results[0].value as ReturnType<
@@ -69,6 +76,8 @@ test("export waits for reference pixels and preserves the original document acro
     expect([
       ...output.getContext("2d").getImageData(30, 30, 1, 1).data,
     ]).toEqual([255, 0, 0, 255]);
+    globalThis.Image = undefined as unknown as typeof Image;
+    expect(getLoadedRasterImage("pending")).toBeNull();
   } finally {
     createElement.mockRestore();
   }
