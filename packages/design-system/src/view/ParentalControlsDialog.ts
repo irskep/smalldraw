@@ -128,7 +128,8 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#syncInput.type = "checkbox";
     this.#syncInput.className = "ds-parental-controls-dialog__checkbox";
     this.#syncInput.id = "ds-parental-controls-sync-new";
-    this.#syncText.textContent = "Sync new drawings automatically";
+    this.#syncText.textContent =
+      "Automatically save new drawings to my account";
     this.#syncField.append(this.#syncInput, this.#syncText);
 
     this.#pinField.className = "ds-parental-controls-dialog__field";

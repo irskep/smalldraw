@@ -52,7 +52,11 @@ export const AuthForm = ({
           setAgeError("A parent must make the account.");
           return;
         }
-        if (requireAgeConfirmation && shareMode === "pin_required" && !pin.trim()) {
+        if (
+          requireAgeConfirmation &&
+          shareMode === "pin_required" &&
+          !pin.trim()
+        ) {
           setAgeError("Set a PIN before requiring a PIN for sharing.");
           return;
         }
@@ -168,11 +172,9 @@ export const AuthForm = ({
                 className="portal-checkbox"
                 name="sync-new-drawings"
                 type="checkbox"
-                onChange={(e) =>
-                  setSyncNewDrawingsByDefault(e.target.checked)
-                }
+                onChange={(e) => setSyncNewDrawingsByDefault(e.target.checked)}
               />
-              <span>Sync new drawings automatically</span>
+              <span>Automatically save new drawings to my account</span>
             </label>
             <input
               className="portal-input"
