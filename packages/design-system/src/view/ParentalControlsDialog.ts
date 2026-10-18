@@ -355,7 +355,7 @@ export class ParentalControlsDialogView implements ParentalControlsDialog {
     this.#scaffold.setSubtitle(null);
     this.#hint.textContent = hasPin
       ? "Leave PIN blank to keep the current PIN."
-      : "Set a PIN to skip the math puzzle next time.";
+      : "Set a PIN if your kid can solve the math puzzle.";
   }
 
   async #finish(value: ParentalControlsDialogResult | null): Promise<void> {
