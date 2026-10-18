@@ -162,14 +162,8 @@ class DocumentTileView implements ReDomLike<HTMLDivElement, DocumentTileItem> {
     this.#tile.setSecondaryAction(
       claimable
         ? {
-            label:
-              item.account?.status === "signed-out"
-                ? "Sign in to save this drawing"
-                : "Save drawing to your account",
-            text:
-              item.account?.status === "signed-out"
-                ? "Sign in to save"
-                : "Save to account",
+            label: "Save drawing to your account",
+            text: "Save to account",
             icon: KeyRound,
             onPress: () => item.onClaim(document.docUrl),
             disabled:

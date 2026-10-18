@@ -400,7 +400,7 @@ test("document browser reflects account state in status and save actions", () =>
     error: null,
   });
   expect(dialog.el.textContent).toContain("Not signed in");
-  expect(action().textContent).toContain("Sign in to save");
+  expect(action().textContent).toContain("Save to account");
   dialog.setAccountState({
     status: "signed-in",
     username: "Pat",
