@@ -48,6 +48,7 @@ export function createRasterPipeline(options: {
     layerId?: string;
   }>({ phase: "idle" });
   let draftSessionNeedsFullRender = false;
+  let completedFrame: { canvas: HTMLCanvasElement; size: Vec2 } | null = null;
   let disposed = false;
   let clearIndexDocument: ReturnType<DrawingStore["getDocument"]> | null = null;
   const knownClearShapeIds = new Set<string>();
@@ -71,14 +72,49 @@ export function createRasterPipeline(options: {
     throw new Error("splatterboard hot overlay canvas requires a 2D context");
   }
 
-  const applyHotCanvasPixelRatio = (): void => {
+  const applyHotCanvasPixelRatio = (
+    previousWidth = width,
+    previousHeight = height,
+  ): void => {
     const nextWidth = Math.max(1, Math.round(width * tilePixelRatio));
     const nextHeight = Math.max(1, Math.round(height * tilePixelRatio));
+    // Once the draft is committed, this frame is the only visible copy until
+    // its tiles settle. Resizing clears a canvas, so preserve that frame at
+    // its original logical extent (a viewport change must not stretch it).
+    if (
+      (draftSession.get().phase === "ending" ||
+        (draftSession.get().phase === "active" &&
+          getActiveLayerDrafts().length === 0)) &&
+      (stage.hotCanvas.width !== nextWidth ||
+        stage.hotCanvas.height !== nextHeight)
+    ) {
+      if (!completedFrame) {
+        const canvas = document.createElement("canvas");
+        canvas.width = stage.hotCanvas.width;
+        canvas.height = stage.hotCanvas.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Completed frame requires a 2D context");
+        ctx.drawImage(stage.hotCanvas, 0, 0);
+        completedFrame = {
+          canvas,
+          size: new Vec2(previousWidth, previousHeight),
+        };
+      }
+    }
     if (stage.hotCanvas.width !== nextWidth) {
       stage.hotCanvas.width = nextWidth;
     }
     if (stage.hotCanvas.height !== nextHeight) {
       stage.hotCanvas.height = nextHeight;
+    }
+    if (completedFrame) {
+      hotLayer.clear();
+      const size = new Vec2(completedFrame.size)
+        .mul([nextWidth, nextHeight])
+        .div([width, height]);
+      stage.hotCanvas
+        .getContext("2d")
+        ?.drawImage(completedFrame.canvas, 0, 0, size[0], size[1]);
     }
     if (stage.hotOverlayCanvas.width !== nextWidth) {
       stage.hotOverlayCanvas.width = nextWidth;
@@ -143,6 +179,7 @@ export function createRasterPipeline(options: {
 
   const endDraftSession = (): void => {
     draftSession.set({ phase: "idle" });
+    completedFrame = null;
     hotLayer.clear();
     hotLayer.setDraftComposite(null);
     layerStack.endActiveLayerDraftSession();
@@ -313,9 +350,11 @@ export function createRasterPipeline(options: {
       stage.dirtyRectOverlay.style.visibility = "";
     },
     updateViewport(nextWidth, nextHeight) {
+      const previousWidth = width;
+      const previousHeight = height;
       width = nextWidth;
       height = nextHeight;
-      applyHotCanvasPixelRatio();
+      applyHotCanvasPixelRatio(previousWidth, previousHeight);
     },
     setTilePixelRatio(nextPixelRatio) {
       tilePixelRatio = nextPixelRatio;

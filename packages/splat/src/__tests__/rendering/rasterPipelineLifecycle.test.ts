@@ -2,6 +2,7 @@ import { describe, expect, spyOn, test } from "bun:test";
 import { DrawingStore, getOrderedLayers } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
 import { HotLayer } from "@smalldraw/renderer-raster";
+import { createCanvas } from "canvas";
 import { createRasterPipeline } from "../../render/createRasterPipeline";
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 import { createPenTool } from "../../tools/drawingTools";
@@ -41,6 +42,54 @@ function fixture() {
       .filter((child) => child !== stage.hotCanvas)
       .every((child) => (child as HTMLElement).style.display !== "none");
   return { store, stage, pipeline, down, up, layersVisible };
+}
+
+// Give the DOM canvases real backing pixels while retaining their DOM identity.
+function useNativeCanvases() {
+  const canvases = new WeakMap<
+    HTMLCanvasElement,
+    ReturnType<typeof createCanvas>
+  >();
+  const nativeCanvas = (canvas: HTMLCanvasElement) => {
+    let native = canvases.get(canvas);
+    if (!native) {
+      native = createCanvas(canvas.width, canvas.height);
+      canvases.set(canvas, native);
+      for (const dimension of ["width", "height"] as const) {
+        const backing = native;
+        Object.defineProperty(canvas, dimension, {
+          configurable: true,
+          get: () => backing[dimension],
+          set: (value: number) => {
+            backing[dimension] = value;
+          },
+        });
+      }
+    }
+    return native;
+  };
+  return spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
+    function (this: HTMLCanvasElement) {
+      const ctx = nativeCanvas(this).getContext("2d");
+      return new Proxy(ctx, {
+        get(target, key) {
+          if (key === "drawImage")
+            return (source: HTMLCanvasElement, ...args: number[]) => {
+              const image =
+                source instanceof HTMLCanvasElement
+                  ? nativeCanvas(source)
+                  : source;
+              Reflect.apply(target.drawImage, target, [image, ...args]);
+            };
+          const value = Reflect.get(target, key);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+        set(target, key, value) {
+          return Reflect.set(target, key, value);
+        },
+      }) as unknown as CanvasRenderingContext2D;
+    } as unknown as HTMLCanvasElement["getContext"],
+  );
 }
 
 describe("raster pipeline lifecycle", () => {
@@ -88,6 +137,55 @@ describe("raster pipeline lifecycle", () => {
     } finally {
       f.pipeline.dispose();
       f.stage.destroy();
+    }
+  });
+
+  test.each([
+    "before-render",
+    "ending",
+  ])("preserves completed pixels through repeated handoff resizes (%s)", async (phase) => {
+    const contexts = useNativeCanvases();
+    const f = fixture();
+    try {
+      f.down();
+      f.pipeline.render();
+      await settle();
+      // Paint a translucent patch beyond the temporary shrunken viewport.
+      const ctx = f.stage.hotCanvas.getContext("2d")!;
+      ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
+      ctx.fillRect(60, 60, 20, 20);
+      const pixel = (x: number, y: number) =>
+        Array.from(ctx.getImageData(x, y, 1, 1).data);
+      const before = pixel(70, 70);
+      expect(before[3]).toBeGreaterThan(0);
+      f.up();
+      if (phase === "ending") f.pipeline.render();
+      // No yielding: the completion promise cannot settle between these resizes.
+      f.pipeline.updateViewport(50, 50);
+      f.pipeline.updateViewport(100, 100);
+      f.pipeline.setTilePixelRatio(2);
+      f.pipeline.render();
+      expect(pixel(140, 140)).toEqual(before);
+      expect(f.layersVisible()).toBe(false);
+      expect(f.stage.hotCanvas.style.visibility).toBe("");
+      // An identical update must not composite the translucent frame twice.
+      f.pipeline.setTilePixelRatio(2);
+      expect(pixel(140, 140)).toEqual(before);
+      await settle();
+      expect(f.layersVisible()).toBe(true);
+      expect(f.stage.hotCanvas.style.visibility).toBe("hidden");
+      // A later stroke must not reuse the previous completed frame.
+      f.down();
+      f.pipeline.render();
+      await settle();
+      f.up();
+      f.pipeline.render();
+      f.pipeline.setTilePixelRatio(1);
+      expect(pixel(70, 70)[3]).toBe(0);
+    } finally {
+      f.pipeline.dispose();
+      f.stage.destroy();
+      contexts.mockRestore();
     }
   });
 
