@@ -388,6 +388,8 @@ export class TileRenderer<TCanvas = HTMLCanvasElement, TSnapshot = unknown> {
     if (!fallbackCanvas) {
       return null;
     }
+    perfAddCounter("tileRenderer.snapshot.canvases");
+    perfAddCounter("tileRenderer.snapshot.pixels", width * height);
     const ctx = fallbackCanvas.getContext("2d") as
       | CanvasRenderingContext2D
       | OffscreenCanvasRenderingContext2D

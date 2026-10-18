@@ -197,7 +197,7 @@ class LayerStackImpl implements LayerStack {
     if (createdNewBackend) {
       this.scheduleFullInvalidation();
     } else {
-      this.invalidateCompositeCache();
+      this.invalidateCompositeCache("layers");
       this.enqueueBake();
     }
   }
@@ -208,7 +208,7 @@ class LayerStackImpl implements LayerStack {
     }
     if (this.activeLayerId === layerId) return;
     this.endActiveLayerDraftSession();
-    this.invalidateCompositeCache();
+    this.invalidateCompositeCache("activeLayer");
     this.activeLayerId = layerId;
     this.reorderDom();
     this.prewarmActiveLayerDraftComposite();
@@ -225,7 +225,7 @@ class LayerStackImpl implements LayerStack {
         this.viewportDpr,
       );
     }
-    this.invalidateCompositeCache();
+    this.invalidateCompositeCache("viewport");
     this.prewarmActiveLayerDraftComposite();
   }
 
@@ -281,7 +281,7 @@ class LayerStackImpl implements LayerStack {
       entry.backend.routeDirty(dirty, deleted);
     }
     if (touchedLayerIds.size > 0) {
-      this.invalidateCompositeCache();
+      this.invalidateCompositeCache("dirtyShapes");
       this.enqueueBake();
       this.prewarmActiveLayerDraftComposite();
     }
@@ -301,7 +301,7 @@ class LayerStackImpl implements LayerStack {
       touched = true;
     }
     if (touched) {
-      this.invalidateCompositeCache();
+      this.invalidateCompositeCache("dirtyRegions");
       this.enqueueBake();
       this.prewarmActiveLayerDraftComposite();
     }
@@ -323,7 +323,7 @@ class LayerStackImpl implements LayerStack {
       touched = true;
     }
     if (touched) {
-      this.invalidateCompositeCache();
+      this.invalidateCompositeCache("shapeRegions");
       this.enqueueBake();
       this.prewarmActiveLayerDraftComposite();
     }
@@ -335,7 +335,7 @@ class LayerStackImpl implements LayerStack {
       return;
     }
     entry.backend.scheduleFullInvalidation();
-    this.invalidateCompositeCache();
+    this.invalidateCompositeCache("fullLayer");
     this.enqueueBake();
     this.prewarmActiveLayerDraftComposite();
   }
@@ -348,23 +348,35 @@ class LayerStackImpl implements LayerStack {
     ) {
       return;
     }
+    perfAddCounter("composite.prewarm.requests");
     const key = this.getCompositeCacheKey();
     const version = this.compositeCacheVersion;
     if (this.compositeCache?.key === key) {
+      perfAddCounter(
+        this.compositeCache.promise
+          ? "composite.cache.pendingHits"
+          : "composite.cache.readyHits",
+      );
       return;
     }
-    const promise = this.captureDraftComposite();
+    perfAddCounter("composite.capture.started");
+    const promise = this.captureDraftComposite(version);
     this.compositeCache = { key, version, value: null, promise };
     promise
       .then((value) => {
+        perfAddCounter("composite.capture.completed");
         if (
           this.compositeCache?.key === key &&
           this.compositeCache.version === version
         ) {
           this.compositeCache = { key, version, value, promise: null };
+          perfAddCounter("composite.capture.published");
+        } else {
+          perfAddCounter("composite.capture.discarded");
         }
       })
       .catch(() => {
+        perfAddCounter("composite.capture.failed");
         if (
           this.compositeCache?.key === key &&
           this.compositeCache.version === version
@@ -380,10 +392,12 @@ class LayerStackImpl implements LayerStack {
       this.activeLayerDraftComposite = null;
       return;
     }
+    perfAddCounter("composite.session.requests");
     const generation = ++this.draftSessionGeneration;
     const backdropStartMs = perfNowMs();
     const composite = await this.getOrCaptureDraftComposite();
     if (this.disposed || generation !== this.draftSessionGeneration) return;
+    perfAddCounter("composite.session.installed");
     this.activeLayerDraftComposite = composite;
     perfAddTimingMs("hot.backdrop.ms", perfNowMs() - backdropStartMs);
     if (!this.activeLayerDraftComposite) {
@@ -413,7 +427,7 @@ class LayerStackImpl implements LayerStack {
     for (const entry of this.layersById.values()) {
       entry.backend.scheduleFullInvalidation();
     }
-    this.invalidateCompositeCache();
+    this.invalidateCompositeCache("full");
     this.enqueueBake();
     this.prewarmActiveLayerDraftComposite();
   }
@@ -429,7 +443,7 @@ class LayerStackImpl implements LayerStack {
   dispose(): void {
     this.disposed = true;
     this.endActiveLayerDraftSession();
-    this.invalidateCompositeCache();
+    this.invalidateCompositeCache("dispose");
     for (const entry of this.layersById.values()) {
       entry.backend.dispose();
       entry.container.remove();
@@ -537,11 +551,20 @@ class LayerStackImpl implements LayerStack {
     return null;
   }
 
-  private async captureDraftComposite(): Promise<DraftLayerComposite | null> {
+  private async captureDraftComposite(
+    version: number,
+  ): Promise<DraftLayerComposite | null> {
     if (!this.activeLayerId) {
       return null;
     }
     await this.flushBakes();
+    // Multiple invalidations can prewarm while the same bakes are pending.
+    // Only the current cache generation can be consumed; skip obsolete copies
+    // before allocating full-viewport group and per-layer snapshot canvases.
+    if (this.disposed || version !== this.compositeCacheVersion) {
+      perfAddCounter("composite.capture.cancelledBeforeCopy");
+      return null;
+    }
     const activeIndex = this.orderedLayerIds.indexOf(this.activeLayerId);
     if (activeIndex < 0) {
       return null;
@@ -576,6 +599,8 @@ class LayerStackImpl implements LayerStack {
       return null;
     }
     const canvas = this.createSnapshotCanvas();
+    perfAddCounter("composite.group.canvases");
+    perfAddCounter("composite.group.pixels", canvas.width * canvas.height);
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       return null;
@@ -587,6 +612,7 @@ class LayerStackImpl implements LayerStack {
       if (!entry || entry.layer.visible === false) {
         continue;
       }
+      perfAddCounter("composite.layer.captureRequests");
       const snapshot = await entry.backend.captureBackdropSnapshot();
       if (!snapshot) {
         continue;
@@ -625,7 +651,8 @@ class LayerStackImpl implements LayerStack {
     ].join("|");
   }
 
-  private invalidateCompositeCache(): void {
+  private invalidateCompositeCache(reason: string): void {
+    perfAddCounter(`composite.invalidate.${reason}`);
     this.compositeCacheVersion += 1;
     this.compositeCache = null;
   }
