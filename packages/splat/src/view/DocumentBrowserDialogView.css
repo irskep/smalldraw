@@ -192,11 +192,34 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 44px;
   gap: var(--size-1) var(--size-2);
+  padding: var(--size-2);
+  border: var(--border-size-1) solid var(--ds-border);
+  border-radius: var(--radius-3);
+  background: var(--ds-surface-muted);
+}
+
+.kids-draw-document-browser-dialog__grid
+  .ds-thumbnail-tile[data-current="true"] {
+  border-color: var(--ds-accent-border);
 }
 
 .kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__open {
   grid-column: 1 / -1;
   aspect-ratio: 4 / 3;
+  border-radius: var(--radius-2);
+}
+
+.kids-draw-document-browser-dialog__grid
+  .ds-thumbnail-tile[data-current="true"]
+  .ds-thumbnail-tile__open {
+  border-color: var(--ds-border);
+  box-shadow: none;
+}
+
+.kids-draw-document-browser-dialog__grid
+  .ds-thumbnail-tile__open:focus-visible {
+  outline: var(--border-size-2) solid var(--ds-focus-ring);
+  outline-offset: var(--size-1);
 }
 
 .kids-draw-document-browser-dialog__grid .ds-thumbnail-tile__badge,
@@ -252,7 +275,7 @@
   justify-content: center;
   border-radius: var(--radius-2);
   font-size: var(--font-size-1);
-  background: var(--ds-surface-muted);
+  background: var(--ds-surface);
   color: var(--ds-ink);
 }
 
