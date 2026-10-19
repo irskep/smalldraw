@@ -178,6 +178,10 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
       model: this.projectionModel,
     });
     this.context.setToolStatePreview(presentation.toolStatePreview);
+    this.context.setRandomizeVisible(
+      Boolean(presentation.familyPresentation.canRandomize),
+    );
+    this.context.setActionDisabled("randomize", !state.hasLoadedDocument);
     this.context.setActiveToolId(presentation.activeSidebarItemId);
     this.context.setVariantGridPresentation(
       presentation.familyPresentation.variantGridPresentation,
@@ -255,6 +259,7 @@ function toUiActionIntent(actionId: string): Extract<
   KidsDrawUiIntent,
   {
     type:
+      | "randomize"
       | "undo"
       | "redo"
       | "clear"
@@ -275,6 +280,7 @@ function toUiActionIntent(actionId: string): Extract<
     KidsDrawUiIntent,
     {
       type:
+        | "randomize"
         | "undo"
         | "redo"
         | "clear"

@@ -39,6 +39,99 @@ async function run(command: string[], extraEnv = {}) {
 let backend: ReturnType<typeof Bun.spawn> | undefined;
 let preview: ReturnType<typeof Bun.serve> | undefined;
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
+async function checkRandomize(
+  page: import("@playwright/test").Page,
+  browserName: string,
+) {
+  const state = () =>
+    page.evaluate(() => {
+      const store = (window as any).kidsDrawApp.store;
+      return {
+        id: store.getActiveToolId(),
+        color: store.getSharedSettings().strokeColor,
+        size: store.getSharedSettings().strokeWidth,
+        shapes: JSON.stringify(store.getDocument().shapes),
+      };
+    });
+  for (const [family, fields] of [
+    ["brush", ["id", "color", "size"]],
+    ["fill", ["color"]],
+    ["shape.filled", ["id", "color"]],
+    ["shape.outline", ["id", "color", "size"]],
+    ["stamp.images", ["id", "size"]],
+    ["stamp.alphabet", ["id", "color", "size"]],
+  ] as const) {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page
+      .locator(`[data-tool-family="${family}"]:visible`)
+      .first()
+      .click();
+    const randomize = page.getByRole("button", {
+      name: "Randomize",
+      exact: true,
+    });
+    for (const width of [1280, 580, 320]) {
+      await page.setViewportSize({ width, height: 800 });
+      await expect(randomize).toBeInViewport();
+      await page.waitForTimeout(200);
+      const canvasBefore = await page.locator(".kids-draw-frame").boundingBox();
+      const before = await state();
+      await randomize.click();
+      await expect
+        .poll(async () => {
+          const after = await state();
+          return fields.every((field) => after[field] !== before[field]);
+        })
+        .toBe(true);
+      const after = await state();
+      expect(after.shapes).toBe(before.shapes);
+      for (const field of ["id", "color", "size"] as const) {
+        if (!(fields as readonly string[]).includes(field))
+          expect(after[field]).toBe(before[field]);
+      }
+      await page.waitForTimeout(300);
+      expect(await page.locator(".kids-draw-frame").boundingBox()).toEqual(
+        canvasBefore,
+      );
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+        )
+        .toBe(true);
+      await page.screenshot({
+        path: `/tmp/randomize-${browserName}-${family}-${width}.png`,
+      });
+    }
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page
+    .locator('[data-tool-family="stamp.images"]:visible')
+    .first()
+    .click();
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.evaluate(() =>
+    (window as any).kidsDrawApp.store.activateTool("stamp.image.motorcycle"),
+  );
+  await expect(page.locator(".ds-splat-context__active-tool")).toHaveText(
+    "Stamp: Motorcycle",
+  );
+  const toolLabel = page.locator(".ds-splat-context__active-tool-name");
+  await expect
+    .poll(() => toolLabel.evaluate((e) => e.getBoundingClientRect().height))
+    .toBeLessThanOrEqual(44);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.locator('[data-tool-family="eraser"]:visible').first().click();
+  await expect(
+    page.getByRole("button", { name: "Randomize", exact: true }),
+  ).toBeHidden();
+  await page.locator('[data-tool-family="brush"]:visible').first().click();
+  console.log(
+    `PASS: ${browserName} randomize changes only opted-in settings without editing drawings or shifting the canvas`,
+  );
+}
+
 async function checkOtherToolPreviews(
   page: import("@playwright/test").Page,
   browserName: string,
@@ -534,6 +627,7 @@ try {
       .click();
     await checkPreviewDoesNotMoveCanvas(privatePage, "webkit");
     await checkOtherToolPreviews(privatePage, "webkit");
+    await checkRandomize(privatePage, "webkit");
     expect(thumbnailWarnings).toEqual([]);
     console.log(
       "PASS: private WebKit saves a nonblank thumbnail and restores it after reload",
@@ -544,6 +638,7 @@ try {
 
   await checkPreviewDoesNotMoveCanvas(page, "chromium");
   await checkOtherToolPreviews(page, "chromium");
+  await checkRandomize(page, "chromium");
 
   // Check shipped CSS, whose bundling order differs from the dev server.
   await page.getByRole("button", { name: "Menu", exact: true }).click();

@@ -10,7 +10,7 @@ export function createKidsDrawUiIntentController(options: {
     drawingStore: Pick<DrawingStore, "updateSharedSettings">;
     toolbarStateController: Pick<
       ToolbarStateController,
-      "activateFamilyTool" | "activateToolAndRemember"
+      "activateFamilyTool" | "activateToolAndRemember" | "randomizeCurrentTool"
     >;
     inputSessionController: Pick<
       InputSessionController,
@@ -53,6 +53,9 @@ export function createKidsDrawUiIntentController(options: {
         options.runtime.toolbarStateController.activateToolAndRemember(
           intent.toolId,
         );
+        return;
+      case "randomize":
+        options.runtime.toolbarStateController.randomizeCurrentTool();
         return;
       case "undo":
         options.commands.undo();

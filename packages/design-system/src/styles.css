@@ -998,3 +998,30 @@ body {
 .ds-splat-context__mobile-bottom .ds-tool-state-preview {
   max-height: var(--ds-splat-context-toolbar-cell-size);
 }
+
+.ds-splat-context__scene--has-randomize .ds-splat-context__slot--bottom {
+  display: grid;
+  grid-template-columns: var(--ds-splat-context-toolbar-cell-size) minmax(
+      0,
+      1fr
+    );
+  align-items: center;
+  gap: var(--size-2);
+}
+
+.ds-splat-context__scene--has-tool-preview.ds-splat-context__scene--has-randomize
+  .ds-splat-context__mobile-bottom {
+  grid-template-columns: var(--size-9) var(--ds-splat-context-toolbar-cell-size) minmax(
+      0,
+      1fr
+    );
+}
+
+.ds-splat-context__randomize {
+  align-self: center;
+  justify-self: center;
+}
+
+.ds-splat-context__mobile-top-controls .ds-splat-context__active-tool-name {
+  font-size: var(--font-size-0);
+}

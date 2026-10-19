@@ -61,6 +61,7 @@ export interface KidsToolConfig {
 }
 
 export interface KidsToolFamilyConfig {
+  randomize?: readonly ("variant" | "color" | "size")[];
   id: string;
   label: string;
   icon: IconNode;
@@ -272,6 +273,7 @@ export function createKidsToolCatalog(
   const families: KidsToolFamilyConfig[] = [
     {
       id: "brush",
+      randomize: ["variant", "color", "size"],
       label: "Brush",
       icon: Pen,
       defaultToolId: "brush.marker",
@@ -291,6 +293,7 @@ export function createKidsToolCatalog(
     },
     {
       id: "fill",
+      randomize: ["color"],
       label: "Fill",
       icon: PaintBucket,
       defaultToolId: "fill.basic",
@@ -298,6 +301,7 @@ export function createKidsToolCatalog(
     },
     {
       id: "shape.filled",
+      randomize: ["variant", "color"],
       label: "Filled",
       icon: FILLED_SHAPE_FAMILY_ICON,
       shapeFamilyGroup: "shape",
@@ -306,6 +310,7 @@ export function createKidsToolCatalog(
     },
     {
       id: "shape.outline",
+      randomize: ["variant", "color", "size"],
       label: "Outline",
       icon: Circle,
       shapeFamilyGroup: "shape",
@@ -314,6 +319,7 @@ export function createKidsToolCatalog(
     },
     {
       id: "stamp.alphabet",
+      randomize: ["variant", "color", "size"],
       label: "Letters",
       icon: getAlphabetGlyphIcon("A"),
       variantGrid: {
@@ -325,6 +331,7 @@ export function createKidsToolCatalog(
     },
     {
       id: "stamp.images",
+      randomize: ["variant", "size"],
       label: "Stamps",
       icon: Cat,
       variantGrid: {

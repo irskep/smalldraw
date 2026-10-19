@@ -177,9 +177,12 @@ function createResponsiveContextStory(options: {
             ? resolveLayoutDrivenSyncState(initialLayout)
             : resolveFixedSyncState(options.id),
         status,
+        variantLargeLayout: options.stampPreview ? "two-row" : undefined,
+        variantButtonLayout: options.stampPreview ? "small" : undefined,
       });
 
       if (options.stampPreview) {
+        context.setRandomizeVisible(true);
         context.setToolStatePreview({
           icon: Cat,
           accessibleName: "Stamp: Cat",

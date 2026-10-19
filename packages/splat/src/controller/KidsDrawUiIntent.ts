@@ -2,6 +2,7 @@ export type KidsDrawUiIntent =
   | { type: "window_resize" }
   | { type: "activate_family_tool"; familyId: string }
   | { type: "activate_tool_and_remember"; toolId: string }
+  | { type: "randomize" }
   | { type: "undo" }
   | { type: "redo" }
   | { type: "clear" }

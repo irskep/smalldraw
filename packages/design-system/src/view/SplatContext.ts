@@ -1,5 +1,5 @@
 import type { IconNode } from "lucide";
-import { Redo2, Share2, Undo2 } from "lucide";
+import { Dice5, Redo2, Share2, Undo2 } from "lucide";
 import { atom, computed, type WritableAtom } from "nanostores";
 import { el, mount, setChildren } from "redom";
 import { type Button, createButton } from "./Button";
@@ -105,6 +105,12 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private readonly variantPresentationStore: WritableAtom<VariantGridPresentation>;
   private readonly documentSlotStore: WritableAtom<SplatContextDocumentSlot>;
 
+  private readonly randomizeVisibleStore = atom(false);
+  private readonly randomizeButton = createIconButton({
+    label: "Randomize",
+    icon: Dice5,
+    attributes: { "data-action": "randomize" },
+  });
   private readonly toolStatePreview = new ToolStatePreview();
   private readonly toolStatePreviewStore = atom<ToolStatePreviewModel | null>(
     null,
@@ -265,6 +271,9 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   setActionDisabled(actionId: string, disabled: boolean): void {
     this.actionDisabledById.set(actionId, disabled);
     switch (actionId) {
+      case "randomize":
+        this.randomizeButton.setDisabled(disabled);
+        break;
       case "undo":
         this.desktopUndoButton?.setDisabled(disabled);
         break;
@@ -285,6 +294,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       return;
     }
     this.documentSlotStore.set(slot);
+  }
+
+  setRandomizeVisible(visible: boolean): void {
+    this.randomizeVisibleStore.set(visible);
   }
 
   setToolStatePreview(model: ToolStatePreviewModel | null): void {
@@ -308,6 +321,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private initSharedComponents(): void {
+    this.randomizeButton.el.classList.add("ds-splat-context__randomize");
+    this.randomizeButton.setOnPress(() =>
+      this.opts.onSelectAction?.("randomize"),
+    );
     this.colorPicker = createColorPicker({
       className: "ds-splat-context__top-picker",
       colors: this.opts.colors,
@@ -386,6 +403,14 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       },
     );
     this.disposers.push(
+      this.randomizeVisibleStore.subscribe((visible) => {
+        this.randomizeButton.el.hidden = !visible;
+        this.scene.classList.toggle(
+          "ds-splat-context__scene--has-randomize",
+          visible,
+        );
+        this.scheduleResizeSync();
+      }),
       this.toolStatePreviewStore.subscribe((model) => {
         this.toolStatePreview.update(model);
         this.scene.classList.toggle(
@@ -454,6 +479,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private syncVisibleResponsiveState(): void {
+    this.scene.classList.toggle(
+      "ds-splat-context__scene--has-randomize",
+      this.randomizeVisibleStore.get(),
+    );
     this.scene.classList.toggle(
       "ds-splat-context__scene--has-tool-preview",
       this.toolStatePreviewStore.get() !== null,
@@ -853,9 +882,8 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const bottom = el(
       "div.ds-splat-context__slot ds-splat-context__slot--bottom",
     ) as HTMLDivElement;
-    bottom.append(
-      requireView(this.desktopVariantGrid, "desktopVariantGrid").el,
-    );
+    mount(bottom, this.randomizeButton);
+    mount(bottom, requireView(this.desktopVariantGrid, "desktopVariantGrid"));
     return bottom;
   }
 
@@ -922,6 +950,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private createMobileBottomSection(): HTMLDivElement {
     const bottom = el("div.ds-splat-context__mobile-bottom") as HTMLDivElement;
     mount(bottom, this.toolStatePreview);
+    mount(bottom, this.randomizeButton);
     mount(bottom, requireView(this.mobileVariantGrid, "mobileVariantGrid"));
     return bottom;
   }

@@ -17,7 +17,10 @@ import {
   type PersistedKidsUiStateV1,
   type ToolbarUiStore,
 } from "../ui/stores/toolbarUiStore";
-import { TOOLBAR_STROKE_WIDTH_OPTIONS } from "../ui/toolbarPresentation";
+import {
+  TOOLBAR_COLOR_SWATCHES,
+  TOOLBAR_STROKE_WIDTH_OPTIONS,
+} from "../ui/toolbarPresentation";
 
 export type ToolbarStatePolicy = {
   opaqueStrokeColor: string;
@@ -130,6 +133,42 @@ export class ToolbarStateController {
     if (familyId) {
       this.selectedToolIdByFamily.set(familyId, toolId);
     }
+  }
+
+  randomizeCurrentTool(): void {
+    const currentId = this.options.store.getActiveToolId() ?? "";
+    const family = this.options.families.find(
+      (item) => item.id === getFamilyIdForTool(currentId, this.options.catalog),
+    );
+    const fields = family?.randomize;
+    if (!family || !fields?.length) return;
+    const different = <T>(values: readonly T[], current: T): T => {
+      const choices = values.filter((value) => value !== current);
+      return choices.length
+        ? (choices[Math.floor(Math.random() * choices.length)] ?? current)
+        : current;
+    };
+    const nextId = fields.includes("variant")
+      ? different(family.toolIds, currentId)
+      : currentId;
+    const shared = this.options.store.getSharedSettings();
+    const support = getToolStyleSupport(nextId, this.options.catalog);
+    const settings: Partial<typeof shared> = {};
+    if (fields.includes("color") && support.strokeColor !== false) {
+      settings.strokeColor = different(
+        TOOLBAR_COLOR_SWATCHES.map((swatch) => swatch.value),
+        shared.strokeColor.toLowerCase(),
+      );
+    }
+    if (fields.includes("size") && support.strokeWidth !== false) {
+      settings.strokeWidth = different(
+        TOOLBAR_STROKE_WIDTH_OPTIONS,
+        shared.strokeWidth,
+      );
+    }
+    this.activateToolAndRemember(nextId);
+    this.options.store.updateSharedSettings(settings);
+    this.syncToolbarUi();
   }
 
   activateFamilyTool(familyId: string): void {

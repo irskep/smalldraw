@@ -23,6 +23,7 @@ export type VariantGridPresentation = {
 };
 
 export type FamilyPresentation = {
+  canRandomize?: boolean;
   variantItems: SplatToolItem[];
   variantGridPresentation: VariantGridPresentation;
 };
@@ -201,6 +202,7 @@ function createFamilyPresentationById(
     families.map((family) => [
       family.id,
       {
+        canRandomize: Boolean(family.randomize?.length),
         variantItems: family.toolIds.flatMap((toolId) => {
           const tool = toolById.get(toolId);
           if (!tool) {
