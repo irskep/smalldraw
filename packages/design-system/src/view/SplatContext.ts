@@ -77,7 +77,7 @@ export type SplatContextDocumentSlot =
   | {
       type: "loading" | "error" | "none";
       title: string;
-      description: string;
+      description?: string;
       message?: string;
       recoveryActions: "none" | "retry-and-reset";
     };

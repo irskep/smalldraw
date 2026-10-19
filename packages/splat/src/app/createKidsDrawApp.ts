@@ -561,7 +561,6 @@ function describeInitialBlockingState(
     return {
       type: "loading",
       title: "Creating drawing…",
-      description: "Preparing a blank drawing.",
       recoveryActions: "none",
     };
   }
@@ -569,7 +568,6 @@ function describeInitialBlockingState(
     return {
       type: "loading",
       title: "Opening drawing…",
-      description: "Loading the requested shared drawing.",
       recoveryActions: "none",
     };
   }
@@ -577,7 +575,6 @@ function describeInitialBlockingState(
     return {
       type: "loading",
       title: "Opening shared drawing…",
-      description: "Loading the shared drawing from its invite link.",
       recoveryActions: "none",
     };
   }
@@ -585,14 +582,12 @@ function describeInitialBlockingState(
     return {
       type: "loading",
       title: "Opening drawing…",
-      description: "Loading the requested drawing from this browser.",
       recoveryActions: "none",
     };
   }
   return {
     type: "loading",
     title: "Loading drawing…",
-    description: "Preparing the drawing surface.",
     recoveryActions: "none",
   };
 }

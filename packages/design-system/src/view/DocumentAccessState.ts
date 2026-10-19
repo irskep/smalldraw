@@ -7,7 +7,7 @@ import { Text } from "./Text";
 
 export interface DocumentAccessStateModel {
   title: string;
-  description: string;
+  description?: string;
   message?: string;
   loginUrl?: string;
   signupUrl?: string;
@@ -28,6 +28,7 @@ export class DocumentAccessState implements ReDomLike<HTMLDivElement> {
   #resetButton: Button;
   #utilityActions: HTMLDivElement;
   #authActions: HTMLDivElement;
+  #actions: HTMLDivElement;
 
   constructor(model: DocumentAccessStateModel) {
     this.#title = new Text({
@@ -79,7 +80,7 @@ export class DocumentAccessState implements ReDomLike<HTMLDivElement> {
       this.#signupLink,
       this.#loginLink,
     ) as HTMLDivElement;
-    const actions = el(
+    this.#actions = el(
       "div.ds-document-access-state__actions",
       this.#utilityActions,
       this.#authActions,
@@ -89,7 +90,7 @@ export class DocumentAccessState implements ReDomLike<HTMLDivElement> {
       "div.ds-document-access-state",
       copy,
       this.#message,
-      actions,
+      this.#actions,
     ) as HTMLDivElement;
 
     this.setModel(model);
@@ -97,7 +98,10 @@ export class DocumentAccessState implements ReDomLike<HTMLDivElement> {
 
   setModel(model: DocumentAccessStateModel): void {
     this.#title.setText(model.title);
-    this.#description.setText(model.description);
+    this.#description.setText(model.description ?? "");
+    this.#description.el.hidden = !model.description;
+    this.#actions.hidden =
+      model.recoveryActions === "none" && !model.loginUrl && !model.signupUrl;
     this.#message.textContent = model.message ?? "";
     this.#message.hidden = !model.message;
     this.#setAuthLink(this.#loginLink, model.loginUrl);

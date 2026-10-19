@@ -446,7 +446,6 @@ describe("DocumentAccessState", () => {
   test("can render loading copy without recovery actions", () => {
     const state = createDocumentAccessState({
       title: "Opening drawing…",
-      description: "Shared drawings can take a moment to respond.",
       recoveryActions: "none",
     });
     document.body.appendChild(state.el);

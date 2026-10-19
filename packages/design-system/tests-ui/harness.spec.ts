@@ -120,8 +120,9 @@ test("renders loading document state without recovery actions", async ({
     page.getByRole("heading", { name: "Opening drawing…" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Shared drawings can take a moment to respond."),
-  ).toBeVisible();
+    page.locator(".ds-document-access-state__description"),
+  ).toBeHidden();
+  await expect(page.locator(".ds-document-access-state__actions")).toBeHidden();
   await expect(
     page.getByRole("button", { name: "Reset Local Session" }),
   ).toHaveCount(0);

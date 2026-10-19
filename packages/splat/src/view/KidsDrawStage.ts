@@ -121,8 +121,9 @@ export class KidsDrawStageView implements KidsDrawStage {
     ) as HTMLParagraphElement;
     this.startupOverlayDetail = el(
       "p.kids-draw-startup-detail",
-      "Preparing the drawing surface.",
     ) as HTMLParagraphElement;
+    this.startupOverlayDetail.hidden = true;
+    this.startupOverlayCard.setAttribute("role", "status");
     mount(this.startupOverlayCard, this.startupOverlayTitle);
     mount(this.startupOverlayCard, this.startupOverlayDetail);
     mount(this.startupOverlay, this.startupOverlayCard);
@@ -200,7 +201,8 @@ export class KidsDrawStageView implements KidsDrawStage {
         : "";
     const content = describeStartupStatus(status);
     this.startupOverlayTitle.textContent = `${content.title}${progressText}`;
-    this.startupOverlayDetail.textContent = content.detail;
+    this.startupOverlayDetail.textContent = content.detail ?? "";
+    this.startupOverlayDetail.hidden = !content.detail;
   }
 
   destroy(): void {
@@ -271,18 +273,16 @@ function describeStartupStatus(status: {
   blockingReason?: string;
 }): {
   title: string;
-  detail: string;
+  detail?: string;
 } {
   if (status.phase === "assets_loading") {
     return {
-      title: "Loading drawing assets…",
-      detail: "Image layers and references are being prepared.",
+      title: "Loading pictures…",
     };
   }
   if (status.phase === "first_bake") {
     return {
-      title: "Preparing drawing…",
-      detail: "Building the first rendered frame.",
+      title: "Loading drawing…",
     };
   }
   if (status.phase === "degraded") {
@@ -295,17 +295,14 @@ function describeStartupStatus(status: {
   if (status.blockingReason === "switch_document") {
     return {
       title: "Opening drawing…",
-      detail: "Shared drawings can take a moment to respond.",
     };
   }
   if (status.blockingReason === "create_document") {
     return {
       title: "Creating drawing…",
-      detail: "Setting up a fresh canvas.",
     };
   }
   return {
     title: "Loading drawing…",
-    detail: "Preparing the drawing surface.",
   };
 }

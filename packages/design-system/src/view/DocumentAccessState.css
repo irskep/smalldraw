@@ -102,3 +102,7 @@
     justify-content: flex-start;
   }
 }
+
+.ds-document-access-state__actions[hidden] {
+  display: none;
+}

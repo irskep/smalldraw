@@ -61,9 +61,7 @@ describe("view components", () => {
     });
 
     expect(stage.startupOverlayTitle.textContent).toBe("Opening drawing…");
-    expect(stage.startupOverlayDetail.textContent).toContain(
-      "Shared drawings can take a moment to respond.",
-    );
+    expect(stage.startupOverlayDetail.hidden).toBeTrue();
   });
 
   test("KidsDrawStage shows degraded loaded-document copy", () => {

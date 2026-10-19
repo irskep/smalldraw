@@ -739,7 +739,6 @@ function describeDocumentLoading(reason: string): SplatContextDocumentSlot & {
     return {
       type: "loading",
       title: "Opening drawing…",
-      description: "Shared drawings can take a moment to respond.",
       recoveryActions: "none",
     };
   }
@@ -747,14 +746,12 @@ function describeDocumentLoading(reason: string): SplatContextDocumentSlot & {
     return {
       type: "loading",
       title: "Creating drawing…",
-      description: "Setting up a fresh canvas.",
       recoveryActions: "none",
     };
   }
   return {
     type: "loading",
     title: "Loading drawing…",
-    description: "Preparing the drawing surface.",
     recoveryActions: "none",
   };
 }

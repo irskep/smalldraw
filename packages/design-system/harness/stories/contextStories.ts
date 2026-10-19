@@ -313,7 +313,6 @@ function createLoadingDocumentContextStory(): HarnessStory {
       context.setDocumentSlot({
         type: "loading",
         title: "Opening drawing…",
-        description: "Shared drawings can take a moment to respond.",
         recoveryActions: "none",
       });
       context.el.style.width = "960px";
