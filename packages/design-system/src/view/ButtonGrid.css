@@ -133,7 +133,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .button-grid-track[data-page-motion] {
     --page-entry-offset: var(--size-3);
-    animation: button-grid-page-in 180ms var(--ease-out-3);
+    animation: button-grid-page-in 360ms var(--ease-out-3);
   }
 
   .button-grid-track[data-page-motion="previous"] {
