@@ -1,6 +1,24 @@
-node_modules
-**/node_modules
-.git
-sqlite
-*.db
-.env
+# The deploy task builds frontend assets before Docker runs. Keep the upload
+# limited to the inputs copied by Dockerfile, rather than the entire workspace.
+**
+
+!Dockerfile
+!.dockerignore
+!bun.lock
+!drizzle.config.ts
+
+!apps/
+!apps/server/
+!apps/server/package.json
+!apps/server/src/
+!apps/server/src/**
+!apps/server/scripts/
+!apps/server/scripts/**
+!apps/server/build/
+!apps/server/build/**
+
+!packages/
+!packages/shared/
+!packages/shared/package.json
+!packages/shared/src/
+!packages/shared/src/**
