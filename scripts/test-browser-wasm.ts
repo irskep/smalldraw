@@ -187,7 +187,8 @@ try {
         return Boolean(
           label &&
             menu &&
-            label.x + label.width <= menu.x &&
+            (label.x + label.width <= menu.x ||
+              label.y + label.height <= menu.y) &&
             menu.x + menu.width <= width,
         );
       })
@@ -446,6 +447,62 @@ try {
   console.log(
     "PASS: fresh login restores all three strokes from server using binary WASM",
   );
+  await page
+    .locator('[data-tool-family="stamp.images"]:visible')
+    .first()
+    .click();
+  await expect(activeTool).toHaveText("Stamp: Bird 1");
+  for (const width of [1280, 900, 899, 600, 580]) {
+    await page.setViewportSize({ width, height: 850 });
+    await expect(
+      page.locator(".ds-splat-context__sync-indicator"),
+    ).toBeVisible();
+    await expect
+      .poll(() => activeTool.evaluate((e) => e.getBoundingClientRect().height))
+      .toBeLessThan(50);
+    await expect(
+      page.getByRole("button", { name: "Menu", exact: true }),
+    ).toBeInViewport();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      )
+      .toBe(true);
+    const history = page.locator(
+      ".ds-splat-context__top-actions-group--history",
+    );
+    if (width < 900) {
+      await expect(history).toBeHidden();
+      await page.getByRole("button", { name: "Menu", exact: true }).click();
+      await expect(
+        page.getByRole("menuitem", { name: "Undo", exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("menuitem", { name: "Redo", exact: true }),
+      ).toBeVisible();
+      await page.keyboard.press("Escape");
+    } else {
+      await expect(history).toBeVisible();
+    }
+    await expect
+      .poll(async () => {
+        const label = await activeTool.boundingBox();
+        const menu = await page
+          .getByRole("button", { name: "Menu", exact: true })
+          .boundingBox();
+        return (
+          !!label &&
+          !!menu &&
+          label.x + label.width <= menu.x &&
+          Math.abs(label.y + label.height / 2 - menu.y - menu.height / 2) < 2
+        );
+      })
+      .toBe(true);
+    await page.screenshot({ path: `/tmp/smalldraw-online-tool-${width}.png` });
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
   const portal = await context.newPage();
   portal.setDefaultTimeout(20_000);
   await portal.route("**/*.wasm", (route) =>

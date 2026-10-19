@@ -756,6 +756,10 @@ body {
   gap: var(--size-2);
 }
 
+.ds-splat-context__top-actions-group[hidden] {
+  display: none;
+}
+
 .ds-splat-context__active-tool {
   display: flex;
   align-items: center;
@@ -786,7 +790,12 @@ body {
 
 .ds-splat-context__top-actions-group--start {
   min-width: 0;
-  max-width: 40%;
+  flex-shrink: 0;
+}
+
+.ds-splat-context__top-actions-group--start
+  .ds-splat-context__active-tool-name {
+  white-space: nowrap;
 }
 
 .ds-splat-context__mobile-top-controls > .ds-splat-context__active-tool {

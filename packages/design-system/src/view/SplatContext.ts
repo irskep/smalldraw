@@ -16,8 +16,8 @@ import {
 } from "./DropdownMenu";
 import type { PagedButtonGridLargeLayout } from "./PagedButtonGrid";
 import { type ButtonGridItemSpec, PagedButtonGrid } from "./PagedButtonGrid";
-import { renderIcon } from "./renderIcon";
 import type { ReDomLike } from "./ReDomLike";
+import { renderIcon } from "./renderIcon";
 import { SplatContextResponsiveController } from "./SplatContextResponsiveController";
 import {
   createIconButton,
@@ -123,6 +123,8 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private desktopMenu!: DropdownMenu;
   private mobileMenu!: DropdownMenu;
   private syncIndicator!: SyncIndicator;
+  private readonly showDesktopHistoryStore = atom(true);
+  private desktopHistoryActions?: HTMLDivElement;
   private desktopUndoButton?: Button;
   private desktopRedoButton?: Button;
   private desktopShareButton?: Button;
@@ -314,7 +316,11 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       triggerLabel: "Menu",
       triggerIcon: null,
       menuLabel: "More actions",
-      entries: [...this.opts.desktopMenuEntries],
+      entries: [
+        { id: "undo", label: "Undo", icon: Undo2 },
+        { id: "redo", label: "Redo", icon: Redo2 },
+        ...this.opts.desktopMenuEntries,
+      ],
     });
     this.desktopMenu.setOnSelect((itemId) => {
       this.setStatus(`Desktop menu: ${itemId}`);
@@ -403,6 +409,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   private syncResponsiveLayout(): void {
     const rect = this.el.getBoundingClientRect();
+    this.showDesktopHistoryStore.set(rect.width >= 900);
     const update = this.responsiveController.update(rect.width, rect.height);
 
     if (update.effect === "sync-only") {
@@ -420,6 +427,13 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private syncVisibleResponsiveState(): void {
+    const showHistory = this.showDesktopHistoryStore.get();
+    if (this.desktopHistoryActions)
+      this.desktopHistoryActions.hidden = !showHistory;
+    const hideHistoryMenu =
+      showHistory || this.documentSlotStore.get().type !== "document";
+    this.desktopMenu.setItemHidden("undo", hideHistoryMenu);
+    this.desktopMenu.setItemHidden("redo", hideHistoryMenu);
     this.syncSharingFeatureVisibility();
   }
 
@@ -750,6 +764,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "Desktop action",
       "redo",
     );
+    this.desktopHistoryActions = history;
     history.append(this.desktopUndoButton.el, this.desktopRedoButton.el);
     return history;
   }
@@ -955,6 +970,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.mobileToolPicker = undefined;
     this.desktopVariantGrid = undefined;
     this.mobileVariantGrid = undefined;
+    this.desktopHistoryActions = undefined;
     this.desktopUndoButton = undefined;
     this.desktopRedoButton = undefined;
     this.desktopShareButton = undefined;
