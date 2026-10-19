@@ -39,6 +39,78 @@ async function run(command: string[], extraEnv = {}) {
 let backend: ReturnType<typeof Bun.spawn> | undefined;
 let preview: ReturnType<typeof Bun.serve> | undefined;
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
+async function checkOtherToolPreviews(
+  page: import("@playwright/test").Page,
+  browserName: string,
+) {
+  const preview = page.locator(".ds-tool-state-preview");
+  for (const family of [
+    "brush",
+    "eraser",
+    "fill",
+    "shape.filled",
+    "shape.outline",
+  ]) {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page
+      .locator(`[data-tool-family="${family}"]:visible`)
+      .first()
+      .click();
+    await expect(preview.locator("svg")).toBeVisible();
+    if (
+      family === "brush" ||
+      family === "eraser" ||
+      family === "shape.outline"
+    ) {
+      await page.getByRole("button", { name: "Strokes", exact: true }).click();
+      await page.locator('[data-size="2"]').click();
+      const small = await preview.locator("svg").innerHTML();
+      await page.getByRole("button", { name: "Strokes", exact: true }).click();
+      await page.locator('[data-size="200"]').click();
+      await expect
+        .poll(() => preview.locator("svg").innerHTML())
+        .not.toBe(small);
+    }
+    if (family !== "eraser") {
+      await page.getByRole("button", { name: "Colors", exact: true }).click();
+      await page
+        .locator('[data-setting="stroke-color"][data-color="#2e86ff"]')
+        .click();
+      await expect(preview).toHaveCSS("color", "rgb(46, 134, 255)");
+    }
+    await page.screenshot({
+      path: `/tmp/tool-preview-${browserName}-${family}.png`,
+    });
+    await page.setViewportSize({ width: 320, height: 568 });
+    await expect(preview).toBeInViewport();
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      )
+      .toBe(true);
+    await page.screenshot({
+      path: `/tmp/tool-preview-${browserName}-${family}-mobile.png`,
+    });
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.locator('[data-tool-family="brush"]:visible').first().click();
+  for (const id of [
+    "brush.freehand",
+    "brush.even-spraycan",
+    "brush.uneven-spraycan",
+    "brush.marker",
+  ]) {
+    await page.locator(`[data-tool-variant="${id}"]:visible`).click();
+    await expect(preview.locator("svg")).toBeVisible();
+    await page.screenshot({
+      path: `/tmp/tool-preview-${browserName}-${id}.png`,
+    });
+  }
+  console.log(
+    `PASS: ${browserName} brush, eraser, fill, and shape previews respond to color/size and fit mobile`,
+  );
+}
+
 async function checkPreviewDoesNotMoveCanvas(
   page: import("@playwright/test").Page,
   browserName: string,
@@ -354,7 +426,8 @@ try {
     .first()
     .click();
   await expect(activeTool).toHaveText("Filled rectangle");
-  await expect(toolPreview).toBeHidden();
+  await expect(toolPreview).toBeVisible();
+  await expect(toolPreview).toHaveAttribute("aria-label", /Filled rectangle/);
   await page
     .locator('[data-tool-family="shape.outline"]:visible')
     .first()
@@ -460,6 +533,7 @@ try {
       .getByRole("button", { name: "Close", exact: true })
       .click();
     await checkPreviewDoesNotMoveCanvas(privatePage, "webkit");
+    await checkOtherToolPreviews(privatePage, "webkit");
     expect(thumbnailWarnings).toEqual([]);
     console.log(
       "PASS: private WebKit saves a nonblank thumbnail and restores it after reload",
@@ -469,6 +543,7 @@ try {
   }
 
   await checkPreviewDoesNotMoveCanvas(page, "chromium");
+  await checkOtherToolPreviews(page, "chromium");
 
   // Check shipped CSS, whose bundling order differs from the dev server.
   await page.getByRole("button", { name: "Menu", exact: true }).click();

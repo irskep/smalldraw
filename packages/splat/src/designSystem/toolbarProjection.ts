@@ -14,6 +14,8 @@ import {
   TOOLBAR_STROKE_WIDTH_OPTIONS,
 } from "../ui/toolbarPresentation";
 
+import { createToolStatePreview } from "./toolStatePreview";
+
 export type VariantGridPresentation = {
   largeLayout: PagedButtonGridLargeLayout;
   paginateInLarge: boolean;
@@ -99,20 +101,10 @@ export function resolveToolbarPresentationState(options: {
     options.model,
   ).familyId;
   const tool = options.model.toolById.get(activeToolId);
-  const isStamp =
-    activeFamilyId === "stamp.images" || activeFamilyId === "stamp.alphabet";
   return {
-    toolStatePreview:
-      isStamp && tool
-        ? {
-            icon: tool.icon,
-            accessibleName: describeActiveTool(tool),
-            color:
-              activeFamilyId === "stamp.alphabet"
-                ? options.state.strokeColor
-                : undefined,
-          }
-        : null,
+    toolStatePreview: tool
+      ? createToolStatePreview(tool, options.state, describeActiveTool(tool))
+      : null,
     activeToolId,
     activeSidebarItemId: resolveToolPresentation(activeToolId, options.model)
       .activeSidebarItemId,
