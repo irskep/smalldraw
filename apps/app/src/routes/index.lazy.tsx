@@ -300,7 +300,7 @@ function Index() {
       </section>
       <section className="art-table-about" aria-label="Made for families">
         <div>
-          <h2>No ads. No gimmicks.</h2>
+          <h2>No ads, no gimmicks</h2>
           <p>
             I’m a dad. I made Splatterboard so my kid could draw without
             gimmicks or ads. Now your kids can use it too.
