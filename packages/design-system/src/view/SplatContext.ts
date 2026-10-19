@@ -1,7 +1,7 @@
 import type { IconNode } from "lucide";
 import { Redo2, Share2, Undo2 } from "lucide";
-import { atom, type WritableAtom } from "nanostores";
-import { el } from "redom";
+import { atom, computed, type WritableAtom } from "nanostores";
+import { el, mount } from "redom";
 import { type Button, createButton } from "./Button";
 import {
   type ColorPicker,
@@ -30,6 +30,7 @@ import {
   type SyncIndicator,
   type SyncIndicatorState,
 } from "./SyncIndicator";
+import { Text } from "./Text";
 import { ToolPickerPopover } from "./ToolPickerPopover";
 import { createToolbar } from "./toolbar/Toolbar";
 
@@ -98,6 +99,12 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private readonly variantPresentationStore: WritableAtom<VariantGridPresentation>;
   private readonly documentSlotStore: WritableAtom<SplatContextDocumentSlot>;
 
+  private readonly activeToolLabel = new Text({
+    tag: "span",
+    kind: "label",
+    className: "ds-splat-context__active-tool",
+    attributes: { "aria-live": "polite", "aria-atomic": "true" },
+  });
   private colorPicker!: ColorPicker;
   private strokePicker!: StrokePicker;
   private desktopMenu!: DropdownMenu;
@@ -324,7 +331,20 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private bindState(): void {
+    const activeToolName = computed(
+      [
+        this.toolItemsStore,
+        this.activeToolIdStore,
+        this.variantItemsStore,
+        this.activeVariantIdStore,
+      ],
+      (tools, toolId, variants, variantId) =>
+        variants.find((item) => item.id === variantId)?.label ??
+        tools.find((item) => item.id === toolId)?.label ??
+        "",
+    );
     this.disposers.push(
+      activeToolName.subscribe((name) => this.activeToolLabel.setText(name)),
       this.toolItemsStore.subscribe(() => this.syncToolGrids()),
       this.activeToolIdStore.subscribe(() => this.syncToolGrids()),
       this.variantItemsStore.subscribe(() => this.syncVariantGrids()),
@@ -667,6 +687,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.colorPicker.el,
       this.strokePicker.el,
     ) as HTMLDivElement;
+    mount(topBarStart, this.activeToolLabel);
     const topBarHistory = this.createDesktopHistoryActions();
     const topBarMenu = this.createDesktopMenuActions();
 
@@ -782,8 +803,9 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.colorPicker.el,
       this.strokePicker.el,
       requireView(this.mobileToolPicker, "mobileToolPicker").el,
-      this.createMobileTrailingActions(),
     ) as HTMLDivElement;
+    mount(topControls, this.activeToolLabel);
+    mount(topControls, this.createMobileTrailingActions());
     return topControls;
   }
 

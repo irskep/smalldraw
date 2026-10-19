@@ -7,14 +7,15 @@ import type {
 } from "./types";
 import { getDrawingWorkspace, workspaceNames } from "./workspace";
 
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const DOCUMENTS_STORE = "documents";
 const THUMBNAILS_STORE = "thumbnails";
 
 type DocumentRecord = KidsDocumentSummary;
 type ThumbnailRecord = {
   docUrl: string;
-  blob: Blob;
+  bytes: ArrayBuffer;
+  mimeType: string;
   updatedAt: string;
 };
 
@@ -144,8 +145,16 @@ function toPromise<T>(request: IDBRequest<T>): Promise<T> {
 function transactionDone(transaction: IDBTransaction): Promise<void> {
   return new Promise((resolve, reject) => {
     transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-    transaction.onabort = () => reject(transaction.error);
+    transaction.onerror = (event) => {
+      const request = event.target as IDBRequest;
+      reject(
+        request.error ??
+          transaction.error ??
+          new Error("IndexedDB transaction failed"),
+      );
+    };
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error("IndexedDB transaction aborted"));
   });
 }
 
@@ -215,11 +224,13 @@ class IndexedDbConnection {
             keyPath: "docUrl",
           });
         }
-        if (!db.objectStoreNames.contains(THUMBNAILS_STORE)) {
-          db.createObjectStore(THUMBNAILS_STORE, {
-            keyPath: "docUrl",
-          });
+        // Thumbnails are regenerable cache entries; discard the old Blob format.
+        if (db.objectStoreNames.contains(THUMBNAILS_STORE)) {
+          db.deleteObjectStore(THUMBNAILS_STORE);
         }
+        db.createObjectStore(THUMBNAILS_STORE, {
+          keyPath: "docUrl",
+        });
       };
       request.onsuccess = () => {
         const db = request.result;
@@ -544,13 +555,17 @@ class IndexedDbThumbnailRepository implements ThumbnailRepository {
   }
 
   async saveThumbnail(docUrl: string, blob: Blob): Promise<void> {
+    // Safari private browsing cannot persist Blob values in IndexedDB.
+    // Read bytes before opening the transaction so it cannot expire while waiting.
+    const bytes = await blob.arrayBuffer();
     await this.connection.runTransaction(
       THUMBNAILS_STORE,
       "readwrite",
       async (store, transaction) => {
         const thumbnail: ThumbnailRecord = {
           docUrl,
-          blob,
+          bytes,
+          mimeType: blob.type,
           updatedAt: nowIsoString(),
         };
         store.put(thumbnail);
@@ -569,7 +584,7 @@ class IndexedDbThumbnailRepository implements ThumbnailRepository {
           | undefined;
       },
     )) as ThumbnailRecord | undefined;
-    return record?.blob ?? null;
+    return record ? new Blob([record.bytes], { type: record.mimeType }) : null;
   }
 
   async deleteThumbnail(docUrl: string): Promise<void> {

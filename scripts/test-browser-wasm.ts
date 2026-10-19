@@ -2,7 +2,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { chromium, expect } from "@playwright/test";
+import { chromium, expect, webkit } from "@playwright/test";
 import * as opaque from "@serenity-kit/opaque";
 
 await opaque.ready;
@@ -155,6 +155,131 @@ try {
   console.log(
     "PASS: binary WASM initializes; drawing survives reload and API outage",
   );
+
+  const activeTool = page.locator(".ds-splat-context__active-tool");
+  await expect(activeTool).toHaveText("Marker");
+  await page.locator('[data-tool-family="eraser"]:visible').first().click();
+  await expect(activeTool).toHaveText("Eraser");
+  await page.locator('[data-tool-family="fill"]:visible').first().click();
+  await expect(activeTool).toHaveText("Fill");
+  await page.locator('[data-tool-family="brush"]:visible').first().click();
+  await page
+    .locator('[data-tool-variant][title="Spray (Hold)"]:visible')
+    .click();
+  await expect(activeTool).toHaveText("Spray (Hold)");
+  for (const [width, height] of [
+    [1280, 800],
+    [580, 580],
+    [390, 664],
+    [320, 568],
+    [844, 320],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await expect(activeTool).toHaveText("Spray (Hold)");
+    await expect(activeTool).toBeInViewport();
+    await expect
+      .poll(async () => {
+        const label = await activeTool.boundingBox();
+        const menu = await page
+          .getByRole("button", { name: "Menu", exact: true })
+          .boundingBox();
+        return Boolean(
+          label &&
+            menu &&
+            label.x + label.width <= menu.x &&
+            menu.x + menu.width <= width,
+        );
+      })
+      .toBe(true);
+    await expect
+      .poll(() =>
+        activeTool.evaluate(
+          (e) =>
+            e.scrollWidth <= e.clientWidth && e.scrollHeight <= e.clientHeight,
+        ),
+      )
+      .toBe(true);
+    await page.screenshot({ path: `/tmp/smalldraw-tool-${width}.png` });
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.locator('[data-tool-variant][title="Marker"]:visible').click();
+  await expect(activeTool).toHaveText("Marker");
+  console.log(
+    "PASS: active tool label follows selection and stays visible across layouts",
+  );
+
+  // WebKit's non-persistent context reproduces Safari Private Browsing storage.
+  const safari = await webkit.launch();
+  try {
+    const privatePage = await safari.newPage({
+      viewport: { width: 1280, height: 800 },
+    });
+    const thumbnailWarnings: string[] = [];
+    privatePage.on("console", (message) => {
+      if (message.text().includes("failed to save thumbnail"))
+        thumbnailWarnings.push(message.text());
+    });
+    await privatePage.goto(`${origin}/draw/?new=1`);
+    const paper = privatePage.locator(".kids-draw-frame");
+    await expect(paper).toBeVisible();
+    await privatePage.waitForURL(/local=/);
+    await paper.hover({ position: { x: 50, y: 50 } });
+    const box = (await paper.boundingBox())!;
+    await privatePage.mouse.down();
+    await privatePage.mouse.move(box.x + 150, box.y + 150, { steps: 8 });
+    await privatePage.mouse.up();
+    for (const reload of [false, true]) {
+      if (reload) {
+        await privatePage.reload();
+        await expect(paper).toBeVisible();
+      }
+      await privatePage
+        .getByRole("button", { name: "Menu", exact: true })
+        .click();
+      await privatePage
+        .getByRole("menuitem", { name: "Your drawings", exact: true })
+        .click();
+      const thumbnail = privatePage
+        .locator(".kids-draw-document-browser-dialog__thumbnail-media img")
+        .first();
+      await expect(thumbnail).toBeVisible();
+      await expect
+        .poll(() =>
+          thumbnail.evaluate((element) => {
+            const img = element as HTMLImageElement;
+            if (!img.complete || !img.naturalWidth) return false;
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d")!;
+            ctx.drawImage(img, 0, 0);
+            const pixels = ctx.getImageData(
+              0,
+              0,
+              canvas.width,
+              canvas.height,
+            ).data;
+            for (let i = 0; i < pixels.length; i += 4) {
+              if (
+                pixels[i + 3] > 0 &&
+                pixels[i] < 100 &&
+                pixels[i + 1] < 100 &&
+                pixels[i + 2] < 100
+              )
+                return true;
+            }
+            return false;
+          }),
+        )
+        .toBe(true);
+    }
+    expect(thumbnailWarnings).toEqual([]);
+    console.log(
+      "PASS: private WebKit saves a nonblank thumbnail and restores it after reload",
+    );
+  } finally {
+    await safari.close();
+  }
 
   // Check shipped CSS, whose bundling order differs from the dev server.
   await page.getByRole("button", { name: "Menu", exact: true }).click();
