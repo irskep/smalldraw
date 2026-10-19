@@ -1,4 +1,4 @@
-import "dotenv/config";
+// Bun loads .env files; production supplies DATABASE_URL through the environment.
 import path from "path";
 import { defineConfig } from "drizzle-kit";
 
