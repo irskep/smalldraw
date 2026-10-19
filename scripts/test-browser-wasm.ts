@@ -94,6 +94,7 @@ async function checkCaptureLoss(
     await paper.screenshot({ path: `/tmp/capture-loss-${browserName}.png` });
     await check.waitForTimeout(500);
     await check.reload();
+    await check.waitForFunction(() => Boolean((window as any).kidsDrawApp));
     await expect.poll(count).toBe(expected);
     await expect(paper).toBeVisible();
     await paper.screenshot({
