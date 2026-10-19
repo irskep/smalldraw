@@ -53,7 +53,6 @@ async function finishPurge(): Promise<void> {
 export async function prepareAccountWorkspace(
   api: MultiplayerApiClient,
 ): Promise<void> {
-  await initAutomerge();
   await navigator.locks.request(TRANSITION, async () => {
     const pendingPurge = localStorage.getItem(PURGE);
     if (pendingPurge) {
@@ -86,6 +85,7 @@ export async function prepareAccountWorkspace(
     }
     setDrawingWorkspace(user?.id ?? null);
     if (!user) return;
+    await initAutomerge();
     await importGuestDrawings(api, user.id);
   });
 }
@@ -281,7 +281,7 @@ export async function syncAccountWorkspace(
 /** Every open page holds a shared writer lease; logout waits for all pages to flush and stop. */
 export function watchAccountWorkspace(options: {
   api: MultiplayerApiClient;
-  repo: Repo;
+  repo?: Repo;
   backend: KidsDocumentBackend;
   beforeFreeze?: () => Promise<void>;
   onSignedOut?: () => void;
@@ -318,6 +318,8 @@ export function watchAccountWorkspace(options: {
               throw new AccountIdentityChanged("Account changed");
             return;
           }
+          if (!options.repo)
+            throw new Error("Account sync requires a drawing repository.");
           await syncAccountWorkspace(
             options.api,
             options.repo,
@@ -356,8 +358,8 @@ export function watchAccountWorkspace(options: {
       clearInterval(timer);
       await options.beforeFreeze?.();
       await pending;
-      await options.repo.flush();
-      await options.repo.shutdown();
+      await options.repo?.flush();
+      await options.repo?.shutdown();
       release?.();
       await held;
     })();

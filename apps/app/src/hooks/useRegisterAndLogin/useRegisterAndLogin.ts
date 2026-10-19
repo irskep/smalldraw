@@ -1,4 +1,3 @@
-import * as opaque from "@serenity-kit/opaque";
 import type { AccountSettingsInput } from "@smalldraw/shared";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
@@ -24,6 +23,8 @@ export const useRegisterAndLogin = () => {
   }: RegisterParams) => {
     setIsPending(true);
     try {
+      const opaque = await import("@serenity-kit/opaque");
+      await opaque.ready;
       const { clientRegistrationState, registrationRequest } =
         opaque.client.startRegistration({ password });
       const { registrationResponse } = await registerStartMutation.mutateAsync({

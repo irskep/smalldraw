@@ -435,3 +435,23 @@ test("logout checkpoints the final edits from two open writers before purging", 
     two.dispose();
   }
 });
+
+test("guest catalog watcher freezes without opening an Automerge repository", async () => {
+  const { api } = fakeApi();
+  api.getCurrentAccount = async () => null;
+  setDrawingWorkspace(null);
+  let frozen = false;
+  const watcher = watchAccountWorkspace({
+    api,
+    backend: createLocalDocumentBackend(),
+    beforeFreeze: async () => {
+      frozen = true;
+    },
+  });
+  try {
+    await watcher.freeze();
+    expect(frozen).toBe(true);
+  } finally {
+    watcher.dispose();
+  }
+});

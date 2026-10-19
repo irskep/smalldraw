@@ -1,4 +1,3 @@
-import * as opaque from "@serenity-kit/opaque";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
@@ -13,9 +12,7 @@ export const AccountSettings = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const isPending =
-    changePasswordStartMutation.isPending ||
-    changePasswordFinishMutation.isPending;
+  const [isPending, setIsPending] = useState(false);
 
   const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -27,7 +24,10 @@ export const AccountSettings = () => {
       return;
     }
 
+    setIsPending(true);
     try {
+      const opaque = await import("@serenity-kit/opaque");
+      await opaque.ready;
       const { clientLoginState, startLoginRequest } = opaque.client.startLogin({
         password: currentPassword,
       });
@@ -74,6 +74,8 @@ export const AccountSettings = () => {
           ? caught.message
           : "Password could not be changed.",
       );
+    } finally {
+      setIsPending(false);
     }
   };
 

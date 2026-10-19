@@ -1,5 +1,4 @@
 import { rememberAccountLogin } from "@smalldraw/splat/account";
-import * as opaque from "@serenity-kit/opaque";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
@@ -19,6 +18,8 @@ export const useLogin = () => {
   const login = async ({ userIdentifier, password }: LoginParams) => {
     setIsPending(true);
     try {
+      const opaque = await import("@serenity-kit/opaque");
+      await opaque.ready;
       const { clientLoginState, startLoginRequest } = opaque.client.startLogin({
         password,
       });

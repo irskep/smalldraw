@@ -6,6 +6,10 @@ await initAutomerge();
 
 const windowInstance = new Window();
 const { document } = windowInstance;
+// Happy DOM has no CSS animation engine. Browser tests exercise real animations.
+Object.defineProperty(windowInstance.Element.prototype, "getAnimations", {
+  value: () => [],
+});
 
 (globalThis as any).window = windowInstance;
 (globalThis as any).document = document;

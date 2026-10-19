@@ -3,6 +3,10 @@ import { Window } from "happy-dom";
 
 const windowInstance = new Window();
 const { document } = windowInstance;
+// Happy DOM has no CSS animation engine. Browser tests exercise real animations.
+Object.defineProperty(windowInstance.Element.prototype, "getAnimations", {
+  value: () => [],
+});
 
 (globalThis as Record<string, unknown>).window = windowInstance;
 (globalThis as Record<string, unknown>).document = document;

@@ -1,6 +1,7 @@
 import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 
@@ -30,6 +31,8 @@ export default defineConfig({
 
   resolve: {
     alias: {
+      // Match Bun's file import: emit a URL, not an eagerly initialized WASM module.
+      "@automerge/automerge/automerge.wasm": `${fileURLToPath(import.meta.resolve("@automerge/automerge/automerge.wasm"))}?url`,
       "@": path.resolve(__dirname, "./src"),
       react: path.resolve(__dirname, "../../node_modules/react"),
       "react-dom": path.resolve(__dirname, "../../node_modules/react-dom"),

@@ -22,5 +22,11 @@
   },
   "devDependencies": {
     "@smalldraw/testing": "workspace:*"
+  },
+  "imports": {
+    "#automerge-wasm": {
+      "browser": "./src/wasm.browser.ts",
+      "default": "./src/wasm.runtime.ts"
+    }
   }
 }

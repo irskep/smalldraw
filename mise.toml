@@ -248,3 +248,7 @@ run = "fly deploy -c apps/server/fly.toml"
 [tasks.deploy]
 description = "Build static assets, then deploy the server image. Database migration runs inside the server image at startup."
 run = ["mise run prod:build", "mise run server:deploy"]
+
+[tasks."test:browser:wasm"]
+description = "Build both production frontends and test binary WASM, persistence, and account recovery in Chromium against a temporary database."
+run = "bun run scripts/test-browser-wasm.ts"

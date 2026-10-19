@@ -1,9 +1,4 @@
-import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64";
-import {
-  initializeBase64Wasm,
-  isWasmInitialized,
-  save,
-} from "@automerge/automerge/slim";
+import { isWasmInitialized, save } from "@automerge/automerge/slim";
 import type {
   AutomergeUrl,
   DocHandle,
@@ -58,10 +53,16 @@ export interface SmalldrawCore {
   destroy(): void;
 }
 
+let wasmInitialization: Promise<void> | undefined;
 export async function initAutomerge(): Promise<void> {
-  if (!isWasmInitialized()) {
-    await initializeBase64Wasm(automergeWasmBase64);
-  }
+  if (isWasmInitialized()) return;
+  wasmInitialization ??= import("#automerge-wasm")
+    .then(({ initializeAutomergeBinary }) => initializeAutomergeBinary())
+    .catch((error) => {
+      wasmInitialization = undefined;
+      throw error;
+    });
+  await wasmInitialization;
 }
 
 async function getOrCreateHandle(
