@@ -505,6 +505,7 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
 
     const items = this.state.items;
 
+    this.track.removeAttribute("data-page-motion");
     this.viewport.style.width = "";
     this.viewport.style.maxWidth = "";
     this.viewport.style.height = "";
@@ -585,7 +586,7 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     }
 
     this.state.currentPageIndex += 1;
-    this.render();
+    this.renderPageTransition("next");
   }
 
   private goToPreviousPage(): void {
@@ -597,7 +598,14 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     }
 
     this.state.currentPageIndex -= 1;
+    this.renderPageTransition("previous");
+  }
+
+  private renderPageTransition(direction: "next" | "previous"): void {
     this.render();
+    // Commit the reset so repeated clicks restart the CSS animation.
+    void this.track.offsetWidth;
+    this.track.dataset.pageMotion = direction;
   }
 
   private ensureVisibleInternal(itemId: string): void {
