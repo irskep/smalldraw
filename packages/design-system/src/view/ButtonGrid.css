@@ -129,15 +129,20 @@
   gap: var(--size-2);
 }
 
-/* Move only the incoming page; navigation controls stay anchored. */
+/* Departure and arrival share the duration; navigation stays anchored. */
 @media (prefers-reduced-motion: no-preference) {
   .button-grid-track[data-page-motion] {
-    --page-entry-offset: var(--size-3);
-    animation: button-grid-page-in 360ms var(--ease-out-3);
+    --page-entry-offset: 100%;
+    animation: button-grid-page-in 180ms var(--ease-out-3) both;
+  }
+
+  .button-grid-track[data-page-phase="leave"] {
+    animation-name: button-grid-page-out;
+    animation-timing-function: var(--ease-in-3);
   }
 
   .button-grid-track[data-page-motion="previous"] {
-    --page-entry-offset: calc(-1 * var(--size-3));
+    --page-entry-offset: -100%;
   }
 
   .button-grid[data-resolved-orientation="horizontal"] .button-grid-track {
@@ -159,6 +164,20 @@
   to {
     opacity: 1;
     transform: translate(0, 0);
+  }
+}
+
+@keyframes button-grid-page-out {
+  from {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(
+      calc(-1 * var(--page-entry-x)),
+      calc(-1 * var(--page-entry-y))
+    );
   }
 }
 

@@ -38,6 +38,7 @@ interface PagedButtonGridState<TItem extends ButtonGridItemSpec> {
   mode: PagedButtonGridMode;
   resolvedOrientation: PagedButtonGridOrientation;
   destroyed: boolean;
+  transitionRevision: number;
   layoutRetryFrame: number;
   resizeSyncFrame: number;
   currentPageIndex: number;
@@ -91,6 +92,7 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
       mode: options.initialMode ?? "large",
       resolvedOrientation: this.orientation,
       destroyed: false,
+      transitionRevision: 0,
       layoutRetryFrame: 0,
       resizeSyncFrame: 0,
       currentPageIndex: 0,
@@ -237,6 +239,8 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     }
 
     this.state.destroyed = true;
+    this.state.transitionRevision += 1;
+    for (const animation of this.track.getAnimations()) animation.cancel();
 
     if (this.state.layoutRetryFrame !== 0) {
       window.cancelAnimationFrame(this.state.layoutRetryFrame);
@@ -505,7 +509,10 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
 
     const items = this.state.items;
 
+    this.state.transitionRevision += 1;
     this.track.removeAttribute("data-page-motion");
+    this.track.removeAttribute("data-page-phase");
+    this.track.inert = false;
     this.viewport.style.width = "";
     this.viewport.style.maxWidth = "";
     this.viewport.style.height = "";
@@ -601,11 +608,27 @@ export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
     this.renderPageTransition("previous");
   }
 
-  private renderPageTransition(direction: "next" | "previous"): void {
+  private async renderPageTransition(
+    direction: "next" | "previous",
+  ): Promise<void> {
+    const revision = ++this.state.transitionRevision;
+    this.track.removeAttribute("data-page-motion");
+    void this.track.offsetWidth;
+    this.track.dataset.pageMotion = direction;
+    this.track.dataset.pagePhase = "leave";
+    this.track.inert = true;
+    this.syncPagerControls(this.state.items);
+    await Promise.allSettled(
+      this.track.getAnimations().map((animation) => animation.finished),
+    );
+    // Layout changes or a newer navigation request supersede this departure.
+    if (this.state.destroyed || revision !== this.state.transitionRevision)
+      return;
     this.render();
     // Commit the reset so repeated clicks restart the CSS animation.
     void this.track.offsetWidth;
     this.track.dataset.pageMotion = direction;
+    this.track.dataset.pagePhase = "enter";
   }
 
   private ensureVisibleInternal(itemId: string): void {
