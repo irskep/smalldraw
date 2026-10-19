@@ -1,0 +1,40 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "oxc"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2020": true
+  },
+  "ignorePatterns": [
+    "dist",
+    "src/routeTree.gen.ts",
+    "vite.config.ts.timestamp-*"
+  ],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/only-export-components": [
+      "warn",
+      {
+        "allowConstantExport": true
+      }
+    ],
+    "typescript/no-explicit-any": "error",
+    "typescript/no-unused-vars": "error",
+    "eslint/prefer-const": "error",
+    "react/immutability": "off",
+    "react/set-state-in-effect": "off",
+    "react/no-children-prop": "off"
+  },
+  "overrides": [
+    {
+      "files": ["src/routes/**/*.tsx"],
+      "rules": {
+        "react/only-export-components": "off"
+      }
+    }
+  ]
+}

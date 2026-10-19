@@ -10,7 +10,6 @@
     "outDir": "dist",
     "lib": ["esnext"],
     "types": ["@types/bun"],
-    "baseUrl": "./",
     "strict": true
   },
   "exclude": ["node_modules"],

@@ -3,8 +3,8 @@
   "private": true,
   "catalogs": {
     "build": {
-      "tsup": "^8.5.1",
-      "typescript": "^5.9.3"
+      "tsup": "^9.0.0",
+      "typescript": "npm:@typescript/typescript6@^6.0.2"
     },
     "testing": {
       "@playwright/test": "^1.55.1",
@@ -23,8 +23,9 @@
   ],
   "devDependencies": {
     "@biomejs/biome": "2.3.11",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "tsup": "^9.0.0",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   },
   "scripts": {
     "ts:check": "bun --filter '*' ts:check",
@@ -34,5 +35,8 @@
     "format:check": "bunx biome format .",
     "format:fix": "bunx biome format --write .",
     "fix:all": "bun run format:fix && bun --filter '*' lint:fix"
+  },
+  "overrides": {
+    "@typescript/old": "https://registry.npmjs.org/typescript/-/typescript-6.0.2.tgz"
   }
 }

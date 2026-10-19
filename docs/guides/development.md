@@ -24,6 +24,15 @@ For a fresh environment, install tools/dependencies and configure `.env` from `.
 
 ## Focused checks
 
+Typechecks use the TypeScript 7 native compiler, installed as `@typescript/native`
+and exposed as `tsc`. TypeDoc and declaration bundling still use the TypeScript 6
+JavaScript API through the `typescript` alias. The `@typescript/old` archive
+override prevents Bun from resolving that alias back to its own wrapper.
+
+The portal uses Vite 8 and Oxlint. Its Oxlint config retains Hooks and refresh
+checks, with route-file refresh handled by TanStack Router. React Compiler rules
+are not enabled for this React 18 app. Other workspaces use Biome.
+
 ```sh
 mise tasks lint
 mise run //packages/splat:test

@@ -10,7 +10,7 @@
     "assets": "bun scripts/prepare-assets.ts"
   },
   "devDependencies": {
-    "typedoc": "^0.28.16",
+    "typedoc": "^0.28.20",
     "mermaid": "11.14.0"
   }
 }

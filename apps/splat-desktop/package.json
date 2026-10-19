@@ -13,8 +13,5 @@
   "dependencies": {
     "@smalldraw/splat": "workspace:*",
     "electrobun": "1.14.4"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
   }
 }

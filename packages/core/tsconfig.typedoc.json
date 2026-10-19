@@ -8,9 +8,9 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "jsx": "preserve",
-    "baseUrl": ".",
     "outDir": "dist",
-    "rootDir": "../.."
+    "rootDir": "../..",
+    "types": ["bun"]
   },
   "include": ["src"]
 }
