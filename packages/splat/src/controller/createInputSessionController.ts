@@ -174,6 +174,20 @@ export class InputSessionController {
     this.endPointerSession(event, "pointerCancel");
   }
 
+  handleLostPointerCapture(event: PointerEvent): void {
+    if (!this.pointerIsDown || event.pointerId !== this.activePointerId) {
+      return;
+    }
+    // Capture can end before pointerup. Preserve the collected stroke rather
+    // than treating a browser delivery change as an explicit cancellation.
+    logDiagnosticEvent("pointer_capture_lost_during_stroke", {
+      strokeSessionId: this.activeStrokeSessionId,
+      pointerId: event.pointerId,
+    });
+    this.forceCancelPointerSession("pointerUp");
+    this.options.onScheduleThumbnailSave(140);
+  }
+
   forceCancelPointerSession(
     endType: PointerSessionEndType = "pointerCancel",
   ): void {
@@ -186,7 +200,7 @@ export class InputSessionController {
       withDiagnosticContext(
         {
           strokeSessionId,
-          pointerPhase: "force_cancel",
+          pointerPhase: endType === "pointerUp" ? "forced_up" : "force_cancel",
         },
         () => {
           this.options.store.dispatch(endType, {
@@ -202,13 +216,18 @@ export class InputSessionController {
       });
     }
     const actionSequenceAfter = this.options.store.getActionSequence();
-    logDiagnosticEvent("pointer_session_force_cancelled", {
-      strokeSessionId,
-      deltaActions: actionSequenceAfter - actionSequenceBefore,
-      moveEvents: this.activeStrokeMoveEventCount,
-      moveSamples: this.activeStrokeMoveSampleCount,
-      coalescedMoveEvents: this.activeStrokeCoalescedEventCount,
-    });
+    logDiagnosticEvent(
+      endType === "pointerUp"
+        ? "pointer_session_force_committed"
+        : "pointer_session_force_cancelled",
+      {
+        strokeSessionId,
+        deltaActions: actionSequenceAfter - actionSequenceBefore,
+        moveEvents: this.activeStrokeMoveEventCount,
+        moveSamples: this.activeStrokeMoveSampleCount,
+        coalescedMoveEvents: this.activeStrokeCoalescedEventCount,
+      },
+    );
     this.pointerIsDown = false;
     this.activePointerId = null;
     this.activeStrokeSessionId = null;

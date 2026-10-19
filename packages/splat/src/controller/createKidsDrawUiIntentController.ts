@@ -2,7 +2,6 @@ import type { DrawingStore } from "@smalldraw/core";
 import type { CursorOverlayController } from "./createCursorOverlayController";
 import type { InputSessionController } from "./createInputSessionController";
 import type { ToolbarStateController } from "./createToolbarStateController";
-import { logDiagnosticEvent } from "./diagnostics/diagnosticLogger";
 import type { KidsDrawUiIntent } from "./KidsDrawUiIntent";
 
 export function createKidsDrawUiIntentController(options: {
@@ -19,6 +18,7 @@ export function createKidsDrawUiIntentController(options: {
       | "handlePointerRawUpdate"
       | "handlePointerUp"
       | "handlePointerCancel"
+      | "handleLostPointerCapture"
       | "forceCancelPointerSession"
     >;
     cursorOverlay: Pick<
@@ -114,8 +114,9 @@ export function createKidsDrawUiIntentController(options: {
         );
         return;
       case "lost_pointer_capture":
-        logDiagnosticEvent("ui_intent_lost_pointer_capture", undefined, "warn");
-        options.runtime.inputSessionController.forceCancelPointerSession();
+        options.runtime.inputSessionController.handleLostPointerCapture(
+          intent.event,
+        );
         return;
       case "pointer_leave":
         options.runtime.cursorOverlay.handlePointerLeave();

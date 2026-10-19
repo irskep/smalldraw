@@ -39,6 +39,74 @@ async function run(command: string[], extraEnv = {}) {
 let backend: ReturnType<typeof Bun.spawn> | undefined;
 let preview: ReturnType<typeof Bun.serve> | undefined;
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
+async function checkCaptureLoss(
+  page: import("@playwright/test").Page,
+  browserName: string,
+) {
+  const check = await page.context().browser()!.newPage();
+  try {
+    await check.goto(`${origin}/draw/?new=1`);
+    await check.waitForURL(/local=/);
+    const paper = check.locator(".kids-draw-frame");
+    await expect(paper).toBeVisible();
+    const count = () =>
+      check.evaluate(
+        () =>
+          Object.keys((window as any).kidsDrawApp.store.getDocument().shapes)
+            .length,
+      );
+    let expected = 0;
+    for (const tool of ["brush.marker", "brush.freehand"]) {
+      await check.locator(`[data-tool-variant="${tool}"]:visible`).click();
+      for (const loseCapture of [true, false]) {
+        const box = (await paper.boundingBox())!;
+        await check.evaluate(() => {
+          document.addEventListener(
+            "pointerdown",
+            (event) => {
+              (window as any).__captureTest = {
+                element: event.target,
+                id: event.pointerId,
+              };
+            },
+            { once: true },
+          );
+        });
+        await check.mouse.move(box.x + 40, box.y + 40 + expected * 30);
+        await check.mouse.down();
+        await check.mouse.move(box.x + 180, box.y + 50 + expected * 30, {
+          steps: 8,
+        });
+        if (loseCapture) {
+          await check.evaluate(() => {
+            const { element, id } = (window as any).__captureTest;
+            element.releasePointerCapture(id);
+          });
+          // The browser processes pending capture changes on the next pointer event.
+          await check.mouse.move(box.x + 185, box.y + 50 + expected * 30);
+          await expect.poll(count).toBe(expected + 1);
+        }
+        await check.mouse.up();
+        expected++;
+        await expect.poll(count).toBe(expected);
+      }
+    }
+    await paper.screenshot({ path: `/tmp/capture-loss-${browserName}.png` });
+    await check.waitForTimeout(500);
+    await check.reload();
+    await expect.poll(count).toBe(expected);
+    await expect(paper).toBeVisible();
+    await paper.screenshot({
+      path: `/tmp/capture-loss-${browserName}-reload.png`,
+    });
+    console.log(
+      `PASS: ${browserName} capture loss preserves pen/marker strokes once, next strokes work, and all survive reload`,
+    );
+  } finally {
+    await check.close();
+  }
+}
+
 async function checkRandomize(
   page: import("@playwright/test").Page,
   browserName: string,
@@ -628,6 +696,7 @@ try {
     await checkPreviewDoesNotMoveCanvas(privatePage, "webkit");
     await checkOtherToolPreviews(privatePage, "webkit");
     await checkRandomize(privatePage, "webkit");
+    await checkCaptureLoss(privatePage, "webkit");
     expect(thumbnailWarnings).toEqual([]);
     console.log(
       "PASS: private WebKit saves a nonblank thumbnail and restores it after reload",
@@ -639,6 +708,7 @@ try {
   await checkPreviewDoesNotMoveCanvas(page, "chromium");
   await checkOtherToolPreviews(page, "chromium");
   await checkRandomize(page, "chromium");
+  await checkCaptureLoss(page, "chromium");
 
   // Check shipped CSS, whose bundling order differs from the dev server.
   await page.getByRole("button", { name: "Menu", exact: true }).click();

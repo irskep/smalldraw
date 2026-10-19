@@ -259,8 +259,11 @@ export class KidsDrawStageView implements KidsDrawStage {
         event: event as PointerEvent,
       });
     });
-    listen("lostpointercapture", () => {
-      uiIntentStore.publish({ type: "lost_pointer_capture" });
+    listen("lostpointercapture", (event) => {
+      uiIntentStore.publish({
+        type: "lost_pointer_capture",
+        event: event as PointerEvent,
+      });
     });
     listen("pointerleave", () => {
       uiIntentStore.publish({ type: "pointer_leave" });

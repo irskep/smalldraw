@@ -19,7 +19,7 @@ export type KidsDrawUiIntent =
   | { type: "pointer_enter"; event: PointerEvent }
   | { type: "pointer_up"; event: PointerEvent }
   | { type: "pointer_cancel"; event: PointerEvent }
-  | { type: "lost_pointer_capture" }
+  | { type: "lost_pointer_capture"; event: PointerEvent }
   | { type: "pointer_leave" }
   | { type: "force_cancel_pointer_session" }
   | { type: "close_document_picker" };
