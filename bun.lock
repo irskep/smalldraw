@@ -89,7 +89,6 @@
         "@types/node": "^20.14.9",
         "@types/ws": "^8.5.10",
         "drizzle-kit": "^0.31.8",
-        "typescript": "npm:@typescript/typescript6@^6.0.2",
       },
     },
     "apps/splat-desktop": {
