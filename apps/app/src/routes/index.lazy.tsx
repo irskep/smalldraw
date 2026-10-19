@@ -302,8 +302,8 @@ function Index() {
         <div>
           <h2>No ads, no gimmicks</h2>
           <p>
-            I’m a dad. I made Splatterboard so my kid could draw without
-            gimmicks or ads. Now your kids can use it too.
+            I’m a dad. I made Splatterboard so my kid could draw. Now your kids
+            can use it too.
           </p>
         </div>
         <div className="art-table-about__parents">
