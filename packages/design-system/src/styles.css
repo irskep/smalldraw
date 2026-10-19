@@ -736,10 +736,10 @@ body {
   );
 }
 
-.ds-toolbar.ds-splat-context__top-actions {
+.ds-splat-context__top-actions {
   --ds-toolbar-padding: var(--size-2) var(--size-2) 0;
   --ds-toolbar-bg: var(--ds-surface-muted);
-  gap: var(--size-2);
+  --ds-toolbar-gap: var(--size-2);
   display: flex;
   align-items: center;
   justify-content: space-between;

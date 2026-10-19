@@ -34,5 +34,14 @@ method = 'GET'
 timeout = '5s'
 path = '/healthz'
 
+# Serve built files directly from the Machine, bypassing Express.
+[[statics]]
+guest_path = '/app/apps/server/build/assets'
+url_prefix = '/assets'
+
+[[statics]]
+guest_path = '/app/apps/server/build/draw'
+url_prefix = '/draw'
+
 [[vm]]
 size = 'shared-cpu-1x'
