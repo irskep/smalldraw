@@ -156,6 +156,81 @@ try {
     "PASS: binary WASM initializes; drawing survives reload and API outage",
   );
 
+  // Check shipped CSS, whose bundling order differs from the dev server.
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await page
+    .getByRole("menuitem", { name: "Your drawings", exact: true })
+    .click();
+  const dialog = page.locator(".kids-draw-document-browser-dialog");
+  const grid = dialog.locator(".kids-draw-document-browser-dialog__grid");
+  const scroller = dialog.locator(".ds-dialog-scaffold__body");
+  await expect(dialog).toBeVisible();
+  for (const [width, height] of [
+    [1280, 800],
+    [1920, 1080],
+    [390, 664],
+    [320, 568],
+    [844, 390],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await expect
+      .poll(() => dialog.evaluate((e) => e.getBoundingClientRect().width))
+      .toBeGreaterThan(
+        width > 720 ? Math.min(width * 0.85, 1100) : width * 0.85,
+      );
+    await expect
+      .poll(() =>
+        grid.evaluate(
+          (e) => getComputedStyle(e).gridTemplateColumns.split(" ").length,
+        ),
+      )
+      .toBeGreaterThanOrEqual(2);
+    const box = await dialog.boundingBox();
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(height);
+    expect(await scroller.evaluate((e) => e.scrollWidth <= e.clientWidth)).toBe(
+      true,
+    );
+    await page.screenshot({ path: `/tmp/smalldraw-browser-${width}.png` });
+  }
+  // Fill the grid with representative cards to exercise overflow without changing saved drawings.
+  await grid.evaluate((e) => {
+    const tiles = e.querySelector(".kids-draw-document-browser-dialog__tiles")!;
+    const card = tiles.firstElementChild!;
+    for (let i = 0; i < 20; i++) tiles.append(card.cloneNode(true));
+  });
+  for (const [width, height] of [
+    [1280, 800],
+    [390, 664],
+    [320, 568],
+    [844, 390],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await scroller.hover();
+    await page.mouse.wheel(0, 600);
+    await expect
+      .poll(() => scroller.evaluate((e) => e.scrollTop))
+      .toBeGreaterThan(0);
+    await scroller.evaluate((e) => {
+      e.scrollTop = e.scrollHeight;
+    });
+    await expect(
+      dialog.getByRole("button", { name: "Close", exact: true }),
+    ).toBeInViewport();
+    await expect(
+      dialog.getByRole("button", { name: "Sign in", exact: true }),
+    ).toBeInViewport();
+    await page.screenshot({ path: `/tmp/smalldraw-browser-full-${width}.png` });
+    await scroller.evaluate((e) => {
+      e.scrollTop = 0;
+    });
+  }
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await page.setViewportSize({ width: 1280, height: 720 });
+  console.log(
+    "PASS: production drawing browser desktop/mobile grid, bounds, and scrolling",
+  );
+
   await page.goto(`${origin}/register`);
   await page.getByPlaceholder("Username").fill("wasm-browser-test");
   await page.getByPlaceholder("Password").fill("Wasm-browser-test-password!");
@@ -231,7 +306,9 @@ try {
   await portal
     .getByPlaceholder("Confirm new password")
     .fill("New-wasm-browser-test-password!");
-  await portal.getByRole("button", { name: "Change password", exact: true }).click();
+  await portal
+    .getByRole("button", { name: "Change password", exact: true })
+    .click();
   await expect(
     portal.getByText("Password changed.", { exact: true }),
   ).toBeVisible();
