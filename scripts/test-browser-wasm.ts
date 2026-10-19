@@ -39,6 +39,49 @@ async function run(command: string[], extraEnv = {}) {
 let backend: ReturnType<typeof Bun.spawn> | undefined;
 let preview: ReturnType<typeof Bun.serve> | undefined;
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
+async function checkPreviewDoesNotMoveCanvas(
+  page: import("@playwright/test").Page,
+  browserName: string,
+) {
+  for (const width of [580, 900, 1280, 1920]) {
+    await page.setViewportSize({ width, height: 850 });
+    await page.locator('[data-tool-family="brush"]:visible').first().click();
+    await page.waitForTimeout(250);
+    const canvas = page.locator(".kids-draw-frame");
+    const rail = page.locator(".ds-splat-context__slot--left");
+    const canvasBefore = await canvas.boundingBox();
+    const railBefore = await rail.boundingBox();
+    for (const family of [
+      "stamp.images",
+      "stamp.alphabet",
+      "brush",
+      "stamp.alphabet",
+    ]) {
+      await page
+        .locator(`[data-tool-family="${family}"]:visible`)
+        .first()
+        .click();
+      await page.waitForTimeout(250);
+      expect(
+        await rail.boundingBox(),
+        `${browserName} ${width} ${family} rail`,
+      ).toEqual(railBefore);
+      expect(
+        await canvas.boundingBox(),
+        `${browserName} ${width} ${family} canvas`,
+      ).toEqual(canvasBefore);
+    }
+    await page.screenshot({
+      path: `/tmp/stable-preview-${browserName}-${width}.png`,
+    });
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.locator('[data-tool-family="brush"]:visible').first().click();
+  console.log(
+    `PASS: ${browserName} canvas and rail stay fixed across stamp, letter, and brush switches`,
+  );
+}
+
 try {
   await run(["mise", "run", "//apps/app:build"], {
     NODE_ENV: "production",
@@ -413,6 +456,10 @@ try {
         )
         .toBe(true);
     }
+    await privatePage
+      .getByRole("button", { name: "Close", exact: true })
+      .click();
+    await checkPreviewDoesNotMoveCanvas(privatePage, "webkit");
     expect(thumbnailWarnings).toEqual([]);
     console.log(
       "PASS: private WebKit saves a nonblank thumbnail and restores it after reload",
@@ -420,6 +467,8 @@ try {
   } finally {
     await safari.close();
   }
+
+  await checkPreviewDoesNotMoveCanvas(page, "chromium");
 
   // Check shipped CSS, whose bundling order differs from the dev server.
   await page.getByRole("button", { name: "Menu", exact: true }).click();
