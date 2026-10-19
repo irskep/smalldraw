@@ -8,7 +8,9 @@
 !drizzle.config.ts
 
 !apps/
+apps/**
 !apps/server/
+apps/server/**
 !apps/server/package.json
 !apps/server/src/
 !apps/server/src/**
@@ -18,7 +20,9 @@
 !apps/server/build/**
 
 !packages/
+packages/**
 !packages/shared/
+packages/shared/**
 !packages/shared/package.json
 !packages/shared/src/
 !packages/shared/src/**
