@@ -548,6 +548,7 @@ a {
 }
 
 .portal-launcher-card__cta {
+  gap: var(--size-2);
   pointer-events: none;
 }
 
@@ -664,6 +665,7 @@ a {
   place-self: center;
   display: inline-flex;
   align-items: center;
+  gap: var(--size-2);
   padding: 17px 24px;
   border: 1px solid var(--ds-accent-border);
   border-radius: 6px;
