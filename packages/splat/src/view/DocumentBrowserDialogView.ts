@@ -217,6 +217,7 @@ export function createDocumentBrowserDialogView(options: {
   mount(body, grid);
 
   scaffold.setBody(body);
+  scaffold.setBodyScrollable(true);
 
   const previewCard = createPreviewCard();
   const previewOverlay = document.createElement("div");

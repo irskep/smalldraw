@@ -33,11 +33,8 @@ export function installMobileGestureGuards(): Disposer {
 
   const disposers: Disposer[] = [];
 
-  disposers.push(
-    listenNonPassive(document, "touchmove", (event) => {
-      preventDefaultIfCancelable(event);
-    }),
-  );
+  // The drawing overlay uses touch-action: none. Do not cancel touchmove on
+  // document: dialogs need native touch scrolling within their scroll areas.
 
   disposers.push(
     listenNonPassive(document, "gesturestart", (event) => {

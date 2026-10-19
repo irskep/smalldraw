@@ -7,6 +7,7 @@
 
 .kids-draw-document-browser-dialog {
   width: min(92vw, 72rem);
+  max-height: 92dvh;
 }
 
 .kids-draw-document-browser-dialog__panel {
@@ -28,6 +29,7 @@
 
   min-height: 0;
   gap: var(--size-4);
+  overflow: visible;
   align-items: start;
   padding: var(--size-1);
 }
