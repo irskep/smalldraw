@@ -177,6 +177,7 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
       state,
       model: this.projectionModel,
     });
+    this.context.setToolStatePreview(presentation.toolStatePreview);
     this.context.setActiveToolId(presentation.activeSidebarItemId);
     this.context.setVariantGridPresentation(
       presentation.familyPresentation.variantGridPresentation,

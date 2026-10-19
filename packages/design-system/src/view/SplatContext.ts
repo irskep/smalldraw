@@ -33,6 +33,10 @@ import {
 } from "./SyncIndicator";
 import { Text } from "./Text";
 import { ToolPickerPopover } from "./ToolPickerPopover";
+import {
+  ToolStatePreview,
+  type ToolStatePreviewModel,
+} from "./ToolStatePreview";
 import { createToolbar } from "./toolbar/Toolbar";
 
 export interface SplatToolItem extends ButtonGridItemSpec {
@@ -101,6 +105,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private readonly variantPresentationStore: WritableAtom<VariantGridPresentation>;
   private readonly documentSlotStore: WritableAtom<SplatContextDocumentSlot>;
 
+  private readonly toolStatePreview = new ToolStatePreview();
+  private readonly toolStatePreviewStore = atom<ToolStatePreviewModel | null>(
+    null,
+  );
   private readonly activeToolLabel = new Text({
     tag: "span",
     kind: "label",
@@ -279,6 +287,17 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.documentSlotStore.set(slot);
   }
 
+  setToolStatePreview(model: ToolStatePreviewModel | null): void {
+    const current = this.toolStatePreviewStore.get();
+    if (
+      current?.icon === model?.icon &&
+      current?.accessibleName === model?.accessibleName &&
+      current?.color === model?.color
+    )
+      return;
+    this.toolStatePreviewStore.set(model);
+  }
+
   syncLayout(): void {
     this.scheduleResizeSync();
   }
@@ -367,6 +386,14 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       },
     );
     this.disposers.push(
+      this.toolStatePreviewStore.subscribe((model) => {
+        this.toolStatePreview.update(model);
+        this.scene.classList.toggle(
+          "ds-splat-context__scene--has-tool-preview",
+          model !== null,
+        );
+        this.scheduleResizeSync();
+      }),
       activeTool.subscribe((selected) => {
         this.activeToolLabel.setText(selected.label);
         const icon = selected?.icon;
@@ -427,6 +454,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private syncVisibleResponsiveState(): void {
+    this.scene.classList.toggle(
+      "ds-splat-context__scene--has-tool-preview",
+      this.toolStatePreviewStore.get() !== null,
+    );
     const showHistory = this.showDesktopHistoryStore.get();
     if (this.desktopHistoryActions)
       this.desktopHistoryActions.hidden = !showHistory;
@@ -814,6 +845,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private createDesktopBottomLeftSlot(): HTMLDivElement {
     return el(
       "div.ds-splat-context__slot ds-splat-context__slot--bottom-left",
+      this.toolStatePreview,
     ) as HTMLDivElement;
   }
 
@@ -889,7 +921,8 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   private createMobileBottomSection(): HTMLDivElement {
     const bottom = el("div.ds-splat-context__mobile-bottom") as HTMLDivElement;
-    bottom.append(requireView(this.mobileVariantGrid, "mobileVariantGrid").el);
+    mount(bottom, this.toolStatePreview);
+    mount(bottom, requireView(this.mobileVariantGrid, "mobileVariantGrid"));
     return bottom;
   }
 

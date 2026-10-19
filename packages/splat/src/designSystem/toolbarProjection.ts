@@ -1,6 +1,7 @@
 import type {
   PagedButtonGridLargeLayout,
   SplatToolItem,
+  ToolStatePreviewModel,
 } from "@smalldraw/design-system";
 import type {
   KidsToolConfig,
@@ -30,6 +31,7 @@ export type ToolPresentation = {
 };
 
 export type ToolbarPresentationState = {
+  toolStatePreview: ToolStatePreviewModel | null;
   activeToolId: string;
   activeSidebarItemId: string;
   familyPresentation: FamilyPresentation;
@@ -96,7 +98,21 @@ export function resolveToolbarPresentationState(options: {
     activeToolId,
     options.model,
   ).familyId;
+  const tool = options.model.toolById.get(activeToolId);
+  const isStamp =
+    activeFamilyId === "stamp.images" || activeFamilyId === "stamp.alphabet";
   return {
+    toolStatePreview:
+      isStamp && tool
+        ? {
+            icon: tool.icon,
+            accessibleName: describeActiveTool(tool),
+            color:
+              activeFamilyId === "stamp.alphabet"
+                ? options.state.strokeColor
+                : undefined,
+          }
+        : null,
     activeToolId,
     activeSidebarItemId: resolveToolPresentation(activeToolId, options.model)
       .activeSidebarItemId,

@@ -127,6 +127,10 @@ export {
   type ToolPickerPopoverOptions,
 } from "./view/ToolPickerPopover";
 export {
+  ToolStatePreview,
+  type ToolStatePreviewModel,
+} from "./view/ToolStatePreview";
+export {
   createTypographicIcon,
   TypographicIcon,
   type TypographicIconOptions,

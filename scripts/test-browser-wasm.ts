@@ -209,6 +209,56 @@ try {
     .first()
     .click();
   await expect(activeTool).toHaveText("Stamp: Bird 1");
+  const toolPreview = page.locator(".ds-tool-state-preview");
+  await expect(toolPreview).toHaveAttribute("aria-label", "Stamp: Bird 1");
+  await expect(toolPreview.locator("img")).toBeVisible();
+  const stampSource = await toolPreview.locator("img").getAttribute("src");
+  for (const [width, height] of [
+    [1280, 800],
+    [900, 800],
+    [580, 800],
+    [390, 664],
+    [320, 568],
+    [844, 320],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await expect(toolPreview).toBeInViewport();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      )
+      .toBe(true);
+    await expect
+      .poll(() =>
+        toolPreview
+          .locator("img")
+          .evaluate((img) => (img as HTMLImageElement).naturalWidth),
+      )
+      .toBeGreaterThan(0);
+    await page.screenshot({ path: `/tmp/stamp-preview-${width}.png` });
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const stampGrid = page.locator(".ds-splat-context__variant-strip:visible");
+  await stampGrid
+    .getByRole("button", { name: "Next page", exact: true })
+    .click();
+  await expect(toolPreview.locator("img")).toHaveAttribute("src", stampSource!);
+  await page.waitForTimeout(900);
+  const nextStamp = stampGrid.locator("[data-tool-variant]:visible").first();
+  const nextStampName = await nextStamp.getAttribute("title");
+  await nextStamp.click();
+  await expect(toolPreview).toHaveAttribute(
+    "aria-label",
+    `Stamp: ${nextStampName}`,
+  );
+  await stampGrid
+    .getByRole("button", { name: "Previous page", exact: true })
+    .click();
+  await page.waitForTimeout(900);
+  await page.locator('[data-tool-variant="stamp.image.bird1"]:visible').click();
+
   await expect(activeTool.locator("img")).toHaveCount(0);
   await expect(activeTool.locator("svg")).toBeVisible();
   expect(await activeTool.locator("svg").innerHTML()).toBe(
@@ -234,11 +284,34 @@ try {
     .first()
     .click();
   await expect(activeTool).toHaveText("Letter: A");
+  await expect(toolPreview).toHaveAttribute("aria-label", "Letter: A");
+  await expect(toolPreview.locator("svg")).toBeVisible();
+  await expect(toolPreview.locator("img")).toHaveCount(0);
+  await page.getByRole("button", { name: "Colors", exact: true }).click();
+  const colorSwatch = page.locator('[data-setting="stroke-color"]').nth(3);
+  const letterColor = await colorSwatch.getAttribute("data-color");
+  await colorSwatch.click();
+  await expect
+    .poll(() => toolPreview.evaluate((e) => e.style.color))
+    .toBe(
+      await page.evaluate((color) => {
+        const e = document.createElement("span");
+        e.style.color = color!;
+        return e.style.color;
+      }, letterColor),
+    );
+  await page.locator('[data-tool-variant="stamp.letter.b"]:visible').click();
+  await expect(toolPreview).toHaveAttribute("aria-label", "Letter: B");
+  await page.screenshot({ path: "/tmp/letter-preview.png" });
+  console.log(
+    "PASS: stamp preview stays visible across layouts and paging; letter preview follows selection and color",
+  );
   await page
     .locator('[data-tool-family="shape.filled"]:visible')
     .first()
     .click();
   await expect(activeTool).toHaveText("Filled rectangle");
+  await expect(toolPreview).toBeHidden();
   await page
     .locator('[data-tool-family="shape.outline"]:visible')
     .first()
@@ -271,6 +344,30 @@ try {
     await privatePage.mouse.down();
     await privatePage.mouse.move(box.x + 150, box.y + 150, { steps: 8 });
     await privatePage.mouse.up();
+    await privatePage
+      .locator('[data-tool-family="stamp.images"]:visible')
+      .first()
+      .click();
+    const safariPreview = privatePage.locator(".ds-tool-state-preview");
+    for (const width of [1280, 580, 320]) {
+      await privatePage.setViewportSize({ width, height: 800 });
+      await expect(safariPreview).toBeInViewport();
+      await expect(safariPreview).toHaveAttribute(
+        "aria-label",
+        "Stamp: Bird 1",
+      );
+      await expect
+        .poll(() =>
+          privatePage.evaluate(
+            () => document.documentElement.scrollWidth <= window.innerWidth,
+          ),
+        )
+        .toBe(true);
+      await privatePage.screenshot({
+        path: `/tmp/stamp-preview-webkit-${width}.png`,
+      });
+    }
+    await privatePage.setViewportSize({ width: 1280, height: 800 });
     for (const reload of [false, true]) {
       if (reload) {
         await privatePage.reload();

@@ -137,6 +137,7 @@ function createResponsiveContextStory(options: {
   defaultWidth: number;
   defaultHeight: number;
   syncMode: StorySyncMode;
+  stampPreview?: boolean;
 }): HarnessStory {
   return {
     id: options.id,
@@ -160,9 +161,11 @@ function createResponsiveContextStory(options: {
       );
       const context = createSplatContext({
         tools: TOOL_ITEMS,
-        activeToolId: "brush",
-        variants: VARIANT_ITEMS,
-        activeVariantId: "pen",
+        activeToolId: options.stampPreview ? "stamps" : "brush",
+        variants: options.stampPreview
+          ? [{ id: "cat", label: "Cat", icon: Cat }]
+          : VARIANT_ITEMS,
+        activeVariantId: options.stampPreview ? "cat" : "pen",
         colors: COLOR_SWATCHES,
         selectedColor: "#000000",
         strokeWidths: STROKE_WIDTHS,
@@ -176,6 +179,12 @@ function createResponsiveContextStory(options: {
         status,
       });
 
+      if (options.stampPreview) {
+        context.setToolStatePreview({
+          icon: Cat,
+          accessibleName: "Stamp: Cat",
+        });
+      }
       context.el.style.width = `${options.defaultWidth}px`;
       context.el.style.height = `${options.defaultHeight}px`;
 
@@ -335,6 +344,16 @@ function createLoadingDocumentContextStory(): HarnessStory {
 }
 
 export const contextStories: HarnessStory[] = [
+  createResponsiveContextStory({
+    id: "splat-context-stamp-preview",
+    title: "Stamp preview",
+    description: "Persistent selected-stamp preview beside the bottom toolbar.",
+    statusText: "Resize to review the stamp preview on desktop and mobile.",
+    defaultWidth: 960,
+    defaultHeight: 640,
+    syncMode: "layout-driven",
+    stampPreview: true,
+  }),
   createResponsiveContextStory({
     id: "splat-context",
     title: "Splat Context",
