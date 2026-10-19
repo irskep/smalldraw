@@ -160,6 +160,7 @@ try {
   await expect(activeTool).toHaveText("Marker");
   await page.locator('[data-tool-family="eraser"]:visible').first().click();
   await expect(activeTool).toHaveText("Eraser");
+  await expect(activeTool.locator("svg")).toBeVisible();
   await page.locator('[data-tool-family="fill"]:visible').first().click();
   await expect(activeTool).toHaveText("Fill");
   await page.locator('[data-tool-family="brush"]:visible').first().click();
@@ -202,6 +203,47 @@ try {
     await page.screenshot({ path: `/tmp/smalldraw-tool-${width}.png` });
   }
   await page.setViewportSize({ width: 1280, height: 800 });
+  await page
+    .locator('[data-tool-family="stamp.images"]:visible')
+    .first()
+    .click();
+  await expect(activeTool).toHaveText("Stamp: Bird 1");
+  await expect(activeTool.locator("img")).toHaveCount(0);
+  await expect(activeTool.locator("svg")).toBeVisible();
+  expect(await activeTool.locator("svg").innerHTML()).toBe(
+    await page
+      .locator('[data-tool-family="stamp.images"]:visible svg')
+      .first()
+      .innerHTML(),
+  );
+  await page.setViewportSize({ width: 320, height: 568 });
+  await expect(activeTool).toBeInViewport();
+  await expect
+    .poll(() =>
+      activeTool.evaluate(
+        (e) =>
+          e.scrollWidth <= e.clientWidth && e.scrollHeight <= e.clientHeight,
+      ),
+    )
+    .toBe(true);
+  await page.screenshot({ path: "/tmp/smalldraw-tool-stamp-320.png" });
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page
+    .locator('[data-tool-family="stamp.alphabet"]:visible')
+    .first()
+    .click();
+  await expect(activeTool).toHaveText("Letter: A");
+  await page
+    .locator('[data-tool-family="shape.filled"]:visible')
+    .first()
+    .click();
+  await expect(activeTool).toHaveText("Filled rectangle");
+  await page
+    .locator('[data-tool-family="shape.outline"]:visible')
+    .first()
+    .click();
+  await expect(activeTool).toHaveText("Rectangle outline");
+  await page.locator('[data-tool-family="brush"]:visible').first().click();
   await page.locator('[data-tool-variant][title="Marker"]:visible').click();
   await expect(activeTool).toHaveText("Marker");
   console.log(

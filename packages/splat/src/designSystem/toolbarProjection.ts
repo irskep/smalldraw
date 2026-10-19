@@ -202,6 +202,7 @@ function createFamilyPresentationById(
             {
               id: tool.id,
               label: tool.label,
+              activeLabel: describeActiveTool(tool),
               icon: tool.icon,
               attributes: {
                 "data-tool-variant": tool.id,
@@ -260,4 +261,19 @@ function createToolPresentationById(
   }
 
   return presentationByToolId;
+}
+
+function describeActiveTool(tool: KidsToolConfig): string {
+  switch (tool.familyId) {
+    case "stamp.images":
+      return `Stamp: ${tool.label}`;
+    case "stamp.alphabet":
+      return `Letter: ${tool.label}`;
+    case "shape.filled":
+      return `Filled ${tool.label.toLowerCase()}`;
+    case "shape.outline":
+      return tool.label === "Line" ? tool.label : `${tool.label} outline`;
+    default:
+      return tool.label;
+  }
 }

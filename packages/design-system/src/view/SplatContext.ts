@@ -1,7 +1,7 @@
 import type { IconNode } from "lucide";
 import { Redo2, Share2, Undo2 } from "lucide";
 import { atom, computed, type WritableAtom } from "nanostores";
-import { el, mount } from "redom";
+import { el, mount, setChildren } from "redom";
 import { type Button, createButton } from "./Button";
 import {
   type ColorPicker,
@@ -16,6 +16,7 @@ import {
 } from "./DropdownMenu";
 import type { PagedButtonGridLargeLayout } from "./PagedButtonGrid";
 import { type ButtonGridItemSpec, PagedButtonGrid } from "./PagedButtonGrid";
+import { renderIcon } from "./renderIcon";
 import type { ReDomLike } from "./ReDomLike";
 import { SplatContextResponsiveController } from "./SplatContextResponsiveController";
 import {
@@ -36,6 +37,7 @@ import { createToolbar } from "./toolbar/Toolbar";
 
 export interface SplatToolItem extends ButtonGridItemSpec {
   label: string;
+  activeLabel?: string;
   icon: IconButtonSource;
   attributes?: Record<string, string>;
 }
@@ -102,9 +104,20 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private readonly activeToolLabel = new Text({
     tag: "span",
     kind: "label",
-    className: "ds-splat-context__active-tool",
+    className: "ds-splat-context__active-tool-name",
     attributes: { "aria-live": "polite", "aria-atomic": "true" },
   });
+  private readonly activeToolIcon = el(
+    "span.ds-splat-context__active-tool-icon",
+    {
+      "aria-hidden": "true",
+    },
+  );
+  private readonly activeTool = el(
+    "span.ds-splat-context__active-tool",
+    this.activeToolIcon,
+    this.activeToolLabel,
+  );
   private colorPicker!: ColorPicker;
   private strokePicker!: StrokePicker;
   private desktopMenu!: DropdownMenu;
@@ -331,20 +344,37 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private bindState(): void {
-    const activeToolName = computed(
+    const activeTool = computed(
       [
         this.toolItemsStore,
         this.activeToolIdStore,
         this.variantItemsStore,
         this.activeVariantIdStore,
       ],
-      (tools, toolId, variants, variantId) =>
-        variants.find((item) => item.id === variantId)?.label ??
-        tools.find((item) => item.id === toolId)?.label ??
-        "",
+      (tools, toolId, variants, variantId) => {
+        const tool = tools.find((item) => item.id === toolId);
+        const selected = variants.find((item) => item.id === variantId) ?? tool;
+        return {
+          label: selected?.activeLabel ?? selected?.label ?? "",
+          icon: tool?.icon,
+        };
+      },
     );
     this.disposers.push(
-      activeToolName.subscribe((name) => this.activeToolLabel.setText(name)),
+      activeTool.subscribe((selected) => {
+        this.activeToolLabel.setText(selected.label);
+        const icon = selected?.icon;
+        setChildren(
+          this.activeToolIcon,
+          icon
+            ? [
+                "kind" in icon
+                  ? el("img", { src: icon.src, alt: "", draggable: "false" })
+                  : renderIcon(icon),
+              ]
+            : [],
+        );
+      }),
       this.toolItemsStore.subscribe(() => this.syncToolGrids()),
       this.activeToolIdStore.subscribe(() => this.syncToolGrids()),
       this.variantItemsStore.subscribe(() => this.syncVariantGrids()),
@@ -687,7 +717,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.colorPicker.el,
       this.strokePicker.el,
     ) as HTMLDivElement;
-    mount(topBarStart, this.activeToolLabel);
+    mount(topBarStart, this.activeTool);
     const topBarHistory = this.createDesktopHistoryActions();
     const topBarMenu = this.createDesktopMenuActions();
 
@@ -804,7 +834,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.strokePicker.el,
       requireView(this.mobileToolPicker, "mobileToolPicker").el,
     ) as HTMLDivElement;
-    mount(topControls, this.activeToolLabel);
+    mount(topControls, this.activeTool);
     mount(topControls, this.createMobileTrailingActions());
     return topControls;
   }
