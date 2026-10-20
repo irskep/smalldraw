@@ -22,7 +22,7 @@ for (const size of ["medium", "large"]) {
   const rows = [];
   for (const incremental of [false, true]) {
     const encodeMs = [];
-    let output = new Uint8Array();
+    let output: Uint8Array = new Uint8Array();
     for (let i = 0; i < 25; i++) {
       const start = performance.now();
       output = incremental ? A.saveSince(changed, heads) : A.save(changed);
@@ -30,7 +30,7 @@ for (const size of ["medium", "large"]) {
     }
     const restored = incremental
       ? A.loadIncremental(A.clone(original), output)
-      : A.load(output);
+      : A.load<{ shapes: Record<string, Record<string, unknown>> }>(output);
     if (
       JSON.stringify(A.getHeads(restored).sort()) !==
       JSON.stringify(A.getHeads(changed).sort())

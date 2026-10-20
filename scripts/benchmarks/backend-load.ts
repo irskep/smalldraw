@@ -24,20 +24,24 @@ let phase = "baseline";
 let finished = false;
 let failure: string | undefined;
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-async function request(operation: string, input: unknown, label = operation) {
+async function request<T>(
+  operation: string,
+  input: unknown,
+  label = operation,
+): Promise<T> {
   stop.signal.throwIfAborted();
   const body = input instanceof Uint8Array ? input : cbor.encode(input);
   const start = performance.now();
   const response = await fetch(`${origin}/api/v1/documents/${operation}`, {
     method: "POST",
     headers: { "content-type": "application/cbor" },
-    body,
+    body: body as Uint8Array<ArrayBuffer>,
     signal: AbortSignal.any([stop.signal, AbortSignal.timeout(5000)]),
   });
   const bytes = new Uint8Array(await response.arrayBuffer());
   const ms = performance.now() - start;
   if (!response.ok) throw Error(`${operation}: HTTP ${response.status}`);
-  const decoded = cbor.decode(bytes);
+  const decoded = cbor.decode(bytes) as { result?: T };
   if (!decoded.result) throw Error(`${operation}: missing result`);
   samples.push({
     phase,
@@ -157,12 +161,12 @@ try {
     await Promise.all(
       plan.clients.map(async (client) => {
         for (const update of client.updates) {
-          const registration = await request(
+          const registration = await request<{ joinSecret: string }>(
             "registerCollaborativeDocument",
             update.body,
           );
           for (let open = 0; open < 2; open++) {
-            const result = await request(
+            const result = await request<{ content: Uint8Array }>(
               "resolveAnonymousCollaborativeDocument",
               {
                 joinSecret: registration.joinSecret,

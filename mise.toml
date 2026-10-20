@@ -311,3 +311,10 @@ run = "bun run scripts/benchmarks/sample-server.ts"
 [tasks."bench:server:checkpoint-delta"]
 description = "Compare full versus incremental snapshots after adding a fixture stroke"
 run = "bun run scripts/benchmarks/automerge-checkpoint-delta.ts"
+
+[tasks."bench:server:check"]
+description = "Type-check and lint the production load measurement tools"
+run = [
+  "bunx tsc --ignoreConfig --noEmit --module esnext --moduleResolution bundler --target esnext --skipLibCheck --types bun scripts/benchmarks/backend-load.ts scripts/benchmarks/sample-server.ts scripts/benchmarks/automerge-checkpoint-delta.ts",
+  "bunx biome check scripts/benchmarks/backend-load.ts scripts/benchmarks/sample-server.ts scripts/benchmarks/automerge-checkpoint-delta.ts",
+]
