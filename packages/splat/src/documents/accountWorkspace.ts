@@ -180,12 +180,15 @@ export async function syncAccountWorkspace(
   backend: KidsDocumentBackend,
   userId: string,
   checkpoints?: Map<string, { heads: string; at: number }>,
+  verifyIdentity = true,
 ): Promise<void> {
-  const user = await api.getCurrentAccount();
-  if (user?.id !== userId)
-    throw new AccountIdentityChanged(
-      "Sign back in to this account to finish syncing your drawings.",
-    );
+  if (verifyIdentity) {
+    const user = await api.getCurrentAccount();
+    if (user?.id !== userId)
+      throw new AccountIdentityChanged(
+        "Sign back in to this account to finish syncing your drawings.",
+      );
+  }
   await repo.flush();
   for (const document of await backend.listDocuments()) {
     const id = binaryId(document);
@@ -302,7 +305,8 @@ export function watchAccountWorkspace(options: {
       return lease;
     },
   );
-  const run = () => {
+  let identityCheckedAt = -Infinity;
+  const run = (verifyIdentity = false) => {
     if (stopped || pending) return pending ?? Promise.resolve();
     pending = navigator.locks
       .request(`drawing-sync:${workspace}`, async () => {
@@ -316,13 +320,17 @@ export function watchAccountWorkspace(options: {
           }
           if (!options.repo)
             throw new Error("Account sync requires a drawing repository.");
+          const checkIdentity =
+            verifyIdentity || Date.now() - identityCheckedAt >= 60_000;
           await syncAccountWorkspace(
             options.api,
             options.repo,
             options.backend,
             workspace,
             checkpoints,
+            checkIdentity,
           );
+          if (checkIdentity) identityCheckedAt = Date.now();
           $accountSync.set({ busy: false, error: null });
         } catch (error) {
           if (error instanceof AccountIdentityChanged) {
@@ -376,20 +384,33 @@ export function watchAccountWorkspace(options: {
       else window.location.assign("/");
     }
   };
-  const timer = setInterval(() => {
-    void run();
-  }, 5000);
+  const timer =
+    workspace === null
+      ? undefined
+      : setInterval(() => {
+          if (document.visibilityState !== "hidden") void run();
+        }, 5000);
+  const refresh = () => {
+    void run(true);
+  };
+  const visible = () => {
+    if (document.visibilityState === "visible") refresh();
+  };
   void run();
-  window.addEventListener("online", run);
-  window.addEventListener("drawing-sync-retry", run);
+  window.addEventListener("online", refresh);
+  window.addEventListener("focus", refresh);
+  document.addEventListener("visibilitychange", visible);
+  window.addEventListener("drawing-sync-retry", refresh);
   return {
-    retry: run,
+    retry: () => run(true),
     freeze,
     dispose() {
       stopped = true;
       clearInterval(timer);
-      window.removeEventListener("online", run);
-      window.removeEventListener("drawing-sync-retry", run);
+      window.removeEventListener("online", refresh);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", visible);
+      window.removeEventListener("drawing-sync-retry", refresh);
       bus.close();
       release?.();
     },

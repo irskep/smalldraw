@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test } from "bun:test";
+import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
 import { getHeads, load } from "@automerge/automerge/slim";
 import type { Repo } from "@automerge/automerge-repo/slim";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
@@ -453,5 +453,42 @@ test("guest catalog watcher freezes without opening an Automerge repository", as
     expect(frozen).toBe(true);
   } finally {
     watcher.dispose();
+  }
+});
+
+test("guest workspace has no polling timer and checks identity again on reconnect", async () => {
+  const { api } = fakeApi();
+  const { backend } = workspace(null);
+  const identity = spyOn(api, "getCurrentAccount").mockResolvedValue(null);
+  const intervals = spyOn(globalThis, "setInterval");
+  const watcher = watchAccountWorkspace({ api, backend });
+  try {
+    await watcher.retry();
+    expect(identity).toHaveBeenCalledTimes(1);
+    expect(intervals).not.toHaveBeenCalled();
+    window.dispatchEvent(new window.Event("online"));
+    await watcher.retry();
+    expect(identity).toHaveBeenCalledTimes(2);
+  } finally {
+    watcher.dispose();
+    intervals.mockRestore();
+  }
+});
+
+test("checkpoint traffic for an unchanged drawing across ninety seconds", async () => {
+  const { api, id, checked } = fakeApi();
+  const { repo, backend } = workspace(id);
+  const handle = repo.create({ marks: ["first"] });
+  await backend.createDocument({ docUrl: handle.url });
+  const cache = new Map<string, { heads: string; at: number }>();
+  const now = spyOn(Date, "now");
+  try {
+    for (let n = 0; n < 4; n++) {
+      now.mockReturnValue(100000 + n * 31000);
+      await syncAccountWorkspace(api, repo, backend, id, cache);
+    }
+    console.log("CHECKPOINT_IDLE_MEASUREMENT", checked.length);
+  } finally {
+    now.mockRestore();
   }
 });
