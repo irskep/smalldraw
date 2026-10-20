@@ -44,6 +44,7 @@ test("a request arriving during flush prevents eviction; failed flush retains co
       }),
   );
   const sweeping = lifetime.sweep();
+  expect(lifetime.sweep()).toBe(sweeping);
   const acquiring = lifetime.acquire(handle.documentId);
   finish();
   const release = await acquiring;

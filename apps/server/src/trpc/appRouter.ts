@@ -895,14 +895,16 @@ const procedures = {
     )
     .mutation(async (opts) => {
       const { documentId } = repo.create();
-      const document = await createDocument({
-        userId: opts.ctx.session.userId,
-        documentId,
-        name: opts.input.name,
+      return documentLifetime.use(documentId, async () => {
+        const document = await createDocument({
+          userId: opts.ctx.session.userId,
+          documentId,
+          name: opts.input.name,
+        });
+        return {
+          document: { id: document.id, name: document.name },
+        } satisfies CreatedAccountDocument;
       });
-      return {
-        document: { id: document.id, name: document.name },
-      } satisfies CreatedAccountDocument;
     }),
   deleteDocument: protectedProcedure
     .input(

@@ -4,6 +4,7 @@ type Entry = { pins: number; touched: number; eviction?: Promise<void> };
 
 /** Pins protect live sync sessions and HTTP operations; only idle decoded copies are evicted. */
 export class DocumentLifetime {
+  private sweeping?: Promise<void>;
   private entries = new Map<DocumentId, Entry>();
   constructor(
     private repo: Repo,
@@ -45,7 +46,15 @@ export class DocumentLifetime {
     return entry;
   }
 
-  async sweep(): Promise<void> {
+  sweep(): Promise<void> {
+    if (this.sweeping) return this.sweeping;
+    this.sweeping = this.sweepIdle().finally(() => {
+      this.sweeping = undefined;
+    });
+    return this.sweeping;
+  }
+
+  private async sweepIdle(): Promise<void> {
     const handles = this.repo.handles;
     const idle = Object.keys(handles)
       .map((id) => {
