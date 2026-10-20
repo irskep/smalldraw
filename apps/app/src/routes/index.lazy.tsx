@@ -324,6 +324,14 @@ function Index() {
           </div>
         </div>
       </section>
+      <footer>
+        <p className="portal-muted">
+          Send questions and feedback to{" "}
+          <a className="portal-link" href="mailto:splatterboard@fastmail.com">
+            splatterboard@fastmail.com
+          </a>
+        </p>
+      </footer>
       <DsConfirmDialog ref={confirmDialogRef} />
       <ParentalControlsDialog
         ref={parentalControlsDialogRef}
