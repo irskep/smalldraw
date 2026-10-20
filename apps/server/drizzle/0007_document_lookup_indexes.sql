@@ -1,0 +1,2 @@
+CREATE INDEX `document_invitations_document_scope_idx` ON `document_invitations` (`document_id`,`scope`);--> statement-breakpoint
+CREATE INDEX `users_on_documents_document_idx` ON `users_on_documents` (`document_id`);

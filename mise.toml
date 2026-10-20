@@ -293,3 +293,9 @@ run = "bun scripts/benchmarks/automerge-snapshots.ts"
 [tasks."bench:server:transport"]
 run = "bun scripts/benchmarks/automerge-transport.ts"
 
+
+[tasks."bench:server:storage-session"]
+run = "bun run scripts/benchmarks/backend-storage-session.ts"
+
+[tasks."bench:server:sqlite-indexes"]
+run = "bun run scripts/benchmarks/backend-sqlite-indexes.ts"

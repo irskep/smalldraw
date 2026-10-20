@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  index,
   integer,
   primaryKey,
   sqliteTable,
@@ -102,24 +103,36 @@ export const usersOnDocuments = sqliteTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.userId, table.documentId] }),
+    documentIndex: index("users_on_documents_document_idx").on(
+      table.documentId,
+    ),
   }),
 );
 
-export const documentInvitations = sqliteTable("document_invitations", {
-  id: text("id")
-    .primaryKey()
-    .notNull()
-    .$defaultFn(() => crypto.randomUUID()),
-  documentId: text("document_id")
-    .notNull()
-    .references(() => documents.id, { onDelete: "cascade" }),
-  token: text("token").notNull().unique(),
-  scope: text("scope").notNull().default("share"),
-  tag: text("tag"),
-  revokedAt: integer("revoked_at", { mode: "timestamp" }),
-  lastUsedAt: integer("last_used_at", { mode: "timestamp" }),
-  createdAt: timestamp("created_at"),
-});
+export const documentInvitations = sqliteTable(
+  "document_invitations",
+  {
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documents.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    scope: text("scope").notNull().default("share"),
+    tag: text("tag"),
+    revokedAt: integer("revoked_at", { mode: "timestamp" }),
+    lastUsedAt: integer("last_used_at", { mode: "timestamp" }),
+    createdAt: timestamp("created_at"),
+  },
+  (table) => ({
+    documentScopeIndex: index("document_invitations_document_scope_idx").on(
+      table.documentId,
+      table.scope,
+    ),
+  }),
+);
 
 export const documentTokenScopes = ["share", "owner", "device"] as const;
 export type DocumentTokenScope = (typeof documentTokenScopes)[number];

@@ -50,6 +50,13 @@
       "when": 1792351392447,
       "tag": "0006_account_wide_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1792469873245,
+      "tag": "0007_document_lookup_indexes",
+      "breakpoints": true
     }
   ]
 }

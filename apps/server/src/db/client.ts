@@ -23,6 +23,9 @@ if (!isInMemory) {
 }
 
 const sqlite = new Database(databasePath, { create: true });
+sqlite.run("PRAGMA journal_mode=WAL");
+sqlite.run("PRAGMA synchronous=FULL");
+sqlite.run("PRAGMA busy_timeout=5000");
 
 export const db = drizzle(sqlite, { schema });
 export type DbClient = typeof db;
