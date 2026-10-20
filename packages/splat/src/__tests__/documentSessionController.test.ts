@@ -60,6 +60,7 @@ describe("DocumentSessionController", () => {
       core,
       documentBackend: {
         mode: "local",
+        saveAccountCheckpoint: async () => {},
         listDocuments: async () => [],
         getDocument: async (docUrl) =>
           docUrl === "automerge:local-doc"
@@ -144,6 +145,7 @@ describe("DocumentSessionController", () => {
       },
       documentBackend: {
         mode: "local",
+        saveAccountCheckpoint: async () => {},
         listDocuments: async () => [],
         getDocument: async () => null,
         createDocument: async (input) => ({

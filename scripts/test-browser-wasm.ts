@@ -880,9 +880,23 @@ try {
   await expect
     .poll(() => incrementalCheckpoints.length, { timeout: 20_000 })
     .toBeGreaterThan(checkpointCount);
+  const fullRepliesBeforeReload =
+    checkpointReplies - incrementalCheckpoints.length;
+  const incrementalBeforeReload = incrementalCheckpoints.length;
   await page.reload();
   await editorReady();
   await expect.poll(shapeCount).toBe(5);
+  await stroke();
+  await expect.poll(shapeCount).toBe(6);
+  await expect
+    .poll(() => incrementalCheckpoints.length, { timeout: 20_000 })
+    .toBeGreaterThan(incrementalBeforeReload);
+  expect(checkpointReplies - incrementalCheckpoints.length).toBe(
+    fullRepliesBeforeReload,
+  );
+  console.log(
+    "PASS: checkpoint progress survives reload; next edit uploads only changes",
+  );
   const coldContext = await browser.newContext({
     storageState: await context.storageState(),
   });
@@ -897,7 +911,7 @@ try {
         }),
       { timeout: 20_000 },
     )
-    .toBe(5);
+    .toBe(6);
   await coldContext.close();
   console.log(
     "PASS: incremental account checkpoints restore all edits in a fresh browser",

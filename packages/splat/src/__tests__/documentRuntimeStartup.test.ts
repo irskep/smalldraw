@@ -116,6 +116,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
       core: createTestCore(store),
       documentBackend: {
         mode: "local",
+        saveAccountCheckpoint: async () => {},
         listDocuments: async () => [],
         getDocument: async () => null,
         createDocument: async () => ({
@@ -222,6 +223,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
       },
       documentBackend: {
         mode: "local",
+        saveAccountCheckpoint: async () => {},
         listDocuments: async () => [],
         getDocument: async () => null,
         createDocument: async () => ({
@@ -341,6 +343,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
       core: createTestCore(store),
       documentBackend: {
         mode: "local",
+        saveAccountCheckpoint: async () => {},
         listDocuments: async () => [],
         getDocument: async () => null,
         createDocument: async () => ({
@@ -464,6 +467,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
         core: createTestCore(store),
         documentBackend: {
           mode: "local",
+          saveAccountCheckpoint: async () => {},
           listDocuments: async () => [],
           getDocument: async () => null,
           createDocument: async () => ({
@@ -569,6 +573,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
         core: createTestCore(store),
         documentBackend: {
           mode: "local",
+          saveAccountCheckpoint: async () => {},
           listDocuments: async () => [],
           getDocument: async () => null,
           createDocument: async () => ({
@@ -659,6 +664,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
       },
       documentBackend: {
         mode: "local",
+        saveAccountCheckpoint: async () => {},
         listDocuments: async () => [],
         getDocument: async () => null,
         createDocument: async () => ({
@@ -755,6 +761,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
       core,
       documentBackend: {
         mode: "local",
+        saveAccountCheckpoint: async () => {},
         listDocuments: async () => [],
         getDocument: async (docUrl) => ({
           docUrl,
@@ -846,6 +853,7 @@ describe("createDocumentRuntimeController startup readiness", () => {
       },
       documentBackend: {
         mode: "local",
+        saveAccountCheckpoint: async () => {},
         listDocuments: async () => [],
         getDocument: async () => ({
           docUrl: "catalog-collab:broken",

@@ -3,7 +3,10 @@ import type { DrawingDocumentSize } from "@smalldraw/core";
 export type KidsDocumentMode = "normal" | "coloring" | "markup";
 export type KidsDocumentReferenceComposite = "under-drawing" | "over-drawing";
 
+export type AccountCheckpoint = { documentUrl: string; heads: string[] };
+
 export interface KidsDocumentSummary {
+  accountCheckpoint?: AccountCheckpoint;
   docUrl: string;
   collaborative?: boolean;
   collabDocUrl?: string;
@@ -48,6 +51,10 @@ export interface KidsDocumentCreateInput {
 
 export interface KidsDocumentBackend {
   readonly mode: "local";
+  saveAccountCheckpoint(
+    docUrl: string,
+    checkpoint: AccountCheckpoint,
+  ): Promise<void>;
   listDocuments(): Promise<KidsDocumentSummary[]>;
   getDocument(docUrl: string): Promise<KidsDocumentSummary | null>;
   createDocument(input: KidsDocumentCreateInput): Promise<KidsDocumentSummary>;

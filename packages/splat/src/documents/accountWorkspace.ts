@@ -192,7 +192,6 @@ export async function syncAccountWorkspace(
   repo: Repo,
   backend: KidsDocumentBackend,
   userId: string,
-  checkpoints?: Map<string, { heads: string; at: number }>,
   verifyIdentity = true,
 ): Promise<void> {
   if (verifyIdentity) {
@@ -216,11 +215,15 @@ export async function syncAccountWorkspace(
     const localHandle = await repo.find(id);
     // Other cached handles may still be loading or unloaded. Flush only this ready drawing.
     await repo.flush([localHandle.documentId]);
-    const last = checkpoints?.get(id);
+    const last =
+      document.accountCheckpoint?.documentUrl === id
+        ? document.accountCheckpoint
+        : undefined;
     if (
       document.accountAttached &&
       last &&
-      last.heads === JSON.stringify(getHeads(localHandle.doc()).sort())
+      JSON.stringify(last.heads) ===
+        JSON.stringify(getHeads(localHandle.doc()).sort())
     )
       continue;
     if (!document.accountAttached) {
@@ -265,7 +268,7 @@ export async function syncAccountWorkspace(
     // Capture after registration: edits made while it was in flight must also be saved.
     const snapshot = localHandle.doc();
     const heads = getHeads(snapshot);
-    const baseHeads: string[] | null = last ? JSON.parse(last.heads) : null;
+    const baseHeads = last?.heads ?? null;
     const canSendChanges = baseHeads !== null && hasHeads(snapshot, baseHeads);
     let result = await api.checkpointAccountDrawing(
       id,
@@ -301,9 +304,9 @@ export async function syncAccountWorkspace(
       free(confirmed);
     }
     await repo.flush([localHandle.documentId]);
-    checkpoints?.set(id, {
-      heads: JSON.stringify([...result.heads].sort()),
-      at: Date.now(),
+    await backend.saveAccountCheckpoint(document.docUrl, {
+      documentUrl: id,
+      heads: [...result.heads].sort(),
     });
     const thumbnail = await backend.getThumbnail(document.docUrl);
     if (thumbnail)
@@ -323,7 +326,6 @@ export function watchAccountWorkspace(options: {
 }) {
   const workspace = getDrawingWorkspace();
   const bus = channel();
-  const checkpoints = new Map<string, { heads: string; at: number }>();
   let stopped = false;
   let pending: Promise<void> | null = null;
   let release: (() => void) | undefined;
@@ -363,7 +365,6 @@ export function watchAccountWorkspace(options: {
             options.repo,
             options.backend,
             workspace,
-            checkpoints,
             checkIdentity,
           );
           if (checkIdentity) identityCheckedAt = Date.now();

@@ -1,5 +1,6 @@
 import { extractColoringPageId } from "../coloring/catalog";
 import type {
+  AccountCheckpoint,
   KidsDocumentBackend,
   KidsDocumentCreateInput,
   KidsDocumentMode,
@@ -63,6 +64,7 @@ function normalizeDocumentSummary(
         : undefined;
   return {
     docUrl: value.docUrl,
+    accountCheckpoint: value.accountCheckpoint,
     collaborative,
     collabDocUrl: collaborative ? collabDocUrl : undefined,
     joinSecret: collaborative ? joinSecret : undefined,
@@ -159,6 +161,10 @@ function transactionDone(transaction: IDBTransaction): Promise<void> {
 }
 
 interface DocumentRepository {
+  saveAccountCheckpoint(
+    docUrl: string,
+    checkpoint: AccountCheckpoint,
+  ): Promise<void>;
   listDocuments(): Promise<KidsDocumentSummary[]>;
   getDocument(docUrl: string): Promise<KidsDocumentSummary | null>;
   upsertDocument(input: KidsDocumentCreateInput): Promise<KidsDocumentSummary>;
@@ -335,6 +341,24 @@ class IndexedDbDocumentRepository implements DocumentRepository {
     );
   }
 
+  async saveAccountCheckpoint(
+    docUrl: string,
+    checkpoint: AccountCheckpoint,
+  ): Promise<void> {
+    await this.connection.runTransaction(
+      DOCUMENTS_STORE,
+      "readwrite",
+      async (store, transaction) => {
+        const existing = (await toPromise(store.get(docUrl))) as
+          | DocumentRecord
+          | undefined;
+        // A checkpoint must not resurrect a drawing deleted while the request was in flight.
+        if (existing) store.put({ ...existing, accountCheckpoint: checkpoint });
+        await transactionDone(transaction);
+      },
+    );
+  }
+
   async upsertDocument(
     input: KidsDocumentCreateInput,
   ): Promise<KidsDocumentSummary> {
@@ -379,6 +403,7 @@ class IndexedDbDocumentRepository implements DocumentRepository {
               ? undefined
               : (input.accessTokenScope ?? existing?.accessTokenScope),
           accountAttached: input.accountAttached ?? existing?.accountAttached,
+          accountCheckpoint: existing?.accountCheckpoint,
           canDeleteFromServer:
             input.canDeleteFromServer ?? existing?.canDeleteFromServer,
           accountSyncPending: collaborative
@@ -474,6 +499,18 @@ class MemoryDocumentRepository implements DocumentRepository {
     return this.documents.get(docUrl) ?? null;
   }
 
+  async saveAccountCheckpoint(
+    docUrl: string,
+    checkpoint: AccountCheckpoint,
+  ): Promise<void> {
+    const existing = this.documents.get(docUrl);
+    if (existing)
+      this.documents.set(docUrl, {
+        ...existing,
+        accountCheckpoint: structuredClone(checkpoint),
+      });
+  }
+
   async upsertDocument(
     input: KidsDocumentCreateInput,
   ): Promise<KidsDocumentSummary> {
@@ -503,6 +540,7 @@ class MemoryDocumentRepository implements DocumentRepository {
           ? undefined
           : (input.accessTokenScope ?? existing?.accessTokenScope),
       accountAttached: input.accountAttached ?? existing?.accountAttached,
+      accountCheckpoint: existing?.accountCheckpoint,
       canDeleteFromServer:
         input.canDeleteFromServer ?? existing?.canDeleteFromServer,
       title: input.title ?? existing?.title,
@@ -689,6 +727,13 @@ class LocalDocumentBackend implements KidsDocumentBackend {
     return this.hideAccountCaches && document?.accountAttached
       ? null
       : document;
+  }
+
+  async saveAccountCheckpoint(
+    docUrl: string,
+    checkpoint: AccountCheckpoint,
+  ): Promise<void> {
+    await this.documentRepository.saveAccountCheckpoint(docUrl, checkpoint);
   }
 
   async createDocument(

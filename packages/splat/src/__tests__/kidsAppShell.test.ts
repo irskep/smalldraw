@@ -173,6 +173,7 @@ function createMockDocumentBackend(
 
   return {
     mode: "local",
+    saveAccountCheckpoint: async () => {},
     async listDocuments() {
       return Array.from(documentsByUrl.values()).sort(
         (a, b) => Date.parse(b.lastOpenedAt) - Date.parse(a.lastOpenedAt),

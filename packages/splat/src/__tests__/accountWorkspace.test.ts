@@ -154,7 +154,7 @@ test("all drawings sync without changing the current drawing, and retry does not
   await syncAccountWorkspace(api, repo, backend, id);
   await syncAccountWorkspace(api, repo, backend, id);
   expect(registered).toHaveLength(3);
-  expect(checked).toHaveLength(6);
+  expect(checked).toHaveLength(3);
   expect(await backend.getCurrentDocument()).toBe(first);
 });
 
@@ -420,7 +420,7 @@ test("logout recovery waits for another tab to flush and release its writer leas
 });
 
 test("logout checkpoints the final edits from two open writers before purging", async () => {
-  const { api, id } = fakeApi();
+  const { api, id, server } = fakeApi();
   const first = workspace(id);
   const second = workspace(id);
   const a = first.repo.create({ marks: ["a"] });
@@ -431,8 +431,9 @@ test("logout checkpoints the final edits from two open writers before purging", 
   const saved: unknown[] = [];
   const checkpoint = api.checkpointAccountDrawing;
   api.checkpointAccountDrawing = async (...args) => {
-    if (args[1].baseHeads === null) saved.push(load(args[1].content));
-    return checkpoint(...args);
+    const result = await checkpoint(...args);
+    saved.push(load(server.get(args[0])!));
+    return result;
   };
   let finishSecond!: () => void;
   const barrier = new Promise<void>((resolve) => {
@@ -515,19 +516,18 @@ test("checkpoint traffic for an unchanged drawing across ninety seconds", async 
   const { repo, backend } = workspace(id);
   const handle = repo.create({ marks: ["first"] });
   await backend.createDocument({ docUrl: handle.url });
-  const cache = new Map<string, { heads: string; at: number }>();
   const now = spyOn(Date, "now");
   try {
     for (let n = 0; n < 4; n++) {
       now.mockReturnValue(100000 + n * 31000);
-      await syncAccountWorkspace(api, repo, backend, id, cache);
+      await syncAccountWorkspace(api, repo, backend, id);
     }
     console.log("CHECKPOINT_IDLE_MEASUREMENT", checked.length);
     expect(checked).toHaveLength(1);
     handle.change((doc) => {
       doc.marks.push("new edit");
     });
-    await syncAccountWorkspace(api, repo, backend, id, cache);
+    await syncAccountWorkspace(api, repo, backend, id);
     expect(checked).toHaveLength(2);
   } finally {
     now.mockRestore();
@@ -539,8 +539,7 @@ test("incremental checkpoints survive a lost reply, resync, and edits made durin
   const { repo, backend } = workspace(id);
   const drawing = repo.create({ marks: ["base"] });
   await backend.createDocument({ docUrl: drawing.url });
-  const cache = new Map<string, { heads: string; at: number }>();
-  await syncAccountWorkspace(api, repo, backend, id, cache);
+  await syncAccountWorkspace(api, repo, backend, id);
   const original = api.checkpointAccountDrawing;
   const sent: DrawingCheckpoint[] = [];
   let loseReply = true;
@@ -556,13 +555,13 @@ test("incremental checkpoints survive a lost reply, resync, and edits made durin
   drawing.change((d) => {
     d.marks.push("first edit");
   });
-  await expect(
-    syncAccountWorkspace(api, repo, backend, id, cache),
-  ).rejects.toThrow("reply lost");
+  await expect(syncAccountWorkspace(api, repo, backend, id)).rejects.toThrow(
+    "reply lost",
+  );
   drawing.change((d) => {
     d.marks.push("second edit");
   });
-  await syncAccountWorkspace(api, repo, backend, id, cache);
+  await syncAccountWorkspace(api, repo, backend, id);
   expect(sent.every((x) => x.baseHeads !== null)).toBe(true);
   expect(load<{ marks: string[] }>(server.get(drawing.url)!).marks).toEqual([
     "base",
@@ -583,12 +582,12 @@ test("incremental checkpoints survive a lost reply, resync, and edits made durin
   drawing.change((d) => {
     d.marks.push("before upload");
   });
-  await syncAccountWorkspace(api, repo, backend, id, cache);
+  await syncAccountWorkspace(api, repo, backend, id);
   expect(drawing.doc().marks).toContain("during upload");
   expect(
     load<{ marks: string[] }>(server.get(drawing.url)!).marks,
   ).not.toContain("during upload");
-  await syncAccountWorkspace(api, repo, backend, id, cache);
+  await syncAccountWorkspace(api, repo, backend, id);
   expect(load<{ marks: string[] }>(server.get(drawing.url)!).marks).toContain(
     "during upload",
   );
@@ -602,7 +601,7 @@ test("incremental checkpoints survive a lost reply, resync, and edits made durin
   drawing.change((d) => {
     d.marks.push("after recovery");
   });
-  await syncAccountWorkspace(api, repo, backend, id, cache);
+  await syncAccountWorkspace(api, repo, backend, id);
   expect(sent.map((x) => x.baseHeads === null)).toEqual([false, true]);
   expect(load<{ marks: string[] }>(server.get(drawing.url)!).marks).toEqual(
     drawing.doc().marks,
@@ -614,21 +613,22 @@ test("a reply that omits uploaded edits cannot advance the checkpoint", async ()
   const { repo, backend } = workspace(id);
   const drawing = repo.create({ marks: ["base"] });
   await backend.createDocument({ docUrl: drawing.url });
-  const cache = new Map<string, { heads: string; at: number }>();
-  await syncAccountWorkspace(api, repo, backend, id, cache);
-  const previous = cache.get(drawing.url)!;
+  await syncAccountWorkspace(api, repo, backend, id);
+  const previous = (await backend.getDocument(drawing.url))!.accountCheckpoint!;
   drawing.change((d) => {
     d.marks.push("must be saved");
   });
   api.checkpointAccountDrawing = async () => ({
     status: "saved",
-    heads: JSON.parse(previous.heads),
+    heads: previous.heads,
     content: new Uint8Array(),
   });
-  await expect(
-    syncAccountWorkspace(api, repo, backend, id, cache),
-  ).rejects.toThrow("not saved every change");
-  expect(cache.get(drawing.url)).toBe(previous);
+  await expect(syncAccountWorkspace(api, repo, backend, id)).rejects.toThrow(
+    "not saved every change",
+  );
+  expect((await backend.getDocument(drawing.url))!.accountCheckpoint).toEqual(
+    previous,
+  );
   expect(drawing.doc().marks).toContain("must be saved");
 });
 
@@ -647,4 +647,64 @@ test("an unrelated unloaded handle cannot block account checkpoints", async () =
   } finally {
     repo.delete(unrelated.documentId);
   }
+});
+
+test("checkpoint progress survives a new repo and backend; unchanged reload sends nothing", async () => {
+  const { api, id } = fakeApi();
+  const first = workspace(id);
+  const drawing = first.repo.create({ marks: ["original"] });
+  await first.backend.createDocument({ docUrl: drawing.url });
+  const checkpoint = spyOn(api, "checkpointAccountDrawing");
+  await syncAccountWorkspace(api, first.repo, first.backend, id);
+  const original = await first.backend.getDocument(drawing.url);
+  await first.repo.shutdown();
+  repos.splice(repos.indexOf(first.repo), 1);
+  const second = workspace(id);
+  await syncAccountWorkspace(api, second.repo, second.backend, id);
+  expect(checkpoint).toHaveBeenCalledTimes(1);
+  const reopened = await second.repo.find<{ marks: string[] }>(drawing.url);
+  reopened.change((doc) => {
+    doc.marks.push("after reload");
+  });
+  await syncAccountWorkspace(api, second.repo, second.backend, id);
+  expect(checkpoint).toHaveBeenCalledTimes(2);
+  expect(checkpoint.mock.calls[1][1].baseHeads).toEqual(
+    original!.accountCheckpoint!.heads,
+  );
+  // Saving checkpoint progress must not reorder the gallery.
+  expect((await second.backend.getDocument(drawing.url))!.lastOpenedAt).toBe(
+    original!.lastOpenedAt,
+  );
+  console.log("CHECKPOINT_RELOAD_MEASUREMENT", {
+    bootstrap: 1,
+    unchangedReload: 0,
+    editedReload: "incremental",
+  });
+});
+
+test("failed checkpoint metadata persistence does not lose edits or falsely mark them saved", async () => {
+  const { api, id, server } = fakeApi();
+  const { repo, backend } = workspace(id);
+  const drawing = repo.create({ marks: ["original"] });
+  await backend.createDocument({ docUrl: drawing.url });
+  await syncAccountWorkspace(api, repo, backend, id);
+  const previous = (await backend.getDocument(drawing.url))!.accountCheckpoint;
+  drawing.change((doc) => {
+    doc.marks.push("new");
+  });
+  const write = spyOn(backend, "saveAccountCheckpoint").mockRejectedValueOnce(
+    new Error("quota"),
+  );
+  await expect(syncAccountWorkspace(api, repo, backend, id)).rejects.toThrow(
+    "quota",
+  );
+  expect((await backend.getDocument(drawing.url))!.accountCheckpoint).toEqual(
+    previous,
+  );
+  write.mockRestore();
+  await syncAccountWorkspace(api, repo, backend, id);
+  expect(load<{ marks: string[] }>(server.get(drawing.url)!).marks).toEqual([
+    "original",
+    "new",
+  ]);
 });
