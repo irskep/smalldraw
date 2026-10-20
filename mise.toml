@@ -299,3 +299,15 @@ run = "bun run scripts/benchmarks/backend-storage-session.ts"
 
 [tasks."bench:server:sqlite-indexes"]
 run = "bun run scripts/benchmarks/backend-sqlite-indexes.ts"
+
+[tasks."bench:server:load"]
+description = "Bounded synthetic guest share/open workload; BENCH_ORIGIN selects the server"
+run = "bun run scripts/benchmarks/backend-load.ts"
+
+[tasks."bench:server:sample"]
+description = "Read-only production CPU/memory/disk sampling over SSH"
+run = "bun run scripts/benchmarks/sample-server.ts"
+
+[tasks."bench:server:checkpoint-delta"]
+description = "Compare full versus incremental snapshots after adding a fixture stroke"
+run = "bun run scripts/benchmarks/automerge-checkpoint-delta.ts"

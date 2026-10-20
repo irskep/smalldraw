@@ -1,0 +1,1967 @@
+{
+  "date": "2026-10-19",
+  "server": "Fly SJC shared-cpu-1x, 512 MB RAM; no upgrade",
+  "method": "Guest full-snapshot share updates with metadata edits, followed by first and cached opens. No WebSocket drawing or authenticated checkpoints.",
+  "limits": [
+    "One bounded run, not a capacity or saturation estimate. Each client waits 250 ms between cycles.",
+    "End-to-end timings include internet latency; health latency is not a direct event-loop measurement.",
+    "The read-only telemetry sampler is a separate Bun process and contributes to total machine memory. Server RSS excludes it.",
+    "Synthetic documents remain persisted; IDs are recorded for identification. No existing drawings were read or edited.",
+    "Incremental encoding benchmark is local macOS; it is not deployed and does not measure end-to-end checkpoint latency."
+  ],
+  "runId": "6471de04-14da-42d8-90bf-792ce20b6a37",
+  "syntheticDocuments": [
+    "automerge:2P7TF2i8ZRLutUFjG1Ytu4kb9QVC",
+    "automerge:SEJk8eTHLnSUtkUG3JPjzADHKgd",
+    "automerge:44BNPFumC7H5gzXq3uKkUHXCivc4",
+    "automerge:4SLhwhMpZT8oP9ridCYdvSeNSevJ",
+    "automerge:3kYrM3kQW9XL4KzGEmsSpAtbd1Sd",
+    "automerge:MBdtY5La7S2ejhJLpZ1hrQ6bcck",
+    "automerge:eSveg7B3JnbfNp58wqBEVbx236Y",
+    "automerge:3EedNbMRNrG8CsqWz9rQDfvZCeDG",
+    "automerge:U8E2tcovdgRQcpzUz68SW96Nf8z",
+    "automerge:yX57DApAAjtGRJwHdsZupVroanN",
+    "automerge:3eGCp6AYAEemNzmeu6tzn9H7ovwC",
+    "automerge:A7YeBDPQM4CiGwdUtifrCZeacMU",
+    "automerge:3m9qbuexbdqzD6eFcQvJevsnz4PN",
+    "automerge:2rxNETHcEx3juEd4VyNNe5aWbLXM"
+  ],
+  "fixtures": [
+    {
+      "size": "medium",
+      "bytes": 239857,
+      "sha256": "ed1af3bab8a52d194cda44f424148879fe985117306d259e91ca17bf36c5aa06"
+    },
+    {
+      "size": "large",
+      "bytes": 948603,
+      "sha256": "04b09296b345a0264bd1765bac2635476d710f50bce57fa3ef131e42b5f725ff"
+    }
+  ],
+  "roundsPerClient": 8,
+  "requestFailures": null,
+  "phases": [
+    {
+      "phase": "medium-1",
+      "startedAt": "2026-10-20T04:37:15.133Z",
+      "fixtureBytes": 239857
+    },
+    {
+      "phase": "medium-2",
+      "startedAt": "2026-10-20T04:37:20.385Z",
+      "fixtureBytes": 239857
+    },
+    {
+      "phase": "medium-4",
+      "startedAt": "2026-10-20T04:37:25.366Z",
+      "fixtureBytes": 239857
+    },
+    {
+      "phase": "large-1",
+      "startedAt": "2026-10-20T04:37:30.572Z",
+      "fixtureBytes": 948603
+    },
+    {
+      "phase": "large-2",
+      "startedAt": "2026-10-20T04:37:37.137Z",
+      "fixtureBytes": 948603
+    },
+    {
+      "phase": "large-4",
+      "startedAt": "2026-10-20T04:37:44.520Z",
+      "fixtureBytes": 948603
+    }
+  ],
+  "requestSummary": [
+    {
+      "key": "baseline/health",
+      "n": 22,
+      "p50": 30.37887499999988,
+      "p95": 33.06895799999984,
+      "max": 109.68045799999999,
+      "sent": 0,
+      "received": 0
+    },
+    {
+      "key": "medium-1/registerCollaborativeDocument",
+      "n": 8,
+      "p50": 76.3760000000002,
+      "p95": 219.29070899999988,
+      "max": 219.29070899999988,
+      "sent": 1920536,
+      "received": 1264
+    },
+    {
+      "key": "medium-1/health",
+      "n": 22,
+      "p50": 31.144540999999663,
+      "p95": 35.941500000000815,
+      "max": 110.39770799999951,
+      "sent": 0,
+      "received": 0
+    },
+    {
+      "key": "medium-1/openAfterWrite",
+      "n": 8,
+      "p50": 64.49729099999968,
+      "p95": 161.19074999999975,
+      "max": 161.19074999999975,
+      "sent": 808,
+      "received": 1920864
+    },
+    {
+      "key": "medium-1/cachedOpen",
+      "n": 8,
+      "p50": 45.830167000000074,
+      "p95": 135.9667499999996,
+      "max": 135.9667499999996,
+      "sent": 808,
+      "received": 1920864
+    },
+    {
+      "key": "medium-2/registerCollaborativeDocument",
+      "n": 16,
+      "p50": 51.00762500000019,
+      "p95": 178.78249999999935,
+      "max": 178.78249999999935,
+      "sent": 3841058,
+      "received": 2520
+    },
+    {
+      "key": "medium-2/health",
+      "n": 20,
+      "p50": 31.24449999999888,
+      "p95": 69.26883400000042,
+      "max": 239.2072909999988,
+      "sent": 0,
+      "received": 0
+    },
+    {
+      "key": "medium-2/openAfterWrite",
+      "n": 16,
+      "p50": 63.795249999999214,
+      "p95": 201.27724999999919,
+      "max": 201.27724999999919,
+      "sent": 1616,
+      "received": 3841714
+    },
+    {
+      "key": "medium-2/cachedOpen",
+      "n": 16,
+      "p50": 45.44100000000071,
+      "p95": 136.87912499999948,
+      "max": 136.87912499999948,
+      "sent": 1616,
+      "received": 3841714
+    },
+    {
+      "key": "medium-4/registerCollaborativeDocument",
+      "n": 32,
+      "p50": 57.14520899999843,
+      "p95": 187.0792079999992,
+      "max": 236.76112499999908,
+      "sent": 7682117,
+      "received": 5040
+    },
+    {
+      "key": "medium-4/openAfterWrite",
+      "n": 32,
+      "p50": 70.50045899999895,
+      "p95": 150.46491699999933,
+      "max": 161.22408300000097,
+      "sent": 3232,
+      "received": 7683429
+    },
+    {
+      "key": "medium-4/health",
+      "n": 21,
+      "p50": 32.43620899999951,
+      "p95": 75.4840409999997,
+      "max": 149.5734999999986,
+      "sent": 0,
+      "received": 0
+    },
+    {
+      "key": "medium-4/cachedOpen",
+      "n": 32,
+      "p50": 46.76879200000076,
+      "p95": 170.7197500000002,
+      "max": 176.52587499999936,
+      "sent": 3232,
+      "received": 7683429
+    },
+    {
+      "key": "large-1/health",
+      "n": 27,
+      "p50": 32.12712500000271,
+      "p95": 96.69720799999777,
+      "max": 100.031332999999,
+      "sent": 0,
+      "received": 0
+    },
+    {
+      "key": "large-1/registerCollaborativeDocument",
+      "n": 8,
+      "p50": 96.35445799999798,
+      "p95": 256.8502499999995,
+      "max": 256.8502499999995,
+      "sent": 7590487,
+      "received": 1264
+    },
+    {
+      "key": "large-1/openAfterWrite",
+      "n": 8,
+      "p50": 132.3256250000013,
+      "p95": 154.63074999999662,
+      "max": 154.63074999999662,
+      "sent": 800,
+      "received": 7590823
+    },
+    {
+      "key": "large-1/cachedOpen",
+      "n": 8,
+      "p50": 59.87550000000192,
+      "p95": 86.97470799999792,
+      "max": 86.97470799999792,
+      "sent": 800,
+      "received": 7590823
+    },
+    {
+      "key": "large-2/registerCollaborativeDocument",
+      "n": 16,
+      "p50": 86.16229200000089,
+      "p95": 246.31650000000081,
+      "max": 246.31650000000081,
+      "sent": 15180941,
+      "received": 2512
+    },
+    {
+      "key": "large-2/health",
+      "n": 28,
+      "p50": 37.72716699999728,
+      "p95": 92.6375420000004,
+      "max": 116.85987499999828,
+      "sent": 0,
+      "received": 0
+    },
+    {
+      "key": "large-2/openAfterWrite",
+      "n": 16,
+      "p50": 221.55616699999882,
+      "p95": 319.7701659999984,
+      "max": 319.7701659999984,
+      "sent": 1600,
+      "received": 15181613
+    },
+    {
+      "key": "large-2/cachedOpen",
+      "n": 16,
+      "p50": 59.74933299999975,
+      "p95": 69.93679100000008,
+      "max": 69.93679100000008,
+      "sent": 1600,
+      "received": 15181613
+    },
+    {
+      "key": "large-4/registerCollaborativeDocument",
+      "n": 32,
+      "p50": 202.6770830000023,
+      "p95": 542.5748329999988,
+      "max": 624.6419580000002,
+      "sent": 30361876,
+      "received": 5048
+    },
+    {
+      "key": "large-4/health",
+      "n": 28,
+      "p50": 56.7376660000009,
+      "p95": 229.28345800000534,
+      "max": 366.9372089999961,
+      "sent": 0,
+      "received": 0
+    },
+    {
+      "key": "large-4/openAfterWrite",
+      "n": 32,
+      "p50": 395.6649999999936,
+      "p95": 767.083458000001,
+      "max": 818.0529999999999,
+      "sent": 3200,
+      "received": 30363220
+    },
+    {
+      "key": "large-4/cachedOpen",
+      "n": 32,
+      "p50": 71.31445800000074,
+      "p95": 85.00895799999853,
+      "max": 87.28050000000076,
+      "sent": 3200,
+      "received": 30363220
+    }
+  ],
+  "serverSummary": {
+    "samples": 180,
+    "rssStartMiB": 109.42578125,
+    "rssPeakMiB": 282.00390625,
+    "rssEndMiB": 198.2734375,
+    "swapPeakMiB": 0.0,
+    "minAvailableMachineMiB": 149.40234375,
+    "peakOneSecondCpuPercent": 64.35643564356435,
+    "processDiskWriteMiB": 18.640625
+  },
+  "telemetry": [
+    {
+      "at": "2026-10-20T04:37:02.249Z",
+      "cpuTicks": 215,
+      "totalMachineTicks": 75088,
+      "rssKiB": 112052,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:03.251Z",
+      "cpuTicks": 215,
+      "totalMachineTicks": 75188,
+      "rssKiB": 112052,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:04.252Z",
+      "cpuTicks": 215,
+      "totalMachineTicks": 75288,
+      "rssKiB": 112052,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:05.253Z",
+      "cpuTicks": 215,
+      "totalMachineTicks": 75388,
+      "rssKiB": 112052,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:06.254Z",
+      "cpuTicks": 215,
+      "totalMachineTicks": 75488,
+      "rssKiB": 112036,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:07.254Z",
+      "cpuTicks": 215,
+      "totalMachineTicks": 75588,
+      "rssKiB": 112036,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:08.255Z",
+      "cpuTicks": 215,
+      "totalMachineTicks": 75688,
+      "rssKiB": 112036,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:09.256Z",
+      "cpuTicks": 215,
+      "totalMachineTicks": 75788,
+      "rssKiB": 112036,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:10.256Z",
+      "cpuTicks": 215,
+      "totalMachineTicks": 75889,
+      "rssKiB": 112036,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:11.257Z",
+      "cpuTicks": 216,
+      "totalMachineTicks": 75988,
+      "rssKiB": 112084,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:12.258Z",
+      "cpuTicks": 217,
+      "totalMachineTicks": 76089,
+      "rssKiB": 112084,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:13.259Z",
+      "cpuTicks": 218,
+      "totalMachineTicks": 76189,
+      "rssKiB": 112112,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:14.259Z",
+      "cpuTicks": 218,
+      "totalMachineTicks": 76289,
+      "rssKiB": 112136,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:15.260Z",
+      "cpuTicks": 219,
+      "totalMachineTicks": 76390,
+      "rssKiB": 112236,
+      "swapKiB": 0,
+      "writeBytes": 835584,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:16.261Z",
+      "cpuTicks": 240,
+      "totalMachineTicks": 76491,
+      "rssKiB": 121068,
+      "swapKiB": 0,
+      "writeBytes": 1187840,
+      "readBytes": 79069184
+    },
+    {
+      "at": "2026-10-20T04:37:17.261Z",
+      "cpuTicks": 253,
+      "totalMachineTicks": 76590,
+      "rssKiB": 126520,
+      "swapKiB": 0,
+      "writeBytes": 1224704,
+      "readBytes": 79073280
+    },
+    {
+      "at": "2026-10-20T04:37:18.262Z",
+      "cpuTicks": 265,
+      "totalMachineTicks": 76689,
+      "rssKiB": 132264,
+      "swapKiB": 0,
+      "writeBytes": 1253376,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:19.262Z",
+      "cpuTicks": 277,
+      "totalMachineTicks": 76789,
+      "rssKiB": 139272,
+      "swapKiB": 0,
+      "writeBytes": 1286144,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:20.263Z",
+      "cpuTicks": 278,
+      "totalMachineTicks": 76889,
+      "rssKiB": 139368,
+      "swapKiB": 0,
+      "writeBytes": 1286144,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:21.264Z",
+      "cpuTicks": 331,
+      "totalMachineTicks": 76990,
+      "rssKiB": 141204,
+      "swapKiB": 0,
+      "writeBytes": 1921024,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:22.266Z",
+      "cpuTicks": 351,
+      "totalMachineTicks": 77090,
+      "rssKiB": 148288,
+      "swapKiB": 0,
+      "writeBytes": 1978368,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:23.268Z",
+      "cpuTicks": 374,
+      "totalMachineTicks": 77190,
+      "rssKiB": 141244,
+      "swapKiB": 0,
+      "writeBytes": 2027520,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:24.270Z",
+      "cpuTicks": 397,
+      "totalMachineTicks": 77290,
+      "rssKiB": 142936,
+      "swapKiB": 0,
+      "writeBytes": 2088960,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:25.272Z",
+      "cpuTicks": 399,
+      "totalMachineTicks": 77391,
+      "rssKiB": 142936,
+      "swapKiB": 0,
+      "writeBytes": 2088960,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:26.274Z",
+      "cpuTicks": 445,
+      "totalMachineTicks": 77489,
+      "rssKiB": 159412,
+      "swapKiB": 0,
+      "writeBytes": 3432448,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:27.277Z",
+      "cpuTicks": 492,
+      "totalMachineTicks": 77590,
+      "rssKiB": 177076,
+      "swapKiB": 0,
+      "writeBytes": 3538944,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:28.278Z",
+      "cpuTicks": 530,
+      "totalMachineTicks": 77691,
+      "rssKiB": 187200,
+      "swapKiB": 0,
+      "writeBytes": 3637248,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:29.280Z",
+      "cpuTicks": 562,
+      "totalMachineTicks": 77788,
+      "rssKiB": 168236,
+      "swapKiB": 0,
+      "writeBytes": 3756032,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:30.282Z",
+      "cpuTicks": 564,
+      "totalMachineTicks": 77890,
+      "rssKiB": 168172,
+      "swapKiB": 0,
+      "writeBytes": 3756032,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:31.283Z",
+      "cpuTicks": 592,
+      "totalMachineTicks": 77990,
+      "rssKiB": 173500,
+      "swapKiB": 0,
+      "writeBytes": 4780032,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:32.285Z",
+      "cpuTicks": 607,
+      "totalMachineTicks": 78090,
+      "rssKiB": 176956,
+      "swapKiB": 0,
+      "writeBytes": 4792320,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:33.287Z",
+      "cpuTicks": 634,
+      "totalMachineTicks": 78190,
+      "rssKiB": 188320,
+      "swapKiB": 0,
+      "writeBytes": 4837376,
+      "readBytes": 79114240
+    },
+    {
+      "at": "2026-10-20T04:37:34.288Z",
+      "cpuTicks": 648,
+      "totalMachineTicks": 78290,
+      "rssKiB": 190604,
+      "swapKiB": 0,
+      "writeBytes": 4849664,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:35.290Z",
+      "cpuTicks": 673,
+      "totalMachineTicks": 78389,
+      "rssKiB": 196160,
+      "swapKiB": 0,
+      "writeBytes": 4907008,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:36.291Z",
+      "cpuTicks": 685,
+      "totalMachineTicks": 78490,
+      "rssKiB": 197852,
+      "swapKiB": 0,
+      "writeBytes": 4919296,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:37.297Z",
+      "cpuTicks": 689,
+      "totalMachineTicks": 78589,
+      "rssKiB": 193740,
+      "swapKiB": 0,
+      "writeBytes": 4919296,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:38.298Z",
+      "cpuTicks": 737,
+      "totalMachineTicks": 78689,
+      "rssKiB": 224068,
+      "swapKiB": 0,
+      "writeBytes": 10862592,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:39.299Z",
+      "cpuTicks": 784,
+      "totalMachineTicks": 78791,
+      "rssKiB": 227580,
+      "swapKiB": 0,
+      "writeBytes": 10932224,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:40.300Z",
+      "cpuTicks": 820,
+      "totalMachineTicks": 78892,
+      "rssKiB": 227908,
+      "swapKiB": 0,
+      "writeBytes": 10956800,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:41.302Z",
+      "cpuTicks": 846,
+      "totalMachineTicks": 78994,
+      "rssKiB": 233672,
+      "swapKiB": 0,
+      "writeBytes": 10981376,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:42.304Z",
+      "cpuTicks": 891,
+      "totalMachineTicks": 79094,
+      "rssKiB": 234804,
+      "swapKiB": 0,
+      "writeBytes": 11030528,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:43.306Z",
+      "cpuTicks": 921,
+      "totalMachineTicks": 79194,
+      "rssKiB": 207928,
+      "swapKiB": 0,
+      "writeBytes": 11055104,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:44.307Z",
+      "cpuTicks": 922,
+      "totalMachineTicks": 79294,
+      "rssKiB": 199288,
+      "swapKiB": 0,
+      "writeBytes": 11055104,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:45.312Z",
+      "cpuTicks": 987,
+      "totalMachineTicks": 79395,
+      "rssKiB": 262772,
+      "swapKiB": 0,
+      "writeBytes": 13127680,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:46.313Z",
+      "cpuTicks": 1033,
+      "totalMachineTicks": 79492,
+      "rssKiB": 267168,
+      "swapKiB": 0,
+      "writeBytes": 19976192,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:47.314Z",
+      "cpuTicks": 1089,
+      "totalMachineTicks": 79594,
+      "rssKiB": 268596,
+      "swapKiB": 0,
+      "writeBytes": 20045824,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:48.316Z",
+      "cpuTicks": 1140,
+      "totalMachineTicks": 79693,
+      "rssKiB": 284120,
+      "swapKiB": 0,
+      "writeBytes": 20094976,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:49.318Z",
+      "cpuTicks": 1192,
+      "totalMachineTicks": 79794,
+      "rssKiB": 263584,
+      "swapKiB": 0,
+      "writeBytes": 20168704,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:50.319Z",
+      "cpuTicks": 1242,
+      "totalMachineTicks": 79893,
+      "rssKiB": 272820,
+      "swapKiB": 0,
+      "writeBytes": 20250624,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:51.322Z",
+      "cpuTicks": 1291,
+      "totalMachineTicks": 79994,
+      "rssKiB": 274836,
+      "swapKiB": 0,
+      "writeBytes": 20307968,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:52.323Z",
+      "cpuTicks": 1341,
+      "totalMachineTicks": 80094,
+      "rssKiB": 287448,
+      "swapKiB": 0,
+      "writeBytes": 20357120,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:53.325Z",
+      "cpuTicks": 1375,
+      "totalMachineTicks": 80196,
+      "rssKiB": 288772,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:54.326Z",
+      "cpuTicks": 1376,
+      "totalMachineTicks": 80296,
+      "rssKiB": 284928,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:55.328Z",
+      "cpuTicks": 1377,
+      "totalMachineTicks": 80397,
+      "rssKiB": 284912,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:56.329Z",
+      "cpuTicks": 1377,
+      "totalMachineTicks": 80497,
+      "rssKiB": 284912,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:57.331Z",
+      "cpuTicks": 1377,
+      "totalMachineTicks": 80597,
+      "rssKiB": 284912,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:58.332Z",
+      "cpuTicks": 1377,
+      "totalMachineTicks": 80698,
+      "rssKiB": 284912,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:37:59.333Z",
+      "cpuTicks": 1377,
+      "totalMachineTicks": 80798,
+      "rssKiB": 284912,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:00.335Z",
+      "cpuTicks": 1377,
+      "totalMachineTicks": 80898,
+      "rssKiB": 285232,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:01.336Z",
+      "cpuTicks": 1377,
+      "totalMachineTicks": 80998,
+      "rssKiB": 285212,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:02.337Z",
+      "cpuTicks": 1377,
+      "totalMachineTicks": 81098,
+      "rssKiB": 284300,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:03.338Z",
+      "cpuTicks": 1377,
+      "totalMachineTicks": 81198,
+      "rssKiB": 282948,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:04.340Z",
+      "cpuTicks": 1381,
+      "totalMachineTicks": 81299,
+      "rssKiB": 229144,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:05.341Z",
+      "cpuTicks": 1381,
+      "totalMachineTicks": 81398,
+      "rssKiB": 229168,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:06.342Z",
+      "cpuTicks": 1381,
+      "totalMachineTicks": 81499,
+      "rssKiB": 229056,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:07.343Z",
+      "cpuTicks": 1381,
+      "totalMachineTicks": 81599,
+      "rssKiB": 229056,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:08.345Z",
+      "cpuTicks": 1381,
+      "totalMachineTicks": 81698,
+      "rssKiB": 229056,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:09.346Z",
+      "cpuTicks": 1381,
+      "totalMachineTicks": 81798,
+      "rssKiB": 229056,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:10.347Z",
+      "cpuTicks": 1382,
+      "totalMachineTicks": 81900,
+      "rssKiB": 229132,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:11.348Z",
+      "cpuTicks": 1382,
+      "totalMachineTicks": 82000,
+      "rssKiB": 229100,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:12.350Z",
+      "cpuTicks": 1382,
+      "totalMachineTicks": 82100,
+      "rssKiB": 229100,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:13.351Z",
+      "cpuTicks": 1382,
+      "totalMachineTicks": 82201,
+      "rssKiB": 229100,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:14.352Z",
+      "cpuTicks": 1382,
+      "totalMachineTicks": 82301,
+      "rssKiB": 229040,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:15.354Z",
+      "cpuTicks": 1383,
+      "totalMachineTicks": 82401,
+      "rssKiB": 229096,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:16.355Z",
+      "cpuTicks": 1383,
+      "totalMachineTicks": 82502,
+      "rssKiB": 229096,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:17.356Z",
+      "cpuTicks": 1383,
+      "totalMachineTicks": 82602,
+      "rssKiB": 229096,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:18.358Z",
+      "cpuTicks": 1383,
+      "totalMachineTicks": 82702,
+      "rssKiB": 229096,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:19.359Z",
+      "cpuTicks": 1384,
+      "totalMachineTicks": 82803,
+      "rssKiB": 229096,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:20.361Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 82903,
+      "rssKiB": 229148,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:21.362Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83003,
+      "rssKiB": 229148,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:22.363Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83103,
+      "rssKiB": 229148,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:23.365Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83203,
+      "rssKiB": 229148,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:24.366Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83303,
+      "rssKiB": 229148,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:25.367Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83403,
+      "rssKiB": 229144,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:26.369Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83504,
+      "rssKiB": 229144,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:27.370Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83604,
+      "rssKiB": 229144,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:28.372Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83703,
+      "rssKiB": 229144,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:29.373Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83804,
+      "rssKiB": 229144,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:30.374Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 83904,
+      "rssKiB": 229108,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:31.376Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 84004,
+      "rssKiB": 229108,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:32.376Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 84105,
+      "rssKiB": 229108,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:33.378Z",
+      "cpuTicks": 1385,
+      "totalMachineTicks": 84204,
+      "rssKiB": 229108,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:34.379Z",
+      "cpuTicks": 1386,
+      "totalMachineTicks": 84305,
+      "rssKiB": 229152,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:35.381Z",
+      "cpuTicks": 1387,
+      "totalMachineTicks": 84405,
+      "rssKiB": 229160,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:36.382Z",
+      "cpuTicks": 1387,
+      "totalMachineTicks": 84505,
+      "rssKiB": 229160,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:37.384Z",
+      "cpuTicks": 1387,
+      "totalMachineTicks": 84606,
+      "rssKiB": 229160,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:38.385Z",
+      "cpuTicks": 1387,
+      "totalMachineTicks": 84707,
+      "rssKiB": 229160,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:39.387Z",
+      "cpuTicks": 1387,
+      "totalMachineTicks": 84807,
+      "rssKiB": 229160,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:40.388Z",
+      "cpuTicks": 1387,
+      "totalMachineTicks": 84908,
+      "rssKiB": 229260,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:41.389Z",
+      "cpuTicks": 1387,
+      "totalMachineTicks": 85007,
+      "rssKiB": 229260,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:42.390Z",
+      "cpuTicks": 1387,
+      "totalMachineTicks": 85107,
+      "rssKiB": 229260,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:43.392Z",
+      "cpuTicks": 1387,
+      "totalMachineTicks": 85207,
+      "rssKiB": 229260,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:44.393Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 85307,
+      "rssKiB": 229244,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:45.394Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 85408,
+      "rssKiB": 229244,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:46.396Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 85507,
+      "rssKiB": 229244,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:47.397Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 85607,
+      "rssKiB": 229244,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:48.398Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 85707,
+      "rssKiB": 229244,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:49.400Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 85807,
+      "rssKiB": 229384,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:50.401Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 85908,
+      "rssKiB": 229396,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:51.402Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 86008,
+      "rssKiB": 229396,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:52.404Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 86109,
+      "rssKiB": 229396,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:53.405Z",
+      "cpuTicks": 1388,
+      "totalMachineTicks": 86210,
+      "rssKiB": 229396,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:54.407Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 86309,
+      "rssKiB": 229424,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:55.408Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 86409,
+      "rssKiB": 229392,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:56.410Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 86510,
+      "rssKiB": 229392,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:57.412Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 86610,
+      "rssKiB": 229392,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:58.413Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 86710,
+      "rssKiB": 229392,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:38:59.414Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 86810,
+      "rssKiB": 229404,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:00.416Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 86910,
+      "rssKiB": 229404,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:01.417Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 87011,
+      "rssKiB": 229404,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:02.419Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 87111,
+      "rssKiB": 229404,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:03.420Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 87211,
+      "rssKiB": 229404,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:04.422Z",
+      "cpuTicks": 1389,
+      "totalMachineTicks": 87311,
+      "rssKiB": 229352,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:05.423Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 87412,
+      "rssKiB": 229352,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:06.425Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 87512,
+      "rssKiB": 229352,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:07.426Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 87613,
+      "rssKiB": 229352,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:08.428Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 87713,
+      "rssKiB": 229352,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:09.429Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 87812,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:10.431Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 87914,
+      "rssKiB": 229368,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:11.433Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 88014,
+      "rssKiB": 229368,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:12.434Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 88114,
+      "rssKiB": 229368,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:13.436Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 88214,
+      "rssKiB": 229368,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:14.437Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 88314,
+      "rssKiB": 229368,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:15.439Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 88415,
+      "rssKiB": 229368,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:16.441Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 88515,
+      "rssKiB": 229368,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:17.442Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 88615,
+      "rssKiB": 229368,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:18.444Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 88715,
+      "rssKiB": 229368,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:19.445Z",
+      "cpuTicks": 1390,
+      "totalMachineTicks": 88816,
+      "rssKiB": 229344,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:20.446Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 88916,
+      "rssKiB": 228824,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:21.448Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89017,
+      "rssKiB": 228824,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:22.449Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89117,
+      "rssKiB": 228824,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:23.451Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89217,
+      "rssKiB": 228824,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:24.452Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89316,
+      "rssKiB": 228904,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:25.454Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89416,
+      "rssKiB": 228876,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:26.456Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89516,
+      "rssKiB": 228876,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:27.457Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89617,
+      "rssKiB": 228876,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:28.459Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89718,
+      "rssKiB": 228876,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:29.460Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89817,
+      "rssKiB": 229420,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:30.462Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 89917,
+      "rssKiB": 229420,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:31.463Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 90018,
+      "rssKiB": 229420,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:32.464Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 90119,
+      "rssKiB": 229420,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:33.465Z",
+      "cpuTicks": 1391,
+      "totalMachineTicks": 90218,
+      "rssKiB": 229420,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:34.467Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 90318,
+      "rssKiB": 229572,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:35.468Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 90418,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:36.469Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 90518,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:37.471Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 90618,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:38.472Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 90717,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:39.473Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 90819,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:40.474Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 90920,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:41.476Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 91020,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:42.477Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 91120,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:43.479Z",
+      "cpuTicks": 1392,
+      "totalMachineTicks": 91220,
+      "rssKiB": 229436,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:44.481Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 91320,
+      "rssKiB": 229388,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:45.482Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 91420,
+      "rssKiB": 229380,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:46.484Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 91520,
+      "rssKiB": 229380,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:47.486Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 91620,
+      "rssKiB": 229380,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:48.487Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 91720,
+      "rssKiB": 229380,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:49.488Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 91822,
+      "rssKiB": 229356,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:50.490Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 91922,
+      "rssKiB": 228844,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:51.491Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 92022,
+      "rssKiB": 228844,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:52.492Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 92123,
+      "rssKiB": 228844,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:53.494Z",
+      "cpuTicks": 1393,
+      "totalMachineTicks": 92223,
+      "rssKiB": 228844,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:54.495Z",
+      "cpuTicks": 1397,
+      "totalMachineTicks": 92323,
+      "rssKiB": 203020,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:55.496Z",
+      "cpuTicks": 1397,
+      "totalMachineTicks": 92424,
+      "rssKiB": 203020,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:56.498Z",
+      "cpuTicks": 1397,
+      "totalMachineTicks": 92524,
+      "rssKiB": 203020,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:57.500Z",
+      "cpuTicks": 1397,
+      "totalMachineTicks": 92625,
+      "rssKiB": 203020,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:58.501Z",
+      "cpuTicks": 1397,
+      "totalMachineTicks": 92725,
+      "rssKiB": 203020,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:39:59.502Z",
+      "cpuTicks": 1398,
+      "totalMachineTicks": 92825,
+      "rssKiB": 203032,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:40:00.504Z",
+      "cpuTicks": 1398,
+      "totalMachineTicks": 92925,
+      "rssKiB": 203032,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    },
+    {
+      "at": "2026-10-20T04:40:01.505Z",
+      "cpuTicks": 1398,
+      "totalMachineTicks": 93024,
+      "rssKiB": 203032,
+      "swapKiB": 0,
+      "writeBytes": 20381696,
+      "readBytes": 79126528
+    }
+  ],
+  "incrementalEncoding": [
+    {
+      "size": "medium",
+      "rows": [
+        {
+          "incremental": false,
+          "bytes": 269972,
+          "encodeMedianMs": 15.566250000000025
+        },
+        {
+          "incremental": true,
+          "bytes": 79386,
+          "encodeMedianMs": 0.4635830000000283
+        }
+      ]
+    },
+    {
+      "size": "large",
+      "rows": [
+        {
+          "incremental": false,
+          "bytes": 977645,
+          "encodeMedianMs": 57.40162499999997
+        },
+        {
+          "incremental": true,
+          "bytes": 79677,
+          "encodeMedianMs": 0.3689160000001266
+        }
+      ]
+    }
+  ],
+  "recommendation": "Implement and validate incremental account checkpoints next; retain full bootstrap/resynchronization. Do not resize the server or introduce workers based on this run."
+}
