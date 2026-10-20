@@ -1,4 +1,7 @@
 // Generate fixtures with bench:server:fixtures first. Only creates synthetic documents.
+// Production fixtures: BENCH_ORIGIN=https://splatterboard.app/draw mise run bench:server:fixtures
+// Load test: BENCH_ORIGIN=https://splatterboard.app mise run bench:server:load > results.json
+// Run bench:server:sample separately to collect server resource samples.
 // Caps concurrency at four; stops on failed requests or degraded health.
 import * as A from "@automerge/automerge";
 import { generateAutomergeUrl } from "@automerge/automerge-repo";
@@ -23,7 +26,7 @@ let failure: string | undefined;
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function request(operation: string, input: unknown, label = operation) {
   stop.signal.throwIfAborted();
-  const body = cbor.encode(input);
+  const body = input instanceof Uint8Array ? input : cbor.encode(input);
   const start = performance.now();
   const response = await fetch(`${origin}/api/v1/documents/${operation}`, {
     method: "POST",
@@ -45,6 +48,75 @@ async function request(operation: string, input: unknown, label = operation) {
   });
   return decoded.result;
 }
+// Prepare all Automerge and large CBOR encoding before starting any measurements.
+const plans: {
+  name: string;
+  fixtureBytes: number;
+  clients: {
+    deviceTag: string;
+    updates: { body: Uint8Array; heads: string }[];
+  }[];
+}[] = [];
+for (const size of ["medium", "large"]) {
+  const bytes = new Uint8Array(
+    await Bun.file(`/tmp/smalldraw-${size}.automerge`).arrayBuffer(),
+  );
+  const checked = A.load<{
+    shapes: Record<string, { geometry: { pointsJson?: unknown } }>;
+  }>(bytes);
+  try {
+    if (
+      Object.values(checked.shapes).some(
+        (shape) => typeof shape.geometry.pointsJson === "string",
+      )
+    )
+      throw Error(
+        "Outdated collaborative-text fixture; rerun bench:server:fixtures against the current editor",
+      );
+  } finally {
+    A.free(checked);
+  }
+  fixtures.push({
+    size,
+    bytes: bytes.length,
+    sha256: new Bun.CryptoHasher("sha256").update(bytes).digest("hex"),
+  });
+  for (const concurrency of [1, 2, 4]) {
+    const clients = Array.from({ length: concurrency }, (_, client) => {
+      const documentId = generateAutomergeUrl();
+      documents.push(documentId);
+      const deviceTag = `load-${runId}-${size}-${concurrency}-${client}`;
+      let doc = A.load<Record<string, unknown>>(bytes);
+      try {
+        const updates = Array.from({ length: rounds }, (_, round) => {
+          doc = A.change(doc, (d) => {
+            d.benchmarkRevision = round;
+          });
+          return {
+            body: cbor.encode({ documentId, deviceTag, content: A.save(doc) }),
+            heads: JSON.stringify(A.getHeads(doc).sort()),
+          };
+        });
+        return { deviceTag, updates };
+      } finally {
+        A.free(doc);
+      }
+    });
+    plans.push({
+      name: `${size}-${concurrency}`,
+      fixtureBytes: bytes.length,
+      clients,
+    });
+  }
+}
+const validations: { content: Uint8Array; heads: string }[] = [];
+const clientLoopDelays: number[] = [];
+let previousTick = performance.now();
+const clientLoopTimer = setInterval(() => {
+  const now = performance.now();
+  clientLoopDelays.push(Math.max(0, now - previousTick - 20));
+  previousTick = now;
+}, 20);
 const health = (async () => {
   while (!finished) {
     const measuredPhase = phase;
@@ -73,83 +145,38 @@ const health = (async () => {
 })();
 try {
   await pause(5000);
-  for (const size of ["medium", "large"]) {
-    const bytes = new Uint8Array(
-      await Bun.file(`/tmp/smalldraw-${size}.automerge`).arrayBuffer(),
+  for (const plan of plans) {
+    phase = plan.name;
+    console.error(
+      JSON.stringify({
+        phase,
+        startedAt: new Date().toISOString(),
+        fixtureBytes: plan.fixtureBytes,
+      }),
     );
-    const checked = A.load<{
-      shapes: Record<string, { geometry: { pointsJson?: unknown } }>;
-    }>(bytes);
-    try {
-      if (
-        Object.values(checked.shapes).some(
-          (shape) => typeof shape.geometry.pointsJson === "string",
-        )
-      )
-        throw Error(
-          "Outdated collaborative-text fixture; rerun bench:server:fixtures against the current editor",
-        );
-    } finally {
-      A.free(checked);
-    }
-    fixtures.push({
-      size,
-      bytes: bytes.length,
-      sha256: new Bun.CryptoHasher("sha256").update(bytes).digest("hex"),
-    });
-    for (const concurrency of [1, 2, 4]) {
-      phase = `${size}-${concurrency}`;
-      console.error(
-        JSON.stringify({
-          phase,
-          startedAt: new Date().toISOString(),
-          fixtureBytes: bytes.length,
-        }),
-      );
-      await Promise.all(
-        Array.from({ length: concurrency }, async (_, client) => {
-          const documentId = generateAutomergeUrl();
-          documents.push(documentId);
-          const deviceTag = `load-${runId}-${size}-${concurrency}-${client}`;
-          let doc = A.load<Record<string, unknown>>(bytes);
-          try {
-            for (let round = 0; round < rounds; round++) {
-              stop.signal.throwIfAborted();
-              // A small metadata edit isolates full-snapshot transfer/merge overhead.
-              doc = A.change(doc, (d) => {
-                d.benchmarkRevision = round;
-              });
-              const content = A.save(doc);
-              const registration = await request(
-                "registerCollaborativeDocument",
-                { documentId, deviceTag, content },
-              );
-              for (let open = 0; open < 2; open++) {
-                const result = await request(
-                  "resolveAnonymousCollaborativeDocument",
-                  { joinSecret: registration.joinSecret, deviceTag },
-                  open ? "cachedOpen" : "openAfterWrite",
-                );
-                const loaded = A.load(result.content);
-                try {
-                  if (
-                    JSON.stringify(A.getHeads(loaded).sort()) !==
-                    JSON.stringify(A.getHeads(doc).sort())
-                  )
-                    throw Error("Persisted heads mismatch");
-                } finally {
-                  A.free(loaded);
-                }
-              }
-              await pause(250);
-            }
-          } finally {
-            A.free(doc);
+    await Promise.all(
+      plan.clients.map(async (client) => {
+        for (const update of client.updates) {
+          const registration = await request(
+            "registerCollaborativeDocument",
+            update.body,
+          );
+          for (let open = 0; open < 2; open++) {
+            const result = await request(
+              "resolveAnonymousCollaborativeDocument",
+              {
+                joinSecret: registration.joinSecret,
+                deviceTag: client.deviceTag,
+              },
+              open ? "cachedOpen" : "openAfterWrite",
+            );
+            validations.push({ content: result.content, heads: update.heads });
           }
-        }),
-      );
-      await pause(1000);
-    }
+          await pause(250);
+        }
+      }),
+    );
+    await pause(1000);
   }
 } catch (error) {
   failure ??= error instanceof Error ? error.message : String(error);
@@ -157,6 +184,18 @@ try {
 } finally {
   finished = true;
   await health;
+  clearInterval(clientLoopTimer);
+  // Validate only after every timed request and health probe has completed.
+  for (const check of validations) {
+    const loaded = A.load(check.content);
+    try {
+      if (JSON.stringify(A.getHeads(loaded).sort()) !== check.heads)
+        failure = "Persisted heads mismatch";
+    } finally {
+      A.free(loaded);
+    }
+  }
+  clientLoopDelays.sort((a, b) => a - b);
   const groups = new Map<string, typeof samples>();
   for (const sample of samples) {
     const key = `${sample.phase}/${sample.operation}`;
@@ -185,8 +224,12 @@ try {
         fixtures,
         rounds,
         failure,
+        clientLoopDelayMs: {
+          max: clientLoopDelays.at(-1),
+          p95: clientLoopDelays[Math.ceil(clientLoopDelays.length * 0.95) - 1],
+        },
         method:
-          "Guest full-snapshot share updates with metadata edits, followed by first and cached opens. No WebSocket drawing or authenticated checkpoints.",
+          "Guest full-snapshot share updates with metadata edits, followed by first and cached opens. No WebSocket drawing or authenticated checkpoints. Encoding is precomputed and Automerge validation is deferred outside the timed run.",
         summary,
         samples,
       },

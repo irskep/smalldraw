@@ -4,6 +4,8 @@ const duration = Math.min(
   180,
   Math.max(1, Number(process.env.BENCH_SAMPLE_SECONDS ?? 120)),
 );
+if (!Number.isFinite(duration))
+  throw new Error("BENCH_SAMPLE_SECONDS must be a number");
 const remote = `
 const fs=require('node:fs');
 const read=p=>fs.readFileSync(p,'utf8');
