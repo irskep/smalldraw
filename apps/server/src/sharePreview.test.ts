@@ -1,6 +1,9 @@
 import { afterEach, expect, test } from "bun:test";
 import { createAnonymousCollaborativeDocument } from "./db/createAnonymousCollaborativeDocument.js";
-import { revokeDocumentToken } from "./db/documentTokens.js";
+import {
+  createDocumentToken,
+  revokeDocumentToken,
+} from "./db/documentTokens.js";
 import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getDocumentThumbnail } from "./db/getDocumentThumbnail.js";
 import { getSharePreview, renderSharePreview } from "./sharePreview.js";
@@ -74,6 +77,17 @@ test("guest owner publishes a crawler-readable preview; share credentials cannot
   expect(
     await getSharePreview(drawing.accessToken, "https://splatterboard.app"),
   ).toBeNull();
+  const device = await createDocumentToken({
+    documentId: "preview-drawing",
+    scope: "device",
+    tag: "recipient",
+  });
+  await caller().publishShareThumbnail({
+    accessToken: device.token,
+    content: png,
+    contentType: "image/png",
+  });
+  expect(writes).toHaveLength(2);
   const token = await getDocumentInvitationByToken(drawing.joinSecret);
   await revokeDocumentToken({ tokenId: token!.id });
   expect(

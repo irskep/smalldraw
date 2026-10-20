@@ -799,10 +799,11 @@ function createThumbnailUploader(options: {
     if (!isCollaborativeDocument(summary)) {
       return;
     }
-    // Shared guest drawings use their owner token; account-only drawings keep
-    // the authenticated upload path. Recipients cannot replace the preview.
+    // Shared drawings use their editing token; account-only drawings keep
+    // the authenticated upload path.
     if (
-      summary.accessTokenScope === "owner" &&
+      (summary.accessTokenScope === "owner" ||
+        summary.accessTokenScope === "device") &&
       summary.accessToken &&
       summary.joinSecret
     ) {

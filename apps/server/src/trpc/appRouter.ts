@@ -773,13 +773,13 @@ export const appRouter = router({
       }),
     )
     .mutation(async ({ input }) => {
-      const owner = await getDocumentInvitationByToken(input.accessToken, {
-        scopes: ["owner"],
+      const editor = await getDocumentInvitationByToken(input.accessToken, {
+        scopes: ["owner", "device"],
       });
-      if (!owner)
+      if (!editor)
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Only the drawing owner can publish its preview",
+          message: "Drawing access is required to publish its preview",
         });
       const binary = Buffer.from(input.content, "base64");
       const png =
@@ -798,7 +798,7 @@ export const appRouter = router({
           message: "Preview must be a PNG or WebP thumbnail",
         });
       }
-      const storageKey = buildDocumentThumbnailStorageKey(owner.documentId);
+      const storageKey = buildDocumentThumbnailStorageKey(editor.documentId);
       await getDocumentThumbnailStore().putObject({
         key: storageKey,
         body: binary,
@@ -806,7 +806,7 @@ export const appRouter = router({
       });
       // Publish metadata only after storage has accepted the image.
       await upsertDocumentThumbnail({
-        documentId: owner.documentId,
+        documentId: editor.documentId,
         storageKey,
         contentType: input.contentType,
       });

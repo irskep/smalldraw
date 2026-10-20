@@ -4,7 +4,7 @@ import { type Browser, expect, type Page } from "@playwright/test";
 export async function checkGuestSharing(
   browser: Browser,
   origin: string,
-): Promise<void> {
+): Promise<{ joinUrl: string; thumbnail: string }> {
   const sender = await browser.newPage({
     viewport: { width: 390, height: 844 },
     isMobile: true,
@@ -70,8 +70,12 @@ export async function checkGuestSharing(
     const previewImages: string[] = [];
     await sender.route("**/api/v1/publishShareThumbnail*", async (route) => {
       const input = JSON.parse(route.request().postData()!)["0"];
-      expect(input.contentType).toBe("image/webp");
-      expect(input.content.startsWith("UklGR")).toBe(true);
+      expect(["image/png", "image/webp"]).toContain(input.contentType);
+      expect(
+        input.content.startsWith(
+          input.contentType === "image/png" ? "iVBORw0KGgo" : "UklGR",
+        ),
+      ).toBe(true);
       previews++;
       previewImages.push(input.content);
       await route.continue();
@@ -173,6 +177,9 @@ export async function checkGuestSharing(
     await ready(receiver);
     expect(await count(receiver)).toBe(1);
     const previousPreview = previewImages.at(-1);
+    const updatedPreviewResponse = sender.waitForResponse((response) =>
+      response.url().includes("/publishShareThumbnail"),
+    );
     await sender.evaluate(() =>
       (window as any).kidsDrawApp.store.updateSharedSettings({
         strokeColor: "#ff0000",
@@ -182,12 +189,14 @@ export async function checkGuestSharing(
     await expect
       .poll(() => previewImages.at(-1), { timeout: 10000 })
       .not.toBe(previousPreview);
+    await updatedPreviewResponse;
     console.log(
       "PASS: shared drawing edits automatically upload the updated picker thumbnail",
     );
     console.log(
       `PASS: mobile guest sharing (${uploadBytes} upload bytes), lost-response retry with new edits, and 10 shared/local switches survive reload`,
     );
+    return { joinUrl: join, thumbnail: previewImages.at(-1)! };
   } catch (error) {
     await sender.screenshot({ path: "/tmp/guest-share-failure.png" });
     console.log("Guest failure UI", await receiver.locator("body").innerText());
