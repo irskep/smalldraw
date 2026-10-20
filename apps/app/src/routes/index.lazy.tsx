@@ -301,19 +301,21 @@ function Index() {
             can use it too.
           </p>
         </div>
-        <div className="art-table-about__parents">
-          <p>
-            {isLoggedIn ? "Your drawings sync to your account. You decide when to share." : "Drawings are saved on this device. Sign in to keep them in your account."}
-          </p>
-          <div className="art-table-about__links">
-            <a className="portal-link" href="/data">
-              How your drawings are stored
-            </a>
-          </div>
-        </div>
+        <p>
+          {isLoggedIn ? "Your drawings sync to your account. You decide when to share." : "Drawings are saved on this device. Sign in to keep them in your account."}{" "}
+          <a className="portal-link" href="/data">
+            How your drawings are stored
+          </a>
+        </p>
       </section>
-      <footer>
-        <nav className="art-table-about__links" aria-label="Legal">
+      <footer className="portal-home-footer">
+        <p>
+          Send questions and feedback to{" "}
+          <a className="portal-link" href="mailto:splatterboard@fastmail.com">
+            splatterboard@fastmail.com
+          </a>
+        </p>
+        <nav className="portal-home-footer__links" aria-label="Legal">
           <a className="portal-link" href="/privacy">
             Privacy policy
           </a>
@@ -321,12 +323,6 @@ function Index() {
             Terms of service
           </a>
         </nav>
-        <p className="portal-muted">
-          Send questions and feedback to{" "}
-          <a className="portal-link" href="mailto:splatterboard@fastmail.com">
-            splatterboard@fastmail.com
-          </a>
-        </p>
       </footer>
       <DsConfirmDialog ref={confirmDialogRef} />
     </div>

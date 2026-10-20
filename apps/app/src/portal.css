@@ -706,15 +706,11 @@ a {
 
 .art-table-about {
   display: grid;
-  gap: 20px;
+  gap: var(--size-4);
   width: 100%;
-  margin: 12px auto 0;
-  padding-top: 28px;
-  border-top: 1px solid var(--ds-border);
-}
-
-.art-table-about p {
-  max-width: 65ch;
+  margin: var(--size-3) auto 0;
+  padding-block: var(--size-6);
+  border-top: var(--border-size-1) solid var(--ds-border);
 }
 
 .art-table-about h2 {
@@ -725,20 +721,37 @@ a {
 }
 
 .art-table-about p {
-  margin: 0 0 12px;
+  margin: 0;
+  max-width: 80ch;
   color: var(--ds-text-muted);
-  font-size: 14px;
+  font-size: var(--font-size-1);
   line-height: 1.6;
 }
 
-.art-table-about__links {
+.portal-home-footer {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 24px;
-  font-size: 13px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-2) var(--size-6);
+  padding-top: var(--size-3);
+  border-top: var(--border-size-1) solid var(--ds-border);
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-1);
+  line-height: 1.6;
 }
 
-.art-table-about__links > * {
+.portal-home-footer p {
+  margin: 0;
+}
+
+.portal-home-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4);
+}
+
+.portal-home-footer__links > a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
