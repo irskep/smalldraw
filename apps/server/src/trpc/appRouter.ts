@@ -1,4 +1,4 @@
-import { free, getHeads, load, merge, save } from "@automerge/automerge";
+import { free, getHeads, load, merge } from "@automerge/automerge";
 import type { DocumentId } from "@automerge/automerge-repo";
 import * as opaque from "@serenity-kit/opaque";
 import type {
@@ -44,6 +44,7 @@ import {
 } from "../automergeRepo/automergeRepo.js";
 import { toAutomergeUrl } from "../automergeRepo/automergeUrl.js";
 import { importValidatedDocument } from "../automergeRepo/importValidatedDocument.js";
+import { snapshotCache } from "../automergeRepo/snapshotCache.js";
 import {
   getAccountSettings,
   saveAccountSettings,
@@ -287,11 +288,12 @@ const serializeRepoDocument = async (documentId: string): Promise<string> =>
     console.info("[server:documents] serialize handle.doc complete", {
       documentId,
     });
-    const { save } = await import("@automerge/automerge");
     console.info("[server:documents] serialize save start", {
       documentId,
     });
-    const content = Buffer.from(save(doc)).toString("base64");
+    const content = Buffer.from(snapshotCache.get(documentId, doc)).toString(
+      "base64",
+    );
     console.info("[server:documents] serialize save complete", {
       documentId,
       bytes: content.length,
@@ -1217,7 +1219,9 @@ export const appRouter = router({
           await repo.flush([documentId]);
           return {
             heads,
-            content: Buffer.from(save(handle.doc())).toString("base64"),
+            content: Buffer.from(
+              snapshotCache.get(documentId, handle.doc()),
+            ).toString("base64"),
           };
         } finally {
           free(incoming);
