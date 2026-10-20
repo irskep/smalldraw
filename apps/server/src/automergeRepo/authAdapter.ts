@@ -6,6 +6,7 @@ import {
 } from "@automerge/automerge-repo-network-websocket";
 import type WebSocket from "isomorphic-ws";
 import { getUserHasAccessToDocument } from "../db/getUserHasAccessToDocument.js";
+import { serverTrace } from "../utils/serverTrace.js";
 import { isValidAwarenessPayloadForAuth } from "./awarenessValidation.js";
 import type { DocumentLifetime } from "./documentLifetime.js";
 import { getSocketAuthContext } from "./socketAuthContext.js";
@@ -49,7 +50,7 @@ export class AuthAdapter extends NodeWSServerAdapter {
         });
         return;
       }
-      console.info("[server:automerge-auth] message accepted", {
+      serverTrace("[server:automerge-auth] message accepted", {
         authKind: authContext.kind,
         messageType: message.type,
         messageDocumentId,

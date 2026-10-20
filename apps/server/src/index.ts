@@ -15,6 +15,7 @@ import { getR2ThumbnailConfig } from "./storage/documentThumbnailStore.js";
 import { appRouter } from "./trpc/appRouter.js";
 import { createDocumentTransferHttp } from "./trpc/documentTransferHttp.js";
 import { createContext } from "./trpc/trpc.js";
+import { serverTrace } from "./utils/serverTrace.js";
 import { resolveWebSocketUpgradeAuth } from "./wsUpgradeAuth.js";
 
 if (!process.env.OPAQUE_SERVER_SETUP) {
@@ -155,7 +156,7 @@ server.on("upgrade", async (request, socket, head) => {
     socket.destroy();
     return;
   }
-  console.info("[server:ws-upgrade] authenticated websocket upgrade", {
+  serverTrace("[server:ws-upgrade] authenticated websocket upgrade", {
     url: request.url,
     authKind: authContext.kind,
     documentId: authContext.kind === "token" ? authContext.documentId : null,

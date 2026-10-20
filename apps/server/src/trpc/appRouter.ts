@@ -110,6 +110,7 @@ import {
 import { getDocumentThumbnailStore } from "../storage/documentThumbnailStore.js";
 import { createOpaqueRegistrationRecord } from "../utils/createOpaqueRegistrationRecord.js";
 import { getOpaqueServerSetup } from "../utils/getOpaqueServerSetup.js";
+import { serverTrace } from "../utils/serverTrace.js";
 import {
   appTrpcError,
   protectedProcedure,
@@ -245,7 +246,7 @@ const hasInMemoryRepoHandle = (documentId: string): boolean => {
 
 const serializeRepoDocument = async (documentId: string): Promise<Uint8Array> =>
   documentLifetime.use(documentId as DocumentId, async () => {
-    console.info("[server:documents] serialize start", {
+    serverTrace("[server:documents] serialize start", {
       documentId,
     });
     if (
@@ -268,14 +269,14 @@ const serializeRepoDocument = async (documentId: string): Promise<Uint8Array> =>
         "NOT_FOUND",
       );
     }
-    console.info("[server:documents] serialize repo.find start", {
+    serverTrace("[server:documents] serialize repo.find start", {
       documentId,
     });
     const handle = await repo.find(documentId as DocumentId);
-    console.info("[server:documents] serialize repo.find complete", {
+    serverTrace("[server:documents] serialize repo.find complete", {
       documentId,
     });
-    console.info("[server:documents] serialize handle.doc start", {
+    serverTrace("[server:documents] serialize handle.doc start", {
       documentId,
     });
     const doc = await handle.doc();
@@ -288,14 +289,14 @@ const serializeRepoDocument = async (documentId: string): Promise<Uint8Array> =>
         message: "Document not found in repository",
       });
     }
-    console.info("[server:documents] serialize handle.doc complete", {
+    serverTrace("[server:documents] serialize handle.doc complete", {
       documentId,
     });
-    console.info("[server:documents] serialize save start", {
+    serverTrace("[server:documents] serialize save start", {
       documentId,
     });
     const content = snapshotCache.get(documentId, doc);
-    console.info("[server:documents] serialize save complete", {
+    serverTrace("[server:documents] serialize save complete", {
       documentId,
       bytes: content.length,
     });
@@ -1038,7 +1039,7 @@ const procedures = {
       }),
     )
     .query(async (opts) => {
-      console.info("[server:documents] account resolve request", {
+      serverTrace("[server:documents] account resolve request", {
         documentId: opts.input.documentId,
         userId: opts.ctx.session.userId,
         deviceTag: opts.input.deviceTag,
