@@ -580,7 +580,7 @@ export function createDocumentRuntimeController(options: {
       let thumbnailTimer: ReturnType<typeof setTimeout> | undefined;
       const thumbnail = options.publishShareThumbnail
         ? Promise.race([
-            options.snapshotService.createThumbnailBlob("image/png"),
+            options.snapshotService.createThumbnailBlob(),
             new Promise<null>((resolve) => {
               thumbnailTimer = setTimeout(() => resolve(null), 3000);
             }),

@@ -21,6 +21,7 @@ import {
   type TRPCClientErrorBase,
 } from "@trpc/client";
 import type { DefaultErrorShape } from "@trpc/server/unstable-core-do-not-import";
+import { createThumbnailUploadQueue } from "./createThumbnailUploadQueue";
 
 export class MultiplayerApiError extends Error {
   readonly appError: AppError;
@@ -114,6 +115,17 @@ export function createMultiplayerApiClient(options: {
     ],
   });
 
+  const publishShareThumbnail = createThumbnailUploadQueue(
+    async (accessToken, thumbnail) => {
+      await client.mutation("publishShareThumbnail", {
+        accessToken,
+        contentType: thumbnail.type,
+        content: uint8ArrayToBase64(
+          new Uint8Array(await thumbnail.arrayBuffer()),
+        ),
+      });
+    },
+  );
   return {
     async getCurrentAccount() {
       let result: unknown;
@@ -408,14 +420,7 @@ export function createMultiplayerApiClient(options: {
       }
       return parsed;
     },
-    async publishShareThumbnail(accessToken, thumbnail) {
-      await client.mutation("publishShareThumbnail", {
-        accessToken,
-        content: uint8ArrayToBase64(
-          new Uint8Array(await thumbnail.arrayBuffer()),
-        ),
-      });
-    },
+    publishShareThumbnail,
     async uploadDocumentThumbnail(documentId, thumbnail) {
       const contentType = thumbnail.type || "application/octet-stream";
       const result = await client.mutation("uploadDocumentThumbnail", {

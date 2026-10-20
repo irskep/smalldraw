@@ -765,6 +765,7 @@ export const appRouter = router({
     .input(
       z.object({
         accessToken: z.string().min(1),
+        contentType: z.enum(["image/png", "image/webp"]),
         content: z
           .string()
           .min(1)
@@ -781,31 +782,33 @@ export const appRouter = router({
           message: "Only the drawing owner can publish its preview",
         });
       const binary = Buffer.from(input.content, "base64");
-      if (
-        binary.length < 24 ||
-        !binary
+      const png =
+        binary.length >= 24 &&
+        binary
           .subarray(0, 8)
-          .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) ||
-        binary.toString("ascii", 12, 16) !== "IHDR" ||
-        binary.readUInt32BE(16) > 2048 ||
-        binary.readUInt32BE(20) > 2048
-      ) {
+          .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) &&
+        binary.toString("ascii", 12, 16) === "IHDR";
+      const webp =
+        binary.length >= 20 &&
+        binary.toString("ascii", 0, 4) === "RIFF" &&
+        binary.toString("ascii", 8, 12) === "WEBP";
+      if (!(input.contentType === "image/png" ? png : webp)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Preview must be a PNG thumbnail",
+          message: "Preview must be a PNG or WebP thumbnail",
         });
       }
       const storageKey = buildDocumentThumbnailStorageKey(owner.documentId);
       await getDocumentThumbnailStore().putObject({
         key: storageKey,
         body: binary,
-        contentType: "image/png",
+        contentType: input.contentType,
       });
       // Publish metadata only after storage has accepted the image.
       await upsertDocumentThumbnail({
         documentId: owner.documentId,
         storageKey,
-        contentType: "image/png",
+        contentType: input.contentType,
       });
     }),
   uploadDocumentThumbnail: protectedProcedure

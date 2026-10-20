@@ -143,7 +143,7 @@ export async function createKidsDrawApp(
   }
 
   const catalog = createKidsToolCatalog(runtime.shapeRendererRegistry);
-  const uploadAccountThumbnail = createAccountThumbnailUploader({
+  const uploadThumbnail = createThumbnailUploader({
     multiplayerApiClient: runtime.multiplayerApiClient,
   });
   const controllerCollaborationStatusStore =
@@ -163,7 +163,7 @@ export async function createKidsDrawApp(
     deviceTag: runtime.deviceTag,
     localRepo: runtime.localRepo,
     documentBackend: runtime.documentBackend,
-    uploadAccountThumbnail,
+    uploadThumbnail,
     presentation,
     appOptions: options,
     collaborationStatusStore: runtime.collaborationStatusStore,
@@ -648,7 +648,7 @@ function createControllerMultiplayerAdapters(options: {
   deviceTag: string;
   localRepo: Awaited<ReturnType<typeof bootstrapKidsDrawRuntime>>["localRepo"];
   documentBackend: KidsDocumentBackend;
-  uploadAccountThumbnail: ReturnType<typeof createAccountThumbnailUploader>;
+  uploadThumbnail: ReturnType<typeof createThumbnailUploader>;
   presentation: ReturnType<typeof createPresentationRuntime>;
   appOptions: KidsDrawAppOptions;
   collaborationStatusStore: ReturnType<typeof createCollaborationStatusStore>;
@@ -747,11 +747,11 @@ function createControllerMultiplayerAdapters(options: {
         }
       : undefined,
     uploadDocumentThumbnail: async (document, thumbnail) => {
-      await options.uploadAccountThumbnail(document, thumbnail);
+      await options.uploadThumbnail(document, thumbnail);
     },
     onThumbnailSaved: async (docUrl, thumbnail) => {
       const summary = await options.documentBackend.getDocument(docUrl);
-      await options.uploadAccountThumbnail(summary, thumbnail);
+      await options.uploadThumbnail(summary, thumbnail);
     },
     showShareDialog: async (payload) => {
       const qrDataUrl = await createQrCodeDataUrl(payload.joinUrl);
@@ -786,7 +786,7 @@ function createControllerMultiplayerAdapters(options: {
   };
 }
 
-function createAccountThumbnailUploader(options: {
+function createThumbnailUploader(options: {
   multiplayerApiClient: MultiplayerApiClient | null;
 }): (summary: KidsDocumentSummary | null, thumbnail: Blob) => Promise<void> {
   return async (
@@ -799,10 +799,26 @@ function createAccountThumbnailUploader(options: {
     if (!isCollaborativeDocument(summary)) {
       return;
     }
-    const isAttached = summary.accountAttached;
-    if (!isAttached) {
+    // Shared guest drawings use their owner token; account-only drawings keep
+    // the authenticated upload path. Recipients cannot replace the preview.
+    if (
+      summary.accessTokenScope === "owner" &&
+      summary.accessToken &&
+      summary.joinSecret
+    ) {
+      try {
+        await options.multiplayerApiClient.publishShareThumbnail(
+          summary.accessToken,
+          thumbnail,
+        );
+      } catch (error) {
+        console.warn("[kids-draw:documents] thumbnail upload failed", {
+          error,
+        });
+      }
       return;
     }
+    if (!summary.accountAttached) return;
     const documentId = resolveCollaborativeDocumentId(summary.collabDocUrl);
     try {
       console.info("[kids-draw:documents] account thumbnail upload start", {

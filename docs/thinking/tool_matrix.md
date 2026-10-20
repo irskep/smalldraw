@@ -1,6 +1,6 @@
 > Historical design/work notes. Claims about “current” behavior and unchecked tasks refer to the original investigation, not a verified present-day backlog. Start with the [maintained internal docs](../index.md).
 
-Tools in Splatterboard are deep, because Splatterboard, as a drawing TOY first and foremost, has multiple modes a tool can be in.
+Tools in Splatterboard can have multiple modes.
 
 Planned modes:
 - Multi-color: rainbow, or recent color picker history determines output

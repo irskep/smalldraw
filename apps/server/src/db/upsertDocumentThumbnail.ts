@@ -17,6 +17,7 @@ export async function upsertDocumentThumbnail(input: {
       .set({
         storageKey: input.storageKey,
         contentType: input.contentType,
+        updatedAt: new Date(),
       })
       .where(eq(documentThumbnails.documentId, input.documentId));
   } else {

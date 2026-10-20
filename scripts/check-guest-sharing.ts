@@ -67,10 +67,13 @@ export async function checkGuestSharing(
     await ready(sender);
     await draw(sender, 8, 2000);
     let previews = 0;
+    const previewImages: string[] = [];
     await sender.route("**/api/v1/publishShareThumbnail*", async (route) => {
       const input = JSON.parse(route.request().postData()!)["0"];
-      expect(input.content.startsWith("iVBORw0KGgo")).toBe(true);
+      expect(input.contentType).toBe("image/webp");
+      expect(input.content.startsWith("UklGR")).toBe(true);
       previews++;
+      previewImages.push(input.content);
       await route.continue();
     });
     let uploadBytes = 0;
@@ -119,7 +122,7 @@ export async function checkGuestSharing(
     const link = sender.getByLabel("Share URL");
     await expect(link).toBeVisible({ timeout: 20000 });
     const join = await link.inputValue();
-    expect(previews).toBe(1);
+    expect(previews).toBeGreaterThanOrEqual(1);
     expect(uploadIds).toHaveLength(2);
     expect(uploadIds[0]).toBe(uploadIds[1]);
     expect(uploadSizes[1]).toBeLessThan(uploadSizes[0] * 1.1);
@@ -169,6 +172,19 @@ export async function checkGuestSharing(
     await receiver.reload();
     await ready(receiver);
     expect(await count(receiver)).toBe(1);
+    const previousPreview = previewImages.at(-1);
+    await sender.evaluate(() =>
+      (window as any).kidsDrawApp.store.updateSharedSettings({
+        strokeColor: "#ff0000",
+      }),
+    );
+    await draw(sender, 1, 12);
+    await expect
+      .poll(() => previewImages.at(-1), { timeout: 10000 })
+      .not.toBe(previousPreview);
+    console.log(
+      "PASS: shared drawing edits automatically upload the updated picker thumbnail",
+    );
     console.log(
       `PASS: mobile guest sharing (${uploadBytes} upload bytes), lost-response retry with new edits, and 10 shared/local switches survive reload`,
     );

@@ -41,12 +41,14 @@ test("guest owner publishes a crawler-readable preview; share credentials cannot
     caller().publishShareThumbnail({
       accessToken: drawing.joinSecret,
       content: png,
+      contentType: "image/png",
     }),
   ).rejects.toThrow();
   await expect(
     caller().publishShareThumbnail({
       accessToken: drawing.accessToken,
       content: btoa("<svg/>"),
+      contentType: "image/png",
     }),
   ).rejects.toThrow();
   expect(writes).toHaveLength(0);
@@ -56,6 +58,7 @@ test("guest owner publishes a crawler-readable preview; share credentials cannot
   await caller().publishShareThumbnail({
     accessToken: drawing.accessToken,
     content: png,
+    contentType: "image/png",
   });
   const preview = await getSharePreview(
     drawing.joinSecret,
@@ -63,7 +66,9 @@ test("guest owner publishes a crawler-readable preview; share credentials cannot
   );
   expect(preview).toEqual({
     url: `https://splatterboard.app/draw/?join=${drawing.joinSecret}`,
-    image: "https://images.example.com/documents/preview-drawing/thumbnail.png",
+    image: expect.stringMatching(
+      /^https:\/\/images\.example\.com\/documents\/preview-drawing\/thumbnail\.png\?v=\d+$/,
+    ),
     imageType: "image/png",
   });
   expect(
@@ -93,6 +98,7 @@ test("failed storage upload does not advertise a missing image", async () => {
     caller().publishShareThumbnail({
       accessToken: drawing.accessToken,
       content: png,
+      contentType: "image/png",
     }),
   ).rejects.toThrow("storage unavailable");
   expect(await getDocumentThumbnail("preview-outage")).toBeUndefined();

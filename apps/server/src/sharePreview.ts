@@ -27,7 +27,7 @@ export async function getSharePreview(
   if (!image) return null;
   return {
     url: buildDrawingAppUrl(origin, { type: "join", joinSecret: token }),
-    image,
+    image: `${image}?v=${thumbnail.updatedAt.getTime()}`,
     imageType: thumbnail.contentType,
   };
 }
@@ -36,20 +36,20 @@ export function renderSharePreview(
   html: string,
   preview: SharePreview,
 ): string {
-  const escape = Bun.escapeHTML;
-  const title = "Drawing – Splatterboard";
+  const escapeHtml = Bun.escapeHTML;
+  const title = "Drawing";
   const metadata = `
-    <link rel="canonical" href="${escape(preview.url)}">
+    <link rel="canonical" href="${escapeHtml(preview.url)}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Splatterboard">
     <meta property="og:title" content="${title}">
-    <meta property="og:url" content="${escape(preview.url)}">
-    <meta property="og:image" content="${escape(preview.image)}">
-    <meta property="og:image:type" content="${escape(preview.imageType)}">
+    <meta property="og:url" content="${escapeHtml(preview.url)}">
+    <meta property="og:image" content="${escapeHtml(preview.image)}">
+    <meta property="og:image:type" content="${escapeHtml(preview.imageType)}">
     <meta property="og:image:alt" content="Shared drawing">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${title}">
-    <meta name="twitter:image" content="${escape(preview.image)}">
+    <meta name="twitter:image" content="${escapeHtml(preview.image)}">
     <meta name="twitter:image:alt" content="Shared drawing">
   `;
   return html
