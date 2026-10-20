@@ -307,7 +307,7 @@ function Index() {
           </p>
           <div className="art-table-about__links">
             <a className="portal-link" href="/data">
-              How we store your drawings
+              How your drawings are stored
             </a>
           </div>
         </div>
