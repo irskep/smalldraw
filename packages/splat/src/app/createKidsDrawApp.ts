@@ -316,6 +316,7 @@ export async function createKidsDrawApp(
       ((dialog) => presentation.modalDialog.showConfirm(dialog)),
     savePngExport: options.savePngExport,
     createDocumentCopy: controllerMultiplayerAdapters.createDocumentCopy,
+    publishShareThumbnail: controllerMultiplayerAdapters.publishShareThumbnail,
     registerCollaborativeDocument:
       controllerMultiplayerAdapters.registerCollaborativeDocument,
     registerAccountSyncedDocument:
@@ -654,6 +655,7 @@ function createControllerMultiplayerAdapters(options: {
 }): Pick<
   Parameters<typeof createKidsDrawController>[0],
   | "createDocumentCopy"
+  | "publishShareThumbnail"
   | "registerCollaborativeDocument"
   | "registerAccountSyncedDocument"
   | "createShareInvitation"
@@ -669,6 +671,10 @@ function createControllerMultiplayerAdapters(options: {
   const multiplayerApiClient = options.multiplayerApiClient;
 
   return {
+    publishShareThumbnail: multiplayerApiClient
+      ? (token, image) =>
+          multiplayerApiClient.publishShareThumbnail(token, image)
+      : undefined,
     createDocumentCopy: multiplayerApiClient
       ? (existingUrl?: string) => options.core.createDocumentCopy(existingUrl)
       : undefined,

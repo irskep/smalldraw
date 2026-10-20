@@ -143,6 +143,10 @@ export function createKidsDrawController(options: {
     url: string;
     binary: Uint8Array;
   };
+  publishShareThumbnail?: (
+    accessToken: string,
+    thumbnail: Blob,
+  ) => Promise<void>;
   registerCollaborativeDocument?: (
     documentId: string,
     content: Uint8Array,
@@ -224,6 +228,7 @@ export function createKidsDrawController(options: {
     savePngExport,
     createDocumentCopy,
     registerCollaborativeDocument,
+    publishShareThumbnail,
     registerAccountSyncedDocument,
     createShareInvitation,
     onThumbnailSaved,
@@ -432,6 +437,7 @@ export function createKidsDrawController(options: {
     getExplicitSize: sizingPolicy.getExplicitSize,
     createDocumentCopy,
     registerCollaborativeDocument,
+    publishShareThumbnail,
     registerAccountSyncedDocument,
     createShareInvitation,
     onThumbnailSaved,

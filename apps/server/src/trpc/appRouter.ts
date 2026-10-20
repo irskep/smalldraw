@@ -761,6 +761,53 @@ export const appRouter = router({
       thumbnailUrl: resolveThumbnailUrl(document.thumbnailStorageKey),
     } satisfies AccountDocumentDetails;
   }),
+  publishShareThumbnail: publicProcedure
+    .input(
+      z.object({
+        accessToken: z.string().min(1),
+        content: z
+          .string()
+          .min(1)
+          .max(2 * 1024 * 1024),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const owner = await getDocumentInvitationByToken(input.accessToken, {
+        scopes: ["owner"],
+      });
+      if (!owner)
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the drawing owner can publish its preview",
+        });
+      const binary = Buffer.from(input.content, "base64");
+      if (
+        binary.length < 24 ||
+        !binary
+          .subarray(0, 8)
+          .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) ||
+        binary.toString("ascii", 12, 16) !== "IHDR" ||
+        binary.readUInt32BE(16) > 2048 ||
+        binary.readUInt32BE(20) > 2048
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Preview must be a PNG thumbnail",
+        });
+      }
+      const storageKey = buildDocumentThumbnailStorageKey(owner.documentId);
+      await getDocumentThumbnailStore().putObject({
+        key: storageKey,
+        body: binary,
+        contentType: "image/png",
+      });
+      // Publish metadata only after storage has accepted the image.
+      await upsertDocumentThumbnail({
+        documentId: owner.documentId,
+        storageKey,
+        contentType: "image/png",
+      });
+    }),
   uploadDocumentThumbnail: protectedProcedure
     .input(
       z.object({

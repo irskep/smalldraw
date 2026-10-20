@@ -24,7 +24,9 @@ export class SnapshotService {
     },
   ) {}
 
-  async createThumbnailBlob(): Promise<Blob | null> {
+  async createThumbnailBlob(
+    format: "image/png" | "image/webp" = "image/webp",
+  ): Promise<Blob | null> {
     const { store, shapeRendererRegistry, backgroundColor } = this.options;
     const doc = store.getDocument();
     const shapes = getOrderedShapes(doc);
@@ -66,7 +68,7 @@ export class SnapshotService {
     ctx.restore();
 
     return await new Promise((resolve) => {
-      canvas.toBlob((result) => resolve(result), "image/webp", 0.82);
+      canvas.toBlob((result) => resolve(result), format, 0.82);
     });
   }
 

@@ -101,6 +101,10 @@ export function createDocumentRuntimeController(options: {
     url: string;
     binary: Uint8Array;
   };
+  publishShareThumbnail?: (
+    accessToken: string,
+    thumbnail: Blob,
+  ) => Promise<void>;
   registerCollaborativeDocument?: (
     documentId: string,
     content: Uint8Array,
@@ -572,9 +576,30 @@ export function createDocumentRuntimeController(options: {
       // Freeze editing while the uploaded snapshot replaces the local handle.
       // Network requests and core.open have aborting timeouts; do not race an
       // uncancelled upgrade that could later switch documents behind the user.
+      // Capture the drawing being shared before any asynchronous upgrade switches handles.
+      let thumbnailTimer: ReturnType<typeof setTimeout> | undefined;
+      const thumbnail = options.publishShareThumbnail
+        ? Promise.race([
+            options.snapshotService.createThumbnailBlob("image/png"),
+            new Promise<null>((resolve) => {
+              thumbnailTimer = setTimeout(() => resolve(null), 3000);
+            }),
+          ])
+            .catch(() => null)
+            .finally(() => clearTimeout(thumbnailTimer))
+        : Promise.resolve(null);
       beginStartupCycle("share_document");
       try {
-        return await upgradeCoordinator.ensureCollaborative();
+        const payload = await upgradeCoordinator.ensureCollaborative();
+        try {
+          const image = await thumbnail;
+          if (image)
+            await options.publishShareThumbnail?.(payload.accessToken, image);
+        } catch (error) {
+          // A preview outage must not prevent sharing the drawing itself.
+          console.warn("[kids-draw:share] preview upload failed", { error });
+        }
+        return payload;
       } finally {
         applyDocumentPresentation(
           documentSessionController.resolveDocumentPresentation(

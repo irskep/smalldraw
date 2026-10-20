@@ -10,6 +10,7 @@ import type { AuthenticatedSocket } from "./automergeRepo/socketAuthContext.js";
 import { touchDocumentToken } from "./db/documentTokens.js";
 import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getSession } from "./db/getSession.js";
+import { getSharePreview, renderSharePreview } from "./sharePreview.js";
 import { getR2ThumbnailConfig } from "./storage/documentThumbnailStore.js";
 import { appRouter } from "./trpc/appRouter.js";
 import { createContext } from "./trpc/trpc.js";
@@ -71,11 +72,34 @@ app.get("/healthz", (_req, res) => {
 });
 
 // SPA fallback only for known app routes
-app.get("/draw/*", (_req, res) => {
+app.get("/draw/*", async (req, res, next) => {
   if (!fs.existsSync(drawIndexHtmlPath)) {
     return res.status(404).send("Drawing app build not found");
   }
-  res.sendFile(drawIndexHtmlPath);
+  try {
+    if (typeof req.query.join === "string") {
+      const protocol =
+        req.get("x-forwarded-proto") === "https" ? "https" : req.protocol;
+      const preview = await getSharePreview(
+        req.query.join,
+        `${protocol}://${req.get("host")}`,
+      );
+      if (preview) {
+        res.set("Cache-Control", "no-store");
+        return res
+          .type("html")
+          .send(
+            renderSharePreview(
+              await fs.promises.readFile(drawIndexHtmlPath, "utf8"),
+              preview,
+            ),
+          );
+      }
+    }
+    res.sendFile(drawIndexHtmlPath);
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("*", (req, res, next) => {

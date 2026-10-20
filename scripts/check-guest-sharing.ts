@@ -66,6 +66,13 @@ export async function checkGuestSharing(
     await sender.goto(`${origin}/draw/?new=1`);
     await ready(sender);
     await draw(sender, 8, 2000);
+    let previews = 0;
+    await sender.route("**/api/v1/publishShareThumbnail*", async (route) => {
+      const input = JSON.parse(route.request().postData()!)["0"];
+      expect(input.content.startsWith("iVBORw0KGgo")).toBe(true);
+      previews++;
+      await route.continue();
+    });
     let uploadBytes = 0;
     let dropped = false;
     const uploadIds: string[] = [];
@@ -112,6 +119,7 @@ export async function checkGuestSharing(
     const link = sender.getByLabel("Share URL");
     await expect(link).toBeVisible({ timeout: 20000 });
     const join = await link.inputValue();
+    expect(previews).toBe(1);
     expect(uploadIds).toHaveLength(2);
     expect(uploadIds[0]).toBe(uploadIds[1]);
     expect(uploadSizes[1]).toBeLessThan(uploadSizes[0] * 1.1);

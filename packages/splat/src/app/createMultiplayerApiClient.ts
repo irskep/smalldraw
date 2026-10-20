@@ -80,6 +80,7 @@ export interface MultiplayerApiClient {
   removeCollaborativeDocumentFromAccount(
     documentId: string,
   ): Promise<RemovedAccountDocument>;
+  publishShareThumbnail(accessToken: string, thumbnail: Blob): Promise<void>;
   uploadDocumentThumbnail(documentId: string, thumbnail: Blob): Promise<void>;
 }
 
@@ -406,6 +407,14 @@ export function createMultiplayerApiClient(options: {
         throw new Error("Invalid response from removeDocumentFromAccount");
       }
       return parsed;
+    },
+    async publishShareThumbnail(accessToken, thumbnail) {
+      await client.mutation("publishShareThumbnail", {
+        accessToken,
+        content: uint8ArrayToBase64(
+          new Uint8Array(await thumbnail.arrayBuffer()),
+        ),
+      });
     },
     async uploadDocumentThumbnail(documentId, thumbnail) {
       const contentType = thumbnail.type || "application/octet-stream";
