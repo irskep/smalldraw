@@ -1,0 +1,6 @@
+[package]
+name = "smalldraw-native-bench"
+version = "0.1.0"
+edition = "2021"
+[dependencies]
+automerge = { git = "https://github.com/automerge/automerge", tag = "js/automerge-3.5.0" }

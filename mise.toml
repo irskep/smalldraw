@@ -252,3 +252,28 @@ run = ["mise run prod:build", "mise run server:deploy"]
 [tasks."test:browser:wasm"]
 description = "Build both production frontends and test binary WASM, persistence, and account recovery in Chromium against a temporary database."
 run = "bun run scripts/test-browser-wasm.ts"
+
+[tasks."bench:server:fixtures"]
+description = "Generate synthetic Automerge fixtures in /tmp from BENCH_ORIGIN (default local editor)"
+run = "bun scripts/benchmarks/export-drawings.ts"
+
+[tasks."bench:server:js"]
+description = "Measure Automerge JS and SQLite using the generated fixtures"
+run = "bun scripts/benchmarks/automerge-js.ts"
+
+[tasks."bench:server:wasm"]
+description = "Measure raw WASM without JS document materialization (diagnostic private API)"
+run = "bun scripts/benchmarks/automerge-raw-wasm.ts"
+
+[tasks."bench:server:native"]
+description = "Compare matching native Automerge; requires separate Rust 1.90 toolchain"
+run = """
+cargo +1.90.0 build --release --locked --manifest-path scripts/benchmarks/native-automerge/Cargo.toml
+for fixture in small medium large; do
+  scripts/benchmarks/native-automerge/target/release/smalldraw-native-bench "/tmp/smalldraw-$fixture.automerge"
+done
+"""
+
+[tasks."bench:server:encoding"]
+description = "Compare current stroke text with immutable values, preserving exact drawing content"
+run = "bun scripts/benchmarks/automerge-stroke-encoding.ts"
