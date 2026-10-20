@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { chromium, expect, webkit } from "@playwright/test";
 import * as opaque from "@serenity-kit/opaque";
+import { decode } from "@automerge/automerge-repo/helpers/cbor.js";
 import { checkGuestSharing } from "./check-guest-sharing";
 
 await opaque.ready;
@@ -788,6 +789,24 @@ try {
     "PASS: production drawing browser desktop/mobile grid, bounds, and scrolling",
   );
 
+  const incrementalCheckpoints: number[] = [];
+  let checkpointReplies = 0;
+  page.on("response", async (response) => {
+    if (!response.url().includes("/checkpointAccountDrawing") || !response.ok())
+      return;
+    const body = response.request().postDataBuffer();
+    if (!body) return;
+    const request = decode(body) as {
+      baseHeads: string[] | null;
+      content: Uint8Array;
+    };
+    const result = decode(new Uint8Array(await response.body())) as {
+      result: { status: string };
+    };
+    if (result.result.status === "saved") checkpointReplies++;
+    if (request.baseHeads !== null && result.result.status === "saved")
+      incrementalCheckpoints.push(request.content.length);
+  });
   await page.goto(`${origin}/register`);
   await page.getByPlaceholder("Username").fill("wasm-browser-test");
   await page.getByPlaceholder("Password").fill("Wasm-browser-test-password!");
@@ -823,6 +842,7 @@ try {
   await expect(
     page.getByRole("heading", { name: "Your drawings" }),
   ).toBeVisible();
+  const repliesBeforeOpen = checkpointReplies;
   await page.goto(
     drawingUrl.replace(
       /local=[^&]+/,
@@ -836,6 +856,44 @@ try {
   console.log(
     "PASS: fresh login restores all three strokes from server using binary WASM",
   );
+  await expect
+    .poll(() => checkpointReplies, { timeout: 20_000 })
+    .toBeGreaterThan(repliesBeforeOpen);
+  await stroke();
+  await expect.poll(shapeCount).toBe(4);
+  await expect
+    .poll(() => incrementalCheckpoints.length, { timeout: 20_000 })
+    .toBeGreaterThan(0);
+  const checkpointCount = incrementalCheckpoints.length;
+  await stroke();
+  await expect.poll(shapeCount).toBe(5);
+  await expect
+    .poll(() => incrementalCheckpoints.length, { timeout: 20_000 })
+    .toBeGreaterThan(checkpointCount);
+  await page.reload();
+  await editorReady();
+  await expect.poll(shapeCount).toBe(5);
+  const coldContext = await browser.newContext({
+    storageState: await context.storageState(),
+  });
+  const coldPage = await coldContext.newPage();
+  await coldPage.goto(page.url());
+  await expect
+    .poll(
+      () =>
+        coldPage.evaluate(() => {
+          const app = (window as any).kidsDrawApp;
+          return app ? Object.keys(app.store.getDocument().shapes).length : -1;
+        }),
+      { timeout: 20_000 },
+    )
+    .toBe(5);
+  await coldContext.close();
+  console.log(
+    "PASS: incremental account checkpoints restore all edits in a fresh browser",
+    incrementalCheckpoints,
+  );
+
   await page
     .locator('[data-tool-family="stamp.images"]:visible')
     .first()

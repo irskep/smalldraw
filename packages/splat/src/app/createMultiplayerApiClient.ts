@@ -1,4 +1,8 @@
 import * as cbor from "@automerge/automerge-repo/helpers/cbor.js";
+import type {
+  DrawingCheckpoint,
+  DrawingCheckpointResult,
+} from "@smalldraw/shared";
 import {
   type AccountCollaborativeDocumentResolution,
   type AccountCollaborativeDocumentSummary,
@@ -44,9 +48,9 @@ export interface MultiplayerApiClient {
   signOut(): Promise<void>;
   checkpointAccountDrawing(
     documentId: string,
-    content: Uint8Array,
+    checkpoint: DrawingCheckpoint,
     accountId: string,
-  ): Promise<{ heads: string[]; content: Uint8Array }>;
+  ): Promise<DrawingCheckpointResult>;
   acceptDocumentInvitation(token: string): Promise<void>;
   listAccountCollaborativeDocuments(): Promise<
     AccountCollaborativeDocumentSummary[]
@@ -204,12 +208,12 @@ export function createMultiplayerApiClient(options: {
         throw new Error("Invalid account response");
       return result as { id: string; username: string };
     },
-    async checkpointAccountDrawing(documentId, content, accountId) {
+    async checkpointAccountDrawing(documentId, checkpoint, accountId) {
       return (await transfer("checkpointAccountDrawing", {
         accountId,
         documentId,
-        content,
-      })) as { heads: string[]; content: Uint8Array };
+        ...checkpoint,
+      })) as DrawingCheckpointResult;
     },
     async acceptDocumentInvitation(token) {
       await client.mutation("acceptDocumentInvitation", { token });

@@ -1,4 +1,13 @@
-import { free, getHeads, load, merge, save } from "@automerge/automerge/slim";
+import {
+  clone,
+  free,
+  getHeads,
+  hasHeads,
+  loadIncremental,
+  merge,
+  save,
+  saveSince,
+} from "@automerge/automerge/slim";
 import type {
   AutomergeUrl,
   DocumentId,
@@ -210,7 +219,7 @@ export async function syncAccountWorkspace(
     if (
       document.accountAttached &&
       last &&
-      last.heads === JSON.stringify(getHeads(localHandle.doc()))
+      last.heads === JSON.stringify(getHeads(localHandle.doc()).sort())
     )
       continue;
     if (!document.accountAttached) {
@@ -255,25 +264,46 @@ export async function syncAccountWorkspace(
     // Capture after registration: edits made while it was in flight must also be saved.
     const snapshot = localHandle.doc();
     const heads = getHeads(snapshot);
-    const result = await api.checkpointAccountDrawing(
+    const baseHeads: string[] | null = last ? JSON.parse(last.heads) : null;
+    const canSendChanges = baseHeads !== null && hasHeads(snapshot, baseHeads);
+    let result = await api.checkpointAccountDrawing(
       id,
-      save(snapshot),
+      {
+        heads,
+        baseHeads: canSendChanges ? baseHeads : null,
+        content: canSendChanges
+          ? saveSince(snapshot, baseHeads)
+          : save(snapshot),
+      },
       userId,
     );
-    if (heads.some((head) => !result.heads.includes(head)))
-      throw new Error("The server has not saved every change yet.");
-    const remote = load(result.content);
-    const remoteHeads = getHeads(remote);
-    try {
-      localHandle.update((current) => merge(current, remote));
-    } finally {
-      free(remote);
+    if (result.status === "resync") {
+      result = await api.checkpointAccountDrawing(
+        id,
+        { heads, baseHeads: null, content: save(snapshot) },
+        userId,
+      );
     }
+    if (result.status !== "saved")
+      throw new Error("The server has not saved every change yet.");
+    let confirmed = clone(snapshot);
+    try {
+      confirmed = loadIncremental(confirmed, result.content);
+      // Validate against the captured upload, not edits made while it was in flight.
+      if (
+        JSON.stringify(getHeads(confirmed).sort()) !==
+        JSON.stringify([...result.heads].sort())
+      )
+        throw new Error("The server has not saved every change yet.");
+      localHandle.update((current) => merge(current, confirmed));
+    } finally {
+      free(confirmed);
+    }
+    await repo.flush([localHandle.documentId]);
     checkpoints?.set(id, {
-      heads: JSON.stringify(remoteHeads),
+      heads: JSON.stringify([...result.heads].sort()),
       at: Date.now(),
     });
-    await repo.flush([localHandle.documentId]);
     const thumbnail = await backend.getThumbnail(document.docUrl);
     if (thumbnail)
       await api

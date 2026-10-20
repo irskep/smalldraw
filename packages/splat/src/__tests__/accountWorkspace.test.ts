@@ -1,7 +1,19 @@
 import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
-import { getHeads, load } from "@automerge/automerge/slim";
+import {
+  clone,
+  free,
+  getHeads,
+  hasHeads,
+  init,
+  load,
+  loadIncremental,
+  merge,
+  save,
+  saveSince,
+} from "@automerge/automerge/slim";
 import type { Repo } from "@automerge/automerge-repo/slim";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import type { DrawingCheckpoint } from "@smalldraw/shared";
 import { IDBKeyRange, indexedDB } from "fake-indexeddb";
 import type { MultiplayerApiClient } from "../app/createMultiplayerApiClient";
 import {
@@ -65,6 +77,7 @@ function fakeApi(id = crypto.randomUUID()) {
   let signedIn = true;
   const registered: string[] = [];
   const checked: string[] = [];
+  const server = new Map<string, Uint8Array>();
   const api = {
     getCurrentAccount: async () =>
       signedIn ? { id, username: "Parent" } : null,
@@ -80,12 +93,34 @@ function fakeApi(id = crypto.randomUUID()) {
         accessTokenScope: "owner",
       };
     },
-    checkpointAccountDrawing: async (docUrl: string, binary: Uint8Array) => {
+    checkpointAccountDrawing: async (
+      docUrl: string,
+      input: DrawingCheckpoint,
+    ) => {
       checked.push(docUrl);
-      return {
-        heads: getHeads(load(binary)),
-        content: binary,
-      };
+      let doc = server.has(docUrl) ? load(server.get(docUrl)!) : init();
+      try {
+        if (input.baseHeads !== null && !hasHeads(doc, input.baseHeads))
+          return { status: "resync" };
+        if (input.baseHeads === null) {
+          const incoming = load(input.content);
+          try {
+            doc = merge(doc, incoming);
+          } finally {
+            free(incoming);
+          }
+        } else {
+          doc = loadIncremental(doc, input.content);
+        }
+        server.set(docUrl, save(doc));
+        return {
+          status: "saved",
+          heads: getHeads(doc),
+          content: saveSince(doc, input.heads),
+        };
+      } finally {
+        free(doc);
+      }
     },
     uploadDocumentThumbnail: async () => {},
     claimCollaborativeDocument: async () => {
@@ -93,7 +128,7 @@ function fakeApi(id = crypto.randomUUID()) {
     },
     acceptDocumentInvitation: async () => {},
   } as unknown as MultiplayerApiClient;
-  return { api, id, registered, checked };
+  return { api, id, registered, checked, server };
 }
 function workspace(id: string | null) {
   setDrawingWorkspace(id);
@@ -396,7 +431,7 @@ test("logout checkpoints the final edits from two open writers before purging", 
   const saved: unknown[] = [];
   const checkpoint = api.checkpointAccountDrawing;
   api.checkpointAccountDrawing = async (...args) => {
-    saved.push(load(args[1]));
+    if (args[1].baseHeads === null) saved.push(load(args[1].content));
     return checkpoint(...args);
   };
   let finishSecond!: () => void;
@@ -497,4 +532,102 @@ test("checkpoint traffic for an unchanged drawing across ninety seconds", async 
   } finally {
     now.mockRestore();
   }
+});
+
+test("incremental checkpoints survive a lost reply, resync, and edits made during upload", async () => {
+  const { api, id, server } = fakeApi();
+  const { repo, backend } = workspace(id);
+  const drawing = repo.create({ marks: ["base"] });
+  await backend.createDocument({ docUrl: drawing.url });
+  const cache = new Map<string, { heads: string; at: number }>();
+  await syncAccountWorkspace(api, repo, backend, id, cache);
+  const original = api.checkpointAccountDrawing;
+  const sent: DrawingCheckpoint[] = [];
+  let loseReply = true;
+  api.checkpointAccountDrawing = async (...args) => {
+    sent.push(args[1]);
+    const result = await original(...args);
+    if (loseReply) {
+      loseReply = false;
+      throw Error("reply lost after saving");
+    }
+    return result;
+  };
+  drawing.change((d) => {
+    d.marks.push("first edit");
+  });
+  await expect(
+    syncAccountWorkspace(api, repo, backend, id, cache),
+  ).rejects.toThrow("reply lost");
+  drawing.change((d) => {
+    d.marks.push("second edit");
+  });
+  await syncAccountWorkspace(api, repo, backend, id, cache);
+  expect(sent.every((x) => x.baseHeads !== null)).toBe(true);
+  expect(load<{ marks: string[] }>(server.get(drawing.url)!).marks).toEqual([
+    "base",
+    "first edit",
+    "second edit",
+  ]);
+  let edited = false;
+  api.checkpointAccountDrawing = async (...args) => {
+    const result = await original(...args);
+    if (!edited) {
+      edited = true;
+      drawing.change((d) => {
+        d.marks.push("during upload");
+      });
+    }
+    return result;
+  };
+  drawing.change((d) => {
+    d.marks.push("before upload");
+  });
+  await syncAccountWorkspace(api, repo, backend, id, cache);
+  expect(drawing.doc().marks).toContain("during upload");
+  expect(
+    load<{ marks: string[] }>(server.get(drawing.url)!).marks,
+  ).not.toContain("during upload");
+  await syncAccountWorkspace(api, repo, backend, id, cache);
+  expect(load<{ marks: string[] }>(server.get(drawing.url)!).marks).toContain(
+    "during upload",
+  );
+  // Simulate the server losing its base history. A bounded full retry restores it.
+  server.clear();
+  sent.length = 0;
+  api.checkpointAccountDrawing = async (...args) => {
+    sent.push(args[1]);
+    return original(...args);
+  };
+  drawing.change((d) => {
+    d.marks.push("after recovery");
+  });
+  await syncAccountWorkspace(api, repo, backend, id, cache);
+  expect(sent.map((x) => x.baseHeads === null)).toEqual([false, true]);
+  expect(load<{ marks: string[] }>(server.get(drawing.url)!).marks).toEqual(
+    drawing.doc().marks,
+  );
+});
+
+test("a reply that omits uploaded edits cannot advance the checkpoint", async () => {
+  const { api, id } = fakeApi();
+  const { repo, backend } = workspace(id);
+  const drawing = repo.create({ marks: ["base"] });
+  await backend.createDocument({ docUrl: drawing.url });
+  const cache = new Map<string, { heads: string; at: number }>();
+  await syncAccountWorkspace(api, repo, backend, id, cache);
+  const previous = cache.get(drawing.url)!;
+  drawing.change((d) => {
+    d.marks.push("must be saved");
+  });
+  api.checkpointAccountDrawing = async () => ({
+    status: "saved",
+    heads: JSON.parse(previous.heads),
+    content: new Uint8Array(),
+  });
+  await expect(
+    syncAccountWorkspace(api, repo, backend, id, cache),
+  ).rejects.toThrow("not saved every change");
+  expect(cache.get(drawing.url)).toBe(previous);
+  expect(drawing.doc().marks).toContain("must be saved");
 });

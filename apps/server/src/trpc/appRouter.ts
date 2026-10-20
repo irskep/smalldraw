@@ -1,4 +1,4 @@
-import { free, getHeads, load, merge } from "@automerge/automerge";
+import { free, getHeads, load } from "@automerge/automerge";
 import type { DocumentId } from "@automerge/automerge-repo";
 import * as opaque from "@serenity-kit/opaque";
 import type {
@@ -43,6 +43,7 @@ import {
   repoStorage,
 } from "../automergeRepo/automergeRepo.js";
 import { toAutomergeUrl } from "../automergeRepo/automergeUrl.js";
+import { checkpointDocument } from "../automergeRepo/checkpointDocument.js";
 import { importValidatedDocument } from "../automergeRepo/importValidatedDocument.js";
 import { snapshotCache } from "../automergeRepo/snapshotCache.js";
 import {
@@ -1199,9 +1200,15 @@ const procedures = {
       z.object({
         accountId: z.string().min(1),
         documentId: z.string().min(1),
-        content: z.custom<Uint8Array>(
-          (value) => value instanceof Uint8Array && value.length > 0,
-        ),
+        baseHeads: z
+          .array(z.string().regex(/^[a-f0-9]{64}$/))
+          .max(1024)
+          .nullable(),
+        heads: z
+          .array(z.string().regex(/^[a-f0-9]{64}$/))
+          .min(1)
+          .max(1024),
+        content: z.custom<Uint8Array>((value) => value instanceof Uint8Array),
       }),
     )
     .mutation(async (opts) => {
@@ -1223,19 +1230,8 @@ const procedures = {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
       return documentLifetime.use(documentId, async () => {
-        const incoming = load(opts.input.content);
-        try {
-          const heads = getHeads(incoming);
-          const handle = await repo.find(documentId);
-          handle.update((current) => merge(current, incoming));
-          await repo.flush([documentId]);
-          return {
-            heads,
-            content: snapshotCache.get(documentId, handle.doc()),
-          };
-        } finally {
-          free(incoming);
-        }
+        const handle = await repo.find(documentId);
+        return checkpointDocument(repo, handle, opts.input);
       });
     }),
 

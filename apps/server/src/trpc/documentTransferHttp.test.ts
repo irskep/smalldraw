@@ -103,7 +103,13 @@ test("binary HTTP guest and account transfers preserve bytes, authorization, ret
     ).toBe(200);
     const checkpoint = await request(
       "checkpointAccountDrawing",
-      { accountId: user.id, documentId: accountId, content: A.save(local) },
+      {
+        accountId: user.id,
+        documentId: accountId,
+        content: A.save(local),
+        baseHeads: null,
+        heads: A.getHeads(local),
+      },
       "binary-session",
     );
     expect(checkpoint.status).toBe(200);

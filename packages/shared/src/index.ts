@@ -346,3 +346,14 @@ function isAppErrorCode(input: unknown): input is AppErrorCode {
     input === "UNKNOWN"
   );
 }
+
+/** Null base requests a full bootstrap; otherwise content contains changes after baseHeads. */
+export type DrawingCheckpoint = {
+  baseHeads: string[] | null;
+  heads: string[];
+  content: Uint8Array;
+};
+export type DrawingCheckpointResult =
+  | { status: "resync" }
+  // content contains server changes after the request's heads; heads identify the durable reply.
+  | { status: "saved"; heads: string[]; content: Uint8Array };
