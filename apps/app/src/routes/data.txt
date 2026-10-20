@@ -1,29 +1,25 @@
-This page details how Splatterboard handles your data in practical terms. These behaviors were designed as technical tradeoffs to maximize privacy, avoid data loss, and minimize server cost.
+# Where your drawings are saved
 
-## By default, nothing is stored on the server
+## Without an account
 
-Without signing in, drawings are saved on this device. They are uploaded only if you share them.
+Drawings are saved in this browser on this device. They aren’t uploaded unless you share them.
 
-## When you click Share, drawings are stored on the server
+Clearing your browser’s data can erase these drawings. Browsers can also remove saved data automatically, so use an account for drawings you want to keep.
 
-Sharing requires storing the document on the server so it can be sent to multiple devices or people.
+## With an account
 
-## Accounts are optional
+When you sign in or create an account, drawings on this device are added to your account. Changes save automatically when you’re online. Sign in on another device to find your drawings there.
 
-Without an account, your data is owned by your device. If you share a drawing, it gets stored on the server, but only devices with the share link can see it. This means if you share a drawing, and then open splatterboard.app on your phone, you won't see your drawing.
+## Sharing
 
-When you sign in or create an account, drawings on this device are added to your account. All drawings then sync automatically. Sharing is a separate choice.
-
-## A warning about Safari
-
-Safari on iOS and macOS delete local data for a web site after 7 days of no user interaction. https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
-
-Other browsers, like Chrome and Firefox, do not proactively delete your data.
-
-## A note about emails (Splatterboard doesn't ask for them)
-
-You are not asked for your email when you sign up, just for a username and password. Splatterboard is not interested in getting in touch with you, marketing to you, or contacting you for any reason. If you lose your password, there is no recourse.
+Sharing uploads your drawing and creates a link. Anyone with that link can open it. Saving a drawing to your account doesn’t share it.
 
 ## Signing out
 
-Signing out waits until drawings have finished syncing, then removes account drawings from this device. They stay in your account and return when you sign in again. If syncing fails, drawings stay on this device until you reconnect and try again.
+Splatterboard finishes saving your changes before removing your account’s drawings from this browser. Your drawings stay in your account.
+
+If saving fails, your drawings remain on the device so you can try again.
+
+## Your password
+
+Accounts use a username and password, with no email address. There’s no password reset, so use a password manager.
