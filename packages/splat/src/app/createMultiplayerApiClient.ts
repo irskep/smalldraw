@@ -148,6 +148,29 @@ export function createMultiplayerApiClient(options: {
     return envelope.result;
   }
 
+  const uploadDocumentThumbnail = createThumbnailUploadQueue(
+    async (documentId, thumbnail) => {
+      const contentType = thumbnail.type || "application/octet-stream";
+      const result = await client.mutation("uploadDocumentThumbnail", {
+        documentId,
+        contentType,
+      });
+      const parsed = parseUploadThumbnailResult(result);
+      if (!parsed) {
+        throw new Error("Invalid response from uploadDocumentThumbnail");
+      }
+      const response = await fetch(parsed.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": contentType },
+        body: thumbnail,
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Thumbnail upload to storage failed: ${response.status}`,
+        );
+      }
+    },
+  );
   const publishShareThumbnail = createThumbnailUploadQueue(
     async (accessToken, thumbnail) => {
       await client.mutation("publishShareThumbnail", {
@@ -452,27 +475,7 @@ export function createMultiplayerApiClient(options: {
       return parsed;
     },
     publishShareThumbnail,
-    async uploadDocumentThumbnail(documentId, thumbnail) {
-      const contentType = thumbnail.type || "application/octet-stream";
-      const result = await client.mutation("uploadDocumentThumbnail", {
-        documentId,
-        contentType,
-      });
-      const parsed = parseUploadThumbnailResult(result);
-      if (!parsed) {
-        throw new Error("Invalid response from uploadDocumentThumbnail");
-      }
-      const response = await fetch(parsed.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": contentType },
-        body: thumbnail,
-      });
-      if (!response.ok) {
-        throw new Error(
-          `Thumbnail upload to storage failed: ${response.status}`,
-        );
-      }
-    },
+    uploadDocumentThumbnail,
   };
 }
 

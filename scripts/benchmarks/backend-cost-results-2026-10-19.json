@@ -1,0 +1,471 @@
+{
+  "date": "2026-10-19",
+  "environment": "Local macOS Bun; synthetic fixtures, not production latency",
+  "sqliteStorage": [
+    {
+      "iteration": 0,
+      "variant": "delete",
+      "wal": false,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538024,
+      "compactions": 24,
+      "compactionMs": 204.58257899999992,
+      "totalMs": 776.664,
+      "retainedChunks": 29,
+      "storedBytes": 315743,
+      "reloadMs": 19.245041000000015
+    },
+    {
+      "iteration": 0,
+      "variant": "wal",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 195.51675100000034,
+      "totalMs": 553.542792,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 12.316833999999972
+    },
+    {
+      "iteration": 0,
+      "variant": "cache-8mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538024,
+      "compactions": 24,
+      "compactionMs": 198.728208,
+      "totalMs": 433.562416,
+      "retainedChunks": 29,
+      "storedBytes": 315743,
+      "reloadMs": 42.008334000000104
+    },
+    {
+      "iteration": 0,
+      "variant": "mmap-32mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 279.9254180000007,
+      "totalMs": 565.7766250000002,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 16.17304200000035
+    },
+    {
+      "iteration": 0,
+      "variant": "checkpoint-256",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538033,
+      "compactions": 24,
+      "compactionMs": 199.97033599999986,
+      "totalMs": 423.651167,
+      "retainedChunks": 29,
+      "storedBytes": 315744,
+      "reloadMs": 12.878582999999708
+    },
+    {
+      "iteration": 1,
+      "variant": "delete",
+      "wal": false,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 203.26208600000018,
+      "totalMs": 537.9855409999996,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 12.163166999999703
+    },
+    {
+      "iteration": 1,
+      "variant": "wal",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538033,
+      "compactions": 24,
+      "compactionMs": 206.6917129999997,
+      "totalMs": 417.90149999999994,
+      "retainedChunks": 29,
+      "storedBytes": 315744,
+      "reloadMs": 10.602666000000227
+    },
+    {
+      "iteration": 1,
+      "variant": "cache-8mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 197.58241700000144,
+      "totalMs": 404.99170900000036,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 11.542833000000428
+    },
+    {
+      "iteration": 1,
+      "variant": "mmap-32mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 204.26670899999954,
+      "totalMs": 401.13075000000026,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 12.343291000000136
+    },
+    {
+      "iteration": 1,
+      "variant": "checkpoint-256",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 199.78870799999822,
+      "totalMs": 403.0217080000002,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 12.080999999999221
+    },
+    {
+      "iteration": 2,
+      "variant": "delete",
+      "wal": false,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 200.3213739999992,
+      "totalMs": 505.07616700000017,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 11.794416000000638
+    },
+    {
+      "iteration": 2,
+      "variant": "wal",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538081,
+      "compactions": 24,
+      "compactionMs": 195.69246100000055,
+      "totalMs": 374.93895799999973,
+      "retainedChunks": 29,
+      "storedBytes": 315743,
+      "reloadMs": 11.562332999999853
+    },
+    {
+      "iteration": 2,
+      "variant": "cache-8mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 194.56579299999976,
+      "totalMs": 370.5602920000001,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 10.423500000000786
+    },
+    {
+      "iteration": 2,
+      "variant": "mmap-32mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538029,
+      "compactions": 24,
+      "compactionMs": 193.82699799999955,
+      "totalMs": 363.64620900000045,
+      "retainedChunks": 29,
+      "storedBytes": 315744,
+      "reloadMs": 10.343582999999853
+    },
+    {
+      "iteration": 2,
+      "variant": "checkpoint-256",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 193.49883300000056,
+      "totalMs": 416.6329999999998,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 10.392125000000306
+    },
+    {
+      "iteration": 3,
+      "variant": "delete",
+      "wal": false,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 194.9216610000003,
+      "totalMs": 444.83087500000056,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 10.027250000000095
+    },
+    {
+      "iteration": 3,
+      "variant": "wal",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 194.33249700000124,
+      "totalMs": 370.3991669999996,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 9.69025000000056
+    },
+    {
+      "iteration": 3,
+      "variant": "cache-8mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 193.87533099999746,
+      "totalMs": 357.05512499999895,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 10.3890420000007
+    },
+    {
+      "iteration": 3,
+      "variant": "mmap-32mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538033,
+      "compactions": 24,
+      "compactionMs": 195.4279170000027,
+      "totalMs": 352.61183300000084,
+      "retainedChunks": 29,
+      "storedBytes": 315744,
+      "reloadMs": 9.774500000001353
+    },
+    {
+      "iteration": 3,
+      "variant": "checkpoint-256",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 194.23545799999738,
+      "totalMs": 375.4071670000012,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 10.090416999999434
+    },
+    {
+      "iteration": 4,
+      "variant": "delete",
+      "wal": false,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 195.26458600000115,
+      "totalMs": 451.0349589999987,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 10.17333299999882
+    },
+    {
+      "iteration": 4,
+      "variant": "wal",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 194.6424560000014,
+      "totalMs": 364.62424999999894,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 9.924582999999984
+    },
+    {
+      "iteration": 4,
+      "variant": "cache-8mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 194.68504200000098,
+      "totalMs": 355.4961250000015,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 10.118040999999721
+    },
+    {
+      "iteration": 4,
+      "variant": "mmap-32mb",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538029,
+      "compactions": 24,
+      "compactionMs": 194.63283700000102,
+      "totalMs": 359.21087499999885,
+      "retainedChunks": 29,
+      "storedBytes": 315744,
+      "reloadMs": 9.999791000000187
+    },
+    {
+      "iteration": 4,
+      "variant": "checkpoint-256",
+      "wal": true,
+      "strokes": 300,
+      "writes": 301,
+      "removed": 271,
+      "bytes": 2538020,
+      "compactions": 24,
+      "compactionMs": 194.5326260000038,
+      "totalMs": 377.8955420000002,
+      "retainedChunks": 29,
+      "storedBytes": 315739,
+      "reloadMs": 9.72991699999875
+    }
+  ],
+  "sqliteIndexes": [
+    {
+      "name": "token",
+      "indexed": false,
+      "drawings": 10000,
+      "lookups": 1000,
+      "ms": 500.888833,
+      "plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "SCAN document_invitations"
+        }
+      ]
+    },
+    {
+      "name": "members",
+      "indexed": false,
+      "drawings": 10000,
+      "lookups": 1000,
+      "ms": 321.039542,
+      "plan": [
+        {
+          "id": 2,
+          "parent": 0,
+          "notused": 0,
+          "detail": "SCAN users_on_documents"
+        }
+      ]
+    },
+    {
+      "name": "token",
+      "indexed": true,
+      "drawings": 10000,
+      "lookups": 1000,
+      "ms": 2.1330829999999423,
+      "plan": [
+        {
+          "id": 4,
+          "parent": 0,
+          "notused": 0,
+          "detail": "SEARCH document_invitations USING INDEX document_invitations_document_scope_idx (document_id=? AND scope=?)"
+        }
+      ]
+    },
+    {
+      "name": "members",
+      "indexed": true,
+      "drawings": 10000,
+      "lookups": 1000,
+      "ms": 3.283416999999986,
+      "plan": [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 0,
+          "detail": "SEARCH users_on_documents USING INDEX users_on_documents_document_idx (document_id=?)"
+        }
+      ]
+    }
+  ],
+  "decisions": {
+    "sqlite": "WAL with synchronous=FULL for both databases; retain default cache, mmap, and checkpoint threshold. Add document-ID indexes for tokens and memberships.",
+    "compaction": "Existing automatic compaction retained: 24 compactions in 300-stroke session.",
+    "checkpoint": "Unchanged acknowledged heads skip checkpoint; changed drawings still send full snapshots.",
+    "thumbnails": "Account PUTs already go directly to storage; deduplicate and serialize them. Guest image validation and proxy upload retained."
+  },
+  "controlledCounts": {
+    "idleCheckpointCalls": {
+      "before": 4,
+      "after": 1,
+      "passes": 4,
+      "simulatedSeconds": 93
+    },
+    "routineLogWrites": {
+      "before": 1000,
+      "after": 0,
+      "events": 1000
+    },
+    "identicalAccountThumbnailRequests": {
+      "before": 4,
+      "after": 2,
+      "uploadCalls": 2
+    }
+  },
+  "productionIdleIdentityBefore": {
+    "seconds": 15,
+    "requests": 3
+  }
+}

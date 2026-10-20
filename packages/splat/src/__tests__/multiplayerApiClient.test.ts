@@ -375,10 +375,15 @@ describe("createMultiplayerApiClient", () => {
     const client = createMultiplayerApiClient({
       apiUrl: "http://localhost/api",
     });
-    await client.uploadDocumentThumbnail(
-      "doc-thumb-1",
-      new Blob(["thumbnail-bytes"], { type: "image/png" }),
+    await Promise.all(
+      Array.from({ length: 2 }, () =>
+        client.uploadDocumentThumbnail(
+          "doc-thumb-1",
+          new Blob(["thumbnail-bytes"], { type: "image/png" }),
+        ),
+      ),
     );
+    expect(requests).toHaveLength(2);
 
     expect(requests[0]?.url).toContain("uploadDocumentThumbnail");
     expect(requests[0]?.credentials).toBe("include");
@@ -387,6 +392,11 @@ describe("createMultiplayerApiClient", () => {
     );
     expect(requests[1]?.method).toBe("PUT");
     expect(requests[1]?.contentType).toBe("image/png");
+    await client.uploadDocumentThumbnail(
+      "doc-thumb-1",
+      new Blob(["changed-thumbnail"], { type: "image/png" }),
+    );
+    expect(requests).toHaveLength(4);
   });
 });
 
