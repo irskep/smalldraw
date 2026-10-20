@@ -30,7 +30,7 @@ const sourceColoringDir = path.resolve(
   "packages/splat/src/coloring/assets",
 );
 const indexHtmlPath = path.join(staticDir, "index.html");
-const drawIndexHtmlPath = path.join(staticDir, "draw", "index.html");
+const drawIndexHtmlPath = path.join(staticDir, "draw.html");
 
 const PORT =
   process.env.PORT !== undefined ? parseInt(process.env.PORT, 10) : 3030;
