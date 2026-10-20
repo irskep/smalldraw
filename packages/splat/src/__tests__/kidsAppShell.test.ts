@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { cbor } from "@automerge/automerge-repo";
 import {
   type ActionContext,
   applyActionToDoc,
@@ -784,7 +785,10 @@ describe("splatterboard shell", () => {
 
   test("join bootstrap stores a separate local catalog key for collaborative docs", async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (
+      input: RequestInfo | URL,
+      _init?: RequestInit,
+    ) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(JSON.stringify([{ result: { data: [] } }]), {
@@ -792,24 +796,13 @@ describe("splatterboard shell", () => {
         });
       }
       if (url.includes("/resolveAnonymousCollaborativeDocument")) {
-        return new Response(
-          JSON.stringify([
-            {
-              result: {
-                data: {
-                  collabDocUrl: "automerge:joined-doc",
-                  joinSecret: "join-seed",
-                  accessToken: "access-seed",
-                  accessTokenScope: "device",
-                  content: btoa("fake-doc-binary"),
-                },
-              },
-            },
-          ]),
-          {
-            headers: { "content-type": "application/json" },
-          },
-        );
+        return binaryDrawingResponse({
+          collabDocUrl: "automerge:joined-doc",
+          joinSecret: "join-seed",
+          accessToken: "access-seed",
+          accessTokenScope: "device",
+          content: new TextEncoder().encode("fake-doc-binary"),
+        });
       }
       throw new Error(`Unexpected request: ${url}`);
     }) as unknown as typeof fetch;
@@ -860,7 +853,7 @@ describe("splatterboard shell", () => {
 
   test("account document bootstrap stores an account-attached collaborative catalog entry", async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(JSON.stringify([{ result: { data: [] } }]), {
@@ -868,25 +861,18 @@ describe("splatterboard shell", () => {
         });
       }
       if (url.includes("/resolveAccountCollaborativeDocument")) {
-        expect(decodeURIComponent(url)).toContain('"documentId":"account-doc"');
-        expect(decodeURIComponent(url)).toContain('"deviceTag":"device-1"');
-        return new Response(
-          JSON.stringify([
-            {
-              result: {
-                data: {
-                  collabDocUrl: "automerge:account-doc",
-                  accessToken: "account-access",
-                  accessTokenScope: "owner",
-                  content: btoa("fake-account-doc-binary"),
-                },
-              },
-            },
-          ]),
-          {
-            headers: { "content-type": "application/json" },
-          },
+        expect(JSON.stringify(cbor.decode(init?.body as Uint8Array))).toContain(
+          '"documentId":"account-doc"',
         );
+        expect(JSON.stringify(cbor.decode(init?.body as Uint8Array))).toContain(
+          '"deviceTag":"device-1"',
+        );
+        return binaryDrawingResponse({
+          collabDocUrl: "automerge:account-doc",
+          accessToken: "account-access",
+          accessTokenScope: "owner",
+          content: new TextEncoder().encode("fake-account-doc-binary"),
+        });
       }
       throw new Error(`Unexpected request: ${url}`);
     }) as unknown as typeof fetch;
@@ -945,7 +931,10 @@ describe("splatterboard shell", () => {
   test("new document startup creates locally without account catalog sync", async () => {
     const originalFetch = globalThis.fetch;
     const requests: string[] = [];
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (
+      input: RequestInfo | URL,
+      _init?: RequestInit,
+    ) => {
       const url = input.toString();
       requests.push(url);
       throw new Error(`Unexpected request: ${url}`);
@@ -1005,7 +994,10 @@ describe("splatterboard shell", () => {
 
   test("account document bootstrap falls back to cached local access when auth is missing", async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (
+      input: RequestInfo | URL,
+      _init?: RequestInit,
+    ) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(JSON.stringify([{ result: { data: [] } }]), {
@@ -1076,7 +1068,10 @@ describe("splatterboard shell", () => {
 
   test("account document bootstrap surfaces auth-required access error without local fallback", async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (
+      input: RequestInfo | URL,
+      _init?: RequestInit,
+    ) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(JSON.stringify([{ result: { data: [] } }]), {
@@ -1139,7 +1134,10 @@ describe("splatterboard shell", () => {
     const originalFetch = globalThis.fetch;
     const missingContentMessage =
       "Document metadata exists, but its drawing content is missing from repository storage.";
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (
+      input: RequestInfo | URL,
+      _init?: RequestInit,
+    ) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(JSON.stringify([{ result: { data: [] } }]), {
@@ -1200,7 +1198,7 @@ describe("splatterboard shell", () => {
     const missingContentMessage =
       "Document metadata exists, but its drawing content is missing from repository storage.";
     const resolvedDocumentIds: string[] = [];
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(JSON.stringify([{ result: { data: [] } }]), {
@@ -1208,7 +1206,9 @@ describe("splatterboard shell", () => {
         });
       }
       if (url.includes("/resolveAccountCollaborativeDocument")) {
-        const decodedUrl = decodeURIComponent(url);
+        const decodedUrl = JSON.stringify(
+          cbor.decode(init?.body as Uint8Array),
+        );
         expect(decodedUrl).toContain('"documentId":"account-doc"');
         resolvedDocumentIds.push("account-doc");
         throw createNotFoundTrpcError(missingContentMessage);
@@ -1280,7 +1280,7 @@ describe("splatterboard shell", () => {
   test("empty local catalog syncs account document metadata and loads only the selected drawing", async () => {
     const originalFetch = globalThis.fetch;
     const resolvedDocumentIds: string[] = [];
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(
@@ -1310,26 +1310,17 @@ describe("splatterboard shell", () => {
         );
       }
       if (url.includes("/resolveAccountCollaborativeDocument")) {
-        const decodedUrl = decodeURIComponent(url);
+        const decodedUrl = JSON.stringify(
+          cbor.decode(init?.body as Uint8Array),
+        );
         if (decodedUrl.includes('"documentId":"account-doc-a"')) {
           resolvedDocumentIds.push("account-doc-a");
-          return new Response(
-            JSON.stringify([
-              {
-                result: {
-                  data: {
-                    collabDocUrl: "automerge:account-doc-a",
-                    accessToken: "account-access-a",
-                    accessTokenScope: "owner",
-                    content: btoa("fake-account-doc-a-binary"),
-                  },
-                },
-              },
-            ]),
-            {
-              headers: { "content-type": "application/json" },
-            },
-          );
+          return binaryDrawingResponse({
+            collabDocUrl: "automerge:account-doc-a",
+            accessToken: "account-access-a",
+            accessTokenScope: "owner",
+            content: new TextEncoder().encode("fake-account-doc-a-binary"),
+          });
         }
       }
       throw new Error(`Unexpected request: ${url}`);
@@ -1406,7 +1397,7 @@ describe("splatterboard shell", () => {
   test("default startup refreshes account metadata without loading non-current drawings", async () => {
     const originalFetch = globalThis.fetch;
     const resolvedDocumentIds: string[] = [];
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(
@@ -1436,7 +1427,9 @@ describe("splatterboard shell", () => {
         );
       }
       if (url.includes("/resolveAccountCollaborativeDocument")) {
-        const decodedUrl = decodeURIComponent(url);
+        const decodedUrl = JSON.stringify(
+          cbor.decode(init?.body as Uint8Array),
+        );
         const match = decodedUrl.match(/"documentId":"([^"]+)"/);
         resolvedDocumentIds.push(match?.[1] ?? "unknown");
         throw new Error(`Unexpected account content load: ${url}`);
@@ -1529,7 +1522,7 @@ describe("splatterboard shell", () => {
 
   test("default startup ignores stale current localStorage and selects an account document", async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(
@@ -1553,26 +1546,15 @@ describe("splatterboard shell", () => {
         );
       }
       if (url.includes("/resolveAccountCollaborativeDocument")) {
-        expect(decodeURIComponent(url)).toContain(
+        expect(JSON.stringify(cbor.decode(init?.body as Uint8Array))).toContain(
           '"documentId":"account-doc-a"',
         );
-        return new Response(
-          JSON.stringify([
-            {
-              result: {
-                data: {
-                  collabDocUrl: "automerge:account-doc-a",
-                  accessToken: "account-access-a",
-                  accessTokenScope: "owner",
-                  content: btoa("fake-account-doc-a-binary"),
-                },
-              },
-            },
-          ]),
-          {
-            headers: { "content-type": "application/json" },
-          },
-        );
+        return binaryDrawingResponse({
+          collabDocUrl: "automerge:account-doc-a",
+          accessToken: "account-access-a",
+          accessTokenScope: "owner",
+          content: new TextEncoder().encode("fake-account-doc-a-binary"),
+        });
       }
       throw new Error(`Unexpected request: ${url}`);
     }) as unknown as typeof fetch;
@@ -1658,7 +1640,10 @@ describe("splatterboard shell", () => {
 
   test("local document startup still refreshes account metadata", async () => {
     const originalFetch = globalThis.fetch;
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (
+      input: RequestInfo | URL,
+      _init?: RequestInit,
+    ) => {
       const url = input.toString();
       if (url.includes("/listAccountCollaborativeDocuments")) {
         return new Response(
@@ -1751,7 +1736,7 @@ describe("splatterboard shell", () => {
   test("stale local document URL after local data reset falls back to account catalog", async () => {
     const originalFetch = globalThis.fetch;
     const requests: string[] = [];
-    const fetchMock = (async (input: RequestInfo | URL) => {
+    const fetchMock = (async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input.toString();
       requests.push(url);
       if (url.includes("/listAccountCollaborativeDocuments")) {
@@ -1776,26 +1761,15 @@ describe("splatterboard shell", () => {
         );
       }
       if (url.includes("/resolveAccountCollaborativeDocument")) {
-        expect(decodeURIComponent(url)).toContain(
+        expect(JSON.stringify(cbor.decode(init?.body as Uint8Array))).toContain(
           '"documentId":"account-doc-a"',
         );
-        return new Response(
-          JSON.stringify([
-            {
-              result: {
-                data: {
-                  collabDocUrl: "automerge:account-doc-a",
-                  accessToken: "account-access-a",
-                  accessTokenScope: "owner",
-                  content: btoa("fake-account-doc-a-binary"),
-                },
-              },
-            },
-          ]),
-          {
-            headers: { "content-type": "application/json" },
-          },
-        );
+        return binaryDrawingResponse({
+          collabDocUrl: "automerge:account-doc-a",
+          accessToken: "account-access-a",
+          accessTokenScope: "owner",
+          content: new TextEncoder().encode("fake-account-doc-a-binary"),
+        });
       }
       throw new Error(`Unexpected request: ${url}`);
     }) as unknown as typeof fetch;
@@ -3605,3 +3579,9 @@ describe("splatterboard shell", () => {
     app.destroy();
   });
 });
+
+function binaryDrawingResponse(result: unknown): Response {
+  return new Response(cbor.encode({ result }) as Uint8Array<ArrayBuffer>, {
+    headers: { "content-type": "application/cbor" },
+  });
+}

@@ -98,3 +98,36 @@ test("a request arriving during removal waits for removal before reopening", asy
   expect((await repo.find(handle.documentId)).doc()).toEqual({ value: 2 });
   await repo.shutdown();
 });
+
+test("unloading is not persisted as an edit and leaves no pending sync readiness wait", async () => {
+  const repo = new Repo({
+    network: [],
+    storage: new SqliteStorageAdapter(":memory:"),
+  });
+  const lifetime = new DocumentLifetime(repo, { maxIdle: 0, idleMs: 0 });
+  const handle = repo.create({ value: 1 });
+  let edits = 0;
+  let waiting = 0;
+  handle.on("heads-changed", () => {
+    edits++;
+  });
+  handle.on("change", () => {
+    edits++;
+  });
+  const ready = handle.whenReady.bind(handle);
+  spyOn(handle, "whenReady").mockImplementation(async (...args) => {
+    waiting++;
+    try {
+      return await ready(...args);
+    } finally {
+      waiting--;
+    }
+  });
+  await lifetime.sweep();
+  expect(edits).toBe(0);
+  // Let Automerge's pending 100ms sync debounce execute after the unload.
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  expect(waiting).toBe(0);
+  expect((await repo.find(handle.documentId)).doc()).toEqual({ value: 1 });
+  await repo.shutdown();
+});

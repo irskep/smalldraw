@@ -3,7 +3,7 @@ import { change, getHeads, load, save } from "@automerge/automerge";
 import { Repo } from "@automerge/automerge-repo";
 import { repo, repoStorage } from "../automergeRepo/automergeRepo";
 import { createUser } from "../db/createUser";
-import { appRouter } from "./appRouter";
+import { apiRouter as appRouter } from "../test/apiCaller";
 
 async function caller(username: string) {
   const user = await createUser({ username, registrationRecord: "test" });
@@ -18,7 +18,7 @@ async function caller(username: string) {
 test("account registration is repeatable, and checkpoints persist and merge edits", async () => {
   const api = await caller("checkpoint-owner");
   const handle = repo.create({ marks: ["first"] });
-  const content = Buffer.from(save(handle.doc())).toString("base64");
+  const content = save(handle.doc());
   const first = await api.registerAccountSyncedDocument({
     accountId: (await api.me())!.id,
     documentId: handle.documentId,
@@ -30,24 +30,19 @@ test("account registration is repeatable, and checkpoints persist and merge edit
     content,
   });
   expect(second.collabDocUrl).toBe(first.collabDocUrl);
-  const local = change(
-    load<{ marks: string[] }>(Buffer.from(content, "base64")),
-    (doc) => {
-      doc.marks.push("local");
-    },
-  );
+  const local = change(load<{ marks: string[] }>(content), (doc) => {
+    doc.marks.push("local");
+  });
   handle.change((doc) => {
     doc.marks.push("remote");
   });
   const result = await api.checkpointAccountDrawing({
     accountId: (await api.me())!.id,
     documentId: handle.documentId,
-    content: Buffer.from(save(local)).toString("base64"),
+    content: save(local),
   });
   expect(result.heads).toEqual(getHeads(local));
-  expect(
-    load<{ marks: string[] }>(Buffer.from(result.content, "base64")).marks,
-  ).toContain("remote");
+  expect(load<{ marks: string[] }>(result.content).marks).toContain("remote");
   expect(handle.doc().marks).toContain("local");
   expect(repoStorage.hasDocumentContent(handle.documentId)).toBe(true);
   const cold = new Repo({ storage: repoStorage, network: [] });
@@ -64,7 +59,7 @@ test("an unrelated account cannot overwrite or claim an existing document ID", a
   const input = {
     accountId: (await owner.me())!.id,
     documentId: handle.documentId,
-    content: Buffer.from(save(handle.doc())).toString("base64"),
+    content: save(handle.doc()),
   };
   await owner.registerAccountSyncedDocument(input);
   await expect(stranger.registerAccountSyncedDocument(input)).rejects.toThrow();
@@ -79,7 +74,7 @@ test("a changed login cannot register an unsynced drawing for the wrong account"
   const input = {
     accountId: (await original.me())!.id,
     documentId: handle.documentId,
-    content: Buffer.from(save(handle.doc())).toString("base64"),
+    content: save(handle.doc()),
   };
   await expect(changed.registerAccountSyncedDocument(input)).rejects.toThrow(
     "Account changed",

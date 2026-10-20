@@ -1,3 +1,4 @@
+import * as cbor from "@automerge/automerge-repo/helpers/cbor.js";
 import {
   type AccountCollaborativeDocumentResolution,
   type AccountCollaborativeDocumentSummary,
@@ -45,7 +46,7 @@ export interface MultiplayerApiClient {
     documentId: string,
     content: Uint8Array,
     accountId: string,
-  ): Promise<{ heads: string[]; content: string }>;
+  ): Promise<{ heads: string[]; content: Uint8Array }>;
   acceptDocumentInvitation(token: string): Promise<void>;
   listAccountCollaborativeDocuments(): Promise<
     AccountCollaborativeDocumentSummary[]
@@ -115,6 +116,38 @@ export function createMultiplayerApiClient(options: {
     ],
   });
 
+  async function transfer(operation: string, input: unknown): Promise<unknown> {
+    const response = await fetch(
+      `${options.apiUrl.replace(/\/$/, "")}/documents/${operation}`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/cbor" },
+        body: cbor.encode(input) as Uint8Array<ArrayBuffer>,
+        signal: AbortSignal.timeout(15000),
+      },
+    );
+    if (response.status === 413) throw new DrawingUploadTooLargeError();
+    if (!response.headers.get("content-type")?.includes("application/cbor"))
+      throw new Error(
+        `Drawing transfer failed (${response.status}). Please try again.`,
+      );
+    const envelope = cbor.decode(
+      new Uint8Array(await response.arrayBuffer()),
+    ) as {
+      result?: unknown;
+      error?: {
+        message: string;
+        code: number;
+        data: DefaultErrorShape["data"];
+      };
+    };
+    if (envelope.error) throw TRPCClientError.from({ error: envelope.error });
+    if (!response.ok || !("result" in envelope))
+      throw new Error("Invalid drawing transfer response");
+    return envelope.result;
+  }
+
   const publishShareThumbnail = createThumbnailUploadQueue(
     async (accessToken, thumbnail) => {
       await client.mutation("publishShareThumbnail", {
@@ -149,11 +182,11 @@ export function createMultiplayerApiClient(options: {
       return result as { id: string; username: string };
     },
     async checkpointAccountDrawing(documentId, content, accountId) {
-      return (await client.mutation("checkpointAccountDrawing", {
+      return (await transfer("checkpointAccountDrawing", {
         accountId,
         documentId,
-        content: uint8ArrayToBase64(content),
-      })) as { heads: string[]; content: string };
+        content,
+      })) as { heads: string[]; content: Uint8Array };
     },
     async acceptDocumentInvitation(token) {
       await client.mutation("acceptDocumentInvitation", { token });
@@ -188,12 +221,11 @@ export function createMultiplayerApiClient(options: {
       return parsed;
     },
     async registerCollaborativeDocument(documentId, content, deviceTag) {
-      const contentBase64 = uint8ArrayToBase64(content);
       let result: unknown;
       try {
-        result = await client.mutation("registerCollaborativeDocument", {
+        result = await transfer("registerCollaborativeDocument", {
           documentId,
-          content: contentBase64,
+          content,
           deviceTag,
         });
       } catch (error) {
@@ -209,13 +241,12 @@ export function createMultiplayerApiClient(options: {
       return parsed;
     },
     async registerAccountSyncedDocument(documentId, content, accountId) {
-      const contentBase64 = uint8ArrayToBase64(content);
       let result: unknown;
       try {
-        result = await client.mutation("registerAccountSyncedDocument", {
+        result = await transfer("registerAccountSyncedDocument", {
           accountId,
           documentId,
-          content: contentBase64,
+          content,
         });
       } catch (error) {
         throw normalizeMultiplayerApiError(
@@ -310,7 +341,7 @@ export function createMultiplayerApiClient(options: {
         deviceTag,
       });
       try {
-        result = await client.query("resolveAnonymousCollaborativeDocument", {
+        result = await transfer("resolveAnonymousCollaborativeDocument", {
           joinSecret,
           deviceTag,
         });
@@ -350,7 +381,7 @@ export function createMultiplayerApiClient(options: {
         deviceTag,
       });
       try {
-        result = await client.query("resolveAccountCollaborativeDocument", {
+        result = await transfer("resolveAccountCollaborativeDocument", {
           documentId,
           deviceTag,
         });
@@ -617,7 +648,7 @@ function parseResolveResult(
     typeof (input as { joinSecret?: unknown }).joinSecret !== "string" ||
     typeof (input as { accessToken?: unknown }).accessToken !== "string" ||
     (input as { accessTokenScope?: unknown }).accessTokenScope !== "device" ||
-    typeof (input as { content?: unknown }).content !== "string"
+    !((input as { content?: unknown }).content instanceof Uint8Array)
   ) {
     return null;
   }
@@ -627,7 +658,7 @@ function parseResolveResult(
     accessToken: (input as { accessToken: string }).accessToken,
     accessTokenScope: (input as { accessTokenScope: "device" })
       .accessTokenScope,
-    content: (input as { content: string }).content,
+    content: (input as { content: Uint8Array }).content,
   };
 }
 
@@ -641,7 +672,7 @@ function parseAccountResolveResult(
     typeof (input as { accessToken?: unknown }).accessToken !== "string" ||
     typeof (input as { accessTokenScope?: unknown }).accessTokenScope !==
       "string" ||
-    typeof (input as { content?: unknown }).content !== "string"
+    !((input as { content?: unknown }).content instanceof Uint8Array)
   ) {
     return null;
   }
@@ -654,7 +685,7 @@ function parseAccountResolveResult(
     collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
     accessToken: (input as { accessToken: string }).accessToken,
     accessTokenScope,
-    content: (input as { content: string }).content,
+    content: (input as { content: Uint8Array }).content,
   };
 }
 

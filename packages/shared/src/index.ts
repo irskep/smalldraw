@@ -312,14 +312,14 @@ export type AnonymousCollaborativeDocumentResolution = {
   joinSecret: string;
   accessToken: string;
   accessTokenScope: "device";
-  content: string;
+  content: Uint8Array;
 };
 
 export type AccountCollaborativeDocumentResolution = {
   collabDocUrl: string;
   accessToken: string;
   accessTokenScope: DocumentAccessTokenScope;
-  content: string;
+  content: Uint8Array;
 };
 
 export type ClaimCollaborativeDocumentResult = {

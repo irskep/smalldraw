@@ -17,8 +17,8 @@ import {
   documents,
   usersOnDocuments,
 } from "../db/schema.js";
+import { apiRouter as appRouter } from "../test/apiCaller";
 import { createOpaqueRegistrationRecord } from "../utils/createOpaqueRegistrationRecord.js";
-import { appRouter } from "./appRouter.js";
 
 describe("account routes", () => {
   it("changes the current user's password and revokes other sessions", async () => {
@@ -289,9 +289,9 @@ function createAuthenticatedCaller(userId: string, sessionKey: string) {
   });
 }
 
-async function createAutomergeContent(): Promise<string> {
+async function createAutomergeContent(): Promise<Uint8Array> {
   const { from, save } = await import("@automerge/automerge");
-  return Buffer.from(save(from({ title: "Drawing" }))).toString("base64");
+  return save(from({ title: "Drawing" }));
 }
 
 async function expectPasswordLogin(username: string, password: string) {

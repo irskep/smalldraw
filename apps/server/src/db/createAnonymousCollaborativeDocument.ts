@@ -3,6 +3,8 @@ import { generateId } from "../utils/generateId.js";
 import { db } from "./client.js";
 import { documentInvitations, documents } from "./schema.js";
 
+export class DocumentRegistrationConflictError extends Error {}
+
 type Params = {
   documentId: string;
   name?: string;
@@ -43,7 +45,9 @@ export const createAnonymousCollaborativeDocument = async ({
         )
         .get();
       if (!owner || !share)
-        throw new Error("Drawing registration belongs to another device.");
+        throw new DocumentRegistrationConflictError(
+          "Drawing registration belongs to another device.",
+        );
       return {
         document: existing,
         joinSecret: share.token,

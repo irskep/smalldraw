@@ -3,10 +3,11 @@ FROM oven/bun:1-alpine
 WORKDIR /app
 
 # Install only runtime dependencies by creating a minimal workspace root
-COPY bun.lock ./
+COPY bun.lock package.json ./
+COPY patches patches
 COPY apps/server/package.json apps/server/
 COPY packages/shared/package.json packages/shared/
-RUN printf '{"private":true,"workspaces":["apps/server","packages/shared"]}' > package.json
+RUN bun -e 'const root = await Bun.file("package.json").json(); await Bun.write("package.json", JSON.stringify({private:true, workspaces:["apps/server","packages/shared"], patchedDependencies:root.patchedDependencies}));'
 RUN bun install
 
 # Copy source files needed at runtime

@@ -252,7 +252,7 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
         });
       }
       startupPreImports.push({
-        binary: base64ToUint8Array(resolved.content),
+        binary: resolved.content,
         docId: resolved.collabDocUrl,
       });
       await createOrSelectCollaborativeCatalogDocument({
@@ -314,7 +314,7 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
         });
       }
       startupPreImports.push({
-        binary: base64ToUint8Array(resolved.content),
+        binary: resolved.content,
         docId: resolved.collabDocUrl,
       });
       await createOrSelectCollaborativeCatalogDocument({
@@ -387,7 +387,7 @@ export async function resolveAccountDocumentForLocalOpen(options: {
         documentId,
       },
     );
-    const binary = base64ToUint8Array(resolved.content);
+    const binary = resolved.content;
     const automergeDocumentId = documentId as DocumentId;
     options.localRepo?.setWebsocketAuthorizedDocumentId(documentId);
     options.localRepo?.setWebsocketAuthToken(resolved.accessToken);
@@ -510,15 +510,6 @@ async function createOrSelectCollaborativeCatalogDocument(options: {
     ...options.createDocumentOptions,
   });
   await options.documentBackend.setCurrentDocument(catalogDocUrl);
-}
-
-function base64ToUint8Array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes;
 }
 
 async function findLocalCollaborativeSummaryByDocumentId(options: {

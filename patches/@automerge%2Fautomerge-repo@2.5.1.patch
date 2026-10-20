@@ -1,0 +1,54 @@
+diff --git a/dist/DocHandle.js b/dist/DocHandle.js
+index 66c2df856f38fa4a321846e7b5bee9dcedf11789..5a4ca9ec428dcd99e86cdfc4b27bfb5665c14e33 100644
+--- a/dist/DocHandle.js
++++ b/dist/DocHandle.js
+@@ -194,6 +194,8 @@ export class DocHandle extends EventEmitter {
+      * received the document for the first time, signal that our request has been completed.
+      */
+     #checkForChanges(before, after) {
++        // Unloading releases memory; it is not a document edit to persist or sync.
++        if (this.isUnloaded()) return;
+         const beforeHeads = A.getHeads(before);
+         const afterHeads = A.getHeads(after);
+         const docChanged = !headsAreSame(encodeHeads(afterHeads), encodeHeads(beforeHeads));
+diff --git a/dist/synchronizer/DocSynchronizer.js b/dist/synchronizer/DocSynchronizer.js
+index fe8be3808ec2c0f3f4a1730382245dbd719804e8..8fed07fcbc21ac84a207428a2cea350d4582d2b2 100644
+--- a/dist/synchronizer/DocSynchronizer.js
++++ b/dist/synchronizer/DocSynchronizer.js
+@@ -49,7 +49,8 @@ export class DocSynchronizer extends Synchronizer {
+     /// PRIVATE
+     async #syncWithPeers() {
+         try {
+-            await this.#handle.whenReady();
++            await this.#handle.whenReady(["ready", "unloaded", "deleted"]);
++            if (!this.#handle.isReady()) return;
+             const doc = this.#handle.doc(); // XXX THIS ONE IS WEIRD
+             this.#peers.forEach(peerId => this.#sendSyncMessage(peerId, doc));
+         }
+diff --git a/src/DocHandle.ts b/src/DocHandle.ts
+index 2a51add5a6501faed7119a95168de45510258eba..e0bc5f22e00699e5224d5a6519e284308fcb1836 100644
+--- a/src/DocHandle.ts
++++ b/src/DocHandle.ts
+@@ -234,6 +234,8 @@ export class DocHandle<T> extends EventEmitter<DocHandleEvents<T>> {
+    * received the document for the first time, signal that our request has been completed.
+    */
+   #checkForChanges(before: A.Doc<T>, after: A.Doc<T>) {
++    // Unloading releases memory; it is not a document edit to persist or sync.
++    if (this.isUnloaded()) return
+     const beforeHeads = A.getHeads(before)
+     const afterHeads = A.getHeads(after)
+     const docChanged = !headsAreSame(
+diff --git a/src/synchronizer/DocSynchronizer.ts b/src/synchronizer/DocSynchronizer.ts
+index 93ddba7cc1ddc9119da830c98e1e45775ed50107..d8fb2480f3eb5403b1962e4f8ef95ddeaa67d6b9 100644
+--- a/src/synchronizer/DocSynchronizer.ts
++++ b/src/synchronizer/DocSynchronizer.ts
+@@ -102,7 +102,8 @@ export class DocSynchronizer extends Synchronizer {
+ 
+   async #syncWithPeers() {
+     try {
+-      await this.#handle.whenReady()
++      await this.#handle.whenReady(["ready", "unloaded", "deleted"])
++      if (!this.#handle.isReady()) return
+       const doc = this.#handle.doc() // XXX THIS ONE IS WEIRD
+       this.#peers.forEach(peerId => this.#sendSyncMessage(peerId, doc))
+     } catch (e) {

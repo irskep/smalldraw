@@ -258,11 +258,7 @@ export async function syncAccountWorkspace(
     const result = await api.checkpointAccountDrawing(id, binary, userId);
     if (heads.some((head) => !result.heads.includes(head)))
       throw new Error("The server has not saved every change yet.");
-    const remote = load(
-      Uint8Array.from(atob(result.content), (character) =>
-        character.charCodeAt(0),
-      ),
-    );
+    const remote = load(result.content);
     const handle = await repo.find(id);
     handle.update((current) => merge(current, remote));
     checkpoints?.set(id, {

@@ -277,3 +277,19 @@ done
 [tasks."bench:server:encoding"]
 description = "Compare current stroke text with immutable values, preserving exact drawing content"
 run = "bun scripts/benchmarks/automerge-stroke-encoding.ts"
+
+[tasks."bench:server:fill"]
+run = "bun scripts/benchmarks/automerge-fill-encoding.ts"
+
+[tasks."bench:server:import"]
+run = "bun scripts/benchmarks/automerge-import.ts"
+
+[tasks."bench:server:cache"]
+run = "bun scripts/benchmarks/automerge-cache.ts"
+
+[tasks."bench:server:snapshots"]
+run = "bun scripts/benchmarks/automerge-snapshots.ts"
+
+[tasks."bench:server:transport"]
+run = "bun scripts/benchmarks/automerge-transport.ts"
+

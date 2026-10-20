@@ -1,3 +1,4 @@
+import { cbor } from "@automerge/automerge-repo";
 import { free, isImmutableString, load, stats } from "@automerge/automerge";
 import { type Browser, expect, type Page } from "@playwright/test";
 
@@ -86,17 +87,20 @@ export async function checkGuestSharing(
     const uploadIds: string[] = [];
     const uploadSizes: number[] = [];
     await sender.route(
-      "**/api/v1/registerCollaborativeDocument*",
+      "**/api/v1/documents/registerCollaborativeDocument",
       async (route) => {
-        const body = route.request().postData()!;
+        const body = route.request().postDataBuffer()!;
         uploadBytes = Math.max(uploadBytes, body.length);
-        const input = JSON.parse(body)["0"];
+        const input = cbor.decode(body) as {
+          content: Uint8Array;
+          documentId: string;
+        };
         const uploaded = load<{
           shapes: Record<
             string,
             { geometry: { type: string; pointsJson?: unknown } }
           >;
-        }>(new Uint8Array(Buffer.from(input.content, "base64")));
+        }>(input.content);
         try {
           for (const shape of Object.values(uploaded.shapes)) {
             if (shape.geometry.type === "pen-json")

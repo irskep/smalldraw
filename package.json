@@ -38,5 +38,8 @@
   },
   "overrides": {
     "@typescript/old": "https://registry.npmjs.org/typescript/-/typescript-6.0.2.tgz"
+  },
+  "patchedDependencies": {
+    "@automerge/automerge-repo@2.5.1": "patches/@automerge%2Fautomerge-repo@2.5.1.patch"
   }
 }

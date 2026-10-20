@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { cbor } from "@automerge/automerge-repo";
 import { createAppError } from "@smalldraw/shared";
 import {
   createMultiplayerApiClient,
@@ -107,19 +108,22 @@ describe("createMultiplayerApiClient", () => {
     expect(requests[0]?.credentials).toBe("include");
   });
 
-  test("registerCollaborativeDocument sends mutation with base64 content", async () => {
+  test("registerCollaborativeDocument sends binary snapshot bytes", async () => {
     const requests: Array<{
       url: string;
       method: string | undefined;
-      body: string | undefined;
+      body: { documentId: string; content: Uint8Array };
     }> = [];
     installFetchMock(async (input, init) => {
       requests.push({
         url: input.toString(),
         method: init?.method,
-        body: typeof init?.body === "string" ? init.body : undefined,
+        body: cbor.decode(init?.body as Uint8Array) as {
+          documentId: string;
+          content: Uint8Array;
+        },
       });
-      return mockJsonResponse({
+      return mockBinaryResponse({
         collabDocUrl: "automerge:doc-1",
         joinSecret: "token-1",
         accessToken: "access-1",
@@ -144,26 +148,28 @@ describe("createMultiplayerApiClient", () => {
     });
     expect(requests[0].url).toContain("registerCollaborativeDocument");
     expect(requests[0].method).toBe("POST");
-    expect(requests[0].body).toContain("automerge:doc-1");
-    expect(requests[0].body).toContain(btoa(String.fromCharCode(1, 2, 3)));
+    expect(requests[0].body.documentId).toBe("automerge:doc-1");
+    expect(requests[0].body.content).toEqual(new Uint8Array([1, 2, 3]));
   });
 
   test("resolveCollaborativeDocumentByJoinSecret sends query input and supports null", async () => {
     const requests: Array<string> = [];
+    const inputs: unknown[] = [];
     let callCount = 0;
-    installFetchMock(async (input) => {
+    installFetchMock(async (input, init) => {
       requests.push(input.toString());
+      inputs.push(cbor.decode(init?.body as Uint8Array));
       callCount += 1;
       if (callCount === 1) {
-        return mockJsonResponse({
+        return mockBinaryResponse({
           collabDocUrl: "automerge:doc-2",
           joinSecret: "token-2",
           accessToken: "access-2",
           accessTokenScope: "device",
-          content: btoa("fake-doc-binary"),
+          content: new TextEncoder().encode("fake-doc-binary"),
         });
       }
-      return mockJsonResponse(null);
+      return mockBinaryResponse(null);
     });
 
     const client = createMultiplayerApiClient({
@@ -183,21 +189,21 @@ describe("createMultiplayerApiClient", () => {
       joinSecret: "token-2",
       accessToken: "access-2",
       accessTokenScope: "device",
-      content: btoa("fake-doc-binary"),
+      content: new TextEncoder().encode("fake-doc-binary"),
     });
     expect(missing).toBeNull();
     expect(requests[0]).toContain(
-      "/resolveAnonymousCollaborativeDocument?batch=1&input=",
+      "/documents/resolveAnonymousCollaborativeDocument",
     );
-    expect(decodeURIComponent(requests[0])).toContain(
-      '"joinSecret":"join-abc"',
-    );
-    expect(decodeURIComponent(requests[0])).toContain('"deviceTag":"device-1"');
+    expect(inputs[0]).toEqual({
+      joinSecret: "join-abc",
+      deviceTag: "device-1",
+    });
   });
 
   test("resolve throws when content is missing from response", async () => {
     installFetchMock(async () => {
-      return mockJsonResponse({
+      return mockBinaryResponse({
         collabDocUrl: "automerge:doc-3",
         joinSecret: "token-3",
         accessToken: "access-3",
@@ -227,11 +233,11 @@ describe("createMultiplayerApiClient", () => {
         url: input.toString(),
         credentials: init?.credentials,
       });
-      return mockJsonResponse({
+      return mockBinaryResponse({
         collabDocUrl: "automerge:account-doc-1",
         accessToken: "account-access-1",
         accessTokenScope: "owner",
-        content: btoa("fake-account-doc-binary"),
+        content: new TextEncoder().encode("fake-account-doc-binary"),
       });
     });
 
@@ -248,16 +254,10 @@ describe("createMultiplayerApiClient", () => {
       collabDocUrl: "automerge:account-doc-1",
       accessToken: "account-access-1",
       accessTokenScope: "owner",
-      content: btoa("fake-account-doc-binary"),
+      content: new TextEncoder().encode("fake-account-doc-binary"),
     });
     expect(requests[0]?.url).toContain("resolveAccountCollaborativeDocument");
     expect(requests[0]?.credentials).toBe("include");
-    expect(decodeURIComponent(requests[0]?.url ?? "")).toContain(
-      '"documentId":"account-doc-1"',
-    );
-    expect(decodeURIComponent(requests[0]?.url ?? "")).toContain(
-      '"deviceTag":"device-1"',
-    );
   });
 
   test("resolveCollaborativeDocumentByAccountDocumentId preserves typed app errors", async () => {
@@ -271,7 +271,7 @@ describe("createMultiplayerApiClient", () => {
       details: { documentId: "account-doc-missing-content" },
     });
     installFetchMock(async () =>
-      mockTrpcErrorResponse({
+      mockBinaryErrorResponse({
         message: appError.message,
         trpcCode: "NOT_FOUND",
         httpStatus: 404,
@@ -298,7 +298,7 @@ describe("createMultiplayerApiClient", () => {
 
   test("throws when response payload is invalid", async () => {
     installFetchMock(async () => {
-      return mockJsonResponse({ joinSecret: "token-only" });
+      return mockBinaryResponse({ joinSecret: "token-only" });
     });
 
     const client = createMultiplayerApiClient({
@@ -449,3 +449,19 @@ test("an oversized HTTP upload reports a useful error even when the parser retur
     ),
   ).rejects.toThrow("This drawing is too large to upload");
 });
+
+function mockBinaryResponse(result: unknown): Response {
+  return new Response(cbor.encode({ result }) as Uint8Array<ArrayBuffer>, {
+    headers: { "content-type": "application/cbor" },
+  });
+}
+async function mockBinaryErrorResponse(
+  options: Parameters<typeof mockTrpcErrorResponse>[0],
+): Promise<Response> {
+  const response = mockTrpcErrorResponse(options);
+  const [envelope] = await response.json();
+  return new Response(cbor.encode(envelope) as Uint8Array<ArrayBuffer>, {
+    status: response.status,
+    headers: { "content-type": "application/cbor" },
+  });
+}

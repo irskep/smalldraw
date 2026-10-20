@@ -5,7 +5,7 @@ import { db } from "../db/client.js";
 import { createDocument } from "../db/createDocument.js";
 import { createUser } from "../db/createUser.js";
 import { documentInvitations, usersOnDocuments } from "../db/schema.js";
-import { appRouter } from "./appRouter.js";
+import { apiRouter as appRouter } from "../test/apiCaller";
 
 describe("account document open routes", () => {
   afterEach(() => {

@@ -52,7 +52,10 @@ import {
 } from "../db/accountSettings.js";
 import { addUserToDocument } from "../db/addUserToDocument.js";
 import { claimAnonymousCollaborativeDocument } from "../db/claimAnonymousCollaborativeDocument.js";
-import { createAnonymousCollaborativeDocument } from "../db/createAnonymousCollaborativeDocument.js";
+import {
+  createAnonymousCollaborativeDocument,
+  DocumentRegistrationConflictError,
+} from "../db/createAnonymousCollaborativeDocument.js";
 import { createDocument } from "../db/createDocument.js";
 import { createLoginAttempt } from "../db/createLoginAttempt.js";
 import { createOrRefreshDocumentInvitation } from "../db/createOrRefreshDocumentInvitation.js";
@@ -240,7 +243,7 @@ const hasInMemoryRepoHandle = (documentId: string): boolean => {
   return Boolean(handleMap?.[documentId]);
 };
 
-const serializeRepoDocument = async (documentId: string): Promise<string> =>
+const serializeRepoDocument = async (documentId: string): Promise<Uint8Array> =>
   documentLifetime.use(documentId as DocumentId, async () => {
     console.info("[server:documents] serialize start", {
       documentId,
@@ -291,9 +294,7 @@ const serializeRepoDocument = async (documentId: string): Promise<string> =>
     console.info("[server:documents] serialize save start", {
       documentId,
     });
-    const content = Buffer.from(snapshotCache.get(documentId, doc)).toString(
-      "base64",
-    );
+    const content = snapshotCache.get(documentId, doc);
     console.info("[server:documents] serialize save complete", {
       documentId,
       bytes: content.length,
@@ -301,7 +302,7 @@ const serializeRepoDocument = async (documentId: string): Promise<string> =>
     return content;
   });
 
-export const appRouter = router({
+const procedures = {
   adminMe: serverAdminProcedure.query(async (opts) => {
     return {
       id: opts.ctx.serverAdmin.id,
@@ -1090,7 +1091,9 @@ export const appRouter = router({
     .input(
       z.object({
         documentId: z.string().min(1),
-        content: z.string().min(1),
+        content: z.custom<Uint8Array>(
+          (value) => value instanceof Uint8Array && value.length > 0,
+        ),
         deviceTag: z.string().min(1).max(128),
       }),
     )
@@ -1100,9 +1103,7 @@ export const appRouter = router({
         "",
       ) as DocumentId;
       return documentLifetime.use(rawDocId, async () => {
-        const binary = new Uint8Array(
-          Buffer.from(opts.input.content, "base64"),
-        );
+        const binary = opts.input.content;
         // Validate before reserving the ID; authorize retries before importing content.
         const validated = load(binary);
         try {
@@ -1123,6 +1124,14 @@ export const appRouter = router({
             accessToken: result.accessToken,
             accessTokenScope: "owner",
           } satisfies RegisteredCollaborativeDocument;
+        } catch (cause) {
+          if (cause instanceof DocumentRegistrationConflictError)
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: cause.message,
+              cause,
+            });
+          throw cause;
         } finally {
           free(validated);
         }
@@ -1134,7 +1143,9 @@ export const appRouter = router({
       z.object({
         accountId: z.string().min(1),
         documentId: z.string().min(1),
-        content: z.string().min(1),
+        content: z.custom<Uint8Array>(
+          (value) => value instanceof Uint8Array && value.length > 0,
+        ),
       }),
     )
     .mutation(async (opts) => {
@@ -1148,9 +1159,7 @@ export const appRouter = router({
         "",
       ) as DocumentId;
       return documentLifetime.use(rawDocId, async () => {
-        const binary = new Uint8Array(
-          Buffer.from(opts.input.content, "base64"),
-        );
+        const binary = opts.input.content;
         const validated = load(binary);
         try {
           if (getHeads(validated).length === 0)
@@ -1187,7 +1196,9 @@ export const appRouter = router({
       z.object({
         accountId: z.string().min(1),
         documentId: z.string().min(1),
-        content: z.string().min(1),
+        content: z.custom<Uint8Array>(
+          (value) => value instanceof Uint8Array && value.length > 0,
+        ),
       }),
     )
     .mutation(async (opts) => {
@@ -1209,9 +1220,7 @@ export const appRouter = router({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
       return documentLifetime.use(documentId, async () => {
-        const incoming = load(
-          new Uint8Array(Buffer.from(opts.input.content, "base64")),
-        );
+        const incoming = load(opts.input.content);
         try {
           const heads = getHeads(incoming);
           const handle = await repo.find(documentId);
@@ -1219,9 +1228,7 @@ export const appRouter = router({
           await repo.flush([documentId]);
           return {
             heads,
-            content: Buffer.from(
-              snapshotCache.get(documentId, handle.doc()),
-            ).toString("base64"),
+            content: snapshotCache.get(documentId, handle.doc()),
           };
         } finally {
           free(incoming);
@@ -1519,6 +1526,23 @@ export const appRouter = router({
 
       return { success: true, userId: user.id };
     }),
+};
+
+const {
+  registerCollaborativeDocument,
+  registerAccountSyncedDocument,
+  checkpointAccountDrawing,
+  resolveAnonymousCollaborativeDocument,
+  resolveAccountCollaborativeDocument,
+  ...jsonProcedures
+} = procedures;
+export const documentTransferRouter = router({
+  registerCollaborativeDocument,
+  registerAccountSyncedDocument,
+  checkpointAccountDrawing,
+  resolveAnonymousCollaborativeDocument,
+  resolveAccountCollaborativeDocument,
 });
+export const appRouter = router(jsonProcedures);
 
 export type AppRouter = typeof appRouter;

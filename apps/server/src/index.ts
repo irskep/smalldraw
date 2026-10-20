@@ -13,6 +13,7 @@ import { getSession } from "./db/getSession.js";
 import { getSharePreview, renderSharePreview } from "./sharePreview.js";
 import { getR2ThumbnailConfig } from "./storage/documentThumbnailStore.js";
 import { appRouter } from "./trpc/appRouter.js";
+import { createDocumentTransferHttp } from "./trpc/documentTransferHttp.js";
 import { createContext } from "./trpc/trpc.js";
 import { resolveWebSocketUpgradeAuth } from "./wsUpgradeAuth.js";
 
@@ -36,7 +37,7 @@ const PORT =
   process.env.PORT !== undefined ? parseInt(process.env.PORT, 10) : 3030;
 const app = express();
 
-// Drawing snapshots are base64-encoded Automerge documents, not small form posts.
+// Image uploads remain JSON; document snapshots use the binary endpoint below.
 app.use(express.json({ limit: "16mb" }));
 
 const defaultAllowedOrigins: string[] = [];
@@ -53,6 +54,7 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use("/api/v1/documents", createDocumentTransferHttp());
 
 app.use(
   "/api/v1",

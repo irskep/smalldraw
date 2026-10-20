@@ -5,6 +5,9 @@
 !Dockerfile
 !.dockerignore
 !bun.lock
+!package.json
+!patches/
+!patches/**
 !drizzle.config.ts
 
 !apps/

@@ -84,7 +84,7 @@ function fakeApi(id = crypto.randomUUID()) {
       checked.push(docUrl);
       return {
         heads: getHeads(load(binary)),
-        content: Buffer.from(binary).toString("base64"),
+        content: binary,
       };
     },
     uploadDocumentThumbnail: async () => {},

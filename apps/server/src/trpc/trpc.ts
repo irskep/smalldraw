@@ -15,7 +15,8 @@ import { getUser } from "../db/getUser.js";
 export const createContext = async ({
   req,
   res,
-}: trpcExpress.CreateExpressContextOptions) => {
+}: Pick<trpcExpress.CreateExpressContextOptions, "req" | "res"> &
+  Partial<Pick<trpcExpress.CreateExpressContextOptions, "info">>) => {
   const authorization = req.headers.authorization;
   if (authorization?.startsWith("Basic ")) {
     const serverAdmin = await getServerAdminByBasicAuth(authorization);

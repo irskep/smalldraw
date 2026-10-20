@@ -24,7 +24,9 @@ export class SnapshotCache {
         this.bytes + bytes.byteLength > this.maxBytes ||
         this.entries.size >= this.maxEntries
       ) {
-        this.remove(this.entries.keys().next().value!);
+        const oldest = this.entries.keys().next().value;
+        if (oldest === undefined) break;
+        this.remove(oldest);
       }
       this.entries.set(id, { heads, bytes });
       this.bytes += bytes.byteLength;
