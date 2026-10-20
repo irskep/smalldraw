@@ -1,3 +1,4 @@
+import { ImmutableString } from "@automerge/automerge/slim";
 import {
   BoxOperations,
   getX,
@@ -14,7 +15,8 @@ import { getHitTestBounds } from "./hitTestUtils";
 
 export interface PenGeometry {
   type: "pen-json";
-  pointsJson: string;
+  // Coordinates are replaced as a whole, never collaboratively edited as text.
+  pointsJson: ImmutableString;
   pointCount: number;
   pressures?: number[]; // same length as decoded points
 }
@@ -83,7 +85,10 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
     toJSON(shape: PenShape) {
       return {
         ...shape,
-        geometry: shape.geometry,
+        geometry: {
+          ...shape.geometry,
+          pointsJson: shape.geometry.pointsJson.toString(),
+        },
         ...(shape.transform
           ? {
               transform: shape.transform,
@@ -100,7 +105,12 @@ export const PenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
       }
       return {
         ...penShape,
-        geometry: penShape.geometry,
+        geometry: {
+          ...penShape.geometry,
+          pointsJson: new ImmutableString(
+            penShape.geometry.pointsJson.toString(),
+          ),
+        },
         ...(penShape.transform
           ? {
               transform: penShape.transform,
@@ -125,13 +135,14 @@ export function getPenGeometryPoints(geometry: PenGeometry): Vec2Tuple[] {
     decodedPointCache.set(geometry, snapshot);
     return snapshot;
   }
-  const cachedByJson = decodedPointsByJson.get(geometry.pointsJson);
+  const pointsJson = geometry.pointsJson.toString();
+  const cachedByJson = decodedPointsByJson.get(pointsJson);
   if (cachedByJson) {
     decodedPointCache.set(geometry, cachedByJson);
     return cachedByJson;
   }
-  const decoded = decodePenPointsJson(geometry.pointsJson);
-  decodedPointsByJson.set(geometry.pointsJson, decoded);
+  const decoded = decodePenPointsJson(pointsJson);
+  decodedPointsByJson.set(pointsJson, decoded);
   if (decodedPointsByJson.size > MAX_DECODED_JSON_CACHE_SIZE) {
     const oldestKey = decodedPointsByJson.keys().next().value;
     if (typeof oldestKey === "string") {
@@ -152,7 +163,7 @@ export function createPenJSONGeometry(
 ): PenGeometry {
   return {
     type: "pen-json",
-    pointsJson: encodePenPointsJson(points),
+    pointsJson: new ImmutableString(encodePenPointsJson(points)),
     pointCount: points.length,
     ...(pressures ? { pressures } : {}),
   };
@@ -217,7 +228,7 @@ export function createAppendOnlyPenGeometryEncoder(): (
     }
     const geometry: PenGeometry = {
       type: "pen-json",
-      pointsJson: `${prefix}]`,
+      pointsJson: new ImmutableString(`${prefix}]`),
       pointCount: encodedCount,
       ...(pressures ? { pressures } : {}),
     };

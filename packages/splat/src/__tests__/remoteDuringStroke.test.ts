@@ -1,5 +1,10 @@
 import { expect, test } from "bun:test";
-import { change, clone, merge } from "@automerge/automerge/slim";
+import {
+  change,
+  clone,
+  ImmutableString,
+  merge,
+} from "@automerge/automerge/slim";
 import {
   type ActionContext,
   createDocument,
@@ -18,7 +23,7 @@ const seed = (id: string): PenShape => ({
   temporalOrder: 0,
   geometry: {
     type: "pen-json",
-    pointsJson: "[[10,10],[40,10]]",
+    pointsJson: new ImmutableString("[[10,10],[40,10]]"),
     pointCount: 2,
   },
   style: {

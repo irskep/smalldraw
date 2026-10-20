@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { change, clone } from "@automerge/automerge/slim";
+import { change, clone, ImmutableString } from "@automerge/automerge/slim";
 import {
   createDocument,
   DrawingStore,
@@ -26,7 +26,7 @@ test("superseded prewarms skip copying while waiting drafts receive the latest p
     temporalOrder: 0,
     geometry: {
       type: "pen-json",
-      pointsJson: "[[10,50],[90,50]]",
+      pointsJson: new ImmutableString("[[10,50],[90,50]]"),
       pointCount: 2,
     },
     style: {

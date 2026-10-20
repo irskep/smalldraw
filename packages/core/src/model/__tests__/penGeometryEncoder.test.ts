@@ -35,7 +35,7 @@ test("new input never reads previously encoded coordinates", () => {
     },
   });
   points.push([3, 4]);
-  expect(encode(points).pointsJson).toBe("[[1,2],[3,4]]");
+  expect(encode(points).pointsJson.toString()).toBe("[[1,2],[3,4]]");
 });
 
 test("pressure samples including zero survive incremental encoding", () => {

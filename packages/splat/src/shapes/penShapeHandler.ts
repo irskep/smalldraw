@@ -1,5 +1,4 @@
 import {
-  type AnyShape,
   buildTransformMatrix,
   createPenJSONGeometry,
   getPenGeometryPoints,
@@ -8,6 +7,7 @@ import {
   normalizeShapeTransform,
   type PenGeometry,
   type PenShape,
+  PenShapeHandler,
   type Shape,
   type ShapeHandler,
 } from "@smalldraw/core";
@@ -69,36 +69,7 @@ export const KidsPenShapeHandler: ShapeHandler<PenGeometry, unknown> = {
     },
     supportsAxisResize: () => false,
   },
-  serialization: {
-    toJSON(shape: PenShape) {
-      return {
-        ...shape,
-        geometry: shape.geometry,
-        ...(shape.transform
-          ? {
-              transform: shape.transform,
-            }
-          : {}),
-      };
-    },
-    fromJSON(shape: AnyShape) {
-      const penShape = shape as PenShape;
-      if (penShape.geometry.type !== "pen-json") {
-        throw new Error(
-          `Invalid pen geometry type '${penShape.geometry.type}'. Expected 'pen-json'.`,
-        );
-      }
-      return {
-        ...penShape,
-        geometry: penShape.geometry,
-        ...(penShape.transform
-          ? {
-              transform: penShape.transform,
-            }
-          : {}),
-      };
-    },
-  },
+  serialization: PenShapeHandler.serialization,
 };
 
 function getHitTestBounds(shape: Shape, localBounds: Box | null): Box {

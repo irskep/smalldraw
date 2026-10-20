@@ -272,7 +272,12 @@ export async function createSmalldraw(
         for (const [id, shape] of Object.entries(sourceShapes)) {
           const serialized = JSON.stringify(shape);
           if (JSON.stringify(doc.shapes[id]) !== serialized) {
-            doc.shapes[id] = JSON.parse(serialized);
+            const serializer = registry.get(shape.type)?.serialization;
+            if (!serializer)
+              throw new Error(
+                `Missing serializer for shape type "${shape.type}"`,
+              );
+            doc.shapes[id] = serializer.fromJSON(JSON.parse(serialized));
           }
         }
         doc.temporalOrderCounter = sourceDoc.temporalOrderCounter ?? 0;

@@ -1,3 +1,4 @@
+import { free, isImmutableString, load, stats } from "@automerge/automerge";
 import { type Browser, expect, type Page } from "@playwright/test";
 
 /** Real guest uploads, response loss, retry, and shared/local navigation. */
@@ -90,6 +91,22 @@ export async function checkGuestSharing(
         const body = route.request().postData()!;
         uploadBytes = Math.max(uploadBytes, body.length);
         const input = JSON.parse(body)["0"];
+        const uploaded = load<{
+          shapes: Record<
+            string,
+            { geometry: { type: string; pointsJson?: unknown } }
+          >;
+        }>(new Uint8Array(Buffer.from(input.content, "base64")));
+        try {
+          for (const shape of Object.values(uploaded.shapes)) {
+            if (shape.geometry.type === "pen-json")
+              expect(isImmutableString(shape.geometry.pointsJson)).toBe(true);
+          }
+          // Thousands of points must not become hundreds of thousands of text operations.
+          expect(stats(uploaded).numOps).toBeLessThan(10000);
+        } finally {
+          free(uploaded);
+        }
         uploadIds.push(input.documentId);
         uploadSizes.push(body.length);
         console.log("Guest request bytes", body.length);

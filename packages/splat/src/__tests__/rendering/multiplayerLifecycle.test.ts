@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { ImmutableString } from "@automerge/automerge/slim";
 import { Repo } from "@automerge/automerge-repo/slim";
 import {
   createAutomergeStoreAdapter,
@@ -33,10 +34,12 @@ const stroke = (
   temporalOrder: 0,
   geometry: {
     type: "pen-json",
-    pointsJson: JSON.stringify([
-      [20, y],
-      [180, y],
-    ]),
+    pointsJson: new ImmutableString(
+      JSON.stringify([
+        [20, y],
+        [180, y],
+      ]),
+    ),
     pointCount: 2,
   },
   style: { stroke: { type: "brush", brushId: "marker", size: 20, color } },

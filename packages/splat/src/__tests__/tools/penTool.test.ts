@@ -61,7 +61,7 @@ describe("pen tool integration with runtime", () => {
       });
     }
     const draft = runtime.getDraft() as unknown as PenShape;
-    expect(draft.geometry.pointsJson).toBe(JSON.stringify(points));
+    expect(draft.geometry.pointsJson.toString()).toBe(JSON.stringify(points));
     expect(draft.geometry.pressures).toHaveLength(points.length);
     runtime.dispatch("pointerUp", {
       point: new Vec2(points.at(-1)!),

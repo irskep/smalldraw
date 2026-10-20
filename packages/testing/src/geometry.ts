@@ -5,7 +5,7 @@ type Vec2Tuple = [number, number];
 type ShapeWithPoints = {
   geometry: {
     type?: "pen-json";
-    pointsJson?: string;
+    pointsJson?: { toString(): string };
   };
   transform?: {
     translation?: Vec2Tuple;
@@ -36,7 +36,7 @@ export function expectPointsClose(
 }
 
 function getShapePoints(shape: ShapeWithPoints): Vec2Tuple[] {
-  const json = shape.geometry.pointsJson;
+  const json = shape.geometry.pointsJson?.toString();
   if (!json) {
     return [];
   }

@@ -1,3 +1,4 @@
+import { isImmutableString } from "@automerge/automerge/slim";
 import type { DrawingDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
 
@@ -14,7 +15,7 @@ export function stripUndefined<T>(value: T): T {
     return value.map((item) => stripUndefined(item)) as T;
   }
   if (value && typeof value === "object") {
-    if (ArrayBuffer.isView(value)) {
+    if (ArrayBuffer.isView(value) || isImmutableString(value)) {
       return value;
     }
     const result: Record<string, unknown> = {};
