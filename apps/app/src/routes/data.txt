@@ -6,6 +6,12 @@ Drawings are saved in this browser on this device. They aren’t uploaded unless
 
 Clearing your browser’s data can erase these drawings. Browsers can also remove saved data automatically, so use an account for drawings you want to keep.
 
+## If you use Safari
+
+Safari can erase drawings saved only in your browser after seven days of Safari use without interacting with Splatterboard. Sign in to keep drawings you want to save in your account.
+
+Read about Safari’s storage policy: https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/#7-day-cap-on-all-script-writeable-storage
+
 ## With an account
 
 When you sign in or create an account, drawings on this device are added to your account. Changes save automatically when you’re online. Sign in on another device to find your drawings there.

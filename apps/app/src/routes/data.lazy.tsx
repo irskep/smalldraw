@@ -23,6 +23,18 @@ function DataPage() {
           you want to keep.
         </p>
 
+        <h2>If you use Safari</h2>
+        <p>
+          Safari can erase drawings saved only in your browser after seven days
+          of Safari use without interacting with Splatterboard. Sign in to keep
+          drawings you want to save in your account.
+        </p>
+        <p>
+          <a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/#7-day-cap-on-all-script-writeable-storage">
+            Read about Safari’s storage policy
+          </a>
+        </p>
+
         <h2>With an account</h2>
         <p>
           When you sign in or create an account, drawings on this device are
