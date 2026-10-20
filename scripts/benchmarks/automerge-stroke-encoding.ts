@@ -9,6 +9,12 @@ for (const name of ["small", "medium", "large"]) {
     ),
   );
   const plain = A.toJS(original) as any;
+  // Fixtures exported by the app now already contain atomic coordinates.
+  // Normalize to JSON before constructing either controlled representation.
+  for (const shape of Object.values(plain.shapes) as any[]) {
+    if (A.isImmutableString(shape.geometry.pointsJson))
+      shape.geometry.pointsJson = shape.geometry.pointsJson.toString();
+  }
   A.free(original);
   for (const encoding of ["text", "immutable"]) {
     const value = structuredClone(plain);
