@@ -10,7 +10,7 @@ export function renderRasterFill(
   if (rasterFill.geometry.type !== "raster-fill") {
     return;
   }
-  const image = getLoadedRasterImage(rasterFill.geometry.src);
+  const image = getLoadedRasterImage(rasterFill.geometry.src.toString());
   if (!image) {
     return;
   }

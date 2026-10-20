@@ -1,3 +1,4 @@
+import { isImmutableString } from "@automerge/automerge/slim";
 import {
   type AnyShape,
   type DrawingDocument,
@@ -21,8 +22,11 @@ export function getDocumentImageSources(
   for (const shape of shapes) {
     if (!visibleLayers.has(shape.layerId ?? "default")) continue;
     const geometry = shape.geometry;
-    if ("src" in geometry && typeof geometry.src === "string")
-      sources.add(geometry.src);
+    if (
+      "src" in geometry &&
+      (typeof geometry.src === "string" || isImmutableString(geometry.src))
+    )
+      sources.add(geometry.src.toString());
   }
   return [...sources];
 }

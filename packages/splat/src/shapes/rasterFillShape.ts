@@ -1,3 +1,4 @@
+import { ImmutableString } from "@automerge/automerge/slim";
 import {
   type AnyShape,
   buildTransformMatrix,
@@ -16,7 +17,7 @@ import { Vec2 } from "gl-matrix";
 
 export interface RasterFillGeometry {
   type: "raster-fill";
-  src: string;
+  src: ImmutableString;
   width: number;
   height: number;
 }
@@ -69,7 +70,10 @@ export const KidsRasterFillShapeHandler: ShapeHandler<
     getBounds: (shape: Shape & { geometry: RasterFillGeometry }) =>
       getRasterFillGeometryBounds(shape.geometry),
     canonicalize(shape: Shape & { geometry: RasterFillGeometry }) {
-      return shape.geometry;
+      return {
+        ...shape.geometry,
+        src: new ImmutableString(shape.geometry.src.toString()),
+      };
     },
   },
   shape: {
@@ -87,7 +91,7 @@ export const KidsRasterFillShapeHandler: ShapeHandler<
     toJSON(shape: Shape & { geometry: RasterFillGeometry }) {
       return {
         ...shape,
-        geometry: shape.geometry,
+        geometry: { ...shape.geometry, src: shape.geometry.src.toString() },
         ...(shape.transform ? { transform: shape.transform } : {}),
       };
     },
@@ -100,7 +104,10 @@ export const KidsRasterFillShapeHandler: ShapeHandler<
       }
       return {
         ...rasterFillShape,
-        geometry: rasterFillShape.geometry,
+        geometry: {
+          ...rasterFillShape.geometry,
+          src: new ImmutableString(rasterFillShape.geometry.src.toString()),
+        },
         ...(rasterFillShape.transform
           ? { transform: rasterFillShape.transform }
           : {}),
