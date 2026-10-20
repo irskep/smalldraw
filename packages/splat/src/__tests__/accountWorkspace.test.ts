@@ -631,3 +631,20 @@ test("a reply that omits uploaded edits cannot advance the checkpoint", async ()
   expect(cache.get(drawing.url)).toBe(previous);
   expect(drawing.doc().marks).toContain("must be saved");
 });
+
+test("an unrelated unloaded handle cannot block account checkpoints", async () => {
+  const { api, id, checked } = fakeApi();
+  const { repo, backend } = workspace(id);
+  const drawing = repo.create({ marks: ["keep"] });
+  await backend.createDocument({ docUrl: drawing.url });
+  const unrelated = repo.create({ unused: true });
+  await repo.flush();
+  unrelated.unload();
+  try {
+    await expect(repo.flush()).rejects.toThrow("DocHandle is not ready");
+    await syncAccountWorkspace(api, repo, backend, id);
+    expect(checked).toEqual([drawing.url]);
+  } finally {
+    repo.delete(unrelated.documentId);
+  }
+});

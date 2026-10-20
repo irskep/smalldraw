@@ -202,7 +202,6 @@ export async function syncAccountWorkspace(
         "Sign back in to this account to finish syncing your drawings.",
       );
   }
-  await repo.flush();
   for (const document of await backend.listDocuments()) {
     const id = binaryId(document);
     if (
@@ -215,6 +214,8 @@ export async function syncAccountWorkspace(
     )
       continue;
     const localHandle = await repo.find(id);
+    // Other cached handles may still be loading or unloaded. Flush only this ready drawing.
+    await repo.flush([localHandle.documentId]);
     const last = checkpoints?.get(id);
     if (
       document.accountAttached &&

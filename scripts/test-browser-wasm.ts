@@ -789,6 +789,7 @@ try {
     "PASS: production drawing browser desktop/mobile grid, bounds, and scrolling",
   );
 
+  await page.bringToFront();
   const incrementalCheckpoints: number[] = [];
   let checkpointReplies = 0;
   page.on("response", async (response) => {
@@ -803,7 +804,13 @@ try {
     const result = decode(new Uint8Array(await response.body())) as {
       result: { status: string };
     };
-    if (result.result.status === "saved") checkpointReplies++;
+    if (result.result.status === "saved") {
+      checkpointReplies++;
+      console.log("Checkpoint acknowledgement", {
+        incremental: request.baseHeads !== null,
+        bytes: request.content.length,
+      });
+    }
     if (request.baseHeads !== null && result.result.status === "saved")
       incrementalCheckpoints.push(request.content.length);
   });
@@ -855,6 +862,9 @@ try {
   expect(errors).toEqual([]);
   console.log(
     "PASS: fresh login restores all three strokes from server using binary WASM",
+  );
+  await page.evaluate(() =>
+    window.dispatchEvent(new Event("drawing-sync-retry")),
   );
   await expect
     .poll(() => checkpointReplies, { timeout: 20_000 })
