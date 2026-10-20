@@ -1,4 +1,8 @@
 import { describe, expect, it } from "bun:test";
+import {
+  generateAutomergeUrl,
+  parseAutomergeUrl,
+} from "@automerge/automerge-repo";
 import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
@@ -229,7 +233,7 @@ describe("account routes", () => {
       registrationRecord: "registration-record",
     });
     const caller = createAuthenticatedCaller(user.id, "account-sync-session");
-    const documentId = "account-sync-route-doc";
+    const { documentId } = parseAutomergeUrl(generateAutomergeUrl());
     const content = await createAutomergeContent();
 
     const result = await caller.registerAccountSyncedDocument({

@@ -37,8 +37,13 @@ import {
   buildClearedSessionCookie,
   buildSessionCookie,
 } from "../auth/sessionCookie.js";
-import { repo, repoStorage } from "../automergeRepo/automergeRepo.js";
+import {
+  documentLifetime,
+  repo,
+  repoStorage,
+} from "../automergeRepo/automergeRepo.js";
 import { toAutomergeUrl } from "../automergeRepo/automergeUrl.js";
+import { importValidatedDocument } from "../automergeRepo/importValidatedDocument.js";
 import {
   getAccountSettings,
   saveAccountSettings,
@@ -234,64 +239,65 @@ const hasInMemoryRepoHandle = (documentId: string): boolean => {
   return Boolean(handleMap?.[documentId]);
 };
 
-const serializeRepoDocument = async (documentId: string): Promise<string> => {
-  console.info("[server:documents] serialize start", {
-    documentId,
-  });
-  if (
-    !repoStorage.hasDocumentContent(documentId) &&
-    !hasInMemoryRepoHandle(documentId)
-  ) {
-    console.warn("[server:documents] serialize missing repo content", {
+const serializeRepoDocument = async (documentId: string): Promise<string> =>
+  documentLifetime.use(documentId as DocumentId, async () => {
+    console.info("[server:documents] serialize start", {
       documentId,
     });
-    throw appTrpcError(
-      {
-        code: "DOCUMENT_CONTENT_MISSING",
-        title: "Could not open drawing",
-        message:
-          "This drawing exists in your account, but its drawing content is missing from storage.",
-        severity: "recoverable",
-        retryable: false,
-        details: { documentId },
-      },
-      "NOT_FOUND",
-    );
-  }
-  console.info("[server:documents] serialize repo.find start", {
-    documentId,
-  });
-  const handle = await repo.find(documentId as DocumentId);
-  console.info("[server:documents] serialize repo.find complete", {
-    documentId,
-  });
-  console.info("[server:documents] serialize handle.doc start", {
-    documentId,
-  });
-  const doc = await handle.doc();
-  if (!doc) {
-    console.warn("[server:documents] serialize empty doc", {
+    if (
+      !repoStorage.hasDocumentContent(documentId) &&
+      !hasInMemoryRepoHandle(documentId)
+    ) {
+      console.warn("[server:documents] serialize missing repo content", {
+        documentId,
+      });
+      throw appTrpcError(
+        {
+          code: "DOCUMENT_CONTENT_MISSING",
+          title: "Could not open drawing",
+          message:
+            "This drawing exists in your account, but its drawing content is missing from storage.",
+          severity: "recoverable",
+          retryable: false,
+          details: { documentId },
+        },
+        "NOT_FOUND",
+      );
+    }
+    console.info("[server:documents] serialize repo.find start", {
       documentId,
     });
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Document not found in repository",
+    const handle = await repo.find(documentId as DocumentId);
+    console.info("[server:documents] serialize repo.find complete", {
+      documentId,
     });
-  }
-  console.info("[server:documents] serialize handle.doc complete", {
-    documentId,
+    console.info("[server:documents] serialize handle.doc start", {
+      documentId,
+    });
+    const doc = await handle.doc();
+    if (!doc) {
+      console.warn("[server:documents] serialize empty doc", {
+        documentId,
+      });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Document not found in repository",
+      });
+    }
+    console.info("[server:documents] serialize handle.doc complete", {
+      documentId,
+    });
+    const { save } = await import("@automerge/automerge");
+    console.info("[server:documents] serialize save start", {
+      documentId,
+    });
+    const content = Buffer.from(save(doc)).toString("base64");
+    console.info("[server:documents] serialize save complete", {
+      documentId,
+      bytes: content.length,
+    });
+    return content;
   });
-  const { save } = await import("@automerge/automerge");
-  console.info("[server:documents] serialize save start", {
-    documentId,
-  });
-  const content = Buffer.from(save(doc)).toString("base64");
-  console.info("[server:documents] serialize save complete", {
-    documentId,
-    bytes: content.length,
-  });
-  return content;
-};
 
 export const appRouter = router({
   adminMe: serverAdminProcedure.query(async (opts) => {
@@ -1091,36 +1097,34 @@ export const appRouter = router({
         /^automerge:/,
         "",
       ) as DocumentId;
-      const binary = new Uint8Array(Buffer.from(opts.input.content, "base64"));
-      // Validate before reserving the ID; authorize retries before importing content.
-      const validated = load(binary);
-      free(validated);
-      const result = await createAnonymousCollaborativeDocument({
-        documentId: rawDocId,
-        ownerTag: opts.input.deviceTag,
+      return documentLifetime.use(rawDocId, async () => {
+        const binary = new Uint8Array(
+          Buffer.from(opts.input.content, "base64"),
+        );
+        // Validate before reserving the ID; authorize retries before importing content.
+        const validated = load(binary);
+        try {
+          const result = await createAnonymousCollaborativeDocument({
+            documentId: rawDocId,
+            ownerTag: opts.input.deviceTag,
+          });
+          await importValidatedDocument(repo, repoStorage, rawDocId, validated);
+          if (opts.ctx.session) {
+            await claimAnonymousCollaborativeDocument({
+              userId: opts.ctx.session.userId,
+              accessToken: result.accessToken,
+            });
+          }
+          return {
+            collabDocUrl: toAutomergeUrl(result.document.id),
+            joinSecret: result.joinSecret,
+            accessToken: result.accessToken,
+            accessTokenScope: "owner",
+          } satisfies RegisteredCollaborativeDocument;
+        } finally {
+          free(validated);
+        }
       });
-      // A retry after a server restart must merge with durable history too.
-      if (
-        !repo.handles[rawDocId] &&
-        (await repo.storageSubsystem?.loadDoc(rawDocId))
-      ) {
-        await repo.find(rawDocId);
-      }
-      const handle = repo.import(binary, { docId: rawDocId });
-      await handle.whenReady();
-      await repo.flush([rawDocId]);
-      if (opts.ctx.session) {
-        await claimAnonymousCollaborativeDocument({
-          userId: opts.ctx.session.userId,
-          accessToken: result.accessToken,
-        });
-      }
-      return {
-        collabDocUrl: toAutomergeUrl(result.document.id),
-        joinSecret: result.joinSecret,
-        accessToken: result.accessToken,
-        accessTokenScope: "owner",
-      } satisfies RegisteredCollaborativeDocument;
     }),
 
   registerAccountSyncedDocument: protectedProcedure
@@ -1141,31 +1145,39 @@ export const appRouter = router({
         /^automerge:/,
         "",
       ) as DocumentId;
-      const binary = new Uint8Array(Buffer.from(opts.input.content, "base64"));
-      if (getHeads(load(binary)).length === 0)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Drawing content is empty",
-        });
-      // Reserve ownership atomically before importing any client content.
-      // Retries from the same account reuse the ID; another account cannot claim it.
-      if (
-        !(await syncAccountDocument({
-          documentId: rawDocId,
-          userId: opts.ctx.session.userId,
-        }))
-      ) {
-        throw new TRPCError({ code: "FORBIDDEN" });
-      }
-      const handle = repo.import(binary, { docId: rawDocId });
-      await handle.whenReady();
-      await repo.flush([rawDocId]);
-      const accessToken = await getOrCreateAccountDocumentOwnerToken(rawDocId);
-      return {
-        collabDocUrl: toAutomergeUrl(rawDocId),
-        accessToken: accessToken.token,
-        accessTokenScope: "owner",
-      } satisfies SyncedAccountDocument;
+      return documentLifetime.use(rawDocId, async () => {
+        const binary = new Uint8Array(
+          Buffer.from(opts.input.content, "base64"),
+        );
+        const validated = load(binary);
+        try {
+          if (getHeads(validated).length === 0)
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Drawing content is empty",
+            });
+          // Reserve ownership atomically before importing any client content.
+          // Retries from the same account reuse the ID; another account cannot claim it.
+          if (
+            !(await syncAccountDocument({
+              documentId: rawDocId,
+              userId: opts.ctx.session.userId,
+            }))
+          ) {
+            throw new TRPCError({ code: "FORBIDDEN" });
+          }
+          await importValidatedDocument(repo, repoStorage, rawDocId, validated);
+          const accessToken =
+            await getOrCreateAccountDocumentOwnerToken(rawDocId);
+          return {
+            collabDocUrl: toAutomergeUrl(rawDocId),
+            accessToken: accessToken.token,
+            accessTokenScope: "owner",
+          } satisfies SyncedAccountDocument;
+        } finally {
+          free(validated);
+        }
+      });
     }),
 
   checkpointAccountDrawing: protectedProcedure
@@ -1194,17 +1206,23 @@ export const appRouter = router({
       ) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
-      const incoming = load(
-        new Uint8Array(Buffer.from(opts.input.content, "base64")),
-      );
-      const heads = getHeads(incoming);
-      const handle = await repo.find(documentId);
-      handle.update((current) => merge(current, incoming));
-      await repo.flush([documentId]);
-      return {
-        heads,
-        content: Buffer.from(save(handle.doc())).toString("base64"),
-      };
+      return documentLifetime.use(documentId, async () => {
+        const incoming = load(
+          new Uint8Array(Buffer.from(opts.input.content, "base64")),
+        );
+        try {
+          const heads = getHeads(incoming);
+          const handle = await repo.find(documentId);
+          handle.update((current) => merge(current, incoming));
+          await repo.flush([documentId]);
+          return {
+            heads,
+            content: Buffer.from(save(handle.doc())).toString("base64"),
+          };
+        } finally {
+          free(incoming);
+        }
+      });
     }),
 
   resolveAnonymousCollaborativeDocument: publicProcedure

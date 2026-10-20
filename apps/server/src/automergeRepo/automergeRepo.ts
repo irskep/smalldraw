@@ -2,6 +2,7 @@ import os from "node:os";
 import { Repo, type RepoConfig } from "@automerge/automerge-repo";
 import { WebSocketServer } from "isomorphic-ws";
 import { AuthAdapter } from "./authAdapter.js";
+import { DocumentLifetime } from "./documentLifetime.js";
 import { SqliteStorageAdapter } from "./sqliteStorageAdapter.js";
 
 const automergeDbPath = process.env.AUTOMERGE_DB_PATH ?? "./automerge.db";
@@ -19,8 +20,9 @@ export async function serverSharePolicy(
 
 export const repoStorage = new SqliteStorageAdapter(automergeDbPath);
 
+const adapter = new AuthAdapter(webSocketServer);
 const config: RepoConfig = {
-  network: [new AuthAdapter(webSocketServer)],
+  network: [adapter],
   storage: repoStorage,
   // @ts-expect-error
   peerId: `storage-server-${hostname}`,
@@ -28,3 +30,10 @@ const config: RepoConfig = {
 };
 
 export const repo = new Repo(config);
+
+export const documentLifetime = new DocumentLifetime(repo);
+adapter.documentLifetime = documentLifetime;
+const idleSweep = setInterval(() => {
+  void documentLifetime.sweep();
+}, 15_000);
+idleSweep.unref();
