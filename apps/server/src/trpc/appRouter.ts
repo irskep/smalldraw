@@ -1,4 +1,4 @@
-import { getHeads, load, merge, save } from "@automerge/automerge";
+import { free, getHeads, load, merge, save } from "@automerge/automerge";
 import type { DocumentId } from "@automerge/automerge-repo";
 import * as opaque from "@serenity-kit/opaque";
 import type {
@@ -1043,11 +1043,19 @@ export const appRouter = router({
       ) as DocumentId;
       const binary = new Uint8Array(Buffer.from(opts.input.content, "base64"));
       // Validate before reserving the ID; authorize retries before importing content.
-      load(binary);
+      const validated = load(binary);
+      free(validated);
       const result = await createAnonymousCollaborativeDocument({
         documentId: rawDocId,
         ownerTag: opts.input.deviceTag,
       });
+      // A retry after a server restart must merge with durable history too.
+      if (
+        !repo.handles[rawDocId] &&
+        (await repo.storageSubsystem?.loadDoc(rawDocId))
+      ) {
+        await repo.find(rawDocId);
+      }
       const handle = repo.import(binary, { docId: rawDocId });
       await handle.whenReady();
       await repo.flush([rawDocId]);

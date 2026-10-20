@@ -262,7 +262,19 @@ export async function createSmalldraw(
           ? { ...sourceDoc.presentation }
           : ({} as DrawingDocumentPresentation);
         doc.layers = JSON.parse(JSON.stringify(sourceDoc.layers ?? {}));
-        doc.shapes = JSON.parse(JSON.stringify(sourceDoc.shapes ?? {}));
+        if (!doc.shapes) doc.shapes = {};
+        const sourceShapes = sourceDoc.shapes ?? {};
+        // Keep unchanged shape objects/history on a retry. Replacing the whole
+        // map duplicates every point in the binary, even for a single new stroke.
+        for (const id of Object.keys(doc.shapes)) {
+          if (!(id in sourceShapes)) delete doc.shapes[id];
+        }
+        for (const [id, shape] of Object.entries(sourceShapes)) {
+          const serialized = JSON.stringify(shape);
+          if (JSON.stringify(doc.shapes[id]) !== serialized) {
+            doc.shapes[id] = JSON.parse(serialized);
+          }
+        }
         doc.temporalOrderCounter = sourceDoc.temporalOrderCounter ?? 0;
       });
       const copiedDoc = copyHandle.doc();

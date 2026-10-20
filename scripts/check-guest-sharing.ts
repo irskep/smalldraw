@@ -69,6 +69,7 @@ export async function checkGuestSharing(
     let uploadBytes = 0;
     let dropped = false;
     const uploadIds: string[] = [];
+    const uploadSizes: number[] = [];
     await sender.route(
       "**/api/v1/registerCollaborativeDocument*",
       async (route) => {
@@ -76,6 +77,7 @@ export async function checkGuestSharing(
         uploadBytes = Math.max(uploadBytes, body.length);
         const input = JSON.parse(body)["0"];
         uploadIds.push(input.documentId);
+        uploadSizes.push(body.length);
         console.log("Guest request bytes", body.length);
         await expect(
           sender.getByRole("progressbar", { name: "Sharing drawing…" }),
@@ -112,6 +114,7 @@ export async function checkGuestSharing(
     const join = await link.inputValue();
     expect(uploadIds).toHaveLength(2);
     expect(uploadIds[0]).toBe(uploadIds[1]);
+    expect(uploadSizes[1]).toBeLessThan(uploadSizes[0] * 1.1);
     expect(uploadBytes).toBeGreaterThan(100 * 1024);
     await sender.getByRole("button", { name: "Done", exact: true }).click();
     await receiver.goto(`${origin}/draw/?new=1`);
