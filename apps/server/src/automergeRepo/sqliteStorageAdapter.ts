@@ -6,9 +6,16 @@ import type { StorageAdapter, StorageKey } from "@automerge/automerge-repo";
 export class SqliteStorageAdapter implements StorageAdapter {
   private db: Database;
 
-  constructor(dbPath: string) {
+  constructor(
+    dbPath: string,
+    options: { journalMode?: "WAL" | "DELETE" } = {},
+  ) {
     mkdirSync(dirname(dbPath), { recursive: true });
     this.db = new Database(dbPath);
+    this.db.run(`PRAGMA journal_mode=${options.journalMode ?? "WAL"}`);
+    // Keep committed writes durable; NORMAL would trade durability for throughput.
+    this.db.run("PRAGMA synchronous=FULL");
+    this.db.run("PRAGMA busy_timeout=5000");
     this.db.run(`
       CREATE TABLE IF NOT EXISTS automerge_data (
         key TEXT PRIMARY KEY,
