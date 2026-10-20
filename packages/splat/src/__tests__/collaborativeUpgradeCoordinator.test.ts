@@ -230,10 +230,14 @@ describe("createCollaborativeUpgradeCoordinator", () => {
     ]);
   });
 
-  test("reuses pending collaborative document on retry after register failure", async () => {
+  test.each([
+    "register",
+    "catalog",
+  ])("refreshes pending drawing after %s failure", async (failure) => {
     let createDocumentCopyCalls = 0;
     let registerCalls = 0;
-    let shouldFailRegister = true;
+    let shouldFail = true;
+    const uploaded: number[] = [];
 
     const coordinator = createCollaborativeUpgradeCoordinator({
       documentBackend: {
@@ -247,6 +251,10 @@ describe("createCollaborativeUpgradeCoordinator", () => {
           };
         },
         async createDocument(input) {
+          if (shouldFail && failure === "catalog") {
+            shouldFail = false;
+            throw new Error("catalog failed");
+          }
           return {
             docUrl: input.docUrl,
             mode: "normal",
@@ -266,13 +274,14 @@ describe("createCollaborativeUpgradeCoordinator", () => {
         createDocumentCopyCalls += 1;
         return {
           url: "automerge:collab-doc",
-          binary: new Uint8Array([1, 2, 3]),
+          binary: new Uint8Array([createDocumentCopyCalls]),
         };
       },
-      registerCollaborativeDocument: async () => {
+      registerCollaborativeDocument: async (_id, content) => {
+        uploaded.push(content[0]);
         registerCalls += 1;
-        if (shouldFailRegister) {
-          shouldFailRegister = false;
+        if (shouldFail && failure === "register") {
+          shouldFail = false;
           throw new Error("register failed");
         }
         return {
@@ -286,14 +295,15 @@ describe("createCollaborativeUpgradeCoordinator", () => {
     });
 
     await expect(coordinator.ensureCollaborative()).rejects.toThrow(
-      "register failed",
+      `${failure} failed`,
     );
     const result = await coordinator.ensureCollaborative();
     expect(result.collabDocUrl).toBe("automerge:collab-doc");
     expect(result.joinSecret).toBe("join-secret-1");
     expect(result.accessToken).toBe("access-token-1");
     expect(result.accessTokenScope).toBe("owner");
-    expect(createDocumentCopyCalls).toBe(1);
+    expect(createDocumentCopyCalls).toBe(2);
     expect(registerCalls).toBe(2);
+    expect(uploaded).toEqual([1, 2]);
   });
 });

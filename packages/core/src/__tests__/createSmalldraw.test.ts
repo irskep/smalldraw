@@ -41,7 +41,7 @@ function createHandle(
 }
 
 describe("createSmalldraw", () => {
-  test("falls back to a new document when stored document open times out", async () => {
+  test("preserves the stored drawing when opening it times out", async () => {
     let aborted = false;
     const staleHandle = createHandle("automerge:stale-doc", false, {
       onAbort: () => {
@@ -52,7 +52,7 @@ describe("createSmalldraw", () => {
     const writes: string[] = [];
 
     const staleDocId = "stale-doc";
-    const core = await createSmalldraw({
+    const opening = createSmalldraw({
       repo: {
         peerId: "peer-1",
         handles: { [staleDocId]: staleHandle },
@@ -70,8 +70,8 @@ describe("createSmalldraw", () => {
       },
     });
 
-    expect(core.getCurrentDocUrl()).toBe("automerge:fresh-doc");
-    expect(writes).toEqual(["automerge:fresh-doc"]);
+    await expect(opening).rejects.toThrow("Timed out opening document");
+    expect(writes).toEqual([]);
     expect(aborted).toBeTrue();
   });
 
@@ -105,4 +105,45 @@ describe("createSmalldraw", () => {
     );
     expect(aborted).toBeTrue();
   });
+});
+
+test("open bounds repo.find itself and preserves the active document on failure", async () => {
+  const ready = createHandle("automerge:ready", true);
+  let aborted = false;
+  const writes: string[] = [];
+  const core = await createSmalldraw({
+    repo: {
+      peerId: "peer",
+      handles: {},
+      create: () => ready,
+      find: (_url: string, options: { signal: AbortSignal }) =>
+        new Promise((_, reject) => {
+          options.signal.addEventListener(
+            "abort",
+            () => {
+              aborted = true;
+              reject(new Error("aborted"));
+            },
+            { once: true },
+          );
+        }),
+    } as any,
+    shapeHandlers: {} as any,
+    initialOpenTimeoutMs: 5,
+    persistence: {
+      mode: "always-new",
+      getCurrentDocUrl: async () => null,
+      setCurrentDocUrl: async (url) => {
+        writes.push(url);
+      },
+    },
+  });
+  const adapter = core.storeAdapter;
+  await expect(core.open("automerge:missing")).rejects.toThrow(
+    "Timed out opening document",
+  );
+  expect(aborted).toBe(true);
+  expect(core.getCurrentDocUrl()).toBe("automerge:ready");
+  expect(core.storeAdapter).toBe(adapter);
+  expect(writes).toEqual(["automerge:ready"]);
 });

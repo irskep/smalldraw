@@ -1,0 +1,39 @@
+.ds-progress-bar {
+  width: 100%;
+  height: var(--size-2);
+  overflow: hidden;
+  border-radius: var(--radius-round);
+  background: var(--ds-surface-muted);
+}
+
+.ds-progress-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ds-accent-fill);
+  transition: width 160ms ease-out;
+}
+
+.ds-progress-bar[data-indeterminate="true"] .ds-progress-bar__fill {
+  width: 35%;
+  animation: ds-progress-wait 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes ds-progress-wait {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(185%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-progress-bar__fill {
+    transition: none;
+  }
+  .ds-progress-bar[data-indeterminate="true"] .ds-progress-bar__fill {
+    animation: none;
+    transform: translateX(90%);
+  }
+}

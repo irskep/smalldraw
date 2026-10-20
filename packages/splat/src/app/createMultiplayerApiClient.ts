@@ -83,6 +83,14 @@ export interface MultiplayerApiClient {
   uploadDocumentThumbnail(documentId: string, thumbnail: Blob): Promise<void>;
 }
 
+class DrawingUploadTooLargeError extends Error {
+  constructor() {
+    super(
+      "This drawing is too large to upload. Your drawing is still saved on this device.",
+    );
+  }
+}
+
 export function createMultiplayerApiClient(options: {
   apiUrl: string;
 }): MultiplayerApiClient {
@@ -90,11 +98,16 @@ export function createMultiplayerApiClient(options: {
     links: [
       httpBatchLink({
         url: options.apiUrl,
-        fetch(url, init) {
-          return fetch(url, {
+        async fetch(url, init) {
+          const response = await fetch(url, {
             ...init,
             credentials: "include",
+            signal: init?.signal
+              ? AbortSignal.any([init.signal, AbortSignal.timeout(15000)])
+              : AbortSignal.timeout(15000),
           });
+          if (response.status === 413) throw new DrawingUploadTooLargeError();
+          return response;
         },
       }),
     ],
@@ -438,6 +451,7 @@ function normalizeMultiplayerApiError(
     return error;
   }
   if (error instanceof TRPCClientError) {
+    if (error.cause instanceof DrawingUploadTooLargeError) return error.cause;
     return new MultiplayerApiError(
       extractAppError(error) ?? fallbackAppError(error, fallbackMessage),
       { cause: error },

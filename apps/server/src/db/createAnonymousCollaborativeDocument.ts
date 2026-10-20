@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import { generateId } from "../utils/generateId.js";
 import { db } from "./client.js";
 import { documentInvitations, documents } from "./schema.js";
@@ -13,9 +14,44 @@ export const createAnonymousCollaborativeDocument = async ({
   name,
   ownerTag,
 }: Params) => {
-  return db.transaction(async (tx) => {
+  return db.transaction((tx) => {
+    const existing = tx
+      .select()
+      .from(documents)
+      .where(eq(documents.id, documentId))
+      .get();
+    if (existing) {
+      const owner = tx
+        .select()
+        .from(documentInvitations)
+        .where(
+          and(
+            eq(documentInvitations.documentId, documentId),
+            eq(documentInvitations.scope, "owner"),
+            eq(documentInvitations.tag, ownerTag),
+          ),
+        )
+        .get();
+      const share = tx
+        .select()
+        .from(documentInvitations)
+        .where(
+          and(
+            eq(documentInvitations.documentId, documentId),
+            eq(documentInvitations.scope, "share"),
+          ),
+        )
+        .get();
+      if (!owner || !share)
+        throw new Error("Drawing registration belongs to another device.");
+      return {
+        document: existing,
+        joinSecret: share.token,
+        accessToken: owner.token,
+      };
+    }
     const now = new Date();
-    const [document] = await tx
+    const document = tx
       .insert(documents)
       .values({
         id: documentId,
@@ -23,9 +59,10 @@ export const createAnonymousCollaborativeDocument = async ({
         createdAt: now,
         updatedAt: now,
       })
-      .returning();
+      .returning()
+      .get();
 
-    const [shareToken] = await tx
+    const shareToken = tx
       .insert(documentInvitations)
       .values({
         documentId,
@@ -34,8 +71,9 @@ export const createAnonymousCollaborativeDocument = async ({
         createdAt: now,
         lastUsedAt: now,
       })
-      .returning();
-    const [ownerToken] = await tx
+      .returning()
+      .get();
+    const ownerToken = tx
       .insert(documentInvitations)
       .values({
         documentId,
@@ -45,7 +83,8 @@ export const createAnonymousCollaborativeDocument = async ({
         createdAt: now,
         lastUsedAt: now,
       })
-      .returning();
+      .returning()
+      .get();
 
     return {
       document,

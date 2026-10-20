@@ -49,7 +49,7 @@ export interface SmalldrawCore {
     documentSize?: DrawingDocumentSize;
     documentPresentation?: DrawingDocumentPresentation;
   }): Promise<DrawingStoreAdapter>;
-  createDocumentCopy(): { url: string; binary: Uint8Array };
+  createDocumentCopy(existingUrl?: string): { url: string; binary: Uint8Array };
   destroy(): void;
 }
 
@@ -104,25 +104,7 @@ async function getOrCreateHandle(
     return cachedHandle;
   }
 
-  // Not in cache — load from storage via repo.find().
-  // Use an abort signal so we don't hang forever if the doc doesn't exist.
-  const abortController = new AbortController();
-  const timeout = setTimeout(() => abortController.abort(), findTimeoutMs);
-  try {
-    return await repo.find<DrawingDocumentData>(currentDocUrl as AutomergeUrl, {
-      signal: abortController.signal,
-    });
-  } catch {
-    console.warn(
-      "[createSmalldraw] repo.find failed or timed out, creating new:",
-      currentDocUrl,
-    );
-    return repo.create<DrawingDocumentData>(
-      createEmptyDrawingDocumentData(documentSize, documentPresentation),
-    );
-  } finally {
-    clearTimeout(timeout);
-  }
+  return await findDocument(repo, currentDocUrl, findTimeoutMs);
 }
 
 export async function createSmalldraw(
@@ -149,7 +131,11 @@ export async function createSmalldraw(
     // Load the durable local history before merging a server snapshot.
     // Importing into a fresh handle would otherwise replace unsynced offline edits.
     if (await repo.storageSubsystem?.loadDoc(docId)) await repo.find(docId);
-    repo.import(preImport.binary, { docId });
+    const imported = repo.import(preImport.binary, { docId });
+    await imported.whenReady();
+    // Import can emit its first change before the repo attaches its save listener.
+    // Persist the snapshot before presenting a drawing as available on this device.
+    await repo.flush([docId]);
     if (debug) {
       console.debug("[createSmalldraw] pre-imported doc:", preImport.docId, {
         bytes: preImport.binary.length,
@@ -193,21 +179,8 @@ export async function createSmalldraw(
     initialOpenTimeoutMs,
   );
   const initialReady = await waitForHandleReady(handle, initialOpenTimeoutMs);
-  if (!initialReady && mode === "reuse" && initialCurrentDocUrl) {
-    console.warn("[createSmalldraw] timed out opening stored doc; resetting", {
-      initialCurrentDocUrl,
-      timeoutMs: initialOpenTimeoutMs,
-    });
-    handle = await getOrCreateHandle(
-      repo,
-      null,
-      "always-new",
-      documentSize,
-      DEFAULT_DOCUMENT_PRESENTATION,
-      debug,
-      initialOpenTimeoutMs,
-    );
-    await handle.whenReady();
+  if (!initialReady) {
+    throw new Error(`Timed out opening document: ${initialCurrentDocUrl}`);
   }
   await writeCurrentDocUrl(handle.url);
 
@@ -258,22 +231,28 @@ export async function createSmalldraw(
       return handle.url;
     },
     async open(url) {
-      handle = await repo.find<DrawingDocumentData>(url as AutomergeUrl);
-      const ready = await waitForHandleReady(handle, initialOpenTimeoutMs);
-      if (!ready) {
+      const nextHandle = await findDocument(repo, url, initialOpenTimeoutMs);
+      if (!(await waitForHandleReady(nextHandle, initialOpenTimeoutMs))) {
         throw new Error(`Timed out opening document: ${url}`);
       }
-      await writeCurrentDocUrl(handle.url);
-      storeAdapter = createAutomergeStoreAdapter({
-        handle,
+      await writeCurrentDocUrl(nextHandle.url);
+      const nextAdapter = createAutomergeStoreAdapter({
+        handle: nextHandle,
         registry,
         debug,
       });
+      handle = nextHandle;
+      storeAdapter = nextAdapter;
       return storeAdapter;
     },
-    createDocumentCopy() {
+    createDocumentCopy(existingUrl) {
       const sourceDoc = storeAdapter.getDoc();
-      const copyHandle = repo.create<DrawingDocumentData>();
+      const copyHandle = existingUrl
+        ? (repo.handles[stripAutomergePrefix(existingUrl)] as
+            | DocHandle<DrawingDocumentData>
+            | undefined)
+        : repo.create<DrawingDocumentData>();
+      if (!copyHandle?.isReady()) throw new Error("Document copy is not ready");
       copyHandle.change((doc) => {
         doc.size = {
           width: sourceDoc.size.width,
@@ -305,6 +284,32 @@ export async function createSmalldraw(
       // Reserved for future teardown (e.g. closing adapters).
     },
   };
+}
+
+async function findDocument(
+  repo: Repo,
+  url: string,
+  timeoutMs: number,
+): Promise<DocHandle<DrawingDocumentData>> {
+  const controller = new AbortController();
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    // An already-running repo lookup may ignore a later caller's signal.
+    // Bound this wait too; a late result must never replace the current drawing.
+    return await Promise.race([
+      repo.find<DrawingDocumentData>(url as AutomergeUrl, {
+        signal: controller.signal,
+      }),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => {
+          reject(new Error(`Timed out opening document: ${url}`));
+          controller.abort();
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function waitForHandleReady(

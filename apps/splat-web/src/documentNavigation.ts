@@ -47,6 +47,9 @@ export interface SplatDocumentNavigationStore {
   subscribe(
     listener: (state: SplatDocumentNavigationState) => void,
   ): () => void;
+  subscribeRequests(
+    listener: (state: SplatDocumentNavigationState) => void,
+  ): () => void;
   pushDocument(summary: SplatDocumentUrlSummary | null, docUrl: string): void;
   replaceCurrentDocument(
     summary: SplatDocumentUrlSummary | null,
@@ -60,12 +63,14 @@ export function createSplatDocumentNavigationStore(options: {
 }): SplatDocumentNavigationStore {
   const { window } = options;
   const state = atom(resolveNavigationState(window.location.href));
-  const setFromLocation = (): void => {
+  const requests = atom<SplatDocumentNavigationState | null>(null);
+  const setFromLocation = (requestOpen = true): void => {
     const next = resolveNavigationState(window.location.href);
     if (isSameNavigationState(state.get(), next)) {
       return;
     }
     state.set(next);
+    if (requestOpen) requests.set(next);
   };
   const onPopState = (): void => {
     setFromLocation();
@@ -79,6 +84,11 @@ export function createSplatDocumentNavigationStore(options: {
     },
     subscribe(listener): () => void {
       return state.subscribe(listener);
+    },
+    subscribeRequests(listener): () => void {
+      return requests.listen((request) => {
+        if (request) listener(request);
+      });
     },
     pushDocument(summary, docUrl): void {
       const nextHref = buildSplatCurrentDocumentUrl(window.location.href, {
@@ -100,7 +110,7 @@ export function createSplatDocumentNavigationStore(options: {
       if (nextHref !== window.location.href) {
         window.history.replaceState(null, "", nextHref);
       }
-      setFromLocation();
+      setFromLocation(false);
       return state.get();
     },
     syncFromLocation(): void {

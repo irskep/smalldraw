@@ -35,7 +35,8 @@ const PORT =
   process.env.PORT !== undefined ? parseInt(process.env.PORT, 10) : 3030;
 const app = express();
 
-app.use(express.json());
+// Drawing snapshots are base64-encoded Automerge documents, not small form posts.
+app.use(express.json({ limit: "16mb" }));
 
 const defaultAllowedOrigins: string[] = [];
 const allowedOrigins = (process.env.FRONTEND_ORIGINS ?? "")

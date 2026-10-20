@@ -1,3 +1,4 @@
+import { ProgressBar } from "@smalldraw/design-system";
 import "./KidsDrawStage.css";
 
 import { el, mount } from "redom";
@@ -38,6 +39,7 @@ export interface KidsDrawStage extends ReDomLike<HTMLDivElement> {
 }
 
 export class KidsDrawStageView implements KidsDrawStage {
+  private readonly startupProgress = new ProgressBar();
   readonly el: HTMLDivElement;
   readonly element: HTMLDivElement;
   readonly viewportHost: HTMLDivElement;
@@ -70,7 +72,7 @@ export class KidsDrawStageView implements KidsDrawStage {
     this.viewportHost = this.element;
 
     this.canvasFrame = el("div.kids-draw-frame") as HTMLDivElement;
-    this.canvasFrame.style.backgroundColor = backgroundColor;
+    this.canvasFrame.style.setProperty("--drawing-background", backgroundColor);
 
     this.sceneRoot = el("div.kids-draw-scene") as HTMLDivElement;
     this.tileLayer = el(
@@ -125,6 +127,7 @@ export class KidsDrawStageView implements KidsDrawStage {
     this.startupOverlayDetail.hidden = true;
     this.startupOverlayCard.setAttribute("role", "status");
     mount(this.startupOverlayCard, this.startupOverlayTitle);
+    mount(this.startupOverlayCard, this.startupProgress);
     mount(this.startupOverlayCard, this.startupOverlayDetail);
     mount(this.startupOverlay, this.startupOverlayCard);
 
@@ -187,6 +190,7 @@ export class KidsDrawStageView implements KidsDrawStage {
     assetsFailed: number;
     blockingReason?: string;
   }): void {
+    this.canvasFrame.dataset.loading = String(status.visible);
     this.startupOverlay.dataset.visible = status.visible ? "true" : "false";
     if (!status.visible) {
       this.startupOverlayTitle.textContent = "";
@@ -194,13 +198,22 @@ export class KidsDrawStageView implements KidsDrawStage {
       return;
     }
     const progressText =
-      status.assetsTotal > 0
+      status.phase === "assets_loading" && status.assetsTotal > 0
         ? ` (${status.assetsLoaded}/${status.assetsTotal}${
             status.assetsFailed > 0 ? `, ${status.assetsFailed} failed` : ""
           })`
         : "";
     const content = describeStartupStatus(status);
     this.startupOverlayTitle.textContent = `${content.title}${progressText}`;
+    this.startupProgress.el.hidden =
+      status.phase === "degraded" || status.phase === "failed";
+    this.startupProgress.update({
+      label: content.title,
+      value:
+        status.phase === "assets_loading" && status.assetsTotal > 0
+          ? (status.assetsLoaded + status.assetsFailed) / status.assetsTotal
+          : undefined,
+    });
     this.startupOverlayDetail.textContent = content.detail ?? "";
     this.startupOverlayDetail.hidden = !content.detail;
   }
@@ -285,7 +298,7 @@ function describeStartupStatus(status: {
   }
   if (status.phase === "first_bake") {
     return {
-      title: "Loading drawing…",
+      title: "Preparing canvas…",
     };
   }
   if (status.phase === "degraded") {
@@ -294,6 +307,9 @@ function describeStartupStatus(status: {
       detail:
         "Some drawing assets did not load correctly, but the drawing itself is still available.",
     };
+  }
+  if (status.blockingReason === "share_document") {
+    return { title: "Sharing drawing…" };
   }
   if (status.blockingReason === "switch_document") {
     return {

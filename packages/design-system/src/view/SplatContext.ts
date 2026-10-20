@@ -982,7 +982,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.documentStateHost = el(
       "div.ds-splat-context__no-document-host",
     ) as HTMLDivElement;
-    this.documentStateHost.append(createDocumentAccessState(slot).el);
+    this.documentStateHost.append(
+      createDocumentAccessState({ ...slot, loading: slot.type === "loading" })
+        .el,
+    );
     shell.append(this.documentStateHost);
     return shell;
   }

@@ -1042,11 +1042,15 @@ export const appRouter = router({
         "",
       ) as DocumentId;
       const binary = new Uint8Array(Buffer.from(opts.input.content, "base64"));
-      repo.import(binary, { docId: rawDocId });
+      // Validate before reserving the ID; authorize retries before importing content.
+      load(binary);
       const result = await createAnonymousCollaborativeDocument({
         documentId: rawDocId,
         ownerTag: opts.input.deviceTag,
       });
+      const handle = repo.import(binary, { docId: rawDocId });
+      await handle.whenReady();
+      await repo.flush([rawDocId]);
       if (opts.ctx.session) {
         await claimAnonymousCollaborativeDocument({
           userId: opts.ctx.session.userId,

@@ -861,3 +861,21 @@ describe("Document operations", () => {
     ).toBeNull();
   });
 });
+
+it("anonymous registration retries reuse both tokens and reject another device", async () => {
+  const first = await createAnonymousCollaborativeDocument({
+    documentId: "retry-anon-doc",
+    ownerTag: "device-first",
+  });
+  const second = await createAnonymousCollaborativeDocument({
+    documentId: "retry-anon-doc",
+    ownerTag: "device-first",
+  });
+  expect(second).toEqual(first);
+  await expect(
+    createAnonymousCollaborativeDocument({
+      documentId: "retry-anon-doc",
+      ownerTag: "device-other",
+    }),
+  ).rejects.toThrow("another device");
+});

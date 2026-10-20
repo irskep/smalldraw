@@ -72,6 +72,7 @@ export {
   type PosterCardOptions,
 } from "./view/PosterCard";
 export { createPreviewCard, PreviewCard } from "./view/PreviewCard";
+export { ProgressBar } from "./view/ProgressBar";
 export type { ReDomLike } from "./view/ReDomLike";
 export { renderIcon } from "./view/renderIcon";
 export { createShareQrDialog, type ShareQrDialog } from "./view/ShareQrDialog";

@@ -2,10 +2,12 @@ import "./DocumentAccessState.css";
 
 import { el } from "redom";
 import { Button } from "./Button";
+import { ProgressBar } from "./ProgressBar";
 import type { ReDomLike } from "./ReDomLike";
 import { Text } from "./Text";
 
 export interface DocumentAccessStateModel {
+  loading?: boolean;
   title: string;
   description?: string;
   message?: string;
@@ -19,6 +21,7 @@ export interface DocumentAccessStateModel {
 export class DocumentAccessState implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
 
+  #progress = new ProgressBar();
   #title: Text<"h1">;
   #description: Text<"p">;
   #message: HTMLPreElement;
@@ -89,6 +92,7 @@ export class DocumentAccessState implements ReDomLike<HTMLDivElement> {
     this.el = el(
       "div.ds-document-access-state",
       copy,
+      this.#progress,
       this.#message,
       this.#actions,
     ) as HTMLDivElement;
@@ -98,6 +102,8 @@ export class DocumentAccessState implements ReDomLike<HTMLDivElement> {
 
   setModel(model: DocumentAccessStateModel): void {
     this.#title.setText(model.title);
+    this.#progress.el.hidden = !model.loading;
+    this.#progress.update({ label: model.title });
     this.#description.setText(model.description ?? "");
     this.#description.el.hidden = !model.description;
     this.#actions.hidden =

@@ -89,3 +89,32 @@ describe("view components", () => {
     );
   });
 });
+
+test("loading progress is indeterminate for opening and counted for pictures", () => {
+  const stage = new KidsDrawStageView({
+    width: 640,
+    height: 480,
+    backgroundColor: "#fff",
+    uiIntentStore: { publish() {} },
+  });
+  stage.setStartupStatus({
+    visible: true,
+    phase: "doc_loading",
+    blockingReason: "share_document",
+    assetsLoaded: 0,
+    assetsTotal: 0,
+    assetsFailed: 0,
+  });
+  const bar = stage.startupOverlay.querySelector('[role="progressbar"]')!;
+  expect(bar.getAttribute("aria-label")).toBe("Sharing drawing…");
+  expect(bar.hasAttribute("aria-valuenow")).toBe(false);
+  stage.setStartupStatus({
+    visible: true,
+    phase: "assets_loading",
+    assetsLoaded: 2,
+    assetsTotal: 4,
+    assetsFailed: 0,
+  });
+  expect(bar.getAttribute("aria-valuenow")).toBe("50");
+  expect(stage.startupOverlayTitle.textContent).toBe("Loading pictures… (2/4)");
+});

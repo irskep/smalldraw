@@ -37,7 +37,6 @@ import type { StartupReadinessStore } from "./stores/createStartupReadinessStore
 
 export const DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS = 1000;
 const STARTUP_ASSET_TIMEOUT_MS = 2500;
-const SHARE_TIMEOUT_MS = 30000;
 
 export interface DocumentRuntimeController {
   getCurrentCatalogDocUrl(): string;
@@ -98,7 +97,10 @@ export function createDocumentRuntimeController(options: {
   fallbackDocumentSizeForCreate: DrawingDocumentSize;
   hasExplicitSize: boolean;
   getExplicitSize: () => DrawingDocumentSize;
-  createDocumentCopy?: () => { url: string; binary: Uint8Array };
+  createDocumentCopy?: (existingUrl?: string) => {
+    url: string;
+    binary: Uint8Array;
+  };
   registerCollaborativeDocument?: (
     documentId: string,
     content: Uint8Array,
@@ -200,11 +202,11 @@ export function createDocumentRuntimeController(options: {
     documentBackend: options.documentBackend,
     getCurrentCatalogDocUrl: () =>
       documentSessionController.getCurrentCatalogDocUrl(),
-    createDocumentCopy: () => {
+    createDocumentCopy: (existingUrl?: string) => {
       if (!options.createDocumentCopy) {
         throw new Error("Multiplayer API is not configured");
       }
-      return options.createDocumentCopy();
+      return options.createDocumentCopy(existingUrl);
     },
     registerCollaborativeDocument: async (documentId, content) => {
       if (!options.registerCollaborativeDocument) {
@@ -229,11 +231,8 @@ export function createDocumentRuntimeController(options: {
     },
     onCollaborativeMetadataPersisted: async (summary) => {
       options.onCurrentDocumentSummaryChanged?.(summary);
-      const blob = await options.snapshotService.createThumbnailBlob();
-      if (blob) {
-        await options.documentBackend.saveThumbnail(summary.docUrl, blob);
-        await options.onThumbnailSaved?.(summary.docUrl, blob);
-      }
+      // Previews are best-effort and must not hold up the sharing transaction.
+      void documentSessionController.flushThumbnailSave();
     },
     resolveJoinBaseUrl: () => {
       const url = options.resolveJoinBaseUrl?.();
@@ -570,11 +569,19 @@ export function createDocumentRuntimeController(options: {
     scheduleThumbnailSave,
     async shareCurrentDocument(): Promise<SharePayload> {
       console.info("[kids-draw:multiplayer] share command start");
-      return await withTimeout(
-        upgradeCoordinator.ensureCollaborative(),
-        SHARE_TIMEOUT_MS,
-        "Share timed out while connecting to collaborative sync. Check server connection and try again.",
-      );
+      // Freeze editing while the uploaded snapshot replaces the local handle.
+      // Network requests and core.open have aborting timeouts; do not race an
+      // uncancelled upgrade that could later switch documents behind the user.
+      beginStartupCycle("share_document");
+      try {
+        return await upgradeCoordinator.ensureCollaborative();
+      } finally {
+        applyDocumentPresentation(
+          documentSessionController.resolveDocumentPresentation(
+            options.store.getDocument().presentation,
+          ),
+        );
+      }
     },
     async syncCurrentDocumentToAccount(): Promise<AccountSyncPayload> {
       return await upgradeCoordinator.ensureAccountSynced();
@@ -683,35 +690,4 @@ function toDocumentAccessDisplay(
         ? error.message
         : "The drawing is not available right now.",
   };
-}
-
-async function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  message: string,
-): Promise<T> {
-  const startedAt = Date.now();
-  let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
-  try {
-    const result = await Promise.race([
-      promise,
-      new Promise<T>((_, reject) => {
-        timeoutHandle = setTimeout(() => {
-          console.warn("[kids-draw:multiplayer] share timeout reached", {
-            timeoutMs,
-            elapsedMs: Date.now() - startedAt,
-          });
-          reject(new Error(message));
-        }, timeoutMs);
-      }),
-    ]);
-    console.info("[kids-draw:multiplayer] share command finished", {
-      elapsedMs: Date.now() - startedAt,
-    });
-    return result;
-  } finally {
-    if (timeoutHandle !== null) {
-      clearTimeout(timeoutHandle);
-    }
-  }
 }

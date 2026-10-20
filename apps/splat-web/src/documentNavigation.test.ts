@@ -171,3 +171,21 @@ describe("createSplatDocumentNavigationStore", () => {
     store.dispose();
   });
 });
+
+test("recording a loaded document never requests another open", () => {
+  const window = new TestNavigationWindow("http://localhost:3000/draw/?new=1");
+  const store = createSplatDocumentNavigationStore({ window });
+  const requests: string[] = [];
+  const off = store.subscribeRequests((request) => requests.push(request.key));
+  store.replaceCurrentDocument({ docUrl: "automerge:first" });
+  expect(requests).toEqual([]);
+  store.pushDocument(null, "automerge:second");
+  expect(requests).toEqual(["local:automerge:second"]);
+  store.replaceCurrentDocument({ docUrl: "automerge:second" });
+  store.replaceCurrentDocument({ docUrl: "automerge:third" });
+  expect(requests).toHaveLength(1);
+  window.navigateBackTo("http://localhost:3000/draw/?local=automerge:first");
+  expect(requests).toEqual(["local:automerge:second", "local:automerge:first"]);
+  off();
+  store.dispose();
+});

@@ -670,7 +670,7 @@ function createControllerMultiplayerAdapters(options: {
 
   return {
     createDocumentCopy: multiplayerApiClient
-      ? () => options.core.createDocumentCopy()
+      ? (existingUrl?: string) => options.core.createDocumentCopy(existingUrl)
       : undefined,
     registerCollaborativeDocument: multiplayerApiClient
       ? async (documentId: string, content: Uint8Array) => {
@@ -793,8 +793,7 @@ function createAccountThumbnailUploader(options: {
     if (!isCollaborativeDocument(summary)) {
       return;
     }
-    const isAttached =
-      summary.accountAttached || summary.accessTokenScope === "owner";
+    const isAttached = summary.accountAttached;
     if (!isAttached) {
       return;
     }

@@ -22,7 +22,7 @@ function createTestStore(): DrawingStore {
 }
 
 describe("DocumentSessionController", () => {
-  test("opens collaborative docs using collabDocUrl while preserving local metadata key", async () => {
+  test("opens collaborative docs without waiting for thumbnails and preserves the local metadata key", async () => {
     const store = createTestStore();
     const openedUrls: string[] = [];
     const touchedUrls: string[] = [];
@@ -101,7 +101,7 @@ describe("DocumentSessionController", () => {
         getCurrentDocument: async () => null,
       },
       thumbnailSaveDebounceMs: 1,
-      createThumbnailBlob: async () => null,
+      createThumbnailBlob: () => new Promise(() => {}),
       getDocumentSizeForCreateRequest: () => ({ width: 640, height: 480 }),
     });
 

@@ -396,7 +396,11 @@ export async function resolveAccountDocumentForLocalOpen(options: {
         await options.localRepo.storageSubsystem?.loadDoc(automergeDocumentId)
       )
         await options.localRepo.find(automergeDocumentId);
-      options.localRepo.import(binary, { docId: automergeDocumentId });
+      const imported = options.localRepo.import(binary, {
+        docId: automergeDocumentId,
+      });
+      await imported.whenReady();
+      await options.localRepo.flush([automergeDocumentId]);
     }
     await options.documentBackend.createDocument({
       docUrl: summary.docUrl,

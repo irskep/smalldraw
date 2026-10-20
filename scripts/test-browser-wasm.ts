@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { chromium, expect, webkit } from "@playwright/test";
 import * as opaque from "@serenity-kit/opaque";
+import { checkGuestSharing } from "./check-guest-sharing";
 
 await opaque.ready;
 
@@ -605,6 +606,7 @@ try {
   // WebKit's non-persistent context reproduces Safari Private Browsing storage.
   const safari = await webkit.launch();
   try {
+    await checkGuestSharing(safari, origin);
     const privatePage = await safari.newPage({
       viewport: { width: 1280, height: 800 },
     });

@@ -153,7 +153,8 @@ export class DocumentSessionController {
       );
     }
     const openDocUrl = resolveDocumentOpenUrl(docUrl, persistedSummary);
-    await this.flushThumbnailSave();
+    // Thumbnail encoding must never block opening the next drawing.
+    void this.flushThumbnailSave();
     await this.options.beforeOpenDocument?.(persistedSummary);
     const adapter = await this.options.core.open(openDocUrl);
     this.currentCatalogDocUrl = docUrl;
@@ -201,7 +202,8 @@ export class DocumentSessionController {
     const nextDocumentSize =
       measuredDocumentSize ??
       this.options.getDocumentSizeForCreateRequest(request);
-    await this.flushThumbnailSave();
+    // Thumbnail encoding must never block opening the next drawing.
+    void this.flushThumbnailSave();
     const { adapter, url } = await this.options.core.createNew({
       documentSize: nextDocumentSize,
       documentPresentation: requestPresentation,

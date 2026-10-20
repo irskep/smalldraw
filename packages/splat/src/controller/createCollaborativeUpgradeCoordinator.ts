@@ -30,7 +30,10 @@ export function createCollaborativeUpgradeCoordinator(options: {
     "getDocument" | "createDocument" | "setCurrentDocument"
   >;
   getCurrentCatalogDocUrl: () => string;
-  createDocumentCopy: () => { url: string; binary: Uint8Array };
+  createDocumentCopy: (existingUrl?: string) => {
+    url: string;
+    binary: Uint8Array;
+  };
   registerCollaborativeDocument: (
     documentId: string,
     content: Uint8Array,
@@ -53,28 +56,36 @@ export function createCollaborativeUpgradeCoordinator(options: {
     summary: KidsDocumentSummary,
   ) => Promise<void> | void;
 }) {
-  const pendingCollaborativeByCatalogDocUrl = new Map<
-    string,
-    {
-      collabDocUrl: string;
-      binary: Uint8Array;
-      joinSecret?: string;
-      accessToken?: string;
-    }
-  >();
+  const pendingCollaborativeByCatalogDocUrl = new Map<string, string>();
 
-  const ensureCollaborative = async (): Promise<SharePayload> => {
+  const performCollaborativeUpgrade = async (): Promise<SharePayload> => {
     const startMs = Date.now();
     const catalogDocUrl = options.getCurrentCatalogDocUrl();
     console.info("[kids-draw:multiplayer] share flow: ensure start", {
       catalogDocUrl,
     });
     const existing = await options.documentBackend.getDocument(catalogDocUrl);
+    const assertCurrent = () => {
+      if (catalogDocUrl !== options.getCurrentCatalogDocUrl()) {
+        throw new Error(
+          "The open drawing changed. Share it again from the drawing you want to send.",
+        );
+      }
+    };
+    assertCurrent();
     if (isCollaborativeDocument(existing) && existing.joinSecret) {
       if (!existing.accessToken || existing.accessTokenScope !== "owner") {
         throw new Error(
           "Collaborative document metadata is missing its owner access token.",
         );
+      }
+      if (pendingCollaborativeByCatalogDocUrl.has(catalogDocUrl)) {
+        const copy = options.createDocumentCopy(existing.collabDocUrl);
+        await options.registerCollaborativeDocument(copy.url, copy.binary);
+        assertCurrent();
+        await options.switchToDocument(catalogDocUrl);
+        await options.documentBackend.setCurrentDocument(catalogDocUrl);
+        pendingCollaborativeByCatalogDocUrl.delete(catalogDocUrl);
       }
       console.info(
         "[kids-draw:multiplayer] share flow: already collaborative",
@@ -133,52 +144,19 @@ export function createCollaborativeUpgradeCoordinator(options: {
     }
 
     const pending = pendingCollaborativeByCatalogDocUrl.get(catalogDocUrl);
-    let collabDocUrl: string;
-    let binary: Uint8Array;
-    let joinSecret: string | undefined;
-    let accessToken: string | undefined;
-
-    if (pending) {
-      collabDocUrl = pending.collabDocUrl;
-      binary = pending.binary;
-      joinSecret = pending.joinSecret;
-      accessToken = pending.accessToken;
-    } else {
-      console.info(
-        "[kids-draw:multiplayer] share flow: creating document copy",
-      );
-      const copy = options.createDocumentCopy();
-      collabDocUrl = copy.url;
-      binary = copy.binary;
-      pendingCollaborativeByCatalogDocUrl.set(catalogDocUrl, {
-        collabDocUrl,
-        binary,
-      });
-    }
-
-    if (!joinSecret) {
-      console.info(
-        "[kids-draw:multiplayer] share flow: registering with server",
-        { collabDocUrl },
-      );
-      const registered = await options.registerCollaborativeDocument(
-        collabDocUrl,
-        binary,
-      );
-      joinSecret = registered.joinSecret;
-      accessToken = registered.accessToken;
-      pendingCollaborativeByCatalogDocUrl.set(catalogDocUrl, {
-        collabDocUrl,
-        binary,
-        joinSecret,
-        accessToken,
-      });
-    }
+    // Every retry refreshes the snapshot, including failures after registration
+    // but before catalog persistence. Registration is idempotent for this device.
+    const copy = options.createDocumentCopy(pending);
+    const collabDocUrl = copy.url;
+    pendingCollaborativeByCatalogDocUrl.set(catalogDocUrl, collabDocUrl);
+    const { joinSecret, accessToken } =
+      await options.registerCollaborativeDocument(collabDocUrl, copy.binary);
 
     if (!joinSecret || !accessToken) {
       throw new Error("Collaborative registration did not return both tokens.");
     }
 
+    assertCurrent();
     const persistedSummary = await options.documentBackend.createDocument({
       docUrl: catalogDocUrl,
       collaborative: true,
@@ -263,6 +241,16 @@ export function createCollaborativeUpgradeCoordinator(options: {
       accessTokenScope: "owner",
       synced: true,
     };
+  };
+
+  let sharing: Promise<SharePayload> | null = null;
+  const ensureCollaborative = (): Promise<SharePayload> => {
+    if (!sharing) {
+      sharing = performCollaborativeUpgrade().finally(() => {
+        sharing = null;
+      });
+    }
+    return sharing;
   };
 
   return {

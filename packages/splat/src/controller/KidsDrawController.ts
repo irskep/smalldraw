@@ -139,7 +139,10 @@ export function createKidsDrawController(options: {
     blob?: Blob;
     dataUrl?: string;
   }) => Promise<boolean>;
-  createDocumentCopy?: () => { url: string; binary: Uint8Array };
+  createDocumentCopy?: (existingUrl?: string) => {
+    url: string;
+    binary: Uint8Array;
+  };
   registerCollaborativeDocument?: (
     documentId: string,
     content: Uint8Array,
@@ -735,6 +738,13 @@ function resolveDocumentSlot(
 function describeDocumentLoading(reason: string): SplatContextDocumentSlot & {
   type: "loading";
 } {
+  if (reason === "share_document") {
+    return {
+      type: "loading",
+      title: "Sharing drawing…",
+      recoveryActions: "none",
+    };
+  }
   if (reason === "switch_document") {
     return {
       type: "loading",

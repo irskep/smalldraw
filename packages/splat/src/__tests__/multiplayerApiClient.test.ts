@@ -434,3 +434,18 @@ test("only an unauthorized account response becomes signed-out", async () => {
   });
   await expect(client.getCurrentAccount()).rejects.toThrow();
 });
+
+test("an oversized HTTP upload reports a useful error even when the parser returns HTML", async () => {
+  installFetchMock(
+    async () =>
+      new Response("<html>PayloadTooLargeError</html>", { status: 413 }),
+  );
+  const client = createMultiplayerApiClient({ apiUrl: "http://localhost/api" });
+  await expect(
+    client.registerCollaborativeDocument(
+      "automerge:doc",
+      new Uint8Array([1]),
+      "device",
+    ),
+  ).rejects.toThrow("This drawing is too large to upload");
+});
