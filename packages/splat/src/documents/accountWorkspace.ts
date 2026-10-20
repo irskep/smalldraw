@@ -1,5 +1,5 @@
-import { getHeads, load, merge } from "@automerge/automerge/slim";
-import type { AutomergeUrl, Repo } from "@automerge/automerge-repo/slim";
+import { free, getHeads, load, merge, save } from "@automerge/automerge/slim";
+import type { AutomergeUrl, DocumentId, Repo } from "@automerge/automerge-repo/slim";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import { initAutomerge } from "@smalldraw/core";
 import { atom } from "nanostores";
@@ -194,8 +194,9 @@ export async function syncAccountWorkspace(
     const id = binaryId(document);
     if (
       document.accountAttached &&
+      !repo.handles[id.replace(/^automerge:/, "") as DocumentId] &&
       repo.storageSubsystem &&
-      !(await repo.storageSubsystem.loadDoc(
+      !(await repo.storageSubsystem.loadDocData(
         id.replace(/^automerge:/, "") as never,
       ))
     )
@@ -205,15 +206,9 @@ export async function syncAccountWorkspace(
     if (
       document.accountAttached &&
       last &&
-      Date.now() - last.at < 30_000 &&
       last.heads === JSON.stringify(getHeads(localHandle.doc()))
     )
       continue;
-    let binary = await repo.export(id);
-    // Catalog-only account entries have no local edits to upload.
-    if (!binary && document.accountAttached) continue;
-    if (!binary)
-      throw new Error("A drawing could not be read from this device.");
     if (!document.accountAttached) {
       if (document.collaborative) {
         if (document.accessTokenScope === "owner" && document.accessToken) {
@@ -233,7 +228,7 @@ export async function syncAccountWorkspace(
       } else {
         const registered = await api.registerAccountSyncedDocument(
           id,
-          binary,
+          save(localHandle.doc()),
           userId,
         );
         await backend.createDocument({
@@ -254,21 +249,27 @@ export async function syncAccountWorkspace(
       updates.close();
     }
     // Capture after registration: edits made while it was in flight must also be saved.
-    binary = await repo.export(id);
-    if (!binary)
-      throw new Error("A drawing changed while syncing. Please try again.");
-    const heads = getHeads(load(binary));
-    const result = await api.checkpointAccountDrawing(id, binary, userId);
+    const snapshot = localHandle.doc();
+    const heads = getHeads(snapshot);
+    const result = await api.checkpointAccountDrawing(
+      id,
+      save(snapshot),
+      userId,
+    );
     if (heads.some((head) => !result.heads.includes(head)))
       throw new Error("The server has not saved every change yet.");
     const remote = load(result.content);
-    const handle = await repo.find(id);
-    handle.update((current) => merge(current, remote));
+    const remoteHeads = getHeads(remote);
+    try {
+      localHandle.update((current) => merge(current, remote));
+    } finally {
+      free(remote);
+    }
     checkpoints?.set(id, {
-      heads: JSON.stringify(getHeads(remote)),
+      heads: JSON.stringify(remoteHeads),
       at: Date.now(),
     });
-    await repo.flush([handle.documentId]);
+    await repo.flush([localHandle.documentId]);
     const thumbnail = await backend.getThumbnail(document.docUrl);
     if (thumbnail)
       await api

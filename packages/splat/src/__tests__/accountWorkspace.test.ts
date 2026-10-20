@@ -488,6 +488,12 @@ test("checkpoint traffic for an unchanged drawing across ninety seconds", async 
       await syncAccountWorkspace(api, repo, backend, id, cache);
     }
     console.log("CHECKPOINT_IDLE_MEASUREMENT", checked.length);
+    expect(checked).toHaveLength(1);
+    handle.change((doc) => {
+      doc.marks.push("new edit");
+    });
+    await syncAccountWorkspace(api, repo, backend, id, cache);
+    expect(checked).toHaveLength(2);
   } finally {
     now.mockRestore();
   }
