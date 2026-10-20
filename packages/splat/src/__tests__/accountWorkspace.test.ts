@@ -708,3 +708,136 @@ test("failed checkpoint metadata persistence does not lose edits or falsely mark
     "new",
   ]);
 });
+
+// This measurement seeds 100 real IndexedDB records; allow for full-suite fixture setup.
+test("idle account ticks do no catalog or document work; one edit visits one drawing", async () => {
+  const { api, id, server } = fakeApi();
+  const { repo, backend } = workspace(id);
+  const drawings = await Promise.all(
+    Array.from({ length: 100 }, async (_, n) => {
+      const handle = repo.create({ marks: [n] });
+      await backend.createDocument({
+        docUrl: handle.url,
+        accountAttached: true,
+      });
+      await backend.saveAccountCheckpoint(handle.url, {
+        documentUrl: handle.url,
+        heads: getHeads(handle.doc()).sort(),
+      });
+      server.set(handle.url, save(handle.doc()));
+      return handle;
+    }),
+  );
+  await repo.flush();
+  const watcher = watchAccountWorkspace({ api, repo, backend });
+  try {
+    await watcher.retry();
+    await watcher.retry();
+    const list = spyOn(backend, "listDocuments");
+    const read = spyOn(backend, "getDocument");
+    const find = spyOn(repo, "find");
+    const flush = spyOn(repo, "flush");
+    const checkpoint = spyOn(api, "checkpointAccountDrawing");
+    await syncAccountWorkspace(api, repo, backend, id, false);
+    const fullScan = {
+      catalogReads: list.mock.calls.length,
+      documentReads: read.mock.calls.length,
+      finds: find.mock.calls.length,
+    };
+    expect(fullScan).toEqual({
+      catalogReads: 1,
+      documentReads: 100,
+      finds: 100,
+    });
+    list.mockClear();
+    read.mockClear();
+    find.mockClear();
+    flush.mockClear();
+    checkpoint.mockClear();
+    for (let n = 0; n < 10; n++) await watcher.retry();
+    expect(list).not.toHaveBeenCalled();
+    expect(read).not.toHaveBeenCalled();
+    expect(find).not.toHaveBeenCalled();
+    expect(flush).not.toHaveBeenCalled();
+    expect(checkpoint).not.toHaveBeenCalled();
+    drawings[41].change((doc) => {
+      doc.marks.push(101);
+    });
+    await watcher.retry();
+    expect(list).not.toHaveBeenCalled();
+    expect(read).toHaveBeenCalledTimes(1);
+    expect(find).toHaveBeenCalledTimes(1);
+    expect(flush).toHaveBeenCalledTimes(2);
+    expect(checkpoint).toHaveBeenCalledTimes(1);
+    console.log("CHECKPOINT_QUEUE_MEASUREMENT", {
+      drawings: 100,
+      fullScan,
+      idleTicks: 10,
+      idleCatalogReads: 0,
+      idleFinds: 0,
+      idleFlushes: 0,
+      editedFinds: find.mock.calls.length,
+      editedFlushes: flush.mock.calls.length,
+    });
+  } finally {
+    watcher.dispose();
+  }
+}, 60000);
+
+test("queued saves retain edits made during upload and retry failed requests", async () => {
+  const { api, id, server } = fakeApi();
+  const { repo, backend } = workspace(id);
+  const drawing = repo.create({ marks: ["base"] });
+  await backend.createDocument({ docUrl: drawing.url });
+  const watcher = watchAccountWorkspace({ api, repo, backend });
+  try {
+    await watcher.retry();
+    await watcher.retry();
+    const original = api.checkpointAccountDrawing;
+    let duringUpload = true;
+    api.checkpointAccountDrawing = async (...args) => {
+      const result = await original(...args);
+      if (duringUpload) {
+        duringUpload = false;
+        drawing.change((doc) => {
+          doc.marks.push("during upload");
+        });
+      }
+      return result;
+    };
+    drawing.change((doc) => {
+      doc.marks.push("before upload");
+    });
+    await watcher.retry();
+    expect(
+      load<{ marks: string[] }>(server.get(drawing.url)!).marks,
+    ).not.toContain("during upload");
+    await watcher.retry();
+    expect(load<{ marks: string[] }>(server.get(drawing.url)!).marks).toContain(
+      "during upload",
+    );
+    drawing.change((doc) => {
+      doc.marks.push("retry me");
+    });
+    api.checkpointAccountDrawing = async () => {
+      throw Error("offline");
+    };
+    await watcher.retry();
+    api.checkpointAccountDrawing = original;
+    await watcher.retry();
+    expect(load<{ marks: string[] }>(server.get(drawing.url)!).marks).toEqual([
+      "base",
+      "before upload",
+      "during upload",
+      "retry me",
+    ]);
+    const added = repo.create({ marks: ["created later"] });
+    await backend.createDocument({ docUrl: added.url });
+    await watcher.retry();
+    expect(load<{ marks: string[] }>(server.get(added.url)!).marks).toEqual([
+      "created later",
+    ]);
+  } finally {
+    watcher.dispose();
+  }
+});

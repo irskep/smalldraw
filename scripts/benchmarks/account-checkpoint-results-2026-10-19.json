@@ -1,0 +1,1108 @@
+{
+  "date": "2026-10-19",
+  "server": "Existing Fly SJC shared-cpu-1x, 512 MB; no resize",
+  "limits": [
+    "Two bounded runs with synthetic accounts/documents; no maximum-capacity estimate.",
+    "Both upload modes use the current endpoint with incremental replies. This isolates upload/ingestion work, not the old full-response protocol.",
+    "Network timings include internet latency. Fixture generation and content validation excluded from timing.",
+    "CPU counters sampled every 100ms in run 2. Only samples inside timed phases used; edge work is omitted. Includes GC and other server work, not isolated per-request profiling.",
+    "Sequential phases share warmed caches and GC state; phase RSS is not a causal comparison. Peak sampled RSS over run 2 was approximately 374 MiB.",
+    "Synthetic accounts and document IDs retained for audit; existing users/drawings were not edited."
+  ],
+  "runs": [
+    {
+      "runId": "ac14be38-b367-49ad-b7cc-e86ac7ce8410",
+      "accountId": "50e7ae9f-debd-4a6f-ad19-9d937886a2aa",
+      "rounds": 8,
+      "fixtures": [
+        {
+          "size": "medium",
+          "bytes": 239857,
+          "sha256": "ed1af3bab8a52d194cda44f424148879fe985117306d259e91ca17bf36c5aa06"
+        },
+        {
+          "size": "large",
+          "bytes": 948603,
+          "sha256": "04b09296b345a0264bd1765bac2635476d710f50bce57fa3ef131e42b5f725ff"
+        }
+      ],
+      "phases": [
+        {
+          "phase": "medium-1-full",
+          "at": "2026-10-20T05:22:53.382Z"
+        },
+        {
+          "phase": "medium-1-incremental",
+          "at": "2026-10-20T05:22:57.595Z"
+        },
+        {
+          "phase": "medium-2-incremental",
+          "at": "2026-10-20T05:23:01.395Z"
+        },
+        {
+          "phase": "medium-2-full",
+          "at": "2026-10-20T05:23:05.238Z"
+        },
+        {
+          "phase": "medium-4-full",
+          "at": "2026-10-20T05:23:09.405Z"
+        },
+        {
+          "phase": "medium-4-incremental",
+          "at": "2026-10-20T05:23:13.971Z"
+        },
+        {
+          "phase": "large-1-full",
+          "at": "2026-10-20T05:23:18.140Z"
+        },
+        {
+          "phase": "large-1-incremental",
+          "at": "2026-10-20T05:23:22.305Z"
+        },
+        {
+          "phase": "large-2-incremental",
+          "at": "2026-10-20T05:23:26.169Z"
+        },
+        {
+          "phase": "large-2-full",
+          "at": "2026-10-20T05:23:30.321Z"
+        },
+        {
+          "phase": "large-4-full",
+          "at": "2026-10-20T05:23:35.213Z"
+        },
+        {
+          "phase": "large-4-incremental",
+          "at": "2026-10-20T05:23:40.528Z"
+        }
+      ],
+      "documents": [
+        "mTuHq8N6uPz1wSydr245u5TiW29",
+        "PoNh7vH41sm2uksKKwJNjWf4dAr",
+        "21jeywJyfP1nVhdkiUiKF7tCdp5T",
+        "4ZLpaakEtUbYcdWssAEqhe9vxvLw",
+        "2dAF1kz4nhp8JByA8DQgLQYBq9Vd",
+        "hgHHvdXgyQ7ELyRGZHYnVFEgyFz",
+        "34YiYtJNogartNRAFcVRnwe7fPE4",
+        "3BHn3GSmfkLFG4VovsainvZFC9Nx",
+        "3TByGLou8iwxrNMQqyKY21Wk5iTD",
+        "jNsgyfA5UeYKwdHa1eXuPjHZQy7",
+        "2YjiPoY9F39mY5g9QXZVpvkdj5KS",
+        "2bfTQUR3pzQcVyeYDsRku66ERUdg",
+        "45uqYDojJNcoZGwb6L4yv6xrtQTg",
+        "4Bsp4vA8ELiP8v3bJsesihem5D2t",
+        "2PNTiMq52gdRCKqPnJhzkCwFcSyA",
+        "2ydP23ecWmQXpphA9GgEHttEzMyJ",
+        "2xJnZjrBGrPPuKKLUDEo23AA7kbU",
+        "27LxeWEAVD9w6m4WjrgZkH56Dv8Z",
+        "3TUAcjZiCJRnwKKfDAsK9w65UtAp",
+        "418DRvfMnFu56PJL8K8mg3nyKoY9",
+        "4RXsfbjAQTTspcM2wqcmrM291fNX",
+        "3HZVmWdA2e3ncqH5b9PGh1QuLtTv",
+        "4PDbtqnkEtCurzaRW7H6CFTiR9r4",
+        "3qMZM8QjDdzJBG2m3MBLMoMi4mcm",
+        "3AmThokH3JdDaYdrPQ7S84WpcyrB",
+        "241fFw3fDVnsVxQ4qW7HQEyn5gHV",
+        "2MBBZXqy75ePJq2bf7k92TF5XL5Y",
+        "3c4yh8hds1iypwo5wQvZM2ynS7cJ"
+      ],
+      "validated": 28,
+      "method": "Precomputed real-stroke edits; full vs incremental upload on current checkpoint endpoint (both replies incremental). Bootstrap and validation excluded. Sequential phases, concurrency capped at 4, 250ms between requests. No capacity claim.",
+      "summary": [
+        {
+          "key": "baseline/health",
+          "n": 13,
+          "p50": 31.566874999999527,
+          "p95": 32.77924999999959,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-full-bootstrap/health",
+          "n": 1,
+          "p50": 96.73970900000131,
+          "p95": 96.73970900000131,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-full/health",
+          "n": 13,
+          "p50": 31.215457999998762,
+          "p95": 65.50141699999949,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-full/checkpointAccountDrawing",
+          "n": 8,
+          "p50": 98.25616700000137,
+          "p95": 183.39858300000014,
+          "sent": 3001429,
+          "received": 864
+        },
+        {
+          "key": "medium-1-full-validate/health",
+          "n": 5,
+          "p50": 31.54083299999911,
+          "p95": 33.110500000000684,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-incremental/checkpointAccountDrawing",
+          "n": 8,
+          "p50": 47.54449999999997,
+          "p95": 80.92849999999999,
+          "sent": 636912,
+          "received": 864
+        },
+        {
+          "key": "medium-1-incremental/health",
+          "n": 11,
+          "p50": 31.060166999999637,
+          "p95": 42.83525000000009,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-incremental-validate/health",
+          "n": 5,
+          "p50": 30.35883300000023,
+          "p95": 32.68816599999991,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-incremental/checkpointAccountDrawing",
+          "n": 16,
+          "p50": 46.202416000000085,
+          "p95": 104.94587500000125,
+          "sent": 1273840,
+          "received": 1728
+        },
+        {
+          "key": "medium-2-incremental/health",
+          "n": 11,
+          "p50": 30.156041999998706,
+          "p95": 106.67779199999859,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-incremental-validate/health",
+          "n": 5,
+          "p50": 30.808874999998807,
+          "p95": 32.274499999999534,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-full-bootstrap/health",
+          "n": 1,
+          "p50": 41.50041599999895,
+          "p95": 41.50041599999895,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-full/checkpointAccountDrawing",
+          "n": 16,
+          "p50": 70.63979200000176,
+          "p95": 108.03274999999849,
+          "sent": 6002866,
+          "received": 1728
+        },
+        {
+          "key": "medium-2-full/health",
+          "n": 11,
+          "p50": 31.804541999998037,
+          "p95": 57.074290999997174,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-full-validate/health",
+          "n": 5,
+          "p50": 31.41191699999763,
+          "p95": 51.429292000000714,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-full-bootstrap/health",
+          "n": 1,
+          "p50": 30.796957999998995,
+          "p95": 30.796957999998995,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-full/checkpointAccountDrawing",
+          "n": 32,
+          "p50": 72.83370899999863,
+          "p95": 177.76324999999997,
+          "sent": 12005740,
+          "received": 3456
+        },
+        {
+          "key": "medium-4-full/health",
+          "n": 12,
+          "p50": 31.059082999996463,
+          "p95": 59.247583000000304,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-full-validate/health",
+          "n": 6,
+          "p50": 31.39483399999881,
+          "p95": 36.978665999999066,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-incremental-bootstrap/health",
+          "n": 2,
+          "p50": 30.67304199999853,
+          "p95": 31.339458999998897,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-incremental/checkpointAccountDrawing",
+          "n": 32,
+          "p50": 50.11941599999773,
+          "p95": 150.58395799999926,
+          "sent": 2547680,
+          "received": 3456
+        },
+        {
+          "key": "medium-4-incremental/health",
+          "n": 10,
+          "p50": 31.98058300000048,
+          "p95": 56.81512499999735,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-incremental-validate/health",
+          "n": 6,
+          "p50": 31.239166999999725,
+          "p95": 65.3684170000015,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-full-bootstrap/health",
+          "n": 1,
+          "p50": 134.47087499999907,
+          "p95": 134.47087499999907,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-full/checkpointAccountDrawing",
+          "n": 8,
+          "p50": 100.80320899999788,
+          "p95": 111.6954160000023,
+          "sent": 8631639,
+          "received": 864
+        },
+        {
+          "key": "large-1-full/health",
+          "n": 12,
+          "p50": 31.13249999999971,
+          "p95": 51.68804200000159,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-full-validate/health",
+          "n": 5,
+          "p50": 29.999250000000757,
+          "p95": 31.09679199999664,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-incremental/checkpointAccountDrawing",
+          "n": 8,
+          "p50": 40.75329200000124,
+          "p95": 59.76233299999876,
+          "sent": 639248,
+          "received": 864
+        },
+        {
+          "key": "large-1-incremental/health",
+          "n": 10,
+          "p50": 30.893000000003667,
+          "p95": 52.5879999999961,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-incremental-validate/health",
+          "n": 5,
+          "p50": 30.918000000005122,
+          "p95": 126.20633299999463,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-incremental-bootstrap/health",
+          "n": 1,
+          "p50": 69.82716600000276,
+          "p95": 69.82716600000276,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-incremental/checkpointAccountDrawing",
+          "n": 16,
+          "p50": 42.32037499999569,
+          "p95": 147.29262500000186,
+          "sent": 1278496,
+          "received": 1728
+        },
+        {
+          "key": "large-2-incremental/health",
+          "n": 11,
+          "p50": 31.765625,
+          "p95": 133.61804200000188,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-incremental-validate/health",
+          "n": 5,
+          "p50": 30.706458000000566,
+          "p95": 71.79699999999866,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-full-bootstrap/health",
+          "n": 1,
+          "p50": 89.25062500000058,
+          "p95": 89.25062500000058,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-full/checkpointAccountDrawing",
+          "n": 16,
+          "p50": 101.50966699999844,
+          "p95": 142.92854100000113,
+          "sent": 17263287,
+          "received": 1728
+        },
+        {
+          "key": "large-2-full/health",
+          "n": 12,
+          "p50": 31.79516699999658,
+          "p95": 84.19137500000215,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-full-validate/health",
+          "n": 6,
+          "p50": 30.058083999996597,
+          "p95": 50.819916000000376,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-full-bootstrap/health",
+          "n": 2,
+          "p50": 32.25445800000307,
+          "p95": 119.12658300000476,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-full/checkpointAccountDrawing",
+          "n": 32,
+          "p50": 101.08741599999485,
+          "p95": 247.18520799999533,
+          "sent": 34526582,
+          "received": 3456
+        },
+        {
+          "key": "large-4-full/health",
+          "n": 12,
+          "p50": 35.74741699999868,
+          "p95": 141.69512499999837,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-full-validate/health",
+          "n": 7,
+          "p50": 31.650416999997105,
+          "p95": 103.12970800000039,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-incremental-bootstrap/health",
+          "n": 2,
+          "p50": 144.44650000000547,
+          "p95": 154.2819159999999,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-incremental/checkpointAccountDrawing",
+          "n": 32,
+          "p50": 44.16033400000015,
+          "p95": 148.00649999999587,
+          "sent": 2556992,
+          "received": 3456
+        },
+        {
+          "key": "large-4-incremental/health",
+          "n": 10,
+          "p50": 31.27008300000307,
+          "p95": 45.11408400000073,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-incremental-validate/health",
+          "n": 7,
+          "p50": 33.056625000004715,
+          "p95": 116.63349999999627,
+          "sent": 0,
+          "received": 0
+        }
+      ]
+    },
+    {
+      "runId": "b210eb09-8218-410f-ada1-20a46c6cefb3",
+      "accountId": "b599598e-2513-4962-8719-3873a5cc3061",
+      "rounds": 8,
+      "fixtures": [
+        {
+          "size": "medium",
+          "bytes": 239857,
+          "sha256": "ed1af3bab8a52d194cda44f424148879fe985117306d259e91ca17bf36c5aa06"
+        },
+        {
+          "size": "large",
+          "bytes": 948603,
+          "sha256": "04b09296b345a0264bd1765bac2635476d710f50bce57fa3ef131e42b5f725ff"
+        }
+      ],
+      "phases": [
+        {
+          "phase": "medium-1-full",
+          "at": "2026-10-20T05:25:20.946Z"
+        },
+        {
+          "phase": "medium-1-full-end",
+          "at": "2026-10-20T05:25:23.674Z"
+        },
+        {
+          "phase": "medium-1-incremental",
+          "at": "2026-10-20T05:25:24.935Z"
+        },
+        {
+          "phase": "medium-1-incremental-end",
+          "at": "2026-10-20T05:25:27.310Z"
+        },
+        {
+          "phase": "medium-2-incremental",
+          "at": "2026-10-20T05:25:28.553Z"
+        },
+        {
+          "phase": "medium-2-incremental-end",
+          "at": "2026-10-20T05:25:31.078Z"
+        },
+        {
+          "phase": "medium-2-full",
+          "at": "2026-10-20T05:25:32.510Z"
+        },
+        {
+          "phase": "medium-2-full-end",
+          "at": "2026-10-20T05:25:35.157Z"
+        },
+        {
+          "phase": "medium-4-full",
+          "at": "2026-10-20T05:25:36.612Z"
+        },
+        {
+          "phase": "medium-4-full-end",
+          "at": "2026-10-20T05:25:39.376Z"
+        },
+        {
+          "phase": "medium-4-incremental",
+          "at": "2026-10-20T05:25:41.150Z"
+        },
+        {
+          "phase": "medium-4-incremental-end",
+          "at": "2026-10-20T05:25:43.638Z"
+        },
+        {
+          "phase": "large-1-full",
+          "at": "2026-10-20T05:25:45.144Z"
+        },
+        {
+          "phase": "large-1-full-end",
+          "at": "2026-10-20T05:25:47.934Z"
+        },
+        {
+          "phase": "large-1-incremental",
+          "at": "2026-10-20T05:25:49.311Z"
+        },
+        {
+          "phase": "large-1-incremental-end",
+          "at": "2026-10-20T05:25:51.682Z"
+        },
+        {
+          "phase": "large-2-incremental",
+          "at": "2026-10-20T05:25:53.195Z"
+        },
+        {
+          "phase": "large-2-incremental-end",
+          "at": "2026-10-20T05:25:55.586Z"
+        },
+        {
+          "phase": "large-2-full",
+          "at": "2026-10-20T05:25:57.252Z"
+        },
+        {
+          "phase": "large-2-full-end",
+          "at": "2026-10-20T05:26:00.162Z"
+        },
+        {
+          "phase": "large-4-full",
+          "at": "2026-10-20T05:26:02.150Z"
+        },
+        {
+          "phase": "large-4-full-end",
+          "at": "2026-10-20T05:26:05.250Z"
+        },
+        {
+          "phase": "large-4-incremental",
+          "at": "2026-10-20T05:26:07.586Z"
+        },
+        {
+          "phase": "large-4-incremental-end",
+          "at": "2026-10-20T05:26:10.023Z"
+        }
+      ],
+      "documents": [
+        "42H6PLcUANU2iswfh836PGkrXNBc",
+        "wjtyUZfHqDm2EhdqFXoBxQcb1jP",
+        "26aPmLLzyUzwbeKcrc2VEhMwQpH",
+        "2KoLu7AFGCU53onAxMcGondUvLPm",
+        "2uPeYPYc5cWXFx1QiCTygtAm6sRT",
+        "31zaRAZRwpcgc7DnFDH5MdCuP7x5",
+        "VkqicregcZUMaZfwx3uHzjik6SE",
+        "FPytXvMRUN7fRyUeGzPkcRuT65q",
+        "y82NgAfjBroNQkKdMp6wVzqe2Bx",
+        "B2z4qWghVSHm3oN9UYT4LHNnaXE",
+        "vH57MeY1kW9RamNixxWt9xeyodz",
+        "4TRYtRWUWivPwbWgNCBKWXedX2TE",
+        "4Sc8crwQ6fEzUNR14bLmqWrXVn6i",
+        "4EXPYjuM7qAy8VNJ7g7SzCeTycPu",
+        "2Rjwb3hMk4yrsXB8iRzDZXJMkh5v",
+        "3s6jBJsBxL7ZypvAvbYJX8irDfP2",
+        "2fYGv2sEJYmkQQDYkzUUn6BG8uV7",
+        "PEiYxLTJHEgSE8GE936F4rXpYG6",
+        "3Z7RLaeKUF3zg9Be5NeS1qd4CMmW",
+        "2xZgszRsUNhnKnA5tWXDDYjt7bc2",
+        "3gyzsPCQgUtaUeNenfgVkNJe869o",
+        "39bMzxydDKQLikLFL4o3sXBw7qDF",
+        "M4xC7krRNLmzsZckwkaRTAeaeLd",
+        "28vJrUejsZFfM2UkZa3sgFE4KADQ",
+        "PRfCs7eXb4e6td533boidtxd5Sq",
+        "3x6nGQwRPoFZC7XE4HzHP5ZwZpbd",
+        "2CpGiwu4UJwjUdULybGbgFt1S8TK",
+        "nJXxtmVu5hZS16qhHrsgkCHQqD2"
+      ],
+      "validated": 28,
+      "method": "Precomputed real-stroke edits; full vs incremental upload on current checkpoint endpoint (both replies incremental). Bootstrap and validation excluded. Sequential phases, concurrency capped at 4, 250ms between requests. No capacity claim.",
+      "summary": [
+        {
+          "key": "baseline/health",
+          "n": 13,
+          "p50": 30.461833999999726,
+          "p95": 31.949667000000773,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-full-bootstrap/health",
+          "n": 1,
+          "p50": 89.5705829999988,
+          "p95": 89.5705829999988,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-full/health",
+          "n": 12,
+          "p50": 30.203041999999186,
+          "p95": 43.25187499999993,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-full/checkpointAccountDrawing",
+          "n": 8,
+          "p50": 82.83858300000065,
+          "p95": 174.08237499999996,
+          "sent": 3001437,
+          "received": 864
+        },
+        {
+          "key": "medium-1-full-validate/health",
+          "n": 5,
+          "p50": 31.24870799999917,
+          "p95": 32.04395799999838,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-incremental/checkpointAccountDrawing",
+          "n": 8,
+          "p50": 41.42616699999962,
+          "p95": 67.81666699999914,
+          "sent": 636912,
+          "received": 864
+        },
+        {
+          "key": "medium-1-incremental/health",
+          "n": 10,
+          "p50": 30.273583000000144,
+          "p95": 32.50141699999949,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-1-incremental-validate/health",
+          "n": 5,
+          "p50": 30.030124999997497,
+          "p95": 41.48795800000153,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-incremental-bootstrap/health",
+          "n": 1,
+          "p50": 42.041417000000365,
+          "p95": 42.041417000000365,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-incremental/checkpointAccountDrawing",
+          "n": 16,
+          "p50": 44.015707999998995,
+          "p95": 154.60875000000306,
+          "sent": 1273832,
+          "received": 1728
+        },
+        {
+          "key": "medium-2-incremental/health",
+          "n": 11,
+          "p50": 30.540125000003172,
+          "p95": 76.85912500000268,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-incremental-validate/health",
+          "n": 5,
+          "p50": 31.79820800000016,
+          "p95": 32.740750000000844,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-full/checkpointAccountDrawing",
+          "n": 16,
+          "p50": 64.1984999999986,
+          "p95": 125.26299999999901,
+          "sent": 6002874,
+          "received": 1728
+        },
+        {
+          "key": "medium-2-full/health",
+          "n": 12,
+          "p50": 31.77741700000115,
+          "p95": 48.86670800000138,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-2-full-validate/health",
+          "n": 5,
+          "p50": 31.15345900000102,
+          "p95": 33.3015000000014,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-full-bootstrap/health",
+          "n": 1,
+          "p50": 33.97145900000032,
+          "p95": 33.97145900000032,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-full/checkpointAccountDrawing",
+          "n": 32,
+          "p50": 65.2133329999997,
+          "p95": 169.17462499999965,
+          "sent": 12005733,
+          "received": 3456
+        },
+        {
+          "key": "medium-4-full/health",
+          "n": 12,
+          "p50": 32.91362500000105,
+          "p95": 53.32154100000116,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-full-validate/health",
+          "n": 6,
+          "p50": 31.041000000001077,
+          "p95": 54.51679099999819,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-incremental-bootstrap/health",
+          "n": 1,
+          "p50": 60.0692089999975,
+          "p95": 60.0692089999975,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-incremental/checkpointAccountDrawing",
+          "n": 32,
+          "p50": 43.68816700000025,
+          "p95": 102.7232499999991,
+          "sent": 2547672,
+          "received": 3456
+        },
+        {
+          "key": "medium-4-incremental/health",
+          "n": 10,
+          "p50": 31.39220899999782,
+          "p95": 60.96754200000214,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "medium-4-incremental-validate/health",
+          "n": 6,
+          "p50": 31.5971669999999,
+          "p95": 72.86983299999702,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-full-bootstrap/health",
+          "n": 1,
+          "p50": 57.88549999999668,
+          "p95": 57.88549999999668,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-full/checkpointAccountDrawing",
+          "n": 8,
+          "p50": 96.03825000000506,
+          "p95": 117.41491700000188,
+          "sent": 8631644,
+          "received": 864
+        },
+        {
+          "key": "large-1-full/health",
+          "n": 12,
+          "p50": 29.738832999995793,
+          "p95": 36.22712500000489,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-full-validate/health",
+          "n": 5,
+          "p50": 32.54200000000128,
+          "p95": 38.23941699999705,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-incremental-bootstrap/health",
+          "n": 1,
+          "p50": 31.580291999998735,
+          "p95": 31.580291999998735,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-incremental/checkpointAccountDrawing",
+          "n": 8,
+          "p50": 42.11250000000291,
+          "p95": 61.01804199999606,
+          "sent": 639248,
+          "received": 864
+        },
+        {
+          "key": "large-1-incremental/health",
+          "n": 10,
+          "p50": 30.55895800000144,
+          "p95": 33.85045900000114,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-1-incremental-validate/health",
+          "n": 5,
+          "p50": 30.375625000000582,
+          "p95": 31.509125000004133,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-incremental-bootstrap/health",
+          "n": 1,
+          "p50": 30.2300000000032,
+          "p95": 30.2300000000032,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-incremental/checkpointAccountDrawing",
+          "n": 16,
+          "p50": 43.1550419999985,
+          "p95": 84.46387500000128,
+          "sent": 1278488,
+          "received": 1728
+        },
+        {
+          "key": "large-2-incremental/health",
+          "n": 10,
+          "p50": 30.93000000000029,
+          "p95": 40.3940419999999,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-incremental-validate/health",
+          "n": 6,
+          "p50": 30.328083000000333,
+          "p95": 122.40620800000033,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-full-bootstrap/health",
+          "n": 1,
+          "p50": 31.10958400000527,
+          "p95": 31.10958400000527,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-full/checkpointAccountDrawing",
+          "n": 16,
+          "p50": 107.66695799999434,
+          "p95": 144.3495419999963,
+          "sent": 17263295,
+          "received": 1728
+        },
+        {
+          "key": "large-2-full/health",
+          "n": 12,
+          "p50": 32.18304199999693,
+          "p95": 96.87716699999874,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-2-full-validate/health",
+          "n": 6,
+          "p50": 29.91095900000073,
+          "p95": 36.41808300000412,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-full-bootstrap/health",
+          "n": 2,
+          "p50": 130.31524999999965,
+          "p95": 140.28100000000268,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-full/checkpointAccountDrawing",
+          "n": 32,
+          "p50": 101.80425000000105,
+          "p95": 223.1594999999943,
+          "sent": 34526553,
+          "received": 3456
+        },
+        {
+          "key": "large-4-full/health",
+          "n": 12,
+          "p50": 33.39387500000157,
+          "p95": 101.90254200000345,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-full-validate/health",
+          "n": 7,
+          "p50": 32.0423329999976,
+          "p95": 74.11545800000022,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-incremental-bootstrap/health",
+          "n": 2,
+          "p50": 93.34458299999824,
+          "p95": 125.56324999999924,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-incremental/checkpointAccountDrawing",
+          "n": 32,
+          "p50": 43.00720800000272,
+          "p95": 109.62504199999967,
+          "sent": 2556976,
+          "received": 3456
+        },
+        {
+          "key": "large-4-incremental/health",
+          "n": 10,
+          "p50": 31.39679199999955,
+          "p95": 103.01304199999868,
+          "sent": 0,
+          "received": 0
+        },
+        {
+          "key": "large-4-incremental-validate/health",
+          "n": 8,
+          "p50": 31.047124999997322,
+          "p95": 109.06095800000185,
+          "sent": 0,
+          "received": 0
+        }
+      ]
+    }
+  ],
+  "run2ResourceSamples": [
+    {
+      "phase": "medium-1-full",
+      "samples": 27,
+      "sampledCpuTicks": 27,
+      "peakServerRssMiB": 312.4765625
+    },
+    {
+      "phase": "medium-1-incremental",
+      "samples": 24,
+      "sampledCpuTicks": 15,
+      "peakServerRssMiB": 331.171875
+    },
+    {
+      "phase": "medium-2-incremental",
+      "samples": 25,
+      "sampledCpuTicks": 29,
+      "peakServerRssMiB": 367.1328125
+    },
+    {
+      "phase": "medium-2-full",
+      "samples": 26,
+      "sampledCpuTicks": 46,
+      "peakServerRssMiB": 336.46875
+    },
+    {
+      "phase": "medium-4-full",
+      "samples": 28,
+      "sampledCpuTicks": 105,
+      "peakServerRssMiB": 359.91015625
+    },
+    {
+      "phase": "medium-4-incremental",
+      "samples": 25,
+      "sampledCpuTicks": 56,
+      "peakServerRssMiB": 335.6796875
+    },
+    {
+      "phase": "large-1-full",
+      "samples": 28,
+      "sampledCpuTicks": 48,
+      "peakServerRssMiB": 302.9140625
+    },
+    {
+      "phase": "large-1-incremental",
+      "samples": 24,
+      "sampledCpuTicks": 15,
+      "peakServerRssMiB": 285.296875
+    },
+    {
+      "phase": "large-2-incremental",
+      "samples": 24,
+      "sampledCpuTicks": 27,
+      "peakServerRssMiB": 305.4375
+    },
+    {
+      "phase": "large-2-full",
+      "samples": 29,
+      "sampledCpuTicks": 90,
+      "peakServerRssMiB": 366.6953125
+    },
+    {
+      "phase": "large-4-full",
+      "samples": 30,
+      "sampledCpuTicks": 184,
+      "peakServerRssMiB": 374.01171875
+    },
+    {
+      "phase": "large-4-incremental",
+      "samples": 24,
+      "sampledCpuTicks": 48,
+      "peakServerRssMiB": 370.47265625
+    }
+  ],
+  "clientWork": {
+    "method": "Real Automerge repo with fake IndexedDB; operation counts asserted in accountWorkspace.test.ts. Full scan compared to queued watcher, with 100 acknowledged drawings. Not a browser wall-clock benchmark.",
+    "fullScanTick": {
+      "catalogReads": 1,
+      "documentReads": 100,
+      "repoFinds": 100
+    },
+    "tenIdleQueueTicks": {
+      "catalogReads": 0,
+      "documentReads": 0,
+      "repoFinds": 0,
+      "flushes": 0,
+      "checkpointRequests": 0
+    },
+    "oneEditedDrawing": {
+      "catalogReads": 0,
+      "documentReads": 1,
+      "repoFinds": 1,
+      "flushes": 2,
+      "checkpointRequests": 1
+    },
+    "persistedProgress": {
+      "unchangedReloadCheckpointRequests": 0,
+      "nextEditAfterReload": "incremental"
+    }
+  }
+}

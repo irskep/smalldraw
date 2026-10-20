@@ -17,6 +17,7 @@ import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-index
 import { initAutomerge } from "@smalldraw/core";
 import { atom } from "nanostores";
 import type { MultiplayerApiClient } from "../app/createMultiplayerApiClient";
+import { createAccountSyncQueue } from "./accountSyncQueue";
 import { createLocalSmalldrawRepo } from "./createLocalSmalldrawRepo";
 import { createLocalDocumentBackend } from "./localDocumentBackend";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "./types";
@@ -193,6 +194,7 @@ export async function syncAccountWorkspace(
   backend: KidsDocumentBackend,
   userId: string,
   verifyIdentity = true,
+  candidates?: readonly KidsDocumentSummary[],
 ): Promise<void> {
   if (verifyIdentity) {
     const user = await api.getCurrentAccount();
@@ -201,7 +203,10 @@ export async function syncAccountWorkspace(
         "Sign back in to this account to finish syncing your drawings.",
       );
   }
-  for (const document of await backend.listDocuments()) {
+  for (const candidate of candidates ?? (await backend.listDocuments())) {
+    // Another tab may have acknowledged or deleted this drawing since it was queued.
+    const document = await backend.getDocument(candidate.docUrl);
+    if (!document) continue;
     const id = binaryId(document);
     if (
       document.accountAttached &&
@@ -213,8 +218,6 @@ export async function syncAccountWorkspace(
     )
       continue;
     const localHandle = await repo.find(id);
-    // Other cached handles may still be loading or unloaded. Flush only this ready drawing.
-    await repo.flush([localHandle.documentId]);
     const last =
       document.accountCheckpoint?.documentUrl === id
         ? document.accountCheckpoint
@@ -226,6 +229,8 @@ export async function syncAccountWorkspace(
         JSON.stringify(getHeads(localHandle.doc()).sort())
     )
       continue;
+    // Unchanged drawings need neither a storage flush nor a network request.
+    await repo.flush([localHandle.documentId]);
     if (!document.accountAttached) {
       if (document.collaborative) {
         if (document.accessTokenScope === "owner" && document.accessToken) {
@@ -326,6 +331,10 @@ export function watchAccountWorkspace(options: {
 }) {
   const workspace = getDrawingWorkspace();
   const bus = channel();
+  const syncQueue =
+    workspace && options.repo
+      ? createAccountSyncQueue(options.repo, options.backend)
+      : undefined;
   let stopped = false;
   let pending: Promise<void> | null = null;
   let release: (() => void) | undefined;
@@ -360,13 +369,16 @@ export function watchAccountWorkspace(options: {
             throw new Error("Account sync requires a drawing repository.");
           const checkIdentity =
             verifyIdentity || Date.now() - identityCheckedAt >= 60_000;
+          const batch = await syncQueue!.take();
           await syncAccountWorkspace(
             options.api,
             options.repo,
             options.backend,
             workspace,
             checkIdentity,
+            batch.documents,
           );
+          syncQueue!.complete(batch);
           if (checkIdentity) identityCheckedAt = Date.now();
           $accountSync.set({ busy: false, error: null });
         } catch (error) {
@@ -397,6 +409,7 @@ export function watchAccountWorkspace(options: {
     freezePromise ??= (async () => {
       stopped = true;
       clearInterval(timer);
+      syncQueue?.dispose();
       await options.beforeFreeze?.();
       await pending;
       await options.repo?.flush();
@@ -444,6 +457,7 @@ export function watchAccountWorkspace(options: {
     dispose() {
       stopped = true;
       clearInterval(timer);
+      syncQueue?.dispose();
       window.removeEventListener("online", refresh);
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", visible);

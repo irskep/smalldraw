@@ -315,6 +315,10 @@ run = "bun run scripts/benchmarks/automerge-checkpoint-delta.ts"
 [tasks."bench:server:check"]
 description = "Type-check and lint the production load measurement tools"
 run = [
-  "bunx tsc --ignoreConfig --noEmit --module esnext --moduleResolution bundler --target esnext --skipLibCheck --types bun scripts/benchmarks/backend-load.ts scripts/benchmarks/sample-server.ts scripts/benchmarks/automerge-checkpoint-delta.ts",
-  "bunx biome check scripts/benchmarks/backend-load.ts scripts/benchmarks/sample-server.ts scripts/benchmarks/automerge-checkpoint-delta.ts",
+  "bunx tsc --ignoreConfig --noEmit --module esnext --moduleResolution bundler --target esnext --skipLibCheck --types bun scripts/benchmarks/backend-load.ts scripts/benchmarks/sample-server.ts scripts/benchmarks/automerge-checkpoint-delta.ts scripts/benchmarks/account-checkpoint-load.ts",
+  "bunx biome check scripts/benchmarks/backend-load.ts scripts/benchmarks/sample-server.ts scripts/benchmarks/automerge-checkpoint-delta.ts scripts/benchmarks/account-checkpoint-load.ts",
 ]
+
+[tasks."bench:server:account-checkpoints"]
+description = "Bounded authenticated full vs incremental checkpoint comparison"
+run = "bun run scripts/benchmarks/account-checkpoint-load.ts"

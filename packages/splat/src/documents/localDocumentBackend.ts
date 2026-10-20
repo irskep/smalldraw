@@ -739,7 +739,10 @@ class LocalDocumentBackend implements KidsDocumentBackend {
   async createDocument(
     input: KidsDocumentCreateInput,
   ): Promise<KidsDocumentSummary> {
-    return await this.documentRepository.upsertDocument(input);
+    const document = await this.documentRepository.upsertDocument(input);
+    if (typeof window !== "undefined")
+      window.dispatchEvent(new window.Event("drawing-catalog-change"));
+    return document;
   }
 
   async touchDocument(docUrl: string): Promise<KidsDocumentSummary | null> {
@@ -750,6 +753,8 @@ class LocalDocumentBackend implements KidsDocumentBackend {
     await this.documentRepository.deleteDocument(docUrl);
     await this.thumbnailRepository.deleteThumbnail(docUrl);
     await this.currentDocumentRepository.clearIfCurrentDocument(docUrl);
+    if (typeof window !== "undefined")
+      window.dispatchEvent(new window.Event("drawing-catalog-change"));
   }
 
   async saveThumbnail(docUrl: string, blob: Blob): Promise<void> {
