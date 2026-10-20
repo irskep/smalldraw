@@ -8,10 +8,6 @@ import {
   type DsConfirmDialogHandle,
 } from "@/components/DsConfirmDialog/DsConfirmDialog";
 import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
-import {
-  ParentalControlsDialog,
-  type ParentalControlsDialogHandle,
-} from "@/components/ParentalControlsDialog/ParentalControlsDialog";
 import { buildLauncherDocumentTiles } from "@/utils/documentLauncher";
 import {
   buildNewDrawingUrl,
@@ -41,7 +37,6 @@ function Index() {
     [],
   );
   const confirmDialogRef = useRef<DsConfirmDialogHandle>(null);
-  const parentalControlsDialogRef = useRef<ParentalControlsDialogHandle>(null);
   const localObjectUrlsRef = useRef<string[]>([]);
   const [localCatalog, setLocalCatalog] = useState<LocalCatalogState>({
     type: "loading",
@@ -311,13 +306,6 @@ function Index() {
             {isLoggedIn ? "Your drawings sync to your account. You decide when to share." : "Drawings are saved on this device. Sign in to keep them in your account."}
           </p>
           <div className="art-table-about__links">
-            <button
-              className="portal-link-button"
-              type="button"
-              onClick={() => void parentalControlsDialogRef.current?.open()}
-            >
-              Parental controls
-            </button>
             <a className="portal-link" href="/data">
               How we store your drawings
             </a>
@@ -325,6 +313,14 @@ function Index() {
         </div>
       </section>
       <footer>
+        <nav className="art-table-about__links" aria-label="Legal">
+          <a className="portal-link" href="/privacy">
+            Privacy policy
+          </a>
+          <a className="portal-link" href="/terms">
+            Terms of service
+          </a>
+        </nav>
         <p className="portal-muted">
           Send questions and feedback to{" "}
           <a className="portal-link" href="mailto:splatterboard@fastmail.com">
@@ -333,10 +329,6 @@ function Index() {
         </p>
       </footer>
       <DsConfirmDialog ref={confirmDialogRef} />
-      <ParentalControlsDialog
-        ref={parentalControlsDialogRef}
-        accountSessionExpected={isLoggedIn}
-      />
     </div>
   );
 }
