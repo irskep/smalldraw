@@ -2,6 +2,8 @@
 .amrg
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
 automerge.db
 test-automerge.db
 apps/server/prisma/*.db

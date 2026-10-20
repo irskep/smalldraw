@@ -1,5 +1,9 @@
 import { free, getHeads, load, merge, save } from "@automerge/automerge/slim";
-import type { AutomergeUrl, DocumentId, Repo } from "@automerge/automerge-repo/slim";
+import type {
+  AutomergeUrl,
+  DocumentId,
+  Repo,
+} from "@automerge/automerge-repo/slim";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import { initAutomerge } from "@smalldraw/core";
 import { atom } from "nanostores";
