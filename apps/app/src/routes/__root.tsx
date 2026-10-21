@@ -1,3 +1,5 @@
+import { isUnauthorized } from "@/utils/apiErrors";
+import { useAccount } from "@/utils/account";
 import { updatePortalMetadata } from "../utils/portalMetadata";
 import {
   DsConfirmDialog,
@@ -33,7 +35,6 @@ import {
   type ParentalControlsDialogHandle,
 } from "@/components/ParentalControlsDialog/ParentalControlsDialog";
 import { appPath, isPublicUnauthenticatedRoute } from "../config";
-import { trpc } from "../utils/trpc";
 
 const getRedirectParam = () => {
   const currentUrl = window.location.href;
@@ -56,16 +57,7 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
   const isAdminRoute =
     location.path === "/admin" || location.path.startsWith("/admin/");
 
-  const meQuery = trpc.me.useQuery(undefined, {
-    // avoid lot's of retries in case of unauthorized blocking a page load
-    retry: (failureCount, error) => {
-      if (error.data?.code === "UNAUTHORIZED") {
-        return false;
-      }
-      if (failureCount > 3) return false;
-      return true;
-    },
-  });
+  const meQuery = useAccount();
   const [syncStatus, setSyncStatus] = useState($accountSync.get());
   useEffect(() => $accountSync.subscribe(setSyncStatus), []);
   const [workspaceReady, setWorkspaceReady] = useState(false);
@@ -78,7 +70,7 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
       .catch((error) => setWorkspaceError(String(error)));
   }, [isInformationalRoute]);
 
-  const isNotAuthorized = meQuery.error?.data?.code === "UNAUTHORIZED";
+  const isNotAuthorized = isUnauthorized(meQuery.error);
   const accountMenuEntries = useMemo<DropdownMenuEntry[]>(() => {
     if (meQuery.data && !isNotAuthorized) {
       return [
@@ -114,7 +106,7 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
         },
       ];
     }
-    if ((!meQuery.data && !meQuery.isLoading) || isNotAuthorized) {
+    if ((!meQuery.data && !meQuery.loading) || isNotAuthorized) {
       return [
         { id: "login", label: "Login", icon: LogIn },
         { id: "register", label: "Sign up", icon: UserPlus },
@@ -132,7 +124,7 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
         icon: ShieldCheck,
       },
     ];
-  }, [isNotAuthorized, signingOut, meQuery.data, meQuery.isLoading]);
+  }, [isNotAuthorized, signingOut, meQuery.data, meQuery.loading]);
 
   useEffect(() => {
     if (!isNotAuthorized || isPublicUnauthenticatedRoute(location.path)) return;

@@ -1,12 +1,16 @@
+import { useAccount } from "@/utils/account";
 import type React from "react";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
+import { useAction } from "@/hooks/useResource";
 
 export const AccountSettings = () => {
-  const meQuery = trpc.me.useQuery();
-  const changePasswordStartMutation = trpc.changePasswordStart.useMutation();
-  const changePasswordFinishMutation = trpc.changePasswordFinish.useMutation();
+  const meQuery = useAccount();
+  const changePasswordStartMutation = useAction(api.changePasswordStart.mutate);
+  const changePasswordFinishMutation = useAction(
+    api.changePasswordFinish.mutate,
+  );
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,7 +39,7 @@ export const AccountSettings = () => {
         opaque.client.startRegistration({ password: newPassword });
 
       const { loginResponse, registrationResponse } =
-        await changePasswordStartMutation.mutateAsync({
+        await changePasswordStartMutation.run({
           currentPasswordLoginRequest: startLoginRequest,
           newPasswordRegistrationRequest: registrationRequest,
         });
@@ -55,7 +59,7 @@ export const AccountSettings = () => {
         registrationResponse,
         password: newPassword,
       });
-      const result = await changePasswordFinishMutation.mutateAsync({
+      const result = await changePasswordFinishMutation.run({
         currentPasswordFinishRequest: loginResult.finishLoginRequest,
         newPasswordRegistrationRecord: registrationRecord,
       });
@@ -161,7 +165,7 @@ export const AccountSettings = () => {
             type="submit"
             className="ds-button"
             data-tone="primary"
-            disabled={isPending || meQuery.isLoading}
+            disabled={isPending || meQuery.loading}
           >
             Change password
           </button>

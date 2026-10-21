@@ -3,30 +3,26 @@ import {
   buildDrawingDocumentUrl,
   createAccountWebRuntimeConfig,
 } from "@/utils/drawingAppLinks";
-import { trpc } from "../../utils/trpc";
+import { api } from "@/utils/api";
+import { useAction } from "@/hooks/useResource";
 
 const Invitation = () => {
-  const acceptDocumentInvitationMutation =
-    trpc.acceptDocumentInvitation.useMutation();
+  const acceptDocumentInvitationMutation = useAction(
+    api.acceptDocumentInvitation.mutate,
+  );
   const { token } = useRoute().params;
   const runtimeConfig = createAccountWebRuntimeConfig();
 
-  const acceptInvitation = () => {
-    acceptDocumentInvitationMutation.mutate(
-      { token },
-      {
-        onError: () => {
-          alert("Failed to accept invitation. Please try again.");
-        },
-        onSuccess: (data) => {
-          if (data?.documentId) {
-            window.location.assign(
-              buildDrawingDocumentUrl(data.documentId, runtimeConfig),
-            );
-          }
-        },
-      },
-    );
+  const acceptInvitation = async () => {
+    try {
+      const data = await acceptDocumentInvitationMutation.run({ token });
+      if (data?.documentId)
+        window.location.assign(
+          buildDrawingDocumentUrl(data.documentId, runtimeConfig),
+        );
+    } catch {
+      alert("Failed to accept invitation. Please try again.");
+    }
   };
 
   return (
@@ -38,7 +34,7 @@ const Invitation = () => {
           type="button"
           className="ds-button"
           data-tone="primary"
-          disabled={acceptDocumentInvitationMutation.isPending}
+          disabled={acceptDocumentInvitationMutation.pending}
           onClick={acceptInvitation}
         >
           Accept Document Invitation

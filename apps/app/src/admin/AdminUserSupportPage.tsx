@@ -24,7 +24,8 @@ import {
   buildDrawingDocumentUrl,
   createAccountWebRuntimeConfig,
 } from "@/utils/drawingAppLinks";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
+import { useResource, useAction } from "@/hooks/useResource";
 
 type Props = {
   documentId?: string;
@@ -84,46 +85,52 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
   const [settingsClearPin, setSettingsClearPin] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
   const [settingsError, setSettingsError] = useState<string | null>(null);
-  const trpcUtils = trpc.useUtils();
-  const userQuery = trpc.adminGetUserByUsername.useQuery(username, {
-    retry: false,
-  });
-  const userSessionsQuery = trpc.adminListUserSessions.useQuery(
-    { username },
+  const userQuery = useResource(
+    (signal) => api.adminGetUserByUsername.query(username, { signal }),
+    [username],
+    {},
+  );
+  const userSessionsQuery = useResource(
+    (signal) => api.adminListUserSessions.query({ username }, { signal }),
+    [username],
     {
       enabled: Boolean(userQuery.data),
-      retry: false,
     },
   );
-  const userDocumentsQuery = trpc.adminListUserDocuments.useQuery(
-    { username },
+  const userDocumentsQuery = useResource(
+    (signal) => api.adminListUserDocuments.query({ username }, { signal }),
+    [username],
     {
       enabled: Boolean(userQuery.data),
-      retry: false,
     },
   );
-  const deletedDocumentsQuery = trpc.adminListDeletedUserDocuments.useQuery(
-    { username },
+  const deletedDocumentsQuery = useResource(
+    (signal) =>
+      api.adminListDeletedUserDocuments.query({ username }, { signal }),
+    [username],
     {
       enabled: Boolean(userQuery.data),
-      retry: false,
     },
   );
-  const accountSettingsQuery = trpc.adminGetUserAccountSettings.useQuery(
-    { username },
+  const accountSettingsQuery = useResource(
+    (signal) => api.adminGetUserAccountSettings.query({ username }, { signal }),
+    [username],
     {
       enabled: Boolean(userQuery.data),
-      retry: false,
     },
   );
-  const resetPasswordMutation = trpc.adminResetUserPassword.useMutation();
-  const revokeSessionMutation = trpc.adminRevokeUserSession.useMutation();
-  const revokeSessionsMutation = trpc.adminRevokeUserSessions.useMutation();
-  const restoreDocumentMutation = trpc.adminRestoreUserDocument.useMutation();
-  const createShareLinkMutation =
-    trpc.adminCreateUserDocumentShareLink.useMutation();
-  const saveAccountSettingsMutation =
-    trpc.adminSaveUserAccountSettings.useMutation();
+  const resetPasswordMutation = useAction(api.adminResetUserPassword.mutate);
+  const revokeSessionMutation = useAction(api.adminRevokeUserSession.mutate);
+  const revokeSessionsMutation = useAction(api.adminRevokeUserSessions.mutate);
+  const restoreDocumentMutation = useAction(
+    api.adminRestoreUserDocument.mutate,
+  );
+  const createShareLinkMutation = useAction(
+    api.adminCreateUserDocumentShareLink.mutate,
+  );
+  const saveAccountSettingsMutation = useAction(
+    api.adminSaveUserAccountSettings.mutate,
+  );
   const drawingRuntimeConfig = createAccountWebRuntimeConfig();
   const foundUser = userQuery.data;
 
@@ -156,15 +163,13 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
     setResetMessage(null);
     setResetError(null);
     try {
-      await resetPasswordMutation.mutateAsync({
+      await resetPasswordMutation.run({
         username: foundUser.username,
         newPassword,
       });
       setNewPassword("");
       setResetMessage(`Password reset for ${foundUser.username}.`);
-      await trpcUtils.adminListUserSessions.invalidate({
-        username: foundUser.username,
-      });
+      await userSessionsQuery.reload();
     } catch (error) {
       setResetError(
         error instanceof Error
@@ -194,7 +199,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
     setSessionMessage(null);
     setSessionError(null);
     try {
-      const result = await revokeSessionMutation.mutateAsync({
+      const result = await revokeSessionMutation.run({
         username: foundUser.username,
         sessionId,
       });
@@ -203,9 +208,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
           ? "Session revoked."
           : "That session was already gone.",
       );
-      await trpcUtils.adminListUserSessions.invalidate({
-        username: foundUser.username,
-      });
+      await userSessionsQuery.reload();
     } catch (error) {
       setSessionError(
         error instanceof Error
@@ -235,7 +238,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
     setSessionMessage(null);
     setSessionError(null);
     try {
-      const result = await revokeSessionsMutation.mutateAsync({
+      const result = await revokeSessionsMutation.run({
         username: foundUser.username,
       });
       setSessionMessage(
@@ -243,9 +246,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
           ? "1 session revoked."
           : `${result.revoked} sessions revoked.`,
       );
-      await trpcUtils.adminListUserSessions.invalidate({
-        username: foundUser.username,
-      });
+      await userSessionsQuery.reload();
     } catch (error) {
       setSessionError(
         error instanceof Error
@@ -270,7 +271,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
     setSettingsMessage(null);
     setSettingsError(null);
     try {
-      await saveAccountSettingsMutation.mutateAsync({
+      await saveAccountSettingsMutation.run({
         username: foundUser.username,
         settings: {
           shareMode: settingsShareMode,
@@ -284,9 +285,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
       setSettingsMessage("Settings saved.");
       setSettingsPin("");
       setSettingsClearPin(false);
-      await trpcUtils.adminGetUserAccountSettings.invalidate({
-        username: foundUser.username,
-      });
+      await accountSettingsQuery.reload();
     } catch (error) {
       setSettingsError(
         error instanceof Error ? error.message : "Settings could not be saved.",
@@ -313,18 +312,14 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
     setRestoreMessage(null);
     setRestoreError(null);
     try {
-      await restoreDocumentMutation.mutateAsync({
+      await restoreDocumentMutation.run({
         username: foundUser.username,
         documentId: document.id,
       });
       setRestoreMessage(`${document.name} restored.`);
       await Promise.all([
-        trpcUtils.adminListDeletedUserDocuments.invalidate({
-          username: foundUser.username,
-        }),
-        trpcUtils.adminListUserDocuments.invalidate({
-          username: foundUser.username,
-        }),
+        deletedDocumentsQuery.reload(),
+        userDocumentsQuery.reload(),
       ]);
     } catch (error) {
       setRestoreError(
@@ -344,7 +339,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
         ]}
       />
 
-      {userQuery.isFetching ? (
+      {userQuery.fetching ? (
         <section className="admin-panel">
           <p className="portal-muted">Loading user...</p>
         </section>
@@ -409,7 +404,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                     className="ds-button"
                     data-tone="danger"
                     disabled={
-                      !newPassword.trim() || resetPasswordMutation.isPending
+                      !newPassword.trim() || resetPasswordMutation.pending
                     }
                   >
                     <KeyRound className="portal-action-icon" />
@@ -444,7 +439,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                     data-tone="danger"
                     disabled={
                       !userSessionsQuery.data?.length ||
-                      revokeSessionsMutation.isPending
+                      revokeSessionsMutation.pending
                     }
                     onClick={() => {
                       void revokeAllSessions();
@@ -454,7 +449,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                     Revoke all
                   </button>
                 </div>
-                {userSessionsQuery.isLoading ? (
+                {userSessionsQuery.loading ? (
                   <p className="portal-muted">Loading sessions...</p>
                 ) : null}
                 {userSessionsQuery.data?.length === 0 ? (
@@ -473,7 +468,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                           type="button"
                           className="ds-button"
                           data-tone="danger"
-                          disabled={revokeSessionMutation.isPending}
+                          disabled={revokeSessionMutation.pending}
                           onClick={() => {
                             void revokeSession(session.id);
                           }}
@@ -514,7 +509,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
 
               <section className="admin-section" aria-label="Settings">
                 <h2 className="portal-label">Settings</h2>
-                {accountSettingsQuery.isLoading ? (
+                {accountSettingsQuery.loading ? (
                   <p className="portal-muted">Loading settings...</p>
                 ) : null}
                 <form
@@ -570,7 +565,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                     type="submit"
                     className="ds-button"
                     data-tone="primary"
-                    disabled={saveAccountSettingsMutation.isPending}
+                    disabled={saveAccountSettingsMutation.pending}
                   >
                     Save settings
                   </button>
@@ -599,7 +594,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
             <header className="admin-panel__header">
               <h2 className="portal-title">Drawings</h2>
             </header>
-            {userDocumentsQuery.isLoading ? (
+            {userDocumentsQuery.loading ? (
               <p className="portal-muted">Loading drawings...</p>
             ) : null}
             {userDocumentsQuery.data?.length === 0 ? (
@@ -667,13 +662,15 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
             <DeletedDrawingsList
               documents={deletedDocumentsQuery.data ?? []}
               emptyLabel="No deleted drawings."
-              isLoading={deletedDocumentsQuery.isLoading}
+              isLoading={deletedDocumentsQuery.loading}
               layout="list"
               onRestore={(document) => {
                 void restoreDeletedDocument(document);
               }}
               restoringId={
-                restoreDocumentMutation.variables?.documentId ?? null
+                restoreDocumentMutation.pending
+                  ? (restoreDocumentMutation.input?.documentId ?? null)
+                  : null
               }
             />
             {restoreMessage ? (
@@ -711,9 +708,10 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
 type AdminDocumentActionsProps = {
   beforeActions?: React.ReactNode;
   confirmDialogRef: React.RefObject<DsConfirmDialogHandle | null>;
-  createShareLinkMutation: ReturnType<
-    typeof trpc.adminCreateUserDocumentShareLink.useMutation
-  >;
+  createShareLinkMutation: {
+    run: typeof api.adminCreateUserDocumentShareLink.mutate;
+    pending: boolean;
+  };
   document: AdminDocumentActionTarget;
   drawingRuntimeConfig: ReturnType<typeof createAccountWebRuntimeConfig>;
   shareLink?: string;
@@ -755,7 +753,7 @@ const AdminDocumentActions: React.FC<AdminDocumentActionsProps> = ({
       <button
         type="button"
         className="ds-button"
-        disabled={createShareLinkMutation.isPending}
+        disabled={createShareLinkMutation.pending}
         onClick={async () => {
           const confirmed =
             (await confirmDialogRef.current?.confirm({
@@ -772,7 +770,7 @@ const AdminDocumentActions: React.FC<AdminDocumentActionsProps> = ({
 
           setShareLinkError(null);
           try {
-            const result = await createShareLinkMutation.mutateAsync({
+            const result = await createShareLinkMutation.run({
               username,
               documentId: document.id,
             });
@@ -802,20 +800,24 @@ const AdminDocumentInspectionPage: React.FC<{
   const [shareLinkError, setShareLinkError] = useState<string | null>(null);
   const [tokenMessage, setTokenMessage] = useState<string | null>(null);
   const [tokenError, setTokenError] = useState<string | null>(null);
-  const trpcUtils = trpc.useUtils();
-  const documentDetailsQuery = trpc.adminGetUserDocumentDetails.useQuery(
-    {
-      username,
-      documentId,
-    },
-    {
-      retry: false,
-    },
+  const documentDetailsQuery = useResource(
+    (signal) =>
+      api.adminGetUserDocumentDetails.query(
+        {
+          username,
+          documentId,
+        },
+        { signal },
+      ),
+    [username, documentId],
+    {},
   );
-  const createShareLinkMutation =
-    trpc.adminCreateUserDocumentShareLink.useMutation();
-  const revokeAccessTokenMutation =
-    trpc.adminRevokeUserDocumentAccessToken.useMutation();
+  const createShareLinkMutation = useAction(
+    api.adminCreateUserDocumentShareLink.mutate,
+  );
+  const revokeAccessTokenMutation = useAction(
+    api.adminRevokeUserDocumentAccessToken.mutate,
+  );
   const drawingRuntimeConfig = createAccountWebRuntimeConfig();
   const details = documentDetailsQuery.data;
 
@@ -842,7 +844,7 @@ const AdminDocumentInspectionPage: React.FC<{
     setTokenMessage(null);
     setTokenError(null);
     try {
-      const result = await revokeAccessTokenMutation.mutateAsync({
+      const result = await revokeAccessTokenMutation.run({
         username,
         documentId,
         tokenId,
@@ -852,10 +854,7 @@ const AdminDocumentInspectionPage: React.FC<{
           ? "Device access revoked."
           : "That token could not be revoked.",
       );
-      await trpcUtils.adminGetUserDocumentDetails.invalidate({
-        username,
-        documentId,
-      });
+      await documentDetailsQuery.reload();
     } catch (error) {
       setTokenError(
         error instanceof Error
@@ -896,7 +895,7 @@ const AdminDocumentInspectionPage: React.FC<{
           ) : null}
         </header>
 
-        {documentDetailsQuery.isLoading ? (
+        {documentDetailsQuery.loading ? (
           <p className="portal-muted">Loading document details...</p>
         ) : null}
         {documentDetailsQuery.error ? (
@@ -1000,7 +999,7 @@ const AdminDocumentInspectionPage: React.FC<{
                           type="button"
                           className="ds-button"
                           data-tone="danger"
-                          disabled={revokeAccessTokenMutation.isPending}
+                          disabled={revokeAccessTokenMutation.pending}
                           onClick={() => {
                             void revokeAccessToken({
                               tokenId: token.id,

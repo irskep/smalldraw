@@ -7,8 +7,8 @@ const state = vi.hoisted(() => ({ admin: true }));
 vi.mock("../routes/__root", () => ({
   PortalLayout: ({ children }: { children: ComponentChildren }) => children,
 }));
-vi.mock("../utils/trpc", () => ({
-  trpc: { me: { useQuery: () => ({ data: { isServerAdmin: state.admin } }) } },
+vi.mock("../utils/account", () => ({
+  useAccount: () => ({ data: { isServerAdmin: state.admin } }),
 }));
 vi.mock("../admin/AdminUserSupportPage", () => ({
   AdminUserSupportPage: ({

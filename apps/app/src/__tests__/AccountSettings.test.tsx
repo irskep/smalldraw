@@ -2,29 +2,21 @@ import { fireEvent, render, screen } from "@testing-library/preact";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { AccountSettings } from "../routes/account.lazy";
 
-const changePasswordStart = vi.fn();
-const changePasswordFinish = vi.fn();
+const { changePasswordStart, changePasswordFinish } = vi.hoisted(() => ({
+  changePasswordStart: vi.fn(),
+  changePasswordFinish: vi.fn(),
+}));
 
-vi.mock("../utils/trpc", () => ({
-  trpc: {
-    me: {
-      useQuery: () => ({
-        data: { username: "admin", isServerAdmin: true },
-        isLoading: false,
-      }),
-    },
-    changePasswordStart: {
-      useMutation: () => ({
-        isPending: false,
-        mutateAsync: changePasswordStart,
-      }),
-    },
-    changePasswordFinish: {
-      useMutation: () => ({
-        isPending: false,
-        mutateAsync: changePasswordFinish,
-      }),
-    },
+vi.mock("../utils/account", () => ({
+  useAccount: () => ({
+    data: { username: "admin", isServerAdmin: true },
+    loading: false,
+  }),
+}));
+vi.mock("../utils/api", () => ({
+  api: {
+    changePasswordStart: { mutate: changePasswordStart },
+    changePasswordFinish: { mutate: changePasswordFinish },
   },
 }));
 
@@ -53,9 +45,7 @@ describe("AccountSettings", () => {
       target: { value: "different-password" },
     });
     fireEvent.submit(
-      screen
-        .getByRole("button", { name: "Change password" })
-        .closest("form")!,
+      screen.getByRole("button", { name: "Change password" }).closest("form")!,
     );
 
     expect(screen.getByRole("alert").textContent).toContain(

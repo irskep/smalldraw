@@ -1,3 +1,4 @@
+import { useAccount } from "@/utils/account";
 import { createLocalDocumentBackend } from "@smalldraw/splat/documents";
 import { Trash2 } from "lucide";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -12,7 +13,8 @@ import {
   buildNewDrawingUrl,
   createAccountWebRuntimeConfig,
 } from "@/utils/drawingAppLinks";
-import { trpc } from "../utils/trpc";
+import { api } from "@/utils/api";
+import { useResource, useAction } from "@/hooks/useResource";
 
 type LocalDocumentTileInput = Parameters<
   typeof buildLauncherDocumentTiles
@@ -25,7 +27,6 @@ type LocalCatalogState =
 
 function Index() {
   const runtimeConfig = useMemo(() => createAccountWebRuntimeConfig(), []);
-  const trpcUtils = trpc.useUtils();
   const documentBackend = useMemo(() => createLocalDocumentBackend(), []);
   const confirmDialogRef = useRef<DsConfirmDialogHandle>(null);
   const localObjectUrlsRef = useRef<string[]>([]);
@@ -33,18 +34,20 @@ function Index() {
     type: "loading",
   });
   const [deletingTileKey, setDeletingTileKey] = useState<string | null>(null);
-  const meQuery = trpc.me.useQuery(undefined, {
-    retry: false,
-  });
+  const meQuery = useAccount();
   const isLoggedIn = Boolean(meQuery.data);
-  const documentsQuery = trpc.documents.useQuery(undefined, {
-    enabled: isLoggedIn,
-    refetchInterval: 5000,
-    retry: (failureCount) => failureCount < 2,
-  });
-  const deleteDocumentMutation = trpc.deleteDocument.useMutation();
-  const removeDocumentFromAccountMutation =
-    trpc.removeDocumentFromAccount.useMutation();
+  const documentsQuery = useResource(
+    (signal) => api.documents.query(undefined, { signal }),
+    [],
+    {
+      enabled: isLoggedIn,
+      interval: 5000,
+    },
+  );
+  const deleteDocumentMutation = useAction(api.deleteDocument.mutate);
+  const removeDocumentFromAccountMutation = useAction(
+    api.removeDocumentFromAccount.mutate,
+  );
   const tiles = useMemo(() => {
     const accountDocuments =
       isLoggedIn && !documentsQuery.error ? (documentsQuery.data ?? []) : [];
@@ -62,7 +65,7 @@ function Index() {
     runtimeConfig,
   ]);
   const launcherState =
-    localCatalog.type === "loading" || (isLoggedIn && documentsQuery.isLoading)
+    localCatalog.type === "loading" || (isLoggedIn && documentsQuery.loading)
       ? "loading"
       : localCatalog.type === "loaded" && tiles.length === 0
         ? "empty"
@@ -174,21 +177,21 @@ function Index() {
     setDeletingTileKey(tile.key);
     try {
       if (tile.deleteAction.type === "shared") {
-        await deleteDocumentMutation.mutateAsync({
+        await deleteDocumentMutation.run({
           id: tile.deleteAction.documentId,
         });
         if (tile.deleteAction.localDocUrl) {
           await documentBackend.deleteDocument(tile.deleteAction.localDocUrl);
         }
-        await trpcUtils.documents.invalidate();
+        await documentsQuery.reload();
       } else if (tile.deleteAction.type === "remove-shared") {
-        await removeDocumentFromAccountMutation.mutateAsync({
+        await removeDocumentFromAccountMutation.run({
           id: tile.deleteAction.documentId,
         });
         if (tile.deleteAction.localDocUrl) {
           await documentBackend.deleteDocument(tile.deleteAction.localDocUrl);
         }
-        await trpcUtils.documents.invalidate();
+        await documentsQuery.reload();
       } else {
         await documentBackend.deleteDocument(tile.deleteAction.docUrl);
       }

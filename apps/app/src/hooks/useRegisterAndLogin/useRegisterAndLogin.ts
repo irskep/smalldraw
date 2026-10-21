@@ -1,6 +1,6 @@
 import type { AccountSettingsInput } from "@smalldraw/shared";
 import { useState } from "react";
-import { trpc } from "../../utils/trpc";
+import { api } from "@/utils/api";
 import { type AuthResult, getAuthFailureMessage } from "../authErrors";
 import { useLogin } from "../useLogin/useLogin";
 
@@ -12,8 +12,6 @@ type RegisterParams = {
 
 export const useRegisterAndLogin = () => {
   const [isPending, setIsPending] = useState(false);
-  const registerStartMutation = trpc.registerStart.useMutation();
-  const registerFinishMutation = trpc.registerFinish.useMutation();
   const { login } = useLogin();
 
   const registerAndLogin = async ({
@@ -27,7 +25,7 @@ export const useRegisterAndLogin = () => {
       await opaque.ready;
       const { clientRegistrationState, registrationRequest } =
         opaque.client.startRegistration({ password });
-      const { registrationResponse } = await registerStartMutation.mutateAsync({
+      const { registrationResponse } = await api.registerStart.mutate({
         userIdentifier,
         registrationRequest,
       });
@@ -38,7 +36,7 @@ export const useRegisterAndLogin = () => {
         password,
       });
 
-      await registerFinishMutation.mutateAsync({
+      await api.registerFinish.mutate({
         userIdentifier,
         registrationRecord,
         initialSettings,

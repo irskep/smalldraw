@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { basePath } from "@/config";
-import { trpc } from "@/utils/trpc";
+import { useAccount } from "@/utils/account";
 
 const getSafeRedirectTarget = (redirect?: string) => {
   if (
@@ -15,22 +15,13 @@ const getSafeRedirectTarget = (redirect?: string) => {
 };
 
 export const useRedirectIfAuthenticated = (redirect?: string) => {
-  const meQuery = trpc.me.useQuery(undefined, {
-    retry: (failureCount, error) => {
-      const errorCode = error?.data?.code;
-      if (errorCode === "UNAUTHORIZED") {
-        return false;
-      }
-      if (failureCount > 3) return false;
-      return true;
-    },
-  });
+  const meQuery = useAccount();
 
   const safeRedirectTarget = useMemo(
     () => getSafeRedirectTarget(redirect),
     [redirect],
   );
-  const shouldRedirect = meQuery.isSuccess && Boolean(meQuery.data);
+  const shouldRedirect = Boolean(meQuery.data);
 
   useEffect(() => {
     if (shouldRedirect) {

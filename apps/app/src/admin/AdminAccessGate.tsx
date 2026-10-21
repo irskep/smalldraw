@@ -1,14 +1,14 @@
+import { useAccount } from "@/utils/account";
 import type React from "react";
-import { trpc } from "@/utils/trpc";
 
 type Props = {
   children: React.ReactNode;
 };
 
 export const AdminAccessGate: React.FC<Props> = ({ children }) => {
-  const meQuery = trpc.me.useQuery();
+  const meQuery = useAccount();
 
-  if (meQuery.isLoading) {
+  if (meQuery.loading) {
     return (
       <section className="portal-page portal-admin" aria-label="Admin">
         <div className="portal-page__header">

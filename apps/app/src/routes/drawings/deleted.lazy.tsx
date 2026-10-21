@@ -8,16 +8,18 @@ import {
   DeletedDrawingsList,
   type DeletedDrawingListItem,
 } from "@/components/DeletedDrawingsList/DeletedDrawingsList";
-import { trpc } from "../../utils/trpc";
+import { api } from "@/utils/api";
+import { useResource, useAction } from "@/hooks/useResource";
 
 function DeletedDrawings() {
-  const trpcUtils = trpc.useUtils();
   const confirmDialogRef = useRef<DsConfirmDialogHandle>(null);
   const [restoringId, setRestoringId] = useState<string | null>(null);
-  const deletedDocumentsQuery = trpc.deletedDocuments.useQuery(undefined, {
-    retry: (failureCount) => failureCount < 2,
-  });
-  const restoreDocumentMutation = trpc.restoreDocument.useMutation();
+  const deletedDocumentsQuery = useResource(
+    (signal) => api.deletedDocuments.query(undefined, { signal }),
+    [],
+    {},
+  );
+  const restoreDocumentMutation = useAction(api.restoreDocument.mutate);
 
   const restoreDocument = async (
     document: DeletedDrawingListItem,
@@ -36,11 +38,8 @@ function DeletedDrawings() {
 
     setRestoringId(document.id);
     try {
-      await restoreDocumentMutation.mutateAsync({ id: document.id });
-      await Promise.all([
-        trpcUtils.deletedDocuments.invalidate(),
-        trpcUtils.documents.invalidate(),
-      ]);
+      await restoreDocumentMutation.run({ id: document.id });
+      await deletedDocumentsQuery.reload();
     } finally {
       setRestoringId(null);
     }
@@ -58,7 +57,7 @@ function DeletedDrawings() {
         </p>
       </div>
 
-      {deletedDocumentsQuery.isLoading ? (
+      {deletedDocumentsQuery.loading ? (
         <p className="portal-muted">Loading deleted drawings…</p>
       ) : null}
 
@@ -78,7 +77,7 @@ function DeletedDrawings() {
           documents={documents}
           emptyLayout="card"
           emptyLabel="No deleted drawings."
-          isLoading={deletedDocumentsQuery.isLoading}
+          isLoading={deletedDocumentsQuery.loading}
           onRestore={(document) => {
             void restoreDocument(document);
           }}

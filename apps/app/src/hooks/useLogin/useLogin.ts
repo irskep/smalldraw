@@ -1,7 +1,6 @@
 import { rememberAccountLogin } from "@smalldraw/splat/account";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { trpc } from "../../utils/trpc";
+import { api } from "@/utils/api";
 import { type AuthResult, getAuthFailureMessage } from "../authErrors";
 
 type LoginParams = {
@@ -10,9 +9,6 @@ type LoginParams = {
 };
 
 export const useLogin = () => {
-  const loginStartMutation = trpc.loginStart.useMutation();
-  const loginFinishMutation = trpc.loginFinish.useMutation();
-  const queryClient = useQueryClient();
   const [isPending, setIsPending] = useState(false);
 
   const login = async ({ userIdentifier, password }: LoginParams) => {
@@ -24,7 +20,7 @@ export const useLogin = () => {
         password,
       });
 
-      const { loginResponse } = await loginStartMutation.mutateAsync({
+      const { loginResponse } = await api.loginStart.mutate({
         userIdentifier,
         startLoginRequest,
       });
@@ -42,13 +38,12 @@ export const useLogin = () => {
       }
       const { finishLoginRequest } = loginResult;
 
-      const { success, userId } = await loginFinishMutation.mutateAsync({
+      const { success, userId } = await api.loginFinish.mutate({
         finishLoginRequest,
         userIdentifier,
       });
 
       if (success) rememberAccountLogin(userId);
-      queryClient.invalidateQueries();
 
       return success
         ? ({ ok: true } satisfies AuthResult)

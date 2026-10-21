@@ -9,7 +9,8 @@ import {
 } from "@smalldraw/shared";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { mount, unmount } from "redom";
-import { trpc } from "@/utils/trpc";
+import { api } from "@/utils/api";
+import { useAction } from "@/hooks/useResource";
 
 export interface ParentalControlsDialogHandle {
   open(): Promise<boolean>;
@@ -23,12 +24,8 @@ export const ParentalControlsDialog = forwardRef<
     typeof createModalDialogView
   > | null>(null);
   const dialogRef = useRef<DsParentalControlsDialog | null>(null);
-  const accountSettingsQuery = trpc.accountSettings.useQuery(undefined, {
-    enabled: false,
-    retry: false,
-  });
-  const saveAccountSettingsMutation = trpc.saveAccountSettings.useMutation();
-  const verifyPinMutation = trpc.verifyAccountSettingsPin.useMutation();
+  const saveAccountSettingsMutation = useAction(api.saveAccountSettings.mutate);
+  const verifyPinMutation = useAction(api.verifyAccountSettingsPin.mutate);
 
   useEffect(() => {
     const errorDialog = createModalDialogView();
@@ -58,20 +55,17 @@ export const ParentalControlsDialog = forwardRef<
           if (!accountSessionExpected) {
             return await openParentalControlsDialog(dialog);
           }
-          const accountSettings = await accountSettingsQuery.refetch();
-          if (accountSettings.error || !accountSettings.data) {
-            throw new Error("Could not load account settings");
-          }
+          const accountSettings = await api.accountSettings.query();
           const result = await dialog.show({
-            initialState: accountSettings.data,
+            initialState: accountSettings,
             verifyPin: async (pin) =>
-              (await verifyPinMutation.mutateAsync({ pin })).valid,
+              (await verifyPinMutation.run({ pin })).valid,
             isCorrectMathAnswer: isCorrectParentalControlsMathAnswer,
           });
           if (!result) {
             return false;
           }
-          await saveAccountSettingsMutation.mutateAsync(result);
+          await saveAccountSettingsMutation.run(result);
           return true;
         } catch {
           await errorDialogRef.current?.showConfirm({
@@ -85,12 +79,7 @@ export const ParentalControlsDialog = forwardRef<
         }
       },
     }),
-    [
-      accountSessionExpected,
-      accountSettingsQuery,
-      saveAccountSettingsMutation,
-      verifyPinMutation,
-    ],
+    [accountSessionExpected, saveAccountSettingsMutation, verifyPinMutation],
   );
 
   return null;

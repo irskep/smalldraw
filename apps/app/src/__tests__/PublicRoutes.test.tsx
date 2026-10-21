@@ -14,20 +14,15 @@ vi.mock("preact-iso", () => ({
     route: state.navigate,
   }),
 }));
-vi.mock("@tanstack/react-query", () => ({ useQueryClient: () => ({}) }));
-vi.mock("../utils/trpc", () => ({
-  trpc: {
-    me: {
-      useQuery: () => ({
-        data: state.unauthorized ? undefined : { username: "test" },
-        error: state.unauthorized
-          ? { data: { code: "UNAUTHORIZED" } }
-          : undefined,
-        isLoading: false,
-      }),
-    },
-    logout: { useMutation: () => ({ isPending: false }) },
-  },
+vi.mock("../utils/account", () => ({
+  useAccount: () => ({
+    data: state.unauthorized ? undefined : { username: "test" },
+    error: state.unauthorized ? { data: { code: "UNAUTHORIZED" } } : undefined,
+    loading: false,
+  }),
+}));
+vi.mock("../utils/apiErrors", () => ({
+  isUnauthorized: (error: unknown) => Boolean(error),
 }));
 vi.mock("../components/DsDropdownMenu/DsDropdownMenu", () => ({
   DsDropdownMenu: () => null,

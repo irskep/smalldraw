@@ -1,22 +1,6 @@
-import { render } from "@testing-library/preact";
-import type { QueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { afterEach, expect, test, vi } from "vitest";
-import { App } from "../components/App/App";
-
-const captured = vi.hoisted(() => ({
-  client: undefined as QueryClient | undefined,
-}));
-vi.mock("../utils/router", () => ({ PortalRouter: () => null }));
-vi.mock("../utils/trpc", () => ({
-  trpcClient: {},
-  trpc: {
-    Provider: ({ queryClient }: { queryClient: QueryClient }) => {
-      captured.client = queryClient;
-      return null;
-    },
-  },
-}));
+import { handleApiError } from "../utils/apiErrors";
 
 test.each([
   "/data",
@@ -32,7 +16,6 @@ test.each([
     href: `http://localhost${pathname}`,
   } as Location;
   vi.spyOn(window, "location", "get").mockReturnValue(location);
-  render(<App />);
   const unauthorized = new TRPCClientError("Unauthorized", {
     result: {
       error: {
@@ -42,14 +25,7 @@ test.each([
       },
     },
   });
-  await expect(
-    captured.client!.fetchQuery({
-      queryKey: ["me"],
-      queryFn: () => {
-        throw unauthorized;
-      },
-    }),
-  ).rejects.toBeDefined();
+  handleApiError(unauthorized);
   const destination = new URL(location.href, "http://localhost");
   expect(destination.pathname).toBe(
     pathname === "/account" ? "/login" : pathname,
@@ -58,7 +34,6 @@ test.each([
     expect(new URLSearchParams(destination.search).get("redirect")).toBe(
       "/account",
     );
-  captured.client!.clear();
 });
 
 afterEach(() => vi.restoreAllMocks());
