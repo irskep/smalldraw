@@ -417,7 +417,6 @@ export function createKidsDrawController(options: {
     getSize,
     setSize,
     inputSessionController,
-    syncToolbarUi,
     perfSession,
   });
 

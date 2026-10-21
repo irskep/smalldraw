@@ -29,7 +29,6 @@ type RenderingRuntimeOptions = Omit<
   getSize: () => { width: number; height: number };
   setSize: (size: { width: number; height: number }) => void;
   inputSessionController: Pick<InputSessionController, "onRenderPass">;
-  syncToolbarUi: () => void;
   perfSession: {
     recordRenderPassStart: () => number;
     recordRenderPassEnd: (startMs: number) => void;
@@ -53,7 +52,6 @@ export function createKidsDrawRenderingRuntime(
       onRenderPass: () => {
         const startMs = options.perfSession.recordRenderPassStart();
         options.inputSessionController.onRenderPass();
-        options.syncToolbarUi();
         options.pipeline.render();
         options.pipeline.updateDirtyRectOverlay();
         options.perfSession.recordRenderPassEnd(startMs);

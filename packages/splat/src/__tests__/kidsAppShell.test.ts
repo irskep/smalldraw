@@ -3304,6 +3304,7 @@ describe("splatterboard shell", () => {
   });
 
   test("pointer move samples use coalesced events when available", async () => {
+    (globalThis as Record<string, unknown>).__kidsDrawPerf = {};
     const container = document.createElement("div");
     document.body.appendChild(container);
 
@@ -3394,6 +3395,7 @@ describe("splatterboard shell", () => {
     expect(secondSummary?.lastStrokeSummary?.coalescedEvents).toBe(0);
 
     app.destroy();
+    delete (globalThis as Record<string, unknown>).__kidsDrawPerf;
   });
 
   test("pointer leaving paper mid-stroke does not cancel commit", async () => {
