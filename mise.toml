@@ -253,6 +253,10 @@ run = ["mise run prod:build", "mise run server:deploy"]
 description = "Build both production frontends and test binary WASM, persistence, and account recovery in Chromium against a temporary database."
 run = "bun run scripts/test-browser-wasm.ts"
 
+[tasks."test:browser:coloring"]
+description = "Check coloring entry, saved drawings, and mobile layout at the supplied origin in Chromium and WebKit."
+run = "bun scripts/check-coloring-entry.ts"
+
 [tasks."bench:server:fixtures"]
 description = "Generate synthetic Automerge fixtures in /tmp from BENCH_ORIGIN (default local editor)"
 run = "bun scripts/benchmarks/export-drawings.ts"

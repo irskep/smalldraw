@@ -1,11 +1,12 @@
-import { expect, type Browser } from "@playwright/test";
+import { chromium, expect, webkit, type Browser } from "@playwright/test";
 
 export async function checkColoringEntry(
   browser: Browser,
   origin: string,
   name: string,
+  widths = [1280, 390, 320],
 ) {
-  for (const width of [1280, 390, 320]) {
+  for (const width of widths) {
     const context = await browser.newContext({
       viewport: { width, height: 850 },
     });
@@ -179,6 +180,7 @@ export async function checkColoringEntry(
         `PASS ${name} ${width}: landing → books → page → fill → reload → saved drawing`,
       );
     } catch (error) {
+      console.error(error);
       console.error(
         `FAIL ${name} ${width} at ${page.url()}\n${diagnostics.join("\n")}`,
       );
@@ -188,6 +190,43 @@ export async function checkColoringEntry(
       throw error;
     } finally {
       await context.close();
+    }
+  }
+}
+
+if (import.meta.main) {
+  const origin = process.argv[2];
+  if (!origin)
+    throw new Error("Usage: bun scripts/check-coloring-entry.ts <origin>");
+  const engines = { chromium, webkit };
+  const engineName = process.argv[3];
+  if (engineName) {
+    if (engineName !== "chromium" && engineName !== "webkit")
+      throw new Error("Unknown browser");
+    const width = Number(process.argv[4]);
+    if (![1280, 390, 320].includes(width))
+      throw new Error("Unsupported viewport width");
+    const browser = await engines[engineName].launch();
+    try {
+      await checkColoringEntry(browser, origin, engineName, [width]);
+    } finally {
+      await browser.close();
+    }
+  } else {
+    // Keep each live check in its own runner process: standalone WebKit can
+    // exit unexpectedly when several isolated contexts share a long-lived runner.
+    for (const name of Object.keys(engines)) {
+      for (const width of [1280, 390, 320]) {
+        const child = Bun.spawn(
+          [process.execPath, import.meta.path, origin, name, String(width)],
+          {
+            stdout: "inherit",
+            stderr: "inherit",
+          },
+        );
+        if ((await child.exited) !== 0)
+          throw new Error(`${name} ${width} failed`);
+      }
     }
   }
 }
