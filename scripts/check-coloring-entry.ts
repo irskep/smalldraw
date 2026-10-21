@@ -66,7 +66,7 @@ export async function checkColoringEntry(
           .boundingBox())!;
         expect(heading.width).toBeGreaterThan(width * 0.8);
         expect(title.height).toBeLessThan(35);
-        expect(back.y).toBeGreaterThanOrEqual(heading.y + heading.height);
+        expect(heading.y).toBeGreaterThanOrEqual(back.y + back.height);
         expect(close.y).toBeCloseTo(back.y, 0);
       }
       await page.screenshot({

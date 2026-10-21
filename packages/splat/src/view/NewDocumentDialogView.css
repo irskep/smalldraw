@@ -154,20 +154,20 @@
 
   .kids-draw-new-document-dialog .ds-dialog-scaffold__heading {
     grid-column: 1 / -1;
-    grid-row: 1;
+    grid-row: 2;
     text-align: left;
     justify-items: start;
   }
 
   .kids-draw-new-document-dialog .ds-dialog-scaffold__leading {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 1;
     justify-self: start;
   }
 
   .kids-draw-new-document-dialog .ds-dialog-scaffold__trailing {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 1;
     justify-self: end;
   }
 }
