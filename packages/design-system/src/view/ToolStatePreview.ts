@@ -7,6 +7,8 @@ export interface ToolStatePreviewModel {
   icon: IconButtonSource;
   accessibleName: string;
   color?: string;
+  /** Visual scale only; the preview never changes its layout footprint. */
+  scale?: number;
 }
 
 export class ToolStatePreview
@@ -26,6 +28,7 @@ export class ToolStatePreview
     }
     this.el.setAttribute("aria-label", model.accessibleName);
     this.el.style.color = model.color ?? "";
+    this.el.style.setProperty("--ds-tool-preview-scale", `${model.scale ?? 1}`);
     setChildren(this.el, [
       "kind" in model.icon
         ? el("img", { src: model.icon.src, alt: "", draggable: "false" })

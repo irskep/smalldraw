@@ -5,6 +5,7 @@ import path from "node:path";
 import { chromium, expect, webkit } from "@playwright/test";
 import * as opaque from "@serenity-kit/opaque";
 import { decode } from "@automerge/automerge-repo/helpers/cbor.js";
+import { checkStampInteraction } from "./check-stamp-interaction";
 import { checkGuestSharing } from "./check-guest-sharing";
 
 await opaque.ready;
@@ -489,7 +490,10 @@ try {
     .click();
   await expect(activeTool).toHaveText("Stamp: Bird 1");
   const toolPreview = page.locator(".ds-tool-state-preview");
-  await expect(toolPreview).toHaveAttribute("aria-label", "Stamp: Bird 1");
+  await expect(toolPreview).toHaveAttribute(
+    "aria-label",
+    /^Stamp: Bird 1, size /,
+  );
   await expect(toolPreview.locator("img")).toBeVisible();
   const stampSource = await toolPreview.locator("img").getAttribute("src");
   for (const [width, height] of [
@@ -530,7 +534,7 @@ try {
   await nextStamp.click();
   await expect(toolPreview).toHaveAttribute(
     "aria-label",
-    `Stamp: ${nextStampName}`,
+    new RegExp(`^Stamp: ${nextStampName}, size `),
   );
   await stampGrid
     .getByRole("button", { name: "Previous page", exact: true })
@@ -563,7 +567,7 @@ try {
     .first()
     .click();
   await expect(activeTool).toHaveText("Letter: A");
-  await expect(toolPreview).toHaveAttribute("aria-label", "Letter: A");
+  await expect(toolPreview).toHaveAttribute("aria-label", /^Letter: A, size /);
   await expect(toolPreview.locator("svg")).toBeVisible();
   await expect(toolPreview.locator("img")).toHaveCount(0);
   await page.getByRole("button", { name: "Colors", exact: true }).click();
@@ -580,7 +584,7 @@ try {
       }, letterColor),
     );
   await page.locator('[data-tool-variant="stamp.letter.b"]:visible').click();
-  await expect(toolPreview).toHaveAttribute("aria-label", "Letter: B");
+  await expect(toolPreview).toHaveAttribute("aria-label", /^Letter: B, size /);
   await page.screenshot({ path: "/tmp/letter-preview.png" });
   console.log(
     "PASS: stamp preview stays visible across layouts and paging; letter preview follows selection and color",
@@ -635,7 +639,7 @@ try {
       await expect(safariPreview).toBeInViewport();
       await expect(safariPreview).toHaveAttribute(
         "aria-label",
-        "Stamp: Bird 1",
+        /^Stamp: Bird 1, size /,
       );
       await expect
         .poll(() =>
@@ -700,6 +704,7 @@ try {
     await checkPreviewDoesNotMoveCanvas(privatePage, "webkit");
     await checkOtherToolPreviews(privatePage, "webkit");
     await checkRandomize(privatePage, "webkit");
+    await checkStampInteraction(privatePage, "webkit");
     await checkCaptureLoss(privatePage, "webkit");
     expect(thumbnailWarnings).toEqual([]);
     console.log(
@@ -712,6 +717,7 @@ try {
   await checkPreviewDoesNotMoveCanvas(page, "chromium");
   await checkOtherToolPreviews(page, "chromium");
   await checkRandomize(page, "chromium");
+  await checkStampInteraction(page, "chromium");
   await checkCaptureLoss(page, "chromium");
 
   // Check shipped CSS, whose bundling order differs from the dev server.

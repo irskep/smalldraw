@@ -9,6 +9,7 @@ import {
 } from "@smalldraw/core";
 import { Vec2 } from "gl-matrix";
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
+import type { StampShape } from "../../shapes/stampShape";
 import { createAlphabetStampTool } from "../../tools/drawingTools";
 
 describe("alphabet stamp tool", () => {
@@ -51,20 +52,87 @@ describe("alphabet stamp tool", () => {
     }
   });
 
-  test("supports drag-to-rotate-and-scale before commit", () => {
+  for (const width of [2, 8, 200]) {
+    for (const [dx, dy] of [
+      [40, 0],
+      [0, 40],
+      [-40, 0],
+      [0, -40],
+    ]) {
+      test(`rotates from initial direction ${dx},${dy} without resizing at width ${width}`, () => {
+        const { runtime, getDocument } = setup({
+          sharedSettings: {
+            strokeColor: "#000000",
+            strokeWidth: width,
+            fillColor: "#ffffff",
+          },
+        });
+        runtime.dispatch("pointerDown", {
+          point: new Vec2(100, 100),
+          buttons: 1,
+        });
+        runtime.dispatch("pointerMove", {
+          point: new Vec2(100 + dx!, 100 + dy!),
+          buttons: 1,
+        });
+        runtime.dispatch("pointerMove", {
+          point: new Vec2(100 - dy!, 100 + dx!),
+          buttons: 1,
+        });
+        runtime.dispatch("pointerUp", {
+          point: new Vec2(100 - dy!, 100 + dx!),
+          buttons: 0,
+        });
+        const shape = Object.values(getDocument().shapes)[0]!;
+        expect(shape.transform?.scale).toEqual([1, 1]);
+        expect(shape.transform?.rotation).toBeCloseTo(Math.PI / 2);
+        expect(shape.transform?.translation).toEqual([100, 100]);
+        expect((shape as StampShape).geometry.height).toBe(width * 15);
+      });
+    }
+  }
+
+  test("a straight drag in any direction leaves the stamp upright", () => {
+    for (const [dx, dy] of [
+      [40, 0],
+      [0, 40],
+      [-40, 0],
+      [0, -40],
+    ]) {
+      const { runtime, getDocument } = setup();
+      runtime.dispatch("pointerDown", {
+        point: new Vec2(100, 100),
+        buttons: 1,
+      });
+      runtime.dispatch("pointerMove", {
+        point: new Vec2(100 + dx!, 100 + dy!),
+        buttons: 1,
+      });
+      runtime.dispatch("pointerMove", {
+        point: new Vec2(100 + dx! * 2, 100 + dy! * 2),
+        buttons: 1,
+      });
+      runtime.dispatch("pointerUp", {
+        point: new Vec2(100 + dx! * 2, 100 + dy! * 2),
+        buttons: 0,
+      });
+      const shape = Object.values(getDocument().shapes)[0]!;
+      expect(shape.transform?.rotation).toBe(0);
+      expect(shape.transform?.scale).toEqual([1, 1]);
+    }
+  });
+
+  test("ignores finger jitter and keeps rotation when returning to the center", () => {
     const { runtime, getDocument } = setup();
-
-    runtime.dispatch("pointerDown", { point: new Vec2(100, 80), buttons: 1 });
-    runtime.dispatch("pointerMove", { point: new Vec2(128, 80), buttons: 1 });
-    runtime.dispatch("pointerUp", { point: new Vec2(128, 80), buttons: 0 });
-
-    const shapes = Object.values(getDocument().shapes) as AnyShape[];
-    expect(shapes.length).toBe(1);
-    const shape = shapes[0]!;
-    expect(shape.transform?.translation).toEqual([100, 80]);
-    expect(shape.transform?.rotation ?? 0).toBe(0);
-    expect((shape.transform?.scale?.[0] ?? 1) > 1).toBeTrue();
-    expect((shape.transform?.scale?.[1] ?? 1) > 1).toBeTrue();
+    runtime.dispatch("pointerDown", { point: new Vec2(100, 100), buttons: 1 });
+    runtime.dispatch("pointerMove", { point: new Vec2(102, 103), buttons: 1 });
+    runtime.dispatch("pointerMove", { point: new Vec2(100, 60), buttons: 1 });
+    runtime.dispatch("pointerMove", { point: new Vec2(140, 100), buttons: 1 });
+    runtime.dispatch("pointerMove", { point: new Vec2(100, 100), buttons: 1 });
+    runtime.dispatch("pointerUp", { point: new Vec2(100, 100), buttons: 0 });
+    const shape = Object.values(getDocument().shapes)[0]!;
+    expect(shape.transform?.rotation).toBeCloseTo(Math.PI / 2);
+    expect(shape.transform?.scale).toEqual([1, 1]);
   });
 
   test("uses shared stroke settings", () => {

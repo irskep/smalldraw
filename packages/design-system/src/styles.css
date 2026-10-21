@@ -961,6 +961,7 @@ body {
 }
 
 .ds-tool-state-preview {
+  pointer-events: none;
   position: relative;
   min-width: 0;
   min-height: 0;
@@ -973,6 +974,7 @@ body {
 }
 
 .ds-tool-state-preview > * {
+  transform: scale(var(--ds-tool-preview-scale, 1));
   position: absolute;
   inset: 0;
   display: block;

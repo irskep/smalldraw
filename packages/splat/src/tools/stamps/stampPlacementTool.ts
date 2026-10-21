@@ -15,8 +15,7 @@ interface ActiveStampState {
   draftId: string;
   zIndex: string;
   rotation: number;
-  scale: number;
-  scaleDistance: number;
+  initialDragAngle: number | null;
 }
 
 export interface CreateStampPlacementToolOptions {
@@ -37,8 +36,7 @@ export interface CreateStampPlacementToolOptions {
 }
 
 const PRIMARY_BUTTON_MASK = 1;
-const STAMP_MIN_DRAG_DISTANCE = 4;
-const STAMP_MIN_SCALE = 0.15;
+const STAMP_MIN_DRAG_DISTANCE = 12;
 
 export function createStampPlacementTool(
   options: CreateStampPlacementToolOptions,
@@ -47,7 +45,6 @@ export function createStampPlacementTool(
     runtime: ToolRuntime,
     point: Vec2,
     rotation: number,
-    scale: number,
     zIndex: string,
   ): void => {
     const stroke = options.resolveStroke(runtime);
@@ -57,28 +54,10 @@ export function createStampPlacementTool(
       zIndex,
       stroke,
       rotation,
-      scale,
+      scale: 1,
       runtime,
     });
     runtime.commit(new AddShape(shape));
-  };
-
-  const getScaleDistance = (shape: AnyShape): number => {
-    const stampShape = shape as AnyShape & {
-      geometry?: { type?: string; width?: number; height?: number };
-    };
-    if (
-      stampShape.type === "stamp" &&
-      stampShape.geometry?.type === "stamp" &&
-      typeof stampShape.geometry.width === "number" &&
-      typeof stampShape.geometry.height === "number"
-    ) {
-      return Math.max(
-        12,
-        Math.max(stampShape.geometry.width, stampShape.geometry.height) / 2,
-      );
-    }
-    return 24;
   };
 
   return {
@@ -107,15 +86,13 @@ export function createStampPlacementTool(
                 scale: 1,
                 runtime,
               });
-              const scaleDistance = getScaleDistance(draftShape);
 
               active = {
                 point: event.point,
                 draftId,
                 zIndex,
                 rotation: 0,
-                scale: 1,
-                scaleDistance,
+                initialDragAngle: null,
               };
               runtime.setDraft({
                 ...draftShape,
@@ -130,16 +107,16 @@ export function createStampPlacementTool(
             }
             const dragDelta = new Vec2().add(event.point).sub(active.point);
             const distance = Vec2.length(dragDelta);
-            if (distance >= STAMP_MIN_DRAG_DISTANCE) {
-              active.rotation = Math.atan2(getY(dragDelta), getX(dragDelta));
-              active.scale = Math.max(
-                STAMP_MIN_SCALE,
-                distance / active.scaleDistance,
-              );
-            } else {
-              active.rotation = 0;
-              active.scale = 1;
-            }
+            if (distance < STAMP_MIN_DRAG_DISTANCE) return;
+            const angle = Math.atan2(getY(dragDelta), getX(dragDelta));
+            // Let the first deliberate drag choose the handle direction.
+            // A straight outward drag never rotates or resizes the stamp.
+            active.initialDragAngle ??= angle;
+            const rotation = angle - active.initialDragAngle;
+            active.rotation = Math.atan2(
+              Math.sin(rotation),
+              Math.cos(rotation),
+            );
             const stroke = options.resolveStroke(runtime);
             const draftShape = options.createShape({
               id: active.draftId,
@@ -147,7 +124,7 @@ export function createStampPlacementTool(
               zIndex: active.zIndex,
               stroke,
               rotation: active.rotation,
-              scale: active.scale,
+              scale: 1,
               runtime,
             });
             runtime.setDraft({
@@ -161,13 +138,7 @@ export function createStampPlacementTool(
               runtime.clearDraft();
               return;
             }
-            stampAtPoint(
-              runtime,
-              active.point,
-              active.rotation,
-              active.scale,
-              active.zIndex,
-            );
+            stampAtPoint(runtime, active.point, active.rotation, active.zIndex);
             active = null;
             runtime.clearDraft();
           },

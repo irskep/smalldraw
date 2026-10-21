@@ -1,10 +1,11 @@
 import type { ToolStatePreviewModel } from "@smalldraw/design-system";
 import type { IconNode } from "lucide";
 import type { KidsToolConfig } from "../tools/kidsTools";
+import { computeStampSize, toStampStrokeSize } from "../tools/stampTool";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 
-// A fitted sample, like the stroke picker, rather than a canvas-scale cursor.
-// Compress the size range so the smallest and largest settings remain legible.
+// Brushes use a fitted sample. Stamps keep proportional size, with a 120px
+// stamp fitting the preview slot and larger stamps overflowing it visually.
 export function createToolStatePreview(
   tool: KidsToolConfig,
   state: ToolbarUiState,
@@ -19,9 +20,13 @@ export function createToolStatePreview(
   });
   switch (tool.familyId) {
     case "stamp.images":
-      return { icon: tool.icon, accessibleName: label };
     case "stamp.alphabet":
-      return { icon: tool.icon, color, accessibleName: label };
+      return {
+        icon: tool.icon,
+        color: tool.familyId === "stamp.alphabet" ? color : undefined,
+        accessibleName: `${label}, size ${state.strokeWidth}`,
+        scale: computeStampSize(toStampStrokeSize(state.strokeWidth)) / 120,
+      };
     case "fill":
       return sample(
         [
