@@ -328,9 +328,15 @@ function Index() {
             splatterboard@fastmail.com
           </a>
         </p>
-        <nav className="portal-home-footer__links" aria-label="Legal">
+        <nav
+          className="portal-home-footer__links"
+          aria-label="Privacy and terms"
+        >
           <a className="portal-link" href="/privacy">
             Privacy policy
+          </a>
+          <a className="portal-link" href="/privacy#analytics">
+            Analytics settings
           </a>
           <a className="portal-link" href="/terms">
             Terms of service

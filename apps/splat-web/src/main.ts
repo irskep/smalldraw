@@ -1,3 +1,4 @@
+import { createWebAnalytics } from "@smalldraw/shared";
 import "@smalldraw/splat/styles.css";
 import { createKidsDrawApp } from "@smalldraw/splat";
 import { createSplatDocumentNavigationStore } from "./documentNavigation";
@@ -6,6 +7,9 @@ import {
   resolveSplatStartupIntent,
 } from "./multiplayerConfig";
 import { renderStartupErrorScreen } from "./startupErrorScreen";
+
+const analytics = createWebAnalytics();
+analytics.page("/draw/");
 
 const container = document.getElementById("app");
 if (!container) {
@@ -25,6 +29,7 @@ try {
   const documentNavigation = createSplatDocumentNavigationStore({ window });
   const baseApp = await createKidsDrawApp({
     container,
+    analytics,
     assetBaseUrl: multiplayerConfig.assetBaseUrl,
     multiplayer: {
       ...multiplayerConfig,

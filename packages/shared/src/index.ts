@@ -359,3 +359,11 @@ export type DrawingCheckpointResult =
   | { status: "saved"; heads: string[]; content: Uint8Array };
 
 export { getPortalMetadata } from "./portalMetadata";
+
+export {
+  analyticsEnabled,
+  analyticsPath,
+  createWebAnalytics,
+  setAnalyticsEnabled,
+  type UsageAnalytics,
+} from "./webAnalytics";

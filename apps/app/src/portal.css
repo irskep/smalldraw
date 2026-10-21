@@ -388,6 +388,16 @@ a {
   flex-wrap: wrap;
 }
 
+.portal-analytics-preference {
+  text-align: start;
+  padding-block: var(--size-4);
+}
+
+.portal-analytics-preference .portal-checkbox-field {
+  min-block-size: 44px;
+  align-items: center;
+}
+
 .portal-checkbox-field {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

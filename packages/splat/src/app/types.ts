@@ -1,5 +1,8 @@
 import type { DrawingStore, SmalldrawCore } from "@smalldraw/core";
-import type { SplatDocumentOpenIntent } from "@smalldraw/shared";
+import type {
+  SplatDocumentOpenIntent,
+  UsageAnalytics,
+} from "@smalldraw/shared";
 import type { IconNode } from "lucide";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 
@@ -14,6 +17,7 @@ export interface ConfirmDialogRequest {
 
 export interface KidsDrawAppOptions {
   container: HTMLElement;
+  analytics?: UsageAnalytics;
   width?: number;
   height?: number;
   backgroundColor?: string;

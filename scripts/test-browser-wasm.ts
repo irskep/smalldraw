@@ -1,3 +1,4 @@
+import { checkAnalytics } from "./check-analytics";
 import { checkColoringEntry } from "./check-coloring-entry";
 /** Exercise the actual Vite/Bun production output against an isolated server. */
 import { mkdtemp, rm } from "node:fs/promises";
@@ -370,6 +371,7 @@ try {
     })
     .toBe(200);
   browser = await chromium.launch();
+  await checkAnalytics(browser, origin);
   const context = await browser.newContext();
   const page = await context.newPage();
   page.setDefaultTimeout(20_000);

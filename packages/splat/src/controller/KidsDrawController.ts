@@ -6,9 +6,11 @@ import type {
 import type { SplatContextDocumentSlot } from "@smalldraw/design-system";
 import { Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
+import type { UsageAnalytics } from "@smalldraw/shared";
 import { type IconNode, Trash2 } from "lucide";
 import { mount, unmount } from "redom";
 import type { AccountSession } from "../app/createAccountSession";
+import { createDrawingUsageAnalytics } from "../app/usageAnalytics";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 import {
   automergeUrlToDocumentId,
@@ -197,6 +199,7 @@ export function createKidsDrawController(options: {
   openParentalControls: () => Promise<boolean>;
   onShareError?: (message: string) => void;
   onClaimError?: (message: string) => void;
+  analytics?: UsageAnalytics;
   onDocumentCreationCancelled?: () => void;
   onDocumentOpenRequested?: (
     summary: KidsDocumentSummary | null,
@@ -627,7 +630,9 @@ export function createKidsDrawController(options: {
     syncToolbarUi();
     renderLoopController.requestRenderFromModel();
   });
+  const usage = createDrawingUsageAnalytics(options.analytics, tools);
   store.setOnAction((event) => {
+    usage.action(event, store.getActiveToolId());
     const affectedShapeIds = event.action.affectedShapeIds();
     logDiagnosticEvent("store_action", {
       actionType: event.type,
@@ -643,6 +648,8 @@ export function createKidsDrawController(options: {
   let latestStartupReadiness = startupReadinessStore.getState();
   const syncShellForDocumentState = (): void => {
     const hasLoadedDocument = latestActiveDocument.type === "loaded";
+    if (hasLoadedDocument && latestStartupReadiness.interactionEnabled)
+      usage.opened(store.getDocument());
     toolbarUiStore.setHasLoadedDocument(hasLoadedDocument);
     stage.setCanvasVisible(hasLoadedDocument);
     stage.setInteractionEnabled(

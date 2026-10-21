@@ -1,4 +1,5 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
+import { AnalyticsPreference } from "../components/AnalyticsPreference/AnalyticsPreference";
 
 export const Route = createLazyFileRoute("/privacy")({
   component: PrivacyPolicy,
@@ -9,7 +10,8 @@ function PrivacyPolicy() {
     <section className="portal-page" aria-label="Privacy policy">
       <div className="portal-page__header">
         <h1 className="portal-title">Privacy Policy</h1>
-        <p>Last updated: June 19, 2026</p>
+        <p>Last updated: October 20, 2026</p>
+        <AnalyticsPreference />
         <p>
           This Privacy Policy describes Our policies and procedures on the
           collection, use and disclosure of Your information when You use the
@@ -171,6 +173,23 @@ function PrivacyPolicy() {
           We may also collect information that Your browser sends whenever You
           visit Our Service or when You access the Service by or through a
           mobile device.
+        </p>
+        <h4>Usage analytics</h4>
+        <p>
+          We use GoatCounter to learn which parts of Splatterboard people use,
+          including tools, stamps, and public coloring pages. We send page
+          categories and usage events, not your drawings, drawing names, account
+          identifiers, or private share links. We use temporary browser-tab
+          storage to avoid counting repeated tool use during the same session.
+          This resets after 30 minutes of inactivity.
+        </p>
+        <p>
+          GoatCounter receives normal connection information, including your IP
+          address and browser information. See the{" "}
+          <a href="https://www.goatcounter.com/privacy">
+            GoatCounter privacy policy
+          </a>{" "}
+          for how it handles that information.
         </p>
         <h4>Tracking Technologies and Cookies</h4>
         <p>
