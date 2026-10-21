@@ -166,7 +166,8 @@ export function createKidsDrawPerfSession(): KidsDrawPerfSession {
         sampleEventRatio,
       };
       perfGlobal.lastStrokeSummary = summary;
-      const history = (perfGlobal.strokeHistory ??= []);
+      perfGlobal.strokeHistory ??= [];
+      const history = perfGlobal.strokeHistory;
       history.push(summary);
       if (history.length > 100) history.splice(0, history.length - 100);
       console.log(
