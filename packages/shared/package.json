@@ -10,5 +10,9 @@
     "lint": "bunx biome check .",
     "lint:fix": "bunx biome check --write .",
     "test": "bun test --pass-with-no-tests"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./analytics": "./src/webAnalytics.ts"
   }
 }

@@ -360,10 +360,7 @@ export type DrawingCheckpointResult =
 
 export { getPortalMetadata } from "./portalMetadata";
 
-export {
-  analyticsEnabled,
-  analyticsPath,
-  createWebAnalytics,
-  setAnalyticsEnabled,
-  type UsageAnalytics,
-} from "./webAnalytics";
+/** Optional usage reporting supplied by browser hosts. */
+export interface UsageAnalytics {
+  event(name: string, title: string): void;
+}

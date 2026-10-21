@@ -1,8 +1,6 @@
 import type { GoatCounterCountOptions } from "./goatcounter";
 
-export interface UsageAnalytics {
-  event(name: string, title: string): void;
-}
+import type { UsageAnalytics } from "./index";
 
 type CountPayload = Required<GoatCounterCountOptions>;
 

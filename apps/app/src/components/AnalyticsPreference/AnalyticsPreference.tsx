@@ -1,4 +1,7 @@
-import { analyticsEnabled, setAnalyticsEnabled } from "@smalldraw/shared";
+import {
+  analyticsEnabled,
+  setAnalyticsEnabled,
+} from "@smalldraw/shared/analytics";
 import { useEffect, useState } from "react";
 
 export function AnalyticsPreference() {
