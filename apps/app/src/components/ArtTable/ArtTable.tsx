@@ -1,12 +1,23 @@
 import { appPath } from "../../config";
 
-export function ArtTable({ href }: { href: string }) {
+export function ArtTable({
+  href,
+  coloringHref,
+}: {
+  href: string;
+  coloringHref: string;
+}) {
   return (
     <section className="art-table" aria-labelledby="art-table-title">
       <h1 id="art-table-title">A free drawing app for kids</h1>
-      <a className="art-table__start" href={href}>
-        <span aria-hidden="true">+</span> Start drawing
-      </a>
+      <div className="art-table__actions">
+        <a className="art-table__start" href={href}>
+          <span aria-hidden="true">+</span> Start drawing
+        </a>
+        <a className="art-table__start" href={coloringHref}>
+          Pick a coloring page
+        </a>
+      </div>
       <figure className="art-table__example">
         <img
           className="art-table__preview"

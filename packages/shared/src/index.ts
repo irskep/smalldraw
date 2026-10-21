@@ -64,7 +64,7 @@ export const PORTAL_ROUTE_PATTERNS = [
 ] as const;
 
 export type DrawingAppDocumentUrlParams =
-  | { type: "new"; account?: boolean }
+  | { type: "new"; account?: boolean; coloring?: boolean }
   | { type: "account"; documentId: string }
   | { type: "local"; docUrl: string }
   | { type: "join"; joinSecret: string };
@@ -80,7 +80,7 @@ export function buildDrawingAppUrl(
   }
   switch (params.type) {
     case "new":
-      url.searchParams.set("new", "1");
+      url.searchParams.set("new", params.coloring ? "coloring" : "1");
       if (params.account) {
         url.searchParams.set("account", "1");
       }
@@ -282,7 +282,7 @@ export type RevokeDocumentAccessTokenResult = {
 
 export type SplatDocumentOpenIntent =
   | { kind: "open-last-local" }
-  | { kind: "create-new-document" }
+  | { kind: "create-new-document"; picker?: "coloring" }
   | { kind: "open-local-document"; docUrl: string }
   | { kind: "open-share-link"; joinSecret: string }
   | { kind: "open-account-document"; documentId: string };

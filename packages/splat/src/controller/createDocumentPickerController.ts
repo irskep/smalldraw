@@ -76,8 +76,8 @@ export class DocumentPickerController {
     return this.options.newDocumentDialog.isOpen();
   }
 
-  openCreateDialog(): void {
-    this.options.newDocumentDialog.setOpen(true);
+  openCreateDialog(mode: "all" | "coloring" = "all"): void {
+    this.options.newDocumentDialog.setOpen(true, mode);
   }
 
   closeCreateDialog(): void {

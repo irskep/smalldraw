@@ -52,7 +52,7 @@ export type AppRuntimeAssembly = {
     reason: string;
     display: DocumentAccessDisplay;
   } | null;
-  startupCreateNewDocument: boolean;
+  startupNewDocument: "blank" | "coloring-picker" | undefined;
   sizingPolicy: {
     hasExplicitSize: boolean;
     getExplicitSize: () => DrawingDocumentSize;
@@ -230,7 +230,12 @@ export async function assembleAppRuntime(
     deviceTag,
     initialCatalogDocUrl,
     initialDocumentAccessState,
-    startupCreateNewDocument: startupIntent.kind === "create-new-document",
+    startupNewDocument:
+      startupIntent.kind === "create-new-document"
+        ? startupIntent.picker === "coloring"
+          ? "coloring-picker"
+          : "blank"
+        : undefined,
     sizingPolicy: {
       hasExplicitSize,
       getExplicitSize,

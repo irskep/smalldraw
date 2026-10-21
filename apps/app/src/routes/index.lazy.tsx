@@ -212,6 +212,7 @@ function Index() {
       {launcherState === "empty" ? (
         <ArtTable
           href={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn })}
+          coloringHref={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn, coloring: true })}
         />
       ) : null}
       <section className="portal-launcher" aria-label="Drawings">

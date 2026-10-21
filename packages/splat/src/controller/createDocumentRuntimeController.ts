@@ -133,7 +133,7 @@ export function createDocumentRuntimeController(options: {
         reason: string;
         display: DocumentAccessDisplay;
       };
-  startupCreateNewDocument?: boolean;
+  startupNewDocument?: "blank" | "coloring-picker";
   beforeOpenDocument?: (
     summary: KidsDocumentSummary | null,
   ) => Promise<void> | void;
@@ -635,7 +635,14 @@ export function createDocumentRuntimeController(options: {
         options.syncToolbarUi();
         return;
       }
-      if (options.startupCreateNewDocument) {
+      if (options.startupNewDocument === "coloring-picker") {
+        options.runtimeStore.setNoDocument({
+          reason: "choose_coloring_page",
+          display: { title: "Pick a coloring page", description: "" },
+        });
+        return;
+      }
+      if (options.startupNewDocument === "blank") {
         void this.createNewDocument({ mode: "normal" }).catch((error) => {
           console.error("[kids-draw:documents] startup create failed", {
             error,

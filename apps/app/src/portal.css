@@ -642,7 +642,7 @@ a {
 
 .art-table {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(200px, 1fr);
+  grid-template-columns: minmax(0, 3fr) minmax(240px, 1fr);
   grid-template-areas: "title title" "preview start";
   align-items: start;
   justify-items: start;
@@ -660,9 +660,18 @@ a {
   line-height: 1.25;
 }
 
-.art-table__start {
+.art-table__actions {
   grid-area: start;
   place-self: center;
+  display: grid;
+  gap: var(--size-3);
+  width: 100%;
+  max-width: 320px;
+}
+
+.art-table__start {
+  justify-content: center;
+  text-align: center;
   display: inline-flex;
   align-items: center;
   gap: var(--size-2);

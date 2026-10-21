@@ -20,10 +20,11 @@ type NewDocumentDialogState = {
   open: boolean;
   busy: boolean;
   selectedVolumeId: string | null;
+  coloringOnly: boolean;
 };
 
 export interface NewDocumentDialogView extends ReDomLike<HTMLDivElement> {
-  setOpen(open: boolean): void;
+  setOpen(open: boolean, mode?: "all" | "coloring"): void;
   isOpen(): boolean;
   setBusy(busy: boolean): void;
 }
@@ -100,6 +101,7 @@ export function createNewDocumentDialogView(options: {
     open: false,
     busy: false,
     selectedVolumeId: null,
+    coloringOnly: false,
   });
 
   const updateState = (
@@ -200,7 +202,15 @@ export function createNewDocumentDialogView(options: {
         ? null
         : (bookById.get(state.selectedVolumeId) ?? null);
     scaffold.setLeading(selectedBook === null ? null : backButton);
-    scaffold.setTitle(selectedBook === null ? "New drawing" : "Pick a page");
+    scaffold.setTitle(
+      selectedBook === null
+        ? state.coloringOnly
+          ? "Pick a coloring book"
+          : "New drawing"
+        : "Pick a page",
+    );
+    blankChoiceSlot.hidden = state.coloringOnly;
+    booksHeading.el.hidden = state.coloringOnly;
     scaffold.setSubtitle(selectedBook?.title ?? null);
     closeButton.setDisabled(state.busy);
     backButton.setDisabled(state.busy);
@@ -212,10 +222,11 @@ export function createNewDocumentDialogView(options: {
 
   return {
     el: scaffold.el,
-    setOpen(open) {
+    setOpen(open, mode = "all") {
       updateState((state) => ({
         ...state,
         open,
+        coloringOnly: mode === "coloring",
         selectedVolumeId: open ? state.selectedVolumeId : null,
       }));
       if (open) {

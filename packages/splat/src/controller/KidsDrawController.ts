@@ -186,7 +186,7 @@ export function createKidsDrawController(options: {
         reason: string;
         display: DocumentAccessDisplay;
       };
-  startupCreateNewDocument?: boolean;
+  startupNewDocument?: "blank" | "coloring-picker";
   beforeOpenDocument?: (
     summary: KidsDocumentSummary | null,
   ) => Promise<void> | void;
@@ -234,7 +234,7 @@ export function createKidsDrawController(options: {
     onThumbnailSaved,
     initialCatalogDocUrl,
     initialDocumentAccessState,
-    startupCreateNewDocument,
+    startupNewDocument,
     beforeOpenDocument,
     resolveJoinBaseUrl,
     showShareDialog,
@@ -443,7 +443,7 @@ export function createKidsDrawController(options: {
     onThumbnailSaved,
     initialCatalogDocUrl,
     initialDocumentAccessState,
-    startupCreateNewDocument,
+    startupNewDocument,
     beforeOpenDocument,
     resolveJoinBaseUrl,
   });
@@ -677,6 +677,9 @@ export function createKidsDrawController(options: {
   add(unbindStartupReadiness);
   syncShellForDocumentState();
   runtimeDocumentController.start();
+  if (startupNewDocument === "coloring-picker") {
+    documentPickerController.openCreateDialog("coloring");
+  }
   renderLoopController.updateRenderIdentity();
   applyLayoutAndPixelRatio();
   renderLoopController.scheduleResizeBake();

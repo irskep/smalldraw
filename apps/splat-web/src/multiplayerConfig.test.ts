@@ -159,3 +159,13 @@ function createMemoryStorage(seed?: Record<string, string>) {
     },
   };
 }
+
+test("coloring entry opens the picker and cannot be combined with another document", () => {
+  expect(resolveSplatStartupIntent("?new=coloring&account=1")).toEqual({
+    kind: "create-new-document",
+    picker: "coloring",
+  });
+  expect(
+    resolveSplatStartupIntent("?new=coloring&local=automerge:test").kind,
+  ).toBe("startup-error");
+});

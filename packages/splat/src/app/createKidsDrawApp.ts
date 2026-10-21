@@ -331,7 +331,7 @@ export async function createKidsDrawApp(
     onThumbnailSaved: controllerMultiplayerAdapters.onThumbnailSaved,
     initialCatalogDocUrl: runtime.initialCatalogDocUrl ?? undefined,
     initialDocumentAccessState: runtime.initialDocumentAccessState ?? undefined,
-    startupCreateNewDocument: runtime.startupCreateNewDocument,
+    startupNewDocument: runtime.startupNewDocument,
     beforeOpenDocument: runtime.prepareDocumentOpen,
     resolveJoinBaseUrl: () =>
       resolveJoinBaseUrl(options.multiplayer?.joinBaseUrl),

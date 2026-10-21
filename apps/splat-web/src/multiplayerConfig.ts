@@ -101,7 +101,9 @@ export function resolveSplatStartupIntent(search: string): SplatStartupIntent {
     return { kind: "open-share-link", joinSecret };
   }
   if (createNew) {
-    return { kind: "create-new-document" };
+    return params.get("new") === "coloring"
+      ? { kind: "create-new-document", picker: "coloring" }
+      : { kind: "create-new-document" };
   }
   if (accountDocumentId) {
     return { kind: "open-account-document", documentId: accountDocumentId };

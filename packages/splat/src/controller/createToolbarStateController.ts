@@ -35,7 +35,7 @@ export const DEFAULT_TOOLBAR_STATE_POLICY: ToolbarStatePolicy = {
   opaqueStrokeColor: "#000000",
   opaqueFillColor: "#ffffff",
   normalDefaultToolId: "brush.marker",
-  coloringDefaultToolId: "brush.marker",
+  coloringDefaultToolId: "fill.basic",
   normalDefaultStrokeWidth: 8,
   coloringDefaultStrokeWidth: 24,
 };

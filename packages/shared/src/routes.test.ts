@@ -81,3 +81,15 @@ describe("portal route helpers", () => {
     expect(isPortalRoutePath("/missing")).toBe(false);
   });
 });
+
+test("coloring entry retains account intent", () => {
+  const url = new URL(
+    buildDrawingAppUrl("https://splatterboard.app/draw/", {
+      type: "new",
+      coloring: true,
+      account: true,
+    }),
+  );
+  expect(url.searchParams.get("new")).toBe("coloring");
+  expect(url.searchParams.get("account")).toBe("1");
+});

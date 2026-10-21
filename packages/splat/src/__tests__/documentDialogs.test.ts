@@ -424,3 +424,36 @@ test("document browser reflects account state in status and save actions", () =>
   expect(dialog.el.textContent).toContain("Shared");
   expect(action()).toBeNull();
 });
+
+test("coloring entry hides the blank choice and creates only after choosing a page", () => {
+  const created: unknown[] = [];
+  const view = createNewDocumentDialogView({
+    onClose() {},
+    onCreate(request) {
+      created.push(request);
+    },
+  });
+  document.body.append(view.el);
+  view.setOpen(true, "coloring");
+  expect(view.el.textContent).toContain("Pick a coloring book");
+  expect(
+    view.el.querySelector<HTMLElement>(
+      ".kids-draw-new-document-dialog__blank-choice",
+    )?.hidden,
+  ).toBe(true);
+  view.el
+    .querySelector<HTMLButtonElement>("[data-new-document-volume]")!
+    .click();
+  expect(created).toEqual([]);
+  view.el.querySelector<HTMLButtonElement>("[data-new-document-page]")!.click();
+  expect(created).toHaveLength(1);
+  expect(created[0]).toMatchObject({ mode: "coloring" });
+  view.setOpen(false);
+  view.setOpen(true);
+  expect(
+    view.el.querySelector<HTMLElement>(
+      ".kids-draw-new-document-dialog__blank-choice",
+    )?.hidden,
+  ).toBe(false);
+  view.el.remove();
+});
