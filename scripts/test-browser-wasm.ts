@@ -1045,41 +1045,44 @@ try {
     "PASS: lazily loaded password cryptography also handles password changes",
   );
   const storageState = await context.storageState();
-  const safariCacheBrowser = await webkit.launch();
-  try {
-    for (const engine of [browser, safariCacheBrowser]) {
-      // A fresh context with no request interception: Playwright routing disables HTTP caching.
-      const cachedContext = await engine.newContext({ storageState });
-      try {
-        const cachedPage = await cachedContext.newPage();
-        const before = sharedWasmFetches;
-        await cachedPage.goto(origin);
-        await expect(
-          cachedPage.getByRole("heading", { name: "Your drawings" }),
-        ).toBeVisible();
-        expect(sharedWasmFetches).toBe(before + 1);
-        await cachedPage.goto(page.url());
-        await cachedPage.waitForFunction(() =>
-          Boolean((window as any).kidsDrawApp),
-        );
-        await expect(cachedPage.locator(".kids-draw-frame")).toBeVisible();
-        const binaryUrls = await cachedPage.evaluate(() =>
-          performance
-            .getEntriesByType("resource")
-            .map((e) => e.name)
-            .filter((name) => name.endsWith(".wasm")),
-        );
-        expect(binaryUrls).toEqual([`${origin}${automergeAsset.url}`]);
-        expect(sharedWasmFetches).toBe(before + 1);
-        console.log(
-          `PASS: ${engine.browserType().name()} portal → editor reuses cached WASM without a second network request`,
-        );
-      } finally {
-        await cachedContext.close();
-      }
+  for (const engine of ["chromium", "webkit"] as const) {
+    // A fresh context with no request interception: Playwright routing disables HTTP caching.
+    // WebKit private contexts intentionally do not cache fetches across navigation.
+    const cachedContext =
+      engine === "webkit"
+        ? await webkit.launchPersistentContext(
+            path.join(temporary, "webkit-cache"),
+            { headless: true },
+          )
+        : await browser.newContext({ storageState });
+    await cachedContext.addCookies(storageState.cookies);
+    try {
+      const cachedPage = await cachedContext.newPage();
+      const before = sharedWasmFetches;
+      await cachedPage.goto(origin);
+      await expect(
+        cachedPage.getByRole("heading", { name: "Your drawings" }),
+      ).toBeVisible();
+      expect(sharedWasmFetches).toBe(before + 1);
+      await cachedPage.goto(page.url());
+      await cachedPage.waitForFunction(() =>
+        Boolean((window as any).kidsDrawApp),
+      );
+      await expect(cachedPage.locator(".kids-draw-frame")).toBeVisible();
+      const binaryUrls = await cachedPage.evaluate(() =>
+        performance
+          .getEntriesByType("resource")
+          .map((e) => e.name)
+          .filter((name) => name.endsWith(".wasm")),
+      );
+      expect(binaryUrls).toEqual([`${origin}${automergeAsset.url}`]);
+      expect(sharedWasmFetches).toBe(before + 1);
+      console.log(
+        `PASS: ${engine} portal → editor reuses cached WASM without a second network request`,
+      );
+    } finally {
+      await cachedContext.close();
     }
-  } finally {
-    await safariCacheBrowser.close();
   }
   await context.close();
 

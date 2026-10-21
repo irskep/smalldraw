@@ -71,7 +71,7 @@ app.use(
   express.static(staticDir, {
     index: false,
     setHeaders(res, filePath) {
-      if (/[/\\]assets[/\\]automerge-[a-f0-9]{16}\.wasm$/.test(filePath))
+      if (/[/\\]engine[/\\]automerge-[a-f0-9]{16}\.wasm$/.test(filePath))
         res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
     },
   }),
