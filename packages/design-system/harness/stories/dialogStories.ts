@@ -25,13 +25,13 @@ type MockColoringBook = {
 const MOCK_COLORING_BOOKS: readonly MockColoringBook[] = [
   {
     id: "pdr-v1",
-    title: "PDR Volume 1",
+    title: "Public Domain Review Coloring Book — Volume 1",
     sourceLabel: "Built in",
     pages: ["001", "002", "003", "004", "005", "006"],
   },
   {
     id: "pdr-v2",
-    title: "PDR Volume 2",
+    title: "Public Domain Review Coloring Book — Volume 2",
     sourceLabel: "Built in",
     pages: ["001", "002", "003", "004"],
   },

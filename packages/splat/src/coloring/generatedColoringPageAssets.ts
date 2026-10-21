@@ -147,7 +147,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-001.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 1,
     width: 1010,
@@ -157,7 +157,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-002.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 2,
     width: 1022,
@@ -167,7 +167,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-003.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 3,
     width: 1444,
@@ -177,7 +177,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-004.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 4,
     width: 1010,
@@ -187,7 +187,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-005.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 5,
     width: 1005,
@@ -197,7 +197,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-006.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 6,
     width: 1184,
@@ -207,7 +207,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-007.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 7,
     width: 1007,
@@ -217,7 +217,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-008.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 8,
     width: 1005,
@@ -227,7 +227,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-009.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 9,
     width: 1379,
@@ -237,7 +237,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-010.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 10,
     width: 1035,
@@ -247,7 +247,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-011.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 11,
     width: 1008,
@@ -257,7 +257,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-012.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 12,
     width: 1010,
@@ -267,7 +267,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-013.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 13,
     width: 1039,
@@ -277,7 +277,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-014.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 14,
     width: 1005,
@@ -287,7 +287,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-015.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 15,
     width: 1284,
@@ -297,7 +297,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-016.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 16,
     width: 1009,
@@ -307,7 +307,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-017.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 17,
     width: 1021,
@@ -317,7 +317,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-018.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 18,
     width: 1005,
@@ -327,7 +327,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-019.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 19,
     width: 1055,
@@ -337,7 +337,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v1/page-020.png",
     volumeId: "pdr-v1",
-    volumeLabel: "PDR Volume 1",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 1",
     sourceUrl: null,
     pageNumber: 20,
     width: 1103,
@@ -347,7 +347,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-001.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 1,
     width: 1006,
@@ -357,7 +357,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-002.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 2,
     width: 1005,
@@ -367,7 +367,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-003.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 3,
     width: 1030,
@@ -377,7 +377,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-004.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 4,
     width: 1010,
@@ -387,7 +387,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-005.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 5,
     width: 1482,
@@ -397,7 +397,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-006.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 6,
     width: 1072,
@@ -407,7 +407,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-007.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 7,
     width: 1174,
@@ -417,7 +417,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-008.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 8,
     width: 1055,
@@ -427,7 +427,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-009.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 9,
     width: 1437,
@@ -437,7 +437,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-010.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 10,
     width: 1028,
@@ -447,7 +447,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-011.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 11,
     width: 1538,
@@ -457,7 +457,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-012.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 12,
     width: 1005,
@@ -467,7 +467,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-013.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 13,
     width: 1006,
@@ -477,7 +477,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-014.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 14,
     width: 1026,
@@ -487,7 +487,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-015.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 15,
     width: 1009,
@@ -497,7 +497,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-016.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 16,
     width: 1005,
@@ -507,7 +507,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-017.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 17,
     width: 1006,
@@ -517,7 +517,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-018.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 18,
     width: 1033,
@@ -527,7 +527,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-019.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 19,
     width: 1013,
@@ -537,7 +537,7 @@ export const GENERATED_COLORING_ASSETS: readonly GeneratedColoringAsset[] = [
   {
     id: "coloring/pdr-v2/page-020.png",
     volumeId: "pdr-v2",
-    volumeLabel: "PDR Volume 2",
+    volumeLabel: "Public Domain Review Coloring Book — Volume 2",
     sourceUrl: null,
     pageNumber: 20,
     width: 1014,

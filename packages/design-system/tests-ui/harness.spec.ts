@@ -1151,15 +1151,23 @@ test.describe("Dialog primitives", () => {
       page.getByRole("button", { name: "Blank Drawing" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "PDR Volume 1" }),
+      page.getByRole("button", {
+        name: "Public Domain Review Coloring Book — Volume 1",
+      }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "PDR Volume 1" }).click();
+    await page
+      .getByRole("button", {
+        name: "Public Domain Review Coloring Book — Volume 1",
+      })
+      .click();
     await expect(page.locator(".ds-dialog-scaffold__title")).toHaveText(
-      "PDR Volume 1",
+      "Public Domain Review Coloring Book — Volume 1",
     );
     await expect(
-      page.locator("h3").filter({ hasText: "PDR Volume 1" }),
+      page
+        .locator("h3")
+        .filter({ hasText: "Public Domain Review Coloring Book — Volume 1" }),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Page 001" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Page 004" })).toBeVisible();
@@ -1169,7 +1177,9 @@ test.describe("Dialog primitives", () => {
       page.getByRole("button", { name: "Blank Drawing" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "PDR Volume 1" }),
+      page.getByRole("button", {
+        name: "Public Domain Review Coloring Book — Volume 1",
+      }),
     ).toBeVisible();
   });
 

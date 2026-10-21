@@ -77,7 +77,9 @@ describe("NewDocumentDialogView", () => {
       '[data-new-document-page="coloring/pdr-v1/page-001.png"]',
     ) as HTMLButtonElement | null;
 
-    expect(summaryTitle?.textContent).toBe("PDR Volume 1");
+    expect(summaryTitle?.textContent).toBe(
+      "Public Domain Review Coloring Book — Volume 1",
+    );
     expect(dialog.el.textContent).not.toContain("Built in");
     expect(pageButton).not.toBeNull();
   });
