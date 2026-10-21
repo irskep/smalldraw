@@ -323,9 +323,23 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   private initSharedComponents(): void {
     this.randomizeButton.el.classList.add("ds-splat-context__randomize");
-    this.randomizeButton.setOnPress(() =>
-      this.opts.onSelectAction?.("randomize"),
-    );
+    this.randomizeButton.setOnPress(() => {
+      const button = this.randomizeButton.el;
+      button.classList.add("is-randomizing");
+      // Restart the tumble on quick repeat clicks, without delaying the action.
+      for (const animation of button.getAnimations({ subtree: true })) {
+        if (
+          animation instanceof CSSAnimation &&
+          animation.animationName === "ds-dice-tumble"
+        ) {
+          animation.currentTime = 0;
+        }
+      }
+      this.opts.onSelectAction?.("randomize");
+    });
+    this.randomizeButton.el.addEventListener("animationend", () => {
+      this.randomizeButton.el.classList.remove("is-randomizing");
+    });
     this.colorPicker = createColorPicker({
       className: "ds-splat-context__top-picker",
       colors: this.opts.colors,

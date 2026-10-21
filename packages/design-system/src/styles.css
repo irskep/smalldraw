@@ -1021,6 +1021,34 @@ body {
   justify-self: center;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .ds-splat-context__randomize.is-randomizing .ds-icon-button__icon {
+    animation: ds-dice-tumble 480ms var(--ease-out-3);
+  }
+}
+
+@keyframes ds-dice-tumble {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    animation-timing-function: var(--ease-out-3);
+  }
+  45% {
+    transform: translate(4px, -10px) rotate(220deg);
+    animation-timing-function: var(--ease-in-3);
+  }
+  72% {
+    transform: translate(0, 2px) rotate(350deg) scale(1.08, 0.9);
+    animation-timing-function: var(--ease-out-3);
+  }
+  86% {
+    transform: translate(0, -3px) rotate(365deg);
+    animation-timing-function: var(--ease-in-3);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg);
+  }
+}
+
 .ds-splat-context__mobile-top-controls .ds-splat-context__active-tool-name {
   font-size: var(--font-size-0);
 }
