@@ -53,6 +53,7 @@ const Root = () => {
   const parentalControlsDialogRef = useRef<ParentalControlsDialogHandle>(null);
   const location = useLocation();
   useEffect(() => updatePortalMetadata(location.pathname), [location.pathname]);
+  const isInformationalRoute = ["/data", "/privacy", "/terms"].includes(location.pathname.replace(/\/+$/, ""));
   const isAdminRoute =
     location.pathname === "/admin" || location.pathname.startsWith("/admin/");
 
@@ -72,8 +73,9 @@ const Root = () => {
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   useEffect(() => {
+    if (isInformationalRoute) return;
     void initializeAccountWorkspace().then(() => setWorkspaceReady(true)).catch((error) => setWorkspaceError(String(error)));
-  }, []);
+  }, [isInformationalRoute]);
 
   const isNotAuthorized = meQuery.error?.data?.code === "UNAUTHORIZED";
   const accountMenuEntries = useMemo<DropdownMenuEntry[]>(() => {
@@ -234,7 +236,7 @@ const Root = () => {
       </header>
       {syncStatus.error ? <div role="status">{syncStatus.error} <button className="ds-button" onClick={retryAccountSync}>Try again</button></div> : null}
       <main className="portal-main">
-        {workspaceReady ? <Outlet /> : <p role="status">{workspaceError ?? "Opening your drawings…"} {workspaceError ? <button className="ds-button" onClick={() => window.location.reload()}>Try again</button> : null}</p>}
+        {isInformationalRoute || workspaceReady ? <Outlet /> : <p role="status">{workspaceError ?? "Opening your drawings…"} {workspaceError ? <button className="ds-button" onClick={() => window.location.reload()}>Try again</button> : null}</p>}
       </main>
       <Suspense>
         <TanStackRouterDevtools />

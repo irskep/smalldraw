@@ -17,7 +17,6 @@
     "@automerge/automerge-repo": "2.5.1",
     "@automerge/automerge-repo-network-broadcastchannel": "2.5.1",
     "@automerge/automerge-repo-network-websocket": "2.5.1",
-    "@automerge/automerge-repo-react-hooks": "2.5.1",
     "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
     "@fontsource-variable/shantell-sans": "5.2.7",
     "@serenity-kit/opaque": "^0.8.4",
@@ -30,26 +29,23 @@
     "@trpc/react-query": "^11.8.1",
     "lucide": "catalog:ui",
     "lucide-react": "^0.378.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "preact": "^11.0.1",
     "redom": "catalog:ui",
-    "uuid": "^9.0.1",
     "vite-plugin-wasm": "^3.5.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
     "@tanstack/router-devtools": "^1.149.3",
     "@tanstack/router-vite-plugin": "^1.149.3",
-    "@types/redom": "catalog:ui",
+    "@testing-library/preact": "^3.2.4",
     "@types/react": "^18.3.27",
     "@types/react-dom": "^18.3.7",
-    "@types/uuid": "^9.0.8",
-    "@testing-library/react": "^16.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@types/redom": "catalog:ui",
     "happy-dom": "^14.10.1",
+    "oxlint": "^1.88.0",
     "typescript": "catalog:build",
-    "vitest": "^5.0.5",
     "vite": "^8.3.4",
-    "oxlint": "^1.88.0"
+    "vitest": "^5.0.5"
   }
 }

@@ -1,5 +1,5 @@
 import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
-import react from "@vitejs/plugin-react";
+import preact from "@preact/preset-vite";
 import path from "path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
@@ -7,7 +7,7 @@ import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
   base: process.env.VITE_BASE,
-  plugins: [wasm(), react(), TanStackRouterVite()],
+  plugins: [wasm(), preact(), TanStackRouterVite()],
   server: {
     host: "0.0.0.0",
     port: 3000,
@@ -34,10 +34,8 @@ export default defineConfig({
       // Match Bun's file import: emit a URL, not an eagerly initialized WASM module.
       "@automerge/automerge/automerge.wasm": `${fileURLToPath(import.meta.resolve("@automerge/automerge/automerge.wasm"))}?url`,
       "@": path.resolve(import.meta.dirname, "./src"),
-      react: path.resolve(import.meta.dirname, "../../node_modules/react"),
-      "react-dom": path.resolve(import.meta.dirname, "../../node_modules/react-dom"),
     },
-    dedupe: ["react", "react-dom"],
+    dedupe: ["preact"],
   },
 
   worker: {

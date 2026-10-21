@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render } from "@testing-library/preact";
 import type { QueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { afterEach, expect, test, vi } from "vitest";

@@ -1,4 +1,4 @@
-import { cleanup } from "@testing-library/react";
+import { cleanup } from "@testing-library/preact";
 import { afterEach } from "vitest";
 
 afterEach(() => {

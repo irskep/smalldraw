@@ -1,4 +1,4 @@
-import { act, render } from "@testing-library/react";
+import { act, render } from "@testing-library/preact";
 import type { ComponentType } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { Route } from "../routes/__root";

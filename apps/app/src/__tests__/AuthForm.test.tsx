@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/preact";
 import { describe, expect, test, vi } from "vitest";
 import { AuthForm } from "../components/AuthForm/AuthForm";
 
