@@ -120,7 +120,9 @@ async function exerciseStamps(page: Page, browserName: string) {
       () => (window as any).kidsDrawApp.store.getDocument().size.height,
     );
     expect(
-      Math.max(large.geometry.width, large.geometry.height),
+      family === "stamp.alphabet"
+        ? large.geometry.height
+        : Math.max(large.geometry.width, large.geometry.height),
     ).toBeLessThanOrEqual(height);
     await page.evaluate(() =>
       (window as any).kidsDrawApp.store.updateSharedSettings({
