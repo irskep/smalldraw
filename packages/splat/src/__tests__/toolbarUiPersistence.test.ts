@@ -99,6 +99,7 @@ describe("toolbarUiPersistence", () => {
     const initialState: ToolbarUiState = {
       activeToolId: "",
       hasLoadedDocument: true,
+      documentHeight: 600,
       canUndo: false,
       canRedo: false,
       strokeColor: "#000000",

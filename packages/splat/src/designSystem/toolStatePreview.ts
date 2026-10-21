@@ -25,7 +25,10 @@ export function createToolStatePreview(
         icon: tool.icon,
         color: tool.familyId === "stamp.alphabet" ? color : undefined,
         accessibleName: `${label}, size ${state.strokeWidth}`,
-        scale: computeStampSize(toStampStrokeSize(state.strokeWidth)) / 120,
+        scale:
+          computeStampSize(toStampStrokeSize(state.strokeWidth), {
+            maxStampSize: state.documentHeight,
+          }) / 120,
       };
     case "fill":
       return sample(

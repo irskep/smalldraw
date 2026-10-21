@@ -26,6 +26,9 @@ async function exerciseStamps(page: Page, browserName: string) {
       const paper = page.locator(".kids-draw-frame");
       const before = await paper.boundingBox();
       const preview = page.locator(".ds-tool-state-preview:visible > *");
+      const drawingHeight = await page.evaluate(
+        () => (window as any).kidsDrawApp.store.getDocument().size.height,
+      );
       let small = 0;
       for (const size of [2, 8, 48, 200]) {
         await page.evaluate((size) => {
@@ -37,7 +40,10 @@ async function exerciseStamps(page: Page, browserName: string) {
         expect(await paper.boundingBox()).toEqual(before);
         const box = (await preview.boundingBox())!;
         if (size === 2) small = box.width;
-        expect(box.width / small).toBeCloseTo(size / 2, 1);
+        expect(box.width / small).toBeCloseTo(
+          Math.min(size * 15, drawingHeight) / Math.min(30, drawingHeight),
+          1,
+        );
         expect(
           await page.evaluate(
             () => document.documentElement.scrollWidth <= innerWidth,
@@ -88,6 +94,28 @@ async function exerciseStamps(page: Page, browserName: string) {
         ? stamp.geometry.height
         : Math.max(stamp.geometry.width, stamp.geometry.height),
     ).toBeCloseTo(120);
+    await page.evaluate(() =>
+      (window as any).kidsDrawApp.store.updateSharedSettings({
+        strokeWidth: 200,
+      }),
+    );
+    const beforeLarge = new Set((await shapes()).map((shape) => shape.id));
+    await page.mouse.click(x, y);
+    await expect
+      .poll(async () => (await shapes()).length)
+      .toBe(beforeLarge.size + 1);
+    const large = (await shapes()).find((shape) => !beforeLarge.has(shape.id));
+    const height = await page.evaluate(
+      () => (window as any).kidsDrawApp.store.getDocument().size.height,
+    );
+    expect(
+      Math.max(large.geometry.width, large.geometry.height),
+    ).toBeLessThanOrEqual(height);
+    await page.evaluate(() =>
+      (window as any).kidsDrawApp.store.updateSharedSettings({
+        strokeWidth: 8,
+      }),
+    );
     await page.screenshot({
       path: `/tmp/stamp-rotation-${browserName}-${family}.png`,
     });

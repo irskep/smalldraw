@@ -1,9 +1,14 @@
-import type { DrawingStore, ToolStyleSupport } from "@smalldraw/core";
+import {
+  DEFAULT_DOCUMENT_SIZE,
+  type DrawingStore,
+  type ToolStyleSupport,
+} from "@smalldraw/core";
 import { atom, type ReadableAtom } from "nanostores";
 
 export interface ToolbarUiState {
   activeToolId: string;
   hasLoadedDocument: boolean;
+  documentHeight: number;
   canUndo: boolean;
   canRedo: boolean;
   strokeColor: string;
@@ -26,6 +31,7 @@ export interface PersistedKidsUiStateV1 {
 const DEFAULT_STATE: ToolbarUiState = {
   activeToolId: "",
   hasLoadedDocument: false,
+  documentHeight: DEFAULT_DOCUMENT_SIZE.height,
   canUndo: false,
   canRedo: false,
   strokeColor: "#000000",
@@ -80,6 +86,7 @@ export function createToolbarUiStore(): ToolbarUiStore {
       const next: ToolbarUiState = {
         ...current,
         activeToolId,
+        documentHeight: drawingStore.getDocument().size.height,
         canUndo: drawingStore.canUndo(),
         canRedo: drawingStore.canRedo(),
         strokeColor: shared.strokeColor,
@@ -179,6 +186,7 @@ function isEqual(a: ToolbarUiState, b: ToolbarUiState): boolean {
     a.canRedo === b.canRedo &&
     a.strokeColor === b.strokeColor &&
     a.strokeWidth === b.strokeWidth &&
+    a.documentHeight === b.documentHeight &&
     a.supportsStrokeColor === b.supportsStrokeColor &&
     a.supportsStrokeWidth === b.supportsStrokeWidth &&
     a.newDrawingPending === b.newDrawingPending &&

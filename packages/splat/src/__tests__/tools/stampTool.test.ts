@@ -13,9 +13,15 @@ import type { StampShape } from "../../shapes/stampShape";
 import { createAlphabetStampTool } from "../../tools/drawingTools";
 
 describe("alphabet stamp tool", () => {
-  function setup(params?: { sharedSettings?: SharedToolSettings }) {
+  function setup(params?: {
+    sharedSettings?: SharedToolSettings;
+    height?: number;
+  }) {
     const registry = createKidsShapeHandlerRegistry();
-    let document = createDocument(undefined, registry);
+    let document = createDocument(undefined, registry, {
+      width: 960,
+      height: params?.height ?? 600,
+    });
     const undoManager = new UndoManager();
     const runtime = new ToolRuntimeImpl({
       toolId: "stamp.letter.a",
@@ -87,7 +93,9 @@ describe("alphabet stamp tool", () => {
         expect(shape.transform?.scale).toEqual([1, 1]);
         expect(shape.transform?.rotation).toBeCloseTo(Math.PI / 2);
         expect(shape.transform?.translation).toEqual([100, 100]);
-        expect((shape as StampShape).geometry.height).toBe(width * 15);
+        expect((shape as StampShape).geometry.height).toBe(
+          Math.min(width * 15, getDocument().size.height),
+        );
       });
     }
   }
@@ -134,6 +142,27 @@ describe("alphabet stamp tool", () => {
     expect(shape.transform?.rotation).toBeCloseTo(Math.PI / 2);
     expect(shape.transform?.scale).toEqual([1, 1]);
   });
+
+  for (const height of [20, 300, 1195]) {
+    test(`caps large stamps to drawing height ${height} without thickening letters`, () => {
+      const { runtime, getDocument } = setup({
+        height,
+        sharedSettings: {
+          strokeColor: "#000000",
+          strokeWidth: 200,
+          fillColor: "#ffffff",
+        },
+      });
+      runtime.dispatch("pointerDown", {
+        point: new Vec2(100, 100),
+        buttons: 1,
+      });
+      runtime.dispatch("pointerUp", { point: new Vec2(100, 100), buttons: 0 });
+      const shape = Object.values(getDocument().shapes)[0] as StampShape;
+      expect(shape.geometry.height).toBe(height);
+      expect(shape.style.stroke?.size).toBeCloseTo(height / 10);
+    });
+  }
 
   test("uses shared stroke settings", () => {
     const { runtime, getDocument } = setup({

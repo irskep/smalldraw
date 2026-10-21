@@ -95,8 +95,13 @@ export function createCursorOverlayController(options: {
     strokeColor: string,
     baseStrokeSize: number,
   ): boolean => {
-    const weightedStrokeSize = toStampStrokeSize(baseStrokeSize);
-    const stampSize = computeStampSize(weightedStrokeSize);
+    const weightedStrokeSize = toStampStrokeSize(
+      baseStrokeSize,
+      store.getDocument().size.height,
+    );
+    const stampSize = computeStampSize(weightedStrokeSize, {
+      maxStampSize: store.getDocument().size.height,
+    });
     const imageAssetId = getImageStampAssetIdFromToolId(toolId);
     const glyphTool = toolId.startsWith("stamp.letter.");
 
@@ -296,8 +301,13 @@ export function createCursorOverlayController(options: {
       return;
     }
     const { strokeColor, strokeWidth } = store.getSharedSettings();
-    const weightedStrokeSize = toStampStrokeSize(strokeWidth);
-    const stampSize = computeStampSize(weightedStrokeSize);
+    const weightedStrokeSize = toStampStrokeSize(
+      strokeWidth,
+      store.getDocument().size.height,
+    );
+    const stampSize = computeStampSize(weightedStrokeSize, {
+      maxStampSize: store.getDocument().size.height,
+    });
     const imageAssetId = getImageStampAssetIdFromToolId(activeToolId);
     const popSize = (() => {
       if (imageAssetId) {
