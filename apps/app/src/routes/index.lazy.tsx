@@ -67,11 +67,11 @@ function Index() {
     runtimeConfig,
   ]);
   const launcherState =
-    localCatalog.type === "loaded" &&
-    tiles.length === 0 &&
-    (!isLoggedIn || !documentsQuery.isLoading)
-      ? "empty"
-      : "active";
+    localCatalog.type === "loading" || (isLoggedIn && documentsQuery.isLoading)
+      ? "loading"
+      : localCatalog.type === "loaded" && tiles.length === 0
+        ? "empty"
+        : "active";
 
   useEffect(() => {
     let disposed = false;
@@ -231,7 +231,7 @@ function Index() {
         ) : null}
         <div
           className="portal-launcher-grid"
-          hidden={launcherState === "empty"}
+          hidden={launcherState !== "active"}
         >
           <div className="portal-launcher-card portal-launcher-card--new">
             <div className="portal-launcher-card__media">
@@ -299,7 +299,7 @@ function Index() {
           ))}
         </div>
 
-        {localCatalog.type === "loading" ? (
+        {launcherState === "loading" ? (
           <p className="portal-muted">Loading drawings…</p>
         ) : null}
 

@@ -9,7 +9,28 @@ export async function checkColoringEntry(
     const context = await browser.newContext({
       viewport: { width, height: 850 },
     });
+    context.setDefaultTimeout(15000);
+    await context.addInitScript(() => {
+      (window as any).creationControlsFlashed = false;
+      new MutationObserver(() => {
+        const launcher = document.querySelector(".portal-launcher");
+        const grid = launcher?.querySelector(".portal-launcher-grid");
+        if (
+          launcher?.textContent?.includes("Loading drawings…") &&
+          grid instanceof HTMLElement &&
+          grid.offsetHeight > 0
+        )
+          (window as any).creationControlsFlashed = true;
+      }).observe(document, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+      });
+    });
     const page = await context.newPage();
+    const diagnostics: string[] = [];
+    page.on("console", (message) => diagnostics.push(message.text()));
+    page.on("pageerror", (error) => diagnostics.push(String(error)));
     try {
       await page.goto(origin);
       const entry = page.getByRole("link", {
@@ -20,6 +41,9 @@ export async function checkColoringEntry(
       await expect(
         page.getByRole("link", { name: "Start drawing", exact: true }),
       ).toBeInViewport();
+      expect(
+        await page.evaluate(() => (window as any).creationControlsFlashed),
+      ).toBe(false);
       await page.evaluate(() => document.fonts.ready);
       await page.screenshot({
         path: `/tmp/coloring-landing-${name}-${width}.png`,
@@ -37,6 +61,9 @@ export async function checkColoringEntry(
       ).toBeHidden();
       await dialog.getByRole("button", { name: "Close", exact: true }).click();
       await expect(entry).toBeVisible();
+      expect(
+        await page.evaluate(() => (window as any).creationControlsFlashed),
+      ).toBe(false);
       await entry.click();
       await expect(dialog).toBeVisible();
       await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
@@ -121,6 +148,7 @@ export async function checkColoringEntry(
         .getByRole("menuitem", { name: "Your drawings", exact: true })
         .click();
       const browserDialog = page.locator(".kids-draw-document-browser-dialog");
+      await expect(browserDialog.locator("img").first()).toBeVisible();
       await browserDialog
         .getByRole("button", { name: "New drawing", exact: true })
         .click();
@@ -150,6 +178,14 @@ export async function checkColoringEntry(
       console.log(
         `PASS ${name} ${width}: landing → books → page → fill → reload → saved drawing`,
       );
+    } catch (error) {
+      console.error(
+        `FAIL ${name} ${width} at ${page.url()}\n${diagnostics.join("\n")}`,
+      );
+      await page
+        .screenshot({ path: `/tmp/coloring-failed-${name}-${width}.png` })
+        .catch(() => {});
+      throw error;
     } finally {
       await context.close();
     }
