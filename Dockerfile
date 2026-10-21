@@ -8,6 +8,7 @@ COPY patches patches
 COPY apps/server/package.json apps/server/
 COPY packages/shared/package.json packages/shared/
 RUN bun -e 'const root = await Bun.file("package.json").json(); await Bun.write("package.json", JSON.stringify({private:true, workspaces:["apps/server","packages/shared"], patchedDependencies:root.patchedDependencies}));'
+# Include dev dependencies: startup migrations use Drizzle Kit and its libsql driver.
 RUN bun install
 
 # Copy source files needed at runtime
