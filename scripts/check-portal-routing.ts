@@ -7,6 +7,11 @@ export async function checkPortalRouting(browser: Browser, origin: string) {
   context.setDefaultTimeout(15_000);
   const page = await context.newPage();
   const errors: string[] = [];
+  const startupAssets: string[] = [];
+  page.on("request", (request) => {
+    if (request.resourceType() === "script" || request.url().includes(".wasm"))
+      startupAssets.push(new URL(request.url()).pathname);
+  });
   page.on("pageerror", (error) => {
     // WebKit reports session fetches cancelled by a full-document navigation
     // as page errors. Keep all JavaScript errors and other network errors.
@@ -28,6 +33,13 @@ export async function checkPortalRouting(browser: Browser, origin: string) {
     await expect(
       page.getByRole("heading", { name: "A free drawing app for kids" }),
     ).toBeVisible();
+    // Anonymous startup must not download the account repo or Automerge runtime.
+    await page.waitForLoadState("networkidle");
+    expect(
+      startupAssets.filter((url) =>
+        /createLocalSmalldrawRepo-|\/slim-|\.wasm$/.test(url),
+      ),
+    ).toEqual([]);
     const documentId = await page.evaluate(
       () => (window as any).routingDocumentId,
     );

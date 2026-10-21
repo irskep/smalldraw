@@ -1,4 +1,3 @@
-import { extractColoringPageId } from "../coloring/catalog";
 import type {
   AccountCheckpoint,
   KidsDocumentBackend,
@@ -59,9 +58,7 @@ function normalizeDocumentSummary(
   const coloringPageId =
     typeof value.coloringPageId === "string" && value.coloringPageId.length > 0
       ? value.coloringPageId
-      : typeof value.referenceImageSrc === "string"
-        ? (extractColoringPageId(value.referenceImageSrc) ?? undefined)
-        : undefined;
+      : undefined;
   return {
     docUrl: value.docUrl,
     accountCheckpoint: value.accountCheckpoint,

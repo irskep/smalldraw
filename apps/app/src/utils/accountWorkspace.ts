@@ -6,10 +6,7 @@ import {
   signOutAccountWorkspace,
   watchAccountWorkspace,
 } from "@smalldraw/splat/account";
-import {
-  createLocalDocumentBackend,
-  createLocalSmalldrawRepo,
-} from "@smalldraw/splat/documents";
+import { createLocalDocumentBackend } from "@smalldraw/splat/catalog";
 
 const api = createMultiplayerApiClient({
   apiUrl: import.meta.env.VITE_API_URL,
@@ -37,6 +34,7 @@ export async function signOutWorkspace() {
 
 async function createAccountRepo() {
   const { initAutomerge } = await import("@smalldraw/core");
+  const { createLocalSmalldrawRepo } = await import("@smalldraw/splat/repo");
   await initAutomerge();
   return createLocalSmalldrawRepo();
 }

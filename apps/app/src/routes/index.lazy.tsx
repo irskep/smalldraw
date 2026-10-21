@@ -1,5 +1,5 @@
 import { useAccount } from "@/utils/account";
-import { createLocalDocumentBackend } from "@smalldraw/splat/documents";
+import { createLocalDocumentBackend } from "@smalldraw/splat/catalog";
 import { Trash2 } from "lucide";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArtTable } from "@/components/ArtTable/ArtTable";

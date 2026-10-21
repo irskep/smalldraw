@@ -1,24 +1,11 @@
-import {
-  clone,
-  free,
-  getHeads,
-  hasHeads,
-  loadIncremental,
-  merge,
-  save,
-  saveSince,
-} from "@automerge/automerge/slim";
 import type {
   AutomergeUrl,
   DocumentId,
   Repo,
 } from "@automerge/automerge-repo/slim";
-import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
-import { initAutomerge } from "@smalldraw/core";
 import { atom } from "nanostores";
 import type { MultiplayerApiClient } from "../app/createMultiplayerApiClient";
 import { createAccountSyncQueue } from "./accountSyncQueue";
-import { createLocalSmalldrawRepo } from "./createLocalSmalldrawRepo";
 import { createLocalDocumentBackend } from "./localDocumentBackend";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "./types";
 import {
@@ -54,6 +41,9 @@ const backendFor = (id: string | null) => {
 async function finishPurge(): Promise<void> {
   const id = localStorage.getItem(PURGE);
   if (!id) return;
+  const { IndexedDBStorageAdapter } = await import(
+    "@automerge/automerge-repo-storage-indexeddb"
+  );
   const backend = backendFor(id);
   for (const document of await backend.listDocuments())
     await backend.deleteDocument(document.docUrl);
@@ -99,12 +89,18 @@ export async function prepareAccountWorkspace(
     }
     setDrawingWorkspace(user?.id ?? null);
     if (!user) return;
+    const { initAutomerge } = await import("@smalldraw/core");
     await initAutomerge();
     await importGuestDrawings(api, user.id);
   });
 }
 
 async function importGuestDrawings(api: MultiplayerApiClient, userId: string) {
+  const [{ createLocalSmalldrawRepo }, { IndexedDBStorageAdapter }] =
+    await Promise.all([
+      import("./createLocalSmalldrawRepo"),
+      import("@automerge/automerge-repo-storage-indexeddb"),
+    ]);
   const guest = backendFor(null);
   const target = backendFor(userId);
   const sourceRepo = createLocalSmalldrawRepo({
@@ -196,6 +192,16 @@ export async function syncAccountWorkspace(
   verifyIdentity = true,
   candidates?: readonly KidsDocumentSummary[],
 ): Promise<void> {
+  const {
+    clone,
+    free,
+    getHeads,
+    hasHeads,
+    loadIncremental,
+    merge,
+    save,
+    saveSince,
+  } = await import("@automerge/automerge/slim");
   if (verifyIdentity) {
     const user = await api.getCurrentAccount();
     if (user?.id !== userId)
@@ -480,6 +486,9 @@ export async function signOutAccountWorkspace(
       bus.postMessage({ type: "freeze", workspace: userId });
       await freeze();
       await navigator.locks.request(workspaceNames(userId).lock, async () => {
+        const { createLocalSmalldrawRepo } = await import(
+          "./createLocalSmalldrawRepo"
+        );
         const repo = createLocalSmalldrawRepo({
           workspace: userId,
           localOnly: true,

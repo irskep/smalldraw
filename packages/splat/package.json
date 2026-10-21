@@ -8,6 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./account": "./src/documents/account.ts",
+    "./catalog": "./src/documents/localDocumentBackend.ts",
+    "./repo": "./src/documents/createLocalSmalldrawRepo.ts",
     "./documents": "./src/documents/index.ts",
     "./styles.css": "./src/main.css"
   },
