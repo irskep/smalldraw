@@ -28,15 +28,14 @@
   },
   "scripts": {
     "ts:check": "bun run --filter '*' ts:check",
-    "test": "pacwich run test --parallel=4",
+    "test": "bun run scripts/test-workspaces.ts",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "format": "bun run format:check",
     "format:check": "oxfmt --check .",
     "format:fix": "oxfmt --write .",
     "fix:all": "bun run format:fix && oxlint --fix --deny-warnings .",
     "preinstall": "bun run scripts/check-bun-version.ts",
-    "check": "bun run scripts/check-workspaces.ts",
-    "check:all": "bun run scripts/check-workspaces.ts --all"
+    "test:all": "bun run scripts/test-workspaces.ts --all"
   },
   "patchedDependencies": {
     "@automerge/automerge-repo@2.5.1": "patches/@automerge%2Fautomerge-repo@2.5.1.patch"

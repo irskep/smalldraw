@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { $ } from "bun";
 
-import { comparisonBase } from "./check-workspaces";
+import { comparisonBase } from "./test-workspaces";
 
 const directories: string[] = [];
 const root = fileURLToPath(new URL("../", import.meta.url));

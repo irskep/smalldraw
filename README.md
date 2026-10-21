@@ -72,10 +72,14 @@ the cache simply forces a fresh check.
 Internal packages export their TypeScript source directly; Vite/Bun bundle the
 applications. There is no separate library bundling or declaration-generation step.
 
-Pacwich schedules tests only in localci. Use `mise run check` for affected tests,
-or `mise run validate:all` for all tests, including managed design-system browser
+Pacwich schedules tests only in localci. Use `mise run test` for affected tests,
+or `mise run test:all` for all tests, including managed design-system browser
 tests. No linting, formatting, typechecking, or builds run in that path.
 At most four workspaces run at once, with the longest suite started first.
+Successful runs print a short summary. Full output is saved under `.cache/tests/`
+(or the localci task output directory), and failures print the captured diagnostics.
+Use `mise run test -- --verbose` for live debugging output, or
+`bun run test:all --verbose` for a verbose full run.
 
 On main, affected tests compare with `HEAD^`; on feature branches they compare
 with `main` (or `origin/main` when only the remote ref is available). Local edits

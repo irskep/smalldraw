@@ -166,17 +166,13 @@ run = "bun run format:fix"
 run = ["mise run format:fix", "mise run lint:fix:all"]
 
 [tasks."test:all"]
-run = "bun run test"
+run = "bun run test:all"
 
 [tasks."build:all"]
 run = "bunx pacwich run build --parallel=4"
 
 [tasks."test:ui:all"]
 run = "mise run //packages/design-system:test:ui:managed"
-
-[tasks."validate:all"]
-run = "bun run check:all"
-
 
 [tasks."docs:dev"]
 dir = "apps/docs-site"
@@ -307,11 +303,11 @@ run = "bun run scripts/benchmarks/account-checkpoint-load.ts"
 description = "Lint and check formatting across the workspace"
 run = "bun run lint"
 
-[tasks."localci:check"]
-run = "bun run check"
+[tasks."localci:test"]
+run = "bun run test"
 
-[tasks.check]
-run = "bun run check"
+[tasks.test]
+run = "bun run test"
 
 [tasks."hooks:install"]
 description = "Install hk pre-commit checks"

@@ -49,7 +49,7 @@ hk runs Oxlint, Oxfmt, and workspace typechecks before commits. Install it once 
 ```sh
 localci status --commit FULL_COMMIT_HASH
 localci wait --commit FULL_COMMIT_HASH
-localci artifacts --commit FULL_COMMIT_HASH --task //:localci:check
+localci artifacts --commit FULL_COMMIT_HASH --task //:localci:test
 ```
 
 For uncommitted work, follow the repository requirement to run `localci wait --no-clone`; if no working-tree run exists, `localci run --no-clone --wait` starts one. Waiting does not itself enqueue a missing run. Avoid duplicate runs, especially alongside browser performance measurements.
