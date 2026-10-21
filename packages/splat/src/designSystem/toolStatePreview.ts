@@ -1,7 +1,7 @@
 import type { ToolStatePreviewModel } from "@smalldraw/design-system";
 import type { IconNode } from "lucide";
 import type { KidsToolConfig } from "../tools/kidsTools";
-import { computeStampSize, toStampStrokeSize } from "../tools/stampTool";
+import { computeStampSize } from "../tools/stampTool";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";
 
 // Brushes use a fitted sample. Stamps keep proportional size, with a 120px
@@ -25,10 +25,7 @@ export function createToolStatePreview(
         icon: tool.icon,
         color: tool.familyId === "stamp.alphabet" ? color : undefined,
         accessibleName: `${label}, size ${state.strokeWidth}`,
-        scale:
-          computeStampSize(toStampStrokeSize(state.strokeWidth), {
-            maxStampSize: state.documentHeight,
-          }) / 120,
+        scale: computeStampSize(state.strokeWidth, state.documentHeight) / 120,
       };
     case "fill":
       return sample(

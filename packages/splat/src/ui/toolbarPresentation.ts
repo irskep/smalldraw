@@ -18,9 +18,7 @@ export const TOOLBAR_COLOR_SWATCHES: readonly ToolbarColorSwatch[] = [
   { value: "#9ca3af", label: "Gray" },
 ] as const;
 
-export const TOOLBAR_STROKE_WIDTH_OPTIONS = [
-  2, 4, 8, 16, 24, 48, 96, 200,
-] as const;
+export { STROKE_WIDTH_OPTIONS as TOOLBAR_STROKE_WIDTH_OPTIONS } from "../tools/strokeWidthOptions";
 
 export function resolveSelectedColorSwatchIndex(
   strokeColor: string,

@@ -126,11 +126,7 @@ export function createLetterStampTool(
       return resolveStampStroke(runtime, options.runtimeOptions);
     },
     createShape({ id, point, zIndex, stroke, rotation, scale, runtime }) {
-      const stampSize = resolveStampSize(
-        runtime,
-        stroke.size,
-        options.runtimeOptions,
-      );
+      const stampSize = resolveStampSize(runtime, options.runtimeOptions);
       return createLetterStampShape({
         id,
         point,

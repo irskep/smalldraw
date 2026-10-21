@@ -30,7 +30,8 @@ async function exerciseStamps(page: Page, browserName: string) {
         () => (window as any).kidsDrawApp.store.getDocument().size.height,
       );
       let small = 0;
-      for (const size of [2, 8, 48, 200]) {
+      let previousWidth = 0;
+      for (const size of [2, 4, 8, 16, 24, 48, 96, 200]) {
         await page.evaluate((size) => {
           (window as any).kidsDrawApp.store.updateSharedSettings({
             strokeWidth: size,
@@ -40,8 +41,11 @@ async function exerciseStamps(page: Page, browserName: string) {
         expect(await paper.boundingBox()).toEqual(before);
         const box = (await preview.boundingBox())!;
         if (size === 2) small = box.width;
+        expect(box.width).toBeGreaterThan(previousWidth);
+        previousWidth = box.width;
         expect(box.width / small).toBeCloseTo(
-          Math.min(size * 15, drawingHeight) / Math.min(30, drawingHeight),
+          (drawingHeight / Math.min(30, drawingHeight / 4)) **
+            (Math.log(size / 2) / Math.log(100)),
           1,
         );
         expect(
@@ -93,7 +97,14 @@ async function exerciseStamps(page: Page, browserName: string) {
       family === "stamp.alphabet"
         ? stamp.geometry.height
         : Math.max(stamp.geometry.width, stamp.geometry.height),
-    ).toBeCloseTo(120);
+    ).toBeCloseTo(
+      await page.evaluate(() => {
+        const height = (window as any).kidsDrawApp.store.getDocument().size
+          .height;
+        const minimum = Math.min(30, height / 4);
+        return minimum * (height / minimum) ** (Math.log(4) / Math.log(100));
+      }),
+    );
     await page.evaluate(() =>
       (window as any).kidsDrawApp.store.updateSharedSettings({
         strokeWidth: 200,

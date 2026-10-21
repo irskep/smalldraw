@@ -99,9 +99,10 @@ export function createCursorOverlayController(options: {
       baseStrokeSize,
       store.getDocument().size.height,
     );
-    const stampSize = computeStampSize(weightedStrokeSize, {
-      maxStampSize: store.getDocument().size.height,
-    });
+    const stampSize = computeStampSize(
+      baseStrokeSize,
+      store.getDocument().size.height,
+    );
     const imageAssetId = getImageStampAssetIdFromToolId(toolId);
     const glyphTool = toolId.startsWith("stamp.letter.");
 
@@ -305,9 +306,10 @@ export function createCursorOverlayController(options: {
       strokeWidth,
       store.getDocument().size.height,
     );
-    const stampSize = computeStampSize(weightedStrokeSize, {
-      maxStampSize: store.getDocument().size.height,
-    });
+    const stampSize = computeStampSize(
+      strokeWidth,
+      store.getDocument().size.height,
+    );
     const imageAssetId = getImageStampAssetIdFromToolId(activeToolId);
     const popSize = (() => {
       if (imageAssetId) {

@@ -11,6 +11,7 @@ import { Vec2 } from "gl-matrix";
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 import type { StampShape } from "../../shapes/stampShape";
 import { createAlphabetStampTool } from "../../tools/drawingTools";
+import { computeStampSize } from "../../tools/stampTool";
 
 describe("alphabet stamp tool", () => {
   function setup(params?: {
@@ -94,7 +95,7 @@ describe("alphabet stamp tool", () => {
         expect(shape.transform?.rotation).toBeCloseTo(Math.PI / 2);
         expect(shape.transform?.translation).toEqual([100, 100]);
         expect((shape as StampShape).geometry.height).toBe(
-          Math.min(width * 15, getDocument().size.height),
+          computeStampSize(width, getDocument().size.height),
         );
       });
     }
@@ -180,7 +181,9 @@ describe("alphabet stamp tool", () => {
     expect(shapes.length).toBeGreaterThan(0);
     for (const shape of shapes) {
       expect(shape.style.stroke?.color).toBe("#2e86ff");
-      expect(shape.style.stroke?.size).toBe(7.5);
+      expect(shape.style.stroke?.size).toBeCloseTo(
+        computeStampSize(5, 600) / 10,
+      );
     }
   });
 
@@ -195,3 +198,15 @@ describe("alphabet stamp tool", () => {
     });
   });
 });
+
+for (const height of [20, 300, 600, 1195, 2400]) {
+  test(`all stamp choices remain distinct at drawing height ${height}`, () => {
+    const sizes = [2, 4, 8, 16, 24, 48, 96, 200].map((width) =>
+      computeStampSize(width, height),
+    );
+    expect(sizes[0]).toBe(Math.min(30, height / 4));
+    expect(sizes.at(-1)).toBeCloseTo(height);
+    for (let i = 1; i < sizes.length; i++)
+      expect(sizes[i]).toBeGreaterThan(sizes[i - 1]!);
+  });
+}
