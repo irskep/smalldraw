@@ -49,6 +49,6 @@ export async function stopRepositoryNetwork(): Promise<void> {
 }
 
 export async function shutdownRepository(): Promise<void> {
-  await documentLifetime.sweep();
+  await documentLifetime.waitForSweep();
   await repo.shutdown();
 }

@@ -46,6 +46,10 @@ export class DocumentLifetime {
     return entry;
   }
 
+  waitForSweep(): Promise<void> {
+    return this.sweeping ?? Promise.resolve();
+  }
+
   sweep(): Promise<void> {
     if (this.sweeping) return this.sweeping;
     this.sweeping = this.sweepIdle().finally(() => {
