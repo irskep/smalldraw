@@ -31,15 +31,3 @@ sources = [
   "tsconfig.json",
 ]
 outputs = ["artifacts/**/*"]
-
-[tasks."localci:typecheck"]
-run = "bun run ts:check"
-
-[tasks."localci:lint"]
-run = "bun run lint"
-
-[tasks."localci:test"]
-run = "bun run test"
-
-[tasks."localci:build"]
-run = "bun run build"

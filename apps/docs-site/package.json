@@ -7,7 +7,8 @@
     "api": "bunx --bun typedoc --tsconfig ../../packages/core/tsconfig.typedoc.json --entryPoints ../../packages/core/src/index.ts --out ../../docs/reference --readme none",
     "dev": "bun run assets && bun run api && zensical serve --config-file ../../zensical.toml",
     "build": "bun run assets && bun run api && zensical build --strict --config-file ../../zensical.toml",
-    "assets": "bun scripts/prepare-assets.ts"
+    "assets": "bun scripts/prepare-assets.ts",
+    "check": "bun run build"
   },
   "devDependencies": {
     "typedoc": "^0.28.20",

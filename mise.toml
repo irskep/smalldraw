@@ -146,13 +146,13 @@ run = "bunx drizzle-kit push"
 
 [tasks."ts:check:all"]
 alias = ["typecheck"]
-run = ["mise run '//packages/...:ts:check'", "mise run '//apps/...:ts:check'"]
+run = "bun run ts:check"
 
 [tasks."lint:all"]
-run = ["mise run '//packages/...:lint'", "mise run '//apps/...:lint'"]
+run = "bunx pacwich run lint --parallel=4"
 
 [tasks."lint:fix:all"]
-run = ["mise run '//packages/...:lint:fix'", "mise run '//apps/...:lint:fix'"]
+run = "bunx pacwich run lint:fix --parallel=4"
 
 [tasks."format:check"]
 run = "bun run format:check"
@@ -164,35 +164,16 @@ run = "bun run format:fix"
 run = ["mise run format:fix", "mise run lint:fix:all"]
 
 [tasks."test:all"]
-run = ["mise run '//packages/...:test'", "mise run '//apps/...:test'"]
+run = "bun run test"
 
 [tasks."build:all"]
-run = [
-  "mise run //apps/app:build",
-  "mise run //apps/docs-site:build",
-  "mise run //apps/server:build",
-  "mise run //apps/splat-desktop:build",
-  "mise run //apps/splat-web:build",
-  "mise run //packages/core:build",
-  "mise run //packages/design-system:build",
-  "mise run //packages/geometry:build",
-  "mise run //packages/renderer-canvas:build",
-  "mise run //packages/renderer-raster:build",
-  "mise run //packages/testing:build",
-]
+run = "bunx pacwich run build --parallel=4"
 
 [tasks."test:ui:all"]
 run = "mise run //packages/design-system:test:ui:managed"
 
 [tasks."validate:all"]
-run = [
-  "mise run format:check",
-  "mise run lint:all",
-  "mise run ts:check:all",
-  "mise run test:all",
-  "mise run build:all",
-  "mise run test:ui:all",
-]
+run = "bun run check:all"
 
 [tasks."docs:typedoc"]
 dir = "apps/docs-site"
@@ -327,11 +308,8 @@ run = "bun run scripts/benchmarks/account-checkpoint-load.ts"
 description = "Lint and check formatting across the workspace"
 run = "bun run lint"
 
-[tasks."localci:format"]
-run = "bun run format:check"
+[tasks."localci:check"]
+run = "bun run check"
 
-[tasks."localci:scripts:lint"]
-run = "bunx oxlint --deny-warnings --report-unused-disable-directives scripts"
-
-[tasks."localci:bun-version"]
-run = "bun run scripts/check-bun-version.ts"
+[tasks.check]
+run = "bun run check"

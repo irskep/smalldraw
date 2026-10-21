@@ -9,12 +9,3 @@ run = "bun run lint:fix"
 
 [tasks.test]
 run = "bun run test"
-
-[tasks."localci:typecheck"]
-run = "bun run ts:check"
-
-[tasks."localci:lint"]
-run = "bun run lint"
-
-[tasks."localci:test"]
-run = "bun run test"

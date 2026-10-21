@@ -25,18 +25,21 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "oxfmt": "0.74.0",
     "oxlint": "1.89.0",
+    "pacwich": "0.7.3",
     "tsup": "^9.0.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2"
   },
   "scripts": {
-    "ts:check": "bun --filter '*' ts:check",
-    "test": "bun --filter '*' test",
+    "ts:check": "pacwich run ts:check --parallel=4",
+    "test": "pacwich run test --parallel=4",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "format": "bun run format:check",
     "format:check": "oxfmt --check .",
     "format:fix": "oxfmt --write .",
-    "fix:all": "bun run format:fix && bun --filter '*' lint:fix",
-    "preinstall": "bun run scripts/check-bun-version.ts"
+    "fix:all": "bun run format:fix && pacwich run lint:fix --parallel=4",
+    "preinstall": "bun run scripts/check-bun-version.ts",
+    "check": "bun run scripts/check-workspaces.ts",
+    "check:all": "bun run scripts/check-workspaces.ts --all"
   },
   "overrides": {
     "@typescript/old": "https://registry.npmjs.org/typescript/-/typescript-6.0.2.tgz"

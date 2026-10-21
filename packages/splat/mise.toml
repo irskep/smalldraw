@@ -21,12 +21,3 @@ run = "python3 ./scripts/inspect_coloring_book.py"
 
 [tasks."coloring:postprocess-blacks"]
 run = "python3 ./scripts/postprocess_black_levels.py"
-
-[tasks."localci:typecheck"]
-run = "bun run ts:check"
-
-[tasks."localci:lint"]
-run = "bun run lint"
-
-[tasks."localci:test"]
-run = "bun run test"

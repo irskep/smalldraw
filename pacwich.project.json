@@ -1,0 +1,55 @@
+{
+  "defaults": {
+    "parallelMax": 4
+  },
+  "workspacePatternConfigs": [
+    {
+      "patterns": ["*"],
+      "config": {
+        "defaultInputs": {
+          "files": ["**/*", "/*", "/scripts/**", "/.github/**", "/patches/**"]
+        },
+        "verify": {
+          "workspaceDependencies": {
+            "ignoreInputFiles": ["/scripts/**"]
+          }
+        }
+      }
+    },
+    {
+      "patterns": ["docs-site"],
+      "config": {
+        "defaultInputs": {
+          "files": [
+            "**/*",
+            "/*",
+            "/scripts/**",
+            "/.github/**",
+            "/patches/**",
+            "/docs/**"
+          ],
+          "workspacePatterns": [
+            "@smalldraw/core",
+            "@smalldraw/geometry",
+            "@smalldraw/design-system"
+          ]
+        },
+        "verify": {
+          "workspaceDependencies": {
+            "ignoreInputFiles": ["/scripts/**"]
+          }
+        }
+      }
+    },
+    {
+      "patterns": ["@smalldraw/splat"],
+      "config": {
+        "scripts": {
+          "check": {
+            "order": 0
+          }
+        }
+      }
+    }
+  ]
+}

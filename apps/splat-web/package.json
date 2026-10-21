@@ -9,10 +9,12 @@
     "test": "bun test --timeout 4000 --pass-with-no-tests",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
-    "ts:check": "tsc -p tsconfig.json --noEmit"
+    "ts:check": "tsc -p tsconfig.json --noEmit",
+    "check": "bun run lint && bun run ts:check && bun run test && bun run build"
   },
   "dependencies": {
     "@smalldraw/shared": "workspace:*",
-    "@smalldraw/splat": "workspace:*"
+    "@smalldraw/splat": "workspace:*",
+    "@smalldraw/design-system": "workspace:*"
   }
 }

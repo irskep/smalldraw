@@ -10,7 +10,8 @@
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
-    "test": "bun test"
+    "test": "bun test",
+    "check": "bun run lint && bun run ts:check && bun run test && bun run build"
   },
   "dependencies": {
     "gl-matrix": "^4.0.0-beta.2"

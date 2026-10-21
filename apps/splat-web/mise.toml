@@ -26,15 +26,3 @@ outputs = ["dist/**/*"]
 [tasks.deploy]
 depends = ["build"]
 run = "bunx wrangler deploy"
-
-[tasks."localci:typecheck"]
-run = "bun run ts:check"
-
-[tasks."localci:lint"]
-run = "bun run lint"
-
-[tasks."localci:test"]
-run = "bun run test"
-
-[tasks."localci:build"]
-run = "bun run build"

@@ -10,10 +10,12 @@
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
-    "test": "bun test"
+    "test": "bun test",
+    "check": "bun run lint && bun run ts:check && bun run test && bun run build"
   },
   "dependencies": {
-    "@smalldraw/core": "workspace:*"
+    "@smalldraw/core": "workspace:*",
+    "@smalldraw/geometry": "workspace:*"
   },
   "devDependencies": {
     "canvas": "^3.1.0"

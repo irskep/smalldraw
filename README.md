@@ -56,3 +56,25 @@ and Docker builds verify the actual executable version.
 Deploy with `mise run deploy`, which passes the pinned version to Docker.
 For a manual Docker build, supply `--build-arg BUN_VERSION="$(cat .bun-version)"`;
 the build rejects a version that differs from the pin.
+
+### Workspace validation
+
+Pacwich owns workspace check scheduling; localci runs setup and one check task.
+Use `mise run check` for affected validation, or `mise run validate:all` for
+the full suite. Each workspace's `check` script runs its lint, types, tests,
+and build (where present); design-system checks also run managed browser tests.
+At most four workspaces run at once, with the longest suite started first.
+
+On main, affected checks compare with `HEAD^`; on feature branches they compare
+with `main` (or `origin/main` when only the remote ref is available). Local edits
+are included. Detached commits on main's history use their parent. Missing
+comparison history causes a full run, never an empty success.
+
+Pacwich follows workspace dependencies. Shared root configuration, build scripts,
+CI configuration, and dependency patches invalidate every workspace. Documentation
+inputs also invalidate the docs build. Strict dependency verification and selection
+regressions run on every check. Shared scripts are validation inputs, not imports
+owned by every package, so they are excluded from per-package import verification.
+
+Inspect selection with `mise exec -- bunx pacwich affected list --base=HEAD^ --explain`.
+Run one workspace with `mise exec -- bunx pacwich run check server`.
