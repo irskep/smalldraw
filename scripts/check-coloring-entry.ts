@@ -35,6 +35,11 @@ export async function checkColoringEntry(
       await expect(
         dialog.locator('[data-new-document-mode="normal"]'),
       ).toBeHidden();
+      await dialog.getByRole("button", { name: "Close", exact: true }).click();
+      await expect(entry).toBeVisible();
+      await entry.click();
+      await expect(dialog).toBeVisible();
+      await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
       const catalogCheck = await context.newPage();
       await catalogCheck.goto(origin);
       await expect(catalogCheck.locator(".art-table")).toBeVisible();

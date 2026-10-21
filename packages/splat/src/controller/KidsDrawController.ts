@@ -197,6 +197,7 @@ export function createKidsDrawController(options: {
   openParentalControls: () => Promise<boolean>;
   onShareError?: (message: string) => void;
   onClaimError?: (message: string) => void;
+  onDocumentCreationCancelled?: () => void;
   onDocumentOpenRequested?: (
     summary: KidsDocumentSummary | null,
     docUrl: string,
@@ -350,6 +351,9 @@ export function createKidsDrawController(options: {
     resolveAssetUrl: options.resolveAssetUrl,
     onClose: () => {
       documentPickerController.closeCreateDialog();
+      if (runtimeStore.getActiveDocument().type === "none") {
+        options.onDocumentCreationCancelled?.();
+      }
     },
     onCreate: (request) => {
       void createNewDocumentFromBrowser(request);

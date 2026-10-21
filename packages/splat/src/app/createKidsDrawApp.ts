@@ -386,6 +386,7 @@ export async function createKidsDrawApp(
     },
     onShareError: controllerMultiplayerAdapters.onShareError,
     onClaimError: controllerMultiplayerAdapters.onClaimError,
+    onDocumentCreationCancelled: options.onDocumentCreationCancelled,
     onDocumentOpenRequested: options.onDocumentOpenRequested,
     onCurrentDocumentSummaryChanged: options.onCurrentDocumentSummaryChanged,
   });

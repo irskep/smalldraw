@@ -31,6 +31,9 @@ try {
       startupIntent,
       accountSessionExpected,
     },
+    onDocumentCreationCancelled: () => {
+      window.location.assign(new URL("../", window.location.href).href);
+    },
     onDocumentOpenRequested: (summary, docUrl) => {
       documentNavigation.pushDocument(summary, docUrl);
     },
