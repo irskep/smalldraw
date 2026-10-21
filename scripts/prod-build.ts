@@ -1,3 +1,4 @@
+import { automergeAsset } from "./automerge-asset.mts";
 import { $ } from "bun";
 
 const deployHost = process.env.DEPLOY_HOST;
@@ -18,3 +19,6 @@ await $`cp -R apps/app/dist/. apps/server/build/`;
 await $`cp -R apps/splat-web/dist/. apps/server/build/draw/`;
 // Keep HTML out of Fly's /draw static mapping: share pages need dynamic metadata.
 await $`mv apps/server/build/draw/index.html apps/server/build/draw.html`;
+
+// The standalone editor also ships this asset; the assembled site uses the root copy.
+await $`rm apps/server/build/draw/${automergeAsset.fileName}`;

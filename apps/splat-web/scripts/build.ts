@@ -1,3 +1,4 @@
+import { automergeAsset } from "../../../scripts/automerge-asset.mts";
 import { existsSync } from "node:fs";
 import { $ } from "bun";
 
@@ -5,7 +6,28 @@ const coloringAssetsDir = "../../packages/splat/src/coloring/assets";
 
 await $`rm -rf dist`;
 await $`mkdir -p dist`;
-await $`bun build src/index.html --outdir dist --target=browser --minify --splitting --env='SPLATTERBOARD_PUBLIC_*'`;
+const result = await Bun.build({
+  entrypoints: ["src/index.html"],
+  outdir: "dist",
+  target: "browser",
+  minify: true,
+  splitting: true,
+  env: "SPLATTERBOARD_PUBLIC_*",
+  plugins: [
+    {
+      name: "shared-automerge-binary",
+      setup(build) {
+        build.onLoad({ filter: /automerge\.wasm$/ }, () => ({
+          contents: `export default ${JSON.stringify(automergeAsset.url)};`,
+          loader: "js",
+        }));
+      },
+    },
+  ],
+});
+if (!result.success)
+  throw new AggregateError(result.logs, "Drawing build failed");
+await Bun.write(`dist/${automergeAsset.fileName}`, automergeAsset.source);
 await $`bun build ../../packages/splat/src/tools/fillWorker.ts --outfile dist/fill-worker.js --target=browser --minify`;
 if (existsSync("public")) {
   await $`cp -R public/. dist/`;

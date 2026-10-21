@@ -1,12 +1,37 @@
+import { automergeAsset } from "../../scripts/automerge-asset.mts";
 import preact from "@preact/preset-vite";
 import path from "path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: process.env.VITE_BASE,
-  plugins: [wasm(), preact()],
+  plugins: [
+    wasm(),
+    preact(),
+    {
+      name: "shared-automerge-binary",
+      apply: "build",
+      enforce: "pre",
+      resolveId(id) {
+        if (
+          id === "@automerge/automerge/automerge.wasm" ||
+          id === "\0shared-automerge-binary"
+        )
+          return "\0shared-automerge-binary";
+      },
+      load(id) {
+        if (id !== "\0shared-automerge-binary") return;
+        this.emitFile({
+          type: "asset",
+          fileName: automergeAsset.fileName,
+          source: automergeAsset.source,
+        });
+        return `export default ${JSON.stringify(automergeAsset.url)};`;
+      },
+    },
+  ],
   server: {
     host: "0.0.0.0",
     port: 3000,
@@ -31,7 +56,10 @@ export default defineConfig({
   resolve: {
     alias: {
       // Match Bun's file import: emit a URL, not an eagerly initialized WASM module.
-      "@automerge/automerge/automerge.wasm": `${fileURLToPath(import.meta.resolve("@automerge/automerge/automerge.wasm"))}?url`,
+      "@automerge/automerge/automerge.wasm":
+        command === "serve"
+          ? `${fileURLToPath(import.meta.resolve("@automerge/automerge/automerge.wasm"))}?url`
+          : "\0shared-automerge-binary",
       "@": path.resolve(import.meta.dirname, "./src"),
     },
     dedupe: ["preact"],
@@ -45,4 +73,4 @@ export default defineConfig({
   build: {
     target: "esnext",
   },
-});
+}));

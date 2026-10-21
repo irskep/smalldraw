@@ -67,7 +67,15 @@ app.use(
 );
 
 app.get("/index.html", (_req, res) => res.redirect(301, "/"));
-app.use(express.static(staticDir, { index: false }));
+app.use(
+  express.static(staticDir, {
+    index: false,
+    setHeaders(res, filePath) {
+      if (/[/\\]assets[/\\]automerge-[a-f0-9]{16}\.wasm$/.test(filePath))
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    },
+  }),
+);
 if (fs.existsSync(sourceColoringDir)) {
   app.use("/coloring", express.static(sourceColoringDir, { index: false }));
 }

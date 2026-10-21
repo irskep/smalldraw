@@ -1,3 +1,4 @@
+import { automergeAsset } from "./automerge-asset.mts";
 import { checkPortalRouting } from "./check-portal-routing";
 import { checkAnalytics } from "./check-analytics";
 import { checkColoringEntry } from "./check-coloring-entry";
@@ -42,6 +43,7 @@ async function run(command: string[], extraEnv = {}) {
   if ((await process.exited) !== 0)
     throw new Error(`Failed: ${command.join(" ")}`);
 }
+let sharedWasmFetches = 0;
 let backend: ReturnType<typeof Bun.spawn> | undefined;
 let preview: ReturnType<typeof Bun.serve> | undefined;
 let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
@@ -357,7 +359,15 @@ try {
       );
       const name = drawing ? url.pathname.slice(6) : url.pathname.slice(1);
       const file = Bun.file(path.join(directory, name || "index.html"));
-      if (await file.exists()) return new Response(file);
+      if (await file.exists()) {
+        if (url.pathname === automergeAsset.url) {
+          sharedWasmFetches++;
+          return new Response(file, {
+            headers: { "Cache-Control": "public, max-age=31536000, immutable" },
+          });
+        }
+        return new Response(file);
+      }
       if (path.extname(name)) return new Response("Not found", { status: 404 });
       return new Response(Bun.file(path.join(directory, "index.html")));
     },
@@ -1024,6 +1034,43 @@ try {
   console.log(
     "PASS: lazily loaded password cryptography also handles password changes",
   );
+  const storageState = await context.storageState();
+  const safariCacheBrowser = await webkit.launch();
+  try {
+    for (const engine of [browser, safariCacheBrowser]) {
+      // A fresh context with no request interception: Playwright routing disables HTTP caching.
+      const cachedContext = await engine.newContext({ storageState });
+      try {
+        const cachedPage = await cachedContext.newPage();
+        const before = sharedWasmFetches;
+        await cachedPage.goto(origin);
+        await expect(
+          cachedPage.getByRole("heading", { name: "Your drawings" }),
+        ).toBeVisible();
+        expect(sharedWasmFetches).toBe(before + 1);
+        await cachedPage.goto(page.url());
+        await cachedPage.waitForFunction(() =>
+          Boolean((window as any).kidsDrawApp),
+        );
+        await expect(cachedPage.locator(".kids-draw-frame")).toBeVisible();
+        const binaryUrls = await cachedPage.evaluate(() =>
+          performance
+            .getEntriesByType("resource")
+            .map((e) => e.name)
+            .filter((name) => name.endsWith(".wasm")),
+        );
+        expect(binaryUrls).toEqual([`${origin}${automergeAsset.url}`]);
+        expect(sharedWasmFetches).toBe(before + 1);
+        console.log(
+          `PASS: ${engine.browserType().name()} portal → editor reuses cached WASM without a second network request`,
+        );
+      } finally {
+        await cachedContext.close();
+      }
+    }
+  } finally {
+    await safariCacheBrowser.close();
+  }
   await context.close();
 
   for (const failure of ["missing", "corrupt"] as const) {
