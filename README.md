@@ -66,6 +66,9 @@ or staging files. Use `mise run hooks:check` to check everything manually.
 The existing localci post-commit hook remains independent.
 
 All `tsc` commands use the pinned TypeScript 7.1 beta native compiler.
+Incremental checking reuses each project's ignored `.tsbuildinfo` cache on repeat
+runs. Every project still runs, including dependents of changed packages; deleting
+the cache simply forces a fresh check.
 Internal packages export their TypeScript source directly; Vite/Bun bundle the
 applications. There is no separate library bundling or declaration-generation step.
 
