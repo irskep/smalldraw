@@ -549,7 +549,17 @@ a {
 
 .portal-launcher-card__cta {
   gap: var(--size-2);
-  pointer-events: none;
+  justify-content: center;
+}
+
+.portal-launcher-card__actions {
+  display: grid;
+  gap: var(--size-3);
+  padding: var(--size-3);
+}
+
+.portal-launcher-card--new {
+  cursor: default;
 }
 
 .portal-launcher-card__media img {

@@ -116,11 +116,37 @@ export async function checkColoringEntry(
       await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
       await expect(paper).toBeVisible();
       await expect.poll(count).toBe(filled);
+      await page.getByRole("button", { name: "Menu", exact: true }).click();
+      await page
+        .getByRole("menuitem", { name: "Your drawings", exact: true })
+        .click();
+      const browserDialog = page.locator(".kids-draw-document-browser-dialog");
+      await browserDialog
+        .getByRole("button", { name: "New drawing", exact: true })
+        .click();
+      await expect(
+        dialog.locator("[data-new-document-volume]").first(),
+      ).toBeVisible();
       await page.goto(origin);
       await expect(
         page.getByRole("heading", { name: "Your drawings", exact: true }),
       ).toBeVisible();
       await expect(page.locator(".portal-launcher img").first()).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "New drawing", exact: true }),
+      ).toBeVisible();
+      await expect(entry).toBeVisible();
+      await page.screenshot({
+        path: `/tmp/coloring-saved-drawings-${name}-${width}.png`,
+        fullPage: true,
+      });
+      await entry.click();
+      await expect(
+        dialog.getByText("Pick a coloring book", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        dialog.locator('[data-new-document-mode="normal"]'),
+      ).toBeHidden();
       console.log(
         `PASS ${name} ${width}: landing → books → page → fill → reload → saved drawing`,
       );

@@ -31,11 +31,7 @@ type LocalCatalogState =
 function Index() {
   const runtimeConfig = useMemo(() => createAccountWebRuntimeConfig(), []);
   const trpcUtils = trpc.useUtils();
-  const documentBackend = useMemo(
-    () =>
-      createLocalDocumentBackend(),
-    [],
-  );
+  const documentBackend = useMemo(() => createLocalDocumentBackend(), []);
   const confirmDialogRef = useRef<DsConfirmDialogHandle>(null);
   const localObjectUrlsRef = useRef<string[]>([]);
   const [localCatalog, setLocalCatalog] = useState<LocalCatalogState>({
@@ -212,7 +208,10 @@ function Index() {
       {launcherState === "empty" ? (
         <ArtTable
           href={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn })}
-          coloringHref={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn, coloring: true })}
+          coloringHref={buildNewDrawingUrl(runtimeConfig, {
+            account: isLoggedIn,
+            coloring: true,
+          })}
         />
       ) : null}
       <section className="portal-launcher" aria-label="Drawings">
@@ -234,20 +233,32 @@ function Index() {
           className="portal-launcher-grid"
           hidden={launcherState === "empty"}
         >
-          <a
-            href={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn })}
-            className="portal-launcher-card portal-launcher-card--new"
-          >
-            <span className="portal-launcher-card__media">
-              <span
-                className="ds-button portal-launcher-card__cta"
-                data-tone="primary"
-              >
-                <span aria-hidden="true">+</span>
-                New Drawing
-              </span>
-            </span>
-          </a>
+          <div className="portal-launcher-card portal-launcher-card--new">
+            <div className="portal-launcher-card__media">
+              <div className="portal-launcher-card__actions">
+                <a
+                  href={buildNewDrawingUrl(runtimeConfig, {
+                    account: isLoggedIn,
+                  })}
+                  className="ds-button portal-launcher-card__cta"
+                  data-tone="primary"
+                >
+                  <span aria-hidden="true">+</span>
+                  New drawing
+                </a>
+                <a
+                  href={buildNewDrawingUrl(runtimeConfig, {
+                    account: isLoggedIn,
+                    coloring: true,
+                  })}
+                  className="ds-button portal-launcher-card__cta"
+                  data-tone="primary"
+                >
+                  Pick a coloring page
+                </a>
+              </div>
+            </div>
+          </div>
 
           {tiles.map((tile) => (
             <div key={tile.key} className="portal-launcher-card">
@@ -269,7 +280,11 @@ function Index() {
                       }
                     : undefined
                 }
-                badge={tile.badge === "Shared" ? { label: "Shared", tone: "positive" } : null}
+                badge={
+                  tile.badge === "Shared"
+                    ? { label: "Shared", tone: "positive" }
+                    : null
+                }
                 emptyLabel="No preview"
                 imageAlt={`${tile.title} thumbnail`}
                 imageSrc={tile.thumbnailUrl}
@@ -303,7 +318,9 @@ function Index() {
           </p>
         </div>
         <p>
-          {isLoggedIn ? "Your drawings sync to your account. You decide when to share." : "Drawings are saved on this device. Sign in to keep them in your account."}{" "}
+          {isLoggedIn
+            ? "Your drawings sync to your account. You decide when to share."
+            : "Drawings are saved on this device. Sign in to keep them in your account."}{" "}
           <a className="portal-link" href="/data">
             How your drawings are stored
           </a>
