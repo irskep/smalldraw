@@ -42,7 +42,7 @@ interface KidsDrawPerfGlobal {
 
 const PERF_KEY = "__kidsDrawPerf";
 
-function getKidsDrawPerfGlobal(): KidsDrawPerfGlobal {
+function getKidsDrawPerfGlobal(): KidsDrawPerfGlobal | null {
   const root = globalThis as Record<string, unknown>;
   const existing = root[PERF_KEY];
   if (existing && typeof existing === "object") {
@@ -53,14 +53,7 @@ function getKidsDrawPerfGlobal(): KidsDrawPerfGlobal {
     state.strokeHistory ??= [];
     return state;
   }
-  const created: KidsDrawPerfGlobal = {
-    config: {},
-    counters: {},
-    timingsMs: {},
-    strokeHistory: [],
-  };
-  root[PERF_KEY] = created;
-  return created;
+  return null;
 }
 
 export interface KidsDrawPerfSession {
@@ -74,7 +67,7 @@ export interface KidsDrawPerfSession {
 }
 
 export function createKidsDrawPerfSession(): KidsDrawPerfSession {
-  const perfGlobal = getKidsDrawPerfGlobal();
+  let perfGlobal: KidsDrawPerfGlobal | null = null;
   let drawingPerfStartMs: number | null = null;
   let drawingPerfModelInvalidations = 0;
   let drawingPerfRafFramesExecuted = 0;
@@ -87,12 +80,15 @@ export function createKidsDrawPerfSession(): KidsDrawPerfSession {
   let drawingPerfTimingBaseline: Record<string, number> = {};
 
   const readCounterDelta = (key: string): number =>
-    (perfGlobal.counters[key] ?? 0) - (drawingPerfCounterBaseline[key] ?? 0);
+    (perfGlobal?.counters[key] ?? 0) - (drawingPerfCounterBaseline[key] ?? 0);
   const readTimingDelta = (key: string): number =>
-    (perfGlobal.timingsMs[key] ?? 0) - (drawingPerfTimingBaseline[key] ?? 0);
+    (perfGlobal?.timingsMs[key] ?? 0) - (drawingPerfTimingBaseline[key] ?? 0);
 
   return {
     begin() {
+      // Opt in at runtime with globalThis.__kidsDrawPerf = {} before a stroke.
+      perfGlobal = getKidsDrawPerfGlobal();
+      if (!perfGlobal) return;
       drawingPerfStartMs = nowMs();
       drawingPerfModelInvalidations = 0;
       drawingPerfRafFramesExecuted = 0;
@@ -105,6 +101,7 @@ export function createKidsDrawPerfSession(): KidsDrawPerfSession {
       drawingPerfTimingBaseline = { ...perfGlobal.timingsMs };
     },
     onPointerMoveSamples(sampleCount, usedCoalesced) {
+      if (!perfGlobal) return;
       drawingPerfPointerMoveEvents += 1;
       drawingPerfPointerSamples += sampleCount;
       if (usedCoalesced) {
@@ -112,20 +109,24 @@ export function createKidsDrawPerfSession(): KidsDrawPerfSession {
       }
     },
     onModelInvalidation() {
+      if (!perfGlobal) return;
       drawingPerfModelInvalidations += 1;
     },
     onRafFrameExecuted() {
+      if (!perfGlobal) return;
       drawingPerfRafFramesExecuted += 1;
     },
     recordRenderPassStart() {
+      if (!perfGlobal) return 0;
       drawingPerfRenderPasses += 1;
       return nowMs();
     },
     recordRenderPassEnd(startMs: number) {
+      if (!perfGlobal) return;
       drawingPerfRenderPassMsTotal += nowMs() - startMs;
     },
     end(frameCount: number) {
-      if (drawingPerfStartMs === null) return;
+      if (!perfGlobal || drawingPerfStartMs === null) return;
       const durationMs = Math.max(1, nowMs() - drawingPerfStartMs);
       const fps = (frameCount * 1000) / durationMs;
       const renderPasses = Math.max(1, drawingPerfRenderPasses);
@@ -165,7 +166,9 @@ export function createKidsDrawPerfSession(): KidsDrawPerfSession {
         sampleEventRatio,
       };
       perfGlobal.lastStrokeSummary = summary;
-      perfGlobal.strokeHistory?.push(summary);
+      const history = (perfGlobal.strokeHistory ??= []);
+      history.push(summary);
+      if (history.length > 100) history.splice(0, history.length - 100);
       console.log(
         `[kids-draw] stroke avg fps: ${fps.toFixed(1)} (${frameCount} frames / ${durationMs.toFixed(1)}ms); model=${summary.modelInvalidations}; raf=${summary.rafFramesExecuted}; renderPass=${summary.renderPasses}; samples=${summary.pointerSamples}; moves=${summary.pointerMoveEvents}; coalesced=${summary.coalescedEvents}; sampleRatio=${summary.sampleEventRatio.toFixed(2)}; renderMs=${summary.avgRenderPassMs.toFixed(2)}; hot(clear=${summary.hotClearMs.toFixed(2)} blit=${summary.hotBackdropBlitMs.toFixed(2)} fill=${summary.hotBackgroundFillMs.toFixed(2)} paint=${summary.hotDraftPaintMs.toFixed(2)}); bakeTiles=${summary.tilesBaked}; bakeMs=${summary.bakeMs.toFixed(1)}; snapshotCalls=${summary.snapshotCalls}`,
       );

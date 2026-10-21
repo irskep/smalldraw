@@ -20,6 +20,7 @@ function getPerfDebugState(): PerfDebugState | null {
 }
 
 export function perfNowMs(): number {
+  if (!getPerfDebugState()) return 0;
   return typeof performance !== "undefined" ? performance.now() : Date.now();
 }
 
