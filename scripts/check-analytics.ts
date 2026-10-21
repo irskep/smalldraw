@@ -25,6 +25,10 @@ export async function checkAnalytics(
     calls.push(payload);
   });
   await context.route("https://splatterboard.app/**", async (route) => {
+    if (origin === "https://splatterboard.app") {
+      await route.continue();
+      return;
+    }
     const url = new URL(route.request().url());
     const response = await route.fetch({
       url: `${origin}${url.pathname}${url.search}`,
@@ -177,6 +181,7 @@ export async function checkAnalytics(
     await page.screenshot({ path: "/tmp/analytics-failed.png" });
     throw error;
   } finally {
+    await context.unrouteAll({ behavior: "wait" });
     await context.close();
   }
 }
