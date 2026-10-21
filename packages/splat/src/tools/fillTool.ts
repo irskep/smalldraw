@@ -14,7 +14,7 @@ import {
 } from "@smalldraw/renderer-canvas";
 import { registerRasterImage } from "../shapes/rasterImageCache";
 import { createFillComputation } from "./fillComputation";
-import type { FillPixelsRequest } from "./fillPixels";
+import type { FillPixelsRequest, FillPixelsResult } from "./fillPixels";
 
 const PRIMARY_BUTTON_MASK = 1;
 const DEFAULT_TOLERANCE = 30;
@@ -87,11 +87,13 @@ function renderCurrentCanvas(
 interface FillImageResult {
   dataUrl: string;
   canvas: HTMLCanvasElement;
+  x: number;
+  y: number;
 }
 
 async function createFillImage(params: {
   sourceCanvas: HTMLCanvasElement;
-  compute: (request: FillPixelsRequest) => Promise<Uint8ClampedArray | null>;
+  compute: (request: FillPixelsRequest) => Promise<FillPixelsResult | null>;
   x: number;
   y: number;
   fillColor: string;
@@ -123,19 +125,19 @@ async function createFillImage(params: {
     featherRadius: params.featherRadius,
   });
   if (!pixels) return null;
-  const fillImage = sourceCtx.createImageData(width, height);
-  fillImage.data.set(pixels);
+  const fillImage = sourceCtx.createImageData(pixels.width, pixels.height);
+  fillImage.data.set(pixels.pixels);
 
   const fillCanvas = document.createElement("canvas");
-  fillCanvas.width = width;
-  fillCanvas.height = height;
+  fillCanvas.width = pixels.width;
+  fillCanvas.height = pixels.height;
   const fillCtx = fillCanvas.getContext("2d");
   if (!fillCtx || typeof fillCanvas.toDataURL !== "function") {
     return null;
   }
   fillCtx.putImageData(fillImage, 0, 0);
   const dataUrl = fillCanvas.toDataURL("image/png");
-  return { dataUrl, canvas: fillCanvas };
+  return { dataUrl, canvas: fillCanvas, x: pixels.x, y: pixels.y };
 }
 
 export function createFillTool(options: FillToolOptions): ToolDefinition {
@@ -235,12 +237,15 @@ export function createFillTool(options: FillToolOptions): ToolDefinition {
               geometry: {
                 type: "raster-fill",
                 src: fillResult.dataUrl,
-                width: documentSize.width,
-                height: documentSize.height,
+                width: fillResult.canvas.width,
+                height: fillResult.canvas.height,
               },
               style: {},
               transform: {
-                translation: [documentSize.width / 2, documentSize.height / 2],
+                translation: [
+                  fillResult.x + fillResult.canvas.width / 2,
+                  fillResult.y + fillResult.canvas.height / 2,
+                ],
               },
             } as AnyShape;
             runtime.commit(new AddShape(fillShape));

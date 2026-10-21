@@ -1,16 +1,16 @@
-import type { FillPixelsRequest } from "./fillPixels";
+import type { FillPixelsRequest, FillPixelsResult } from "./fillPixels";
 
 /** One in-flight fill per tool activation; disposal releases both CPU and memory. */
 export function createFillComputation(workerUrl?: URL) {
   let worker: Worker | undefined;
   let pending:
     | {
-        resolve: (pixels: Uint8ClampedArray | null) => void;
+        resolve: (pixels: FillPixelsResult | null) => void;
         reject: (error: Error) => void;
       }
     | undefined;
   return {
-    compute(request: FillPixelsRequest): Promise<Uint8ClampedArray | null> {
+    compute(request: FillPixelsRequest): Promise<FillPixelsResult | null> {
       if (pending) throw new Error("A fill is already computing");
       if (!worker) {
         // Both hosts emit this asset beside their HTML entry point.
@@ -18,13 +18,11 @@ export function createFillComputation(workerUrl?: URL) {
         worker = new Worker(url, { type: "module" });
       }
       let rejectRequest!: (error: Error) => void;
-      const result = new Promise<Uint8ClampedArray | null>(
-        (resolve, reject) => {
-          pending = { resolve, reject };
-          rejectRequest = reject;
-        },
-      );
-      worker.onmessage = (event: MessageEvent<Uint8ClampedArray>) => {
+      const result = new Promise<FillPixelsResult | null>((resolve, reject) => {
+        pending = { resolve, reject };
+        rejectRequest = reject;
+      });
+      worker.onmessage = (event: MessageEvent<FillPixelsResult | null>) => {
         const current = pending;
         pending = undefined;
         current?.resolve(event.data);

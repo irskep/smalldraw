@@ -4,6 +4,7 @@ import {
   computeFillPixels,
   type FillPixelsRequest,
 } from "../../tools/fillPixels";
+import { featherMask, floodFillMask } from "../../tools/floodFill";
 
 function fixture(): FillPixelsRequest {
   const width = 81;
@@ -48,4 +49,39 @@ test("disposal cancels pending work and settles its promise", async () => {
   const result = computation.compute(fixture());
   computation.dispose();
   expect(await result).toBeNull();
+});
+
+test("cropped fill reconstructs the original feathered pixels exactly", () => {
+  for (const radius of [0, 2, 7]) {
+    const request = fixture();
+    request.featherRadius = radius;
+    // Close the wall so this fill covers only part of the canvas.
+    for (let y = 0; y < request.height; y++)
+      request.imageData.fill(
+        0,
+        (y * request.width + 40) * 4,
+        (y * request.width + 41) * 4,
+      );
+    const mask = floodFillMask({
+      ...request,
+      options: { tolerance: request.tolerance },
+    });
+    const alpha = featherMask(mask, request.width, request.height, { radius });
+    const cropped = computeFillPixels(request)!;
+    expect(cropped.width).toBeLessThan(request.width);
+    const expanded = new Uint8ClampedArray(request.width * request.height * 4);
+    for (let y = 0; y < cropped.height; y++)
+      expanded.set(
+        cropped.pixels.subarray(
+          y * cropped.width * 4,
+          (y + 1) * cropped.width * 4,
+        ),
+        ((y + cropped.y) * request.width + cropped.x) * 4,
+      );
+    for (let i = 0; i < alpha.length; i++) {
+      expect(expanded[i * 4 + 3]).toBe(alpha[i]);
+      if (alpha[i])
+        expect([...expanded.subarray(i * 4, i * 4 + 3)]).toEqual([37, 80, 230]);
+    }
+  }
 });
