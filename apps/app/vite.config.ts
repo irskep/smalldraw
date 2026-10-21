@@ -1,4 +1,4 @@
-import { automergeAsset } from "../../scripts/automerge-asset.mts";
+import { automergeAsset } from "../../scripts/automerge-asset.mjs";
 import preact from "@preact/preset-vite";
 import path from "path";
 import { fileURLToPath } from "node:url";

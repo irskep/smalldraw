@@ -1,4 +1,4 @@
-import { automergeAsset } from "./automerge-asset.mts";
+import { automergeAsset } from "./automerge-asset.mjs";
 import { checkPortalRouting } from "./check-portal-routing";
 import { checkAnalytics } from "./check-analytics";
 import { checkColoringEntry } from "./check-coloring-entry";
@@ -641,11 +641,21 @@ try {
     const paper = privatePage.locator(".kids-draw-frame");
     await expect(paper).toBeVisible();
     await privatePage.waitForURL(/local=/);
+    await expect(paper).toHaveAttribute("data-loading", "false");
     await paper.hover({ position: { x: 50, y: 50 } });
     const box = (await paper.boundingBox())!;
     await privatePage.mouse.down();
     await privatePage.mouse.move(box.x + 150, box.y + 150, { steps: 8 });
     await privatePage.mouse.up();
+    await expect
+      .poll(() =>
+        privatePage.evaluate(
+          () =>
+            Object.keys((window as any).kidsDrawApp.store.getDocument().shapes)
+              .length,
+        ),
+      )
+      .toBe(1);
     await privatePage
       .locator('[data-tool-family="stamp.images"]:visible')
       .first()
