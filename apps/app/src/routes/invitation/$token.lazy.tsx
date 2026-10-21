@@ -1,14 +1,14 @@
-import { createLazyFileRoute } from "@tanstack/react-router";
+import { useRoute } from "preact-iso";
 import {
   buildDrawingDocumentUrl,
   createAccountWebRuntimeConfig,
 } from "@/utils/drawingAppLinks";
 import { trpc } from "../../utils/trpc";
 
-const Invitation: React.FC = () => {
+const Invitation = () => {
   const acceptDocumentInvitationMutation =
     trpc.acceptDocumentInvitation.useMutation();
-  const { token } = Route.useParams();
+  const { token } = useRoute().params;
   const runtimeConfig = createAccountWebRuntimeConfig();
 
   const acceptInvitation = () => {
@@ -48,6 +48,4 @@ const Invitation: React.FC = () => {
   );
 };
 
-export const Route = createLazyFileRoute("/invitation/$token")({
-  component: Invitation,
-});
+export default Invitation;

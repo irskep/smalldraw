@@ -3,34 +3,21 @@ import path from "node:path";
 import { isPortalRoutePath } from "@smalldraw/shared";
 
 describe("portal production fallback routes", () => {
-  test("cover every generated portal route", async () => {
-    const generatedRouteTreePath = path.resolve(
-      import.meta.dir,
-      "../../app/src/routeTree.gen.ts",
-    );
-    const generatedRouteTree = await Bun.file(generatedRouteTreePath).text();
-    const fullPathUnion = generatedRouteTree.match(
-      /fullPaths:\s*([\s\S]*?)\n\s*fileRoutesByTo:/,
-    );
-
-    expect(fullPathUnion).not.toBeNull();
-
+  test("cover every client portal route", async () => {
+    const router = await Bun.file(
+      path.resolve(import.meta.dir, "../../app/src/utils/router.tsx"),
+    ).text();
     const portalRoutes = Array.from(
-      fullPathUnion?.[1].matchAll(/\|\s*'([^']+)'/g) ?? [],
-      ([, route]) => route,
+      router.matchAll(/path=\{appPath\(\s*"([^"]*)"\s*,?\s*\)\}/g),
+      ([, route]) => `/${route}`,
     );
-
     expect(portalRoutes).toContain("/");
-    expect(portalRoutes.length).toBeGreaterThan(0);
-
-    const uncoveredRoutes = portalRoutes.filter((route) => {
-      return !isPortalRoutePath(toSamplePath(route));
-    });
-
+    expect(portalRoutes).toContain(
+      "/admin/users/:username/documents/:documentId",
+    );
+    const uncoveredRoutes = portalRoutes.filter(
+      (route) => !isPortalRoutePath(route.replaceAll(/:[^/]+/g, "example")),
+    );
     expect(uncoveredRoutes).toEqual([]);
   });
 });
-
-function toSamplePath(route: string): string {
-  return route.replaceAll(/\$[^/]+/g, "example");
-}

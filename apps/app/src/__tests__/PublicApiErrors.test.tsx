@@ -7,8 +7,7 @@ import { App } from "../components/App/App";
 const captured = vi.hoisted(() => ({
   client: undefined as QueryClient | undefined,
 }));
-vi.mock("../utils/router", () => ({ router: {} }));
-vi.mock("@tanstack/react-router", () => ({ RouterProvider: () => null }));
+vi.mock("../utils/router", () => ({ PortalRouter: () => null }));
 vi.mock("../utils/trpc", () => ({
   trpcClient: {},
   trpc: {
@@ -28,6 +27,8 @@ test.each([
 ])("handles anonymous API errors on %s", async (pathname) => {
   const location = {
     pathname,
+    search: "",
+    hash: "",
     href: `http://localhost${pathname}`,
   } as Location;
   vi.spyOn(window, "location", "get").mockReturnValue(location);

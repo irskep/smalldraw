@@ -20,3 +20,12 @@ export function isPublicUnauthenticatedRoute(pathname: string): boolean {
     (route) => (appPath(route).replace(/\/+$/, "") || "/") === normalized,
   );
 }
+
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// These paths belong to the editor or server, and must leave the portal.
+export function portalScope(origin: string, base = basePath) {
+  return new RegExp(
+    `^(?:${escapeRegExp(origin)})?${escapeRegExp(base)}(?!(?:draw|api|d|s)(?:[/#?]|$))`,
+  );
+}

@@ -1,5 +1,4 @@
 import { createLocalDocumentBackend } from "@smalldraw/splat/documents";
-import { createLazyFileRoute } from "@tanstack/react-router";
 import { Trash2 } from "lucide";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArtTable } from "@/components/ArtTable/ArtTable";
@@ -14,10 +13,6 @@ import {
   createAccountWebRuntimeConfig,
 } from "@/utils/drawingAppLinks";
 import { trpc } from "../utils/trpc";
-
-export const Route = createLazyFileRoute("/")({
-  component: Index,
-});
 
 type LocalDocumentTileInput = Parameters<
   typeof buildLauncherDocumentTiles
@@ -347,3 +342,5 @@ function Index() {
     </div>
   );
 }
+
+export default Index;

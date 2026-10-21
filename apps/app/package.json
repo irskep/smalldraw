@@ -24,20 +24,17 @@
     "@smalldraw/shared": "workspace:*",
     "@smalldraw/splat": "workspace:*",
     "@tanstack/react-query": "^5.90.16",
-    "@tanstack/react-router": "^1.149.3",
     "@trpc/client": "^11.8.1",
     "@trpc/react-query": "^11.8.1",
     "lucide": "catalog:ui",
     "lucide-react": "^0.378.0",
     "preact": "^11.0.1",
+    "preact-iso": "^2.12.2",
     "redom": "catalog:ui",
-    "vite-plugin-wasm": "^3.5.0",
-    "zod": "^3.23.8"
+    "vite-plugin-wasm": "^3.5.0"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",
-    "@tanstack/router-devtools": "^1.149.3",
-    "@tanstack/router-vite-plugin": "^1.149.3",
     "@testing-library/preact": "^3.2.4",
     "@types/react": "^18.3.27",
     "@types/react-dom": "^18.3.7",

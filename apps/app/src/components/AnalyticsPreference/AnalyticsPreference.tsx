@@ -25,7 +25,7 @@ export function AnalyticsPreference() {
           type="checkbox"
           checked={enabled}
           onChange={(event) => {
-            const next = event.target.checked;
+            const next = event.currentTarget.checked;
             setSaved(setAnalyticsEnabled(next));
             setEnabled(next);
           }}

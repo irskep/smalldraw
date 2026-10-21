@@ -1,15 +1,15 @@
 import { updatePortalMetadata } from "../utils/portalMetadata";
-import { DsConfirmDialog, type DsConfirmDialogHandle } from "../components/DsConfirmDialog/DsConfirmDialog";
-import { $accountSync, retryAccountSync } from "@smalldraw/splat/account";
-import { initializeAccountWorkspace, signOutWorkspace } from "../utils/accountWorkspace";
-import type { DropdownMenuEntry } from "@smalldraw/design-system/dropdown-menu";
 import {
-  createRootRoute,
-  Link,
-  Outlet,
-  useLocation,
-  useNavigate,
-} from "@tanstack/react-router";
+  DsConfirmDialog,
+  type DsConfirmDialogHandle,
+} from "../components/DsConfirmDialog/DsConfirmDialog";
+import { $accountSync, retryAccountSync } from "@smalldraw/splat/account";
+import {
+  initializeAccountWorkspace,
+  signOutWorkspace,
+} from "../utils/accountWorkspace";
+import type { DropdownMenuEntry } from "@smalldraw/design-system/dropdown-menu";
+import { useLocation } from "preact-iso";
 import {
   LogIn,
   LogOut,
@@ -19,7 +19,14 @@ import {
   User,
   UserPlus,
 } from "lucide";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { DsDropdownMenu } from "@/components/DsDropdownMenu/DsDropdownMenu";
 import {
   ParentalControlsDialog,
@@ -27,16 +34,6 @@ import {
 } from "@/components/ParentalControlsDialog/ParentalControlsDialog";
 import { appPath, isPublicUnauthenticatedRoute } from "../config";
 import { trpc } from "../utils/trpc";
-
-const TanStackRouterDevtools =
-  process.env.NODE_ENV === "production"
-    ? () => null // render nothing in production
-    : lazy(() =>
-        // lazy load in development
-        import("@tanstack/router-devtools").then((res) => ({
-          default: res.TanStackRouterDevtools,
-        })),
-      );
 
 const getRedirectParam = () => {
   const currentUrl = window.location.href;
@@ -47,15 +44,17 @@ const getRedirectParam = () => {
   }
 };
 
-const Root = () => {
-  const navigate = useNavigate();
+export const PortalLayout = ({ children }: { children?: ReactNode }) => {
   const accountDialogRef = useRef<DsConfirmDialogHandle>(null);
   const parentalControlsDialogRef = useRef<ParentalControlsDialogHandle>(null);
   const location = useLocation();
-  useEffect(() => updatePortalMetadata(location.pathname), [location.pathname]);
-  const isInformationalRoute = ["/data", "/privacy", "/terms"].includes(location.pathname.replace(/\/+$/, ""));
+  const navigate = location.route;
+  useEffect(() => updatePortalMetadata(location.path), [location.path]);
+  const isInformationalRoute = ["/data", "/privacy", "/terms"].includes(
+    location.path.replace(/\/+$/, ""),
+  );
   const isAdminRoute =
-    location.pathname === "/admin" || location.pathname.startsWith("/admin/");
+    location.path === "/admin" || location.path.startsWith("/admin/");
 
   const meQuery = trpc.me.useQuery(undefined, {
     // avoid lot's of retries in case of unauthorized blocking a page load
@@ -74,7 +73,9 @@ const Root = () => {
   const [signingOut, setSigningOut] = useState(false);
   useEffect(() => {
     if (isInformationalRoute) return;
-    void initializeAccountWorkspace().then(() => setWorkspaceReady(true)).catch((error) => setWorkspaceError(String(error)));
+    void initializeAccountWorkspace()
+      .then(() => setWorkspaceReady(true))
+      .catch((error) => setWorkspaceError(String(error)));
   }, [isInformationalRoute]);
 
   const isNotAuthorized = meQuery.error?.data?.code === "UNAUTHORIZED";
@@ -131,48 +132,44 @@ const Root = () => {
         icon: ShieldCheck,
       },
     ];
-  }, [
-    isNotAuthorized,
-    signingOut,
-    meQuery.data,
-    meQuery.isLoading,
-  ]);
+  }, [isNotAuthorized, signingOut, meQuery.data, meQuery.isLoading]);
 
   useEffect(() => {
-    if (!isNotAuthorized || isPublicUnauthenticatedRoute(location.pathname))
-      return;
-    navigate({
-      to: "/login",
-      search: { redirect: location.pathname },
-    });
-  }, [isNotAuthorized, location.pathname, navigate]);
+    if (!isNotAuthorized || isPublicUnauthenticatedRoute(location.path)) return;
+    navigate(
+      appPath(`login?${new URLSearchParams({ redirect: location.url })}`),
+      true,
+    );
+  }, [isNotAuthorized, location.path, location.url, navigate]);
 
   const handleMenuSelect = useCallback(
     (itemId: string) => {
       if (itemId === "login") {
-        navigate({
-          to: "/login",
-          search: { redirect: getRedirectParam() },
-        });
+        const redirect = getRedirectParam();
+        navigate(
+          appPath("login") +
+            (redirect ? `?${new URLSearchParams({ redirect })}` : ""),
+        );
         return;
       }
       if (itemId === "register") {
-        navigate({
-          to: "/register",
-          search: { redirect: getRedirectParam() },
-        });
+        const redirect = getRedirectParam();
+        navigate(
+          appPath("register") +
+            (redirect ? `?${new URLSearchParams({ redirect })}` : ""),
+        );
         return;
       }
       if (itemId === "deleted-drawings") {
-        navigate({ to: "/drawings/deleted" });
+        navigate(appPath("drawings/deleted"));
         return;
       }
       if (itemId === "account") {
-        navigate({ to: "/account" });
+        navigate(appPath("account"));
         return;
       }
       if (itemId === "admin") {
-        navigate({ to: "/admin" });
+        navigate(appPath("admin"));
         return;
       }
       if (itemId === "parental-controls") {
@@ -183,8 +180,10 @@ const Root = () => {
         void (async () => {
           const confirmed = await accountDialogRef.current?.confirm({
             title: "Sign out?",
-            message: "Your drawings will stay in your account. They’ll be removed from this device.",
-            confirmLabel: "Sign out", cancelLabel: "Cancel",
+            message:
+              "Your drawings will stay in your account. They’ll be removed from this device.",
+            confirmLabel: "Sign out",
+            cancelLabel: "Cancel",
           });
           if (!confirmed) return;
           setSigningOut(true);
@@ -196,10 +195,15 @@ const Root = () => {
             } catch {
               const retry = await accountDialogRef.current?.confirm({
                 title: "Drawings haven’t finished syncing",
-                message: "Connect to the internet and try again. Your drawings are still on this device.",
-                confirmLabel: "Try again", cancelLabel: "Cancel",
+                message:
+                  "Connect to the internet and try again. Your drawings are still on this device.",
+                confirmLabel: "Try again",
+                cancelLabel: "Cancel",
               });
-              if (!retry) { window.location.reload(); return; }
+              if (!retry) {
+                window.location.reload();
+                return;
+              }
             }
           }
         })();
@@ -211,14 +215,12 @@ const Root = () => {
   return (
     <div
       className="portal-shell"
-      data-layout={
-        isAdminRoute ? "admin" : location.pathname === "/" ? "home" : ""
-      }
+      data-layout={isAdminRoute ? "admin" : location.path === "/" ? "home" : ""}
     >
       <header className="portal-header">
-        <Link to="/" className="portal-brand">
+        <a href={appPath("")} className="portal-brand">
           Splatterboard
-        </Link>
+        </a>
         <nav className="portal-nav" aria-label="Account">
           {meQuery.data && !isNotAuthorized ? (
             <div className="portal-nav__identity" aria-live="polite">
@@ -234,13 +236,31 @@ const Root = () => {
           />
         </nav>
       </header>
-      {syncStatus.error ? <div role="status">{syncStatus.error} <button className="ds-button" onClick={retryAccountSync}>Try again</button></div> : null}
+      {syncStatus.error ? (
+        <div role="status">
+          {syncStatus.error}{" "}
+          <button className="ds-button" onClick={retryAccountSync}>
+            Try again
+          </button>
+        </div>
+      ) : null}
       <main className="portal-main">
-        {isInformationalRoute || workspaceReady ? <Outlet /> : <p role="status">{workspaceError ?? "Opening your drawings…"} {workspaceError ? <button className="ds-button" onClick={() => window.location.reload()}>Try again</button> : null}</p>}
+        {isInformationalRoute || workspaceReady ? (
+          children
+        ) : (
+          <p role="status">
+            {workspaceError ?? "Opening your drawings…"}{" "}
+            {workspaceError ? (
+              <button
+                className="ds-button"
+                onClick={() => window.location.reload()}
+              >
+                Try again
+              </button>
+            ) : null}
+          </p>
+        )}
       </main>
-      <Suspense>
-        <TanStackRouterDevtools />
-      </Suspense>{" "}
       <DsConfirmDialog ref={accountDialogRef} />
       <ParentalControlsDialog
         ref={parentalControlsDialogRef}
@@ -249,7 +269,3 @@ const Root = () => {
     </div>
   );
 };
-
-export const Route = createRootRoute({
-  component: Root,
-});

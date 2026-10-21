@@ -1,3 +1,4 @@
+import type React from "react";
 import { trpc } from "@/utils/trpc";
 import { DocumentInvitation } from "../DocumentInvitation/DocumentInvitation";
 

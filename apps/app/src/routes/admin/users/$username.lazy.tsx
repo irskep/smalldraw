@@ -1,19 +1,12 @@
-import {
-  createLazyFileRoute,
-  Outlet,
-  useLocation,
-} from "@tanstack/react-router";
+import { useRoute } from "preact-iso";
+import { AdminAccessGate } from "@/admin/AdminAccessGate";
 import { AdminUserSupportPage } from "@/admin/AdminUserSupportPage";
 
-const AdminUser = () => {
-  const location = useLocation();
-  const { username } = Route.useParams();
-  const isUserPage =
-    location.pathname === `/admin/users/${encodeURIComponent(username)}`;
-
-  return isUserPage ? <AdminUserSupportPage username={username} /> : <Outlet />;
-};
-
-export const Route = createLazyFileRoute("/admin/users/$username")({
-  component: AdminUser,
-});
+export default function AdminUser() {
+  const { username } = useRoute().params;
+  return (
+    <AdminAccessGate>
+      <AdminUserSupportPage username={username} />
+    </AdminAccessGate>
+  );
+}

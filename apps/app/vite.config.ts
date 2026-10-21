@@ -1,4 +1,3 @@
-import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
 import preact from "@preact/preset-vite";
 import path from "path";
 import { fileURLToPath } from "node:url";
@@ -7,7 +6,7 @@ import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
   base: process.env.VITE_BASE,
-  plugins: [wasm(), preact(), TanStackRouterVite()],
+  plugins: [wasm(), preact()],
   server: {
     host: "0.0.0.0",
     port: 3000,

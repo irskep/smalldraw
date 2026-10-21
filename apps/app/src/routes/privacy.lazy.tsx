@@ -1,9 +1,4 @@
-import { createLazyFileRoute } from "@tanstack/react-router";
 import { AnalyticsPreference } from "../components/AnalyticsPreference/AnalyticsPreference";
-
-export const Route = createLazyFileRoute("/privacy")({
-  component: PrivacyPolicy,
-});
 
 function PrivacyPolicy() {
   return (
@@ -638,3 +633,5 @@ function PrivacyPolicy() {
     </section>
   );
 }
+
+export default PrivacyPolicy;

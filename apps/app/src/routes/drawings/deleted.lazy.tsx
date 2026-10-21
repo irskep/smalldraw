@@ -1,4 +1,3 @@
-import { createLazyFileRoute } from "@tanstack/react-router";
 import { RotateCcw } from "lucide";
 import { useRef, useState } from "react";
 import {
@@ -10,10 +9,6 @@ import {
   type DeletedDrawingListItem,
 } from "@/components/DeletedDrawingsList/DeletedDrawingsList";
 import { trpc } from "../../utils/trpc";
-
-export const Route = createLazyFileRoute("/drawings/deleted")({
-  component: DeletedDrawings,
-});
 
 function DeletedDrawings() {
   const trpcUtils = trpc.useUtils();
@@ -95,3 +90,5 @@ function DeletedDrawings() {
     </section>
   );
 }
+
+export default DeletedDrawings;

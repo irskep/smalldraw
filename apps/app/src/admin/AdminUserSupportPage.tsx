@@ -1,4 +1,5 @@
-import { Link } from "@tanstack/react-router";
+import type React from "react";
+import { appPath } from "../config";
 import type { AccountShareMode } from "@smalldraw/shared";
 import {
   KeyRound as KeyRoundIcon,
@@ -337,7 +338,10 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
   return (
     <section className="admin-page" aria-label="Admin user support">
       <AdminBreadcrumbs
-        items={[{ label: "Admin", to: "/admin" }, { label: username }]}
+        items={[
+          { label: "Admin", href: appPath("admin") },
+          { label: username },
+        ]}
       />
 
       {userQuery.isFetching ? (
@@ -394,7 +398,9 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                     className="portal-input portal-input--short"
                     type="password"
                     value={newPassword}
-                    onChange={(event) => setNewPassword(event.target.value)}
+                    onChange={(event) =>
+                      setNewPassword(event.currentTarget.value)
+                    }
                     placeholder="New password"
                     aria-label="New password"
                   />
@@ -523,15 +529,13 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                     value={settingsShareMode}
                     onChange={(event) =>
                       setSettingsShareMode(
-                        event.target.value as AccountShareMode,
+                        event.currentTarget.value as AccountShareMode,
                       )
                     }
                     aria-label="Share mode"
                   >
                     <option value="allowed">Allow sharing</option>
-                    <option value="pin_required">
-                      Allow sharing with PIN
-                    </option>
+                    <option value="pin_required">Allow sharing with PIN</option>
                     <option value="private_sync">Don’t allow sharing</option>
                   </select>
                   <input
@@ -543,7 +547,9 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                     }
                     type="password"
                     value={settingsPin}
-                    onChange={(event) => setSettingsPin(event.target.value)}
+                    onChange={(event) =>
+                      setSettingsPin(event.currentTarget.value)
+                    }
                     aria-label="New parental controls PIN"
                   />
                   {accountSettingsQuery.data?.hasPin ? (
@@ -554,7 +560,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                         disabled={Boolean(settingsPin.trim())}
                         type="checkbox"
                         onChange={(event) =>
-                          setSettingsClearPin(event.target.checked)
+                          setSettingsClearPin(event.currentTarget.checked)
                         }
                       />
                       <span>Clear existing PIN</span>
@@ -621,17 +627,15 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                     </div>
                     <AdminDocumentActions
                       beforeActions={
-                        <Link
+                        <a
                           className="ds-button"
-                          to="/admin/users/$username/documents/$documentId"
-                          params={{
-                            username: foundUser.username,
-                            documentId: document.id,
-                          }}
+                          href={appPath(
+                            `admin/users/${encodeURIComponent(foundUser.username)}/documents/${encodeURIComponent(document.id)}`,
+                          )}
                         >
                           <FileSearch className="portal-action-icon" />
                           Inspect
-                        </Link>
+                        </a>
                       }
                       confirmDialogRef={confirmDialogRef}
                       createShareLinkMutation={createShareLinkMutation}
@@ -706,7 +710,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
 
 type AdminDocumentActionsProps = {
   beforeActions?: React.ReactNode;
-  confirmDialogRef: React.RefObject<DsConfirmDialogHandle>;
+  confirmDialogRef: React.RefObject<DsConfirmDialogHandle | null>;
   createShareLinkMutation: ReturnType<
     typeof trpc.adminCreateUserDocumentShareLink.useMutation
   >;
@@ -865,11 +869,10 @@ const AdminDocumentInspectionPage: React.FC<{
     <section className="admin-page" aria-label="Admin document inspection">
       <AdminBreadcrumbs
         items={[
-          { label: "Admin", to: "/admin" },
+          { label: "Admin", href: appPath("admin") },
           {
             label: username,
-            to: "/admin/users/$username",
-            params: { username },
+            href: appPath(`admin/users/${encodeURIComponent(username)}`),
           },
           { label: documentId },
         ]}
@@ -1060,27 +1063,16 @@ const AdminDocumentInspectionPage: React.FC<{
   );
 };
 
-type BreadcrumbItem =
-  | { label: string; to?: undefined; params?: undefined }
-  | { label: string; to: "/admin"; params?: undefined }
-  | {
-      label: string;
-      to: "/admin/users/$username";
-      params: { username: string };
-    };
+type BreadcrumbItem = { label: string; href?: string };
 
 const AdminBreadcrumbs: React.FC<{ items: BreadcrumbItem[] }> = ({ items }) => (
   <nav className="admin-toolbar" aria-label="Admin breadcrumbs">
     {items.map((item, index) => (
       <span key={`${item.label}-${index}`} className="admin-toolbar__item">
-        {item.to ? (
-          <Link
-            className="admin-toolbar__link"
-            to={item.to}
-            params={item.params}
-          >
+        {item.href ? (
+          <a className="admin-toolbar__link" href={item.href}>
             {item.label}
-          </Link>
+          </a>
         ) : (
           <span className="admin-toolbar__current">{item.label}</span>
         )}

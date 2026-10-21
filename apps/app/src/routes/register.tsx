@@ -1,14 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useLocation } from "preact-iso";
 import { useState } from "react";
 import { AuthForm } from "../components/AuthForm/AuthForm";
 import { basePath } from "../config";
 import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated/useRedirectIfAuthenticated";
 import { useRegisterAndLogin } from "../hooks/useRegisterAndLogin/useRegisterAndLogin";
-import { authenticationSearchParams } from "../schema";
 
 const Register = () => {
   const { registerAndLogin, isPending } = useRegisterAndLogin();
-  const { redirect } = Route.useSearch();
+  const { redirect } = useLocation().query;
   const [error, setError] = useState<string | null>(null);
 
   useRedirectIfAuthenticated(redirect);
@@ -38,7 +37,4 @@ const Register = () => {
   );
 };
 
-export const Route = createFileRoute("/register")({
-  component: Register,
-  validateSearch: authenticationSearchParams,
-});
+export default Register;

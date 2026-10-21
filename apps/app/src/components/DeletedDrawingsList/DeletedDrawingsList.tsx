@@ -1,3 +1,4 @@
+import type React from "react";
 import { RotateCcw as RotateCcwIcon } from "lucide";
 import { RotateCcw } from "lucide-react";
 import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";

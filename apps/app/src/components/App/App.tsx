@@ -4,7 +4,6 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { RouterProvider } from "@tanstack/react-router";
 import { TRPCClientError } from "@trpc/client";
 import { useState } from "react";
 import {
@@ -12,7 +11,7 @@ import {
   basePath,
   isPublicUnauthenticatedRoute,
 } from "../../config.js";
-import { router } from "../../utils/router.js";
+import { PortalRouter } from "../../utils/router.js";
 import { trpc, trpcClient } from "../../utils/trpc.js";
 
 const handleError = (error: Error, queryClient: QueryClient) => {
@@ -24,7 +23,7 @@ const handleError = (error: Error, queryClient: QueryClient) => {
     queryClient.clear();
 
     window.location.href = appPath(
-      `login${window.location.pathname !== basePath ? `?redirect=${window.location.pathname}` : ""}`,
+      `login${window.location.pathname !== basePath ? `?${new URLSearchParams({ redirect: window.location.pathname + window.location.search + window.location.hash })}` : ""}`,
     );
 
     return true;
@@ -34,7 +33,7 @@ const handleError = (error: Error, queryClient: QueryClient) => {
   return false;
 };
 
-export const App: React.FC = () => {
+export const App = ({ onPageChange }: { onPageChange?: () => void }) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -70,7 +69,7 @@ export const App: React.FC = () => {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <PortalRouter onPageChange={onPageChange} />
       </QueryClientProvider>
     </trpc.Provider>
   );

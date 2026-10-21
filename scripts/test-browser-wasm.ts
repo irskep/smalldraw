@@ -1,3 +1,4 @@
+import { checkPortalRouting } from "./check-portal-routing";
 import { checkAnalytics } from "./check-analytics";
 import { checkColoringEntry } from "./check-coloring-entry";
 /** Exercise the actual Vite/Bun production output against an isolated server. */
@@ -371,6 +372,7 @@ try {
     })
     .toBe(200);
   browser = await chromium.launch();
+  await checkPortalRouting(browser, origin);
   await checkAnalytics(browser, origin);
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -614,6 +616,7 @@ try {
   // WebKit's non-persistent context reproduces Safari Private Browsing storage.
   const safari = await webkit.launch();
   try {
+    await checkPortalRouting(safari, origin);
     await checkColoringEntry(safari, origin, "webkit");
     await checkGuestSharing(safari, origin);
     const privatePage = await safari.newPage({

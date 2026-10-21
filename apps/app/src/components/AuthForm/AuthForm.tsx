@@ -1,3 +1,4 @@
+import type React from "react";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import {
@@ -39,11 +40,7 @@ export const AuthForm = ({
   return (
     <form
       className="portal-card portal-card--centered portal-form"
-      onSubmit={(
-        e: React.FormEvent<HTMLFormElement> & {
-          nativeEvent: { submitter: HTMLButtonElement };
-        },
-      ) => {
+      onSubmit={(e) => {
         e.preventDefault();
         if (requireAgeConfirmation && !ageConfirmed) {
           setAgeError("A parent must make the account.");
@@ -94,7 +91,7 @@ export const AuthForm = ({
           className="portal-input"
           value={username}
           onChange={(e) => {
-            setUsername(e.target.value);
+            setUsername(e.currentTarget.value);
           }}
         />
 
@@ -107,7 +104,7 @@ export const AuthForm = ({
           className="portal-input"
           value={password}
           onChange={(e) => {
-            setPassword(e.target.value);
+            setPassword(e.currentTarget.value);
           }}
         />
 
@@ -120,8 +117,8 @@ export const AuthForm = ({
                 name="age-confirmation"
                 type="checkbox"
                 onChange={(e) => {
-                  setAgeConfirmed(e.target.checked);
-                  if (e.target.checked) {
+                  setAgeConfirmed(e.currentTarget.checked);
+                  if (e.currentTarget.checked) {
                     setAgeError(null);
                   }
                 }}
@@ -169,7 +166,7 @@ export const AuthForm = ({
               placeholder="Optional PIN"
               type="password"
               value={pin}
-              onChange={(e) => setPin(e.target.value)}
+              onChange={(e) => setPin(e.currentTarget.value)}
             />
           </>
         ) : null}

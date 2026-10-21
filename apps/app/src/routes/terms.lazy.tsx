@@ -1,9 +1,3 @@
-import { createLazyFileRoute } from "@tanstack/react-router";
-
-export const Route = createLazyFileRoute("/terms")({
-  component: TermsAndConditions,
-});
-
 function TermsAndConditions() {
   return (
     <section className="portal-page" aria-label="Terms and conditions">
@@ -319,3 +313,5 @@ function TermsAndConditions() {
     </section>
   );
 }
+
+export default TermsAndConditions;

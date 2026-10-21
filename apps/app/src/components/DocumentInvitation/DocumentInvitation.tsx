@@ -30,7 +30,7 @@ export const DocumentInvitationView: React.FC<DocumentInvitationViewProps> = ({
           id={id}
           value={invitationUrl}
           readOnly
-          onFocus={(event) => event.target.select()}
+          onFocus={(event) => event.currentTarget.select()}
           className="portal-input portal-input--share"
         />
         <button

@@ -1,4 +1,4 @@
-import { createLazyFileRoute } from "@tanstack/react-router";
+import type React from "react";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/utils/trpc";
@@ -126,7 +126,9 @@ export const AccountSettings = () => {
               autoComplete="current-password"
               className="portal-input"
               name="current-password"
-              onChange={(event) => setCurrentPassword(event.target.value)}
+              onChange={(event) =>
+                setCurrentPassword(event.currentTarget.value)
+              }
               placeholder="Current password"
               type="password"
               value={currentPassword}
@@ -136,7 +138,7 @@ export const AccountSettings = () => {
               autoComplete="new-password"
               className="portal-input"
               name="new-password"
-              onChange={(event) => setNewPassword(event.target.value)}
+              onChange={(event) => setNewPassword(event.currentTarget.value)}
               placeholder="New password"
               type="password"
               value={newPassword}
@@ -146,7 +148,9 @@ export const AccountSettings = () => {
               autoComplete="new-password"
               className="portal-input"
               name="confirm-new-password"
-              onChange={(event) => setConfirmPassword(event.target.value)}
+              onChange={(event) =>
+                setConfirmPassword(event.currentTarget.value)
+              }
               placeholder="Confirm new password"
               type="password"
               value={confirmPassword}
@@ -167,6 +171,4 @@ export const AccountSettings = () => {
   );
 };
 
-export const Route = createLazyFileRoute("/account")({
-  component: AccountSettings,
-});
+export default AccountSettings;

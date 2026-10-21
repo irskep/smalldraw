@@ -1,22 +1,18 @@
 import { act, render } from "@testing-library/preact";
-import type { ComponentType } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { Route } from "../routes/__root";
+import { PortalLayout as Root } from "../routes/__root";
 
 const state = vi.hoisted(() => ({
   pathname: "/data",
   unauthorized: true,
   navigate: vi.fn(),
 }));
-vi.mock("@tanstack/react-router", () => ({
-  createRootRoute: (options: unknown) => ({ options }),
-  useLocation: () => ({ pathname: state.pathname }),
-  useNavigate: () => state.navigate,
-  Link: () => null,
-  Outlet: () => null,
-}));
-vi.mock("@tanstack/router-devtools", () => ({
-  TanStackRouterDevtools: () => null,
+vi.mock("preact-iso", () => ({
+  useLocation: () => ({
+    path: state.pathname,
+    url: state.pathname,
+    route: state.navigate,
+  }),
 }));
 vi.mock("@tanstack/react-query", () => ({ useQueryClient: () => ({}) }));
 vi.mock("../utils/trpc", () => ({
@@ -43,7 +39,6 @@ vi.mock(
   }),
 );
 
-const Root = Route.options.component as ComponentType;
 async function renderRoot() {
   let view!: ReturnType<typeof render>;
   await act(async () => {
@@ -86,10 +81,10 @@ describe("portal route authentication", () => {
       new URL(pathname, "http://localhost") as unknown as Location,
     );
     await renderRoot();
-    expect(state.navigate).toHaveBeenCalledWith({
-      to: "/login",
-      search: { redirect: pathname },
-    });
+    expect(state.navigate).toHaveBeenCalledWith(
+      `/login?${new URLSearchParams({ redirect: pathname })}`,
+      true,
+    );
   });
 
   test("rechecks authentication on client navigation after an anonymous response", async () => {
@@ -106,10 +101,10 @@ describe("portal route authentication", () => {
     await act(async () => {
       view.rerender(<Root />);
     });
-    expect(state.navigate).toHaveBeenCalledWith({
-      to: "/login",
-      search: { redirect: "/account" },
-    });
+    expect(state.navigate).toHaveBeenCalledWith(
+      "/login?redirect=%2Faccount",
+      true,
+    );
   });
 
   test("allows authenticated account access", async () => {
