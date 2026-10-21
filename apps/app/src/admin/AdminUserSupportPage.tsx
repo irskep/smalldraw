@@ -1,3 +1,4 @@
+import { Icon } from "@/components/Icon";
 import type React from "react";
 import { appPath } from "../config";
 import type { AccountShareMode } from "@smalldraw/shared";
@@ -8,7 +9,7 @@ import {
   Share2 as ShareIcon,
   Unplug as UnplugIcon,
 } from "lucide";
-import { FileSearch, KeyRound, LogOut, Share2, Unplug } from "lucide-react";
+import { FileSearch } from "lucide";
 import { useEffect, useRef, useState } from "react";
 import {
   DsConfirmDialog,
@@ -407,7 +408,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                       !newPassword.trim() || resetPasswordMutation.pending
                     }
                   >
-                    <KeyRound className="portal-action-icon" />
+                    <Icon icon={KeyRoundIcon} className="portal-action-icon" />
                     Reset password
                   </button>
                 </form>
@@ -445,7 +446,7 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                       void revokeAllSessions();
                     }}
                   >
-                    <LogOut className="portal-action-icon" />
+                    <Icon icon={LogOutIcon} className="portal-action-icon" />
                     Revoke all
                   </button>
                 </div>
@@ -628,7 +629,10 @@ const AdminUserOverviewPage: React.FC<{ username: string }> = ({
                             `admin/users/${encodeURIComponent(foundUser.username)}/documents/${encodeURIComponent(document.id)}`,
                           )}
                         >
-                          <FileSearch className="portal-action-icon" />
+                          <Icon
+                            icon={FileSearch}
+                            className="portal-action-icon"
+                          />
                           Inspect
                         </a>
                       }
@@ -784,7 +788,7 @@ const AdminDocumentActions: React.FC<AdminDocumentActionsProps> = ({
           }
         }}
       >
-        <Share2 className="portal-action-icon" />
+        <Icon icon={ShareIcon} className="portal-action-icon" />
         Create share link
       </button>
     )}
@@ -1007,7 +1011,10 @@ const AdminDocumentInspectionPage: React.FC<{
                             });
                           }}
                         >
-                          <Unplug className="portal-action-icon" />
+                          <Icon
+                            icon={UnplugIcon}
+                            className="portal-action-icon"
+                          />
                           Revoke
                         </button>
                       ) : (

@@ -1,6 +1,7 @@
+import { Icon } from "@/components/Icon";
 import type React from "react";
 import { RotateCcw as RotateCcwIcon } from "lucide";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide";
 import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
 
 export type DeletedDrawingListItem = {
@@ -64,7 +65,7 @@ export const DeletedDrawingsList: React.FC<Props> = ({
               disabled={restoringId === document.id}
               onClick={() => onRestore(document)}
             >
-              <RotateCcw className="portal-action-icon" />
+              <Icon icon={RotateCcw} className="portal-action-icon" />
               Restore
             </button>
           </div>

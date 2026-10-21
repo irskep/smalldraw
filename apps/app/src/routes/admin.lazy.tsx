@@ -1,6 +1,7 @@
+import { Icon } from "@/components/Icon";
 import { useLocation } from "preact-iso";
 import { appPath } from "../config";
-import { Search } from "lucide-react";
+import { Search } from "lucide";
 import { useState } from "react";
 import { AdminAccessGate } from "@/admin/AdminAccessGate";
 
@@ -44,7 +45,7 @@ const Admin = () => {
               type="search"
             />
             <button type="submit" className="ds-button">
-              <Search className="portal-action-icon" />
+              <Icon icon={Search} className="portal-action-icon" />
               Search
             </button>
           </form>

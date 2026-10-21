@@ -1,6 +1,7 @@
+import { Icon } from "@/components/Icon";
 import { useAccount } from "@/utils/account";
 import type React from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide";
 import { useState } from "react";
 import { api } from "@/utils/api";
 import { useAction } from "@/hooks/useResource";
@@ -114,7 +115,7 @@ export const AccountSettings = () => {
           ) : null}
           {error ? (
             <div className="portal-alert" data-tone="danger" role="alert">
-              <AlertCircle className="portal-alert__icon" />
+              <Icon icon={AlertCircle} className="portal-alert__icon" />
               <div className="portal-alert__body">
                 <div className="portal-alert__title">
                   Could not change password

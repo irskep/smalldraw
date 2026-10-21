@@ -1,5 +1,6 @@
+import { Icon } from "@/components/Icon";
 import type React from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide";
 import { useState } from "react";
 import {
   loadParentalControlsState,
@@ -73,7 +74,7 @@ export const AuthForm = ({
       <p>Drawings on this device will be added to your account.</p>
       {displayedError ? (
         <div className="portal-alert" data-tone="danger" role="alert">
-          <AlertCircle className="portal-alert__icon" />
+          <Icon icon={AlertCircle} className="portal-alert__icon" />
           <div className="portal-alert__body">
             <div className="portal-alert__title">Could not continue</div>
             <div>{displayedError}</div>
