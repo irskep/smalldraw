@@ -55,6 +55,9 @@ test("cropped fill reconstructs the original feathered pixels exactly", () => {
   for (const radius of [0, 2, 7]) {
     const request = fixture();
     request.featherRadius = radius;
+    request.x = 60;
+    request.y = 40;
+    request.imageData.fill(0, 20 * request.width * 4, 21 * request.width * 4);
     // Close the wall so this fill covers only part of the canvas.
     for (let y = 0; y < request.height; y++)
       request.imageData.fill(
@@ -69,6 +72,8 @@ test("cropped fill reconstructs the original feathered pixels exactly", () => {
     const alpha = featherMask(mask, request.width, request.height, { radius });
     const cropped = computeFillPixels(request)!;
     expect(cropped.width).toBeLessThan(request.width);
+    expect(cropped.x).toBeGreaterThan(0);
+    expect(cropped.y).toBeGreaterThan(0);
     const expanded = new Uint8ClampedArray(request.width * request.height * 4);
     for (let y = 0; y < cropped.height; y++)
       expanded.set(
