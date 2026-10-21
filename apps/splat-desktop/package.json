@@ -6,8 +6,8 @@
     "build": "bun run ./scripts/run-electrobun.ts build --env=dev",
     "package": "bun run ./scripts/run-electrobun.ts build --env=stable",
     "test": "bun test --pass-with-no-tests",
-    "lint": "bunx biome check .",
-    "lint:fix": "bunx biome check --write .",
+    "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
+    "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
     "ts:check": "tsc -p tsconfig.typecheck.json --noEmit"
   },
   "dependencies": {

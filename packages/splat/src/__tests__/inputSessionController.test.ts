@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+
 import { DrawingStore, type PenShape } from "@smalldraw/core";
 import type { Vec2 } from "@smalldraw/geometry";
+
 import { InputSessionController } from "../controller/createInputSessionController";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import { createMarkerTool, createPenTool } from "../tools/drawingTools";
@@ -10,48 +12,48 @@ function point(x: number, y: number): Vec2 {
 }
 
 describe("InputSessionController", () => {
-  test.each([
-    "pen",
-    "mouse",
-  ])("preserves pressure policy through real %s input", (pointerType) => {
-    const store = new DrawingStore({
-      tools: [createPenTool()],
-      shapeHandlers: createKidsShapeHandlerRegistry(),
-    });
-    store.activateTool("brush.freehand");
-    const controller = new InputSessionController({
-      store,
-      cursorOverlay: {
-        handlePointerDown() {},
-        handlePointerMove() {},
-        setDrawingActive() {},
-      } as never,
-      overlayElement: {} as HTMLElement,
-      initialLastPointerPoint: point(0, 0),
-      toPoint: (event) => point(event.clientX, event.clientY),
-      onScheduleThumbnailSave() {},
-      perfSession: { begin() {}, end() {}, onPointerMoveSamples() {} },
-    });
-    const event = (x: number, pressure: number | undefined, buttons = 1) =>
-      ({
-        clientX: x,
-        clientY: 10,
-        pressure,
-        buttons,
-        pointerId: 1,
-        pointerType,
-        preventDefault() {},
-      }) as PointerEvent;
-    controller.handlePointerDown(event(0, 0));
-    controller.handlePointerMove(event(10, 0.8));
-    controller.handlePointerMove(event(20, undefined));
-    controller.handlePointerUp(event(30, 0, 0));
-    const shape = Object.values(store.getDocument().shapes)[0] as PenShape;
-    expect(shape.geometry.pointCount).toBe(4);
-    expect(shape.geometry.pressures).toEqual(
-      pointerType === "pen" ? [0, 0.8, 0.8, 0] : undefined,
-    );
-  });
+  test.each(["pen", "mouse"])(
+    "preserves pressure policy through real %s input",
+    (pointerType) => {
+      const store = new DrawingStore({
+        tools: [createPenTool()],
+        shapeHandlers: createKidsShapeHandlerRegistry(),
+      });
+      store.activateTool("brush.freehand");
+      const controller = new InputSessionController({
+        store,
+        cursorOverlay: {
+          handlePointerDown() {},
+          handlePointerMove() {},
+          setDrawingActive() {},
+        } as never,
+        overlayElement: {} as HTMLElement,
+        initialLastPointerPoint: point(0, 0),
+        toPoint: (event) => point(event.clientX, event.clientY),
+        onScheduleThumbnailSave() {},
+        perfSession: { begin() {}, end() {}, onPointerMoveSamples() {} },
+      });
+      const event = (x: number, pressure: number | undefined, buttons = 1) =>
+        ({
+          clientX: x,
+          clientY: 10,
+          pressure,
+          buttons,
+          pointerId: 1,
+          pointerType,
+          preventDefault() {},
+        }) as PointerEvent;
+      controller.handlePointerDown(event(0, 0));
+      controller.handlePointerMove(event(10, 0.8));
+      controller.handlePointerMove(event(20, undefined));
+      controller.handlePointerUp(event(30, 0, 0));
+      const shape = Object.values(store.getDocument().shapes)[0] as PenShape;
+      expect(shape.geometry.pointCount).toBe(4);
+      expect(shape.geometry.pressures).toEqual(
+        pointerType === "pen" ? [0, 0.8, 0.8, 0] : undefined,
+      );
+    },
+  );
 
   test("suppresses secondary pointerdown while a primary stroke is active", () => {
     const dispatchEvents: Array<{ type: string; buttons: number }> = [];
@@ -123,61 +125,61 @@ describe("InputSessionController", () => {
 });
 
 describe("capture loss", () => {
-  test.each([
-    createPenTool,
-    createMarkerTool,
-  ])("preserves a stroke exactly once and accepts the next stroke (%p)", (createTool) => {
-    const tool = createTool();
-    const store = new DrawingStore({
-      tools: [tool],
-      shapeHandlers: createKidsShapeHandlerRegistry(),
-    });
-    store.activateTool(tool.id);
-    let thumbnails = 0;
-    const controller = new InputSessionController({
-      store,
-      cursorOverlay: {
-        handlePointerDown() {},
-        handlePointerMove() {},
-        setDrawingActive() {},
-      } as never,
-      overlayElement: {} as HTMLElement,
-      initialLastPointerPoint: point(0, 0),
-      toPoint: (event) => point(event.clientX, event.clientY),
-      onScheduleThumbnailSave() {
-        thumbnails++;
-      },
-      perfSession: { begin() {}, end() {}, onPointerMoveSamples() {} },
-    });
-    const event = (x: number, pointerId = 1) =>
-      ({
-        clientX: x,
-        clientY: 10,
-        buttons: 1,
-        pointerId,
-        pointerType: "mouse",
-        preventDefault() {},
-      }) as PointerEvent;
-    controller.handlePointerDown(event(0));
-    controller.handlePointerMove(event(10));
-    controller.handleLostPointerCapture(event(10, 2));
-    expect(Object.keys(store.getDocument().shapes)).toHaveLength(0);
-    controller.handlePointerMove(event(20));
-    controller.handleLostPointerCapture(event(0));
-    const shape = Object.values(store.getDocument().shapes)[0] as PenShape;
-    expect(shape.geometry.pointCount).toBe(3);
-    expect(thumbnails).toBe(1);
-    controller.handlePointerUp(event(20));
-    controller.handleLostPointerCapture(event(20));
-    expect(Object.keys(store.getDocument().shapes)).toHaveLength(1);
-    controller.handlePointerDown(event(30));
-    controller.handlePointerMove(event(40));
-    controller.handlePointerUp(event(50));
-    expect(Object.keys(store.getDocument().shapes)).toHaveLength(2);
-    controller.handlePointerDown(event(60));
-    controller.handlePointerMove(event(70));
-    controller.handlePointerCancel(event(70));
-    controller.handleLostPointerCapture(event(70));
-    expect(Object.keys(store.getDocument().shapes)).toHaveLength(2);
-  });
+  test.each([createPenTool, createMarkerTool])(
+    "preserves a stroke exactly once and accepts the next stroke (%p)",
+    (createTool) => {
+      const tool = createTool();
+      const store = new DrawingStore({
+        tools: [tool],
+        shapeHandlers: createKidsShapeHandlerRegistry(),
+      });
+      store.activateTool(tool.id);
+      let thumbnails = 0;
+      const controller = new InputSessionController({
+        store,
+        cursorOverlay: {
+          handlePointerDown() {},
+          handlePointerMove() {},
+          setDrawingActive() {},
+        } as never,
+        overlayElement: {} as HTMLElement,
+        initialLastPointerPoint: point(0, 0),
+        toPoint: (event) => point(event.clientX, event.clientY),
+        onScheduleThumbnailSave() {
+          thumbnails++;
+        },
+        perfSession: { begin() {}, end() {}, onPointerMoveSamples() {} },
+      });
+      const event = (x: number, pointerId = 1) =>
+        ({
+          clientX: x,
+          clientY: 10,
+          buttons: 1,
+          pointerId,
+          pointerType: "mouse",
+          preventDefault() {},
+        }) as PointerEvent;
+      controller.handlePointerDown(event(0));
+      controller.handlePointerMove(event(10));
+      controller.handleLostPointerCapture(event(10, 2));
+      expect(Object.keys(store.getDocument().shapes)).toHaveLength(0);
+      controller.handlePointerMove(event(20));
+      controller.handleLostPointerCapture(event(0));
+      const shape = Object.values(store.getDocument().shapes)[0] as PenShape;
+      expect(shape.geometry.pointCount).toBe(3);
+      expect(thumbnails).toBe(1);
+      controller.handlePointerUp(event(20));
+      controller.handleLostPointerCapture(event(20));
+      expect(Object.keys(store.getDocument().shapes)).toHaveLength(1);
+      controller.handlePointerDown(event(30));
+      controller.handlePointerMove(event(40));
+      controller.handlePointerUp(event(50));
+      expect(Object.keys(store.getDocument().shapes)).toHaveLength(2);
+      controller.handlePointerDown(event(60));
+      controller.handlePointerMove(event(70));
+      controller.handlePointerCancel(event(70));
+      controller.handleLostPointerCapture(event(70));
+      expect(Object.keys(store.getDocument().shapes)).toHaveLength(2);
+    },
+  );
 });

@@ -6,6 +6,7 @@ import {
   type IconNode,
 } from "lucide";
 import { el } from "redom";
+
 import type { ReDomLike } from "./ReDomLike";
 import { Text, type TextKind, type TextTone } from "./Text";
 import { TypographicIcon } from "./TypographicIcon";

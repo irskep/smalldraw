@@ -1,4 +1,5 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
+
 import { isLayoutDebugEnabled } from "../config/devFlags";
 import {
   applyResponsiveLayout,

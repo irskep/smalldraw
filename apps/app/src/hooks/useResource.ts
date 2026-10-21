@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef } from "preact/hooks";
 import { useSignal } from "@preact/signals";
+import { useCallback, useEffect, useMemo, useRef } from "preact/hooks";
+
 import { createResource } from "../utils/resource";
 
 export function useResource<T>(

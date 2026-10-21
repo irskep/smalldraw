@@ -12,6 +12,7 @@ import {
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
 import { Vec2 } from "gl-matrix";
+
 import { TILE_SIZE } from "./constants";
 import {
   perfAddCounter,

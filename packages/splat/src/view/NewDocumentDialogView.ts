@@ -1,5 +1,4 @@
 import "./NewDocumentDialogView.css";
-
 import {
   Button,
   createCardGrid,
@@ -11,6 +10,7 @@ import {
 import { ArrowLeft, X } from "lucide";
 import { atom } from "nanostores";
 import { el, mount, setChildren } from "redom";
+
 import { getColoringBooks } from "../coloring/books";
 import type { NewDocumentRequest } from "../documents/newDocumentRequest";
 import { bindAtom } from "./atomBindings";

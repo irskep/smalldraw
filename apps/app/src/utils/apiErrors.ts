@@ -1,4 +1,5 @@
 import { TRPCClientError } from "@trpc/client";
+
 import { appPath, isPublicUnauthenticatedRoute } from "../config";
 
 export function isUnauthorized(error: unknown): boolean {

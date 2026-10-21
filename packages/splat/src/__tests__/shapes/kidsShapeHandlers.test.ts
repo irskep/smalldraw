@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import {
   type BoxedShape,
   createPenJSONGeometry,
@@ -8,6 +9,7 @@ import {
 } from "@smalldraw/core";
 import { BoxOperations, getX, getY } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 
 describe("kids shape handlers", () => {

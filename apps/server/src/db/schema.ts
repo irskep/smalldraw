@@ -9,7 +9,9 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 const timestamp = (name: string) =>
-  integer(name, { mode: "timestamp" }).notNull().default(sql`(unixepoch())`);
+  integer(name, { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`);
 
 export const users = sqliteTable("users", {
   id: text("id")

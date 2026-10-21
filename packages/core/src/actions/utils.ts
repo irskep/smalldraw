@@ -1,4 +1,5 @@
 import { isImmutableString } from "@automerge/automerge/slim";
+
 import type { DrawingDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
 

@@ -1,4 +1,5 @@
 import type { Vec2 } from "gl-matrix";
+
 import type { ToolEventHandler, ToolRuntime } from "./types";
 
 export interface DragCallbacks<TState> {

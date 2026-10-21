@@ -1,6 +1,6 @@
 import "./StrokePicker.css";
-
 import { type IconNode, SlidersHorizontal } from "lucide";
+
 import { DropdownChrome } from "./DropdownChrome";
 import type { ReDomLike } from "./ReDomLike";
 import { createIconButton, type IconButton } from "./SquareIconButton";

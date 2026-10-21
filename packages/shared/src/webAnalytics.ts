@@ -1,5 +1,4 @@
 import type { GoatCounterCountOptions } from "./goatcounter";
-
 import type { UsageAnalytics } from "./index";
 
 type CountPayload = Required<GoatCounterCountOptions>;

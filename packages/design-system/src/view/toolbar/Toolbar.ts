@@ -1,6 +1,6 @@
 import "./Toolbar.css";
-
 import { el } from "redom";
+
 import type { ReDomLike } from "../ReDomLike";
 
 export type ToolbarOrientation = "horizontal" | "vertical";

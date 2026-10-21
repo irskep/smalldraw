@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { Pencil, Rows2 } from "lucide";
+
 import { createButton, createIconButton } from "../src";
 
 describe("IconButton", () => {

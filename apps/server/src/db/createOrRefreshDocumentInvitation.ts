@@ -1,4 +1,5 @@
 import { and, eq, isNull } from "drizzle-orm";
+
 import { db } from "./client.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "./rotateAnonymousCollaborativeDocumentShareToken.js";
 import { documents, usersOnDocuments } from "./schema.js";

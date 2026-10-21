@@ -1,5 +1,4 @@
 import "./ShareQrDialog.css";
-
 import { Button } from "./Button";
 import { DialogScaffold } from "./DialogScaffold";
 import type { ReDomLike } from "./ReDomLike";

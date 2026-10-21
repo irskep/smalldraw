@@ -1,7 +1,8 @@
 import { ImmutableString } from "@automerge/automerge";
 import { Repo } from "@automerge/automerge-repo";
-import { SqliteStorageAdapter } from "../../apps/server/src/automergeRepo/sqliteStorageAdapter";
+
 import { DocumentLifetime } from "../../apps/server/src/automergeRepo/documentLifetime";
+import { SqliteStorageAdapter } from "../../apps/server/src/automergeRepo/sqliteStorageAdapter";
 const repo = new Repo({
   network: [],
   storage: new SqliteStorageAdapter(":memory:"),

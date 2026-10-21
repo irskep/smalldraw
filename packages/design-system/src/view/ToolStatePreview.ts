@@ -1,4 +1,5 @@
 import { el, setChildren } from "redom";
+
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
 import type { IconButtonSource } from "./SquareIconButton";
@@ -11,9 +12,10 @@ export interface ToolStatePreviewModel {
   scale?: number;
 }
 
-export class ToolStatePreview
-  implements ReDomLike<HTMLDivElement, ToolStatePreviewModel | null>
-{
+export class ToolStatePreview implements ReDomLike<
+  HTMLDivElement,
+  ToolStatePreviewModel | null
+> {
   readonly el = el("div.ds-tool-state-preview", {
     role: "img",
     hidden: true,

@@ -1,4 +1,5 @@
 import type { AnyGeometry } from "@smalldraw/geometry";
+
 import type { DrawingDocument } from "../model/document";
 import type { ShapeTransform } from "../model/shape";
 import { canonicalizeShape } from "../model/shape";

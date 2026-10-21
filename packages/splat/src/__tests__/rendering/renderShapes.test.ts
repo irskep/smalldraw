@@ -1,4 +1,5 @@
 import { describe, test } from "bun:test";
+
 import {
   type AnyShape,
   type BoxedGeometry,
@@ -9,6 +10,7 @@ import {
 } from "@smalldraw/core";
 import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import { createCanvas } from "canvas";
+
 import { createTestShapeRendererRegistry } from "../../shapes/renderers/testShapeRendererRegistry";
 import { expectSnapshot, renderDocumentToImage } from "./snapshotUtils";
 

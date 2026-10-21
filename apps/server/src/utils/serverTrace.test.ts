@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import { createServerTrace } from "./serverTrace";
 
 test("routine traffic emits no production logs unless tracing is enabled", () => {

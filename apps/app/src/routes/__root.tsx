@@ -1,17 +1,5 @@
-import { isUnauthorized } from "@/utils/apiErrors";
-import { useAccount } from "@/utils/account";
-import { updatePortalMetadata } from "../utils/portalMetadata";
-import {
-  DsConfirmDialog,
-  type DsConfirmDialogHandle,
-} from "../components/DsConfirmDialog/DsConfirmDialog";
-import { $accountSync, retryAccountSync } from "@smalldraw/splat/account";
-import {
-  initializeAccountWorkspace,
-  signOutWorkspace,
-} from "../utils/accountWorkspace";
 import type { DropdownMenuEntry } from "@smalldraw/design-system/dropdown-menu";
-import { useLocation } from "preact-iso";
+import { $accountSync, retryAccountSync } from "@smalldraw/splat/account";
 import {
   LogIn,
   LogOut,
@@ -21,6 +9,7 @@ import {
   User,
   UserPlus,
 } from "lucide";
+import { useLocation } from "preact-iso";
 import {
   type ReactNode,
   useCallback,
@@ -29,12 +18,25 @@ import {
   useRef,
   useState,
 } from "react";
+
 import { DsDropdownMenu } from "@/components/DsDropdownMenu/DsDropdownMenu";
 import {
   ParentalControlsDialog,
   type ParentalControlsDialogHandle,
 } from "@/components/ParentalControlsDialog/ParentalControlsDialog";
+import { useAccount } from "@/utils/account";
+import { isUnauthorized } from "@/utils/apiErrors";
+
+import {
+  DsConfirmDialog,
+  type DsConfirmDialogHandle,
+} from "../components/DsConfirmDialog/DsConfirmDialog";
 import { appPath, isPublicUnauthenticatedRoute } from "../config";
+import {
+  initializeAccountWorkspace,
+  signOutWorkspace,
+} from "../utils/accountWorkspace";
+import { updatePortalMetadata } from "../utils/portalMetadata";
 
 const getRedirectParam = () => {
   const currentUrl = window.location.href;

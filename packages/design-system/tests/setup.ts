@@ -1,4 +1,5 @@
 import { beforeEach } from "bun:test";
+
 import { Window } from "happy-dom";
 
 const windowInstance = new Window();

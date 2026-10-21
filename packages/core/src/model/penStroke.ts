@@ -10,6 +10,7 @@ import {
 import { Vec2 } from "gl-matrix";
 import type { StrokeOptions as FreehandStrokeOptions } from "perfect-freehand";
 import getStroke from "perfect-freehand";
+
 import { requirePenBrushDefinition } from "./penBrushes";
 import { getPenGeometryPoints, type PenShape } from "./shapes/penShape";
 

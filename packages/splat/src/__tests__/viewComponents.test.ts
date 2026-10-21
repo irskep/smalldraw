@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { AlertTriangle } from "lucide";
+
 import { KidsDrawStageView } from "../view/KidsDrawStage";
 import { createSquareIconButton } from "../view/SquareIconButton";
 

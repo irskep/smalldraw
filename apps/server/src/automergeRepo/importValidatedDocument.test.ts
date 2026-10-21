@@ -1,6 +1,8 @@
 import { expect, test } from "bun:test";
+
 import * as A from "@automerge/automerge";
 import { Repo } from "@automerge/automerge-repo";
+
 import { importValidatedDocument } from "./importValidatedDocument";
 import { SqliteStorageAdapter } from "./sqliteStorageAdapter";
 

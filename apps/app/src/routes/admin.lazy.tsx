@@ -1,9 +1,11 @@
-import { Icon } from "@/components/Icon";
-import { useLocation } from "preact-iso";
-import { appPath } from "../config";
 import { Search } from "lucide";
+import { useLocation } from "preact-iso";
 import { useState } from "react";
+
 import { AdminAccessGate } from "@/admin/AdminAccessGate";
+import { Icon } from "@/components/Icon";
+
+import { appPath } from "../config";
 
 const Admin = () => {
   const { route } = useLocation();

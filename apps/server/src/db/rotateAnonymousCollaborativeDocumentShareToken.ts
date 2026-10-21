@@ -1,4 +1,5 @@
 import { and, eq, isNull } from "drizzle-orm";
+
 import { generateId } from "../utils/generateId.js";
 import { db } from "./client.js";
 import { documentInvitations } from "./schema.js";

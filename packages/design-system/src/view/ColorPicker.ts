@@ -1,6 +1,6 @@
 import "./ColorPicker.css";
-
 import { type IconNode, Palette } from "lucide";
+
 import { ColorSwatchGrid } from "./ColorSwatchGrid";
 import { DropdownChrome } from "./DropdownChrome";
 import type { ReDomLike } from "./ReDomLike";

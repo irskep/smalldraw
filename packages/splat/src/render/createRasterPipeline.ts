@@ -8,6 +8,7 @@ import { BoxOperations, Vec2 } from "@smalldraw/geometry";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import { createLayerStack, HotLayer } from "@smalldraw/renderer-raster";
 import { atom } from "nanostores";
+
 import { logDiagnosticEvent } from "../controller/diagnostics/diagnosticLogger";
 import { getDocumentImageSources } from "../shapes/getDocumentImageSources";
 import {

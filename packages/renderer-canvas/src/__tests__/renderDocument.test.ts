@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
+
 import {
   createDocument,
   getDefaultShapeHandlerRegistry,
 } from "@smalldraw/core";
 import { createCanvas } from "canvas";
+
 import { renderDocument } from "../document";
 import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 

@@ -6,6 +6,7 @@ import {
   type Vec2Tuple,
 } from "@smalldraw/geometry";
 import { Mat2d, Vec2 } from "gl-matrix";
+
 import { buildTransformMatrix } from "../geometryShapeUtils";
 import type { AnyShape, Shape } from "../shape";
 import { normalizeShapeTransform } from "../shape";

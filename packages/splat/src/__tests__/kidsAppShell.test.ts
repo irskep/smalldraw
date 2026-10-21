@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { cbor } from "@automerge/automerge-repo";
 import {
   type ActionContext,
@@ -13,6 +14,7 @@ import {
 import { createAppError } from "@smalldraw/shared";
 import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { TRPCClientError } from "@trpc/client";
+
 import { getColoringPageById } from "../coloring/catalog";
 import { createKidsDrawApp } from "../createKidsDrawApp";
 import type {
@@ -206,7 +208,7 @@ function createMockDocumentBackend(
         lastOpenedAt: timestamp,
         collaborative: Boolean(
           (input.collaborative ?? existing?.collaborative) &&
-            (input.collabDocUrl ?? existing?.collabDocUrl),
+          (input.collabDocUrl ?? existing?.collabDocUrl),
         ),
         collabDocUrl:
           (input.collaborative ?? existing?.collaborative) &&

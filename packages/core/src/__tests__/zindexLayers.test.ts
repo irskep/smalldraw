@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
+
 import { createDocument } from "../model/document";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 import type { BoxedShape } from "../model/shapes/boxedShape";

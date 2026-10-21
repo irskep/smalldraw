@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
+
 import {
   createDocument,
   DrawingStore,
   type SmalldrawCore,
 } from "@smalldraw/core";
+
 import { DocumentSessionController } from "../controller/createDocumentSessionController";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 

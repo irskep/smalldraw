@@ -1,14 +1,10 @@
-import {
-  signOutAccountWorkspace,
-  watchAccountWorkspace,
-} from "../documents/accountWorkspace";
-import { getDrawingWorkspace } from "../documents/workspace";
-import "@smalldraw/design-system/styles.css";
 import { DrawingStore } from "@smalldraw/core";
 import type {
   ParentalControlsDialog,
   SplatContextDocumentSlot,
 } from "@smalldraw/design-system";
+
+import "@smalldraw/design-system/styles.css";
 import {
   type AccountSettings,
   type AccountShareMode,
@@ -19,6 +15,7 @@ import {
   subscribeToParentalControlsState,
   verifyParentalControlsPin,
 } from "@smalldraw/shared";
+
 import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
 import { createQrCodeDataUrl } from "../controller/createQrCodeDataUrl";
 import { createKidsDrawController } from "../controller/KidsDrawController";
@@ -32,6 +29,11 @@ import {
   type KidsDocumentBackend,
   resolveJoinBaseUrl,
 } from "../documents";
+import {
+  signOutAccountWorkspace,
+  watchAccountWorkspace,
+} from "../documents/accountWorkspace";
+import { getDrawingWorkspace } from "../documents/workspace";
 import { resolveLogicalSizeFromAvailableArea } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";

@@ -1,10 +1,12 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
+
+import { type ActionContext, CompositeAction, UpdateShapeTransform } from "..";
 import { createDocument } from "../../model/document";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";
 import type { BoxedShape } from "../../model/shapes/boxedShape";
 import { UndoManager } from "../../undo";
-import { type ActionContext, CompositeAction, UpdateShapeTransform } from "..";
 
 describe("UpdateShapeTransform action", () => {
   const v = (x = 0, y = x): [number, number] => [x, y];

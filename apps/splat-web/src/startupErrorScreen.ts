@@ -1,5 +1,4 @@
 import "./startupErrorScreen.css";
-
 import { createDocumentAccessState } from "@smalldraw/design-system";
 import { buildDrawingAppRedirectPath } from "@smalldraw/shared";
 import { isDocumentAccessError } from "@smalldraw/splat";

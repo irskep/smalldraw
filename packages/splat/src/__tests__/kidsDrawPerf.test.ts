@@ -1,4 +1,5 @@
 import { afterEach, expect, spyOn, test } from "bun:test";
+
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 
 const target = globalThis as Record<string, unknown>;

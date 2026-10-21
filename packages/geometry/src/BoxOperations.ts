@@ -1,4 +1,5 @@
 import { Vec2, type Vec2Like } from "gl-matrix";
+
 import type { Box } from "./types";
 import { allValuesAreFinite, getX, getY, toVec2 } from "./util";
 
@@ -39,7 +40,6 @@ export class BoxOperations {
   }
 
   static fromBoxPair(a: Box, b: Box): Box {
-    // biome-ignore lint/style/noNonNullAssertion: there are four lights
     return BoxOperations.fromPointArray([a.min, a.max, b.min, b.max])!;
   }
 

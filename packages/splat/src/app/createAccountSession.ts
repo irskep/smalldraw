@@ -1,4 +1,5 @@
 import { atom } from "nanostores";
+
 import type { MultiplayerApiClient } from "./createMultiplayerApiClient";
 
 export interface AccountSessionState {

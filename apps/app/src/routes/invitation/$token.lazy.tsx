@@ -1,10 +1,11 @@
 import { useRoute } from "preact-iso";
+
+import { useAction } from "@/hooks/useResource";
+import { api } from "@/utils/api";
 import {
   buildDrawingDocumentUrl,
   createAccountWebRuntimeConfig,
 } from "@/utils/drawingAppLinks";
-import { api } from "@/utils/api";
-import { useAction } from "@/hooks/useResource";
 
 const Invitation = () => {
   const acceptDocumentInvitationMutation = useAction(

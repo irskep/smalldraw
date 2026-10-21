@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import type { AnyGeometry } from "@smalldraw/geometry";
+
 import { fromJSON, toJSON } from "../automerge/serialization";
 import { createDocument } from "../model/document";
 import {

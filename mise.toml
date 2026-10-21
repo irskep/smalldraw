@@ -32,10 +32,7 @@ node = "24"
 
 [tasks."localci:setup"]
 description = "Install dependencies for LocalCI runs"
-run = [
-  "mise install",
-  "bun install --frozen-lockfile",
-]
+run = ["mise install", "bun install --frozen-lockfile"]
 
 [tasks."db:push"]
 env = { _.file = ".env", DATABASE_URL = "./sqlite/dev.db" }
@@ -149,10 +146,7 @@ run = "bunx drizzle-kit push"
 
 [tasks."ts:check:all"]
 alias = ["typecheck"]
-run = [
-  "mise run '//packages/...:ts:check'",
-  "mise run '//apps/...:ts:check'",
-]
+run = ["mise run '//packages/...:ts:check'", "mise run '//apps/...:ts:check'"]
 
 [tasks."lint:all"]
 run = ["mise run '//packages/...:lint'", "mise run '//apps/...:lint'"]
@@ -297,7 +291,6 @@ run = "bun scripts/benchmarks/automerge-snapshots.ts"
 [tasks."bench:server:transport"]
 run = "bun scripts/benchmarks/automerge-transport.ts"
 
-
 [tasks."bench:server:storage-session"]
 run = "bun run scripts/benchmarks/backend-storage-session.ts"
 
@@ -320,9 +313,19 @@ run = "bun run scripts/benchmarks/automerge-checkpoint-delta.ts"
 description = "Type-check and lint the production load measurement tools"
 run = [
   "bunx tsc --ignoreConfig --noEmit --module esnext --moduleResolution bundler --target esnext --skipLibCheck --types bun scripts/benchmarks/backend-load.ts scripts/benchmarks/sample-server.ts scripts/benchmarks/automerge-checkpoint-delta.ts scripts/benchmarks/account-checkpoint-load.ts",
-  "bunx biome check scripts/benchmarks/backend-load.ts scripts/benchmarks/sample-server.ts scripts/benchmarks/automerge-checkpoint-delta.ts scripts/benchmarks/account-checkpoint-load.ts",
+  "bunx oxlint --deny-warnings scripts/benchmarks/backend-load.ts scripts/benchmarks/sample-server.ts scripts/benchmarks/automerge-checkpoint-delta.ts scripts/benchmarks/account-checkpoint-load.ts",
 ]
 
 [tasks."bench:server:account-checkpoints"]
 description = "Bounded authenticated full vs incremental checkpoint comparison"
 run = "bun run scripts/benchmarks/account-checkpoint-load.ts"
+
+[tasks."lint"]
+description = "Lint and check formatting across the workspace"
+run = "bun run lint"
+
+[tasks."localci:format"]
+run = "bun run format:check"
+
+[tasks."localci:scripts:lint"]
+run = "bunx oxlint --deny-warnings --report-unused-disable-directives scripts"

@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
 import { toVec2Like } from "@smalldraw/geometry";
 import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { Vec2 } from "gl-matrix";
+
 import type { ActionContext } from "../../actions";
 import { AddShape } from "../../actions";
 import { createDocument } from "../../model/document";

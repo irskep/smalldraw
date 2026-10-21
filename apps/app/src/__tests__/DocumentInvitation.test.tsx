@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+
 import { buildInvitationUrl } from "../components/DocumentInvitation/buildInvitationUrl";
 
 describe("DocumentInvitation", () => {

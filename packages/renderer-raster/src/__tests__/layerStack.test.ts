@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { AddShape, DrawingStore } from "@smalldraw/core";
+
 import {
   createLayerStack,
   type LayerStack,
@@ -302,20 +304,20 @@ describe("LayerStack", () => {
       expect(moves).toBe(0);
     }));
 
-  test.each([
-    "cancel",
-    "dispose",
-  ])("pending capture cannot hide layers after %s", (operation) =>
-    withFakeDom(async ({ stack, host }) => {
-      stack.setLayers([{ id: "base", kind: "drawing", zIndex: "a0" }]);
-      const pending = stack.beginActiveLayerDraftSession();
-      if (operation === "dispose") stack.dispose();
-      else stack.endActiveLayerDraftSession();
-      await pending;
-      expect(stack.getActiveLayerDraftComposite()).toBeNull();
-      for (const child of (host as unknown as FakeElement).children)
-        expect(child.style.display).not.toBe("none");
-    }));
+  test.each(["cancel", "dispose"])(
+    "pending capture cannot hide layers after %s",
+    (operation) =>
+      withFakeDom(async ({ stack, host }) => {
+        stack.setLayers([{ id: "base", kind: "drawing", zIndex: "a0" }]);
+        const pending = stack.beginActiveLayerDraftSession();
+        if (operation === "dispose") stack.dispose();
+        else stack.endActiveLayerDraftSession();
+        await pending;
+        expect(stack.getActiveLayerDraftComposite()).toBeNull();
+        for (const child of (host as unknown as FakeElement).children)
+          expect(child.style.display).not.toBe("none");
+      }),
+  );
 
   test("remote invalidation preserves the current frozen draft and refreshes the next", () =>
     withFakeDom(async ({ stack }) => {

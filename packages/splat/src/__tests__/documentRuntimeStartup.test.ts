@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
+
 import {
   createDocument,
   DrawingStore,
   type SmalldrawCore,
 } from "@smalldraw/core";
+
 import {
   createDocumentRuntimeController,
   DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS,
@@ -197,122 +199,125 @@ describe("createDocumentRuntimeController startup readiness", () => {
     ["switch", "reject"],
     ["dispose", "resolve"],
     ["dispose", "reject"],
-  ])("ignores a first bake that completes after %s (%s)", async (action, outcome) => {
-    const store = createTestStore();
-    const startupReadinessStore = createStartupReadinessStore();
-    let resolveFlush!: () => void;
-    let rejectFlush!: (error: Error) => void;
-    let renderRequests = 0;
-    let releaseOpen!: () => void;
-    const openGate = new Promise<void>((resolve) => {
-      releaseOpen = resolve;
-    });
-    let pendingSwitch: Promise<void> | undefined;
-    const flushPromise = new Promise<void>((resolve, reject) => {
-      resolveFlush = resolve;
-      rejectFlush = reject;
-    });
-    const controller = createDocumentRuntimeController({
-      store,
-      core: {
-        ...createTestCore(store),
-        open: async () => {
-          if (action === "loading") await openGate;
-          throw new Error("new document failed");
+  ])(
+    "ignores a first bake that completes after %s (%s)",
+    async (action, outcome) => {
+      const store = createTestStore();
+      const startupReadinessStore = createStartupReadinessStore();
+      let resolveFlush!: () => void;
+      let rejectFlush!: (error: Error) => void;
+      let renderRequests = 0;
+      let releaseOpen!: () => void;
+      const openGate = new Promise<void>((resolve) => {
+        releaseOpen = resolve;
+      });
+      let pendingSwitch: Promise<void> | undefined;
+      const flushPromise = new Promise<void>((resolve, reject) => {
+        resolveFlush = resolve;
+        rejectFlush = reject;
+      });
+      const controller = createDocumentRuntimeController({
+        store,
+        core: {
+          ...createTestCore(store),
+          open: async () => {
+            if (action === "loading") await openGate;
+            throw new Error("new document failed");
+          },
         },
-      },
-      documentBackend: {
-        mode: "local",
-        saveAccountCheckpoint: async () => {},
-        listDocuments: async () => [],
-        getDocument: async () => null,
-        createDocument: async () => ({
-          docUrl: "automerge:test-1",
-          mode: "normal",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          lastOpenedAt: new Date().toISOString(),
-        }),
-        touchDocument: async () => ({
-          docUrl: "automerge:test-1",
-          mode: "normal",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          lastOpenedAt: new Date().toISOString(),
-        }),
-        deleteDocument: async () => {},
-        saveThumbnail: async () => {},
-        getThumbnail: async () => null,
-        setCurrentDocument: async () => {},
-        getCurrentDocument: async () => null,
-      },
-      snapshotService: {
-        createThumbnailBlob: async () => null,
-      },
-      runtimeStore: {
-        setDocumentLoading: () => {},
-        setDocumentLoaded: () => {},
-        setDocumentError: () => {},
-        setNoDocument: () => {},
-        getActiveDocumentDocUrl: () => null,
-        isDestroyed: () => false,
-      },
-      startupReadinessStore,
-      toolbarStateController: {
-        applyToolbarStateForCurrentDocument: () => {},
-        getCurrentToolbarSignature: () => "sig",
-      },
-      renderLoopController: {
-        updateRenderIdentity: () => {},
-        requestRenderFromModel: () => {
-          renderRequests += 1;
+        documentBackend: {
+          mode: "local",
+          saveAccountCheckpoint: async () => {},
+          listDocuments: async () => [],
+          getDocument: async () => null,
+          createDocument: async () => ({
+            docUrl: "automerge:test-1",
+            mode: "normal",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            lastOpenedAt: new Date().toISOString(),
+          }),
+          touchDocument: async () => ({
+            docUrl: "automerge:test-1",
+            mode: "normal",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            lastOpenedAt: new Date().toISOString(),
+          }),
+          deleteDocument: async () => {},
+          saveThumbnail: async () => {},
+          getThumbnail: async () => null,
+          setCurrentDocument: async () => {},
+          getCurrentDocument: async () => null,
         },
-      },
-      pipeline: {
-        setLayers: () => {},
-        scheduleBakeForClear: () => {},
-        bakePendingTiles: () => {},
-        flushBakes: () => flushPromise,
-      },
-      syncToolbarUi: () => {},
-      applyCanvasSize: () => {},
-      getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
-      fallbackDocumentSizeForCreate: { width: 640, height: 480 },
-      hasExplicitSize: false,
-      getExplicitSize: () => ({ width: 640, height: 480 }),
-      thumbnailSaveDebounceMs: DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS,
-    });
-    try {
-      controller.start();
-      await waitForTurn();
-      expect(startupReadinessStore.getState().phase).toBe("first_bake");
-      if (action === "loading") {
-        pendingSwitch = controller
-          .switchToDocument("automerge:other")
-          .catch(() => {});
+        snapshotService: {
+          createThumbnailBlob: async () => null,
+        },
+        runtimeStore: {
+          setDocumentLoading: () => {},
+          setDocumentLoaded: () => {},
+          setDocumentError: () => {},
+          setNoDocument: () => {},
+          getActiveDocumentDocUrl: () => null,
+          isDestroyed: () => false,
+        },
+        startupReadinessStore,
+        toolbarStateController: {
+          applyToolbarStateForCurrentDocument: () => {},
+          getCurrentToolbarSignature: () => "sig",
+        },
+        renderLoopController: {
+          updateRenderIdentity: () => {},
+          requestRenderFromModel: () => {
+            renderRequests += 1;
+          },
+        },
+        pipeline: {
+          setLayers: () => {},
+          scheduleBakeForClear: () => {},
+          bakePendingTiles: () => {},
+          flushBakes: () => flushPromise,
+        },
+        syncToolbarUi: () => {},
+        applyCanvasSize: () => {},
+        getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+        fallbackDocumentSizeForCreate: { width: 640, height: 480 },
+        hasExplicitSize: false,
+        getExplicitSize: () => ({ width: 640, height: 480 }),
+        thumbnailSaveDebounceMs: DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS,
+      });
+      try {
+        controller.start();
         await waitForTurn();
-        expect(startupReadinessStore.getState().phase).toBe("doc_loading");
-      } else if (action === "switch") {
-        await expect(
-          controller.switchToDocument("automerge:other"),
-        ).rejects.toThrow("new document failed");
-        expect(startupReadinessStore.getState().phase).toBe("failed");
-      } else {
+        expect(startupReadinessStore.getState().phase).toBe("first_bake");
+        if (action === "loading") {
+          pendingSwitch = controller
+            .switchToDocument("automerge:other")
+            .catch(() => {});
+          await waitForTurn();
+          expect(startupReadinessStore.getState().phase).toBe("doc_loading");
+        } else if (action === "switch") {
+          await expect(
+            controller.switchToDocument("automerge:other"),
+          ).rejects.toThrow("new document failed");
+          expect(startupReadinessStore.getState().phase).toBe("failed");
+        } else {
+          controller.dispose();
+        }
+        const state = startupReadinessStore.getState();
+        const requests = renderRequests;
+        if (outcome === "resolve") resolveFlush();
+        else rejectFlush(new Error("old bake failed"));
+        await waitForTurn();
+        expect(startupReadinessStore.getState()).toEqual(state);
+        expect(renderRequests).toBe(requests);
+      } finally {
         controller.dispose();
+        releaseOpen();
+        await pendingSwitch;
       }
-      const state = startupReadinessStore.getState();
-      const requests = renderRequests;
-      if (outcome === "resolve") resolveFlush();
-      else rejectFlush(new Error("old bake failed"));
-      await waitForTurn();
-      expect(startupReadinessStore.getState()).toEqual(state);
-      expect(renderRequests).toBe(requests);
-    } finally {
-      controller.dispose();
-      releaseOpen();
-      await pendingSwitch;
-    }
-  });
+    },
+  );
 
   test.each([
     ["switch", "load"],

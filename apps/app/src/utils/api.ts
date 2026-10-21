@@ -1,5 +1,6 @@
 import { createTRPCClient, httpBatchLink, type TRPCLink } from "@trpc/client";
 import { observable } from "@trpc/server/observable";
+
 import type { AppRouter } from "../../../server/src/trpc/appRouter";
 import { handleApiError } from "./apiErrors";
 

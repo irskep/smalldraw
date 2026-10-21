@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
+
 import { createAppError } from "@smalldraw/shared";
 import { DocumentAccessError } from "@smalldraw/splat";
 import { Window } from "happy-dom";
+
 import {
   buildStartupErrorScreenModel,
   renderStartupErrorScreen,

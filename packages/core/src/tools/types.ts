@@ -1,5 +1,6 @@
 import type { Box } from "@smalldraw/geometry";
 import type { Vec2 } from "gl-matrix";
+
 import type { UndoableAction } from "../actions";
 import type { DrawingDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";
@@ -141,6 +142,5 @@ export interface ToolDefinition {
   id: string;
   label: string;
   styleSupport?: ToolStyleSupport;
-  // biome-ignore lint/suspicious/noConfusingVoidType: API conciseness
   activate(runtime: ToolRuntime): void | undefined | (() => void);
 }

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
 import {
   type AnyShape,
@@ -8,6 +9,7 @@ import {
   UndoManager,
 } from "@smalldraw/core";
 import { Vec2 } from "gl-matrix";
+
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 import type { StampShape } from "../../shapes/stampShape";
 import { createAlphabetStampTool } from "../../tools/drawingTools";

@@ -11,8 +11,8 @@
   "scripts": {
     "cli": "bun run src/index.ts",
     "ts:check": "tsc -p tsconfig.json --noEmit",
-    "lint": "bunx biome check .",
-    "lint:fix": "bunx biome check --write .",
+    "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
+    "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
     "test": "bun test"
   },
   "dependencies": {

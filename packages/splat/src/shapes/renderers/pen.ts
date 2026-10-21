@@ -4,6 +4,7 @@ import {
   type Shape,
 } from "@smalldraw/core";
 import { toVec2, toVec2Like } from "@smalldraw/geometry";
+
 import { requirePenBrushRenderer } from "./penBrushRenderers";
 
 export function renderPen(ctx: CanvasRenderingContext2D, shape: Shape): void {

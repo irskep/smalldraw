@@ -32,6 +32,7 @@ import type {
 import { isDocumentAccessTokenScope } from "@smalldraw/shared";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+
 import {
   appendSetCookieHeader,
   buildClearedSessionCookie,

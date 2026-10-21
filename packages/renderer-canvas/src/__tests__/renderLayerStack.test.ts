@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+
 import type { AnyShape, BoxedGeometry, DrawingLayer } from "@smalldraw/core";
 import { createCanvas } from "canvas";
+
 import { renderLayerStack } from "../document";
 import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
@@ -48,55 +50,58 @@ function makeImageSource(
 }
 
 describe("renderLayerStack", () => {
-  test.each([
-    1, 2, 0.5,
-  ])("isolates erasers from lower layers at scale %s", (scale) => {
-    const registry = createTestShapeRendererRegistry();
-    registry.set("eraser", (ctx) => {
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.fillRect(7, 7, 6, 6);
-    });
-    const canvas = createCanvas(20 * scale, 20 * scale);
-    const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
-    ctx.scale(scale, scale);
-    const eraser = {
-      ...boxedShape("erase", "#000000", 6),
-      type: "eraser",
-      transform: { translation: [0, 0] },
-    } as AnyShape;
-    renderLayerStack(
-      ctx,
-      [
+  test.each([1, 2, 0.5])(
+    "isolates erasers from lower layers at scale %s",
+    (scale) => {
+      const registry = createTestShapeRendererRegistry();
+      registry.set("eraser", (ctx) => {
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.fillRect(7, 7, 6, 6);
+      });
+      const canvas = createCanvas(20 * scale, 20 * scale);
+      const ctx = canvas.getContext(
+        "2d",
+      ) as unknown as CanvasRenderingContext2D;
+      ctx.scale(scale, scale);
+      const eraser = {
+        ...boxedShape("erase", "#000000", 6),
+        type: "eraser",
+        transform: { translation: [0, 0] },
+      } as AnyShape;
+      renderLayerStack(
+        ctx,
+        [
+          {
+            id: "background",
+            kind: "image",
+            zIndex: "a0",
+            image: { src: "reference" },
+          },
+          { id: "default", kind: "drawing", zIndex: "a1" },
+          { id: "sticker", kind: "drawing", zIndex: "a2" },
+        ],
+        [
+          boxedShape("paint", "#0000ff", 20),
+          eraser,
+          {
+            ...boxedShape("sticker", "#00ff00", 4, "sticker"),
+            transform: { translation: [3, 3] },
+          },
+        ],
         {
-          id: "background",
-          kind: "image",
-          zIndex: "a0",
-          image: { src: "reference" },
+          registry,
+          resolveImage: () => makeImageSource("#ff0000", 20, 20),
+          documentWidth: 20,
+          documentHeight: 20,
         },
-        { id: "default", kind: "drawing", zIndex: "a1" },
-        { id: "sticker", kind: "drawing", zIndex: "a2" },
-      ],
-      [
-        boxedShape("paint", "#0000ff", 20),
-        eraser,
-        {
-          ...boxedShape("sticker", "#00ff00", 4, "sticker"),
-          transform: { translation: [3, 3] },
-        },
-      ],
-      {
-        registry,
-        resolveImage: () => makeImageSource("#ff0000", 20, 20),
-        documentWidth: 20,
-        documentHeight: 20,
-      },
-    );
-    expect(pixelAt(ctx, 10 * scale, 10 * scale)).toEqual([255, 0, 0, 255]);
-    expect(pixelAt(ctx, 16 * scale, 16 * scale)).toEqual([0, 0, 255, 255]);
-    expect(pixelAt(ctx, Math.floor(3 * scale), Math.floor(3 * scale))).toEqual([
-      0, 255, 0, 255,
-    ]);
-  });
+      );
+      expect(pixelAt(ctx, 10 * scale, 10 * scale)).toEqual([255, 0, 0, 255]);
+      expect(pixelAt(ctx, 16 * scale, 16 * scale)).toEqual([0, 0, 255, 255]);
+      expect(
+        pixelAt(ctx, Math.floor(3 * scale), Math.floor(3 * scale)),
+      ).toEqual([0, 255, 0, 255]);
+    },
+  );
 
   test("renders drawing layer shapes", () => {
     const registry = createTestShapeRendererRegistry();

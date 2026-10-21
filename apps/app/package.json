@@ -6,21 +6,18 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "oxlint --deny-warnings --report-unused-disable-directives .",
-    "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix .",
+    "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
+    "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
     "preview": "vite preview",
     "test": "bunx vitest run",
     "ts:check": "tsc --noEmit"
   },
   "dependencies": {
     "@automerge/automerge": "^3.5.0",
-    "@automerge/automerge-repo": "2.5.1",
-    "@automerge/automerge-repo-network-broadcastchannel": "2.5.1",
-    "@automerge/automerge-repo-network-websocket": "2.5.1",
-    "@automerge/automerge-repo-storage-indexeddb": "2.5.1",
     "@fontsource-variable/shantell-sans": "5.2.7",
     "@preact/signals": "^2.11.3",
     "@serenity-kit/opaque": "^0.8.4",
+    "@smalldraw/core": "workspace:*",
     "@smalldraw/design-system": "workspace:*",
     "@smalldraw/shared": "workspace:*",
     "@smalldraw/splat": "workspace:*",
@@ -39,7 +36,6 @@
     "@types/react-dom": "^18.3.7",
     "@types/redom": "catalog:ui",
     "happy-dom": "^14.10.1",
-    "oxlint": "^1.88.0",
     "typescript": "catalog:build",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"

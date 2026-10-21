@@ -1,5 +1,6 @@
 import type { AnyShape } from "@smalldraw/core";
 import { getX, getY } from "@smalldraw/geometry";
+
 import { applyFill, applyStroke } from "./style";
 
 export function renderBoxed(

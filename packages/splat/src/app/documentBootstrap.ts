@@ -1,6 +1,7 @@
 import type { DocumentId } from "@automerge/automerge-repo";
 import type { DrawingDocumentSize } from "@smalldraw/core";
 import { type AppError, createAppError } from "@smalldraw/shared";
+
 import type {
   KidsDocumentBackend,
   KidsDocumentSummary,
@@ -34,10 +35,7 @@ export class DocumentAccessError extends Error {
   readonly title: string;
   readonly userMessage: string;
 
-  constructor(options: {
-    appError: AppError;
-    cause?: unknown;
-  }) {
+  constructor(options: { appError: AppError; cause?: unknown }) {
     super(options.appError.message, { cause: options.cause });
     this.name = "DocumentAccessError";
     this.appError = options.appError;
@@ -532,8 +530,8 @@ function canUseLocalCollaborativeAccess(
 } {
   return Boolean(
     isCollaborativeDocument(summary) &&
-      summary.accessToken &&
-      summary.accessToken.length > 0,
+    summary.accessToken &&
+    summary.accessToken.length > 0,
   );
 }
 

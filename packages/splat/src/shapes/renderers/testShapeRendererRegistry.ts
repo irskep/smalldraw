@@ -1,5 +1,6 @@
 import type { AnyShape } from "@smalldraw/core";
 import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
+
 import { renderBoxed } from "./boxed";
 import { renderPen } from "./pen";
 

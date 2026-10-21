@@ -1,4 +1,5 @@
 import { type Box, BoxOperations } from "@smalldraw/geometry";
+
 import { getShapeBounds } from "./geometryShapeUtils";
 import type { AnyShape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";

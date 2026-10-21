@@ -7,8 +7,8 @@
     "dev": "bun --watch scripts/dev.ts",
     "serve": "bunx serve dist",
     "test": "bun test --timeout 4000 --pass-with-no-tests",
-    "lint": "bunx biome check .",
-    "lint:fix": "bunx biome check --write .",
+    "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
+    "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
     "ts:check": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

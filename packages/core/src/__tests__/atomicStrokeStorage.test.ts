@@ -1,4 +1,6 @@
 import { expect, test } from "bun:test";
+
+import { Repo } from "@automerge/automerge-repo/slim";
 import {
   change,
   clone,
@@ -13,7 +15,7 @@ import {
   save,
   stats,
 } from "@automerge/automerge/slim";
-import { Repo } from "@automerge/automerge-repo/slim";
+
 import { type ActionContext, AddShape, DeleteShape } from "../actions";
 import { fromJSON, toJSON } from "../automerge/serialization";
 import { createSmalldraw } from "../createSmalldraw";

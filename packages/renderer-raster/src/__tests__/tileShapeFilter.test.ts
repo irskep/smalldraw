@@ -1,4 +1,5 @@
 import { describe, expect, spyOn, test } from "bun:test";
+
 import {
   type AnyShape,
   type BoxedGeometry,
@@ -7,6 +8,7 @@ import {
 } from "@smalldraw/core";
 import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import { createCanvas } from "canvas";
+
 import { createTileShapeFilter } from "../tileShapeFilter";
 import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
@@ -61,70 +63,75 @@ describe("tile shape filtering", () => {
     }
   });
 
-  test.each([
-    1, 2,
-  ])("matches full replay pixels at DPR %s across boundaries and transforms", (dpr) => {
-    const registry = getDefaultShapeHandlerRegistry();
-    const renderers = createTestShapeRendererRegistry();
-    const shapes: Shape[] = [];
-    for (let i = 0; i < 70; i++) {
-      const shape = rect(
-        String(i),
-        ((i * 47) % 500) - 150,
-        ((i * 29) % 250) - 50,
-      );
-      shape.transform = {
-        ...shape.transform!,
-        rotation: i * 0.17,
-        scale: [i % 2 ? -1.3 : 0.7, 1.2],
-        origin: [(i % 3) * 15, -12],
-      };
-      shape.style.stroke = {
-        type: "brush",
-        size: 3 + (i % 8),
-        color: "#55339988",
-      };
-      shapes.push(shape);
-    }
-    shapes.push({
-      id: "erase",
-      type: "pen",
-      zIndex: "z",
-      geometry: {
-        type: "pen-json",
-        pointsJson: "[[-140,50],[320,50]]",
-        pointCount: 2,
-      },
-      style: {
-        stroke: {
+  test.each([1, 2])(
+    "matches full replay pixels at DPR %s across boundaries and transforms",
+    (dpr) => {
+      const registry = getDefaultShapeHandlerRegistry();
+      const renderers = createTestShapeRendererRegistry();
+      const shapes: Shape[] = [];
+      for (let i = 0; i < 70; i++) {
+        const shape = rect(
+          String(i),
+          ((i * 47) % 500) - 150,
+          ((i * 29) % 250) - 50,
+        );
+        shape.transform = {
+          ...shape.transform!,
+          rotation: i * 0.17,
+          scale: [i % 2 ? -1.3 : 0.7, 1.2],
+          origin: [(i % 3) * 15, -12],
+        };
+        shape.style.stroke = {
           type: "brush",
-          brushId: "marker",
-          size: 20,
-          color: "black",
-          compositeOp: "destination-out",
+          size: 3 + (i % 8),
+          color: "#55339988",
+        };
+        shapes.push(shape);
+      }
+      shapes.push({
+        id: "erase",
+        type: "pen",
+        zIndex: "z",
+        geometry: {
+          type: "pen-json",
+          pointsJson: "[[-140,50],[320,50]]",
+          pointCount: 2,
         },
-      },
-    } as AnyShape);
-    const select = createTileShapeFilter(registry);
-    for (const tileX of [-1, 0, 1, 2]) {
-      const tile = {
-        min: [tileX * 100 - 2 / dpr, -2 / dpr] as [number, number],
-        max: [(tileX + 1) * 100 + 2 / dpr, 100 + 2 / dpr] as [number, number],
-      };
-      const selected = select(shapes, tile);
-      expect(selected.length).toBeLessThan(shapes.length);
-      const pixels = (input: Shape[]) => {
-        const canvas = createCanvas(100 * dpr, 100 * dpr);
-        const ctx = canvas.getContext("2d");
-        ctx.setTransform(dpr, 0, 0, dpr, -tileX * 100 * dpr, 0);
-        renderOrderedShapes(ctx as unknown as CanvasRenderingContext2D, input, {
-          registry: renderers,
-          geometryHandlerRegistry: registry,
-          clear: false,
-        });
-        return ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-      };
-      expect(pixels(selected)).toEqual(pixels(shapes));
-    }
-  });
+        style: {
+          stroke: {
+            type: "brush",
+            brushId: "marker",
+            size: 20,
+            color: "black",
+            compositeOp: "destination-out",
+          },
+        },
+      } as AnyShape);
+      const select = createTileShapeFilter(registry);
+      for (const tileX of [-1, 0, 1, 2]) {
+        const tile = {
+          min: [tileX * 100 - 2 / dpr, -2 / dpr] as [number, number],
+          max: [(tileX + 1) * 100 + 2 / dpr, 100 + 2 / dpr] as [number, number],
+        };
+        const selected = select(shapes, tile);
+        expect(selected.length).toBeLessThan(shapes.length);
+        const pixels = (input: Shape[]) => {
+          const canvas = createCanvas(100 * dpr, 100 * dpr);
+          const ctx = canvas.getContext("2d");
+          ctx.setTransform(dpr, 0, 0, dpr, -tileX * 100 * dpr, 0);
+          renderOrderedShapes(
+            ctx as unknown as CanvasRenderingContext2D,
+            input,
+            {
+              registry: renderers,
+              geometryHandlerRegistry: registry,
+              clear: false,
+            },
+          );
+          return ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        };
+        expect(pixels(selected)).toEqual(pixels(shapes));
+      }
+    },
+  );
 });

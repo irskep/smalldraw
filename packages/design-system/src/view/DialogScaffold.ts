@@ -1,9 +1,9 @@
 import "./DialogChrome.css";
 import "./DialogScaffold.css";
-
 import { setChildren } from "redom";
-import type { ReDomLike } from "./ReDomLike";
+
 import { type ReDomChild, toReDomChildren } from "./redomChildren";
+import type { ReDomLike } from "./ReDomLike";
 import { Text } from "./Text";
 
 const DIALOG_CLOSE_ANIMATION_MS = 220;

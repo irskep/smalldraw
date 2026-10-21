@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import {
   type ApplyDocumentDiff,
   type DrawingDocument,
@@ -6,6 +7,7 @@ import {
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
 import type { LayerStack, ShapeRegionChange } from "@smalldraw/renderer-raster";
+
 import { processApplyDocumentDiff } from "../../render/processApplyDocumentDiff";
 
 const shapeHandlers = getDefaultShapeHandlerRegistry();
@@ -274,29 +276,28 @@ describe("processApplyDocumentDiff", () => {
   });
 });
 
-test.each([
-  "added",
-  "removed",
-  "changed",
-] as const)("remote clear %s invalidates every layer", (kind) => {
-  const { layerStack, calls } = createMockLayerStack();
-  const clear = {
-    id: "clear",
-    type: "clear",
-    layerId: "default",
-    zIndex: "a1",
-    temporalOrder: 2,
-    geometry: { type: "clear" },
-    style: {},
-  };
-  const diff = createDiff({
-    prevDoc: createDoc(kind === "added" ? {} : { clear }),
-    nextDoc: createDoc(
-      kind === "removed" ? {} : { clear: { ...clear, temporalOrder: 3 } },
-    ),
-    [kind]: new Set(["clear"]),
-  });
-  processApplyDocumentDiff(diff, layerStack, shapeHandlers);
-  expect(calls.scheduleFullInvalidation).toBe(1);
-  expect(calls.routeDirtyShapeRegions).toHaveLength(0);
-});
+test.each(["added", "removed", "changed"] as const)(
+  "remote clear %s invalidates every layer",
+  (kind) => {
+    const { layerStack, calls } = createMockLayerStack();
+    const clear = {
+      id: "clear",
+      type: "clear",
+      layerId: "default",
+      zIndex: "a1",
+      temporalOrder: 2,
+      geometry: { type: "clear" },
+      style: {},
+    };
+    const diff = createDiff({
+      prevDoc: createDoc(kind === "added" ? {} : { clear }),
+      nextDoc: createDoc(
+        kind === "removed" ? {} : { clear: { ...clear, temporalOrder: 3 } },
+      ),
+      [kind]: new Set(["clear"]),
+    });
+    processApplyDocumentDiff(diff, layerStack, shapeHandlers);
+    expect(calls.scheduleFullInvalidation).toBe(1);
+    expect(calls.routeDirtyShapeRegions).toHaveLength(0);
+  },
+);

@@ -210,7 +210,7 @@ logDiagnosticEvent("pipeline_apply_diff_consumed", {
 
 - `bun test` passes in `packages/core`, `packages/renderer-raster`, and `apps/splatterboard`
 - `tsc --noEmit` passes in all three packages
-- `bunx biome check --write` produces no errors in all three packages
+- `bunx oxlint --fix` produces no errors in all three packages
 - The app works correctly when a remote document sync arrives (manual verification):
   - remote move: only affected tiles rebake
   - remote delete: only affected tiles rebake

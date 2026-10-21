@@ -1,5 +1,4 @@
 import "./PreviewCard.css";
-
 import type { ReDomLike } from "./ReDomLike";
 import { Text } from "./Text";
 

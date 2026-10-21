@@ -1,20 +1,21 @@
-import { useAccount } from "@/utils/account";
 import { createLocalDocumentBackend } from "@smalldraw/splat/catalog";
 import { Trash2 } from "lucide";
 import { useEffect, useMemo, useRef, useState } from "react";
+
 import { ArtTable } from "@/components/ArtTable/ArtTable";
 import {
   DsConfirmDialog,
   type DsConfirmDialogHandle,
 } from "@/components/DsConfirmDialog/DsConfirmDialog";
 import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
+import { useResource, useAction } from "@/hooks/useResource";
+import { useAccount } from "@/utils/account";
+import { api } from "@/utils/api";
 import { buildLauncherDocumentTiles } from "@/utils/documentLauncher";
 import {
   buildNewDrawingUrl,
   createAccountWebRuntimeConfig,
 } from "@/utils/drawingAppLinks";
-import { api } from "@/utils/api";
-import { useResource, useAction } from "@/hooks/useResource";
 
 type LocalDocumentTileInput = Parameters<
   typeof buildLauncherDocumentTiles

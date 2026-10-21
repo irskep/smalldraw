@@ -1,6 +1,7 @@
-import type { ComponentChildren } from "preact";
 import { render, screen } from "@testing-library/preact";
+import type { ComponentChildren } from "preact";
 import { afterEach, expect, test, vi } from "vitest";
+
 import { PortalRouter } from "../utils/router";
 
 const state = vi.hoisted(() => ({ admin: true }));
@@ -52,15 +53,15 @@ test("matches the user route without requiring a document", async () => {
   ).toBeTruthy();
 });
 
-test.each([
-  "/admin/users/someone",
-  "/admin/users/someone/documents/doc",
-])("gates direct access to %s", async (path) => {
-  state.admin = false;
-  vi.stubGlobal("location", new URL(path, "http://localhost"));
-  render(<PortalRouter />);
-  expect(
-    await screen.findByRole("heading", { name: "Admin access required" }),
-  ).toBeTruthy();
-  expect(screen.queryByRole("status")).toBeNull();
-});
+test.each(["/admin/users/someone", "/admin/users/someone/documents/doc"])(
+  "gates direct access to %s",
+  async (path) => {
+    state.admin = false;
+    vi.stubGlobal("location", new URL(path, "http://localhost"));
+    render(<PortalRouter />);
+    expect(
+      await screen.findByRole("heading", { name: "Admin access required" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("status")).toBeNull();
+  },
+);

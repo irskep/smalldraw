@@ -1,5 +1,6 @@
 import type { DrawingDocument, DrawingStoreActionEvent } from "@smalldraw/core";
 import type { UsageAnalytics } from "@smalldraw/shared";
+
 import {
   extractColoringPageId,
   getColoringPageById,

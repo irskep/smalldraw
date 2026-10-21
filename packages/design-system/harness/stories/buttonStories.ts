@@ -1,5 +1,6 @@
 import { AlertTriangle, Check, Trash2, Zap } from "lucide";
 import { el, mount } from "redom";
+
 import { createButton, createSyncIndicator } from "../../src";
 import type { HarnessStory } from "./types";
 

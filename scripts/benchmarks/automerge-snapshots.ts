@@ -1,4 +1,5 @@
 import * as A from "@automerge/automerge";
+
 import { SnapshotCache } from "../../apps/server/src/automergeRepo/snapshotCache";
 const doc = A.from({
   points: new A.ImmutableString(

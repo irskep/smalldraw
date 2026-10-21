@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
+
 import * as A from "@automerge/automerge";
+
 import { SnapshotCache } from "./snapshotCache";
 
 test("unchanged versions reuse snapshots and edits immediately replace them", () => {

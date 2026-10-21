@@ -1,4 +1,5 @@
 import { spyOn } from "bun:test";
+
 import { createCanvas } from "canvas";
 
 // Give the DOM canvases real backing pixels while retaining their DOM identity.

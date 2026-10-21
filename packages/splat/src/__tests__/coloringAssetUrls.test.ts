@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
 
 describe("coloring asset URLs", () => {

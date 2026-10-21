@@ -1,5 +1,6 @@
 import type { IconNode } from "lucide";
 import { el, setChildren } from "redom";
+
 import type { ReDomLike } from "./ReDomLike";
 
 const SVG_NS = "http://www.w3.org/2000/svg";

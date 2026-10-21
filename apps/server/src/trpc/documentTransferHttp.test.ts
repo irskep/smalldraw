@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { once } from "node:events";
 import type { AddressInfo } from "node:net";
+
 import * as A from "@automerge/automerge";
 import {
   cbor,
@@ -8,6 +9,7 @@ import {
   parseAutomergeUrl,
 } from "@automerge/automerge-repo";
 import express from "express";
+
 import { documentLifetime, repo } from "../automergeRepo/automergeRepo";
 import { createSession } from "../db/createSession";
 import { createUser } from "../db/createUser";

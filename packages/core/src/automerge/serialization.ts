@@ -1,4 +1,5 @@
 import { change, init } from "@automerge/automerge/slim";
+
 import type {
   DrawingDocument,
   DrawingDocumentData,

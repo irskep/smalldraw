@@ -1,11 +1,13 @@
+import { Database } from "bun:sqlite";
+import { isDeepStrictEqual } from "node:util";
+
 // Reproduce: bench:server:fixtures, bench:server:native, bench:server:js, bench:server:wasm.
 // Run each mise task sequentially. Fixtures live in /tmp; no production data is read.
 // Medians of 20 warm CPU runs / 50 durable I/O runs. Run without concurrent builds.
 // WAL NORMAL is exploratory: it weakens crash durability compared with FULL.
 import * as A from "@automerge/automerge";
+
 import { SqliteStorageAdapter } from "../../apps/server/src/automergeRepo/sqliteStorageAdapter.ts";
-import { Database } from "bun:sqlite";
-import { isDeepStrictEqual } from "node:util";
 const median = (a: number[]) =>
   a.sort((a, b) => a - b)[Math.floor(a.length / 2)];
 for (const name of ["small", "medium", "large"]) {

@@ -15,7 +15,10 @@ export function getAuthFailureMessage(error: unknown, mode: AuthMode): string {
   return getRegisterFailureMessage(message, error);
 }
 
-function getLoginFailureMessage(message: string | null, error: unknown): string {
+function getLoginFailureMessage(
+  message: string | null,
+  error: unknown,
+): string {
   if (message?.includes("user not registered")) {
     return "No account exists for that username.";
   }

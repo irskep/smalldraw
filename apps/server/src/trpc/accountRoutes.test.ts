@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+
 import {
   generateAutomergeUrl,
   parseAutomergeUrl,
@@ -6,6 +7,7 @@ import {
 import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
+
 import { db } from "../db/client.js";
 import { createSession } from "../db/createSession.js";
 import { createUser } from "../db/createUser.js";

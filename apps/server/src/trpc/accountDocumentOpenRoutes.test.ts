@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from "bun:test";
+
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
+
 import { db } from "../db/client.js";
 import { createDocument } from "../db/createDocument.js";
 import { createUser } from "../db/createUser.js";

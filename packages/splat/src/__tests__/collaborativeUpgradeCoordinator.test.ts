@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { createCollaborativeUpgradeCoordinator } from "../controller/createCollaborativeUpgradeCoordinator";
 
 describe("createCollaborativeUpgradeCoordinator", () => {
@@ -230,80 +231,80 @@ describe("createCollaborativeUpgradeCoordinator", () => {
     ]);
   });
 
-  test.each([
-    "register",
-    "catalog",
-  ])("refreshes pending drawing after %s failure", async (failure) => {
-    let createDocumentCopyCalls = 0;
-    let registerCalls = 0;
-    let shouldFail = true;
-    const uploaded: number[] = [];
+  test.each(["register", "catalog"])(
+    "refreshes pending drawing after %s failure",
+    async (failure) => {
+      let createDocumentCopyCalls = 0;
+      let registerCalls = 0;
+      let shouldFail = true;
+      const uploaded: number[] = [];
 
-    const coordinator = createCollaborativeUpgradeCoordinator({
-      documentBackend: {
-        async getDocument(docUrl) {
+      const coordinator = createCollaborativeUpgradeCoordinator({
+        documentBackend: {
+          async getDocument(docUrl) {
+            return {
+              docUrl,
+              mode: "normal",
+              createdAt: "2026-01-01T00:00:00.000Z",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+              lastOpenedAt: "2026-01-01T00:00:00.000Z",
+            };
+          },
+          async createDocument(input) {
+            if (shouldFail && failure === "catalog") {
+              shouldFail = false;
+              throw new Error("catalog failed");
+            }
+            return {
+              docUrl: input.docUrl,
+              mode: "normal",
+              collaborative: input.collaborative,
+              collabDocUrl: input.collabDocUrl,
+              joinSecret: input.joinSecret,
+              accessToken: input.accessToken,
+              createdAt: "2026-01-01T00:00:00.000Z",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+              lastOpenedAt: "2026-01-01T00:00:00.000Z",
+            };
+          },
+          async setCurrentDocument() {},
+        },
+        getCurrentCatalogDocUrl: () => "automerge:catalog-doc",
+        createDocumentCopy: () => {
+          createDocumentCopyCalls += 1;
           return {
-            docUrl,
-            mode: "normal",
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-            lastOpenedAt: "2026-01-01T00:00:00.000Z",
+            url: "automerge:collab-doc",
+            binary: new Uint8Array([createDocumentCopyCalls]),
           };
         },
-        async createDocument(input) {
-          if (shouldFail && failure === "catalog") {
+        registerCollaborativeDocument: async (_id, content) => {
+          uploaded.push(content[0]);
+          registerCalls += 1;
+          if (shouldFail && failure === "register") {
             shouldFail = false;
-            throw new Error("catalog failed");
+            throw new Error("register failed");
           }
           return {
-            docUrl: input.docUrl,
-            mode: "normal",
-            collaborative: input.collaborative,
-            collabDocUrl: input.collabDocUrl,
-            joinSecret: input.joinSecret,
-            accessToken: input.accessToken,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-            lastOpenedAt: "2026-01-01T00:00:00.000Z",
+            joinSecret: "join-secret-1",
+            accessToken: "access-token-1",
+            accessTokenScope: "owner",
           };
         },
-        async setCurrentDocument() {},
-      },
-      getCurrentCatalogDocUrl: () => "automerge:catalog-doc",
-      createDocumentCopy: () => {
-        createDocumentCopyCalls += 1;
-        return {
-          url: "automerge:collab-doc",
-          binary: new Uint8Array([createDocumentCopyCalls]),
-        };
-      },
-      registerCollaborativeDocument: async (_id, content) => {
-        uploaded.push(content[0]);
-        registerCalls += 1;
-        if (shouldFail && failure === "register") {
-          shouldFail = false;
-          throw new Error("register failed");
-        }
-        return {
-          joinSecret: "join-secret-1",
-          accessToken: "access-token-1",
-          accessTokenScope: "owner",
-        };
-      },
-      switchToDocument: async () => {},
-      resolveJoinBaseUrl: () => "https://splatterboard.app",
-    });
+        switchToDocument: async () => {},
+        resolveJoinBaseUrl: () => "https://splatterboard.app",
+      });
 
-    await expect(coordinator.ensureCollaborative()).rejects.toThrow(
-      `${failure} failed`,
-    );
-    const result = await coordinator.ensureCollaborative();
-    expect(result.collabDocUrl).toBe("automerge:collab-doc");
-    expect(result.joinSecret).toBe("join-secret-1");
-    expect(result.accessToken).toBe("access-token-1");
-    expect(result.accessTokenScope).toBe("owner");
-    expect(createDocumentCopyCalls).toBe(2);
-    expect(registerCalls).toBe(2);
-    expect(uploaded).toEqual([1, 2]);
-  });
+      await expect(coordinator.ensureCollaborative()).rejects.toThrow(
+        `${failure} failed`,
+      );
+      const result = await coordinator.ensureCollaborative();
+      expect(result.collabDocUrl).toBe("automerge:collab-doc");
+      expect(result.joinSecret).toBe("join-secret-1");
+      expect(result.accessToken).toBe("access-token-1");
+      expect(result.accessTokenScope).toBe("owner");
+      expect(createDocumentCopyCalls).toBe(2);
+      expect(registerCalls).toBe(2);
+      expect(uploaded).toEqual([1, 2]);
+    },
+  );
 });

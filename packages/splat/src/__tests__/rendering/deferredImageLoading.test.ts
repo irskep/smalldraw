@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+
 import {
   createRasterImageLease,
   getLoadedRasterImage,
@@ -48,7 +49,6 @@ function createFakeImage(opts?: { immediatelyReady?: boolean }): {
       if (immediatelyReady) {
         return;
       }
-      // biome-ignore lint/correctness/noConstructorReturn: test mock
       return new Proxy(this, {
         set(target, prop, value) {
           if (prop === "onload") {

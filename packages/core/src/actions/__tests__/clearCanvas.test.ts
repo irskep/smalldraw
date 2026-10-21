@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { BoxedGeometry } from "../../model/shapes/boxedShape";
 import { DrawingStore } from "../../store/drawingStore";
 import { getOrderedShapes } from "../../zindex";

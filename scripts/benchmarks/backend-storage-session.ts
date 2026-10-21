@@ -2,12 +2,14 @@ import { Database } from "bun:sqlite";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
 import * as A from "@automerge/automerge";
 import {
   Repo,
   generateAutomergeUrl,
   parseAutomergeUrl,
 } from "@automerge/automerge-repo";
+
 import { SqliteStorageAdapter } from "../../apps/server/src/automergeRepo/sqliteStorageAdapter";
 const directory = await mkdtemp(join(tmpdir(), "drawing-storage-bench-"));
 try {

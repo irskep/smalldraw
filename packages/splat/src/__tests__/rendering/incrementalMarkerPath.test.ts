@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import { renderMarkerPath } from "../../shapes/renderers/markerPath";
 
 test("incremental native path retains exactly the full path commands and updates only its tail", () => {

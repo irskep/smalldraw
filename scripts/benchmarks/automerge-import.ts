@@ -4,6 +4,7 @@ import {
   generateAutomergeUrl,
   parseAutomergeUrl,
 } from "@automerge/automerge-repo";
+
 import { importValidatedDocument } from "../../apps/server/src/automergeRepo/importValidatedDocument";
 const doc = A.from({
   points: new A.ImmutableString(

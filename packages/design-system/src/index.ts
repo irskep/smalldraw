@@ -25,10 +25,7 @@ export {
   type ColorSwatchGridOptions,
   createColorSwatchGrid,
 } from "./view/ColorSwatchGrid";
-export {
-  createDialogScaffold,
-  DialogScaffold,
-} from "./view/DialogScaffold";
+export { createDialogScaffold, DialogScaffold } from "./view/DialogScaffold";
 export {
   createDocumentAccessState,
   DocumentAccessState,

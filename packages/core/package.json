@@ -8,8 +8,8 @@
   "scripts": {
     "build": "tsup src/index.ts --dts --format esm",
     "ts:check": "tsc -p tsconfig.json --noEmit",
-    "lint": "bunx biome check .",
-    "lint:fix": "bunx biome check --write .",
+    "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
+    "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
     "test": "bun test"
   },
   "dependencies": {

@@ -7,6 +7,7 @@ import type {
 } from "@smalldraw/core";
 import { computeSelectionBounds, getOrderedShapes } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
+
 import { renderShape, type ShapeRendererRegistry } from "./shapes";
 
 export interface RenderDocumentOptions {
@@ -114,12 +115,10 @@ export function renderLayerStack(
 function createLayerCanvas(source: HTMLCanvasElement): HTMLCanvasElement {
   const canvas = source.ownerDocument
     ? source.ownerDocument.createElement("canvas")
-    : new (
-        source.constructor as new (
-          width: number,
-          height: number,
-        ) => HTMLCanvasElement
-      )(source.width, source.height);
+    : new (source.constructor as new (
+        width: number,
+        height: number,
+      ) => HTMLCanvasElement)(source.width, source.height);
   canvas.width = source.width;
   canvas.height = source.height;
   return canvas;

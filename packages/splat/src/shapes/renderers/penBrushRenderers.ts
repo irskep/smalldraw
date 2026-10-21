@@ -4,6 +4,7 @@ import {
   type PenShape,
 } from "@smalldraw/core";
 import type { Vec2Tuple } from "@smalldraw/geometry";
+
 import { renderMarkerPath } from "./markerPath";
 import { getSvgPathFromStroke } from "./penPath";
 

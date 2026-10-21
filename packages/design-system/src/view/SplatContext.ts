@@ -2,6 +2,7 @@ import type { IconNode } from "lucide";
 import { Dice5, Redo2, Share2, Undo2 } from "lucide";
 import { atom, computed, type WritableAtom } from "nanostores";
 import { el, mount, setChildren } from "redom";
+
 import { type Button, createButton } from "./Button";
 import {
   type ColorPicker,
@@ -32,12 +33,12 @@ import {
   type SyncIndicatorState,
 } from "./SyncIndicator";
 import { Text } from "./Text";
+import { createToolbar } from "./toolbar/Toolbar";
 import { ToolPickerPopover } from "./ToolPickerPopover";
 import {
   ToolStatePreview,
   type ToolStatePreviewModel,
 } from "./ToolStatePreview";
-import { createToolbar } from "./toolbar/Toolbar";
 
 export interface SplatToolItem extends ButtonGridItemSpec {
   label: string;

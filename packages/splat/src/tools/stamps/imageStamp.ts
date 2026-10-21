@@ -1,6 +1,7 @@
 import type { StrokeStyle, ToolDefinition, ToolRuntime } from "@smalldraw/core";
 import { toVec2Like } from "@smalldraw/geometry";
 import type { Vec2 } from "gl-matrix";
+
 import type { ImageStampGeometry, StampShape } from "../../shapes/stampShape";
 import { createStampPlacementTool } from "./stampPlacementTool";
 import {

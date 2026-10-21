@@ -1,4 +1,5 @@
 import { describe, test } from "bun:test";
+
 import {
   type AnyShape,
   type BoxedGeometry,
@@ -9,6 +10,7 @@ import {
 import type { Box } from "@smalldraw/geometry";
 import { TILE_SIZE, TileRenderer, tileKey } from "@smalldraw/renderer-raster";
 import { createCanvas } from "canvas";
+
 import { createTestShapeRendererRegistry } from "../../shapes/renderers/testShapeRendererRegistry";
 import { expectSnapshot } from "./snapshotUtils";
 

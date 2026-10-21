@@ -1,5 +1,6 @@
 import type { DocHandle, Repo } from "@automerge/automerge-repo/slim";
 import { atom } from "nanostores";
+
 import type { KidsDocumentBackend, KidsDocumentSummary } from "./types";
 
 const binaryUrl = (document: KidsDocumentSummary) =>

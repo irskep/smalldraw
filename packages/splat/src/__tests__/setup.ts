@@ -1,4 +1,5 @@
 import { beforeEach } from "bun:test";
+
 import { initAutomerge } from "@smalldraw/core";
 import { Window } from "happy-dom";
 

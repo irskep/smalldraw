@@ -1,4 +1,5 @@
 import { el, mount } from "redom";
+
 import "./ProgressBar.css";
 
 /** Omit value until the amount of work is known; values are fractions from 0 to 1. */

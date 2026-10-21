@@ -2,6 +2,7 @@ import type { DrawingStore } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
 import type { IconNode } from "lucide";
 import type { ReadableAtom } from "nanostores";
+
 import type { KidsToolCursorMode } from "../tools/kidsTools";
 import { getAlphabetGlyph } from "../tools/stampGlyphs";
 import { computeImageStampSize } from "../tools/stamps/imageStamp";

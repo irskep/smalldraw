@@ -650,9 +650,7 @@ class MemoryThumbnailRepository implements ThumbnailRepository {
   }
 }
 
-class LocalStorageCurrentDocumentRepository
-  implements CurrentDocumentRepository
-{
+class LocalStorageCurrentDocumentRepository implements CurrentDocumentRepository {
   private readonly storageKey: string;
   private memoryCurrentDocument: string | null = null;
 

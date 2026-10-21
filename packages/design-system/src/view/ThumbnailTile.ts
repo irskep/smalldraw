@@ -1,9 +1,9 @@
 import "./ThumbnailTile.css";
-
 import type { IconNode } from "lucide";
 import { setChildren } from "redom";
-import type { ReDomLike } from "./ReDomLike";
+
 import { type ReDomChild, toReDomChildren } from "./redomChildren";
+import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
 
 type ThumbnailAction = {

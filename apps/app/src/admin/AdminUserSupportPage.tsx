@@ -1,6 +1,3 @@
-import { Icon } from "@/components/Icon";
-import type React from "react";
-import { appPath } from "../config";
 import type { AccountShareMode } from "@smalldraw/shared";
 import {
   KeyRound as KeyRoundIcon,
@@ -10,23 +7,28 @@ import {
   Unplug as UnplugIcon,
 } from "lucide";
 import { FileSearch } from "lucide";
+import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import {
-  DsConfirmDialog,
-  type DsConfirmDialogHandle,
-} from "@/components/DsConfirmDialog/DsConfirmDialog";
+
 import {
   DeletedDrawingsList,
   type DeletedDrawingListItem,
 } from "@/components/DeletedDrawingsList/DeletedDrawingsList";
 import { buildInvitationUrl } from "@/components/DocumentInvitation/buildInvitationUrl";
+import {
+  DsConfirmDialog,
+  type DsConfirmDialogHandle,
+} from "@/components/DsConfirmDialog/DsConfirmDialog";
 import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
+import { Icon } from "@/components/Icon";
+import { useResource, useAction } from "@/hooks/useResource";
+import { api } from "@/utils/api";
 import {
   buildDrawingDocumentUrl,
   createAccountWebRuntimeConfig,
 } from "@/utils/drawingAppLinks";
-import { api } from "@/utils/api";
-import { useResource, useAction } from "@/hooks/useResource";
+
+import { appPath } from "../config";
 
 type Props = {
   documentId?: string;

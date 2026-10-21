@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { createCanvas } from "canvas";
+
 import { renderMarkerPath } from "../../shapes/renderers/markerPath";
 
 describe("marker path renderer", () => {

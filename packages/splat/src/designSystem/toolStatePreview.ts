@@ -1,5 +1,6 @@
 import type { ToolStatePreviewModel } from "@smalldraw/design-system";
 import type { IconNode } from "lucide";
+
 import type { KidsToolConfig } from "../tools/kidsTools";
 import { computeStampSize } from "../tools/stampTool";
 import type { ToolbarUiState } from "../ui/stores/toolbarUiStore";

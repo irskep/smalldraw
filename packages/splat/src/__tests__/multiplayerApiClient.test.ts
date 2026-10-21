@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
+
 import { cbor } from "@automerge/automerge-repo";
 import { createAppError } from "@smalldraw/shared";
+
 import {
   createMultiplayerApiClient,
   MultiplayerApiError,

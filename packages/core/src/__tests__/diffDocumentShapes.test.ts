@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import type { DrawingDocument } from "../model/document";
 import { diffDocumentShapes } from "../store/diffDocumentShapes";
 

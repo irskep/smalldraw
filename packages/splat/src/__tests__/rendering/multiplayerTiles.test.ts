@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { merge } from "@automerge/automerge/slim";
 import type { DrawingDocument } from "@smalldraw/core";
 import {
@@ -16,6 +17,7 @@ import { renderOrderedShapes } from "@smalldraw/renderer-canvas";
 import { TILE_SIZE, TileRenderer } from "@smalldraw/renderer-raster";
 import { imagesMatch } from "@smalldraw/testing";
 import { createCanvas } from "canvas";
+
 import { createTestShapeRendererRegistry } from "../../shapes/renderers/testShapeRendererRegistry";
 
 const v = (x = 0, y = x): [number, number] => [x, y];

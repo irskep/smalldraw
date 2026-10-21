@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { indexedDB as fakeIndexedDB } from "fake-indexeddb";
+
 import { createLocalDocumentBackend } from "../documents";
 
 async function deleteDatabase(databaseName: string): Promise<void> {

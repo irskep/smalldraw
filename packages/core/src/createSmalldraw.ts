@@ -1,10 +1,11 @@
-import { isWasmInitialized, save } from "@automerge/automerge/slim";
 import type {
   AutomergeUrl,
   DocHandle,
   DocumentId,
   Repo,
 } from "@automerge/automerge-repo";
+import { isWasmInitialized, save } from "@automerge/automerge/slim";
+
 import { createAutomergeStoreAdapter } from "./automerge/storeAdapter";
 import {
   DEFAULT_DOCUMENT_PRESENTATION,

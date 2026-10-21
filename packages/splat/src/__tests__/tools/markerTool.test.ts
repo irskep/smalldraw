@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
 import {
   createDocument,
@@ -10,6 +11,7 @@ import {
 import { BoxOperations } from "@smalldraw/geometry";
 import { expectPointsClose, getWorldPointsFromShape } from "@smalldraw/testing";
 import { Vec2 } from "gl-matrix";
+
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 import { createMarkerTool } from "../../tools/drawingTools";
 

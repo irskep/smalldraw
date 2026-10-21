@@ -1,4 +1,5 @@
 import type { Shape } from "@smalldraw/core";
+
 import { getLoadedImageStampAsset } from "../tools/stamps/imageStampAssets";
 import type { StampShape } from "./stampShape";
 

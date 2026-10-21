@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
 import { type Box, BoxOperations, getX, getY } from "@smalldraw/geometry";
 import { getWorldPointsFromShape } from "@smalldraw/testing";
 import { Vec2 } from "gl-matrix";
+
 import { createDocument } from "../../model/document";
 import { getShapeBounds } from "../../model/geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../../model/shapeHandlers";

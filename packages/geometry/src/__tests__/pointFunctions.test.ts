@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { Vec2 } from "gl-matrix";
+
 import { angleBetween, distance, rotatePoint } from "../pointFunctions";
 
 const EPSILON = 1e-6;

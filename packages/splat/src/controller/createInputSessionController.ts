@@ -1,5 +1,6 @@
 import type { DrawingStore } from "@smalldraw/core";
 import type { Vec2 } from "@smalldraw/geometry";
+
 import type { CursorOverlayController } from "./createCursorOverlayController";
 import {
   logDiagnosticEvent,

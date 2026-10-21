@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+
 import { getAuthFailureMessage } from "../hooks/authErrors";
 
 describe("auth error messages", () => {

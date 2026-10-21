@@ -1,4 +1,5 @@
 import { change, type Doc, init } from "@automerge/automerge/slim";
+
 import type { ActionContext, UndoableAction } from "../actions";
 import type { AnyShape } from "./shape";
 import { canonicalizeShape } from "./shape";

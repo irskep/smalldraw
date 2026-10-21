@@ -6,6 +6,7 @@ import {
   toVec2Like,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+
 import { buildTransformMatrix } from "../geometryShapeUtils";
 import { normalizeShapeTransform, type Shape } from "../shape";
 

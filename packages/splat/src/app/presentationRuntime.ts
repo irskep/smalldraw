@@ -6,6 +6,7 @@ import {
   type ShareQrDialog,
 } from "@smalldraw/design-system";
 import { el, mount, unmount } from "redom";
+
 import { createUiIntentStore } from "../controller/stores/createUiIntentStore";
 import { DesignSystemKidsDrawToolbarView } from "../designSystem/DesignSystemKidsDrawToolbar";
 import type {

@@ -1,7 +1,9 @@
-import type { ElectrobunRPCSchema, RPCSchema } from "electrobun";
-import { Electroview } from "electrobun/view";
-import "@smalldraw/splat/styles.css";
 import { createKidsDrawApp } from "@smalldraw/splat";
+import type { ElectrobunRPCSchema, RPCSchema } from "electrobun";
+
+import "@smalldraw/splat/styles.css";
+import { Electroview } from "electrobun/view";
+
 import type {
   SavePngExportRequest,
   SavePngExportResponse,

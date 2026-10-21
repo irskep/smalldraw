@@ -1,6 +1,8 @@
 import { rememberAccountLogin } from "@smalldraw/splat/account";
 import { useState } from "react";
+
 import { api } from "@/utils/api";
+
 import { type AuthResult, getAuthFailureMessage } from "../authErrors";
 
 type LoginParams = {

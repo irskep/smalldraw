@@ -1,5 +1,6 @@
-import { useAccount } from "@/utils/account";
 import type React from "react";
+
+import { useAccount } from "@/utils/account";
 
 type Props = {
   children: React.ReactNode;

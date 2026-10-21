@@ -1,13 +1,17 @@
-import { automergeAsset } from "../../scripts/automerge-asset.mjs";
-import preact from "@preact/preset-vite";
-import path from "path";
 import { fileURLToPath } from "node:url";
+import path from "path";
+
+import preact from "@preact/preset-vite";
 import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
+
+import { automergeAsset } from "../../scripts/automerge-asset.mjs";
+import { landingBudget } from "../../scripts/landing-budget.mjs";
 
 export default defineConfig(({ command }) => ({
   base: process.env.VITE_BASE,
   plugins: [
+    landingBudget(),
     wasm(),
     preact(),
     {

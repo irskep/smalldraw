@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
+
 import { and, eq } from "drizzle-orm";
+
 import "../test/setup.js";
 
 describe("Test environment", () => {

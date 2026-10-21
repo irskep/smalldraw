@@ -79,7 +79,7 @@ export function logDiagnosticEvent(
   const context = currentContext();
   const mergedMetadata = {
     ...context,
-    ...(metadata ?? {}),
+    ...metadata,
   };
   const entry: DiagnosticLogEntry = {
     sequence: nextSequence(),

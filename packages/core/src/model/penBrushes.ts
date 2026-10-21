@@ -1,4 +1,5 @@
 import { type Box, BoxOperations, getX, getY } from "@smalldraw/geometry";
+
 import { smoothMarkerPoints } from "./markerSmoothing";
 import { getPenGeometryPoints, type PenShape } from "./shapes/penShape";
 

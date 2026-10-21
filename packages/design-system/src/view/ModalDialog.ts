@@ -1,7 +1,7 @@
 import "./ModalDialog.css";
-
 import type { IconNode } from "lucide";
 import { setChildren } from "redom";
+
 import { Button } from "./Button";
 import { DialogScaffold } from "./DialogScaffold";
 import type { ReDomLike } from "./ReDomLike";

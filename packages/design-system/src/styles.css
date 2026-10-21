@@ -442,9 +442,7 @@ body {
 
 .ds-reference__spacing-square--overlap {
   margin-left: calc(
-    var(--ds-reference-spacing-overlap, 0) *
-    -1 *
-    var(--size-px-1)
+    var(--ds-reference-spacing-overlap, 0) * -1 * var(--size-px-1)
   );
 }
 
@@ -1013,10 +1011,9 @@ body {
 
 .ds-splat-context__scene--has-tool-preview.ds-splat-context__scene--has-randomize
   .ds-splat-context__mobile-bottom {
-  grid-template-columns: var(--size-9) var(--ds-splat-context-toolbar-cell-size) minmax(
-      0,
-      1fr
-    );
+  grid-template-columns: var(--size-9) var(
+      --ds-splat-context-toolbar-cell-size
+    ) minmax(0, 1fr);
 }
 
 .ds-splat-context__randomize {

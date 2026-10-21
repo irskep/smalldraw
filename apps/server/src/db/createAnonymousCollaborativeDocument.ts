@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+
 import { generateId } from "../utils/generateId.js";
 import { db } from "./client.js";
 import { documentInvitations, documents } from "./schema.js";

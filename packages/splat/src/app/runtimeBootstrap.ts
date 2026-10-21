@@ -1,5 +1,6 @@
 import type { SmalldrawCore } from "@smalldraw/core";
 import { createSmalldraw, type DrawingDocumentSize } from "@smalldraw/core";
+
 import {
   createLocalSmalldrawRepo,
   type KidsDocumentBackend,

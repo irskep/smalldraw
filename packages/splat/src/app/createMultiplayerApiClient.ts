@@ -26,6 +26,7 @@ import {
   type TRPCClientErrorBase,
 } from "@trpc/client";
 import type { DefaultErrorShape } from "@trpc/server/unstable-core-do-not-import";
+
 import { createThumbnailUploadQueue } from "./createThumbnailUploadQueue";
 
 export class MultiplayerApiError extends Error {

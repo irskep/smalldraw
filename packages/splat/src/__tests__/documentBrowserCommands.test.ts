@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { createAppError } from "@smalldraw/shared";
+
 import { DocumentAccessError } from "../app/documentBootstrap";
 import { createDocumentBrowserCommands } from "../controller/createDocumentBrowserCommands";
 

@@ -1,5 +1,6 @@
-import { automergeAsset } from "./automerge-asset.mjs";
 import { $ } from "bun";
+
+import { automergeAsset } from "./automerge-asset.mjs";
 
 const deployHost = process.env.DEPLOY_HOST;
 if (!deployHost) {

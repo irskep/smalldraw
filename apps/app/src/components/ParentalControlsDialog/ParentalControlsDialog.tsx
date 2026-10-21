@@ -9,8 +9,9 @@ import {
 } from "@smalldraw/shared";
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { mount, unmount } from "redom";
-import { api } from "@/utils/api";
+
 import { useAction } from "@/hooks/useResource";
+import { api } from "@/utils/api";
 
 export interface ParentalControlsDialogHandle {
   open(): Promise<boolean>;

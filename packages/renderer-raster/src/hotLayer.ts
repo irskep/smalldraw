@@ -9,6 +9,7 @@ import {
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
 import { Vec2 } from "gl-matrix";
+
 import { perfAddTimingMs, perfNowMs } from "./perfDebug";
 import type { Viewport } from "./viewport";
 

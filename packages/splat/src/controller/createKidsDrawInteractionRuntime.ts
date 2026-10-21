@@ -1,5 +1,6 @@
 import type { DrawingStore } from "@smalldraw/core";
 import { type IconNode, Trash2 } from "lucide";
+
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { CursorOverlayController } from "./createCursorOverlayController";
 import type { DocumentPickerController } from "./createDocumentPickerController";

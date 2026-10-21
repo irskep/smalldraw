@@ -1,4 +1,5 @@
 import { and, desc, eq, isNotNull } from "drizzle-orm";
+
 import { db } from "./client.js";
 import { documents, documentThumbnails, usersOnDocuments } from "./schema.js";
 

@@ -1,4 +1,5 @@
 import { el, setChildren } from "redom";
+
 import { $accountSync, retryAccountSync } from "../documents/accountWorkspace";
 
 /** Only problems need a persistent place in the drawing UI. */

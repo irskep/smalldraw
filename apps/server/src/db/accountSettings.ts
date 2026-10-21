@@ -1,6 +1,7 @@
 import type { AccountSettings, AccountSettingsInput } from "@smalldraw/shared";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
+
 import { db } from "./client.js";
 import { accountSettings } from "./schema.js";
 

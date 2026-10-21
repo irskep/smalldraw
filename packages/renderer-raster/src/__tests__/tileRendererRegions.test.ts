@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+
 import type { BoxedGeometry } from "@smalldraw/core";
 import { DrawingStore } from "@smalldraw/core";
+
 import { TILE_SIZE } from "../constants";
 import { TileRenderer } from "../index";
 import { createInMemorySnapshotStore } from "../snapshots";

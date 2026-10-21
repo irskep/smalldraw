@@ -1,4 +1,5 @@
 import * as opaque from "@serenity-kit/opaque";
+
 import { getOpaqueServerSetup } from "./getOpaqueServerSetup.js";
 
 export const createOpaqueRegistrationRecord = async ({

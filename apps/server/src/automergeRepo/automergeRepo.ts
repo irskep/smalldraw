@@ -1,6 +1,8 @@
 import os from "node:os";
+
 import { Repo, type RepoConfig } from "@automerge/automerge-repo";
 import { WebSocketServer } from "isomorphic-ws";
+
 import { AuthAdapter } from "./authAdapter.js";
 import { DocumentLifetime } from "./documentLifetime.js";
 import { SqliteStorageAdapter } from "./sqliteStorageAdapter.js";

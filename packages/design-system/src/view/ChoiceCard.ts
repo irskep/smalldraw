@@ -1,8 +1,8 @@
 import "./ChoiceCard.css";
-
 import { setChildren } from "redom";
-import type { ReDomLike } from "./ReDomLike";
+
 import { type ReDomChild, toReDomChildren } from "./redomChildren";
+import type { ReDomLike } from "./ReDomLike";
 import { Text } from "./Text";
 
 export interface ChoiceCardOptions {

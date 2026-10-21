@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
 import { Vec2 } from "gl-matrix";
+
 import { AddShape } from "../../actions";
 import type { DrawingDocumentData } from "../../model/document";
 import { createDocument } from "../../model/document";

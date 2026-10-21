@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+
 import { createBasicAuthHeader, runCli } from "./cli";
 
 const originalFetch = globalThis.fetch;

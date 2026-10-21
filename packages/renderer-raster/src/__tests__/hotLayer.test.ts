@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import {
   type BoxedGeometry,
   createPenJSONGeometry,
@@ -7,6 +8,7 @@ import {
 import type { Box } from "@smalldraw/geometry";
 import { createCanvas } from "canvas";
 import { Vec2 } from "gl-matrix";
+
 import { HotLayer } from "../hotLayer";
 import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 
@@ -349,66 +351,67 @@ describe("HotLayer", () => {
     expect(pixelAt(ctx, 100, 100)).toEqual([0, 0, 255, 255]);
     expect(pixelAt(ctx, 100, 60)).toEqual([0, 0, 255, 255]);
   });
-  test.each([
-    1, 2,
-  ])("keeps all frozen layers aligned through viewport changes at DPR %s", (dpr) => {
-    const canvas = createCanvas(200, 200);
-    const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
-      shapeRendererRegistry,
-    });
-    hotLayer.setViewport({
-      width: 200,
-      height: 200,
-      center: new Vec2(100, 100),
-      scale: 1,
-    });
-    const snapshot = (x: number, color: string) => {
-      const layer = createCanvas(200, 200);
-      const ctx = layer.getContext("2d");
-      ctx.fillStyle = color;
-      ctx.fillRect(x, 50, 20, 100);
-      return layer as unknown as CanvasImageSource;
-    };
-    hotLayer.setDraftComposite({
-      width: 200,
-      height: 200,
-      below: snapshot(20, "#ff0000"),
-      active: snapshot(60, "#00ff00"),
-      above: snapshot(100, "#0000ff"),
-    });
-    for (const size of [300, 120, 300]) {
-      canvas.width = size * dpr;
-      canvas.height = size * dpr;
+  test.each([1, 2])(
+    "keeps all frozen layers aligned through viewport changes at DPR %s",
+    (dpr) => {
+      const canvas = createCanvas(200, 200);
+      const hotLayer = new HotLayer(canvas as unknown as HTMLCanvasElement, {
+        shapeRendererRegistry,
+      });
       hotLayer.setViewport({
-        width: size,
-        height: size,
-        center: new Vec2(size / 2, size / 2),
+        width: 200,
+        height: 200,
+        center: new Vec2(100, 100),
         scale: 1,
       });
-      const eraser = draftPen(
-        "erase",
-        [
-          [10, 100],
-          [130, 100],
-        ],
-        "destination-out",
-      );
-      hotLayer.renderDrafts([eraser]);
-      // Dirty repaint must use the same mapping as the full repaint.
-      hotLayer.renderDrafts([eraser], {
-        dirtyBounds: box([10, 40], [120, 140]),
+      const snapshot = (x: number, color: string) => {
+        const layer = createCanvas(200, 200);
+        const ctx = layer.getContext("2d");
+        ctx.fillStyle = color;
+        ctx.fillRect(x, 50, 20, 100);
+        return layer as unknown as CanvasImageSource;
+      };
+      hotLayer.setDraftComposite({
+        width: 200,
+        height: 200,
+        below: snapshot(20, "#ff0000"),
+        active: snapshot(60, "#00ff00"),
+        above: snapshot(100, "#0000ff"),
       });
-      const ctx = canvas.getContext(
-        "2d",
-      ) as unknown as CanvasRenderingContext2D;
-      const sample = (x: number, y: number) => pixelAt(ctx, x * dpr, y * dpr);
-      expect(sample(30, 70)).toEqual([255, 0, 0, 255]);
-      expect(sample(70, 70)).toEqual([0, 255, 0, 255]);
-      expect(sample(110, 70)).toEqual([0, 0, 255, 255]);
-      expect(sample(70, 100)[3]).toBe(0);
-      expect(sample(30, 100)).toEqual([255, 0, 0, 255]);
-      expect(sample(110, 100)).toEqual([0, 0, 255, 255]);
-      expect(sample(50, 70)[3]).toBe(0);
-    }
-  });
+      for (const size of [300, 120, 300]) {
+        canvas.width = size * dpr;
+        canvas.height = size * dpr;
+        hotLayer.setViewport({
+          width: size,
+          height: size,
+          center: new Vec2(size / 2, size / 2),
+          scale: 1,
+        });
+        const eraser = draftPen(
+          "erase",
+          [
+            [10, 100],
+            [130, 100],
+          ],
+          "destination-out",
+        );
+        hotLayer.renderDrafts([eraser]);
+        // Dirty repaint must use the same mapping as the full repaint.
+        hotLayer.renderDrafts([eraser], {
+          dirtyBounds: box([10, 40], [120, 140]),
+        });
+        const ctx = canvas.getContext(
+          "2d",
+        ) as unknown as CanvasRenderingContext2D;
+        const sample = (x: number, y: number) => pixelAt(ctx, x * dpr, y * dpr);
+        expect(sample(30, 70)).toEqual([255, 0, 0, 255]);
+        expect(sample(70, 70)).toEqual([0, 255, 0, 255]);
+        expect(sample(110, 70)).toEqual([0, 0, 255, 255]);
+        expect(sample(70, 100)[3]).toBe(0);
+        expect(sample(30, 100)).toEqual([255, 0, 0, 255]);
+        expect(sample(110, 100)).toEqual([0, 0, 255, 255]);
+        expect(sample(50, 70)[3]).toBe(0);
+      }
+    },
+  );
 });

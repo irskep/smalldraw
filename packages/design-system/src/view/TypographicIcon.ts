@@ -1,4 +1,5 @@
 import type { IconNode } from "lucide";
+
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
 import type { TextKind, TextTone } from "./Text";

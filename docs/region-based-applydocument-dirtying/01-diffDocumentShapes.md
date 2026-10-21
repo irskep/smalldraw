@@ -80,7 +80,7 @@ Test shapes can be minimal object literals with `{ id, type, zIndex, layerId, ge
 ## Acceptance criteria
 
 - `bun test` in `packages/core` passes with all new tests green
-- `bunx biome check --write` in `packages/core` produces no errors
+- `bunx oxlint --fix` in `packages/core` produces no errors
 - `tsc --noEmit` in `packages/core` passes
 - No existing tests break
 - No existing behavior changes

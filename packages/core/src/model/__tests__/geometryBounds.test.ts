@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { BoxOperations, getX, getY } from "@smalldraw/geometry";
+
 import { getShapeBounds } from "../geometryShapeUtils";
 import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
 import type { BoxedShape } from "../shapes/boxedShape";

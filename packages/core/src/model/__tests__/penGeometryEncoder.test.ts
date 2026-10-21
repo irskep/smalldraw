@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
+
 import type { Vec2Tuple } from "@smalldraw/geometry";
+
 import {
   createAppendOnlyPenGeometryEncoder,
   createPenJSONGeometry,

@@ -1,5 +1,6 @@
 import { act, render } from "@testing-library/preact";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+
 import { PortalLayout as Root } from "../routes/__root";
 
 const state = vi.hoisted(() => ({

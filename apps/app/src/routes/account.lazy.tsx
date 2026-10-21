@@ -1,10 +1,11 @@
-import { Icon } from "@/components/Icon";
-import { useAccount } from "@/utils/account";
-import type React from "react";
 import { AlertCircle } from "lucide";
+import type React from "react";
 import { useState } from "react";
-import { api } from "@/utils/api";
+
+import { Icon } from "@/components/Icon";
 import { useAction } from "@/hooks/useResource";
+import { useAccount } from "@/utils/account";
+import { api } from "@/utils/api";
 
 export const AccountSettings = () => {
   const meQuery = useAccount();

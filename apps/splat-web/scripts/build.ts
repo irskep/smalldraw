@@ -1,5 +1,7 @@
 import { existsSync } from "node:fs";
+
 import { $ } from "bun";
+
 import { automergeAsset } from "../../../scripts/automerge-asset.mjs";
 
 const coloringAssetsDir = "../../packages/splat/src/coloring/assets";

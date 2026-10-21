@@ -1,7 +1,8 @@
+import { isDeepStrictEqual } from "node:util";
+
 // Controlled fresh documents: identical state/history, only stroke text representation differs.
 // This does not change the application format. ImmutableString needs explicit decoding at its boundary.
 import * as A from "@automerge/automerge";
-import { isDeepStrictEqual } from "node:util";
 for (const name of ["small", "medium", "large"]) {
   const original = A.load(
     new Uint8Array(

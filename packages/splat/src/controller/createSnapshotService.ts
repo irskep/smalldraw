@@ -8,6 +8,7 @@ import {
   renderLayerStack,
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
+
 import { getDocumentImageSources } from "../shapes/getDocumentImageSources";
 import {
   createRasterImageLease,

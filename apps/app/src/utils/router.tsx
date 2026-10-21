@@ -1,9 +1,10 @@
-import type React from "react";
-import { retryPageLoad } from "./retryPageLoad";
 import { LocationProvider, Router, Route, lazy, useLocation } from "preact-iso";
+import type React from "react";
 import { useEffect, useState } from "react";
+
 import { appPath, portalScope } from "../config";
 import { PortalLayout } from "../routes/__root";
+import { retryPageLoad } from "./retryPageLoad";
 
 function PageLoadError() {
   const [retrying, setRetrying] = useState(false);

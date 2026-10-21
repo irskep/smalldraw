@@ -2,7 +2,9 @@ import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
 import { NetworkAdapter, type PeerId, Repo } from "@automerge/automerge-repo";
+
 import { SqliteStorageAdapter } from "./sqliteStorageAdapter";
 
 class TestNetwork extends NetworkAdapter {

@@ -1,6 +1,8 @@
 import { expect, test } from "bun:test";
+
 import type { Shape } from "@smalldraw/core";
 import { createCanvas } from "canvas";
+
 import { renderShape } from "../shapes";
 
 test("failed shape renderer restores canvas state for the next bake", () => {

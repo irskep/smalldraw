@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
+
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import type { Repo } from "@automerge/automerge-repo/slim";
 import {
-  clone,
   free,
   getHeads,
   hasHeads,
@@ -11,10 +13,9 @@ import {
   save,
   saveSince,
 } from "@automerge/automerge/slim";
-import type { Repo } from "@automerge/automerge-repo/slim";
-import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import type { DrawingCheckpoint } from "@smalldraw/shared";
 import { IDBKeyRange, indexedDB } from "fake-indexeddb";
+
 import type { MultiplayerApiClient } from "../app/createMultiplayerApiClient";
 import {
   prepareAccountWorkspace,

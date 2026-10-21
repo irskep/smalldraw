@@ -5,6 +5,7 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
 import { from, save } from "@automerge/automerge";
 import {
   cbor,
@@ -13,6 +14,7 @@ import {
   Repo,
 } from "@automerge/automerge-repo";
 import WebSocket from "isomorphic-ws";
+
 import { SqliteStorageAdapter } from "./automergeRepo/sqliteStorageAdapter";
 
 async function freePort() {

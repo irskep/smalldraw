@@ -1,5 +1,6 @@
 // Bun loads .env files; production supplies DATABASE_URL through the environment.
 import path from "path";
+
 import { defineConfig } from "drizzle-kit";
 
 const rawDatabaseUrl = process.env.DATABASE_URL ?? "./sqlite/dev.db";

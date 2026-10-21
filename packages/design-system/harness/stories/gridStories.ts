@@ -1,5 +1,6 @@
 import { Zap } from "lucide";
 import { el } from "redom";
+
 import { buildGridDemo, GRID_ITEMS } from "./gridDemo";
 import type { HarnessStory } from "./types";
 

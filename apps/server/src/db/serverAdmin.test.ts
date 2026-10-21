@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test";
+
 import * as opaque from "@serenity-kit/opaque";
 import { eq } from "drizzle-orm";
+
 import { db } from "./client.js";
 import { createUser } from "./createUser.js";
 import { ensureServerAdminUser } from "./ensureServerAdminUser.js";

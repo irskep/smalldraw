@@ -1,12 +1,13 @@
-import { Icon } from "@/components/Icon";
-import type React from "react";
-import { AlertCircle } from "lucide";
-import { useState } from "react";
 import {
   loadParentalControlsState,
   type AccountSettingsInput,
   type AccountShareMode,
 } from "@smalldraw/shared";
+import { AlertCircle } from "lucide";
+import type React from "react";
+import { useState } from "react";
+
+import { Icon } from "@/components/Icon";
 
 type Props = {
   onSubmit: (params: {

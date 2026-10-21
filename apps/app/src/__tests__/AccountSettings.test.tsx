@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/preact";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+
 import { AccountSettings } from "../routes/account.lazy";
 
 const { changePasswordStart, changePasswordFinish } = vi.hoisted(() => ({

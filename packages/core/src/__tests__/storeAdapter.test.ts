@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import type { DocHandle } from "@automerge/automerge-repo";
+
 import { createAutomergeStoreAdapter } from "../automerge/storeAdapter";
 import { getDefaultShapeHandlerRegistry } from "../model/shapeHandlers";
 

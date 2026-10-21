@@ -1,6 +1,8 @@
 import { createWebAnalytics } from "@smalldraw/shared/analytics";
+
 import "@smalldraw/splat/styles.css";
 import { createKidsDrawApp } from "@smalldraw/splat";
+
 import { createSplatDocumentNavigationStore } from "./documentNavigation";
 import {
   createBrowserMultiplayerConfig,

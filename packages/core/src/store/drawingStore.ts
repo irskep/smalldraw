@@ -1,5 +1,6 @@
 import { change, clone } from "@automerge/automerge/slim";
 import { type Box, BoxOperations } from "@smalldraw/geometry";
+
 import type { ActionContext, UndoableAction } from "../actions";
 import { filterShapesAfterClear } from "../model/clear";
 import {

@@ -16,8 +16,8 @@
   "scripts": {
     "generate:coloring-assets": "bun run ./scripts/generate-coloring-assets.ts",
     "ts:check": "tsc -p tsconfig.json --noEmit",
-    "lint": "bunx biome check .",
-    "lint:fix": "bunx biome check --write .",
+    "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
+    "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
     "test": "bun test --timeout 4000"
   },
   "dependencies": {
@@ -34,7 +34,6 @@
     "@trpc/client": "^11.8.1",
     "lucide": "catalog:ui",
     "nanostores": "^0.11.4",
-    "open-props": "catalog:ui",
     "qrcode": "^1.5.4",
     "redom": "catalog:ui"
   },

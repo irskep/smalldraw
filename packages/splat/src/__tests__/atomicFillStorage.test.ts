@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import {
   change,
   free,
@@ -17,6 +18,7 @@ import {
   getOrderedShapes,
   UndoManager,
 } from "@smalldraw/core";
+
 import { getDocumentImageSources } from "../shapes/getDocumentImageSources";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import type { RasterFillShape } from "../shapes/rasterFillShape";

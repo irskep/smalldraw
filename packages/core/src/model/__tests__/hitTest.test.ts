@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { Vec2 } from "gl-matrix";
+
 import { hitTestShape } from "../hitTest";
 import { getDefaultShapeHandlerRegistry } from "../shapeHandlers";
 import type { BoxedShape } from "../shapes/boxedShape";

@@ -1,7 +1,7 @@
 import "./IconButton.css";
-
 import { ChevronDown, type IconNode } from "lucide";
 import { el, setChildren } from "redom";
+
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
 import { Text } from "./Text";

@@ -7,6 +7,7 @@ import {
   toVec2Like,
 } from "@smalldraw/geometry";
 import { Mat2d, Vec2 } from "gl-matrix";
+
 import type {
   AnyShape,
   CanonicalShapeTransform,

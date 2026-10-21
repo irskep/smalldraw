@@ -1,8 +1,8 @@
 import "./CardGrid.css";
-
 import { setChildren } from "redom";
-import type { ReDomLike } from "./ReDomLike";
+
 import type { ReDomChild } from "./redomChildren";
+import type { ReDomLike } from "./ReDomLike";
 
 export interface CardGridOptions {
   className?: string;

@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { change, clone } from "@automerge/automerge/slim";
+
 import { AddShape } from "../actions";
 import {
   createDocument,

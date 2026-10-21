@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
-import { ImmutableString } from "@automerge/automerge/slim";
+
 import { Repo } from "@automerge/automerge-repo/slim";
+import { ImmutableString } from "@automerge/automerge/slim";
 import {
   createAutomergeStoreAdapter,
   createDocument,
@@ -10,6 +11,7 @@ import {
   type PenShape,
 } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
+
 import { createRasterPipeline } from "../../render/createRasterPipeline";
 import { createKidsShapeRendererRegistry } from "../../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";

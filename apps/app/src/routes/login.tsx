@@ -1,9 +1,10 @@
 import { useLocation } from "preact-iso";
 import { useState } from "react";
+
 import { AuthForm } from "../components/AuthForm/AuthForm.js";
 import { basePath } from "../config.js";
-import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated/useRedirectIfAuthenticated";
 import { useLogin } from "../hooks/useLogin/useLogin.js";
+import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated/useRedirectIfAuthenticated";
 
 const Login = () => {
   const { login, isPending } = useLogin();

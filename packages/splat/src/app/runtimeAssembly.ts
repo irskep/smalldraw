@@ -1,4 +1,5 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
+
 import { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
 import type { DocumentAccessDisplay } from "../controller/stores/createKidsDrawRuntimeStore";
 import type { KidsDocumentSummary } from "../documents";

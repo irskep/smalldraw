@@ -1,4 +1,5 @@
 import type { StrokeStyle, ToolRuntime } from "@smalldraw/core";
+
 import { STROKE_WIDTH_OPTIONS } from "../strokeWidthOptions";
 
 const MIN_STAMP_SIZE = 30;

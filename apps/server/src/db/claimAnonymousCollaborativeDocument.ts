@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+
 import { db } from "./client.js";
 import { getActiveDocumentTokenByToken } from "./documentTokens.js";
 import { usersOnDocuments } from "./schema.js";

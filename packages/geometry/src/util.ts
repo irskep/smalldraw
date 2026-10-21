@@ -1,4 +1,5 @@
 import { Vec2, type Vec2Like } from "gl-matrix";
+
 import type { Vec2Tuple } from "./types";
 
 export function allValuesAreFinite(values: number[]) {

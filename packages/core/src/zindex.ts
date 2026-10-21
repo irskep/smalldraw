@@ -1,4 +1,5 @@
 import { generateKeyBetween } from "jittered-fractional-indexing";
+
 import { filterShapesAfterClear } from "./model/clear";
 import {
   DEFAULT_LAYER_ID,

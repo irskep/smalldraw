@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
 import {
   AddShape,
@@ -10,6 +11,7 @@ import {
   UndoManager,
 } from "@smalldraw/core";
 import { Vec2 } from "gl-matrix";
+
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 import { createRectangleTool } from "../../tools/drawingTools";
 

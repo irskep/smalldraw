@@ -1,5 +1,6 @@
 import { useLocation } from "preact-iso";
 import { useState } from "react";
+
 import { AuthForm } from "../components/AuthForm/AuthForm";
 import { basePath } from "../config";
 import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated/useRedirectIfAuthenticated";

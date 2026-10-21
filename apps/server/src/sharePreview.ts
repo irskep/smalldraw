@@ -1,4 +1,5 @@
 import { buildDrawingAppUrl } from "@smalldraw/shared";
+
 import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getDocumentThumbnail } from "./db/getDocumentThumbnail.js";
 import { buildDocumentThumbnailUrl } from "./db/thumbnailStorage.js";

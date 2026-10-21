@@ -1,4 +1,5 @@
 import { atom, computed } from "nanostores";
+
 import {
   isCollaborativeDocument,
   type KidsDocumentSummary,

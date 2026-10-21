@@ -49,8 +49,7 @@
 
 .button-grid[data-large-layout="two-row-xlarge"] {
   --button-grid-cell-size: calc(
-    var(--ds-button-grid-cell-size, var(--size-px-44x)) *
-    2
+    var(--ds-button-grid-cell-size, var(--size-px-44x)) * 2
   );
 }
 

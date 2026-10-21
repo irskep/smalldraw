@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { Vec2, type Vec2Like } from "gl-matrix";
+
 import { BoxOperations } from "../BoxOperations";
 
 function expectPoint(point: Vec2Like, x: number, y: number) {

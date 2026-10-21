@@ -12,6 +12,7 @@ import {
   renderLayerStack,
   type ShapeRendererRegistry,
 } from "@smalldraw/renderer-canvas";
+
 import { registerRasterImage } from "../shapes/rasterImageCache";
 import { createFillComputation } from "./fillComputation";
 import type { FillPixelsRequest, FillPixelsResult } from "./fillPixels";

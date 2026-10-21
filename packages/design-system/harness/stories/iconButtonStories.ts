@@ -1,5 +1,6 @@
 import { Check, Image as ImageIcon, PaintBucket, Rows2, Shapes } from "lucide";
 import { el, mount } from "redom";
+
 import { createIconButton } from "../../src";
 import { DEMO_IMAGE_ICON } from "./gridDemo";
 import type { HarnessStory } from "./types";

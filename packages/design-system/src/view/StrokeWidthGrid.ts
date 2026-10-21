@@ -1,6 +1,6 @@
 import "./StrokePicker.css";
-
 import { el, setChildren } from "redom";
+
 import type { ReDomLike } from "./ReDomLike";
 
 export interface StrokeWidthGridOptions {

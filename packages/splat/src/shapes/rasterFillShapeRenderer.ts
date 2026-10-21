@@ -1,4 +1,5 @@
 import type { Shape } from "@smalldraw/core";
+
 import type { RasterFillShape } from "./rasterFillShape";
 import { getLoadedRasterImage } from "./rasterImageCache";
 

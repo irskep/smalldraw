@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/preact";
 import { describe, expect, test, vi } from "vitest";
+
 import { AuthForm } from "../components/AuthForm/AuthForm";
 
 describe("AuthForm", () => {
@@ -48,11 +49,7 @@ describe("AuthForm", () => {
     const onSubmit = vi.fn();
 
     render(
-      <AuthForm
-        onSubmit={onSubmit}
-        isPending={false}
-        requireAgeConfirmation
-      >
+      <AuthForm onSubmit={onSubmit} isPending={false} requireAgeConfirmation>
         Sign up
       </AuthForm>,
     );
@@ -77,11 +74,7 @@ describe("AuthForm", () => {
     const onSubmit = vi.fn();
 
     render(
-      <AuthForm
-        onSubmit={onSubmit}
-        isPending={false}
-        requireAgeConfirmation
-      >
+      <AuthForm onSubmit={onSubmit} isPending={false} requireAgeConfirmation>
         Sign up
       </AuthForm>,
     );

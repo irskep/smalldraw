@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { serverSharePolicy } from "./automergeRepo.js";
 
 describe("serverSharePolicy", () => {

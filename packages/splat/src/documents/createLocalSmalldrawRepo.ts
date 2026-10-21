@@ -1,8 +1,9 @@
-import type { NetworkAdapterInterface } from "@automerge/automerge-repo/slim";
-import { Repo } from "@automerge/automerge-repo/slim";
 import { BroadcastChannelNetworkAdapter } from "@automerge/automerge-repo-network-broadcastchannel";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import type { NetworkAdapterInterface } from "@automerge/automerge-repo/slim";
+import { Repo } from "@automerge/automerge-repo/slim";
+
 import { createServerAnnouncePolicy } from "./repoSharePolicy";
 import { type DrawingWorkspace, workspaceNames } from "./workspace";
 

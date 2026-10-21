@@ -1,8 +1,9 @@
-import { useEffect } from "preact/hooks";
 import { act, render, screen, waitFor } from "@testing-library/preact";
+import { useEffect } from "preact/hooks";
 import { describe, expect, test, vi } from "vitest";
-import { createResource } from "../utils/resource";
+
 import { useResource, useAction } from "../hooks/useResource";
+import { createResource } from "../utils/resource";
 
 function deferred<T>() {
   let resolve!: (value: T) => void;

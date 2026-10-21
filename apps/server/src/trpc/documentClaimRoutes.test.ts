@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
+
 import { TRPCError } from "@trpc/server";
+
 import { createAnonymousCollaborativeDocument } from "../db/createAnonymousCollaborativeDocument.js";
 import { createUser } from "../db/createUser.js";
 import { appRouter } from "./appRouter.js";

@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
+
 import type { DrawingDocument, DrawingStoreActionEvent } from "@smalldraw/core";
+
 import { createDrawingUsageAnalytics } from "../app/usageAnalytics";
 
 const tools = [

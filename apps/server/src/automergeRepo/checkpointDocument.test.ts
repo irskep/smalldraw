@@ -1,6 +1,8 @@
 import { expect, spyOn, test } from "bun:test";
+
 import { change, clone, getHeads, saveSince } from "@automerge/automerge";
 import { Repo } from "@automerge/automerge-repo";
+
 import { checkpointDocument } from "./checkpointDocument";
 
 test("checkpoints wait for storage, reject failed writes, and retry without duplicates", async () => {

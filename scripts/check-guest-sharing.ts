@@ -1,5 +1,5 @@
-import { cbor } from "@automerge/automerge-repo";
 import { free, isImmutableString, load, stats } from "@automerge/automerge";
+import { cbor } from "@automerge/automerge-repo";
 import { type Browser, expect, type Page } from "@playwright/test";
 
 /** Real guest uploads, response loss, retry, and shared/local navigation. */

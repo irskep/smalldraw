@@ -1,7 +1,9 @@
 import { ProgressBar } from "@smalldraw/design-system";
+
 import "./KidsDrawStage.css";
 
 import { el, mount } from "redom";
+
 import type { StartupPhase } from "../controller/stores/createStartupReadinessStore";
 import type { UiIntentStore } from "../controller/stores/createUiIntentStore";
 import type { ReDomLike } from "./ReDomLike";

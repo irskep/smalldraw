@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import { createThumbnailUploadQueue } from "../app/createThumbnailUploadQueue";
 
 test("uploads changed thumbnails in order and skips identical saves", async () => {

@@ -1,7 +1,9 @@
 import { expect, spyOn, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
 import { createDocument, ToolRuntimeImpl, UndoManager } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
+
 import { createKidsShapeRendererRegistry } from "../../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 import { createFillTool } from "../../tools/fillTool";

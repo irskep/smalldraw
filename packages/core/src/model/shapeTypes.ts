@@ -1,5 +1,6 @@
 import { type AnyGeometry, type Box, BoxOperations } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+
 import type { AnyShape, CanonicalShapeTransform, Shape } from "./shape";
 
 /**

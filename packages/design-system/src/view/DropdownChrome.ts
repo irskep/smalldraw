@@ -1,6 +1,6 @@
 import "./DropdownChrome.css";
-
 import { el, mount, unmount } from "redom";
+
 import {
   AnchoredPopoverController,
   type AnchoredPopoverTrigger,

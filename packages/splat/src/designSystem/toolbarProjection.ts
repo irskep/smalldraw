@@ -3,6 +3,7 @@ import type {
   SplatToolItem,
   ToolStatePreviewModel,
 } from "@smalldraw/design-system";
+
 import type {
   KidsToolConfig,
   KidsToolFamilyConfig,
@@ -13,7 +14,6 @@ import {
   resolveNearestStrokeWidthOption,
   TOOLBAR_STROKE_WIDTH_OPTIONS,
 } from "../ui/toolbarPresentation";
-
 import { createToolStatePreview } from "./toolStatePreview";
 
 export type VariantGridPresentation = {

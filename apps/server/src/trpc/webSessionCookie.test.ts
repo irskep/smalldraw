@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
+
 import * as opaque from "@serenity-kit/opaque";
+
 import {
   buildClearedSessionCookie,
   getSessionCookieName,

@@ -7,6 +7,7 @@ import {
   type Vec2Tuple,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+
 import { DEFAULT_LAYER_ID } from "./document";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 import type { ShapeStyle } from "./style";

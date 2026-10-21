@@ -20,6 +20,7 @@ import {
   toVec2Like,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+
 import { isPressureSample } from "./pressure";
 
 const PRIMARY_BUTTON_MASK = 1;

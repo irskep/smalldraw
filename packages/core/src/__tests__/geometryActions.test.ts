@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
 import type { AnyGeometry } from "@smalldraw/geometry";
+
 import { type ActionContext, AddShape, UpdateShapeGeometry } from "../actions";
 import { createDocument } from "../model/document";
 import type { AnyShape } from "../model/shape";

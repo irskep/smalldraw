@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { buildSplatCurrentDocumentUrl } from "./documentUrl";
 
 describe("buildSplatCurrentDocumentUrl", () => {

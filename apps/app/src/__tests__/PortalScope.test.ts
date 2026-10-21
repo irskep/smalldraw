@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+
 import { portalScope } from "../config";
 
 const origin = "https://splatterboard.app";

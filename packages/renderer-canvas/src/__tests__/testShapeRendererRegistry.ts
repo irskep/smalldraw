@@ -1,4 +1,5 @@
 import type { AnyShape } from "@smalldraw/core";
+
 import type { ShapeRendererRegistry } from "../shapes";
 
 export function createTestShapeRendererRegistry(): ShapeRendererRegistry {

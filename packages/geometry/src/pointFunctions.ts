@@ -1,4 +1,5 @@
 import { Vec2, type Vec2Like } from "gl-matrix";
+
 import { getX, getY, toVec2 } from "./util";
 
 /**

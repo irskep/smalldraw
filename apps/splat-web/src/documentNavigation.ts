@@ -1,5 +1,6 @@
 import { buildJoinedCatalogDocUrl } from "@smalldraw/splat";
 import { atom, type ReadableAtom } from "nanostores";
+
 import {
   buildSplatCurrentDocumentUrl,
   type SplatDocumentUrlSummary,

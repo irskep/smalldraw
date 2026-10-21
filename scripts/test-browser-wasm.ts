@@ -1,16 +1,18 @@
-import { automergeAsset } from "./automerge-asset.mjs";
-import { checkPortalRouting } from "./check-portal-routing";
-import { checkAnalytics } from "./check-analytics";
-import { checkColoringEntry } from "./check-coloring-entry";
 /** Exercise the actual Vite/Bun production output against an isolated server. */
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+
+import { decode } from "@automerge/automerge-repo/helpers/cbor.js";
 import { chromium, expect, webkit } from "@playwright/test";
 import * as opaque from "@serenity-kit/opaque";
-import { decode } from "@automerge/automerge-repo/helpers/cbor.js";
-import { checkStampInteraction } from "./check-stamp-interaction";
+
+import { automergeAsset } from "./automerge-asset.mjs";
+import { checkAnalytics } from "./check-analytics";
+import { checkColoringEntry } from "./check-coloring-entry";
 import { checkGuestSharing } from "./check-guest-sharing";
+import { checkPortalRouting } from "./check-portal-routing";
+import { checkStampInteraction } from "./check-stamp-interaction";
 
 await opaque.ready;
 
@@ -481,10 +483,10 @@ try {
           .boundingBox();
         return Boolean(
           label &&
-            menu &&
-            (label.x + label.width <= menu.x ||
-              label.y + label.height <= menu.y) &&
-            menu.x + menu.width <= width,
+          menu &&
+          (label.x + label.width <= menu.x ||
+            label.y + label.height <= menu.y) &&
+          menu.x + menu.width <= width,
         );
       })
       .toBe(true);

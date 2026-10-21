@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
+
 import type { Vec2Tuple } from "@smalldraw/geometry";
+
 import { smoothMarkerPoints, smoothMarkerTail } from "../markerSmoothing";
 
 test("overlapping smoothing tails match full smoothing exactly and preserve the stable prefix", () => {

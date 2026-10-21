@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
 import { CloudAlert } from "lucide";
+
 import { createSyncIndicator, createText, createTypographicIcon } from "../src";
 
 describe("Text", () => {

@@ -1,5 +1,5 @@
-import { h } from "preact";
 import type { IconNode } from "lucide";
+import { h } from "preact";
 
 /** Render the same Lucide geometry used by the re:dom design-system controls. */
 export function Icon({

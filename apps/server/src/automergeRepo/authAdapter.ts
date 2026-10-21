@@ -5,6 +5,7 @@ import {
   NodeWSServerAdapter,
 } from "@automerge/automerge-repo-network-websocket";
 import type WebSocket from "isomorphic-ws";
+
 import { getUserHasAccessToDocument } from "../db/getUserHasAccessToDocument.js";
 import { serverTrace } from "../utils/serverTrace.js";
 import { isValidAwarenessPayloadForAuth } from "./awarenessValidation.js";

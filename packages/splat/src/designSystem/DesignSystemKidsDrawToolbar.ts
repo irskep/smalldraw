@@ -16,6 +16,7 @@ import {
   Undo2,
 } from "lucide";
 import type { ReadableAtom } from "nanostores";
+
 import type { KidsDrawUiIntent } from "../controller/KidsDrawUiIntent";
 import type { CollaborationStatus } from "../controller/stores/createCollaborationStatusStore";
 import type { UiIntentStore } from "../controller/stores/createUiIntentStore";

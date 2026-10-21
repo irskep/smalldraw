@@ -1,6 +1,3 @@
-import { AccountSyncNotice } from "./AccountSyncNotice";
-import "./DocumentBrowserDialogView.css";
-
 import {
   Button,
   createCardGrid,
@@ -9,11 +6,16 @@ import {
   createThumbnailTile,
   type ThumbnailTile,
 } from "@smalldraw/design-system";
+
+import "./DocumentBrowserDialogView.css";
+
 import { Trash2, X } from "lucide";
 import { atom } from "nanostores";
 import { el, list, mount, setChildren } from "redom";
+
 import type { AccountSessionState } from "../app/createAccountSession";
 import type { KidsDocumentSummary } from "../documents";
+import { AccountSyncNotice } from "./AccountSyncNotice";
 import { bindAtom } from "./atomBindings";
 import type { ReDomLike } from "./ReDomLike";
 

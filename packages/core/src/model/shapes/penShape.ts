@@ -8,6 +8,7 @@ import {
   type Vec2Tuple,
 } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+
 import { getPenStrokeBounds } from "../penStroke";
 import type { AnyShape, Shape } from "../shape";
 import { getPointFromLayout, type ShapeHandler } from "../shapeTypes";
@@ -128,6 +129,7 @@ export function getPenGeometryPoints(geometry: PenGeometry): Vec2Tuple[] {
   if (source) {
     // Copy tuples as well as the outer array: callers of the existing mutable
     // accessor must not be able to alter another preview's coordinates.
+    // oxlint-disable-next-line unicorn/no-new-array -- Preallocate once before filling every slot in this hot path.
     const snapshot: Vec2Tuple[] = new Array(source.count);
     for (let i = 0; i < source.count; i++)
       snapshot[i] = [source.points[i][0], source.points[i][1]];

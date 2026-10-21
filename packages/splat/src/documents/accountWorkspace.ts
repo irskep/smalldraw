@@ -4,6 +4,7 @@ import type {
   Repo,
 } from "@automerge/automerge-repo/slim";
 import { atom } from "nanostores";
+
 import type { MultiplayerApiClient } from "../app/createMultiplayerApiClient";
 import { createAccountSyncQueue } from "./accountSyncQueue";
 import { createLocalDocumentBackend } from "./localDocumentBackend";
@@ -41,9 +42,8 @@ const backendFor = (id: string | null) => {
 async function finishPurge(): Promise<void> {
   const id = localStorage.getItem(PURGE);
   if (!id) return;
-  const { IndexedDBStorageAdapter } = await import(
-    "@automerge/automerge-repo-storage-indexeddb"
-  );
+  const { IndexedDBStorageAdapter } =
+    await import("@automerge/automerge-repo-storage-indexeddb");
   const backend = backendFor(id);
   for (const document of await backend.listDocuments())
     await backend.deleteDocument(document.docUrl);
@@ -486,9 +486,8 @@ export async function signOutAccountWorkspace(
       bus.postMessage({ type: "freeze", workspace: userId });
       await freeze();
       await navigator.locks.request(workspaceNames(userId).lock, async () => {
-        const { createLocalSmalldrawRepo } = await import(
-          "./createLocalSmalldrawRepo"
-        );
+        const { createLocalSmalldrawRepo } =
+          await import("./createLocalSmalldrawRepo");
         const repo = createLocalSmalldrawRepo({
           workspace: userId,
           localOnly: true,

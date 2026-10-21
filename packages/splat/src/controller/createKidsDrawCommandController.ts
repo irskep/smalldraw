@@ -1,5 +1,6 @@
 import { ClearCanvas, type DrawingStore, getTopZIndex } from "@smalldraw/core";
 import type { IconNode } from "lucide";
+
 import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { SnapshotService } from "./createSnapshotService";
 

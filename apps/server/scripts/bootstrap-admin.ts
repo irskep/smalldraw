@@ -1,4 +1,5 @@
 import * as opaque from "@serenity-kit/opaque";
+
 import { ensureServerAdminUser } from "../src/db/ensureServerAdminUser.js";
 
 const username = process.env.ADMIN_USERNAME?.trim();

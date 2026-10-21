@@ -1,7 +1,9 @@
 import { describe, expect, spyOn, test } from "bun:test";
+
 import { DrawingStore, getOrderedLayers } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
 import { HotLayer } from "@smalldraw/renderer-raster";
+
 import { createRasterPipeline } from "../../render/createRasterPipeline";
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 import {
@@ -50,27 +52,27 @@ function fixture() {
 }
 
 describe("raster pipeline lifecycle", () => {
-  test.each([
-    "cancel",
-    "dispose",
-  ])("capture cannot resurrect a draft after %s", async (action) => {
-    const f = fixture();
-    try {
-      f.down();
-      f.pipeline.render();
-      if (action === "dispose") f.pipeline.dispose();
-      else {
-        f.up();
+  test.each(["cancel", "dispose"])(
+    "capture cannot resurrect a draft after %s",
+    async (action) => {
+      const f = fixture();
+      try {
+        f.down();
         f.pipeline.render();
+        if (action === "dispose") f.pipeline.dispose();
+        else {
+          f.up();
+          f.pipeline.render();
+        }
+        await settle();
+        expect(f.stage.hotCanvas.style.visibility).toBe("hidden");
+        expect(f.layersVisible()).toBe(true);
+      } finally {
+        f.pipeline.dispose();
+        f.stage.destroy();
       }
-      await settle();
-      expect(f.stage.hotCanvas.style.visibility).toBe("hidden");
-      expect(f.layersVisible()).toBe(true);
-    } finally {
-      f.pipeline.dispose();
-      f.stage.destroy();
-    }
-  });
+    },
+  );
 
   test("keeps the hot canvas until committed bakes settle, then permits another stroke", async () => {
     const f = fixture();
@@ -97,54 +99,54 @@ describe("raster pipeline lifecycle", () => {
     }
   });
 
-  test.each([
-    "before-render",
-    "ending",
-  ])("preserves completed pixels through repeated handoff resizes (%s)", async (phase) => {
-    const contexts = useNativeCanvases();
-    const f = fixture();
-    try {
-      f.down();
-      f.pipeline.render();
-      await settle();
-      // Paint a translucent patch beyond the temporary shrunken viewport.
-      const ctx = f.stage.hotCanvas.getContext("2d")!;
-      ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
-      ctx.fillRect(60, 60, 20, 20);
-      const pixel = (x: number, y: number) =>
-        Array.from(ctx.getImageData(x, y, 1, 1).data);
-      const before = pixel(70, 70);
-      expect(before[3]).toBeGreaterThan(0);
-      f.up();
-      if (phase === "ending") f.pipeline.render();
-      // No yielding: the completion promise cannot settle between these resizes.
-      f.pipeline.updateViewport(50, 50);
-      f.pipeline.updateViewport(100, 100);
-      f.pipeline.setTilePixelRatio(2);
-      f.pipeline.render();
-      expect(pixel(140, 140)).toEqual(before);
-      expect(f.layersVisible()).toBe(false);
-      expect(f.stage.hotCanvas.style.visibility).toBe("");
-      // An identical update must not composite the translucent frame twice.
-      f.pipeline.setTilePixelRatio(2);
-      expect(pixel(140, 140)).toEqual(before);
-      await settle();
-      expect(f.layersVisible()).toBe(true);
-      expect(f.stage.hotCanvas.style.visibility).toBe("hidden");
-      // A later stroke must not reuse the previous completed frame.
-      f.down();
-      f.pipeline.render();
-      await settle();
-      f.up();
-      f.pipeline.render();
-      f.pipeline.setTilePixelRatio(1);
-      expect(pixel(70, 70)[3]).toBe(0);
-    } finally {
-      f.pipeline.dispose();
-      f.stage.destroy();
-      contexts.mockRestore();
-    }
-  });
+  test.each(["before-render", "ending"])(
+    "preserves completed pixels through repeated handoff resizes (%s)",
+    async (phase) => {
+      const contexts = useNativeCanvases();
+      const f = fixture();
+      try {
+        f.down();
+        f.pipeline.render();
+        await settle();
+        // Paint a translucent patch beyond the temporary shrunken viewport.
+        const ctx = f.stage.hotCanvas.getContext("2d")!;
+        ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
+        ctx.fillRect(60, 60, 20, 20);
+        const pixel = (x: number, y: number) =>
+          Array.from(ctx.getImageData(x, y, 1, 1).data);
+        const before = pixel(70, 70);
+        expect(before[3]).toBeGreaterThan(0);
+        f.up();
+        if (phase === "ending") f.pipeline.render();
+        // No yielding: the completion promise cannot settle between these resizes.
+        f.pipeline.updateViewport(50, 50);
+        f.pipeline.updateViewport(100, 100);
+        f.pipeline.setTilePixelRatio(2);
+        f.pipeline.render();
+        expect(pixel(140, 140)).toEqual(before);
+        expect(f.layersVisible()).toBe(false);
+        expect(f.stage.hotCanvas.style.visibility).toBe("");
+        // An identical update must not composite the translucent frame twice.
+        f.pipeline.setTilePixelRatio(2);
+        expect(pixel(140, 140)).toEqual(before);
+        await settle();
+        expect(f.layersVisible()).toBe(true);
+        expect(f.stage.hotCanvas.style.visibility).toBe("hidden");
+        // A later stroke must not reuse the previous completed frame.
+        f.down();
+        f.pipeline.render();
+        await settle();
+        f.up();
+        f.pipeline.render();
+        f.pipeline.setTilePixelRatio(1);
+        expect(pixel(70, 70)[3]).toBe(0);
+      } finally {
+        f.pipeline.dispose();
+        f.stage.destroy();
+        contexts.mockRestore();
+      }
+    },
+  );
 
   test("resizing an active draft requests a full repaint", async () => {
     const f = fixture();

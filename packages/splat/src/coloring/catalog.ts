@@ -1,4 +1,5 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
+
 import { GENERATED_COLORING_ASSETS } from "./generatedColoringPageAssets";
 
 export interface ColoringPageSpec {

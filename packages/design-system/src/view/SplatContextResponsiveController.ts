@@ -14,8 +14,7 @@ export interface SplatContextResponsiveState {
   showMobileShare: boolean;
 }
 
-export interface SplatContextResponsiveUpdate
-  extends SplatContextResponsiveState {
+export interface SplatContextResponsiveUpdate extends SplatContextResponsiveState {
   effect: SplatContextResponsiveEffect;
 }
 

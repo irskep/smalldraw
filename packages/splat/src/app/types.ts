@@ -4,6 +4,7 @@ import type {
   UsageAnalytics,
 } from "@smalldraw/shared";
 import type { IconNode } from "lucide";
+
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
 
 export interface ConfirmDialogRequest {

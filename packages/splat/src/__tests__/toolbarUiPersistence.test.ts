@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { createToolbarUiPersistence } from "../ui/stores/toolbarUiPersistence";
 import {
   createToolbarUiStore,

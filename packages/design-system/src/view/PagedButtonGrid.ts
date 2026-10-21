@@ -1,7 +1,7 @@
 import "./ButtonGrid.css";
-
 import { ChevronLeft, ChevronRight } from "lucide";
 import { el, mount, setChildren } from "redom";
+
 import type { ReDomLike } from "./ReDomLike";
 import { createIconButton, type IconButton } from "./SquareIconButton";
 
@@ -52,9 +52,9 @@ interface PagedButtonGridState<TItem extends ButtonGridItemSpec> {
 
 const EPSILON = 1.5;
 
-export class PagedButtonGrid<TItem extends ButtonGridItemSpec>
-  implements ReDomLike<HTMLDivElement>
-{
+export class PagedButtonGrid<
+  TItem extends ButtonGridItemSpec,
+> implements ReDomLike<HTMLDivElement> {
   readonly el: HTMLDivElement;
 
   private readonly prevButton: IconButton;

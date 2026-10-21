@@ -1,4 +1,5 @@
 import type { StrokeStyle, ToolDefinition } from "@smalldraw/core";
+
 import { type BoxedToolOptions, createBoxedTool } from "./boxed";
 import {
   createFillTool as createFillToolDefinition,

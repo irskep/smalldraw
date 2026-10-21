@@ -1,4 +1,5 @@
 import { ClearShapeHandler, ShapeHandlerRegistry } from "@smalldraw/core";
+
 import { KidsBoxedShapeHandler } from "./boxedShapeHandler";
 import { KidsPenShapeHandler } from "./penShapeHandler";
 import { KidsRasterFillShapeHandler } from "./rasterFillShape";

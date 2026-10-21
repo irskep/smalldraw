@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import { change, clone, ImmutableString } from "@automerge/automerge/slim";
 import {
   createDocument,
@@ -7,6 +8,7 @@ import {
   type PenShape,
 } from "@smalldraw/core";
 import { createLayerStack } from "@smalldraw/renderer-raster";
+
 import { createKidsShapeRendererRegistry } from "../../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../../shapes/kidsShapeHandlers";
 import { useNativeCanvases } from "./nativeCanvasFixture";

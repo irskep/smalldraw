@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test";
+
 import * as opaque from "@serenity-kit/opaque";
 import { TRPCError } from "@trpc/server";
+
 import { db } from "../db/client.js";
 import { createDocument } from "../db/createDocument.js";
 import { createLoginAttempt } from "../db/createLoginAttempt.js";

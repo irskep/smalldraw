@@ -1,5 +1,7 @@
 import { expect, spyOn, test } from "bun:test";
+
 import { Repo } from "@automerge/automerge-repo";
+
 import { DocumentLifetime } from "./documentLifetime";
 import { SqliteStorageAdapter } from "./sqliteStorageAdapter";
 

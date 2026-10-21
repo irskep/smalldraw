@@ -1,5 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+
 import type {
   ElectrobunEvent,
   ElectrobunRPCSchema,
@@ -12,6 +13,7 @@ import {
   BrowserWindow,
   Utils,
 } from "electrobun/bun";
+
 import type {
   SavePngExportRequest,
   SavePngExportResponse,

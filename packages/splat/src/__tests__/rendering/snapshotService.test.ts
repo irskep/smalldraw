@@ -1,6 +1,8 @@
 import { afterEach, expect, spyOn, test } from "bun:test";
+
 import { type DrawingDocument, DrawingStore } from "@smalldraw/core";
 import { createCanvas } from "canvas";
+
 import { SnapshotService } from "../../controller/createSnapshotService";
 import {
   getLoadedRasterImage,

@@ -151,7 +151,7 @@ Tests:
 ## Acceptance criteria
 
 - `bun test` in `packages/core` passes (all existing + new tests)
-- `bunx biome check --write` produces no errors
+- `bunx oxlint --fix` produces no errors
 - `tsc --noEmit` passes
 - `applyDocument()` writes both shape-ID dirty state (existing) and the new diff (additive)
 - `consumeApplyDocumentDiff()` is exported from `packages/core/src/index.ts` (via the drawingStore barrel)

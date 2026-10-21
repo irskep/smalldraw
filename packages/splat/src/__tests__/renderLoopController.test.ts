@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import { RenderLoopController } from "../controller/createRenderLoopController";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 

@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+
 import {
   change,
   clone,
@@ -12,6 +13,7 @@ import {
   type PenShape,
 } from "@smalldraw/core";
 import { Vec2 } from "@smalldraw/geometry";
+
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import { createEraserTool, createMarkerTool } from "../tools/drawingTools";
 

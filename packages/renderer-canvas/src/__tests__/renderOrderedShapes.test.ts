@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+
 import type { AnyShape, BoxedGeometry } from "@smalldraw/core";
 import { createCanvas } from "canvas";
+
 import { renderOrderedShapes } from "../document";
 import { createTestShapeRendererRegistry } from "./testShapeRendererRegistry";
 

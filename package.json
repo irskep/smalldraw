@@ -22,18 +22,19 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@biomejs/biome": "2.3.11",
     "@typescript/native": "npm:typescript@^7.0.2",
+    "oxfmt": "0.74.0",
+    "oxlint": "1.89.0",
     "tsup": "^9.0.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2"
   },
   "scripts": {
     "ts:check": "bun --filter '*' ts:check",
     "test": "bun --filter '*' test",
-    "lint": "bun --filter '*' lint",
+    "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "format": "bun run format:check",
-    "format:check": "bunx biome format .",
-    "format:fix": "bunx biome format --write .",
+    "format:check": "oxfmt --check .",
+    "format:fix": "oxfmt --write .",
     "fix:all": "bun run format:fix && bun --filter '*' lint:fix"
   },
   "overrides": {

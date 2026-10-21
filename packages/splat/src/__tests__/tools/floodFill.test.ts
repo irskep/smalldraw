@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { featherMask, floodFillMask } from "../../tools/floodFill";
 
 function createSolidImageData(

@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+
 import { change } from "@automerge/automerge/slim";
 import type { BoxedShape } from "@smalldraw/core";
+
 import { type ActionContext, AddShape, DeleteShape } from "../actions";
 import { createDocument } from "../model/document";
 import { canonicalizeShape } from "../model/shape";

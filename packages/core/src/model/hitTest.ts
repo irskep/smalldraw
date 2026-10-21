@@ -1,4 +1,5 @@
 import type { Vec2 } from "@smalldraw/geometry";
+
 import type { AnyShape, Shape } from "./shape";
 import type { ShapeHandlerRegistry } from "./shapeHandlers";
 

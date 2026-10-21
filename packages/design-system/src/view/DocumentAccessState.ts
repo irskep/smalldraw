@@ -1,6 +1,6 @@
 import "./DocumentAccessState.css";
-
 import { el } from "redom";
+
 import { Button } from "./Button";
 import { ProgressBar } from "./ProgressBar";
 import type { ReDomLike } from "./ReDomLike";

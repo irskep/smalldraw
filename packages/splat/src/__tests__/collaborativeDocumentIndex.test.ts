@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+
 import { createCollaborativeDocumentIndex } from "../documents/collaborativeDocumentIndex";
 
 describe("createCollaborativeDocumentIndex", () => {

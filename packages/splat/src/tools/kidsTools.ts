@@ -12,6 +12,7 @@ import {
   SprayCan,
   Square,
 } from "lucide";
+
 import { getLoadedRasterImage } from "../shapes/rasterImageCache";
 import type { SquareIconSource } from "../view/SquareIconButton";
 

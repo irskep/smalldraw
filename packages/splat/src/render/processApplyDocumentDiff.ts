@@ -7,6 +7,7 @@ import {
 } from "@smalldraw/core";
 import type { Box } from "@smalldraw/geometry";
 import type { LayerStack, ShapeRegionChange } from "@smalldraw/renderer-raster";
+
 import { logDiagnosticEvent } from "../controller/diagnostics/diagnosticLogger";
 
 export function processApplyDocumentDiff(

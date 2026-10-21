@@ -1,4 +1,5 @@
 import { atom, computed } from "nanostores";
+
 import type { ResponsiveLayoutProfile } from "../../layout/responsiveLayout";
 import type { DocumentSessionPresentation } from "../createDocumentSessionController";
 

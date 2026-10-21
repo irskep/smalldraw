@@ -9,6 +9,7 @@ import type { ShapeRendererRegistry } from "@smalldraw/renderer-canvas";
 import type { UsageAnalytics } from "@smalldraw/shared";
 import { type IconNode, Trash2 } from "lucide";
 import { mount, unmount } from "redom";
+
 import type { AccountSession } from "../app/createAccountSession";
 import { createDrawingUsageAnalytics } from "../app/usageAnalytics";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
@@ -284,8 +285,6 @@ export function createKidsDrawController(options: {
     ),
     viewportMetricsStore: runtimeStore.$viewportMetrics,
   });
-  let toolbarStateController: ToolbarStateController;
-  let toolbarUiPersistence: ToolbarUiPersistence;
   const syncToolbarUi = (): void => {
     toolbarStateController.syncToolbarUi();
   };
@@ -372,7 +371,7 @@ export function createKidsDrawController(options: {
     getCurrentDocUrl: () =>
       documentRuntimeController?.getActiveDocumentDocUrl() ?? null,
   });
-  toolbarStateController = new ToolbarStateController({
+  const toolbarStateController = new ToolbarStateController({
     store,
     toolbarUiStore,
     catalog,
@@ -380,10 +379,12 @@ export function createKidsDrawController(options: {
     getCurrentDocUrl: () => core.getCurrentDocUrl(),
     cursorOverlaySync: () => cursorOverlay.sync(),
   });
-  toolbarUiPersistence = createToolbarUiPersistence({
-    toolbarUiStore,
-    getCurrentDocUrl: () => core.getCurrentDocUrl(),
-  });
+  const toolbarUiPersistence: ToolbarUiPersistence = createToolbarUiPersistence(
+    {
+      toolbarUiStore,
+      getCurrentDocUrl: () => core.getCurrentDocUrl(),
+    },
+  );
   let scheduleThumbnailSaveForInput: (delayMs: number) => void = () => {};
   const inputSessionController = new InputSessionController({
     store,

@@ -1,4 +1,3 @@
-import { appPath } from "../config";
 import {
   getDrawingWorkspace,
   createMultiplayerApiClient,
@@ -7,6 +6,8 @@ import {
   watchAccountWorkspace,
 } from "@smalldraw/splat/account";
 import { createLocalDocumentBackend } from "@smalldraw/splat/catalog";
+
+import { appPath } from "../config";
 
 const api = createMultiplayerApiClient({
   apiUrl: import.meta.env.VITE_API_URL,

@@ -5,6 +5,7 @@ import {
   renderLayerStack,
   renderOrderedShapes,
 } from "@smalldraw/renderer-canvas";
+
 import { TILE_SIZE } from "./constants";
 import { createDomTileProvider } from "./dom";
 import type { DraftLayerComposite } from "./hotLayer";

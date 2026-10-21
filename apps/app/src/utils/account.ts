@@ -1,4 +1,5 @@
 import { useEffect } from "preact/hooks";
+
 import { api } from "./api";
 import { createResource } from "./resource";
 

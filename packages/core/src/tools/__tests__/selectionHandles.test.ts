@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+
 import type { AnyGeometry, Box } from "@smalldraw/geometry";
 import { Vec2 } from "gl-matrix";
+
 import type { Shape } from "../../model/shape";
 import { ShapeHandlerRegistry } from "../../model/shapeHandlers";
 import { resolveSelectionHandlePoint } from "../selectionHandles";

@@ -1,6 +1,6 @@
 import "./ColorPicker.css";
-
 import { el, setChildren } from "redom";
+
 import type { ColorPickerSwatch } from "./ColorPicker";
 import type { ReDomLike } from "./ReDomLike";
 
