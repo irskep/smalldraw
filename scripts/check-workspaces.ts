@@ -25,23 +25,25 @@ export async function comparisonBase(
 if (import.meta.main) {
   const started = performance.now();
   await $`bun run scripts/check-bun-version.ts`;
-  await $`bun run format:check`;
-  await $`bunx oxlint --deny-warnings --report-unused-disable-directives scripts`;
-  await $`bunx pacwich verify --strict`;
   await $`bun test scripts/check-workspaces.test.ts`;
   const base = process.argv.includes("--all") ? null : await comparisonBase();
   console.log(
     base
-      ? `Checking workspaces affected since ${base} (including local edits)`
-      : "Checking every workspace",
+      ? `Testing workspaces affected since ${base} (including local edits)`
+      : "Testing every workspace",
   );
   if (base) {
     await $`bunx pacwich affected list --base=${base} --explain`;
-    await $`bunx pacwich affected run check --base=${base} --parallel=4`;
+    await $`bunx pacwich affected run test --base=${base} --parallel=4`;
   } else {
-    await $`bunx pacwich run check --parallel=4`;
+    await $`bunx pacwich run test --parallel=4`;
+  }
+  if (base) {
+    await $`bunx pacwich affected run test:ui:managed --base=${base} --parallel=4`;
+  } else {
+    await $`bunx pacwich run test:ui:managed --parallel=4`;
   }
   console.log(
-    `Validation completed in ${((performance.now() - started) / 1000).toFixed(1)}s`,
+    `Tests completed in ${((performance.now() - started) / 1000).toFixed(1)}s`,
   );
 }

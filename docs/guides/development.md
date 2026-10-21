@@ -44,12 +44,12 @@ mise run //packages/renderer-canvas:test
 
 Tasks ending in `:fix` write changes. Keep formatting scoped when another contributor is working in the same checkout.
 
-Commits enqueue comprehensive LocalCI checks asynchronously. The hook prints the exact commit and commands for inspecting it. Prefer the full hash when checking a specific revision:
+hk runs Oxlint, Oxfmt, and workspace typechecks before commits. Install it once with `mise run hooks:install`. Commits then enqueue affected tests in LocalCI asynchronously. The hook prints the exact commit and commands for inspecting it. Prefer the full hash when checking a specific revision:
 
 ```sh
 localci status --commit FULL_COMMIT_HASH
 localci wait --commit FULL_COMMIT_HASH
-localci artifacts --commit FULL_COMMIT_HASH --task //packages/splat:test
+localci artifacts --commit FULL_COMMIT_HASH --task //:localci:check
 ```
 
 For uncommitted work, follow the repository requirement to run `localci wait --no-clone`; if no working-tree run exists, `localci run --no-clone --wait` starts one. Waiting does not itself enqueue a missing run. Avoid duplicate runs, especially alongside browser performance measurements.
@@ -60,8 +60,8 @@ For uncommitted work, follow the repository requirement to run `localci wait --n
 mise run //apps/docs-site:build
 ```
 
-Both this task and `mise run docs:build` generate the TypeDoc API reference, then build the Zensical site into `site/`. `mise run docs:dev` serves it at `http://localhost:8000` with live reload. Zensical is installed/pinned by mise; the docs workspace uses Bun for TypeDoc and a pinned local Mermaid bundle.
+Both this task and `mise run docs:build` build the Zensical site into `site/`. `mise run docs:dev` serves it at `http://localhost:8000` with live reload. Zensical is installed/pinned by mise; the docs workspace uses Bun to prepare a pinned local Mermaid bundle.
 
-`zensical.toml` configures navigation and Markdown/Mermaid support. Update its navigation when adding pages. Generated API HTML (`docs/reference/`), the copied Mermaid bundle (`docs/assets/mermaid.min.js`), site output, and caches are ignored by Git. Label retained design proposals as historical.
+`zensical.toml` configures navigation and Markdown/Mermaid support. Update its navigation when adding pages. The copied Mermaid bundle (`docs/assets/mermaid.min.js`), site output, and caches are ignored by Git. Label retained design proposals as historical.
 
 Performance probes need a quieter environment than ordinary linting. A timeout while several builds and browsers are active is not enough evidence to change a rendering algorithm. Inspect the first failure, distinguish cascading failures, and rerun the relevant suite after competing work settles.

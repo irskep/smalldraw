@@ -8,8 +8,7 @@
     "test": "bun test",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
-    "ts:check": "tsc --noEmit",
-    "check": "bun run lint && bun run ts:check && bun run test && bun run build"
+    "ts:check": "tsc --noEmit"
   },
   "dependencies": {
     "@automerge/automerge": "^3.5.0",

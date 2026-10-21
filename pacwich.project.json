@@ -45,7 +45,7 @@
       "patterns": ["@smalldraw/splat"],
       "config": {
         "scripts": {
-          "check": {
+          "test": {
             "order": 0
           }
         }

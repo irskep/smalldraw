@@ -57,24 +57,31 @@ Deploy with `mise run deploy`, which passes the pinned version to Docker.
 For a manual Docker build, supply `--build-arg BUN_VERSION="$(cat .bun-version)"`;
 the build rejects a version that differs from the pin.
 
-### Workspace validation
+### Checks and tests
 
-Pacwich owns workspace check scheduling; localci runs setup and one check task.
-Use `mise run check` for affected validation, or `mise run validate:all` for
-the full suite. Each workspace's `check` script runs its lint, types, tests,
-and build (where present); design-system checks also run managed browser tests.
+Run `mise install`, `bun install --frozen-lockfile`, then `mise run hooks:install`
+once per checkout. hk runs Oxlint, Oxfmt, and every workspace's typecheck before
+each commit. These checks run concurrently and reject errors without changing
+or staging files. Use `mise run hooks:check` to check everything manually.
+The existing localci post-commit hook remains independent.
+
+All `tsc` commands use the pinned TypeScript 7.1 beta native compiler.
+Internal packages export their TypeScript source directly; Vite/Bun bundle the
+applications. There is no separate library bundling or declaration-generation step.
+
+Pacwich schedules tests only in localci. Use `mise run check` for affected tests,
+or `mise run validate:all` for all tests, including managed design-system browser
+tests. No linting, formatting, typechecking, or builds run in that path.
 At most four workspaces run at once, with the longest suite started first.
 
-On main, affected checks compare with `HEAD^`; on feature branches they compare
+On main, affected tests compare with `HEAD^`; on feature branches they compare
 with `main` (or `origin/main` when only the remote ref is available). Local edits
 are included. Detached commits on main's history use their parent. Missing
 comparison history causes a full run, never an empty success.
 
 Pacwich follows workspace dependencies. Shared root configuration, build scripts,
-CI configuration, and dependency patches invalidate every workspace. Documentation
-inputs also invalidate the docs build. Strict dependency verification and selection
-regressions run on every check. Shared scripts are validation inputs, not imports
-owned by every package, so they are excluded from per-package import verification.
+CI configuration, and dependency patches invalidate every workspace. Selection
+regression tests run every time.
 
 Inspect selection with `mise exec -- bunx pacwich affected list --base=HEAD^ --explain`.
-Run one workspace with `mise exec -- bunx pacwich run check server`.
+Run one workspace with `mise exec -- bunx pacwich run test server`.

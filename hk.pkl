@@ -1,0 +1,23 @@
+amends "package://github.com/jdx/hk/releases/download/v2.7.1/hk@2.7.1#/Config.pkl"
+
+// Whole-project checks also catch effects on dependent workspaces.
+steps {
+  ["oxlint"] {
+    check = "bunx oxlint --deny-warnings --report-unused-disable-directives ."
+  }
+  ["oxfmt"] {
+    check = "bun run format:check"
+  }
+  ["typecheck"] {
+    check = "bun run ts:check"
+  }
+}
+
+// Checks do not modify the index; unstaged edits are hidden by hk while checking.
+hooks {
+  ["pre-commit"] {
+    fix = false
+    stage = false
+    stash = "git"
+  }
+}

@@ -12,7 +12,6 @@
   },
   "scripts": {
     "dev": "bun ./harness/index.html --watch --host=0.0.0.0:3002",
-    "build": "tsup src/index.ts --dts --format esm",
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
@@ -22,8 +21,7 @@
     "test:ui:managed": "bunx playwright test",
     "test:ui:live": "mise -C ../.. run design-system:test:ui",
     "validate": "bun run ts:check && bun run test && bun run test:ui:live",
-    "test:ui:install": "bunx playwright install chromium",
-    "check": "bun run lint && bun run ts:check && bun run test && bun run build && bun run test:ui:managed"
+    "test:ui:install": "bunx playwright install chromium"
   },
   "dependencies": {
     "lucide": "catalog:ui",
@@ -35,7 +33,6 @@
     "@playwright/test": "catalog:testing",
     "@types/redom": "catalog:ui",
     "happy-dom": "catalog:testing",
-    "tsup": "catalog:build",
     "typescript": "catalog:build"
   }
 }

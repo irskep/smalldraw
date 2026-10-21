@@ -9,6 +9,3 @@ run = "bun run lint"
 
 [tasks."lint:fix"]
 run = "bun run lint:fix"
-
-[tasks.build]
-run = "bun run build"

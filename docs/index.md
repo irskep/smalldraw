@@ -21,7 +21,6 @@ These docs explain the implementation of Splatterboard and its Smalldraw package
 - [Actions and undo](explanation/action-and-undo-system.md)
 - [Canonical transforms](explanation/canonical-transforms.md) and [local geometry](explanation/geometry-local-space.md)
 - [Multiplayer and document identity](explanation/multiplayer/index.md)
-- [API reference](api.md)
 
 ## Documentation status
 

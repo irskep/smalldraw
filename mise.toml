@@ -24,6 +24,8 @@ experimental = true
 [tools]
 bun = "{{ read_file(path='.bun-version') | trim }}"
 tilt = "0.37.1"
+hk = "2.7.1"
+pkl = "0.32.1"
 "github:irskep/localci" = "0.2.11"
 node = "24"
 "pipx:persistproc" = "latest"
@@ -149,10 +151,10 @@ alias = ["typecheck"]
 run = "bun run ts:check"
 
 [tasks."lint:all"]
-run = "bunx pacwich run lint --parallel=4"
+run = "bunx oxlint --deny-warnings --report-unused-disable-directives ."
 
 [tasks."lint:fix:all"]
-run = "bunx pacwich run lint:fix --parallel=4"
+run = "bunx oxlint --fix --deny-warnings ."
 
 [tasks."format:check"]
 run = "bun run format:check"
@@ -175,9 +177,6 @@ run = "mise run //packages/design-system:test:ui:managed"
 [tasks."validate:all"]
 run = "bun run check:all"
 
-[tasks."docs:typedoc"]
-dir = "apps/docs-site"
-run = "bun run api"
 
 [tasks."docs:dev"]
 dir = "apps/docs-site"
@@ -313,3 +312,10 @@ run = "bun run check"
 
 [tasks.check]
 run = "bun run check"
+
+[tasks."hooks:install"]
+description = "Install hk pre-commit checks"
+run = "hk install --mise"
+
+[tasks."hooks:check"]
+run = "hk check --all"

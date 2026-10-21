@@ -37,7 +37,6 @@ nav = [
     { "Tool state and settings" = "guides/tool-state-and-settings.md" },
     { "Handle interactions" = "guides/handle-based-interactions.md" },
   ] },
-  { "API reference" = "api.md" },
   { "Historical notes" = [
     { "Thinking" = [
       { "bugs" = "thinking/bugs.md" },

@@ -8,8 +8,7 @@
     "test": "bun test --pass-with-no-tests",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
-    "ts:check": "tsc -p tsconfig.typecheck.json --noEmit",
-    "check": "bun run lint && bun run ts:check && bun run test && bun run build"
+    "ts:check": "tsc -p tsconfig.typecheck.json --noEmit"
   },
   "dependencies": {
     "@smalldraw/splat": "workspace:*",

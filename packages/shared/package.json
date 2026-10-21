@@ -9,8 +9,7 @@
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
-    "test": "bun test --pass-with-no-tests",
-    "check": "bun run lint && bun run ts:check && bun run test"
+    "test": "bun test --pass-with-no-tests"
   },
   "exports": {
     ".": "./src/index.ts",

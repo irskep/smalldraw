@@ -3,8 +3,7 @@
   "private": true,
   "catalogs": {
     "build": {
-      "tsup": "^9.0.0",
-      "typescript": "npm:@typescript/typescript6@^6.0.2"
+      "typescript": "7.1.0-beta"
     },
     "testing": {
       "@playwright/test": "^1.55.1",
@@ -22,27 +21,22 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@typescript/native": "npm:typescript@^7.0.2",
     "oxfmt": "0.74.0",
     "oxlint": "1.89.0",
     "pacwich": "0.7.3",
-    "tsup": "^9.0.0",
-    "typescript": "npm:@typescript/typescript6@^6.0.2"
+    "typescript": "catalog:build"
   },
   "scripts": {
-    "ts:check": "pacwich run ts:check --parallel=4",
+    "ts:check": "bun run --filter '*' ts:check",
     "test": "pacwich run test --parallel=4",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "format": "bun run format:check",
     "format:check": "oxfmt --check .",
     "format:fix": "oxfmt --write .",
-    "fix:all": "bun run format:fix && pacwich run lint:fix --parallel=4",
+    "fix:all": "bun run format:fix && oxlint --fix --deny-warnings .",
     "preinstall": "bun run scripts/check-bun-version.ts",
     "check": "bun run scripts/check-workspaces.ts",
     "check:all": "bun run scripts/check-workspaces.ts --all"
-  },
-  "overrides": {
-    "@typescript/old": "https://registry.npmjs.org/typescript/-/typescript-6.0.2.tgz"
   },
   "patchedDependencies": {
     "@automerge/automerge-repo@2.5.1": "patches/@automerge%2Fautomerge-repo@2.5.1.patch"
