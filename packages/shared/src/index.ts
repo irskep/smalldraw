@@ -357,3 +357,5 @@ export type DrawingCheckpointResult =
   | { status: "resync" }
   // content contains server changes after the request's heads; heads identify the durable reply.
   | { status: "saved"; heads: string[]; content: Uint8Array };
+
+export { getPortalMetadata } from "./portalMetadata";

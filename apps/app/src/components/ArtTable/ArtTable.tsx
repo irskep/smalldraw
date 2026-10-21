@@ -11,6 +11,7 @@ export function ArtTable({ href }: { href: string }) {
         <img
           className="art-table__preview"
           src={appPath("drawing-preview.png")}
+          fetchPriority="high"
           width="1280"
           height="800"
           alt="Splatterboard’s drawing tools around a drawing of a rainbow, a purple cat, and a yellow sun."

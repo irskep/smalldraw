@@ -1,3 +1,4 @@
+import { updatePortalMetadata } from "../utils/portalMetadata";
 import { DsConfirmDialog, type DsConfirmDialogHandle } from "../components/DsConfirmDialog/DsConfirmDialog";
 import { $accountSync, retryAccountSync } from "@smalldraw/splat/account";
 import { initializeAccountWorkspace, signOutWorkspace } from "../utils/accountWorkspace";
@@ -51,6 +52,7 @@ const Root = () => {
   const accountDialogRef = useRef<DsConfirmDialogHandle>(null);
   const parentalControlsDialogRef = useRef<ParentalControlsDialogHandle>(null);
   const location = useLocation();
+  useEffect(() => updatePortalMetadata(location.pathname), [location.pathname]);
   const isAdminRoute =
     location.pathname === "/admin" || location.pathname.startsWith("/admin/");
 

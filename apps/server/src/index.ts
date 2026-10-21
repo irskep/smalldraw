@@ -10,6 +10,7 @@ import type { AuthenticatedSocket } from "./automergeRepo/socketAuthContext.js";
 import { touchDocumentToken } from "./db/documentTokens.js";
 import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getSession } from "./db/getSession.js";
+import { renderPortalMetadata } from "./portalMetadata.js";
 import { getSharePreview, renderSharePreview } from "./sharePreview.js";
 import { getR2ThumbnailConfig } from "./storage/documentThumbnailStore.js";
 import { appRouter } from "./trpc/appRouter.js";
@@ -65,6 +66,7 @@ app.use(
   }),
 );
 
+app.get("/index.html", (_req, res) => res.redirect(301, "/"));
 app.use(express.static(staticDir, { index: false }));
 if (fs.existsSync(sourceColoringDir)) {
   app.use("/coloring", express.static(sourceColoringDir, { index: false }));
@@ -76,6 +78,7 @@ app.get("/healthz", (_req, res) => {
 
 // SPA fallback only for known app routes
 app.get("/draw/*", async (req, res, next) => {
+  res.set("X-Robots-Tag", "noindex, follow");
   if (!fs.existsSync(drawIndexHtmlPath)) {
     return res.status(404).send("Drawing app build not found");
   }
@@ -105,6 +108,8 @@ app.get("/draw/*", async (req, res, next) => {
   }
 });
 
+let portalTemplate: string | undefined;
+
 app.get("*", (req, res, next) => {
   if (!isPortalRoutePath(req.path)) {
     next();
@@ -113,7 +118,8 @@ app.get("*", (req, res, next) => {
   if (!fs.existsSync(indexHtmlPath)) {
     return res.status(404).send("Portal app build not found");
   }
-  res.sendFile(indexHtmlPath);
+  portalTemplate ??= fs.readFileSync(indexHtmlPath, "utf8");
+  res.type("html").send(renderPortalMetadata(portalTemplate, req.path));
 });
 
 const server = app.listen(PORT, () => {

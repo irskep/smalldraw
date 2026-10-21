@@ -4,6 +4,8 @@
     <loc>https://splatterboard.app/</loc>
   </url>
   <url>
-    <loc>https://splatterboard.app/draw/</loc>
+    <loc>https://splatterboard.app/data</loc>
   </url>
+  <url><loc>https://splatterboard.app/privacy</loc></url>
+  <url><loc>https://splatterboard.app/terms</loc></url>
 </urlset>
