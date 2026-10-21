@@ -315,3 +315,8 @@ run = "hk install --mise"
 
 [tasks."hooks:check"]
 run = "hk check --all"
+
+[tasks."test:docker"]
+description = "Build and smoke-test the production image with a disposable database"
+depends = ["prod:build"]
+run = "bun run scripts/test-docker.ts"

@@ -57,6 +57,12 @@ Deploy with `mise run deploy`, which passes the pinned version to Docker.
 For a manual Docker build, supply `--build-arg BUN_VERSION="$(cat .bun-version)"`;
 the build rejects a version that differs from the pin.
 
+`mise run test:docker` builds the production assets and image, then checks
+database startup and restart, page and WASM serving, and runtime dependencies
+using a disposable container. Docker must be running. The image installs only
+production server/shared dependencies from the frozen lockfile; Drizzle Kit
+and its database driver are included because startup applies the schema.
+
 ### Checks and tests
 
 Run `mise install`, `bun install --frozen-lockfile`, then `mise run hooks:install`

@@ -34,3 +34,10 @@ packages/shared/**
 scripts/**
 !scripts/check-bun-version.ts
 !.bun-version
+
+# Tests and their setup/fixtures are never needed in the runtime image.
+**/*.test.*
+**/*.spec.*
+**/__tests__/
+**/test/
+**/tests/
