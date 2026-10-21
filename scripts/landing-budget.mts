@@ -7,7 +7,7 @@ type Chunk = Pick<
   "fileName" | "code" | "imports" | "moduleIds" | "isEntry"
 >;
 
-// Anonymous landing baseline: ~186 KB raw / 63 KB gzip, including lazy Home.
+// Anonymous landing baseline: ~186 KB raw / 63 KB gzip, including Home.
 // Gzip is a repeatable comparison, not a claim about Fly's negotiated encoding.
 // Review added dependencies before raising these limits; account/editor code is lazy.
 const limits = { raw: 240_000, gzip: 80_000 };

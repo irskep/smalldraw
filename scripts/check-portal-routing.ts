@@ -36,10 +36,9 @@ export async function checkPortalRouting(browser: Browser, origin: string) {
     // Anonymous startup must not download the account repo or Automerge runtime.
     await page.waitForLoadState("networkidle");
     expect(
-      startupAssets.filter((url) =>
-        /createLocalSmalldrawRepo-|\/slim-|\.wasm$/.test(url),
-      ),
+      startupAssets.filter((url) => /account-runtime-|\.wasm$/.test(url)),
     ).toEqual([]);
+    expect(startupAssets.filter((url) => url.endsWith(".js"))).toHaveLength(1);
     const documentId = await page.evaluate(
       () => (window as any).routingDocumentId,
     );
@@ -55,6 +54,11 @@ export async function checkPortalRouting(browser: Browser, origin: string) {
     expect(await page.evaluate(() => (window as any).routingDocumentId)).toBe(
       documentId,
     );
+    await page.waitForLoadState("networkidle");
+    expect(
+      startupAssets.filter((url) => /account-runtime-|\.wasm$/.test(url)),
+    ).toEqual([]);
+    expect(startupAssets.filter((url) => url.endsWith(".js"))).toHaveLength(2);
     await expect(page).toHaveTitle(/drawings.*stored/i);
     await page.goBack();
     await expect(
@@ -117,7 +121,7 @@ export async function checkPortalRouting(browser: Browser, origin: string) {
     expect(errors).toEqual([]);
 
     // A missing deployment chunk must offer recovery, not leave a loading screen.
-    await page.route(/\/assets\/terms\.lazy-.*\.js$/, (route) =>
+    await page.route(/\/assets\/portal-.*\.js$/, (route) =>
       route.fulfill({
         status: 503,
         contentType: "text/plain",
@@ -129,7 +133,7 @@ export async function checkPortalRouting(browser: Browser, origin: string) {
     await expect(
       page.getByRole("heading", { name: "This page couldn’t load" }),
     ).toBeVisible();
-    await page.unroute(/\/assets\/terms\.lazy-.*\.js$/);
+    await page.unroute(/\/assets\/portal-.*\.js$/);
     await page.getByRole("button", { name: "Try again", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Terms and Conditions", exact: true }),

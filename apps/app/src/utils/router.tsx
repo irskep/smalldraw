@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { appPath, portalScope } from "../config";
 import { PortalLayout } from "../routes/__root";
+import Home from "../routes/index.lazy";
 import { retryPageLoad } from "./retryPageLoad";
 
 function PageLoadError() {
@@ -31,7 +32,6 @@ function page(load: () => Promise<{ default: React.ComponentType }>) {
   return lazy(() => load().catch(() => ({ default: PageLoadError })));
 }
 
-const Home = page(() => import("../routes/index.lazy"));
 const Login = page(() => import("../routes/login"));
 const Register = page(() => import("../routes/register"));
 const Data = page(() => import("../routes/data.lazy"));

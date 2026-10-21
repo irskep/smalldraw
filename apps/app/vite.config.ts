@@ -76,5 +76,22 @@ export default defineConfig(({ command }) => ({
 
   build: {
     target: "esnext",
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            // Keep the shell and Home together; no route discovery round trip.
+            { name: "landing", tags: ["$initial"], priority: 10 },
+            // WASM-backed account work should not load for ordinary portal pages.
+            {
+              name: "account-runtime",
+              priority: 5,
+              test: /(?:node_modules\/(?:@automerge|@serenity-kit)\/|packages\/core\/|packages\/splat\/src\/documents\/createLocalSmalldrawRepo\.ts)/,
+            },
+            { name: "portal" },
+          ],
+        },
+      },
+    },
   },
 }));
