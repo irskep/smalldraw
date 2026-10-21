@@ -509,77 +509,22 @@ a {
   cursor: var(--ds-cursor-interactive-hover);
 }
 
-.portal-launcher-card__media {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border: var(--border-size-1) solid var(--ds-border);
-  border-radius: var(--radius-3);
-  background: var(--ds-surface);
-  box-shadow: var(--shadow-1);
-  transition:
-    border-color 120ms var(--ease-out-3),
-    box-shadow 120ms var(--ease-out-3),
-    transform 120ms var(--ease-out-3);
+.portal-drawing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-3);
 }
 
-.portal-launcher-card:hover .portal-launcher-card__media,
-.portal-launcher-card:focus-visible .portal-launcher-card__media {
-  border-color: var(--ds-focus-ring);
-  box-shadow: var(--shadow-3);
-  transform: translateY(-1px);
-}
-
-.portal-launcher-card:focus-visible {
-  outline: none;
-}
-
-.portal-launcher-card:focus-visible .portal-launcher-card__media {
-  outline: var(--border-size-3) solid var(--ds-focus-ring);
-  outline-offset: var(--size-1);
-}
-
-.portal-launcher-card--new .portal-launcher-card__media {
-  gap: var(--size-4);
-  border-style: dashed;
-  background: var(--ds-surface-muted);
-}
-
-.portal-launcher-card__cta {
+.portal-drawing-actions .ds-button {
   gap: var(--size-2);
   justify-content: center;
+  text-decoration: none;
 }
 
-.portal-launcher-card__actions {
-  display: grid;
-  gap: var(--size-3);
-  padding: var(--size-3);
-}
-
-.portal-launcher-card--new {
-  cursor: default;
-}
-
-.portal-launcher-card__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: var(--ds-surface);
-}
-
-.portal-launcher-card__badge {
-  position: absolute;
-  z-index: 1;
-  inset-block-start: var(--size-2);
-  inset-inline-start: var(--size-2);
-  padding: var(--size-1) var(--size-2);
-  border-radius: var(--radius-round);
-  background: var(--ds-accent-subtle-surface);
-  color: var(--ds-ink);
-  font-size: var(--font-size-0);
-  font-weight: var(--font-weight-6);
+@media (max-width: 600px) {
+  .portal-drawing-actions .ds-button {
+    width: 100%;
+  }
 }
 
 .portal-launcher-card__empty {

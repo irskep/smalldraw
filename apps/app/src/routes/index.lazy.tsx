@@ -229,37 +229,32 @@ function Index() {
         {tiles.length > 0 ? (
           <h1 className="portal-drawings-title">Your drawings</h1>
         ) : null}
+        {launcherState === "active" ? (
+          <nav className="portal-drawing-actions" aria-label="Create a drawing">
+            <a
+              href={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn })}
+              className="ds-button"
+              data-tone="primary"
+            >
+              <span aria-hidden="true">+</span>
+              New drawing
+            </a>
+            <a
+              href={buildNewDrawingUrl(runtimeConfig, {
+                account: isLoggedIn,
+                coloring: true,
+              })}
+              className="ds-button"
+              data-tone="primary"
+            >
+              Pick a coloring page
+            </a>
+          </nav>
+        ) : null}
         <div
           className="portal-launcher-grid"
           hidden={launcherState !== "active"}
         >
-          <div className="portal-launcher-card portal-launcher-card--new">
-            <div className="portal-launcher-card__media">
-              <div className="portal-launcher-card__actions">
-                <a
-                  href={buildNewDrawingUrl(runtimeConfig, {
-                    account: isLoggedIn,
-                  })}
-                  className="ds-button portal-launcher-card__cta"
-                  data-tone="primary"
-                >
-                  <span aria-hidden="true">+</span>
-                  New drawing
-                </a>
-                <a
-                  href={buildNewDrawingUrl(runtimeConfig, {
-                    account: isLoggedIn,
-                    coloring: true,
-                  })}
-                  className="ds-button portal-launcher-card__cta"
-                  data-tone="primary"
-                >
-                  Pick a coloring page
-                </a>
-              </div>
-            </div>
-          </div>
-
           {tiles.map((tile) => (
             <div key={tile.key} className="portal-launcher-card">
               <DsThumbnailTile
