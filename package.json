@@ -35,7 +35,8 @@
     "format": "bun run format:check",
     "format:check": "oxfmt --check .",
     "format:fix": "oxfmt --write .",
-    "fix:all": "bun run format:fix && bun --filter '*' lint:fix"
+    "fix:all": "bun run format:fix && bun --filter '*' lint:fix",
+    "preinstall": "bun run scripts/check-bun-version.ts"
   },
   "overrides": {
     "@typescript/old": "https://registry.npmjs.org/typescript/-/typescript-6.0.2.tgz"

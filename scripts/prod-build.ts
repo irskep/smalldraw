@@ -1,3 +1,4 @@
+import "./check-bun-version";
 import { $ } from "bun";
 
 import { automergeAsset } from "./automerge-asset.mjs";

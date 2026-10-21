@@ -1,9 +1,13 @@
-FROM oven/bun:1-alpine
+# Supplied by mise server:deploy from .bun-version; no floating fallback.
+ARG BUN_VERSION
+FROM oven/bun:${BUN_VERSION}-alpine
 
 WORKDIR /app
 
 # Install only runtime dependencies by creating a minimal workspace root
-COPY bun.lock package.json ./
+COPY bun.lock package.json .bun-version ./
+COPY scripts/check-bun-version.ts scripts/check-bun-version.ts
+RUN bun scripts/check-bun-version.ts
 COPY patches patches
 COPY apps/server/package.json apps/server/
 COPY packages/shared/package.json packages/shared/

@@ -43,3 +43,16 @@ mise run tilt:up
 The normal browser entry is `http://localhost:3000`; the drawing app is at `/draw/`. See the development guide before operating the database or running services individually.
 
 Root lab notebooks, `thinking/`, and old design proposals record historical experiments. They are evidence, not descriptions of the current architecture or an authoritative backlog. Current explanations live under `docs/explanation/`.
+
+
+### Bun version
+
+`.bun-version` is the single version pin for mise, GitHub Actions, and the
+production Docker build. Update that file, then run `mise install bun`.
+Use `mise run ...` or `mise exec -- bun ...`; do not run `bun upgrade` against
+a mise-managed installation. Dependency installation, production builds, CI,
+and Docker builds verify the actual executable version.
+
+Deploy with `mise run deploy`, which passes the pinned version to Docker.
+For a manual Docker build, supply `--build-arg BUN_VERSION="$(cat .bun-version)"`;
+the build rejects a version that differs from the pin.

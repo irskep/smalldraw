@@ -29,3 +29,8 @@ packages/shared/**
 !packages/shared/package.json
 !packages/shared/src/
 !packages/shared/src/**
+
+!scripts/
+scripts/**
+!scripts/check-bun-version.ts
+!.bun-version
