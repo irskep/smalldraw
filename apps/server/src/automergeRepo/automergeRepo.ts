@@ -37,3 +37,18 @@ const idleSweep = setInterval(() => {
   void documentLifetime.sweep();
 }, 15_000);
 idleSweep.unref();
+
+/** Stop receiving edits before disconnecting peers and flushing accepted sync work. */
+export async function stopRepositoryNetwork(): Promise<void> {
+  clearInterval(idleSweep);
+  await adapter.drain();
+  adapter.disconnect();
+  await new Promise<void>((resolve, reject) => {
+    webSocketServer.close((error) => (error ? reject(error) : resolve()));
+  });
+}
+
+export async function shutdownRepository(): Promise<void> {
+  await documentLifetime.sweep();
+  await repo.shutdown();
+}

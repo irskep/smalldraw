@@ -19,7 +19,30 @@ export class AuthAdapter extends NodeWSServerAdapter {
     WebSocket,
     Map<string, Promise<() => void>>
   >();
-  async receiveMessage(messageBytes: Uint8Array, socket: WebSocket) {
+  private draining = false;
+  private pending = new Set<Promise<void>>();
+
+  async drain(): Promise<void> {
+    this.draining = true;
+    await Promise.all(this.pending);
+  }
+
+  receiveMessage(messageBytes: Uint8Array, socket: WebSocket): Promise<void> {
+    if (this.draining) return Promise.resolve();
+    const pending = this.receiveAuthorizedMessage(messageBytes, socket)
+      .catch((error) => {
+        console.warn("[server:automerge-auth] message failed", { error });
+        socket.close(1011, "Message failed");
+      })
+      .finally(() => this.pending.delete(pending));
+    this.pending.add(pending);
+    return pending;
+  }
+
+  private async receiveAuthorizedMessage(
+    messageBytes: Uint8Array,
+    socket: WebSocket,
+  ) {
     const message: FromClientMessage = decode(messageBytes);
     const authContext = getSocketAuthContext(socket);
     if (!authContext) {

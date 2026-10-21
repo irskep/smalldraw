@@ -93,6 +93,10 @@ export class SqliteStorageAdapter implements StorageAdapter {
     return row != null;
   }
 
+  checkReady(): void {
+    this.db.query("SELECT key FROM automerge_data LIMIT 0").all();
+  }
+
   private serializeKey(key: StorageKey): string {
     return key.join("/");
   }

@@ -24,4 +24,4 @@ COPY apps/server/build apps/server/build
 
 EXPOSE $PORT
 
-CMD ["sh", "-c", "bunx --bun drizzle-kit push && bun apps/server/src/index.ts"]
+CMD ["sh", "-c", "bunx --bun drizzle-kit push && exec bun apps/server/src/index.ts"]

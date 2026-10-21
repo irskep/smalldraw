@@ -15,8 +15,26 @@ import type {
   DrawingCheckpointResult,
 } from "@smalldraw/shared";
 
+import { serverMetrics } from "../metrics.js";
+
 /** The reply describes a captured version that flush has made durable. */
 export async function checkpointDocument<T>(
+  repo: Repo,
+  handle: DocHandle<T>,
+  input: DrawingCheckpoint,
+): Promise<DrawingCheckpointResult> {
+  const start = performance.now();
+  try {
+    const result = await applyCheckpoint(repo, handle, input);
+    serverMetrics.checkpoint(result.status, (performance.now() - start) / 1000);
+    return result;
+  } catch (error) {
+    serverMetrics.checkpoint("error", (performance.now() - start) / 1000);
+    throw error;
+  }
+}
+
+async function applyCheckpoint<T>(
   repo: Repo,
   handle: DocHandle<T>,
   input: DrawingCheckpoint,

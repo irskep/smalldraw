@@ -5,12 +5,21 @@ import { isPortalRoutePath } from "@smalldraw/shared";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import cors, { type CorsOptions } from "cors";
 import express from "express";
-import { webSocketServer } from "./automergeRepo/automergeRepo.js";
+import {
+  repo,
+  repoStorage,
+  shutdownRepository,
+  stopRepositoryNetwork,
+  webSocketServer,
+} from "./automergeRepo/automergeRepo.js";
 import type { AuthenticatedSocket } from "./automergeRepo/socketAuthContext.js";
+import { checkAccountStorage } from "./db/client.js";
 import { touchDocumentToken } from "./db/documentTokens.js";
 import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getSession } from "./db/getSession.js";
+import { startMetrics } from "./metrics.js";
 import { renderPortalMetadata } from "./portalMetadata.js";
+import { ServerLifecycle } from "./runtime.js";
 import { getSharePreview, renderSharePreview } from "./sharePreview.js";
 import { getR2ThumbnailConfig } from "./storage/documentThumbnailStore.js";
 import { appRouter } from "./trpc/appRouter.js";
@@ -38,6 +47,29 @@ const drawIndexHtmlPath = path.join(staticDir, "draw.html");
 const PORT =
   process.env.PORT !== undefined ? parseInt(process.env.PORT, 10) : 3030;
 const app = express();
+const lifecycle = new ServerLifecycle();
+app.use((_req, res, next) => {
+  if (!lifecycle.ready) {
+    res.set("Connection", "close").status(503).send("not ready");
+    return;
+  }
+  lifecycle.trackResponse(res);
+  next();
+});
+
+// Fail startup before listening if migrations or deployed entry points are missing.
+checkAccountStorage();
+repoStorage.checkReady();
+if (process.env.NODE_ENV === "production") {
+  fs.accessSync(indexHtmlPath, fs.constants.R_OK);
+  fs.accessSync(drawIndexHtmlPath, fs.constants.R_OK);
+}
+const metricsServer = process.env.METRICS_PORT
+  ? startMetrics(Number(process.env.METRICS_PORT), () => ({
+      residentDocuments: Object.keys(repo.handles).length,
+      sockets: webSocketServer.clients.size,
+    }))
+  : undefined;
 
 // Image uploads remain JSON; document snapshots use the binary endpoint below.
 app.use(express.json({ limit: "16mb" }));
@@ -131,6 +163,7 @@ app.get("*", (req, res, next) => {
 });
 
 const server = app.listen(PORT, () => {
+  lifecycle.ready = true;
   console.log(`Listening on port ${PORT}`);
   const r2ThumbnailConfig = getR2ThumbnailConfig();
   if (!r2ThumbnailConfig.ready || !r2ThumbnailConfig.publicBaseUrl) {
@@ -144,6 +177,10 @@ const server = app.listen(PORT, () => {
 });
 
 server.on("upgrade", async (request, socket, head) => {
+  if (lifecycle.draining) {
+    socket.destroy();
+    return;
+  }
   const origin = request.headers.origin;
   if (origin) {
     const originHost = new URL(origin).host;
@@ -161,6 +198,10 @@ server.on("upgrade", async (request, socket, head) => {
     getInvitationByToken: (token) =>
       getDocumentInvitationByToken(token, { scopes: ["owner", "device"] }),
   });
+  if (lifecycle.draining || socket.destroyed) {
+    socket.destroy();
+    return;
+  }
   if (!authContext) {
     console.warn("[server:ws-upgrade] unauthorized upgrade rejected", {
       url: request.url,
@@ -186,3 +227,27 @@ server.on("upgrade", async (request, socket, head) => {
     webSocketServer.emit("connection", currentSocket, request);
   });
 });
+
+function shutdown(signal: string) {
+  if (lifecycle.draining) return;
+  console.log("[server:shutdown] draining", { signal });
+  // Leave two seconds before Fly's kill timeout; never claim a timed-out flush succeeded.
+  const deadline = setTimeout(() => {
+    console.error("[server:shutdown] drain timed out");
+    process.exit(1);
+  }, 18_000);
+  void lifecycle
+    .drain(server, stopRepositoryNetwork, shutdownRepository)
+    .then(() => {
+      metricsServer?.close();
+      clearTimeout(deadline);
+      console.log("[server:shutdown] flushed and stopped");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error("[server:shutdown] failed", error);
+      process.exit(1);
+    });
+}
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

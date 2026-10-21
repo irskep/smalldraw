@@ -6,14 +6,21 @@
 app = 'splatterboard'
 primary_region = 'sjc'
 swap_size_mb = 2048
+kill_signal = 'SIGTERM'
+kill_timeout = 20
 
 [build]
 
 [env]
 PORT = '3000'
+METRICS_PORT = '9091'
 NODE_ENV = 'production'
 DATABASE_URL = '/data/app.db'
 AUTOMERGE_DB_PATH = '/data/automerge.db'
+
+[metrics]
+port = 9091
+path = '/metrics'
 
 [mounts]
 source = 'data'
@@ -26,6 +33,11 @@ auto_stop_machines = true
 auto_start_machines = true
 min_machines_running = 1
 processes = ['app']
+
+[http_service.concurrency]
+type = 'requests'
+# Preserve the existing routing threshold; leave the hard limit unset.
+soft_limit = 20
 
 [[http_service.checks]]
 grace_period = '15s'

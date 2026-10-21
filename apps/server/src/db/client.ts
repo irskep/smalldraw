@@ -30,3 +30,7 @@ sqlite.run("PRAGMA busy_timeout=5000");
 export const db = drizzle(sqlite, { schema });
 export type DbClient = typeof db;
 export { schema };
+
+export function checkAccountStorage(): void {
+  sqlite.query("SELECT id FROM users LIMIT 0").all();
+}

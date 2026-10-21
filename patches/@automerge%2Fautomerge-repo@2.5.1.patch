@@ -1,3 +1,6 @@
+diff --git a/node_modules/@automerge/automerge-repo/.bun-tag-f3b0d5f14b080c10 b/.bun-tag-f3b0d5f14b080c10
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
 diff --git a/dist/DocHandle.js b/dist/DocHandle.js
 index 66c2df856f38fa4a321846e7b5bee9dcedf11789..5a4ca9ec428dcd99e86cdfc4b27bfb5665c14e33 100644
 --- a/dist/DocHandle.js
@@ -11,6 +14,46 @@ index 66c2df856f38fa4a321846e7b5bee9dcedf11789..5a4ca9ec428dcd99e86cdfc4b27bfb56
          const beforeHeads = A.getHeads(before);
          const afterHeads = A.getHeads(after);
          const docChanged = !headsAreSame(encodeHeads(afterHeads), encodeHeads(beforeHeads));
+diff --git a/dist/Repo.js b/dist/Repo.js
+index ba763a5f3ccd260db4baa1d5bec055a843b69f6c..cf67b5e41d622e37587e76a05b2c8643bbb6002a 100644
+--- a/dist/Repo.js
++++ b/dist/Repo.js
+@@ -217,6 +217,7 @@ export class Repo extends EventEmitter {
+         // Register the document with the synchronizer. This advertises our interest in the document.
+         this.synchronizer.addDocument(handle);
+     }
++    #pendingMessages = new Set();
+     #receiveMessage(message) {
+         switch (message.type) {
+             case "remote-subscription-change":
+@@ -233,9 +234,10 @@ export class Repo extends EventEmitter {
+             case "request":
+             case "ephemeral":
+             case "doc-unavailable":
+-                this.synchronizer.receiveMessage(message).catch(err => {
++                const pending = this.synchronizer.receiveMessage(message).catch(err => {
+                     console.log("error receiving message", { err, message });
+-                });
++                }).finally(() => this.#pendingMessages.delete(pending));
++                this.#pendingMessages.add(pending);
+         }
+     }
+     #throttledSaveSyncStateHandlers = {};
+@@ -735,11 +737,12 @@ export class Repo extends EventEmitter {
+             this.#log(`WARN: removeFromCache called but doc undefined for documentId: ${documentId}`);
+         }
+     }
+-    shutdown() {
++    async shutdown() {
+         this.networkSubsystem.adapters.forEach(adapter => {
+             adapter.disconnect();
+         });
+-        return this.flush();
++        await Promise.all(this.#pendingMessages);
++        return this.flush(Object.values(this.#handleCache).filter(handle => handle.isReady()).map(handle => handle.documentId));
+     }
+     metrics() {
+         return { documents: this.synchronizer.metrics() };
 diff --git a/dist/synchronizer/DocSynchronizer.js b/dist/synchronizer/DocSynchronizer.js
 index fe8be3808ec2c0f3f4a1730382245dbd719804e8..8fed07fcbc21ac84a207428a2cea350d4582d2b2 100644
 --- a/dist/synchronizer/DocSynchronizer.js
@@ -38,6 +81,48 @@ index 2a51add5a6501faed7119a95168de45510258eba..e0bc5f22e00699e5224d5a6519e28430
      const beforeHeads = A.getHeads(before)
      const afterHeads = A.getHeads(after)
      const docChanged = !headsAreSame(
+diff --git a/src/Repo.ts b/src/Repo.ts
+index 73245dd2a0029f45b9c00fc8a09214f4334b1324..84a135a038094db449e16e5619355a3daf3bcbe6 100644
+--- a/src/Repo.ts
++++ b/src/Repo.ts
+@@ -339,6 +339,8 @@ export class Repo extends EventEmitter<RepoEvents> {
+     this.synchronizer.addDocument(handle)
+   }
+ 
++  #pendingMessages = new Set<Promise<void>>()
++
+   #receiveMessage(message: RepoMessage) {
+     switch (message.type) {
+       case "remote-subscription-change":
+@@ -355,9 +357,10 @@ export class Repo extends EventEmitter<RepoEvents> {
+       case "request":
+       case "ephemeral":
+       case "doc-unavailable":
+-        this.synchronizer.receiveMessage(message).catch(err => {
++        const pending = this.synchronizer.receiveMessage(message).catch(err => {
+           console.log("error receiving message", { err, message })
+-        })
++        }).finally(() => this.#pendingMessages.delete(pending))
++        this.#pendingMessages.add(pending)
+     }
+   }
+ 
+@@ -967,11 +970,13 @@ export class Repo extends EventEmitter<RepoEvents> {
+     }
+   }
+ 
+-  shutdown(): Promise<void> {
++  async shutdown(): Promise<void> {
+     this.networkSubsystem.adapters.forEach(adapter => {
+       adapter.disconnect()
+     })
+-    return this.flush()
++    await Promise.all(this.#pendingMessages)
++    // Unavailable/requesting handles have no document to persist.
++    return this.flush(Object.values(this.#handleCache).filter(handle => handle.isReady()).map(handle => handle.documentId))
+   }
+ 
+   metrics(): { documents: { [key: string]: any } } {
 diff --git a/src/synchronizer/DocSynchronizer.ts b/src/synchronizer/DocSynchronizer.ts
 index 93ddba7cc1ddc9119da830c98e1e45775ed50107..d8fb2480f3eb5403b1962e4f8ef95ddeaa67d6b9 100644
 --- a/src/synchronizer/DocSynchronizer.ts
