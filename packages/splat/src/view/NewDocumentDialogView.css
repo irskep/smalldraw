@@ -146,4 +146,28 @@
   .kids-draw-new-document-dialog__volume-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .kids-draw-new-document-dialog .ds-dialog-scaffold__header-bar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--size-3);
+  }
+
+  .kids-draw-new-document-dialog .ds-dialog-scaffold__heading {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    text-align: left;
+    justify-items: start;
+  }
+
+  .kids-draw-new-document-dialog .ds-dialog-scaffold__leading {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .kids-draw-new-document-dialog .ds-dialog-scaffold__trailing {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+  }
 }

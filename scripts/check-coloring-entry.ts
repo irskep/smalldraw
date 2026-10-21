@@ -5,7 +5,7 @@ export async function checkColoringEntry(
   origin: string,
   name: string,
 ) {
-  for (const width of [1280, 390]) {
+  for (const width of [1280, 390, 320]) {
     const context = await browser.newContext({
       viewport: { width, height: 850 },
     });
@@ -51,6 +51,24 @@ export async function checkColoringEntry(
       await expect(
         dialog.getByText("Pick a page", { exact: true }),
       ).toBeVisible();
+      if (width <= 600) {
+        const heading = (await dialog
+          .locator(".ds-dialog-scaffold__heading")
+          .boundingBox())!;
+        const title = (await dialog
+          .locator(".ds-dialog-scaffold__title")
+          .boundingBox())!;
+        const back = (await dialog
+          .getByRole("button", { name: "Back", exact: true })
+          .boundingBox())!;
+        const close = (await dialog
+          .getByRole("button", { name: "Close", exact: true })
+          .boundingBox())!;
+        expect(heading.width).toBeGreaterThan(width * 0.8);
+        expect(title.height).toBeLessThan(35);
+        expect(back.y).toBeGreaterThanOrEqual(heading.y + heading.height);
+        expect(close.y).toBeCloseTo(back.y, 0);
+      }
       await page.screenshot({
         path: `/tmp/coloring-pages-${name}-${width}.png`,
       });
