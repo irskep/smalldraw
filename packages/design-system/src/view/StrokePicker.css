@@ -33,7 +33,10 @@
 }
 
 .ds-stroke-picker__button[data-selected="true"] {
-  border-color: var(--ds-ink);
+  --ds-control-tile-bg: var(--ds-ink);
+  --ds-control-tile-bg-active: var(--ds-ink);
+  --ds-control-tile-border: var(--ds-ink);
+  --ds-control-tile-color: var(--ds-surface);
 }
 
 .ds-stroke-picker__line {
