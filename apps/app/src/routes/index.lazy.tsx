@@ -8,6 +8,7 @@ import {
   type DsConfirmDialogHandle,
 } from "@/components/DsConfirmDialog/DsConfirmDialog";
 import { DsThumbnailTile } from "@/components/DsThumbnailTile/DsThumbnailTile";
+import { appPath } from "@/config";
 import { useResource, useAction } from "@/hooks/useResource";
 import { useAccount } from "@/utils/account";
 import { api } from "@/utils/api";
@@ -207,10 +208,6 @@ function Index() {
       {launcherState === "empty" ? (
         <ArtTable
           href={buildNewDrawingUrl(runtimeConfig, { account: isLoggedIn })}
-          coloringHref={buildNewDrawingUrl(runtimeConfig, {
-            account: isLoggedIn,
-            coloring: true,
-          })}
         />
       ) : null}
       <section className="portal-launcher" aria-label="Drawings">
@@ -239,10 +236,7 @@ function Index() {
               New drawing
             </a>
             <a
-              href={buildNewDrawingUrl(runtimeConfig, {
-                account: isLoggedIn,
-                coloring: true,
-              })}
+              href={appPath("coloringbook")}
               className="ds-button"
               data-tone="primary"
             >
