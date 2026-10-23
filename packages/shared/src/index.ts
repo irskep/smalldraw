@@ -47,7 +47,7 @@ export function isAppError(input: unknown): input is AppError {
   );
 }
 
-export const DRAW_APP_PATH = "/draw/";
+export * from "./drawingRoutes";
 export const PORTAL_ROUTE_PATTERNS = [
   "/",
   "/coloringbook",
@@ -65,59 +65,6 @@ export const PORTAL_ROUTE_PATTERNS = [
   "/admin/users/:username/documents/:documentId",
 ] as const;
 
-export type DrawingAppDocumentUrlParams =
-  | {
-      type: "new";
-      account?: boolean;
-      coloring?: boolean;
-      coloringPageId?: string;
-    }
-  | { type: "account"; documentId: string }
-  | { type: "local"; docUrl: string }
-  | { type: "join"; joinSecret: string };
-
-export function buildDrawingAppUrl(
-  baseUrl: string,
-  params?: DrawingAppDocumentUrlParams,
-): string {
-  const url = new URL(resolveDrawingAppBaseUrl(baseUrl));
-  url.search = "";
-  if (!params) {
-    return url.toString();
-  }
-  switch (params.type) {
-    case "new":
-      url.searchParams.set(
-        "new",
-        params.coloring || params.coloringPageId ? "coloring" : "1",
-      );
-      if (params.coloringPageId)
-        url.searchParams.set("page", params.coloringPageId);
-      if (params.account) {
-        url.searchParams.set("account", "1");
-      }
-      break;
-    case "account":
-      url.searchParams.set("doc", params.documentId);
-      break;
-    case "local":
-      url.searchParams.set("local", params.docUrl);
-      break;
-    case "join":
-      url.searchParams.set("join", params.joinSecret);
-      break;
-  }
-  return url.toString();
-}
-
-export function resolveDrawingAppBaseUrl(baseUrl: string): string {
-  const url = new URL(baseUrl);
-  url.pathname = normalizeDrawPath(url.pathname);
-  url.search = "";
-  url.hash = "";
-  return url.toString();
-}
-
 export function buildDrawingAppRedirectPath(currentHref: string): string {
   const url = new URL(currentHref);
   return `${url.pathname}${url.search}`;
@@ -128,16 +75,6 @@ export function isPortalRoutePath(pathname: string): boolean {
   return PORTAL_ROUTE_PATTERNS.some((pattern) =>
     portalRoutePatternMatchesPath(pattern, normalized),
   );
-}
-
-function normalizeDrawPath(pathname: string): string {
-  if (pathname === DRAW_APP_PATH) {
-    return pathname;
-  }
-  if (pathname === "/" || pathname === "") {
-    return DRAW_APP_PATH;
-  }
-  return pathname.endsWith("/") ? pathname : `${pathname}/`;
 }
 
 function normalizePortalRoutePath(pathname: string): string {
@@ -299,6 +236,7 @@ export type SplatDocumentOpenIntent =
       picker?: "coloring";
       coloringPageId?: string;
     }
+  | { kind: "open-document"; documentId: string }
   | { kind: "open-local-document"; docUrl: string }
   | { kind: "open-share-link"; joinSecret: string }
   | { kind: "open-account-document"; documentId: string };

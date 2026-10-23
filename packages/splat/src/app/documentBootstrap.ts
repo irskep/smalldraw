@@ -1,6 +1,10 @@
 import type { DocumentId } from "@automerge/automerge-repo";
 import type { DrawingDocumentSize } from "@smalldraw/core";
-import { type AppError, createAppError } from "@smalldraw/shared";
+import {
+  type AppError,
+  createAppError,
+  drawingDocumentId,
+} from "@smalldraw/shared";
 
 import type {
   KidsDocumentBackend,
@@ -12,6 +16,7 @@ import {
   buildJoinedCatalogDocUrl,
   isCollaborativeDocument,
 } from "../documents";
+import { findDocumentById } from "../documents/findDocumentById";
 import { getDrawingWorkspace } from "../documents/workspace";
 import {
   isMultiplayerApiAuthError,
@@ -177,37 +182,53 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
   const startupPreImports: Array<{ binary: Uint8Array; docId: string }> = [];
 
   switch (options.startupIntent?.kind) {
-    case "open-local-document": {
-      const existing = await options.documentBackend.getDocument(
-        options.startupIntent.docUrl,
+    case "open-document": {
+      const existing = await findDocumentById(
+        options.documentBackend,
+        options.startupIntent.documentId,
       );
-      if (!existing) {
-        const resolved =
-          options.syncedAccountDocument && options.multiplayerApiClient
-            ? await resolveAccountDocumentForLocalOpen({
-                documentBackend: options.documentBackend,
-                multiplayerApiClient: options.multiplayerApiClient,
-                localRepo: null,
-                deviceTag: options.deviceTag,
-                summary: options.syncedAccountDocument,
-              })
-            : null;
-        if (!resolved) {
-          throw new DocumentAccessError({
-            appError: createAppError({
-              code: "DOCUMENT_NOT_FOUND",
-              title: "This drawing is not available here",
-              message: "This drawing is not stored in this browser anymore.",
-              severity: "recoverable",
-              retryable: false,
-            }),
-          });
-        }
-        startupPreImports.push({
-          binary: resolved.binary,
-          docId: resolved.collabDocUrl,
+      return resolveStartupPreImportsAndCurrentDocument({
+        ...options,
+        startupIntent: existing
+          ? { kind: "open-local-document", docUrl: existing.docUrl }
+          : {
+              kind: "open-account-document",
+              documentId: options.startupIntent.documentId,
+            },
+      });
+    }
+    case "open-local-document": {
+      const existing =
+        (await options.documentBackend.getDocument(
+          options.startupIntent.docUrl,
+        )) ??
+        (await findDocumentById(
+          options.documentBackend,
+          drawingDocumentId(options.startupIntent.docUrl),
+        ));
+      if (
+        !existing &&
+        getDrawingWorkspace() !== null &&
+        options.multiplayerApiClient
+      ) {
+        return resolveStartupPreImportsAndCurrentDocument({
+          ...options,
+          startupIntent: {
+            kind: "open-account-document",
+            documentId: drawingDocumentId(options.startupIntent.docUrl),
+          },
         });
-        return startupPreImports;
+      }
+      if (!existing) {
+        throw new DocumentAccessError({
+          appError: createAppError({
+            code: "DOCUMENT_NOT_FOUND",
+            title: "This drawing is not available here",
+            message: "This drawing is not stored in this browser anymore.",
+            severity: "recoverable",
+            retryable: false,
+          }),
+        });
       }
       if (options.multiplayerApiClient) {
         const resolved = await resolveAccountDocumentForLocalOpen({
@@ -224,9 +245,7 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
           });
         }
       }
-      await options.documentBackend.setCurrentDocument(
-        options.startupIntent.docUrl,
-      );
+      await options.documentBackend.setCurrentDocument(existing.docUrl);
       return startupPreImports;
     }
     case "open-share-link": {

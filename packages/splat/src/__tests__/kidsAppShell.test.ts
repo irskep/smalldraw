@@ -1641,7 +1641,7 @@ describe("splatterboard shell", () => {
     app.destroy();
   });
 
-  test("local document startup still refreshes account metadata", async () => {
+  test("local document startup does not wait for unrelated account metadata", async () => {
     const originalFetch = globalThis.fetch;
     const fetchMock = (async (
       input: RequestInfo | URL,
@@ -1715,17 +1715,9 @@ describe("splatterboard shell", () => {
 
       const documents = await backend.listDocuments();
       expect(await backend.getCurrentDocument()).toBe("automerge:local-doc");
-      expect(
-        documents.find(
-          (document) => document.docUrl === "catalog-collab:account-doc-a",
-        ),
-      ).toMatchObject({
-        title: "Account Doc A",
-        collaborative: true,
-        collabDocUrl: "automerge:account-doc-a",
-        accountAttached: true,
-        accessToken: undefined,
-      });
+      expect(documents.map((document) => document.docUrl)).toEqual([
+        "automerge:local-doc",
+      ]);
 
       app.destroy();
     } finally {
@@ -1736,7 +1728,7 @@ describe("splatterboard shell", () => {
     }
   });
 
-  test("stale local document URL after local data reset falls back to account catalog", async () => {
+  test("stale local document URL never opens an unrelated account drawing", async () => {
     const originalFetch = globalThis.fetch;
     const requests: string[] = [];
     const fetchMock = (async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -1803,14 +1795,11 @@ describe("splatterboard shell", () => {
         },
       });
 
-      expect(requests.some((url) => url.includes("/listAccount"))).toBe(true);
-      expect(await backend.getCurrentDocument()).toBe(
-        "catalog-collab:account-doc-a",
-      );
+      expect(requests.some((url) => url.includes("/listAccount"))).toBe(false);
+      expect(await backend.getCurrentDocument()).toBeNull();
       expect(
-        (await backend.getDocument("catalog-collab:account-doc-a"))
-          ?.accessToken,
-      ).toBe("account-access-a");
+        container.querySelector(".ds-document-access-state")?.textContent,
+      ).toContain("This drawing is not available here");
 
       app.destroy();
     } finally {

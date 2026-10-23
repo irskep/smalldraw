@@ -1,5 +1,6 @@
 import {
   resolveDrawingAppBaseUrl,
+  parseDrawingAppUrl,
   type SplatDocumentOpenIntent,
 } from "@smalldraw/shared";
 import { getColoringPageById } from "@smalldraw/splat/coloring";
@@ -71,6 +72,7 @@ export function resolveStartupOpenParams(search: string): StartupOpenParams {
       return {};
     case "open-share-link":
       return { joinSecret: intent.joinSecret };
+    case "open-document":
     case "open-account-document":
       return { accountDocumentId: intent.documentId };
     case "open-local-document":
@@ -81,48 +83,18 @@ export function resolveStartupOpenParams(search: string): StartupOpenParams {
 }
 
 export function resolveSplatStartupIntent(search: string): SplatStartupIntent {
-  const params = new URLSearchParams(search);
-  const joinSecret = params.get("join") ?? undefined;
-  const accountDocumentId = params.get("doc") ?? undefined;
-  const localDocUrl = params.get("local") ?? undefined;
-  const createNew = params.has("new") ? "1" : undefined;
-  const requestedDocumentCount = [
-    createNew,
-    joinSecret,
-    accountDocumentId,
-    localDocUrl,
-  ].filter((value) => value !== undefined).length;
-  if (requestedDocumentCount > 1) {
+  const intent = parseDrawingAppUrl(search);
+  if (
+    intent.kind === "create-new-document" &&
+    intent.coloringPageId !== undefined &&
+    !getColoringPageById(intent.coloringPageId)
+  ) {
     return {
       kind: "startup-error",
-      message: "Open only one drawing URL at a time.",
+      message: "This coloring page could not be found.",
     };
   }
-  if (joinSecret) {
-    return { kind: "open-share-link", joinSecret };
-  }
-  if (createNew) {
-    const pageId = params.get("page");
-    if (pageId !== null) {
-      if (params.get("new") !== "coloring" || !getColoringPageById(pageId)) {
-        return {
-          kind: "startup-error",
-          message: "This coloring page could not be found.",
-        };
-      }
-      return { kind: "create-new-document", coloringPageId: pageId };
-    }
-    return params.get("new") === "coloring"
-      ? { kind: "create-new-document", picker: "coloring" }
-      : { kind: "create-new-document" };
-  }
-  if (accountDocumentId) {
-    return { kind: "open-account-document", documentId: accountDocumentId };
-  }
-  if (localDocUrl) {
-    return { kind: "open-local-document", docUrl: localDocUrl };
-  }
-  return { kind: "open-last-local" };
+  return intent;
 }
 
 const DEVICE_TAG_STORAGE_KEY = "kids-draw-device-tag";

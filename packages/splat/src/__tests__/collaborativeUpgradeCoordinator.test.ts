@@ -85,7 +85,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
       joinSecret: "join-secret-1",
       accessToken: "access-token-1",
       accessTokenScope: "owner",
-      joinUrl: "https://splatterboard.app/draw/?join=join-secret-1",
+      joinUrl: "https://splatterboard.app/draw/shared/join-secret-1",
       upgraded: true,
     });
     expect(getDocumentCalls).toEqual(["automerge:catalog-doc"]);
@@ -163,7 +163,7 @@ describe("createCollaborativeUpgradeCoordinator", () => {
       joinSecret: "existing-secret",
       accessToken: "existing-access",
       accessTokenScope: "owner",
-      joinUrl: "https://splatterboard.app/draw/?join=existing-secret",
+      joinUrl: "https://splatterboard.app/draw/shared/existing-secret",
       upgraded: false,
     });
     expect(created).toBeFalse();

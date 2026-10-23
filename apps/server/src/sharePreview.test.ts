@@ -69,7 +69,7 @@ test("guest owner publishes a crawler-readable preview; share credentials cannot
     "https://splatterboard.app",
   );
   expect(preview).toEqual({
-    url: `https://splatterboard.app/draw/?join=${drawing.joinSecret}`,
+    url: `https://splatterboard.app/draw/shared/${drawing.joinSecret}`,
     image: expect.stringMatching(
       /^https:\/\/images\.example\.com\/documents\/preview-drawing\/thumbnail\.png\?v=\d+$/,
     ),

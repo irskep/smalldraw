@@ -842,3 +842,22 @@ test("queued saves retain edits made during upload and retry failed requests", a
     watcher.dispose();
   }
 });
+
+test("opening a known guest drawing does not wait for an account request", async () => {
+  setDrawingWorkspace(null);
+  const backend = createLocalDocumentBackend();
+  const id = crypto.randomUUID();
+  await backend.createDocument({ docUrl: `automerge:${id}` });
+  const { api } = fakeApi();
+  const lookup = spyOn(api, "getCurrentAccount").mockImplementation(
+    () => new Promise(() => {}),
+  );
+  try {
+    await prepareAccountWorkspace(api, id);
+    expect(lookup).not.toHaveBeenCalled();
+    expect(getDrawingWorkspace()).toBeNull();
+  } finally {
+    lookup.mockRestore();
+    await backend.deleteDocument(`automerge:${id}`);
+  }
+});

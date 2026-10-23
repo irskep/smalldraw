@@ -147,6 +147,8 @@ export async function checkGuestSharing(
     const link = sender.getByLabel("Share URL");
     await expect(link).toBeVisible({ timeout: 20000 });
     const join = await link.inputValue();
+    expect(new URL(join).pathname).toMatch(/^\/draw\/shared\/[^/]+$/);
+    expect(new URL(join).search).toBe("");
     expect(previews).toBeGreaterThanOrEqual(1);
     expect(uploadIds).toHaveLength(2);
     expect(uploadIds[0]).toBe(uploadIds[1]);
@@ -164,6 +166,18 @@ export async function checkGuestSharing(
     await receiver.goto(join);
     await ready(receiver);
     expect(await count(receiver)).toBe(9);
+    await receiver.waitForURL(/\/draw\/[A-Za-z0-9_-]{20,}$/);
+    const cleanJoinedUrl = receiver.url();
+    const oldJoin = `${origin}/draw/?join=${encodeURIComponent(new URL(join).pathname.split("/").at(-1)!)}`;
+    const oldReceiver = await browser.newPage();
+    try {
+      await oldReceiver.goto(oldJoin);
+      await ready(oldReceiver);
+      await expect(oldReceiver).toHaveURL(cleanJoinedUrl);
+      expect(await count(oldReceiver)).toBe(9);
+    } finally {
+      await oldReceiver.close();
+    }
     const shared = await receiver.evaluate(
       () =>
         `catalog-collab:${(window as any).kidsDrawApp.core.getCurrentDocUrl().replace("automerge:", "")}`,

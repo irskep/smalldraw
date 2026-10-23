@@ -114,7 +114,7 @@ export async function checkPortalRouting(browser: Browser, origin: string) {
       .getByRole("link", { name: "Start drawing", exact: true })
       .click();
     await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
-    expect(new URL(page.url()).pathname).toBe("/draw/");
+    await page.waitForURL(/\/draw\/[A-Za-z0-9_-]{20,}$/);
     expect(
       await page.evaluate(() => (window as any).routingDocumentId),
     ).not.toBe(beforeDrawing);

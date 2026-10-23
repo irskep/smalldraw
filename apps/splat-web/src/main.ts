@@ -1,3 +1,4 @@
+import { resolveDrawingAppBaseUrl } from "@smalldraw/shared";
 import { createWebAnalytics } from "@smalldraw/shared/analytics";
 
 import "@smalldraw/splat/styles.css";
@@ -22,7 +23,7 @@ try {
   const multiplayerConfig = createBrowserMultiplayerConfig();
   const browseOnStart =
     new URLSearchParams(window.location.search).get("browse") === "1";
-  const startupIntent = resolveSplatStartupIntent(window.location.search);
+  const startupIntent = resolveSplatStartupIntent(window.location.href);
   const accountSessionExpected =
     new URLSearchParams(window.location.search).get("account") === "1";
   if (startupIntent.kind === "startup-error") {
@@ -39,7 +40,9 @@ try {
       accountSessionExpected,
     },
     onDocumentCreationCancelled: () => {
-      window.location.assign(new URL("../", window.location.href).href);
+      window.location.assign(
+        new URL("../", resolveDrawingAppBaseUrl(window.location.href)).href,
+      );
     },
     onDocumentOpenRequested: (summary, docUrl) => {
       documentNavigation.pushDocument(summary, docUrl);

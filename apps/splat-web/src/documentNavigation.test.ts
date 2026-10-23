@@ -113,13 +113,11 @@ describe("createSplatDocumentNavigationStore", () => {
       "catalog-collab:server-doc",
     );
 
-    expect(window.location.href).toBe(
-      "http://localhost:3000/draw/?doc=server-doc",
-    );
+    expect(window.location.href).toBe("http://localhost:3000/draw/server-doc");
     expect(states.at(-1)).toEqual({
       type: "open-document",
-      key: "account:server-doc",
-      docUrl: "catalog-collab:server-doc",
+      key: "document:server-doc",
+      docUrl: "automerge:server-doc",
     });
 
     unbind();
@@ -138,12 +136,10 @@ describe("createSplatDocumentNavigationStore", () => {
       docUrl: "automerge:local",
     });
 
-    expect(window.location.href).toBe(
-      "http://localhost:3000/draw/?local=automerge%3Alocal&account=1",
-    );
+    expect(window.location.href).toBe("http://localhost:3000/draw/local");
     expect(store.get()).toEqual({
       type: "open-document",
-      key: "local:automerge:local",
+      key: "document:local",
       docUrl: "automerge:local",
     });
 
@@ -181,12 +177,12 @@ test("recording a loaded document never requests another open", () => {
   store.replaceCurrentDocument({ docUrl: "automerge:first" });
   expect(requests).toEqual([]);
   store.pushDocument(null, "automerge:second");
-  expect(requests).toEqual(["local:automerge:second"]);
+  expect(requests).toEqual(["document:second"]);
   store.replaceCurrentDocument({ docUrl: "automerge:second" });
   store.replaceCurrentDocument({ docUrl: "automerge:third" });
   expect(requests).toHaveLength(1);
   window.navigateBackTo("http://localhost:3000/draw/?local=automerge:first");
-  expect(requests).toEqual(["local:automerge:second", "local:automerge:first"]);
+  expect(requests).toEqual(["document:second", "local:automerge:first"]);
   off();
   store.dispose();
 });

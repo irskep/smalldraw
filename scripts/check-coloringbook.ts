@@ -200,7 +200,7 @@ export async function checkColoringbook(
       ).toBe(true);
       const href = (await dove.getAttribute("href"))!;
       await dove.click();
-      await page.waitForURL(/local=/);
+      await page.waitForURL(/\/draw\/[A-Za-z0-9_-]{20,}\/?$/);
       await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
       const firstUrl = page.url();
       const state = () =>
@@ -236,7 +236,7 @@ export async function checkColoringbook(
       await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
       await expect.poll(async () => (await state()).count).toBe(1);
       await page.goto(href);
-      await page.waitForURL(/local=/);
+      await page.waitForURL(/\/draw\/[A-Za-z0-9_-]{20,}\/?$/);
       expect(page.url()).not.toBe(firstUrl);
       await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
       await expect.poll(state).toEqual({

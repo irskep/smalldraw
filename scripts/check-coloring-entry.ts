@@ -51,6 +51,9 @@ export async function checkColoringEntry(
         fullPage: true,
       });
       await entry.click();
+      await expect(page.locator(".coloringbook")).toBeVisible();
+      // The home link now browses the gallery; exercise the editor picker separately.
+      await page.goto(`${origin}/draw/new?picker=coloring`);
       const dialog = page.locator(".kids-draw-new-document-dialog");
       await expect(dialog).toBeVisible();
       await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
@@ -66,6 +69,9 @@ export async function checkColoringEntry(
         await page.evaluate(() => (window as any).creationControlsFlashed),
       ).toBe(false);
       await entry.click();
+      await expect(page.locator(".coloringbook")).toBeVisible();
+      // The home link now browses the gallery; exercise the editor picker separately.
+      await page.goto(`${origin}/draw/new?picker=coloring`);
       await expect(dialog).toBeVisible();
       await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
       const catalogCheck = await context.newPage();
@@ -123,7 +129,7 @@ export async function checkColoringEntry(
       });
       await dialog.locator("[data-new-document-page]").first().click();
       await expect(dialog).toBeHidden();
-      await page.waitForURL(/local=/);
+      await page.waitForURL(/\/draw\/[A-Za-z0-9_-]{20,}\/?$/);
       const paper = page.locator(".kids-draw-frame");
       await expect(paper).toBeVisible();
       await expect
@@ -191,12 +197,7 @@ export async function checkColoringEntry(
         fullPage: true,
       });
       await entry.click();
-      await expect(
-        dialog.getByText("Pick something to color", { exact: true }),
-      ).toBeVisible();
-      await expect(
-        dialog.locator('[data-new-document-mode="normal"]'),
-      ).toBeHidden();
+      await expect(page.locator(".coloringbook")).toBeVisible();
       console.log(
         `PASS ${name} ${width}: landing → categories → page → fill → reload → saved drawing`,
       );

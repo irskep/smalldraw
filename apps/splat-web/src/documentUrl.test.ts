@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { buildSplatCurrentDocumentUrl } from "./documentUrl";
 
 describe("buildSplatCurrentDocumentUrl", () => {
-  test("preserves account parental controls when navigating to local drawings", () => {
+  test("removes launch-only account hints from canonical drawing addresses", () => {
     for (const href of [
       "http://localhost:3000/draw/?new=1&account=1",
       "http://localhost:3000/draw/?doc=server-doc",
@@ -11,8 +11,8 @@ describe("buildSplatCurrentDocumentUrl", () => {
       const result = new URL(
         buildSplatCurrentDocumentUrl(href, { docUrl: "automerge:local-doc" }),
       );
-      expect(result.searchParams.get("account")).toBe("1");
-      expect(result.searchParams.get("local")).toBe("automerge:local-doc");
+      expect(result.search).toBe("");
+      expect(result.pathname).toBe("/draw/local-doc");
     }
   });
 
@@ -21,7 +21,7 @@ describe("buildSplatCurrentDocumentUrl", () => {
       buildSplatCurrentDocumentUrl("http://localhost:3000/", {
         docUrl: "automerge:local-doc",
       }),
-    ).toBe("http://localhost:3000/draw/?local=automerge%3Alocal-doc");
+    ).toBe("http://localhost:3000/draw/local-doc");
   });
 
   test("uses account document ids for account-attached drawings", () => {
@@ -32,7 +32,7 @@ describe("buildSplatCurrentDocumentUrl", () => {
         collabDocUrl: "automerge:server-doc",
         accountAttached: true,
       }),
-    ).toBe("http://localhost:3000/draw/?doc=server-doc");
+    ).toBe("http://localhost:3000/draw/server-doc");
   });
 
   test("clears startup-only document params before writing the current doc", () => {
@@ -45,6 +45,6 @@ describe("buildSplatCurrentDocumentUrl", () => {
           collabDocUrl: "automerge:joined-doc",
         },
       ),
-    ).toBe("http://localhost:3000/draw/?local=catalog-collab%3Ajoined-doc");
+    ).toBe("http://localhost:3000/draw/joined-doc");
   });
 });

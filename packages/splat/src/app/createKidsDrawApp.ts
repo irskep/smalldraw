@@ -9,6 +9,7 @@ import {
   type AccountSettings,
   type AccountShareMode,
   buildDrawingAppUrl,
+  drawingDocumentId,
   isCorrectParentalControlsMathAnswer,
   loadParentalControlsState,
   openParentalControlsSettings,
@@ -33,6 +34,7 @@ import {
   signOutAccountWorkspace,
   watchAccountWorkspace,
 } from "../documents/accountWorkspace";
+import { findDocumentById } from "../documents/findDocumentById";
 import { getDrawingWorkspace } from "../documents/workspace";
 import { resolveLogicalSizeFromAvailableArea } from "../layout/responsiveLayout";
 import { createRasterPipeline } from "../render/createRasterPipeline";
@@ -413,7 +415,13 @@ export async function createKidsDrawApp(
   }
   const commands = {
     ...createUiIntentCommands(presentation.uiIntentStore),
-    openDocument: (docUrl: string) => controller.openDocument(docUrl),
+    openDocument: async (docUrl: string) => {
+      const summary = await findDocumentById(
+        runtime.documentBackend,
+        drawingDocumentId(docUrl),
+      );
+      return controller.openDocument(summary?.docUrl ?? docUrl);
+    },
   };
 
   return {
@@ -443,6 +451,7 @@ function shouldLoadAccountSettings(
     return false;
   }
   return (
+    getDrawingWorkspace() !== null ||
     multiplayer.accountSessionExpected === true ||
     multiplayer.startupIntent?.kind === "open-account-document"
   );
@@ -569,7 +578,10 @@ function describeInitialBlockingState(
       recoveryActions: "none",
     };
   }
-  if (startupIntent?.kind === "open-account-document") {
+  if (
+    startupIntent?.kind === "open-account-document" ||
+    startupIntent?.kind === "open-document"
+  ) {
     return {
       type: "loading",
       title: "Opening drawing…",

@@ -3,10 +3,12 @@ import type {
   DocumentId,
   Repo,
 } from "@automerge/automerge-repo/slim";
+import { drawingDocumentId } from "@smalldraw/shared";
 import { atom } from "nanostores";
 
 import type { MultiplayerApiClient } from "../app/createMultiplayerApiClient";
 import { createAccountSyncQueue } from "./accountSyncQueue";
+import { findDocumentById } from "./findDocumentById";
 import { createLocalDocumentBackend } from "./localDocumentBackend";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "./types";
 import {
@@ -56,6 +58,7 @@ async function finishPurge(): Promise<void> {
 /** Resolve identity before opening any catalog or Automerge cache. */
 export async function prepareAccountWorkspace(
   api: MultiplayerApiClient,
+  localDocumentId?: string,
 ): Promise<void> {
   await navigator.locks.request(TRANSITION, async () => {
     const pendingPurge = localStorage.getItem(PURGE);
@@ -77,6 +80,18 @@ export async function prepareAccountWorkspace(
         throw error;
       } finally {
         bus.close();
+      }
+    }
+    // A known guest drawing requires no account lookup to open. Account caches
+    // still go through identity validation and the logout purge above.
+    if (localDocumentId && getLastDrawingWorkspace() === null) {
+      const document = await findDocumentById(
+        backendFor(null),
+        drawingDocumentId(localDocumentId),
+      );
+      if (document && !document.accountAttached) {
+        setDrawingWorkspace(null);
+        return;
       }
     }
     let user: Awaited<ReturnType<MultiplayerApiClient["getCurrentAccount"]>>;

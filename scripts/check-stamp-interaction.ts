@@ -5,7 +5,7 @@ export async function checkStampInteraction(source: Page, browserName: string) {
   try {
     const page = await context.newPage();
     await page.goto(new URL("/draw/?new=1", source.url()).href);
-    await page.waitForURL(/local=/);
+    await page.waitForURL(/\/draw\/[A-Za-z0-9_-]{20,}\/?$/);
     await expect(page.locator(".kids-draw-frame")).toBeVisible();
     await exerciseStamps(page, browserName);
   } finally {

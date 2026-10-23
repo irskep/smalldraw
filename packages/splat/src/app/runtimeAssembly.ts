@@ -105,7 +105,15 @@ export async function assembleAppRuntime(
       })
     : null;
   if (multiplayerApiClient && !options.core && !options.documentBackend) {
-    await prepareAccountWorkspace(multiplayerApiClient);
+    const intent = options.multiplayer?.startupIntent;
+    await prepareAccountWorkspace(
+      multiplayerApiClient,
+      intent?.kind === "open-document"
+        ? intent.documentId
+        : intent?.kind === "open-local-document"
+          ? intent.docUrl
+          : undefined,
+    );
   }
   const documentBackend =
     options.documentBackend ?? createLocalDocumentBackend();
@@ -127,16 +135,12 @@ export async function assembleAppRuntime(
     throw new Error("Multiplayer API is not configured.");
   }
 
-  const shouldRefreshAccountCatalog =
-    startupIntent.kind === "open-last-local" ||
-    startupIntent.kind === "open-local-document";
+  const shouldRefreshAccountCatalog = startupIntent.kind === "open-last-local";
   const syncedAccountDocument = shouldRefreshAccountCatalog
     ? await syncAccountCatalog({
         documentBackend,
         multiplayerApiClient,
-        selectFirstIfNoCurrent:
-          startupIntent.kind === "open-last-local" ||
-          startupIntent.kind === "open-local-document",
+        selectFirstIfNoCurrent: true,
       })
     : null;
   let startupPreImports: Array<{ binary: Uint8Array; docId: string }> = [];

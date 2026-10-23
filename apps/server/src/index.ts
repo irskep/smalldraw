@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { parseDrawingAppUrl } from "@smalldraw/shared";
 import { isPortalRoutePath, getColoringTopic } from "@smalldraw/shared";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import cors, { type CorsOptions } from "cors";
@@ -134,11 +135,12 @@ app.get("/draw/*", async (req, res, next) => {
     return res.status(404).send("Drawing app build not found");
   }
   try {
-    if (typeof req.query.join === "string") {
+    const intent = parseDrawingAppUrl(req.originalUrl);
+    if (intent.kind === "open-share-link") {
       const protocol =
         req.get("x-forwarded-proto") === "https" ? "https" : req.protocol;
       const preview = await getSharePreview(
-        req.query.join,
+        intent.joinSecret,
         `${protocol}://${req.get("host")}`,
       );
       if (preview) {

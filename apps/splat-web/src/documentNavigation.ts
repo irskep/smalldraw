@@ -127,7 +127,7 @@ export function resolveNavigationState(
   href: string,
 ): SplatDocumentNavigationState {
   const url = new URL(href);
-  const intent = resolveSplatStartupIntent(url.search);
+  const intent = resolveSplatStartupIntent(url.href);
   return navigationStateFromStartupIntent(intent);
 }
 
@@ -135,6 +135,12 @@ function navigationStateFromStartupIntent(
   intent: SplatStartupIntent,
 ): SplatDocumentNavigationState {
   switch (intent.kind) {
+    case "open-document":
+      return {
+        type: "open-document",
+        key: `document:${intent.documentId}`,
+        docUrl: `automerge:${intent.documentId}`,
+      };
     case "open-local-document":
       return {
         type: "open-document",

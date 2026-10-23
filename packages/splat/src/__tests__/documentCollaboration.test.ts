@@ -56,10 +56,10 @@ describe("document collaboration helpers", () => {
 
   test("buildJoinUrl encodes join secret as query param", () => {
     expect(buildJoinUrl("abc 123", "https://splatterboard.app/draw")).toBe(
-      "https://splatterboard.app/draw/?join=abc+123",
+      "https://splatterboard.app/draw/shared/abc%20123",
     );
     expect(buildJoinUrl("next", "https://splatterboard.app/draw?foo=bar")).toBe(
-      "https://splatterboard.app/draw/?join=next",
+      "https://splatterboard.app/draw/shared/next",
     );
   });
 

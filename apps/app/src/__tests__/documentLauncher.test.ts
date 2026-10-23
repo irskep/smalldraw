@@ -27,7 +27,7 @@ describe("document launcher", () => {
       {
         key: "local:automerge:local-doc",
         title: "Local sketch",
-        href: "http://localhost:3000/draw/?local=automerge%3Alocal-doc",
+        href: "http://localhost:3000/draw/local-doc",
         badge: null,
         thumbnailUrl: undefined,
         deleteAction: { type: "local", docUrl: "automerge:local-doc" },

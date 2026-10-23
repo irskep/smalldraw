@@ -12,6 +12,7 @@ import { checkAnalytics } from "./check-analytics";
 import { checkColoringEntry } from "./check-coloring-entry";
 import { checkColoringTopics } from "./check-coloring-topics";
 import { checkColoringbook } from "./check-coloringbook";
+import { checkDrawingUrls } from "./check-drawing-urls";
 import { checkGuestSharing } from "./check-guest-sharing";
 import { checkPortalRouting } from "./check-portal-routing";
 import { checkStampInteraction } from "./check-stamp-interaction";
@@ -58,7 +59,7 @@ async function checkCaptureLoss(
   const check = await page.context().browser()!.newPage();
   try {
     await check.goto(`${origin}/draw/?new=1`);
-    await check.waitForURL(/local=/);
+    await check.waitForURL(/\/draw\/[A-Za-z0-9_-]{20,}\/?$/);
     const paper = check.locator(".kids-draw-frame");
     await expect(paper).toBeVisible();
     const count = () =>
@@ -648,6 +649,7 @@ try {
     await checkColoringbook(safari, origin, "webkit");
     await checkColoringTopics(safari, origin, "webkit");
     await checkColoringEntry(safari, origin, "webkit");
+    await checkDrawingUrls(safari, origin);
     await checkGuestSharing(safari, origin);
     const privatePage = await safari.newPage({
       viewport: { width: 1280, height: 800 },
@@ -660,7 +662,7 @@ try {
     await privatePage.goto(`${origin}/draw/?new=1`);
     const paper = privatePage.locator(".kids-draw-frame");
     await expect(paper).toBeVisible();
-    await privatePage.waitForURL(/local=/);
+    await privatePage.waitForURL(/\/draw\/[A-Za-z0-9_-]{20,}\/?$/);
     await expect(paper).toHaveAttribute("data-loading", "false");
     await paper.hover({ position: { x: 50, y: 50 } });
     const box = (await paper.boundingBox())!;
@@ -766,6 +768,7 @@ try {
   await checkRandomize(page, "chromium");
   await checkColoringbook(browser, origin, "chromium");
   await checkColoringTopics(browser, origin, "chromium");
+  await checkDrawingUrls(browser, origin);
   await checkColoringEntry(browser, origin, "chromium");
   await checkStampInteraction(page, "chromium");
   await checkCaptureLoss(page, "chromium");
@@ -906,13 +909,7 @@ try {
     page.getByRole("heading", { name: "Your drawings" }),
   ).toBeVisible();
   const repliesBeforeOpen = checkpointReplies;
-  await page.goto(
-    drawingUrl.replace(
-      /local=[^&]+/,
-      (match) =>
-        `doc=${decodeURIComponent(match.slice(6)).replace("automerge:", "")}`,
-    ),
-  );
+  await page.goto(drawingUrl);
   await editorReady();
   await expect.poll(shapeCount).toBe(3);
   expect(errors).toEqual([]);

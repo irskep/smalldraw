@@ -33,25 +33,25 @@ describe("drawing app route helpers", () => {
       buildDrawingAppUrl("http://localhost:3000", {
         type: "new",
       }),
-    ).toBe("http://localhost:3000/draw/?new=1");
+    ).toBe("http://localhost:3000/draw/new");
     expect(
       buildDrawingAppUrl("http://localhost:3000", {
         type: "account",
         documentId: "doc with spaces",
       }),
-    ).toBe("http://localhost:3000/draw/?doc=doc+with+spaces");
+    ).toBe("http://localhost:3000/draw/doc%20with%20spaces");
     expect(
       buildDrawingAppUrl("http://localhost:3000", {
         type: "local",
         docUrl: "automerge:local",
       }),
-    ).toBe("http://localhost:3000/draw/?local=automerge%3Alocal");
+    ).toBe("http://localhost:3000/draw/local");
     expect(
       buildDrawingAppUrl("http://localhost:3000", {
         type: "join",
         joinSecret: "abc 123",
       }),
-    ).toBe("http://localhost:3000/draw/?join=abc+123");
+    ).toBe("http://localhost:3000/draw/shared/abc%20123");
   });
 
   test("builds same-origin auth redirect paths", () => {
@@ -91,7 +91,7 @@ test("coloring entry retains account intent", () => {
       account: true,
     }),
   );
-  expect(url.searchParams.get("new")).toBe("coloring");
+  expect(url.searchParams.get("picker")).toBe("coloring");
   expect(url.searchParams.get("account")).toBe("1");
 });
 
@@ -103,7 +103,74 @@ test("coloring gallery is public and links to a fresh selected drawing", () => {
       coloringPageId: "coloring/pavelkukov/dove.svg",
     }),
   );
-  expect(url.pathname).toBe("/draw/");
-  expect(url.searchParams.get("new")).toBe("coloring");
+  expect(url.pathname).toBe("/draw/new");
+  expect(url.searchParams.has("new")).toBe(false);
   expect(url.searchParams.get("page")).toBe("coloring/pavelkukov/dove.svg");
+});
+
+import { parseDrawingAppUrl, type DrawingRouteIntent } from "./drawingRoutes";
+
+test.each([
+  ["/draw/", { kind: "open-last-local" }],
+  ["/draw/new", { kind: "create-new-document" }],
+  [
+    "/draw/new?page=animals-bird",
+    { kind: "create-new-document", coloringPageId: "animals-bird" },
+  ],
+  [
+    "/draw/new?picker=coloring",
+    { kind: "create-new-document", picker: "coloring" },
+  ],
+  ["/draw/abc123", { kind: "open-document", documentId: "abc123" }],
+  ["/draw/shared/secret", { kind: "open-share-link", joinSecret: "secret" }],
+  [
+    "/draw/?local=automerge%3Aabc123",
+    { kind: "open-local-document", docUrl: "automerge:abc123" },
+  ],
+  [
+    "/draw/?local=catalog-collab%3Aabc123",
+    { kind: "open-local-document", docUrl: "catalog-collab:abc123" },
+  ],
+  [
+    "/draw/?doc=abc123",
+    { kind: "open-account-document", documentId: "abc123" },
+  ],
+  ["/draw/?join=secret", { kind: "open-share-link", joinSecret: "secret" }],
+  [
+    "/draw/?new=coloring&page=animals-bird",
+    { kind: "create-new-document", coloringPageId: "animals-bird" },
+  ],
+] satisfies [string, DrawingRouteIntent][])(
+  "parses clean and existing links: %s",
+  (href, intent) => {
+    expect(parseDrawingAppUrl(href as string)).toEqual(intent);
+  },
+);
+
+test.each([
+  "/draw/a/b",
+  "/draw/shared",
+  "/draw/%FF",
+  "/draw/abc?doc=other",
+  "/draw/?local=a&doc=b",
+  "/draw/?join=",
+  "/draw/automerge%3Aabc",
+])("rejects ambiguous or malformed address: %s", (href) => {
+  expect(parseDrawingAppUrl(href).kind).toBe("startup-error");
+});
+
+test("builds from deep routes without appending to the current document", () => {
+  for (const current of [
+    "/draw/abc",
+    "/draw/shared/secret",
+    "/draw/new",
+    "/draw/?local=old",
+  ]) {
+    expect(
+      buildDrawingAppUrl(`https://example.com${current}`, {
+        type: "local",
+        docUrl: "catalog-collab:next",
+      }),
+    ).toBe("https://example.com/draw/next");
+  }
 });

@@ -62,7 +62,7 @@ describe("drawing app links", () => {
       buildDrawingDocumentUrl("doc with spaces", {
         drawingAppBaseUrl: "http://localhost:3000/draw/",
       }),
-    ).toBe("http://localhost:3000/draw/?doc=doc+with+spaces");
+    ).toBe("http://localhost:3000/draw/doc%20with%20spaces");
   });
 
   test("builds explicit new and local drawing URLs", () => {
@@ -70,7 +70,7 @@ describe("drawing app links", () => {
       buildNewDrawingUrl({
         drawingAppBaseUrl: "http://localhost:3000/draw/",
       }),
-    ).toBe("http://localhost:3000/draw/?new=1");
+    ).toBe("http://localhost:3000/draw/new");
     expect(
       buildNewDrawingUrl(
         {
@@ -78,11 +78,11 @@ describe("drawing app links", () => {
         },
         { account: true },
       ),
-    ).toBe("http://localhost:3000/draw/?new=1&account=1");
+    ).toBe("http://localhost:3000/draw/new?account=1");
     expect(
       buildLocalDrawingUrl("automerge:local doc", {
         drawingAppBaseUrl: "http://localhost:3000/draw/",
       }),
-    ).toBe("http://localhost:3000/draw/?local=automerge%3Alocal+doc");
+    ).toBe("http://localhost:3000/draw/local%20doc");
   });
 });

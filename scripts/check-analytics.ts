@@ -91,13 +91,17 @@ export async function checkAnalytics(
     await dialog
       .locator('[data-new-document-category="public-domain-review"]')
       .click();
-    await dialog.locator("[data-new-document-page]").first().click();
+    const chosenPage = dialog.locator("[data-new-document-page]").first();
+    const coloringPageId = await chosenPage.getAttribute(
+      "data-new-document-page",
+    );
+    await chosenPage.click();
     await expect(dialog).toBeHidden();
     await expect(paper).toBeVisible();
     await expect
-      .poll(() => eventCount("coloring-opened/pdr-v1/page-001"))
+      .poll(() => eventCount(`coloring-opened/${coloringPageId}`))
       .toBe(1);
-    expect(eventCount("coloring-started/pdr-v1/page-001")).toBe(0);
+    expect(eventCount(`coloring-started/${coloringPageId}`)).toBe(0);
     await page.evaluate(() =>
       (window as any).kidsDrawApp.store.updateSharedSettings({
         strokeColor: "#ff4d6d",
@@ -117,7 +121,7 @@ export async function checkAnalytics(
       coloringBox.y + coloringBox.height / 2,
     );
     await expect
-      .poll(() => eventCount("coloring-started/pdr-v1/page-001"), {
+      .poll(() => eventCount(`coloring-started/${coloringPageId}`), {
         timeout: 15000,
       })
       .toBe(1);
