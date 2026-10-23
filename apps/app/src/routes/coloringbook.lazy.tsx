@@ -58,7 +58,6 @@ export default function ColoringBook() {
                       height={page.size.height}
                     />
                   </span>
-                  <span className="ds-poster-card__label">{label}</span>
                 </a>
               );
             })}

@@ -50,11 +50,6 @@
   border-color: var(--ds-accent-border);
 }
 
-.coloringbook .ds-poster-card__label {
-  padding: var(--size-2);
-  font-size: var(--font-size-1);
-}
-
 @media (max-width: 480px) {
   .coloringbook {
     padding: var(--size-2);
