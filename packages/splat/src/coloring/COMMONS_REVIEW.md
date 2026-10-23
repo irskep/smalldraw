@@ -6,7 +6,7 @@ Imported sources, licenses, checksums, selected pages, and framing settings are 
 
 ## Remaining sources
 
-Commons repeatedly returned HTTP 429, including after its ten-minute cooldown. These files still need downloading and visual review; their presence here is not clearance to publish them.
+Commons repeatedly returned HTTP 429, including after its ten-minute cooldown. These sources still await import and visual review; their presence here is not clearance to publish them. `commonsDownloads.json` is the download queue. The resumable downloader tracks cached originals separately; use `mise run //packages/splat:coloring:download -- --status` for current download progress.
 
 - [Alphabet-number-1-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-1-at-coloringpagesforkidsboys-dotcom.svg)
 - [Alphabet-number-10-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-10-at-coloringpagesforkidsboys-dotcom.svg)

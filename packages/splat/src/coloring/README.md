@@ -121,3 +121,35 @@ its Commons record. Its abstract drawings are grouped with shapes and patterns.
 The large Peaksel collection is grouped by each drawing's subject. Repeated
 mandalas and the stormtrooper illustration are omitted; the latter needs
 permission beyond the uploader's license.
+
+## Resume Commons downloads
+
+The remaining source queue is saved in `commonsDownloads.json`, including the
+original Commons checksums and attribution. Download a batch with:
+
+```sh
+mise run //packages/splat:coloring:download
+mise run //packages/splat:coloring:download -- --status
+```
+
+The default cache is `~/.cache/smalldraw/coloring`. Each run downloads at most ten
+new files, with at least 60 seconds between requests. `--limit` changes the batch
+size; `--interval` changes the spacing. HTTP 429 and 503 responses save their
+`Retry-After` deadline and end the batch. Without that header, the cooldown is
+15 minutes. Running again during a saved cooldown makes no request; `--wait`
+waits for it to expire before starting. A new rate limit always ends the batch.
+
+Verified originals live in `originals/`. `commons-progress.json` records their
+paths and SHA-256 hashes. Interruptions retain completed downloads, and another
+process cannot download into the same cache concurrently. `--cache-dir` selects
+a different cache; use the same directory for every pass to preserve pacing.
+
+Review each downloaded image's license, crop, and rotation before adding it to
+`pdfSources.json`. Downloading does not add it to the gallery. The downloader also
+prepares the SHA-256 cache entries used by the importer:
+
+```sh
+mise run //packages/splat:coloring:import-pdf -- --cache-dir ~/.cache/smalldraw/coloring
+```
+
+Run downloader tests with `mise run //packages/splat:coloring:test-download`.
