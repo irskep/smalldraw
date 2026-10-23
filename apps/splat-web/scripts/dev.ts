@@ -24,6 +24,8 @@ Bun.serve({
   routes: {
     "/": index,
     "/index.html": index,
+    "/draw": index,
+    "/draw/": index,
     "/favicon.svg": () =>
       new Response(Bun.file(new URL("../public/favicon.svg", import.meta.url))),
     "/fill-worker.js": serveFillWorker,
