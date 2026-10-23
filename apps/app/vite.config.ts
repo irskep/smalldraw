@@ -84,11 +84,13 @@ export default defineConfig(({ command }) => ({
           groups: [
             // Keep the shell and Home together; no route discovery round trip.
             { name: "landing", tags: ["$initial"], priority: 10 },
-            // WASM-backed account work should not load for ordinary portal pages.
+            // WASM-backed account work and read-only drawing inspection should
+            // not load for ordinary portal pages. Keep preview dependencies in
+            // this lazy group too, avoiding a portal -> renderer -> WASM edge.
             {
               name: "account-runtime",
               priority: 5,
-              test: /(?:node_modules\/(?:@automerge|@serenity-kit)\/|packages\/core\/|packages\/splat\/src\/documents\/createLocalSmalldrawRepo\.ts)/,
+              test: /(?:node_modules\/(?:@automerge|@serenity-kit)\/|packages\/(?:core|renderer-canvas)\/|packages\/splat\/src\/(?:documents\/createLocalSmalldrawRepo\.ts|render\/|shapes\/|tools\/stamps\/imageStampAssets\.ts))/,
             },
             { name: "portal" },
           ],
