@@ -6,7 +6,10 @@
 }
 
 .coloringbook__intro {
-  max-width: var(--size-content-3);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  align-items: center;
+  gap: var(--size-6);
 }
 
 .coloringbook h1,
@@ -19,9 +22,19 @@
   font-size: var(--font-size-fluid-3);
 }
 
-.coloringbook__intro p {
-  margin-block: var(--size-2);
-  font-size: var(--font-size-2);
+.coloringbook__preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: var(--border-size-1) solid var(--ds-border);
+  border-radius: var(--radius-3);
+}
+
+@media (max-width: 700px) {
+  .coloringbook__intro {
+    grid-template-columns: 1fr;
+    gap: var(--size-3);
+  }
 }
 
 .coloringbook__subjects {

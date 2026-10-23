@@ -320,3 +320,7 @@ run = "hk check --all"
 description = "Build and smoke-test the production image with a disposable database"
 depends = ["prod:build"]
 run = "bun run scripts/test-docker.ts"
+
+[tasks."coloring:capture-preview"]
+description = "Capture the coloring-book header from the running editor, using its fill tool and palette. Optional argument: portal origin."
+run = "bun scripts/capture-coloringbook-preview.ts"

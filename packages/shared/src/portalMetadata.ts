@@ -8,7 +8,7 @@ const PUBLIC_PAGES: Record<string, { title: string; description: string }> = {
     description: DESCRIPTION,
   },
   "/coloringbook": {
-    title: "Splatterboard — A free coloring book app",
+    title: "Free coloring book — Splatterboard",
     description:
       "Pick a picture and start coloring. Explore animals, dinosaurs, butterflies, and more in Splatterboard’s free coloring book app. No ads or signup required.",
   },
@@ -56,17 +56,20 @@ export function getPortalMetadata(pathname: string) {
   og("og:title", page.title);
   og("og:description", page.description);
   og("og:url", url);
-  og("og:image", `${ORIGIN}/drawing-preview.png`);
+  const coloringBook = path === "/coloringbook";
+  const preview = `${ORIGIN}/${coloringBook ? "coloringbook-preview.png" : "drawing-preview.png"}`;
+  og("og:image", preview);
   og("og:image:type", "image/png");
-  og("og:image:width", "1280");
-  og("og:image:height", "800");
-  const alt =
-    "Splatterboard drawing tools around a rainbow, a purple cat, and a yellow sun.";
+  og("og:image:width", coloringBook ? "2200" : "1280");
+  og("og:image:height", coloringBook ? "1520" : "800");
+  const alt = coloringBook
+    ? "Splatterboard’s coloring tools and palette beside a green frog on a yellow background."
+    : "Splatterboard drawing tools around a rainbow, a purple cat, and a yellow sun.";
   og("og:image:alt", alt);
   meta("twitter:card", "summary_large_image");
   meta("twitter:title", page.title);
   meta("twitter:description", page.description);
-  meta("twitter:image", `${ORIGIN}/drawing-preview.png`);
+  meta("twitter:image", preview);
   meta("twitter:image:alt", alt);
   if (path === "/")
     elements.push({

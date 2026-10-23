@@ -30,3 +30,19 @@ test("client navigation replaces homepage metadata without duplicates", () => {
   updatePortalMetadata("/");
   expect(document.title).toContain("A free drawing app for kids");
 });
+
+test("coloring book uses its own title and colored editor preview", () => {
+  updatePortalMetadata("/coloringbook");
+  expect(document.title).toBe("Free coloring book — Splatterboard");
+  expect(
+    document.head
+      .querySelector('meta[property="og:image"]')
+      ?.getAttribute("content"),
+  ).toBe("https://splatterboard.app/coloringbook-preview.png");
+  expect(
+    document.head
+      .querySelector('meta[property="og:image:width"]')
+      ?.getAttribute("content"),
+  ).toBe("2200");
+  updatePortalMetadata("/");
+});

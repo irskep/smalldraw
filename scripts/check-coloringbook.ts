@@ -13,11 +13,20 @@ export async function checkColoringbook(
     try {
       await page.goto(`${origin}/coloringbook`);
       await expect(
-        page.getByRole("heading", { name: "A free coloring book app" }),
+        page.getByRole("heading", { name: "Free coloring book" }),
       ).toBeVisible();
-      await expect(page).toHaveTitle(
-        "Splatterboard — A free coloring book app",
-      );
+      await expect(page).toHaveTitle("Free coloring book — Splatterboard");
+      const preview = page.locator(".coloringbook__preview");
+      await expect(preview).toBeVisible();
+      await expect
+        .poll(() =>
+          preview.evaluate((image: HTMLImageElement) => image.naturalWidth),
+        )
+        .toBe(2200);
+      await page.evaluate(() => document.fonts.ready);
+      await page.screenshot({
+        path: `/tmp/coloringbook-header-${name}-${width}.png`,
+      });
       const dove = page.locator(
         '[data-coloring-page="coloring/pavelkukov/dove.svg"]',
       );

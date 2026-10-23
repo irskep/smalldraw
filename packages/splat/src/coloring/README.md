@@ -23,6 +23,10 @@ links use `/draw/?new=coloring&page=<catalog-id>` to create a fresh drawing.
 Opening the link again creates another copy; reloading the resulting `?local=`
 URL reopens that drawing. Unknown page IDs show a startup error.
 
+The gallery header is a real editor screenshot. Regenerate it with
+`mise run coloring:capture-preview` while the portal and editor are running;
+pass a portal origin to capture from another environment.
+
 ## Import SVG artwork
 
 ```sh

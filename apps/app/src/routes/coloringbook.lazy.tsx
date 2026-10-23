@@ -1,5 +1,6 @@
 import { getColoringCategories } from "@smalldraw/splat/coloring";
 
+import { appPath } from "../config";
 import { buildNewDrawingUrl } from "../utils/drawingAppLinks";
 
 import "./coloringbook.css";
@@ -12,8 +13,15 @@ export default function ColoringBook() {
   return (
     <div className="coloringbook">
       <header className="coloringbook__intro">
-        <h1>A free coloring book app</h1>
-        <p>Color with a tap, paint with a brush, or add a few stamps.</p>
+        <h1>Free coloring book</h1>
+        <img
+          className="coloringbook__preview"
+          src={appPath("coloringbook-preview.png")}
+          width="2200"
+          height="1520"
+          fetchPriority="high"
+          alt="Splatterboard’s coloring tools and palette beside a lime-green frog with a mint foot on a yellow background."
+        />
       </header>
       <nav className="coloringbook__subjects" aria-label="Coloring subjects">
         {categories.map((category) => (
