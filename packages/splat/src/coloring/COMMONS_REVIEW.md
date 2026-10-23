@@ -1,4 +1,4 @@
-# Commons source review — 2026-10-22
+# Commons source review — 2026-10-23
 
 Inventory: the [Printable coloring books category](https://commons.wikimedia.org/wiki/Category:Printable_coloring_books) and its alphabet subcategories. Superseded PNG copies of the heart alphabet were excluded in favor of SVG originals. The broader Coloring pages category has not been surveyed.
 
@@ -8,16 +8,6 @@ Imported sources, licenses, checksums, selected pages, and framing settings are 
 
 Commons repeatedly returned HTTP 429, including after its ten-minute cooldown. These files still need downloading and visual review; their presence here is not clearance to publish them.
 
-- [Printable Coloring Pages for Adults - Free Adult Coloring Book.pdf](https://commons.wikimedia.org/wiki/File:Printable_Coloring_Pages_for_Adults_-_Free_Adult_Coloring_Book.pdf)
-- [Q is for Queen.pdf](https://commons.wikimedia.org/wiki/File:Q_is_for_Queen.pdf)
-- [Spring Coloring Pages - Printable Coloring Book For Kids.pdf](https://commons.wikimedia.org/wiki/File:Spring_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf)
-- [U is for Unicorn.pdf](https://commons.wikimedia.org/wiki/File:U_is_for_Unicorn.pdf)
-- [Vegepedia Full Print Version.pdf](https://commons.wikimedia.org/wiki/File:Vegepedia_Full_Print_Version.pdf)
-- [Alphabet-k-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-k-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-l-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-l-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-m-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-m-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-n-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-n-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-0-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-0-at-coloringpagesforkidsboys-dotcom.svg)
 - [Alphabet-number-1-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-1-at-coloringpagesforkidsboys-dotcom.svg)
 - [Alphabet-number-10-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-10-at-coloringpagesforkidsboys-dotcom.svg)
 - [Alphabet-number-2-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-2-at-coloringpagesforkidsboys-dotcom.svg)
@@ -98,24 +88,29 @@ The same artwork appears in several Peaksel books. These are original one-based 
 - Page 6: `peaksel-dinosaurs`, page 7.
 - Page 7: `peaksel-horses`, page 11.
 - Page 8: `peaksel-dragons`, page 11.
+- Page 9: `peaksel-spring`, page 16.
 - Page 11: `peaksel-dinosaurs`, page 4.
 - Page 12: `peaksel-fish`, page 10.
 - Page 13: `peaksel-dinosaurs`, page 5.
 - Page 14: `peaksel-horses`, page 6.
+- Page 15: `peaksel-spring`, page 13.
 - Page 17: `peaksel-dragons`, page 20.
 - Page 18: `peaksel-dinosaurs`, page 12.
 - Page 20: `peaksel-dragons`, page 5.
 - Page 21: `peaksel-fish`, page 4.
+- Page 23: `peaksel-spring`, page 23.
 - Page 24: `peaksel-horses`, page 10.
 - Page 25: `peaksel-dinosaurs`, page 11.
 - Page 27: `peaksel-dragons`, page 8.
 - Page 28: `peaksel-fish`, page 11.
 - Page 29: `peaksel-dinosaurs`, page 16.
+- Page 31: `peaksel-spring`, page 5.
 - Page 32: `peaksel-dragons`, page 4.
 - Page 33: `peaksel-dinosaurs`, page 10.
 - Page 34: `peaksel-fish`, page 9.
 - Page 35: `peaksel-dragons`, page 16.
 - Page 36: `peaksel-dinosaurs`, page 9.
+- Page 37: `peaksel-spring`, page 24.
 
 ### Coloring Pages for Girls - Printable Coloring Book for Kids.pdf
 
@@ -126,6 +121,7 @@ The same artwork appears in several Peaksel books. These are original one-based 
 - Page 9: `peaksel-princesses`, page 9.
 - Page 10: `peaksel-butterflies`, page 4.
 - Page 11: `peaksel-princesses`, page 7.
+- Page 12: `peaksel-spring`, page 22.
 - Page 13: `peaksel-fairies`, page 15.
 - Page 15: `peaksel-flowers`, page 4.
 - Page 16: `peaksel-fish`, page 4.
@@ -133,6 +129,7 @@ The same artwork appears in several Peaksel books. These are original one-based 
 - Page 18: `peaksel-princesses`, page 12.
 - Page 20: `peaksel-fairies`, page 5.
 - Page 21: `peaksel-horses`, page 9.
+- Page 22: `peaksel-spring`, page 25.
 - Page 23: `peaksel-princesses`, page 11.
 - Page 24: `peaksel-flowers`, page 5.
 - Page 25: `peaksel-butterflies`, page 13.
@@ -161,6 +158,7 @@ The same artwork appears in several Peaksel books. These are original one-based 
 - Page 15: `peaksel-adventures`, page 5.
 - Page 16: `peaksel-dinosaurs`, page 7.
 - Page 17: `peaksel-butterflies`, page 4.
+- Page 19: `peaksel-spring`, page 12.
 - Page 20: `peaksel-stories`, page 14.
 - Page 21: `peaksel-adventures`, page 19.
 - Page 22: `peaksel-fish`, page 9.
@@ -170,21 +168,62 @@ The same artwork appears in several Peaksel books. These are original one-based 
 - Page 26: `peaksel-horses`, page 6.
 - Page 27: `peaksel-princesses`, page 23.
 - Page 28: `peaksel-adventures`, page 10.
+- Page 29: `peaksel-spring`, page 9.
 - Page 30: `peaksel-dragons`, page 5.
 - Page 31: `peaksel-fairies`, page 22.
 - Page 32: `peaksel-stories`, page 26.
 - Page 33: `peaksel-fish`, page 4.
+- Page 34: `peaksel-spring`, page 10.
 - Page 35: `peaksel-flowers`, page 4.
 - Page 36: `peaksel-adventures`, page 16.
 - Page 37: `peaksel-dragons`, page 9.
 - Page 38: `peaksel-fish`, page 10.
 - Page 39: `peaksel-stories`, page 6.
+- Page 40: `peaksel-spring`, page 11.
 - Page 41: `peaksel-dinosaurs`, page 4.
 - Page 42: `peaksel-flowers`, page 14.
 - Page 43: `peaksel-horses`, page 9.
+- Page 44: `peaksel-spring`, page 21.
 - Page 45: `peaksel-princesses`, page 9.
 - Page 46: `peaksel-horses`, page 11.
-- Page 47: `peaksel-stories`, page 22.
+- Page 47: `peaksel-spring`, page 25.
+
+### Printable Coloring Pages for Adults - Free Adult Coloring Book.pdf
+
+- Page 4: `peaksel-mandalas`, page 4.
+- Page 5: `peaksel-mandalas`, page 5.
+- Page 6: `peaksel-mandalas`, page 6.
+- Page 7: `peaksel-mandalas`, page 7.
+- Page 8: `peaksel-mandalas`, page 8.
+- Page 9: `peaksel-mandalas`, page 9.
+- Page 10: `peaksel-mandalas`, page 10.
+- Page 11: `peaksel-mandalas`, page 11.
+- Page 12: `peaksel-mandalas`, page 12.
+- Page 13: `peaksel-mandalas`, page 13.
+- Page 14: `peaksel-mandalas`, page 14.
+- Page 15: `peaksel-mandalas`, page 15.
+- Page 16: `peaksel-mandalas`, page 16.
+- Page 17: `peaksel-mandalas`, page 17.
+- Page 18: `peaksel-mandalas`, page 18.
+- Page 19: `peaksel-mandalas`, page 19.
+- Page 20: `peaksel-mandalas`, page 20.
+- Page 21: `peaksel-mandalas`, page 21.
+- Page 22: `peaksel-mandalas`, page 22.
+- Page 23: `peaksel-mandalas`, page 23.
+- Page 24: `peaksel-mandalas`, page 24.
+- Page 25: `peaksel-mandalas`, page 25.
+- Page 26: `peaksel-mandalas`, page 26.
+- Page 27: `peaksel-mandalas`, page 27.
+- Page 28: `peaksel-mandalas`, page 28.
+- Page 29: `peaksel-mandalas`, page 29.
+- Page 30: `peaksel-mandalas`, page 30.
+- Page 31: `peaksel-mandalas`, page 31.
+- Page 32: `peaksel-mandalas`, page 32.
+- Page 33: `peaksel-mandalas`, page 33.
+
+## Rights exclusions
+
+Excluded Printable Coloring Pages for Adults - Free Adult Coloring Book.pdf, page 257: Recognizable Star Wars stormtrooper; uploader license does not establish permission for the character.
 
 ## Other omissions
 

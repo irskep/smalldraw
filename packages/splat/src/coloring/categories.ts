@@ -15,7 +15,7 @@ const SUBJECTS = [
   { id: "magic", title: "Magic & fairy tales" },
   { id: "nature", title: "Flowers & nature" },
   { id: "food", title: "Food" },
-  { id: "letters", title: "Letters" },
+  { id: "letters", title: "Letters & numbers" },
   { id: "holidays", title: "Holidays" },
   { id: "patterns", title: "Shapes & patterns" },
   { id: "art", title: "Art & scenes" },

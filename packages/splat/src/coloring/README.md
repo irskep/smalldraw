@@ -114,3 +114,10 @@ activity. Review both the source page and its final preview when cropping.
 download and review, along with the retained copies of duplicate drawings.
 The Great Coloring Book of Dogs is CC0; its source record also identifies the
 public-domain illustrations used in the compilation.
+
+[Vegepedia](https://commons.wikimedia.org/wiki/File:Vegepedia_Full_Print_Version.pdf)
+by Nick Dolan uses CC BY 4.0, stated in the book's own introduction as well as
+its Commons record. Its abstract drawings are grouped with shapes and patterns.
+The large Peaksel collection is grouped by each drawing's subject. Repeated
+mandalas and the stormtrooper illustration are omitted; the latter needs
+permission beyond the uploader's license.
