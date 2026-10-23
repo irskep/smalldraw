@@ -11,7 +11,54 @@ export async function checkColoringbook(
     });
     const page = await context.newPage();
     try {
-      await page.goto(`${origin}/coloringbook`);
+      // The whole gallery must be usable before any client JavaScript arrives.
+      let releaseScripts!: () => void;
+      const scriptsReady = new Promise<void>((resolve) => {
+        releaseScripts = resolve;
+      });
+      await page.route("**/*", async (route) => {
+        if (route.request().resourceType() === "script") await scriptsReady;
+        await route.continue();
+      });
+      await page.goto(`${origin}/coloringbook`, { waitUntil: "commit" });
+      try {
+        await expect(
+          page.getByRole("heading", { name: "Free coloring book" }),
+        ).toBeVisible();
+        await expect(
+          page.locator("#public-domain-review [data-coloring-page]").last(),
+        ).toBeAttached();
+        await expect(page.locator(".coloringbook__pages").first()).toHaveCSS(
+          "display",
+          "grid",
+        );
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+        ).toBe(true);
+        const firstImage = page.locator(".coloringbook__pages img").first();
+        const firstCard = page.locator("[data-coloring-page]").first();
+        const imageBox = await firstImage.boundingBox();
+        const cardBox = await firstCard.boundingBox();
+        expect(imageBox!.width).toBeLessThanOrEqual(cardBox!.width);
+        expect(imageBox!.height).toBeLessThanOrEqual(cardBox!.height);
+        await page.evaluate(() => {
+          document
+            .querySelector("[data-coloring-page]")!
+            .setAttribute("data-before-hydration", "true");
+        });
+      } finally {
+        releaseScripts();
+      }
+      await expect(
+        page.getByRole("button", { name: "Menu", exact: true }),
+      ).toBeVisible();
+      // Hydration must retain the existing cards, not rebuild the gallery.
+      await expect(page.locator('[data-before-hydration="true"]')).toHaveCount(
+        1,
+      );
+      await page.unroute("**/*");
       await expect(
         page.getByRole("heading", { name: "Free coloring book" }),
       ).toBeVisible();

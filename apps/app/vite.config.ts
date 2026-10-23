@@ -7,11 +7,13 @@ import wasm from "vite-plugin-wasm";
 
 import { automergeAsset } from "../../scripts/automerge-asset.mjs";
 import { landingBudget } from "../../scripts/landing-budget.mjs";
+import { prerenderColoringBook } from "./prerender.js";
 
 export default defineConfig(({ command }) => ({
   base: process.env.VITE_BASE,
   plugins: [
     landingBudget(),
+    prerenderColoringBook(command === "build"),
     wasm(),
     preact(),
     {

@@ -375,7 +375,16 @@ try {
         return new Response(file);
       }
       if (path.extname(name)) return new Response("Not found", { status: 404 });
-      return new Response(Bun.file(path.join(directory, "index.html")));
+      return new Response(
+        Bun.file(
+          path.join(
+            directory,
+            !drawing && url.pathname.replace(/\/$/, "") === "/coloringbook"
+              ? "coloringbook.html"
+              : "index.html",
+          ),
+        ),
+      );
     },
   });
   await expect

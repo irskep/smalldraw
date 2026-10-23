@@ -1,15 +1,20 @@
 import { getColoringCategories } from "@smalldraw/splat/coloring";
 
 import { appPath } from "../config";
-import { buildNewDrawingUrl } from "../utils/drawingAppLinks";
-
-import "./coloringbook.css";
+import {
+  buildNewDrawingUrl,
+  type AccountWebRuntimeConfig,
+} from "../utils/drawingAppLinks";
 
 const categories = getColoringCategories();
 const assetUrl = (src: string) =>
   new URL(`/${src}`, import.meta.env.VITE_API_URL).href;
 
-export default function ColoringBook() {
+export function ColoringBookContent({
+  runtimeConfig,
+}: {
+  runtimeConfig?: AccountWebRuntimeConfig;
+}) {
   return (
     <div className="coloringbook">
       <header className="coloringbook__intro">
@@ -47,7 +52,7 @@ export default function ColoringBook() {
                 <a
                   className="ds-poster-card"
                   key={page.id}
-                  href={buildNewDrawingUrl(undefined, {
+                  href={buildNewDrawingUrl(runtimeConfig, {
                     coloringPageId: page.id,
                   })}
                   aria-label={`Color ${label}`}
@@ -76,4 +81,8 @@ export default function ColoringBook() {
       <a href={assetUrl("coloring/credits/credits.txt")}>Artwork credits</a>
     </div>
   );
+}
+
+export default function ColoringBook() {
+  return <ColoringBookContent />;
 }

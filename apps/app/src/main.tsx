@@ -3,14 +3,24 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 
 import { App } from "./components/App/App.js";
-
-import "./portal.css";
+import { appPath } from "./config";
+import { ColoringBook } from "./utils/router";
 
 const analytics = createWebAnalytics();
 analytics.page(window.location.pathname);
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+const root = document.getElementById("root")!;
+const app = (
   <React.StrictMode>
     <App onPageChange={() => analytics.page(window.location.pathname)} />
-  </React.StrictMode>,
+  </React.StrictMode>
 );
+
+function mount() {
+  if (root.hasChildNodes()) ReactDOM.hydrateRoot(root, app);
+  else ReactDOM.createRoot(root).render(app);
+}
+// Keep the generated gallery visible while its client code downloads.
+if (window.location.pathname.replace(/\/$/, "") === appPath("coloringbook")) {
+  void ColoringBook.preload().then(mount);
+} else mount();

@@ -32,7 +32,8 @@ function page(load: () => Promise<{ default: React.ComponentType }>) {
   return lazy(() => load().catch(() => ({ default: PageLoadError })));
 }
 
-const ColoringBook = page(() => import("../routes/coloringbook.lazy"));
+// oxlint-disable-next-line react/only-export-components -- This lazy component is preloaded by the entry point before hydration.
+export const ColoringBook = page(() => import("../routes/coloringbook.lazy"));
 const Login = page(() => import("../routes/login"));
 const Register = page(() => import("../routes/register"));
 const Data = page(() => import("../routes/data.lazy"));

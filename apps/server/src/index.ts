@@ -65,6 +65,7 @@ repoStorage.checkReady();
 if (process.env.NODE_ENV === "production") {
   fs.accessSync(indexHtmlPath, fs.constants.R_OK);
   fs.accessSync(drawIndexHtmlPath, fs.constants.R_OK);
+  fs.accessSync(path.join(staticDir, "coloringbook.html"), fs.constants.R_OK);
 }
 const metricsServer = process.env.METRICS_PORT
   ? startMetrics(Number(process.env.METRICS_PORT), () => ({
@@ -101,6 +102,9 @@ app.use(
 );
 
 app.get("/index.html", (_req, res) => res.redirect(301, "/"));
+app.get("/coloringbook.html", (_req, res) =>
+  res.redirect(301, "/coloringbook"),
+);
 app.use(
   express.static(staticDir, {
     index: false,
@@ -150,18 +154,26 @@ app.get("/draw/*", async (req, res, next) => {
   }
 });
 
-let portalTemplate: string | undefined;
+const portalTemplates = new Map<string, string>();
 
 app.get("*", (req, res, next) => {
   if (!isPortalRoutePath(req.path)) {
     next();
     return;
   }
-  if (!fs.existsSync(indexHtmlPath)) {
+  const templatePath =
+    req.path.replace(/\/$/, "") === "/coloringbook"
+      ? path.join(staticDir, "coloringbook.html")
+      : indexHtmlPath;
+  if (!fs.existsSync(templatePath)) {
     return res.status(404).send("Portal app build not found");
   }
-  portalTemplate ??= fs.readFileSync(indexHtmlPath, "utf8");
-  res.type("html").send(renderPortalMetadata(portalTemplate, req.path));
+  let template = portalTemplates.get(templatePath);
+  if (!template) {
+    template = fs.readFileSync(templatePath, "utf8");
+    portalTemplates.set(templatePath, template);
+  }
+  res.type("html").send(renderPortalMetadata(template, req.path));
 });
 
 const server = app.listen(PORT, () => {
