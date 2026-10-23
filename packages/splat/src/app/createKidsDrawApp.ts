@@ -156,9 +156,12 @@ export async function createKidsDrawApp(
       collaborativeDocumentIndex: runtime.collaborativeDocumentIndex,
       localRepo: runtime.localRepo,
     });
-  if (runtime.initialCatalogDocUrl) {
+  const initialCatalogSummary = runtime.initialCatalogDocUrl
+    ? await runtime.documentBackend.getDocument(runtime.initialCatalogDocUrl)
+    : null;
+  if (initialCatalogSummary) {
     controllerCollaborationStatusStore.setCurrentDocument(
-      await runtime.documentBackend.getDocument(runtime.initialCatalogDocUrl),
+      initialCatalogSummary,
     );
   }
   const controllerMultiplayerAdapters = createControllerMultiplayerAdapters({
@@ -237,8 +240,19 @@ export async function createKidsDrawApp(
         else window.location.reload();
       },
     });
-    await accountSession.refresh();
-    syncParentalControlsVisibility();
+    const refresh = accountSession.refresh();
+    if (
+      initialCatalogSummary &&
+      !initialCatalogSummary.accountAttached &&
+      getDrawingWorkspace() === null &&
+      !shouldLoadAccountSettings(options.multiplayer)
+    ) {
+      // Account-menu status must not delay opening a known guest drawing.
+      void refresh.then(syncParentalControlsVisibility);
+    } else {
+      await refresh;
+      syncParentalControlsVisibility();
+    }
   }
   const refreshAccountSession = () => {
     void accountSession?.refresh();

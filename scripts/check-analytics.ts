@@ -1,4 +1,5 @@
 import { expect, type Browser } from "@playwright/test";
+import { getColoringPageById } from "@smalldraw/splat/coloring";
 
 // Route the production hostname to the isolated test server. Analytics stays
 // disabled on localhost in normal development; no test hits reach GoatCounter.
@@ -95,13 +96,15 @@ export async function checkAnalytics(
     const coloringPageId = await chosenPage.getAttribute(
       "data-new-document-page",
     );
+    const coloringPage = getColoringPageById(coloringPageId!)!;
+    const coloringEventId = `${coloringPage.volumeId}/page-${String(coloringPage.pageNumber).padStart(3, "0")}`;
     await chosenPage.click();
     await expect(dialog).toBeHidden();
     await expect(paper).toBeVisible();
     await expect
-      .poll(() => eventCount(`coloring-opened/${coloringPageId}`))
+      .poll(() => eventCount(`coloring-opened/${coloringEventId}`))
       .toBe(1);
-    expect(eventCount(`coloring-started/${coloringPageId}`)).toBe(0);
+    expect(eventCount(`coloring-started/${coloringEventId}`)).toBe(0);
     await page.evaluate(() =>
       (window as any).kidsDrawApp.store.updateSharedSettings({
         strokeColor: "#ff4d6d",
@@ -121,7 +124,7 @@ export async function checkAnalytics(
       coloringBox.y + coloringBox.height / 2,
     );
     await expect
-      .poll(() => eventCount(`coloring-started/${coloringPageId}`), {
+      .poll(() => eventCount(`coloring-started/${coloringEventId}`), {
         timeout: 15000,
       })
       .toBe(1);

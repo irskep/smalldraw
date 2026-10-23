@@ -171,6 +171,12 @@ export async function checkGuestSharing(
     const oldJoin = `${origin}/draw/?join=${encodeURIComponent(new URL(join).pathname.split("/").at(-1)!)}`;
     const oldReceiver = await browser.newPage();
     try {
+      // A document ID is not a capability: a fresh guest needs the share token.
+      await oldReceiver.goto(cleanJoinedUrl);
+      await expect(
+        oldReceiver.locator(".ds-document-access-state"),
+      ).toBeVisible();
+      await expect(oldReceiver.locator(".kids-draw-frame")).toBeHidden();
       await oldReceiver.goto(oldJoin);
       await ready(oldReceiver);
       await expect(oldReceiver).toHaveURL(cleanJoinedUrl);

@@ -913,6 +913,12 @@ try {
   await editorReady();
   await expect.poll(shapeCount).toBe(3);
   expect(errors).toEqual([]);
+  const accountDrawingUrl = page.url();
+  const accountId = new URL(accountDrawingUrl).pathname.split("/").at(-1)!;
+  await page.goto(`${origin}/draw/?doc=${accountId}`);
+  await editorReady();
+  await expect(page).toHaveURL(accountDrawingUrl);
+  await expect.poll(shapeCount).toBe(3);
   console.log(
     "PASS: fresh login restores all three strokes from server using binary WASM",
   );

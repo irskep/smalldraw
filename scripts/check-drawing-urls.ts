@@ -4,7 +4,11 @@ export async function checkDrawingUrls(browser: Browser, origin: string) {
   const context = await browser.newContext();
   const page = await context.newPage();
   const ready = async (p: Page = page) => {
-    await p.waitForFunction(() => Boolean((window as any).kidsDrawApp));
+    await p.waitForFunction(
+      () => Boolean((window as any).kidsDrawApp),
+      undefined,
+      { timeout: 8000 },
+    );
     await expect(p.locator(".kids-draw-frame")).toBeVisible();
   };
   const count = () =>
