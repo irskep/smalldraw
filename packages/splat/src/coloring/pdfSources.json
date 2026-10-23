@@ -11,7 +11,69 @@
     "pages": [
       4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
     ],
-    "tags": ["dinosaurs"]
+    "tags": ["dinosaurs"],
+    "pageSettings": {
+      "4": {
+        "assetNumber": 1
+      },
+      "5": {
+        "assetNumber": 2
+      },
+      "6": {
+        "assetNumber": 3
+      },
+      "7": {
+        "assetNumber": 4
+      },
+      "8": {
+        "assetNumber": 5
+      },
+      "9": {
+        "assetNumber": 6
+      },
+      "10": {
+        "assetNumber": 7
+      },
+      "11": {
+        "assetNumber": 8
+      },
+      "12": {
+        "assetNumber": 9
+      },
+      "13": {
+        "assetNumber": 10
+      },
+      "14": {
+        "assetNumber": 11
+      },
+      "15": {
+        "assetNumber": 12
+      },
+      "16": {
+        "assetNumber": 13
+      },
+      "17": {
+        "assetNumber": 14
+      },
+      "18": {
+        "assetNumber": 15
+      },
+      "19": {
+        "assetNumber": 16
+      },
+      "20": {
+        "assetNumber": 17
+      },
+      "21": {
+        "assetNumber": 18
+      },
+      "22": {
+        "assetNumber": 19
+      },
+      "23": {
+        "assetNumber": 20
+      }
+    }
   },
   {
     "id": "peaksel-butterflies",
@@ -25,6 +87,1191 @@
     "pages": [
       4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
     ],
-    "tags": ["insects", "butterfly"]
+    "tags": ["insects", "butterfly"],
+    "pageSettings": {
+      "4": {
+        "assetNumber": 1
+      },
+      "5": {
+        "assetNumber": 2
+      },
+      "6": {
+        "assetNumber": 3
+      },
+      "7": {
+        "assetNumber": 4
+      },
+      "8": {
+        "assetNumber": 5
+      },
+      "9": {
+        "assetNumber": 6
+      },
+      "10": {
+        "assetNumber": 7
+      },
+      "11": {
+        "assetNumber": 8
+      },
+      "12": {
+        "assetNumber": 9
+      },
+      "13": {
+        "assetNumber": 10
+      },
+      "14": {
+        "assetNumber": 11
+      },
+      "15": {
+        "assetNumber": 12
+      },
+      "16": {
+        "assetNumber": 13
+      },
+      "17": {
+        "assetNumber": 14
+      },
+      "18": {
+        "assetNumber": 15
+      },
+      "19": {
+        "assetNumber": 16
+      },
+      "20": {
+        "assetNumber": 17
+      },
+      "21": {
+        "assetNumber": 18
+      },
+      "22": {
+        "assetNumber": 19
+      },
+      "23": {
+        "assetNumber": 20
+      }
+    }
+  },
+  {
+    "id": "commons-alphabet-ballerina",
+    "label": "B is for ballerina",
+    "author": "Image User:Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:B_is_for_ballerina_coloring_page.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ae/B_is_for_ballerina_coloring_page.pdf",
+    "sha256": "001b80479ce2e500b962c008d90ebd537026b2d56448597f642c8bf27976ccb9",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:B_is_for_ballerina_coloring_page.pdf"
+    }
+  },
+  {
+    "id": "peaksel-cats",
+    "label": "Cat",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cat_Coloring_Pages_For_Adults_-_Printable_Coloring_Book.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/1/14/Cat_Coloring_Pages_For_Adults_-_Printable_Coloring_Book.pdf",
+    "sha256": "0397c25a65c18f717cea1bbb3ceeceb3c9f7b99bdc1b48bbfbfd226432025c08",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+      24, 25, 26, 27, 28, 29, 30, 31, 32, 33
+    ],
+    "tags": ["animals"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Cat_Coloring_Pages_For_Adults_-_Printable_Coloring_Book.pdf",
+      "permissionTicket": "2016051310012174"
+    }
+  },
+  {
+    "id": "peaksel-christmas",
+    "label": "Christmas",
+    "author": "Peaksel D.O.O.",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Christmas_Coloring_Pages.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Christmas_Coloring_Pages.pdf",
+    "sha256": "cfc72ac26b2f6d8cef6151015a405a061106bd12b439d6b2373ec4505fdaa328",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+    ],
+    "tags": ["christmas"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Christmas_Coloring_Pages.pdf",
+      "permissionTicket": "2016112210006312"
+    }
+  },
+  {
+    "id": "peaksel-adventures",
+    "label": "Adventure",
+    "author": "Peaksel D.O.O.",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Boys_%E2%80%93_Printable_Coloring_Book_for_Little_Men.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Coloring_Pages_for_Boys_%E2%80%93_Printable_Coloring_Book_for_Little_Men.pdf",
+    "sha256": "a772d28f44310cfa6e96e7df44b284435e2726cd8471d0796af235d54198db12",
+    "pages": [
+      4, 5, 7, 8, 9, 10, 12, 14, 15, 16, 17, 19, 20, 21, 22, 23, 24, 26, 27, 28,
+      30, 31, 32, 34, 35, 37
+    ],
+    "tags": ["artwork"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Boys_%E2%80%93_Printable_Coloring_Book_for_Little_Men.pdf",
+      "permissionTicket": "2016112210006312"
+    },
+    "pageSettings": {
+      "4": {
+        "tags": ["dragon"]
+      },
+      "5": {
+        "tags": ["animals"]
+      },
+      "6": {
+        "tags": ["dinosaurs"]
+      },
+      "7": {
+        "tags": ["animals"]
+      },
+      "8": {
+        "tags": ["animals"]
+      },
+      "9": {
+        "tags": ["artwork"]
+      },
+      "10": {
+        "tags": ["animals"]
+      },
+      "11": {
+        "tags": ["dinosaurs"]
+      },
+      "12": {
+        "tags": ["underwater"]
+      },
+      "13": {
+        "tags": ["dinosaurs"]
+      },
+      "14": {
+        "tags": ["unicorn"]
+      },
+      "15": {
+        "tags": ["artwork"]
+      },
+      "16": {
+        "tags": ["animals"]
+      },
+      "17": {
+        "tags": ["dragon"]
+      },
+      "18": {
+        "tags": ["dinosaurs"]
+      },
+      "19": {
+        "tags": ["animals"]
+      },
+      "20": {
+        "tags": ["dragon"]
+      },
+      "21": {
+        "tags": ["underwater"]
+      },
+      "22": {
+        "tags": ["animals"]
+      },
+      "23": {
+        "tags": ["artwork"]
+      },
+      "24": {
+        "tags": ["unicorn"]
+      },
+      "25": {
+        "tags": ["dinosaurs"]
+      },
+      "26": {
+        "tags": ["animals"]
+      },
+      "27": {
+        "tags": ["dragon"]
+      },
+      "28": {
+        "tags": ["underwater"]
+      },
+      "29": {
+        "tags": ["dragon"]
+      },
+      "30": {
+        "tags": ["animals"]
+      },
+      "31": {
+        "tags": ["artwork"]
+      },
+      "32": {
+        "tags": ["dragon"]
+      },
+      "33": {
+        "tags": ["dinosaurs"]
+      },
+      "34": {
+        "tags": ["underwater"]
+      },
+      "35": {
+        "tags": ["dragon"]
+      },
+      "36": {
+        "tags": ["dinosaurs"]
+      },
+      "37": {
+        "tags": ["artwork"]
+      }
+    }
+  },
+  {
+    "id": "peaksel-stories",
+    "label": "Story",
+    "author": "Peaksel D.O.O.",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Girls_-_Printable_Coloring_Book_for_Kids.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d1/Coloring_Pages_for_Girls_-_Printable_Coloring_Book_for_Kids.pdf",
+    "sha256": "484887e81482841d5bd54af90333d6b0fb43872c722c74c62319ae74f1e7f1ae",
+    "pages": [
+      4, 5, 6, 7, 9, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27,
+      28, 29, 31, 33, 35
+    ],
+    "tags": ["artwork"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Girls_-_Printable_Coloring_Book_for_Kids.pdf",
+      "permissionTicket": "2016112210006312"
+    },
+    "pageSettings": {
+      "4": {
+        "tags": ["princess"]
+      },
+      "5": {
+        "tags": ["princess"]
+      },
+      "6": {
+        "tags": ["animals"]
+      },
+      "7": {
+        "tags": ["fairy"]
+      },
+      "8": {
+        "tags": ["unicorn"]
+      },
+      "9": {
+        "tags": ["princess"]
+      },
+      "10": {
+        "tags": ["insects"]
+      },
+      "11": {
+        "tags": ["princess"]
+      },
+      "12": {
+        "tags": ["artwork"]
+      },
+      "13": {
+        "tags": ["fairy"]
+      },
+      "14": {
+        "tags": ["animals"]
+      },
+      "15": {
+        "tags": ["nature"]
+      },
+      "16": {
+        "tags": ["underwater"]
+      },
+      "17": {
+        "tags": ["fairy"]
+      },
+      "18": {
+        "tags": ["princess"]
+      },
+      "19": {
+        "tags": ["animals"]
+      },
+      "20": {
+        "tags": ["fairy"]
+      },
+      "21": {
+        "tags": ["animals"]
+      },
+      "22": {
+        "tags": ["artwork"]
+      },
+      "23": {
+        "tags": ["princess"]
+      },
+      "24": {
+        "tags": ["nature"]
+      },
+      "25": {
+        "tags": ["insects"]
+      },
+      "26": {
+        "tags": ["animals"]
+      },
+      "27": {
+        "tags": ["fairy"]
+      },
+      "28": {
+        "tags": ["nature"]
+      },
+      "29": {
+        "tags": ["princess"]
+      },
+      "30": {
+        "tags": ["underwater"]
+      },
+      "31": {
+        "tags": ["nature"]
+      },
+      "32": {
+        "tags": ["underwater"]
+      },
+      "33": {
+        "tags": ["fairy"]
+      },
+      "34": {
+        "tags": ["underwater"]
+      },
+      "35": {
+        "tags": ["fairy"]
+      }
+    }
+  },
+  {
+    "id": "peaksel-playtime",
+    "label": "Playtime",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Kids_PDF.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/5/54/Coloring_Pages_for_Kids_PDF.pdf",
+    "sha256": "d725959d775e4f683584a49e8832befa135be87e4177ecabd616cb8d79c509f1",
+    "pages": [18, 19, 29, 34, 40, 44],
+    "tags": ["artwork"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Kids_PDF.pdf",
+      "permissionTicket": "2016051310011997"
+    },
+    "pageSettings": {
+      "4": {
+        "tags": ["fairy"]
+      },
+      "5": {
+        "tags": ["dragon"]
+      },
+      "6": {
+        "tags": ["insects"]
+      },
+      "7": {
+        "tags": ["dinosaurs"]
+      },
+      "8": {
+        "tags": ["animals"]
+      },
+      "9": {
+        "tags": ["unicorn"]
+      },
+      "10": {
+        "tags": ["underwater"]
+      },
+      "11": {
+        "tags": ["fairy"]
+      },
+      "12": {
+        "tags": ["nature"]
+      },
+      "13": {
+        "tags": ["princess"]
+      },
+      "14": {
+        "tags": ["dragon"]
+      },
+      "15": {
+        "tags": ["animals"]
+      },
+      "16": {
+        "tags": ["dinosaurs"]
+      },
+      "17": {
+        "tags": ["insects"]
+      },
+      "18": {
+        "tags": ["princess"]
+      },
+      "19": {
+        "tags": ["artwork"]
+      },
+      "20": {
+        "tags": ["animals"]
+      },
+      "21": {
+        "tags": ["animals"]
+      },
+      "22": {
+        "tags": ["underwater"]
+      },
+      "23": {
+        "tags": ["dinosaurs"]
+      },
+      "24": {
+        "tags": ["fairy"]
+      },
+      "25": {
+        "tags": ["nature"]
+      },
+      "26": {
+        "tags": ["unicorn"]
+      },
+      "27": {
+        "tags": ["princess"]
+      },
+      "28": {
+        "tags": ["animals"]
+      },
+      "29": {
+        "tags": ["artwork"]
+      },
+      "30": {
+        "tags": ["dragon"]
+      },
+      "31": {
+        "tags": ["fairy"]
+      },
+      "32": {
+        "tags": ["animals"]
+      },
+      "33": {
+        "tags": ["underwater"]
+      },
+      "34": {
+        "tags": ["insects"]
+      },
+      "35": {
+        "tags": ["nature"]
+      },
+      "36": {
+        "tags": ["animals"]
+      },
+      "37": {
+        "tags": ["dragon"]
+      },
+      "38": {
+        "tags": ["underwater"]
+      },
+      "39": {
+        "tags": ["animals"]
+      },
+      "40": {
+        "tags": ["artwork"]
+      },
+      "41": {
+        "tags": ["dinosaurs"]
+      },
+      "42": {
+        "tags": ["nature"]
+      },
+      "43": {
+        "tags": ["animals"]
+      },
+      "44": {
+        "tags": ["artwork"]
+      },
+      "45": {
+        "tags": ["princess"]
+      },
+      "46": {
+        "tags": ["animals"]
+      },
+      "47": {
+        "tags": ["artwork"]
+      }
+    }
+  },
+  {
+    "id": "trento-2016",
+    "label": "Historical illustration",
+    "author": "Biblioteca comunale di Trento",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:ColoringBookTrentoPublicLibrary.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/9/93/ColoringBookTrentoPublicLibrary.pdf",
+    "sha256": "f1bc0a314c6c1ed72144f9ad2bbcf09f37f1479576359cc6df6727958b054933",
+    "pages": [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25],
+    "tags": ["artwork"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:ColoringBookTrentoPublicLibrary.pdf"
+    },
+    "pageSettings": {
+      "1": {
+        "label": "Strasbourg",
+        "erase": [[0.3, 0, 1, 0.45]]
+      },
+      "9": {
+        "rotation": 270,
+        "label": "The winds"
+      },
+      "13": {
+        "rotation": 90
+      },
+      "23": {
+        "rotation": 270
+      }
+    }
+  },
+  {
+    "id": "nps-prehistoric",
+    "label": "Prehistoric life",
+    "author": "National Park Service; artwork by Studio 105 and Benji Paysnoe",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/Template:PD-USGov-NPS",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:NPS_Prehistoric_Life_in_the_National_Parks_Coloring_Book.pdf",
+    "downloadUrl": "https://irma.nps.gov/DataStore/DownloadFile/647880",
+    "sha256": "84b11054906793a9e2afdc97c1324f5667746e98224f3efe8d0acf884a320f47",
+    "pages": [
+      6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 27, 28,
+      29, 30, 31, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+      51, 52, 53
+    ],
+    "tags": ["animals"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:NPS_Prehistoric_Life_in_the_National_Parks_Coloring_Book.pdf",
+      "publisherEvidence": "https://npgallery.nps.gov/AssetDetail/216a585e-6539-4851-b16e-84471347d17d"
+    },
+    "pageSettings": {
+      "6": {
+        "label": "Stromatolites",
+        "tags": ["nature"]
+      },
+      "9": {
+        "label": "Trilobite",
+        "tags": ["underwater"],
+        "crop": [0.06, 0.14, 0.93, 0.91]
+      },
+      "10": {
+        "label": "Crinoid",
+        "tags": ["underwater"]
+      },
+      "11": {
+        "label": "Aquatic arthropod",
+        "tags": ["underwater"]
+      },
+      "12": {
+        "label": "Brachiopod",
+        "tags": ["underwater"],
+        "crop": [0.06, 0.14, 0.93, 0.91]
+      },
+      "13": {
+        "label": "Ancient shark",
+        "tags": ["underwater"]
+      },
+      "14": {
+        "label": "Scale trees",
+        "tags": ["nature"],
+        "crop": [0.06, 0.095, 0.93, 0.91],
+        "erase": [
+          [0.06, 0.09, 0.36, 0.15],
+          [0.7, 0.09, 0.93, 0.15]
+        ]
+      },
+      "15": {
+        "label": "Ancient shark",
+        "tags": ["underwater"]
+      },
+      "16": {
+        "label": "Horn coral",
+        "tags": ["underwater"]
+      },
+      "17": {
+        "label": "Dragonfly",
+        "tags": ["insects"]
+      },
+      "18": {
+        "label": "Fern-like plant",
+        "tags": ["nature"]
+      },
+      "19": {
+        "label": "Nautiloid",
+        "tags": ["underwater"],
+        "crop": [0.06, 0.095, 0.93, 0.91],
+        "erase": [
+          [0.06, 0.09, 0.45, 0.15],
+          [0.7, 0.09, 0.93, 0.15]
+        ]
+      },
+      "22": {
+        "label": "Giant amphibian",
+        "tags": ["animals"]
+      },
+      "23": {
+        "label": "Aetosaur",
+        "tags": ["dinosaurs"]
+      },
+      "24": {
+        "label": "Crayfish",
+        "tags": ["underwater"]
+      },
+      "25": {
+        "label": "Apatosaurus",
+        "tags": ["dinosaurs"],
+        "crop": [0.06, 0.14, 0.93, 0.91]
+      },
+      "26": {
+        "label": "Stegosaurus",
+        "tags": ["dinosaurs"]
+      },
+      "27": {
+        "label": "Fossil cycads",
+        "tags": ["nature"],
+        "crop": [0.06, 0.185, 0.93, 0.91]
+      },
+      "28": {
+        "label": "Plesiosaur",
+        "tags": ["underwater"]
+      },
+      "29": {
+        "label": "Pterosaur",
+        "tags": ["dinosaurs"]
+      },
+      "30": {
+        "label": "Ammonite",
+        "tags": ["underwater"]
+      },
+      "31": {
+        "label": "Theropod dinosaur",
+        "tags": ["dinosaurs"]
+      },
+      "36": {
+        "label": "Early primate",
+        "tags": ["animals"]
+      },
+      "37": {
+        "label": "Freshwater reptile",
+        "tags": ["underwater"]
+      },
+      "38": {
+        "label": "Brontothere",
+        "tags": ["animals"]
+      },
+      "39": {
+        "label": "Freshwater ray",
+        "tags": ["underwater"]
+      },
+      "40": {
+        "label": "Freshwater fish",
+        "tags": ["underwater"]
+      },
+      "41": {
+        "label": "Ancient wasp",
+        "tags": ["insects"]
+      },
+      "42": {
+        "label": "Oreodont",
+        "tags": ["animals"]
+      },
+      "43": {
+        "label": "Ancient deer",
+        "tags": ["animals"]
+      },
+      "44": {
+        "label": "Wide-toothed dolphin",
+        "tags": ["underwater"]
+      },
+      "45": {
+        "label": "Titanothere",
+        "tags": ["animals"]
+      },
+      "46": {
+        "label": "Hagerman horse",
+        "tags": ["animals"]
+      },
+      "47": {
+        "label": "Scallop",
+        "tags": ["underwater"]
+      },
+      "48": {
+        "label": "Columbian mammoth",
+        "tags": ["animals"]
+      },
+      "49": {
+        "label": "Long-horned bison",
+        "tags": ["animals"],
+        "crop": [0.06, 0.14, 0.93, 0.91]
+      },
+      "50": {
+        "label": "American cheetah",
+        "tags": ["animals"]
+      },
+      "51": {
+        "label": "Condor",
+        "tags": ["animals"]
+      },
+      "52": {
+        "label": "Shasta ground sloth",
+        "tags": ["animals"]
+      },
+      "53": {
+        "label": "Saber-toothed cat",
+        "tags": ["animals"]
+      }
+    },
+    "crop": [0.06, 0.15, 0.93, 0.91]
+  },
+  {
+    "id": "commons-skate-a",
+    "label": "Skateboard A",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-a-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/6/60/Alphabet-a-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "67ee4375bc1dfed58018d36c6fa5e5b81a4237562d213aebf1123a1bcf4b74cd",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-a-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "commons-skate-b",
+    "label": "Skateboard B",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-b-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Alphabet-b-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "09a518a0f084a0272e5a11928f55603c52f4718ca62d94b8799c2b0a605a5190",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-b-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "commons-skate-c",
+    "label": "Skateboard C",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-c-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/3/39/Alphabet-c-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "62b12da678058018932b1eba938d51ec5a9f2cd6b279ea00fd4fbda6edb30c86",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-c-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "commons-skate-d",
+    "label": "Skateboard D",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-d-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/2/24/Alphabet-d-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "6b75fc2cfda0bf6a3ad565e5ea2829f5abbdf76f5bab5a503ead7b148ffce3fb",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-d-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "commons-skate-e",
+    "label": "Skateboard E",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-e-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Alphabet-e-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "cad14ebf45fcfdac3e1e4e63a2d7869bdcb2c7e824395dd277ae5cec92337e9f",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-e-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "commons-skate-f",
+    "label": "Skateboard F",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-f-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Alphabet-f-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "dd59ecb92d35952cc6f865b5e5c5de15760ec5baf38cd996e7661c74b1bea48a",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-f-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "commons-skate-g",
+    "label": "Skateboard G",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-g-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Alphabet-g-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "a5f95e60e6de165930e76eef2b64b017bf72bb9820d3955725eff17a6e7761fb",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-g-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "commons-skate-h",
+    "label": "Skateboard H",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-h-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/8/89/Alphabet-h-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "224d73b50c8ccce1acd63f95bf519bc478173b96bc82fb6edabf5fab6f4bd405",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-h-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "commons-skate-i",
+    "label": "Skateboard I",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-i-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/0/07/Alphabet-i-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "d0d1cbc674fc7b8905acc8b9f6eb641a7c96bdc2a8f51d02d881355208488b0f",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-i-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "commons-skate-j",
+    "label": "Skateboard J",
+    "author": "Coloringbuddymike",
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alphabet-j-at-coloringpagesforkidsboys-dotcom.svg",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/8/81/Alphabet-j-at-coloringpagesforkidsboys-dotcom.svg",
+    "sha256": "532e0255cf620913194bd3aca7f42630fe8d3637d1c35f89d7022c2b4ed093f9",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-j-at-coloringpagesforkidsboys-dotcom.svg"
+    },
+    "format": "svg"
+  },
+  {
+    "id": "nps-chalicothere",
+    "label": "Chalicothere",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/71a97bcf-721b-4331-a3e5-f78e30ea389c",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/71a97bcf-721b-4331-a3e5-f78e30ea389c",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/71a97bcf-721b-4331-a3e5-f78e30ea389c/original",
+    "sha256": "cf99ac570d12f86686751d1e5676851e8a52826644b5ad91f7042c01b1f0b2cc",
+    "format": "png",
+    "pages": [1],
+    "tags": ["animals"],
+    "crop": [0.06, 0.15, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "Chalicothere"
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/71a97bcf-721b-4331-a3e5-f78e30ea389c",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
+  },
+  {
+    "id": "nps-adapid-primate",
+    "label": "Adapid Primate",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/c597f714-cbbc-4fe7-b4c0-fb5b5462331c",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/c597f714-cbbc-4fe7-b4c0-fb5b5462331c",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/c597f714-cbbc-4fe7-b4c0-fb5b5462331c/original",
+    "sha256": "4b86e15bb84cc43f3681a8be1be5266820b7a9d344e3993aeb89a90703da3264",
+    "format": "png",
+    "pages": [1],
+    "tags": ["animals"],
+    "crop": [0.06, 0.15, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "Adapid Primate"
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/c597f714-cbbc-4fe7-b4c0-fb5b5462331c",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
+  },
+  {
+    "id": "nps-edrioasteroid",
+    "label": "Edrioasteroid",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/195606f8-fed2-4b29-933a-1a90292d8279",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/195606f8-fed2-4b29-933a-1a90292d8279",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/195606f8-fed2-4b29-933a-1a90292d8279/original",
+    "sha256": "77e18e0a658a16cb9c25c608160e0b5ef5685b2c297b54b86a107bab0bc4e918",
+    "format": "png",
+    "pages": [1],
+    "tags": ["underwater"],
+    "crop": [0.06, 0.15, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "Edrioasteroid"
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/195606f8-fed2-4b29-933a-1a90292d8279",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
+  },
+  {
+    "id": "nps-ceratopsian",
+    "label": "Ceratopsian",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/edad446b-584f-4874-a9cb-b716b284c07f",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/edad446b-584f-4874-a9cb-b716b284c07f",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/edad446b-584f-4874-a9cb-b716b284c07f/original",
+    "sha256": "9f3587708b512ec5b2b8dfae976cc52c49e2fb7dd8fb4d67083d427d1bdcd3fa",
+    "format": "png",
+    "pages": [1],
+    "tags": ["dinosaurs"],
+    "crop": [0.06, 0.13, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "Ceratopsian",
+        "erase": [
+          [0, 0, 0.6, 0.17],
+          [0.6, 0, 1, 0.15]
+        ]
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/edad446b-584f-4874-a9cb-b716b284c07f",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
+  },
+  {
+    "id": "nps-ancestral-bat",
+    "label": "Ancestral Bat",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/f44fbdf5-f382-41ef-bb02-f1ddb42be516",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/f44fbdf5-f382-41ef-bb02-f1ddb42be516",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/f44fbdf5-f382-41ef-bb02-f1ddb42be516/original",
+    "sha256": "372460620ebba6ba98c8dc304472c390484ee82d1751ca69103d600fcb6d16f0",
+    "format": "png",
+    "pages": [1],
+    "tags": ["animals"],
+    "crop": [0.06, 0.15, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "Ancestral Bat"
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/f44fbdf5-f382-41ef-bb02-f1ddb42be516",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
+  },
+  {
+    "id": "nps-first-horn-artiodactyl",
+    "label": "\"First Horn\" Artiodactyl",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/4325407a-92ba-4a75-a34f-5fa40a6bfe8e",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/4325407a-92ba-4a75-a34f-5fa40a6bfe8e",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/4325407a-92ba-4a75-a34f-5fa40a6bfe8e/original",
+    "sha256": "9cccd79980e0200b9af37ee041818bf695a532a6fb702831c5d8e0b13e89a853",
+    "format": "png",
+    "pages": [1],
+    "tags": ["animals"],
+    "crop": [0.06, 0.15, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "\"First Horn\" Artiodactyl"
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/4325407a-92ba-4a75-a34f-5fa40a6bfe8e",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
+  },
+  {
+    "id": "nps-endocerid-cephalopod",
+    "label": "Endocerid Cephalopod",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/12feda3c-f838-4f3e-984c-eadb8cb13e7f",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/12feda3c-f838-4f3e-984c-eadb8cb13e7f",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/12feda3c-f838-4f3e-984c-eadb8cb13e7f/original",
+    "sha256": "ad66fd3b52aa4aab1740874045da51f7dde0350bbfc1bca5db69b5effb7f1238",
+    "format": "png",
+    "pages": [1],
+    "tags": ["underwater"],
+    "crop": [0.06, 0.15, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "Endocerid Cephalopod"
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/12feda3c-f838-4f3e-984c-eadb8cb13e7f",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
+  },
+  {
+    "id": "nps-triassic-reptile",
+    "label": "Triassic Reptile",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/3897a65a-a805-4047-9ed4-d9a46a6ddb94",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/3897a65a-a805-4047-9ed4-d9a46a6ddb94",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/3897a65a-a805-4047-9ed4-d9a46a6ddb94/original",
+    "sha256": "5cc9aba5af7025f84027b43888260548f2c2ec8918c769d851c86eae214bc453",
+    "format": "png",
+    "pages": [1],
+    "tags": ["animals"],
+    "crop": [0.06, 0.15, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "Triassic Reptile"
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/3897a65a-a805-4047-9ed4-d9a46a6ddb94",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
+  },
+  {
+    "id": "nps-mosasaur",
+    "label": "Mosasaur",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/978900b3-4401-42a6-acf4-17792ce7e131",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/978900b3-4401-42a6-acf4-17792ce7e131",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/978900b3-4401-42a6-acf4-17792ce7e131/original",
+    "sha256": "7cf4ee34067de79eeeaa3b4b2c75f95e62666fd70c40ce0f6107d7f5472619d5",
+    "format": "png",
+    "pages": [1],
+    "tags": ["underwater"],
+    "crop": [0.06, 0.15, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "Mosasaur"
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/978900b3-4401-42a6-acf4-17792ce7e131",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
+  },
+  {
+    "id": "nps-moss-animal",
+    "label": "Moss Animal",
+    "author": "NPS image",
+    "license": "PD-US-Gov-NPS",
+    "licenseUrl": "https://npgallery.nps.gov/AssetDetail/b2a7c9b0-ffa7-4d59-93a2-f2c82da24677",
+    "sourceUrl": "https://npgallery.nps.gov/AssetDetail/b2a7c9b0-ffa7-4d59-93a2-f2c82da24677",
+    "downloadUrl": "https://www.nps.gov/npgallery/GetAsset/b2a7c9b0-ffa7-4d59-93a2-f2c82da24677/original",
+    "sha256": "fef44673786c9721eb4434cfb1b7337ef35022c29d4a8101d8af700b617907f2",
+    "format": "png",
+    "pages": [1],
+    "tags": ["underwater"],
+    "crop": [0.06, 0.15, 0.93, 0.91],
+    "pageSettings": {
+      "1": {
+        "label": "Moss Animal"
+      }
+    },
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://npgallery.nps.gov/AssetDetail/b2a7c9b0-ffa7-4d59-93a2-f2c82da24677",
+      "constraints": {
+        "Constraint": "Public domain",
+        "GrantingRights": "Full"
+      }
+    }
   }
 ]

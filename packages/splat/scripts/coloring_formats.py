@@ -22,9 +22,10 @@ def artwork_bounds(page):
     left, top, right, bottom = pixmap.width, pixmap.height, -1, -1
     for y in range(pixmap.height):
         row = samples[y * pixmap.width:(y + 1) * pixmap.width]
-        ink = [x for x, gray in enumerate(row) if gray < 245]
-        if ink:
-            left, right = min(left, ink[0]), max(right, ink[-1])
+        first = re.search(rb"[\x00-\xf4]", row)
+        if first:
+            last = len(row) - 1 - re.search(rb"[\x00-\xf4]", row[::-1]).start()
+            left, right = min(left, first.start()), max(right, last)
             top, bottom = min(top, y), y
     if right < left:
         return page.rect
@@ -38,11 +39,13 @@ def render_png(page, bounds, longest_edge, metadata):
     pixmap = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), clip=bounds,
                             colorspace=pymupdf.csGRAY, alpha=False)
     samples = pixmap.samples
-    rows = bytearray()
+    stride = 1 + 2 * pixmap.width
+    rows = bytearray(stride * pixmap.height)
+    inverse = bytes(range(255, -1, -1))
     for y in range(pixmap.height):
-        rows.append(0)
-        for gray in samples[y * pixmap.width:(y + 1) * pixmap.width]:
-            rows.extend((0, 255 - gray))
+        # Filter byte and luminance stay zero; only the alpha channel carries ink.
+        start = y * stride
+        rows[start + 2:start + stride:2] = samples[y * pixmap.width:(y + 1) * pixmap.width].translate(inverse)
     data = b"\x89PNG\r\n\x1a\n"
     data += png_chunk(b"IHDR", struct.pack(">IIBBBBB", pixmap.width, pixmap.height, 8, 4, 0, 0, 0))
     data += png_chunk(b"tEXt", b"Source\x00" + metadata.encode("ascii"))
@@ -68,6 +71,38 @@ def frame_svg(text):
     for name, value in {"viewBox": " ".join(f"{v:.6f}" for v in viewbox), "width": str(pixel_width), "height": str(pixel_height)}.items():
         header = re.sub(rf'(?<![\w:-]){name}="[^"]*"', f'{name}="{value}"', header)
     return text[:start] + header + text[end:], pixel_width, pixel_height, preview
+
+
+def prepare_page(page, crop=None, rotation=0, erase=None):
+    """Apply a reviewed crop (fractions of the source page) and CCW rotation.
+
+    Return a document so its page remains alive while previews and assets render.
+    The new page contains the original PDF artwork, without rasterizing vectors.
+    """
+    if rotation not in (0, 90, 180, 270):
+        raise ValueError("Rotation must be 0, 90, 180, or 270 degrees counterclockwise")
+    crop = crop or [0, 0, 1, 1]
+    left, top, right, bottom = crop
+    if not (0 <= left < right <= 1 and 0 <= top < bottom <= 1):
+        raise ValueError("Crop must be a nonempty rectangle within [0, 1]")
+    rect = page.rect
+    if erase:
+        for area in erase:
+            x0, y0, x1, y1 = area
+            if not (0 <= x0 < x1 <= 1 and 0 <= y0 < y1 <= 1):
+                raise ValueError("Erase rectangle must be within [0, 1]")
+            page.draw_rect(pymupdf.Rect(x0 * rect.width, y0 * rect.height,
+                                       x1 * rect.width, y1 * rect.height),
+                           color=None, fill=(1, 1, 1), overlay=True)
+    clip = pymupdf.Rect(rect.x0 + left * rect.width, rect.y0 + top * rect.height,
+                        rect.x0 + right * rect.width, rect.y0 + bottom * rect.height)
+    width, height = clip.width, clip.height
+    if rotation in (90, 270):
+        width, height = height, width
+    document = pymupdf.open()
+    target = document.new_page(width=width, height=height)
+    target.show_pdf_page(target.rect, page.parent, page.number, clip=clip, rotate=rotation)
+    return document
 
 
 def render_page(page, metadata):

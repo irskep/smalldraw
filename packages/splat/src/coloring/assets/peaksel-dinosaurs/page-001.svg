@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1600" height="1526" viewBox="0.000000 273.986084 595.276001 567.903931">
 <defs>
 <clipPath id="clip_1">
-<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" />
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.276V841.89H0Z" />
 </clipPath>
 <clipPath id="clip_2">
-<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 14.999H595.275V549.497H0Z" />
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.276V841.89H0Z" />
 </clipPath>
 <clipPath id="clip_3">
 <path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" />
@@ -39,15 +39,23 @@
 <clipPath id="clip_13">
 <path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" />
 </clipPath>
+<clipPath id="clip_14">
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 14.999H595.275V549.497H0Z" />
+</clipPath>
+<clipPath id="clip_15">
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" />
+</clipPath>
 </defs>
-<defs><filter id="smalldraw-lineart" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.2126 -0.7152 -0.0722 1 0" /></filter></defs><g filter="url(#smalldraw-lineart)"><path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" fill="#ffffff" />
-<g clip-path="url(#clip_1)">
+<defs><filter id="smalldraw-lineart" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.2126 -0.7152 -0.0722 1 0" /></filter></defs><g filter="url(#smalldraw-lineart)"><g clip-path="url(#clip_1)">
+<g clip-path="url(#clip_2)">
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" fill="#ffffff" />
+<g clip-path="url(#clip_3)">
 <path transform="matrix(1,0,0,-1,53.1279,700.74136)" d="M0 0C0 0 22.561 5.772 38.076 5.772L19.037 15.011C19.037 15.011 36.271 14.959 45.343 9.541 54.415 4.123 33.333 20.93 33.333 20.93 33.333 20.93 54.7 20.105 60.329 10.465 65.957 .824 54.717 33.804 54.717 33.804 54.717 33.804 68.265 28.373 69.172 15.011 70.08 1.649 73.607 26.848 73.607 26.848 73.607 26.848 81.622 26.724 80.798 15.011 80.798 15.011 293.967 42.049 408.752 16.902 408.752 16.902 409.513 26.488 432.723 26.848L420.565 15.011C420.565 15.011 434.431 24.544 455.487 20.93L440.686 15.011C434.495 10.718 453.458 20.129 469.948 15.011L450.094 5.772C450.094 5.772 472.422 13.311 485.613 9.541L473.724 4.123C473.724 4.123 521.065-2.457 541.675-16.481" fill="#ffffff" />
 </g>
-<g clip-path="url(#clip_2)">
+<g clip-path="url(#clip_4)">
 <path transform="matrix(1,0,0,-1,53.1279,700.74136)" stroke-width="1.704" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C0 0 22.561 5.772 38.076 5.772L19.037 15.011C19.037 15.011 36.271 14.959 45.343 9.541 54.415 4.123 33.333 20.93 33.333 20.93 33.333 20.93 54.7 20.105 60.329 10.465 65.957 .824 54.717 33.804 54.717 33.804 54.717 33.804 68.265 28.373 69.172 15.011 70.08 1.649 73.607 26.848 73.607 26.848 73.607 26.848 81.622 26.724 80.798 15.011 80.798 15.011 293.967 42.049 408.752 16.902 408.752 16.902 409.513 26.488 432.723 26.848L420.565 15.011C420.565 15.011 434.431 24.544 455.487 20.93L440.686 15.011C434.495 10.718 453.458 20.129 469.948 15.011L450.094 5.772C450.094 5.772 472.422 13.311 485.613 9.541L473.724 4.123C473.724 4.123 521.065-2.457 541.675-16.481" />
 </g>
-<g clip-path="url(#clip_3)">
+<g clip-path="url(#clip_5)">
 <path transform="matrix(1,0,0,-1,268.2969,734.54946)" d="M0 0C0 0 10.694-.578 10.111 4.501 9.087 13.403 6.824 18.154 1.277 18.788 1.277 18.788-1.776 10.304 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,268.2969,734.54946)" stroke-width="3.408" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C0 0 10.694-.578 10.111 4.501 9.087 13.403 6.824 18.154 1.277 18.788 1.277 18.788-1.776 10.304 0 0Z" />
 <path transform="matrix(1,0,0,-1,460.2217,722.0191)" d="M0 0C0 0 10.956-4.243 14.951-20.402 17-28.696 4.393-30.434 4.393-30.434Z" fill="#ffffff" />
@@ -58,10 +66,10 @@
 <path transform="matrix(1,0,0,-1,178.4678,597.5352)" stroke-width="3.408" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C-37.82-15.91-75.017-22.777-79.594 20.142-84.172 63.058-23.883 78.694-11.498 54.646-4.632 41.313 6.197 50.082 0 63.631-8.637 82.514-40.682 108.837-85.877 87.06-133.279 64.216-141.396-13.621-108.777-39.944-76.16-66.266-38.049-48.829-34.403-69.128L0 0Z" />
 <path transform="matrix(1,0,0,-1,434.5273,475.59834)" d="M0 0C118.545-11.104 115.625 54.354 105.725 100.227 102.259 116.283 95.205 130.646 85.526 142.722 80.241 149.314 75.792 172.31 63.637 174.744 52.41 176.99 52.138 170.011 50.849 170.847 35.603 180.731 18.074 183.009-.113 183.009-7.8 183.009-15.261 182.057-22.394 180.272-22.394 180.272-22.396 180.272-22.397 180.271-29.28 178.549-35.854 176.048-42.021 172.867-95.261 147.82-150.288 81.142-134.663-24.338-117.093-142.928-139.053-127.556-159.551-121.699-180.048-115.843-265.696-96.81-284.729-153.908-303.763-211.008-269.667-234.478-265.444-272.487-263.98-285.664-209.328-289.335-209.328-267.375-209.328-245.414-209.329-235.898-192.493-229.309-175.655-222.72-137.59-253.466-132.466-291.532-127.342-329.598-62.923-322.033-62.923-291.532-62.923-268.84-59.846-253.435-55.344-242.135-44.418-249.638-37.914-265.503-35.837-281.087-32.909-303.049 28.582-283.48 28.582-273.963 28.582-230.495 9.583-200.848-20.147-183.374-19.969-174.768-20.212-167.368-22.28-156.105-35.724-82.9-60.301 5.649 0 0" fill="#ffffff" />
 </g>
-<g clip-path="url(#clip_4)">
+<g clip-path="url(#clip_6)">
 <path transform="matrix(1,0,0,-1,434.5273,475.59834)" stroke-width="3.408" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C118.545-11.104 115.625 54.354 105.725 100.227 102.259 116.283 95.205 130.646 85.526 142.722 80.241 149.314 75.792 172.31 63.637 174.744 52.41 176.99 52.138 170.011 50.849 170.847 35.603 180.731 18.074 183.009-.113 183.009-7.8 183.009-15.261 182.057-22.394 180.272-22.394 180.272-22.396 180.272-22.397 180.271-29.28 178.549-35.854 176.048-42.021 172.867-95.261 147.82-150.288 81.142-134.663-24.338-117.093-142.928-139.053-127.556-159.551-121.699-180.048-115.843-265.696-96.81-284.729-153.908-303.763-211.008-269.667-234.478-265.444-272.487-263.98-285.664-209.328-289.335-209.328-267.375-209.328-245.414-209.329-235.898-192.493-229.309-175.655-222.72-137.59-253.466-132.466-291.532-127.342-329.598-62.923-322.033-62.923-291.532-62.923-268.84-59.846-253.435-55.344-242.135-44.418-249.638-37.914-265.503-35.837-281.087-32.909-303.049 28.582-283.48 28.582-273.963 28.582-230.495 9.583-200.848-20.147-183.374-19.969-174.768-20.212-167.368-22.28-156.105-35.724-82.9-60.301 5.649 0 0Z" />
 </g>
-<g clip-path="url(#clip_5)">
+<g clip-path="url(#clip_7)">
 <path transform="matrix(1,0,0,-1,475.5205,363.90443)" d="M0 0C4.877-21.855-4.849-42.623-21.721-46.387-38.592-50.15-56.219-35.483-61.095-13.627-65.969 8.228-56.244 28.996-39.374 32.759-22.502 36.522-4.875 21.855 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,475.5205,363.90443)" stroke-width="3.408" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C4.877-21.855-4.849-42.623-21.721-46.387-38.592-50.15-56.219-35.483-61.095-13.627-65.969 8.228-56.244 28.996-39.374 32.759-22.502 36.522-4.875 21.855 0 0Z" />
 <path transform="matrix(1,0,0,-1,543.4834,350.0426)" d="M0 0C4.168-18.682-4.145-36.434-18.567-39.652-32.986-42.868-48.056-30.332-52.224-11.649-56.392 7.033-48.078 24.786-33.658 28.002-19.235 31.218-4.166 18.682 0 0" fill="#ffffff" />
@@ -102,10 +110,10 @@
 <path transform="matrix(1,0,0,-1,357.4209,332.7077)" stroke-width="3.408" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C0 0-23.858-40.901 0-40.901 23.291-40.901 0 0 0 0Z" />
 <path transform="matrix(1,0,0,-1,356.8525,334.9801)" d="M0 0C0 0 23.859 40.901 0 40.901-23.29 40.901 0 0 0 0" fill="#ffffff" />
 </g>
-<g clip-path="url(#clip_6)">
+<g clip-path="url(#clip_8)">
 <path transform="matrix(1,0,0,-1,356.8525,334.9801)" stroke-width="3.408" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C0 0 23.859 40.901 0 40.901-23.29 40.901 0 0 0 0Z" />
 </g>
-<g clip-path="url(#clip_7)">
+<g clip-path="url(#clip_9)">
 <path transform="matrix(1,0,0,-1,358.2725,334.1275)" d="M0 0C0 0-40.899 23.858-40.899 0-40.899-23.291 0 0 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,358.2725,334.1275)" stroke-width="3.408" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C0 0-40.899 23.858-40.899 0-40.899-23.291 0 0 0 0Z" />
 <path transform="matrix(1,0,0,-1,356,333.5596)" d="M0 0C0 0 40.901-23.858 40.901 0 40.901 23.29 0 0 0 0" fill="#ffffff" />
@@ -113,13 +121,13 @@
 <path transform="matrix(1,0,0,-1,358.1416,333.2408)" d="M0 0C0 0-45.791-12.05-28.921-28.921-12.452-45.39 0 0 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,358.1416,333.2408)" stroke-width="3.408" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C0 0-45.791-12.05-28.921-28.921-12.452-45.39 0 0 0 0Z" />
 </g>
-<g clip-path="url(#clip_8)">
+<g clip-path="url(#clip_10)">
 <path transform="matrix(1,0,0,-1,356.1338,334.44593)" d="M0 0C0 0 45.791 12.05 28.921 28.92 12.451 45.39 0 0 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,356.1338,334.44593)" stroke-width="3.408" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C0 0 45.791 12.05 28.921 28.92 12.451 45.39 0 0 0 0Z" />
 <path transform="matrix(1,0,0,-1,357.7393,334.84773)" d="M0 0C0 0-12.05 45.792-28.921 28.921-45.389 12.452 0 0 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,357.7393,334.84773)" stroke-width="3.408" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C0 0-12.05 45.792-28.921 28.921-45.389 12.452 0 0 0 0Z" />
 </g>
-<g clip-path="url(#clip_9)">
+<g clip-path="url(#clip_11)">
 <path transform="matrix(1,0,0,-1,356.5361,332.83943)" d="M0 0C0 0 12.049-45.791 28.92-28.921 45.389-12.452 0 0 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,356.5361,332.83943)" stroke-width="3.408" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C0 0 12.049-45.791 28.92-28.921 45.389-12.452 0 0 0 0Z" />
 <path transform="matrix(1,0,0,-1,369.3379,333.8439)" d="M0 0C0-6.738-5.462-12.2-12.2-12.2-18.938-12.2-24.4-6.738-24.4 0-24.4 6.738-18.938 12.2-12.2 12.2-5.462 12.2 0 6.738 0 0" fill="#ffffff" />
@@ -162,23 +170,25 @@
 <path transform="matrix(1,0,0,-1,437.6455,710.7188)" d="M0 0C3.81-1.769 8.041-1.163 11.23 1.691 13.992 4.164 17.123 9.229 15.135 12.982 14.867 13.49 14.128 13.443 13.849 12.982 12.261 10.369 12.113 7.385 9.951 4.969 7.546 2.286 3.964 1.691 .529 1.959-.492 2.039-.942 .436 0 0" />
 <path transform="matrix(1,0,0,-1,62.4912,703.3985)" d="M0 0C0 0-5.894 4.518-19.413 3.826L-14.214-.793C-14.214-.793-29.467 6.053-37.094 5.286L-30.854-6.873C-30.854-6.873-41.947 1.053-50.961 1.398L-44.375-7.928C-44.375-7.928-50.268-6.209-61.707-5.872" fill="#ffffff" />
 </g>
-<g clip-path="url(#clip_10)">
+<g clip-path="url(#clip_12)">
 <path transform="matrix(1,0,0,-1,62.4912,703.3985)" stroke-width="1.704" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C0 0-5.894 4.518-19.413 3.826L-14.214-.793C-14.214-.793-29.467 6.053-37.094 5.286L-30.854-6.873C-30.854-6.873-41.947 1.053-50.961 1.398L-44.375-7.928C-44.375-7.928-50.268-6.209-61.707-5.872" />
 </g>
-<g clip-path="url(#clip_11)">
+<g clip-path="url(#clip_13)">
 <path transform="matrix(1,0,0,-1,301.1191,791.12857)" d="M0 0C-8.758 10.545-16.651 4.355-22.687-1.791-28.726-7.939 10.759-12.955 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,301.1191,791.12857)" stroke-width="1.704" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C-8.758 10.545-16.651 4.355-22.687-1.791-28.726-7.939 10.759-12.955 0 0Z" />
 <path transform="matrix(1,0,0,-1,284.9287,809.5128)" d="M0 0C-12.162 16.593-23.398 6.685-33.01 1.253-42.62-4.18 3.213-4.381 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,284.9287,809.5128)" stroke-width="1.704" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C-12.162 16.593-23.398 6.685-33.01 1.253-42.62-4.18 3.213-4.381 0 0Z" />
 </g>
-<g clip-path="url(#clip_12)">
+<g clip-path="url(#clip_14)">
 <path transform="matrix(1,0,0,-1,321.7168,818.7525)" d="M0 0C-12.01 8.191-17.199 3.581-31.048-2.76-43.493-8.458 14.704-10.028 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,321.7168,818.7525)" stroke-width="1.704" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C-12.01 8.191-17.199 3.581-31.048-2.76-43.493-8.458 14.704-10.028 0 0Z" />
 </g>
-<g clip-path="url(#clip_13)">
+<g clip-path="url(#clip_15)">
 <path transform="matrix(1,0,0,-1,130.2812,754.5611)" d="M0 0C-12.01 8.191-17.2 3.58-31.049-2.76-43.493-8.459 14.702-10.028 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,130.2812,754.5611)" stroke-width="1.704" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C-12.01 8.191-17.2 3.58-31.049-2.76-43.493-8.459 14.702-10.028 0 0Z" />
 <path transform="matrix(1,0,0,-1,525.7354,736.42196)" d="M0 0C-10.539 6.764-20.783 4.435-22.91-3.606-25.931-15.036 14.315-9.187 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,525.7354,736.42196)" stroke-width="1.704" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C-10.539 6.764-20.783 4.435-22.91-3.606-25.931-15.036 14.315-9.187 0 0Z" />
 </g>
-</g><metadata>{"id": "peaksel-dinosaurs", "label": "Dinosaur", "author": "Peaksel D.O.O. Nis", "license": "CC-BY-SA-4.0", "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/", "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf", "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/44/Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf?download=1", "sha256": "ca9cf58285b7c12ba96190477fc9e7bf72046c00ba11dbe88f68246488fdc592", "pages": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "tags": ["dinosaurs"], "pdfPage": 4, "changes": "Extracted artwork; margins trimmed; white paper made transparent; raster pages normalized to black line art."}</metadata></svg>
+</g>
+</g>
+</g><metadata>{"source": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf", "author": "Peaksel D.O.O. Nis", "license": "CC-BY-SA-4.0", "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/", "page": 4, "crop": null, "rotationCCW": 0, "erasedLabels": [], "changes": "Artwork extracted; margins trimmed; white paper made transparent; black line art."}</metadata></svg>

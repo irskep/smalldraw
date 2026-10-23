@@ -86,16 +86,184 @@ each SVG and in Acknowledgments.md alongside these files. The blank sheet is omi
 * sun_mandala_2.svg - Author: Nevit, Source: http://www.supercoloring.com/coloring-pages/sun-mandala-0
 
 
-PDF artwork
+Commons artwork
 
 Dinosaur pages — Peaksel D.O.O. Nis
 Source: https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf
 License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0/
-Changes: pages extracted; margins trimmed; PNG previews rendered; white paper made transparent; raster pages normalized to black line art.
-Adapted artwork remains under the source license.
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
 
 Butterfly pages — Peaksel D.O.O. Nis
 Source: https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf
 License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0/
-Changes: pages extracted; margins trimmed; PNG previews rendered; white paper made transparent; raster pages normalized to black line art.
-Adapted artwork remains under the source license.
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+B is for ballerina pages — Image User:Peaksel
+Source: https://commons.wikimedia.org/wiki/File:B_is_for_ballerina_coloring_page.pdf
+License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Cat pages — Peaksel
+Source: https://commons.wikimedia.org/wiki/File:Cat_Coloring_Pages_For_Adults_-_Printable_Coloring_Book.pdf
+License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Christmas pages — Peaksel D.O.O.
+Source: https://commons.wikimedia.org/wiki/File:Christmas_Coloring_Pages.pdf
+License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Adventure pages — Peaksel D.O.O.
+Source: https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Boys_%E2%80%93_Printable_Coloring_Book_for_Little_Men.pdf
+License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Story pages — Peaksel D.O.O.
+Source: https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Girls_-_Printable_Coloring_Book_for_Kids.pdf
+License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Playtime pages — Peaksel
+Source: https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Kids_PDF.pdf
+License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Historical illustration pages — Biblioteca comunale di Trento
+Source: https://commons.wikimedia.org/wiki/File:ColoringBookTrentoPublicLibrary.pdf
+License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Prehistoric life pages — National Park Service; artwork by Studio 105 and Benji Paysnoe
+Source: https://commons.wikimedia.org/wiki/File:NPS_Prehistoric_Life_in_the_National_Parks_Coloring_Book.pdf
+License: PD-US-Gov-NPS — https://commons.wikimedia.org/wiki/Template:PD-USGov-NPS
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard A pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-a-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard B pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-b-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard C pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-c-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard D pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-d-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard E pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-e-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard F pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-f-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard G pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-g-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard H pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-h-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard I pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-i-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Skateboard J pages — Coloringbuddymike
+Source: https://commons.wikimedia.org/wiki/File:Alphabet-j-at-coloringpagesforkidsboys-dotcom.svg
+License: CC-BY-SA-3.0 — https://creativecommons.org/licenses/by-sa/3.0
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Chalicothere pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/71a97bcf-721b-4331-a3e5-f78e30ea389c
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/71a97bcf-721b-4331-a3e5-f78e30ea389c
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Adapid Primate pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/c597f714-cbbc-4fe7-b4c0-fb5b5462331c
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/c597f714-cbbc-4fe7-b4c0-fb5b5462331c
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Edrioasteroid pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/195606f8-fed2-4b29-933a-1a90292d8279
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/195606f8-fed2-4b29-933a-1a90292d8279
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Ceratopsian pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/edad446b-584f-4874-a9cb-b716b284c07f
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/edad446b-584f-4874-a9cb-b716b284c07f
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Ancestral Bat pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/f44fbdf5-f382-41ef-bb02-f1ddb42be516
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/f44fbdf5-f382-41ef-bb02-f1ddb42be516
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+"First Horn" Artiodactyl pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/4325407a-92ba-4a75-a34f-5fa40a6bfe8e
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/4325407a-92ba-4a75-a34f-5fa40a6bfe8e
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Endocerid Cephalopod pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/12feda3c-f838-4f3e-984c-eadb8cb13e7f
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/12feda3c-f838-4f3e-984c-eadb8cb13e7f
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Triassic Reptile pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/3897a65a-a805-4047-9ed4-d9a46a6ddb94
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/3897a65a-a805-4047-9ed4-d9a46a6ddb94
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Mosasaur pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/978900b3-4401-42a6-acf4-17792ce7e131
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/978900b3-4401-42a6-acf4-17792ce7e131
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.
+
+Moss Animal pages — NPS image
+Source: https://npgallery.nps.gov/AssetDetail/b2a7c9b0-ffa7-4d59-93a2-f2c82da24677
+License: PD-US-Gov-NPS — https://npgallery.nps.gov/AssetDetail/b2a7c9b0-ffa7-4d59-93a2-f2c82da24677
+Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.
+Adapted artwork retains the source license or public-domain status.

@@ -4,14 +4,14 @@ import { getColoringPages } from "../coloring/catalog";
 import { getColoringCategories } from "../coloring/categories";
 
 describe("coloring categories", () => {
-  test("every SVG appears in exactly one nonempty subject category", () => {
+  test("every imported drawing appears in exactly one nonempty subject category", () => {
     const categories = getColoringCategories();
     const shown = categories
       .flatMap((category) => category.pages)
-      .filter((page) => page.src.endsWith(".svg"));
-    const svg = getColoringPages().filter((page) => page.src.endsWith(".svg"));
-    expect(shown.length).toBe(114);
-    expect(new Set(shown.map((page) => page.id)).size).toBe(svg.length);
+      .filter((page) => page.tags.length > 0);
+    const imported = getColoringPages().filter((page) => page.tags.length > 0);
+    expect(shown.length).toBe(imported.length);
+    expect(new Set(shown.map((page) => page.id)).size).toBe(imported.length);
     expect(categories.every((category) => category.pages.length > 0)).toBe(
       true,
     );
@@ -34,10 +34,10 @@ describe("coloring categories", () => {
     const dinosaurs = getColoringCategories().find(
       (category) => category.id === "dinosaurs",
     )!;
-    expect(dinosaurs.pages.length).toBe(20);
+    expect(dinosaurs.pages.length).toBeGreaterThanOrEqual(20);
     expect(dinosaurs.creditsSrc).toBe("coloring/credits/credits.txt");
-    expect(dinosaurs.pages.every((page) => page.src.endsWith(".svg"))).toBe(
-      true,
-    );
+    expect(
+      dinosaurs.pages.filter((page) => page.volumeId === "peaksel-dinosaurs"),
+    ).toHaveLength(20);
   });
 });

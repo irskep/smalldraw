@@ -1,7 +1,7 @@
 import json
 import unittest
 import pymupdf
-from coloring_formats import artwork_bounds, frame_svg, render_page
+from coloring_formats import artwork_bounds, frame_svg, prepare_page, render_page
 
 class ColoringFormatsTest(unittest.TestCase):
     def test_vector_stays_svg_with_transparent_white(self):
@@ -44,6 +44,42 @@ class ColoringFormatsTest(unittest.TestCase):
         self.assertEqual(set(image.samples[::2]), {0})
         self.assertEqual(min(image.samples[1::2]), 0)
         self.assertEqual(max(image.samples[1::2]), 255)
+
+    def test_reviewed_crop_and_rotation_preserve_vectors(self):
+        document = pymupdf.open()
+        page = document.new_page(width=200, height=300)
+        # A footer must disappear; the upper-left mark must turn into a lower-left mark.
+        page.draw_rect(pymupdf.Rect(20, 30, 40, 50), fill=(0, 0, 0))
+        page.insert_text((20, 280), "Footer")
+        with prepare_page(page, [0, 0, 1, .5], 90) as prepared:
+            rotated = prepared[0]
+            self.assertEqual(rotated.rect, pymupdf.Rect(0, 0, 150, 200))
+            image = rotated.get_pixmap(colorspace=pymupdf.csGRAY)
+            self.assertEqual(image.pixel(40, 170), (0,))
+            self.assertEqual(image.pixel(140, 170), (255,))
+            self.assertEqual(rotated.get_images(), [])
+            data, extension, _, _ = render_page(rotated, "reviewed")
+            self.assertEqual(extension, "svg")
+            self.assertIn(b"reviewed", data)
+
+    def test_label_removal_preserves_adjacent_artwork(self):
+        document = pymupdf.open()
+        page = document.new_page(width=100, height=100)
+        page.draw_rect(pymupdf.Rect(5, 5, 20, 15), fill=(0, 0, 0))
+        page.draw_circle(pymupdf.Point(50, 15), 10, fill=(0, 0, 0))
+        with prepare_page(page, erase=[[0, 0, .25, .2]]) as prepared:
+            image = prepared[0].get_pixmap(colorspace=pymupdf.csGRAY)
+            self.assertEqual(image.pixel(10, 10), (255,))
+            self.assertEqual(image.pixel(50, 10), (0,))
+
+    def test_invalid_page_review_is_rejected(self):
+        document = pymupdf.open()
+        page = document.new_page()
+        for crop in ([0, 0, 2, 1], [.8, 0, .2, 1], [0, 0, 1, 0]):
+            with self.assertRaises(ValueError):
+                prepare_page(page, crop)
+        with self.assertRaises(ValueError):
+            prepare_page(page, rotation=45)
 
     def test_blank_page_keeps_its_bounds(self):
         document = pymupdf.open()

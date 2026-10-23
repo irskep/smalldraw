@@ -1,18 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1483" height="1600" viewBox="3.072899 103.398125 588.789833 635.093758">
 <defs>
 <clipPath id="clip_1">
-<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" />
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.276V841.89H0Z" />
 </clipPath>
 <clipPath id="clip_2">
-<path transform="matrix(1,0,0,-1,0,841.89)" d="M595.28 861.899H0V1703.7891H595.28Z" />
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.276V841.89H0Z" />
 </clipPath>
 <clipPath id="clip_3">
 <path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" />
 </clipPath>
+<clipPath id="clip_4">
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M595.28 861.899H0V1703.7891H595.28Z" />
+</clipPath>
+<clipPath id="clip_5">
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" />
+</clipPath>
 </defs>
-<defs><filter id="smalldraw-lineart" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.2126 -0.7152 -0.0722 1 0" /></filter></defs><g filter="url(#smalldraw-lineart)"><path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" fill="#ffffff" />
-<g clip-path="url(#clip_1)">
+<defs><filter id="smalldraw-lineart" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.2126 -0.7152 -0.0722 1 0" /></filter></defs><g filter="url(#smalldraw-lineart)"><g clip-path="url(#clip_1)">
 <g clip-path="url(#clip_2)">
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" fill="#ffffff" />
+<g clip-path="url(#clip_3)">
+<g clip-path="url(#clip_4)">
 <path transform="matrix(1,0,0,-1,357.1909,-12.649658)" d="M0 0C.557-2.668 1.989-6.142 5.636-7.766 11.993-10.595 32.132-13.943 48.099 7.183 64.065 28.31 67.286 54.932 73.142 66.775 78.999 78.618 87.431 82.057 87.431 82.057 87.431 82.057 10.725 87.363-8.595 21.894-12.127 5.682-1.953 2.566 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,357.1909,-12.649658)" stroke-width="3.87" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C.557-2.668 1.989-6.142 5.636-7.766 11.993-10.595 32.132-13.943 48.099 7.183 64.065 28.31 67.286 54.932 73.142 66.775 78.999 78.618 87.431 82.057 87.431 82.057 87.431 82.057 10.725 87.363-8.595 21.894-12.127 5.682-1.953 2.566 0 0Z" />
 <path transform="matrix(1,0,0,-1,394.9546,-25.167359)" d="M0 0C.428-13.984 20.933-18.297 47.676-22.049 74.412-25.8 89.26-18.26 90.362-5.616 91.464 7.027 73.535 15.851 45.925 15.548 18.317 15.246-.384 12.434 0 0" fill="#ffffff" fill-rule="evenodd" />
@@ -23,7 +31,7 @@
 <path transform="matrix(1,0,0,-1,252.0283,-36.93396)" stroke-width="3.87" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C0 0 9.184-11.615 9.603-22.781 10.023-33.947 13.899-43.409 16.515-45.631 19.129-47.853 31.386-47.944 33.471-39.946 35.556-31.948 27.664-7.644 11.897 3.399-3.87 14.443 0 0 0 0Z" />
 </g>
 </g>
-<g clip-path="url(#clip_3)">
+<g clip-path="url(#clip_5)">
 <path transform="matrix(1,0,0,-1,114.0625,270.6656)" d="M0 0C-25.052-.651-54.641-1.134-75.474-16.462-86.646-24.681-92.439-39.542-90.098-54.745-87.306-72.873-75.863-81.271-61.978-89.007-65.559-87.013-74.987-109.513-75.686-112.419-81.831-137.972-63.086-162.721-42.37-174.218-27.252-182.608-10.304-185.487 6.164-185.643 15.552-185.731 16.95-193.646 23.602-199.523 30.909-205.979 40.616-209.245 49.508-210.855 75.692-215.595 102.695-209.376 123.668-193.774 136.33-184.355 146.697-171.81 158.935-161.777 176.766-147.161 198.537-138.101 221.354-135.801 216.243-111.152 203.08-88.384 186.207-70.268 169.333-52.15 148.874-38.45 127.539-27.829 87.72-8.005 44.249 1.112 1.849 .046 1.246 .032 .63 .016 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,114.0625,270.6656)" stroke-width="4" stroke-linecap="butt" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C-25.052-.651-54.641-1.134-75.474-16.462-86.646-24.681-92.439-39.542-90.098-54.745-87.306-72.873-75.863-81.271-61.978-89.007-65.559-87.013-74.987-109.513-75.686-112.419-81.831-137.972-63.086-162.721-42.37-174.218-27.252-182.608-10.304-185.487 6.164-185.643 15.552-185.731 16.95-193.646 23.602-199.523 30.909-205.979 40.616-209.245 49.508-210.855 75.692-215.595 102.695-209.376 123.668-193.774 136.33-184.355 146.697-171.81 158.935-161.777 176.766-147.161 198.537-138.101 221.354-135.801 216.243-111.152 203.08-88.384 186.207-70.268 169.333-52.15 148.874-38.45 127.539-27.829 87.72-8.005 44.249 1.112 1.849 .046 1.246 .032 .63 .016 0 0Z" />
 <path transform="matrix(1,0,0,-1,422.4897,159.0777)" d="M0 0C19.668 15.529 42.717 34.091 68.535 35.642 82.38 36.474 96.34 28.759 104.269 15.577 113.722-.142 110.302-13.916 104.581-28.746 106.056-24.921 127.699-36.181 130.095-37.967 151.167-53.673 152.597-84.686 144.034-106.776 137.783-122.898 126.601-135.955 114.045-146.61 106.886-152.687 110.876-159.663 109.526-168.436 108.041-178.073 102.67-186.794 96.867-193.72 79.777-214.116 55.045-226.613 28.945-228.044 13.188-228.907-2.805-225.899-18.631-226.02-41.685-226.195-64.215-233.162-83.223-245.995-95.064-223.781-99.517-197.862-98.141-173.144-96.766-148.425-89.809-124.804-80.208-102.991-62.292-62.278-34.717-27.456-1.451-1.146-.978-.772-.494-.39 0 0" fill="#ffffff" />
@@ -86,4 +94,6 @@
 <path transform="matrix(1,0,0,-1,352.7476,318.76734)" d="M0 0-10.778 16.369C-12.515 16.014-14.314 16.194-15.943 17.019-17.942 18.03-19.312 19.827-19.952 21.939L-39.676 20.091C-39.676 20.091-40.601 38.13-24.302 50.034L-14.324 34.307C-12.032 35.362-9.445 35.454-7.187 34.312-5.02 33.213-3.588 31.196-3.029 28.851L14.932 30.167C14.826 9.677 0 0 0 0" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,352.7476,318.76734)" stroke-width="2" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0-10.778 16.369C-12.515 16.014-14.314 16.194-15.943 17.019-17.942 18.03-19.312 19.827-19.952 21.939L-39.676 20.091C-39.676 20.091-40.601 38.13-24.302 50.034L-14.324 34.307C-12.032 35.362-9.445 35.454-7.187 34.312-5.02 33.213-3.588 31.196-3.029 28.851L14.932 30.167C14.826 9.677 0 0 0 0Z" />
 </g>
-</g><metadata>{"id": "peaksel-butterflies", "label": "Butterfly", "author": "Peaksel D.O.O. Nis", "license": "CC-BY-SA-4.0", "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/", "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf", "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/46/Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf?download=1", "sha256": "97c23b96d81a932e0f1ad14ca18402092f44d388afaa4efac08fab331ba15476", "pages": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "tags": ["insects", "butterfly"], "pdfPage": 19, "changes": "Extracted artwork; margins trimmed; white paper made transparent; raster pages normalized to black line art."}</metadata></svg>
+</g>
+</g>
+</g><metadata>{"source": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf", "author": "Peaksel D.O.O. Nis", "license": "CC-BY-SA-4.0", "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/", "page": 19, "crop": null, "rotationCCW": 0, "erasedLabels": [], "changes": "Artwork extracted; margins trimmed; white paper made transparent; black line art."}</metadata></svg>

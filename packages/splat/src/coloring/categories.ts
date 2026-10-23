@@ -27,9 +27,10 @@ function subjectFor(page: ColoringPageSpec): string {
   if (has("dinosaurs")) return "dinosaurs";
   if (has("insects", "butterfly")) return "insects";
   if (has("letters")) return "letters";
-  if (has("christmas", "easter", "snow")) return "holidays";
+  if (has("christmas", "easter", "snow", "holidays", "halloween", "valentine"))
+    return "holidays";
   if (
-    has("magic-animals", "dragon", "unicorn", "princess", "knight") ||
+    has("magic-animals", "dragon", "unicorn", "princess", "knight", "fairy") ||
     /chibi_princess|fairy_tattoo/.test(page.src)
   )
     return "magic";

@@ -1,11 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1475" height="1600" viewBox="0.000000 98.192436 595.276001 645.505135">
 <defs>
 <clipPath id="clip_1">
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.276V841.89H0Z" />
+</clipPath>
+<clipPath id="clip_2">
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.276V841.89H0Z" />
+</clipPath>
+<clipPath id="clip_3">
 <path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" />
 </clipPath>
 </defs>
-<defs><filter id="smalldraw-lineart" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.2126 -0.7152 -0.0722 1 0" /></filter></defs><g filter="url(#smalldraw-lineart)"><path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" fill="#ffffff" />
-<g clip-path="url(#clip_1)">
+<defs><filter id="smalldraw-lineart" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.2126 -0.7152 -0.0722 1 0" /></filter></defs><g filter="url(#smalldraw-lineart)"><g clip-path="url(#clip_1)">
+<g clip-path="url(#clip_2)">
+<path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" fill="#ffffff" />
+<g clip-path="url(#clip_3)">
 <path transform="matrix(1,0,0,-1,403.417,619.2965)" stroke-width="2.408" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C102.788-7.961 175.42-27.462 175.42-50.256 175.42-64.096 96.576-71.188 52.54-80.754 43.481-82.722 85.765-90.092 75.328-91.784 26.983-99.626-35.263-104.345-103.187-104.345-257.057-104.345-381.793-80.129-381.793-50.256-381.793-20.385-257.057 3.832-103.187 3.832" />
 <path transform="matrix(1,0,0,-1,363.0054,626.3834)" d="M0 0C0 0-27.67 84.483-63.164 128.108-63.164 128.108 9.581 72.644 17.146 9.819" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,363.0054,626.3834)" stroke-width="3.211" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C0 0-27.67 84.483-63.164 128.108-63.164 128.108 9.581 72.644 17.146 9.819" />
@@ -151,4 +159,6 @@
 <path transform="matrix(1,0,0,-1,370.0024,298.68714)" stroke-width="2.408" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C0-6.223-5.045-11.268-11.267-11.268-17.49-11.268-22.535-6.223-22.535 0-22.535 6.223-17.49 11.267-11.267 11.267-5.045 11.267 0 6.223 0 0Z" />
 <path transform="matrix(1,0,0,-1,315.8306,204.73883)" stroke-width="2.408" stroke-linecap="butt" stroke-miterlimit="10" stroke-linejoin="miter" fill="none" stroke="#000000" d="M0 0C3.112 3.7 4.892 9.417 7.394 13.575 13 22.892 20.817 35.47 32.239 38.046 57.554 43.754 53.047 10.05 48.174-3.686" />
 </g>
-</g><metadata>{"id": "peaksel-butterflies", "label": "Butterfly", "author": "Peaksel D.O.O. Nis", "license": "CC-BY-SA-4.0", "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/", "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf", "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/46/Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf?download=1", "sha256": "97c23b96d81a932e0f1ad14ca18402092f44d388afaa4efac08fab331ba15476", "pages": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "tags": ["insects", "butterfly"], "pdfPage": 14, "changes": "Extracted artwork; margins trimmed; white paper made transparent; raster pages normalized to black line art."}</metadata></svg>
+</g>
+</g>
+</g><metadata>{"source": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf", "author": "Peaksel D.O.O. Nis", "license": "CC-BY-SA-4.0", "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/", "page": 14, "crop": null, "rotationCCW": 0, "erasedLabels": [], "changes": "Artwork extracted; margins trimmed; white paper made transparent; black line art."}</metadata></svg>
