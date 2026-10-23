@@ -1,5 +1,8 @@
 import { getColoringCategories } from "@smalldraw/splat/coloring";
+import { Dice5 } from "lucide";
+import { useState } from "preact/hooks";
 
+import { Icon } from "../components/Icon";
 import { appPath } from "../config";
 import {
   buildNewDrawingUrl,
@@ -9,6 +12,90 @@ import {
 const categories = getColoringCategories();
 const assetUrl = (src: string) =>
   new URL(`/${src}`, import.meta.env.VITE_API_URL).href;
+
+type Page = (typeof categories)[number]["pages"][number];
+const choices = categories.flatMap((category) =>
+  category.pages.map((page, index) => ({
+    page,
+    label:
+      category.id === "public-domain-review"
+        ? `Drawing ${index + 1}`
+        : page.label,
+  })),
+);
+
+function PageCard({
+  page,
+  label,
+  runtimeConfig,
+  eager = false,
+}: {
+  page: Page;
+  label: string;
+  runtimeConfig?: AccountWebRuntimeConfig;
+  eager?: boolean;
+}) {
+  return (
+    <a
+      className="ds-poster-card"
+      href={buildNewDrawingUrl(runtimeConfig, { coloringPageId: page.id })}
+      aria-label={`Color ${label}`}
+      data-coloring-page={page.id}
+    >
+      <span className="ds-poster-card__media">
+        {/* WebKit must receive loading before either source. */}
+        <img
+          key={page.id}
+          loading={eager ? "eager" : "lazy"}
+          decoding="async"
+          src={assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-256.webp"))}
+          srcSet={`${assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-256.webp"))} 1x, ${assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-512.webp"))} 2x, ${assetUrl(page.previewSrc)} 3x`}
+          alt=""
+          width={page.size.width}
+          height={page.size.height}
+        />
+      </span>
+    </a>
+  );
+}
+
+function RandomPage({
+  runtimeConfig,
+}: {
+  runtimeConfig?: AccountWebRuntimeConfig;
+}) {
+  // A stable first choice keeps the build-time HTML and hydration identical.
+  const [selection, setSelection] = useState({ index: 0, roll: 0 });
+  const choice = choices[selection.index];
+  return (
+    <div className="coloringbook__random" aria-label="Pick a coloring page">
+      <PageCard {...choice} runtimeConfig={runtimeConfig} eager />
+      <button
+        type="button"
+        className="ds-button coloringbook__dice"
+        aria-label="Pick a random coloring page"
+        title="Pick a random coloring page"
+        onClick={() =>
+          setSelection((current) => ({
+            index:
+              (current.index +
+                1 +
+                Math.floor(Math.random() * (choices.length - 1))) %
+              choices.length,
+            roll: current.roll + 1,
+          }))
+        }
+      >
+        <span
+          key={selection.roll}
+          className={selection.roll ? "is-rolling" : undefined}
+        >
+          <Icon icon={Dice5} />
+        </span>
+      </button>
+    </div>
+  );
+}
 
 export function ColoringBookContent({
   runtimeConfig,
@@ -35,6 +122,7 @@ export function ColoringBookContent({
           </a>
         ))}
       </nav>
+      <RandomPage runtimeConfig={runtimeConfig} />
       {categories.map((category) => (
         <section
           key={category.id}
@@ -49,30 +137,12 @@ export function ColoringBookContent({
                   ? `Drawing ${index + 1}`
                   : page.label;
               return (
-                <a
-                  className="ds-poster-card"
+                <PageCard
                   key={page.id}
-                  href={buildNewDrawingUrl(runtimeConfig, {
-                    coloringPageId: page.id,
-                  })}
-                  aria-label={`Color ${label}`}
-                  data-coloring-page={page.id}
-                >
-                  <span className="ds-poster-card__media">
-                    {/* WebKit must receive loading="lazy" before either source. */}
-                    <img
-                      loading="lazy"
-                      decoding="async"
-                      src={assetUrl(
-                        page.previewSrc.replace(/\.png$/, "-thumb-256.webp"),
-                      )}
-                      srcSet={`${assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-256.webp"))} 1x, ${assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-512.webp"))} 2x, ${assetUrl(page.previewSrc)} 3x`}
-                      alt=""
-                      width={page.size.width}
-                      height={page.size.height}
-                    />
-                  </span>
-                </a>
+                  page={page}
+                  label={label}
+                  runtimeConfig={runtimeConfig}
+                />
               );
             })}
           </div>

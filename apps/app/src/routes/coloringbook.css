@@ -82,3 +82,27 @@
     transition: none;
   }
 }
+
+.coloringbook__random {
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) auto;
+  align-items: center;
+  justify-content: start;
+  gap: var(--size-4);
+}
+
+.coloringbook__dice {
+  width: var(--size-px-44x);
+  height: var(--size-px-44x);
+  padding: var(--size-2);
+}
+
+.coloringbook__dice span {
+  display: flex;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .coloringbook__dice .is-rolling {
+    animation: ds-dice-tumble 480ms var(--ease-out-3);
+  }
+}

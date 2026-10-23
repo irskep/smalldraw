@@ -80,6 +80,41 @@ export async function checkColoringbook(
       await page.screenshot({
         path: `/tmp/coloringbook-header-${name}-${width}.png`,
       });
+      const randomCard = page.locator(
+        ".coloringbook__random [data-coloring-page]",
+      );
+      for (let roll = 0; roll < 3; roll++) {
+        const previous = await randomCard.getAttribute("data-coloring-page");
+        await page
+          .getByRole("button", {
+            name: "Pick a random coloring page",
+            exact: true,
+          })
+          .click();
+        await expect(randomCard).not.toHaveAttribute(
+          "data-coloring-page",
+          previous!,
+        );
+        const selected = await randomCard.getAttribute("data-coloring-page");
+        expect(
+          new URL((await randomCard.getAttribute("href"))!).searchParams.get(
+            "page",
+          ),
+        ).toBe(selected);
+        await expect
+          .poll(() =>
+            randomCard
+              .locator("img")
+              .evaluate(
+                (image: HTMLImageElement) =>
+                  image.complete && image.naturalWidth > 0,
+              ),
+          )
+          .toBe(true);
+      }
+      await page
+        .locator(".coloringbook__random")
+        .screenshot({ path: `/tmp/coloringbook-random-${name}-${width}.png` });
       await page
         .getByRole("link", { name: "Public Domain Review", exact: true })
         .click();
@@ -101,7 +136,7 @@ export async function checkColoringbook(
           .every((image) => image.complete && image.naturalWidth > 0),
       );
       const dove = page.locator(
-        '[data-coloring-page="coloring/pavelkukov/dove.svg"]',
+        '.coloringbook__pages [data-coloring-page="coloring/pavelkukov/dove.svg"]',
       );
       await dove.scrollIntoViewIfNeeded();
       await expect
