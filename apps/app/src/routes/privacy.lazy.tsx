@@ -2,10 +2,15 @@ import { AnalyticsPreference } from "../components/AnalyticsPreference/Analytics
 
 function PrivacyPolicy() {
   return (
-    <section className="portal-page" aria-label="Privacy policy">
+    <section
+      className="portal-page portal-text-page"
+      aria-label="Privacy policy"
+    >
       <div className="portal-page__header">
         <h1 className="portal-title">Privacy Policy</h1>
         <p>Last updated: October 20, 2026</p>
+      </div>
+      <div className="portal-text-page__body">
         <AnalyticsPreference />
         <p>
           This Privacy Policy describes Our policies and procedures on the

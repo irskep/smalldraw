@@ -1,9 +1,14 @@
 function TermsAndConditions() {
   return (
-    <section className="portal-page" aria-label="Terms and conditions">
+    <section
+      className="portal-page portal-text-page"
+      aria-label="Terms and conditions"
+    >
       <div className="portal-page__header">
         <h1 className="portal-title">Terms and Conditions</h1>
         <p>Last updated: June 18, 2026</p>
+      </div>
+      <div className="portal-text-page__body">
         <p>
           Please read these terms and conditions carefully before using Our
           Service.

@@ -157,11 +157,32 @@ a {
 .portal-text-page__body {
   display: grid;
   gap: var(--size-3);
+  text-align: start;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .portal-text-page__body h2,
+.portal-text-page__body h3,
+.portal-text-page__body h4,
+.portal-text-page__body ul,
 .portal-text-page__body p {
   margin: 0;
+}
+
+.portal-text-page__body ul {
+  padding-inline-start: var(--size-5);
+}
+
+.portal-text-page__body li + li,
+.portal-text-page__body li > ul {
+  margin-block-start: var(--size-2);
+}
+
+.portal-text-page__body h3,
+.portal-text-page__body h4 {
+  margin-block-start: var(--size-2);
+  line-height: 1.3;
 }
 
 .portal-text-page__body h2 {
