@@ -13,14 +13,11 @@ export default function ColoringBook() {
     <div className="coloringbook">
       <header className="coloringbook__intro">
         <h1>A free coloring book app</h1>
-        <p>
-          Color with a tap, paint with a brush, or add a few stamps. No ads or
-          signup required.
-        </p>
+        <p>Color with a tap, paint with a brush, or add a few stamps.</p>
       </header>
       <nav className="coloringbook__subjects" aria-label="Coloring subjects">
         {categories.map((category) => (
-          <a className="ds-button" key={category.id} href={`#${category.id}`}>
+          <a key={category.id} href={`#${category.id}`}>
             {category.title}
           </a>
         ))}
@@ -50,7 +47,7 @@ export default function ColoringBook() {
                 >
                   <span className="ds-poster-card__media">
                     <img
-                      src={assetUrl(page.src)}
+                      src={assetUrl(page.previewSrc)}
                       alt=""
                       loading="lazy"
                       decoding="async"

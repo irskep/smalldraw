@@ -1,6 +1,7 @@
 """Import a checked-out pavelkukov/coloring-pages collection, retaining vector artwork.
 Usage: mise run //packages/splat:coloring:import-svg -- /path/to/coloring-pages
 """
+from coloring_formats import frame_svg
 import json
 from pathlib import Path
 import shutil
@@ -24,27 +25,25 @@ for filename, metadata in sorted(collection.items()):
     for element in svg.iter():
         if element.tag.rsplit("}", 1)[-1] in {"script", "image", "foreignObject"}:
             raise ValueError(f"Unexpected embedded content: {filename}")
-    _, _, width, height = map(float, svg.attrib["viewBox"].split())
-    if filename == "dove.svg":
+    text = (source / "images" / filename).read_text()
+    if filename in {"dove.svg", "camel.svg", "s_s_edmund_fitzgerald.svg"}:
         # Correct the source's sideways portrait page without changing its paths.
-        text = (source / "images" / filename).read_text()
         text = text.replace('viewBox="0 0 210 297"', 'viewBox="0 0 297 210"')
         text = text.replace('height="297mm"', 'height="210mm"').replace('width="210mm"', 'width="297mm"')
         text = text.replace('id="layer1"', 'id="layer1" transform="translate(0 210) rotate(-90)"')
-        (destination / filename).write_text(text)
-        width, height = height, width
-    else:
-        shutil.copyfile(source / "images" / filename, destination / filename)
-    # Keep document pixel dimensions bounded for the existing raster fill worker.
-    scale = 1600 / max(width, height)
+    text, width, height, preview = frame_svg(text)
+    (destination / filename).write_text(text)
+    preview_filename = Path(filename).stem + "-preview.png"
+    (destination / preview_filename).write_bytes(preview)
     pages.append({
         "filename": filename,
+        "preview": preview_filename,
         "label": Path(filename).stem.replace("_", " ").capitalize(),
         "tags": metadata["categories"],
         "author": metadata.get("author", ""),
         "sourceUrl": metadata.get("source", ""),
-        "width": round(width * scale),
-        "height": round(height * scale),
+        "width": width,
+        "height": height,
     })
 shutil.copyfile(source / "LICENSE", destination / "LICENSE")
 acknowledgments = "\n".join(line.rstrip() for line in (source / "Acknowledgments.md").read_text().splitlines()) + "\n"
@@ -55,7 +54,8 @@ SVG collection: Pavel Kukov, https://github.com/pavelkukov/coloring-pages
 Source revision: {revision}
 Collection license: CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
 
-The dove is rotated 90 degrees counterclockwise; other SVGs are unchanged.
+Margins are trimmed. The dove, camel, and SS Edmund Fitzgerald are rotated
+90 degrees counterclockwise. PNG previews are rendered with transparent backgrounds.
 Labels and browsing categories
 are supplied by this app. Original artist and source information is retained in
 each SVG and in Acknowledgments.md alongside these files. The blank sheet is omitted.

@@ -23,7 +23,7 @@ run = "python3 ./scripts/inspect_coloring_book.py"
 run = "python3 ./scripts/postprocess_black_levels.py"
 
 [tasks."coloring:import-svg"]
-run = "python3 ./scripts/import-svg-coloring.py"
+run = "uv run --with pymupdf==1.26.7 python ./scripts/import-svg-coloring.py"
 
 [tasks."coloring:import-pdf"]
 run = "uv run --with pymupdf==1.26.7 python ./scripts/import-pdf-coloring.py"

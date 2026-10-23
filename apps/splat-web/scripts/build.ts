@@ -39,7 +39,7 @@ if (existsSync("public")) {
 await $`rm -rf dist/coloring`;
 await $`mkdir -p dist/coloring`;
 for await (const entry of new Bun.Glob(
-  "*/{page-*.png,*.svg,credits.txt,LICENSE,Acknowledgments.md}",
+  "*/{*.png,*.svg,credits.txt,LICENSE,Acknowledgments.md}",
 ).scan({
   cwd: coloringAssetsDir,
   onlyFiles: true,

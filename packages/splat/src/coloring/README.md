@@ -11,6 +11,10 @@ White paper must be transparent so colors below it remain visible. PDF-derived
 SVGs retain white occlusion shapes and apply a white-to-alpha filter to the
 composited artwork; removing those shapes would expose hidden strokes.
 New imported documents have a maximum dimension of 1600 pixels to bound fill work.
+Imports measure visible ink after compositing and trim blank margins, retaining
+a 3% margin where the source has room. The gallery and picker use separate
+768-pixel transparent PNG previews rendered from the originals; the editor uses
+the full SVG or PNG artwork.
 
 ## Public gallery
 
@@ -28,7 +32,7 @@ mise run //packages/splat:coloring:import-pdf
 ```
 
 The SVG import records the source commit in `svgPages.json`, retains the original
-artwork and attribution, corrects the dove’s orientation, and excludes the blank sheet. Subject grouping lives in
+artwork and attribution, corrects the dove, camel, and SS Edmund Fitzgerald orientations, and excludes the blank sheet. Subject grouping lives in
 `categories.ts`; technical tags, ages, and gender labels are not shown as categories.
 
 ## Import PDF artwork
@@ -49,7 +53,7 @@ The older PNG pipeline remains for the existing Public Domain Review assets.
 
 - [Pavel Kukov SVG collection](https://github.com/pavelkukov/coloring-pages):
   collection licensed CC BY-SA 4.0. Preserve its LICENSE, acknowledgments, and
-  per-file metadata. The dove is rotated 90° counterclockwise; other SVGs are unchanged. Browsing labels are ours.
+  per-file metadata. The dove, camel, and SS Edmund Fitzgerald are rotated 90° counterclockwise. Blank margins are trimmed; original paths are retained. Browsing labels are ours.
 - [Peaksel dinosaur PDF](https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf)
   and [butterfly PDF](https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf):
   the Commons description pages specify CC BY-SA 4.0 and confirmed permission

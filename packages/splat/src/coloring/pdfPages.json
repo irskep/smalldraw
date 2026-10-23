@@ -1,402 +1,442 @@
 [
   {
     "id": "coloring/peaksel-dinosaurs/page-001.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-001-preview.png",
     "label": "Dinosaur 1",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 4,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1526
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-002.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-002-preview.png",
     "label": "Dinosaur 2",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 5,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1537
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-003.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-003-preview.png",
     "label": "Dinosaur 3",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 6,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1455
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-004.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-004-preview.png",
     "label": "Dinosaur 4",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 7,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1491
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-005.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-005-preview.png",
     "label": "Dinosaur 5",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 8,
-    "width": 1131,
+    "width": 1584,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-006.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-006-preview.png",
     "label": "Dinosaur 6",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 9,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1510
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-007.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-007-preview.png",
     "label": "Dinosaur 7",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 10,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1582
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-008.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-008-preview.png",
     "label": "Dinosaur 8",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 11,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1452
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-009.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-009-preview.png",
     "label": "Dinosaur 9",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 12,
-    "width": 1131,
+    "width": 1459,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-010.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-010-preview.png",
     "label": "Dinosaur 10",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 13,
-    "width": 1131,
+    "width": 1130,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-011.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-011-preview.png",
     "label": "Dinosaur 11",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 14,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1527
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-012.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-012-preview.png",
     "label": "Dinosaur 12",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 15,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1454
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-013.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-013-preview.png",
     "label": "Dinosaur 13",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 16,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1533
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-014.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-014-preview.png",
     "label": "Dinosaur 14",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 17,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1456
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-015.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-015-preview.png",
     "label": "Dinosaur 15",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 18,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1414
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-016.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-016-preview.png",
     "label": "Dinosaur 16",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 19,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1521
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-017.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-017-preview.png",
     "label": "Dinosaur 17",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 20,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1572
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-018.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-018-preview.png",
     "label": "Dinosaur 18",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 21,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1273
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-019.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-019-preview.png",
     "label": "Dinosaur 19",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 22,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1439
   },
   {
     "id": "coloring/peaksel-dinosaurs/page-020.svg",
+    "preview": "coloring/peaksel-dinosaurs/page-020-preview.png",
     "label": "Dinosaur 20",
     "sourceId": "peaksel-dinosaurs",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["dinosaurs"],
     "pageNumber": 23,
-    "width": 1131,
+    "width": 1567,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-001.svg",
+    "preview": "coloring/peaksel-butterflies/page-001-preview.png",
     "label": "Butterfly 1",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 4,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1523
   },
   {
     "id": "coloring/peaksel-butterflies/page-002.svg",
+    "preview": "coloring/peaksel-butterflies/page-002-preview.png",
     "label": "Butterfly 2",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 5,
-    "width": 1131,
+    "width": 1523,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-003.svg",
+    "preview": "coloring/peaksel-butterflies/page-003-preview.png",
     "label": "Butterfly 3",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 6,
-    "width": 1131,
+    "width": 1434,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-004.svg",
+    "preview": "coloring/peaksel-butterflies/page-004-preview.png",
     "label": "Butterfly 4",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 7,
-    "width": 1131,
+    "width": 1340,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-005.svg",
+    "preview": "coloring/peaksel-butterflies/page-005-preview.png",
     "label": "Butterfly 5",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 8,
-    "width": 1131,
+    "width": 1362,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-006.svg",
+    "preview": "coloring/peaksel-butterflies/page-006-preview.png",
     "label": "Butterfly 6",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 9,
-    "width": 1131,
+    "width": 1138,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-007.svg",
+    "preview": "coloring/peaksel-butterflies/page-007-preview.png",
     "label": "Butterfly 7",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 10,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1022
   },
   {
     "id": "coloring/peaksel-butterflies/page-008.svg",
+    "preview": "coloring/peaksel-butterflies/page-008-preview.png",
     "label": "Butterfly 8",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 11,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1195
   },
   {
     "id": "coloring/peaksel-butterflies/page-009.svg",
+    "preview": "coloring/peaksel-butterflies/page-009-preview.png",
     "label": "Butterfly 9",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 12,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1598
   },
   {
     "id": "coloring/peaksel-butterflies/page-010.svg",
+    "preview": "coloring/peaksel-butterflies/page-010-preview.png",
     "label": "Butterfly 10",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 13,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1472
   },
   {
     "id": "coloring/peaksel-butterflies/page-011.svg",
+    "preview": "coloring/peaksel-butterflies/page-011-preview.png",
     "label": "Butterfly 11",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 14,
-    "width": 1131,
+    "width": 1475,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-012.svg",
+    "preview": "coloring/peaksel-butterflies/page-012-preview.png",
     "label": "Butterfly 12",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 15,
-    "width": 1131,
+    "width": 1407,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-013.svg",
+    "preview": "coloring/peaksel-butterflies/page-013-preview.png",
     "label": "Butterfly 13",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 16,
-    "width": 1131,
+    "width": 1273,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-014.svg",
+    "preview": "coloring/peaksel-butterflies/page-014-preview.png",
     "label": "Butterfly 14",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 17,
-    "width": 1131,
+    "width": 1395,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-015.svg",
+    "preview": "coloring/peaksel-butterflies/page-015-preview.png",
     "label": "Butterfly 15",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 18,
-    "width": 1131,
+    "width": 1546,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-016.svg",
+    "preview": "coloring/peaksel-butterflies/page-016-preview.png",
     "label": "Butterfly 16",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 19,
-    "width": 1131,
+    "width": 1483,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-017.svg",
+    "preview": "coloring/peaksel-butterflies/page-017-preview.png",
     "label": "Butterfly 17",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 20,
-    "width": 1131,
+    "width": 1392,
     "height": 1600
   },
   {
     "id": "coloring/peaksel-butterflies/page-018.svg",
+    "preview": "coloring/peaksel-butterflies/page-018-preview.png",
     "label": "Butterfly 18",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 21,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1511
   },
   {
     "id": "coloring/peaksel-butterflies/page-019.svg",
+    "preview": "coloring/peaksel-butterflies/page-019-preview.png",
     "label": "Butterfly 19",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 22,
-    "width": 1131,
-    "height": 1600
+    "width": 1600,
+    "height": 1563
   },
   {
     "id": "coloring/peaksel-butterflies/page-020.svg",
+    "preview": "coloring/peaksel-butterflies/page-020-preview.png",
     "label": "Butterfly 20",
     "sourceId": "peaksel-butterflies",
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
     "tags": ["insects", "butterfly"],
     "pageNumber": 23,
-    "width": 1131,
+    "width": 1366,
     "height": 1600
   }
 ]

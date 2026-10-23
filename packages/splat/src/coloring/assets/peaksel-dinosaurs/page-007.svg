@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="595.276" height="841.89" viewBox="0 0 595.276 841.89">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="1600" height="1582" viewBox="0.000000 126.655334 595.276001 588.579346">
 <defs>
 <clipPath id="clip_1">
 <path transform="matrix(1,0,0,-1,0,841.89)" d="M0 0H595.275V841.89H0Z" />
@@ -247,4 +247,4 @@
 <path transform="matrix(1,0,0,-1,560.1738,548.57986)" d="M0 0C0 0-9.415-1.173-11.959 8.539" fill="#ffffff" />
 <path transform="matrix(1,0,0,-1,560.1738,548.57986)" stroke-width="3.383" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="#000000" d="M0 0C0 0-9.415-1.173-11.959 8.539" />
 </g>
-</g><metadata>{"id": "peaksel-dinosaurs", "label": "Dinosaur", "author": "Peaksel D.O.O. Nis", "license": "CC-BY-SA-4.0", "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/", "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf", "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/44/Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf?download=1", "sha256": "ca9cf58285b7c12ba96190477fc9e7bf72046c00ba11dbe88f68246488fdc592", "pages": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "tags": ["dinosaurs"], "pdfPage": 10, "changes": "Extracted artwork; white paper made transparent; raster pages normalized to black line art."}</metadata></svg>
+</g><metadata>{"id": "peaksel-dinosaurs", "label": "Dinosaur", "author": "Peaksel D.O.O. Nis", "license": "CC-BY-SA-4.0", "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/", "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf", "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/44/Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf?download=1", "sha256": "ca9cf58285b7c12ba96190477fc9e7bf72046c00ba11dbe88f68246488fdc592", "pages": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], "tags": ["dinosaurs"], "pdfPage": 10, "changes": "Extracted artwork; margins trimmed; white paper made transparent; raster pages normalized to black line art."}</metadata></svg>

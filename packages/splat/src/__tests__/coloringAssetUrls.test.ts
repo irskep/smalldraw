@@ -19,3 +19,13 @@ describe("coloring asset URLs", () => {
     );
   });
 });
+
+test("resolves dedicated previews without turning them into full artwork URLs", () => {
+  const resolve = createColoringAssetUrlResolver("https://example.com/draw");
+  expect(resolve("coloring/peaksel-dinosaurs/page-017-preview.png")).toBe(
+    "https://example.com/draw/coloring/peaksel-dinosaurs/page-017-preview.png",
+  );
+  expect(resolve("coloring/pavelkukov/camel-preview.png")).toBe(
+    "https://example.com/draw/coloring/pavelkukov/camel-preview.png",
+  );
+});

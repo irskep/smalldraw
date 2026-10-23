@@ -1,4 +1,8 @@
-import { extractColoringPageId } from "./catalog";
+import { extractColoringPageId, getColoringPages } from "./catalog";
+
+const previewSources = new Set(
+  getColoringPages().map((page) => page.previewSrc),
+);
 
 export function createColoringAssetUrlResolver(
   assetBaseUrl: string | undefined,
@@ -10,7 +14,9 @@ export function createColoringAssetUrlResolver(
   const baseUrl = assetBaseUrl ?? windowOrigin;
   return (src) => {
     const coloringPageId =
-      src === "coloring/credits/credits.txt" ? src : extractColoringPageId(src);
+      src === "coloring/credits/credits.txt" || previewSources.has(src)
+        ? src
+        : extractColoringPageId(src);
     if (!coloringPageId) {
       return src;
     }

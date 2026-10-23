@@ -12,6 +12,7 @@ export interface ColoringPageSpec {
   pageNumber: number;
   label: string;
   src: string;
+  previewSrc: string;
   size: DrawingDocumentSize;
   tags: readonly string[];
 }
@@ -20,6 +21,7 @@ const COLORING_PAGES: readonly ColoringPageSpec[] = [
   ...svgCollection.pages.map((page, index): ColoringPageSpec => ({
     id: `coloring/pavelkukov/${page.filename}`,
     src: `coloring/pavelkukov/${page.filename}`,
+    previewSrc: `coloring/pavelkukov/${page.preview}`,
     volumeId: "pavelkukov",
     volumeLabel: "Coloring pages",
     sourceUrl: page.sourceUrl || "https://github.com/pavelkukov/coloring-pages",
@@ -31,6 +33,7 @@ const COLORING_PAGES: readonly ColoringPageSpec[] = [
   ...pdfPages.map((page): ColoringPageSpec => ({
     id: page.id,
     src: page.id,
+    previewSrc: page.preview,
     label: page.label,
     tags: page.tags,
     volumeId: page.sourceId,
@@ -54,6 +57,7 @@ const COLORING_PAGES: readonly ColoringPageSpec[] = [
       pageNumber: asset.pageNumber,
       label: `${asset.volumeLabel} Page ${page}`,
       src: id,
+      previewSrc: id,
       size,
       tags: [],
     } satisfies ColoringPageSpec;

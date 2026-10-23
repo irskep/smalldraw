@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import pymupdf
-from coloring_formats import render_page
+from coloring_formats import artwork_bounds, render_page, render_png
 
 splat = Path(__file__).resolve().parents[1]
 sources = json.loads((splat / "src/coloring/pdfSources.json").read_text())
@@ -29,18 +29,22 @@ for source in sources:
             for number, pdf_page in enumerate(source["pages"], 1):
                 page = document[pdf_page - 1]
                 metadata = json.dumps({**source, "pdfPage": pdf_page,
-                    "changes": "Extracted artwork; white paper made transparent; raster pages normalized to black line art."})
+                    "changes": "Extracted artwork; margins trimmed; white paper made transparent; raster pages normalized to black line art."})
                 data, extension, width, height = render_page(page, metadata)
                 filename = f"page-{number:03d}.{extension}"
                 (output / filename).write_bytes(data)
+                preview_filename = f"page-{number:03d}-preview.png"
+                preview, _, _ = render_png(page, artwork_bounds(page), 768, metadata)
+                (output / preview_filename).write_bytes(preview)
                 pages.append({"id": f"coloring/{source['id']}/{filename}",
+                    "preview": f"coloring/{source['id']}/{preview_filename}",
                     "label": f"{source['label']} {number}", "sourceId": source["id"],
                     "sourceUrl": source["sourceUrl"], "tags": source["tags"],
                     "pageNumber": pdf_page, "width": width, "height": height})
     credits.append(f"{source['label']} pages — {source['author']}\n"
                    f"Source: {source['sourceUrl']}\n"
                    f"License: {source['license']} — {source['licenseUrl']}\n"
-                   "Changes: pages extracted; white paper made transparent; raster pages normalized to black line art.\n"
+                   "Changes: pages extracted; margins trimmed; PNG previews rendered; white paper made transparent; raster pages normalized to black line art.\n"
                    "Adapted artwork remains under the source license.\n")
 (splat / "src/coloring/pdfPages.json").write_text(json.dumps(pages, indent=2) + "\n")
 credits_dir = splat / "src/coloring/assets/credits"

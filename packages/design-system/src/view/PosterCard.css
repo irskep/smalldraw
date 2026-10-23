@@ -27,9 +27,6 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  border-radius: var(--radius-2);
-  background: color-mix(in oklch, var(--ds-surface-muted) 90%, white);
-  border: var(--border-size-1) solid var(--ds-surface-pressed);
 }
 
 .ds-poster-card__media > img {

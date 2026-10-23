@@ -4,7 +4,8 @@ SVG collection: Pavel Kukov, https://github.com/pavelkukov/coloring-pages
 Source revision: c5f2dcae9a583dcd841122a1d32bc7b40f5746c0
 Collection license: CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
 
-The dove is rotated 90 degrees counterclockwise; other SVGs are unchanged.
+Margins are trimmed. The dove, camel, and SS Edmund Fitzgerald are rotated
+90 degrees counterclockwise. PNG previews are rendered with transparent backgrounds.
 Labels and browsing categories
 are supplied by this app. Original artist and source information is retained in
 each SVG and in Acknowledgments.md alongside these files. The blank sheet is omitted.
@@ -90,11 +91,11 @@ PDF artwork
 Dinosaur pages — Peaksel D.O.O. Nis
 Source: https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf
 License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0/
-Changes: pages extracted; white paper made transparent; raster pages normalized to black line art.
+Changes: pages extracted; margins trimmed; PNG previews rendered; white paper made transparent; raster pages normalized to black line art.
 Adapted artwork remains under the source license.
 
 Butterfly pages — Peaksel D.O.O. Nis
 Source: https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf
 License: CC-BY-SA-4.0 — https://creativecommons.org/licenses/by-sa/4.0/
-Changes: pages extracted; white paper made transparent; raster pages normalized to black line art.
+Changes: pages extracted; margins trimmed; PNG previews rendered; white paper made transparent; raster pages normalized to black line art.
 Adapted artwork remains under the source license.
