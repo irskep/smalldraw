@@ -51,6 +51,7 @@ export const DRAW_APP_PATH = "/draw/";
 export const PORTAL_ROUTE_PATTERNS = [
   "/",
   "/coloringbook",
+  "/coloringbook/:topic",
   "/account",
   "/admin",
   "/login",
@@ -379,3 +380,5 @@ export { getPortalMetadata } from "./portalMetadata";
 export interface UsageAnalytics {
   event(name: string, title: string): void;
 }
+
+export { COLORING_TOPICS, getColoringTopic } from "./coloringTopics";

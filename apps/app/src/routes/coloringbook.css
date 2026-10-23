@@ -96,3 +96,14 @@
     animation: ds-dice-tumble 480ms var(--ease-out-3);
   }
 }
+
+.coloringbook__intro[data-topic] {
+  grid-template-columns: 1fr;
+}
+.coloringbook h2 a {
+  text-decoration-thickness: var(--border-size-1);
+  text-underline-offset: 0.2em;
+}
+.coloringbook__subjects [aria-current="page"] {
+  font-weight: var(--font-weight-7);
+}

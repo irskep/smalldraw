@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
 
+import { COLORING_TOPICS, getPortalMetadata } from "@smalldraw/shared";
+
 import { renderPortalMetadata } from "./portalMetadata";
 
 const shell =
@@ -40,4 +42,31 @@ test("other routes do not inherit homepage canonical or structured data", () => 
   const data = renderPortalMetadata(shell, "/data/");
   expect(data).toContain('href="https://splatterboard.app/data"');
   expect(data).not.toContain("application/ld+json");
+});
+
+test("every coloring topic has distinct initial metadata and a sitemap URL", async () => {
+  const sitemap = await Bun.file(
+    new URL("../../app/public/sitemap.xml", import.meta.url),
+  ).text();
+  const titles = new Set<string>();
+  const descriptions = new Set<string>();
+  for (const topic of COLORING_TOPICS) {
+    const path = `/coloringbook/${topic.id}`;
+    const html = renderPortalMetadata(shell, `${path}/`);
+    expect(html).toContain(`href="https://splatterboard.app${path}"`);
+    expect(html).toContain(
+      `property="og:url" content="https://splatterboard.app${path}"`,
+    );
+    expect(html).toContain('content="index, follow, max-image-preview:large"');
+    expect(html).toContain('"@type":"CollectionPage"');
+    expect(html).toContain('"@type":"BreadcrumbList"');
+    expect(sitemap).toContain(`<loc>https://splatterboard.app${path}</loc>`);
+    titles.add(getPortalMetadata(path).title);
+    descriptions.add(topic.description);
+  }
+  expect(titles.size).toBe(COLORING_TOPICS.length);
+  expect(descriptions.size).toBe(COLORING_TOPICS.length);
+  expect(renderPortalMetadata(shell, "/coloringbook/not-a-topic")).toContain(
+    'content="noindex, follow"',
+  );
 });

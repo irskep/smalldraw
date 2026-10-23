@@ -1,3 +1,5 @@
+import { COLORING_TOPICS } from "@smalldraw/shared";
+
 import { type ColoringPageSpec, getColoringPages } from "./catalog";
 
 export interface ColoringCategory {
@@ -7,19 +9,9 @@ export interface ColoringCategory {
   creditsSrc?: string;
 }
 
-const SUBJECTS = [
-  { id: "animals", title: "Animals" },
-  { id: "dinosaurs", title: "Dinosaurs" },
-  { id: "insects", title: "Butterflies & bugs" },
-  { id: "underwater", title: "Underwater" },
-  { id: "magic", title: "Magic & fairy tales" },
-  { id: "nature", title: "Flowers & nature" },
-  { id: "food", title: "Food" },
-  { id: "letters", title: "Letters & numbers" },
-  { id: "holidays", title: "Holidays" },
-  { id: "patterns", title: "Shapes & patterns" },
-  { id: "art", title: "Art & scenes" },
-] as const;
+const SUBJECTS = COLORING_TOPICS.filter(
+  (topic) => topic.id !== "public-domain-review",
+).map(({ id, title }) => ({ id, title }));
 
 function subjectFor(page: ColoringPageSpec): string {
   const tags = new Set(page.tags);

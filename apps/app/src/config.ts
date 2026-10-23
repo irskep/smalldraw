@@ -16,15 +16,12 @@ function normalizeBasePath(value: string | undefined): string {
 /** Public pages must survive anonymous session-query failures. */
 export function isPublicUnauthenticatedRoute(pathname: string): boolean {
   const normalized = pathname.replace(/\/+$/, "") || "/";
-  return [
-    "",
-    "coloringbook",
-    "login",
-    "register",
-    "data",
-    "privacy",
-    "terms",
-  ].some((route) => (appPath(route).replace(/\/+$/, "") || "/") === normalized);
+  return (
+    normalized.startsWith(appPath("coloringbook/")) ||
+    ["", "coloringbook", "login", "register", "data", "privacy", "terms"].some(
+      (route) => (appPath(route).replace(/\/+$/, "") || "/") === normalized,
+    )
+  );
 }
 
 const escapeRegExp = (value: string) =>

@@ -1,3 +1,5 @@
+import { getColoringTopic } from "./coloringTopics";
+
 const ORIGIN = "https://splatterboard.app";
 const DESCRIPTION =
   "A free drawing app for kids. Draw, paint, and play with stamps. No ads, no gimmicks.";
@@ -36,7 +38,16 @@ export interface MetadataElement {
 /** Shared by the initial HTML response and client-side route changes. */
 export function getPortalMetadata(pathname: string) {
   const path = pathname.replace(/\/+$/, "") || "/";
-  const page = PUBLIC_PAGES[path];
+  const topic = getColoringTopic(path);
+  const page = topic
+    ? {
+        title:
+          topic.id === "public-domain-review"
+            ? `${topic.heading} — Splatterboard`
+            : `Free ${topic.heading.charAt(0).toLowerCase()}${topic.heading.slice(1)} — Splatterboard`,
+        description: topic.description,
+      }
+    : PUBLIC_PAGES[path];
   const elements: MetadataElement[] = [];
   const meta = (name: string, content: string) =>
     elements.push({ tag: "meta", attributes: { name, content } });
@@ -56,7 +67,7 @@ export function getPortalMetadata(pathname: string) {
   og("og:title", page.title);
   og("og:description", page.description);
   og("og:url", url);
-  const coloringBook = path === "/coloringbook";
+  const coloringBook = path === "/coloringbook" || Boolean(topic);
   const preview = `${ORIGIN}/${coloringBook ? "coloringbook-preview.png" : "drawing-preview.png"}`;
   og("og:image", preview);
   og("og:image:type", "image/png");
@@ -71,6 +82,40 @@ export function getPortalMetadata(pathname: string) {
   meta("twitter:description", page.description);
   meta("twitter:image", preview);
   meta("twitter:image:alt", alt);
+  if (topic)
+    elements.push({
+      tag: "script",
+      attributes: { type: "application/ld+json" },
+      text: JSON.stringify({
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "CollectionPage",
+            name: topic.heading,
+            description: topic.description,
+            url,
+            isAccessibleForFree: true,
+          },
+          {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Coloring book",
+                item: `${ORIGIN}/coloringbook`,
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: topic.title,
+                item: url,
+              },
+            ],
+          },
+        ],
+      }),
+    });
   if (path === "/")
     elements.push({
       tag: "script",

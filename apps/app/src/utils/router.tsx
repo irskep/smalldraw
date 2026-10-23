@@ -86,6 +86,7 @@ function Pages({ onPageChange }: { onPageChange?: () => void }) {
       >
         <Route path={appPath("")} component={Home} />
         <Route path={appPath("coloringbook")} component={ColoringBook} />
+        <Route path={appPath("coloringbook/:topic")} component={ColoringBook} />
         <Route path={appPath("login")} component={Login} />
         <Route path={appPath("register")} component={Register} />
         <Route path={appPath("data")} component={Data} />

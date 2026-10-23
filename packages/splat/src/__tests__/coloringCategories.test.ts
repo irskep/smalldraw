@@ -2,10 +2,20 @@ import { describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { COLORING_TOPICS } from "@smalldraw/shared";
+
 import { getColoringPages } from "../coloring/catalog";
 import { getColoringCategories } from "../coloring/categories";
 
 describe("coloring categories", () => {
+  test("every public topic has a nonempty curated collection", () => {
+    const categories = getColoringCategories();
+    expect(categories.map((category) => category.id)).toEqual(
+      COLORING_TOPICS.map((topic) => topic.id),
+    );
+    for (const category of categories)
+      expect(category.pages.length).toBeGreaterThan(0);
+  });
   test("every gallery page ships both compact thumbnail sizes", () => {
     for (const page of getColoringCategories().flatMap(
       (category) => category.pages,

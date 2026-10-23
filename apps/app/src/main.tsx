@@ -21,6 +21,9 @@ function mount() {
   else ReactDOM.createRoot(root).render(app);
 }
 // Keep the generated gallery visible while its client code downloads.
-if (window.location.pathname.replace(/\/$/, "") === appPath("coloringbook")) {
+if (
+  window.location.pathname.replace(/\/$/, "") === appPath("coloringbook") ||
+  window.location.pathname.startsWith(appPath("coloringbook/"))
+) {
   void ColoringBook.preload().then(mount);
 } else mount();

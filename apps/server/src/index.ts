@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { isPortalRoutePath } from "@smalldraw/shared";
+import { isPortalRoutePath, getColoringTopic } from "@smalldraw/shared";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import cors, { type CorsOptions } from "cors";
 import express from "express";
@@ -105,6 +105,11 @@ app.get("/index.html", (_req, res) => res.redirect(301, "/"));
 app.get("/coloringbook.html", (_req, res) =>
   res.redirect(301, "/coloringbook"),
 );
+app.get("/coloringbook-:topic.html", (req, res, next) => {
+  const topic = getColoringTopic(`/coloringbook/${req.params.topic}`);
+  if (!topic) return next();
+  res.redirect(301, `/coloringbook/${topic.id}`);
+});
 app.use(
   express.static(staticDir, {
     index: false,
@@ -161,8 +166,21 @@ app.get("*", (req, res, next) => {
     next();
     return;
   }
-  const templatePath =
-    req.path.replace(/\/$/, "") === "/coloringbook"
+  const topic = getColoringTopic(req.path);
+  if (
+    req.path.startsWith("/coloringbook/") &&
+    req.path !== "/coloringbook/" &&
+    !topic
+  ) {
+    res
+      .set("X-Robots-Tag", "noindex")
+      .status(404)
+      .send("Coloring topic not found");
+    return;
+  }
+  const templatePath = topic
+    ? path.join(staticDir, `coloringbook-${topic.id}.html`)
+    : req.path.replace(/\/$/, "") === "/coloringbook"
       ? path.join(staticDir, "coloringbook.html")
       : indexHtmlPath;
   if (!fs.existsSync(templatePath)) {

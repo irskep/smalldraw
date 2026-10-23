@@ -10,6 +10,7 @@ import * as opaque from "@serenity-kit/opaque";
 import { automergeAsset } from "./automerge-asset.mjs";
 import { checkAnalytics } from "./check-analytics";
 import { checkColoringEntry } from "./check-coloring-entry";
+import { checkColoringTopics } from "./check-coloring-topics";
 import { checkColoringbook } from "./check-coloringbook";
 import { checkGuestSharing } from "./check-guest-sharing";
 import { checkPortalRouting } from "./check-portal-routing";
@@ -381,7 +382,9 @@ try {
             directory,
             !drawing && url.pathname.replace(/\/$/, "") === "/coloringbook"
               ? "coloringbook.html"
-              : "index.html",
+              : !drawing && url.pathname.startsWith("/coloringbook/")
+                ? `coloringbook-${url.pathname.split("/")[2]}.html`
+                : "index.html",
           ),
         ),
       );
@@ -643,6 +646,7 @@ try {
   try {
     await checkPortalRouting(safari, origin);
     await checkColoringbook(safari, origin, "webkit");
+    await checkColoringTopics(safari, origin, "webkit");
     await checkColoringEntry(safari, origin, "webkit");
     await checkGuestSharing(safari, origin);
     const privatePage = await safari.newPage({
@@ -761,6 +765,7 @@ try {
   await checkOtherToolPreviews(page, "chromium");
   await checkRandomize(page, "chromium");
   await checkColoringbook(browser, origin, "chromium");
+  await checkColoringTopics(browser, origin, "chromium");
   await checkColoringEntry(browser, origin, "chromium");
   await checkStampInteraction(page, "chromium");
   await checkCaptureLoss(page, "chromium");
