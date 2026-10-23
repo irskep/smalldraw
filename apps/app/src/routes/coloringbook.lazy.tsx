@@ -13,7 +13,6 @@ export default function ColoringBook() {
     <div className="coloringbook">
       <header className="coloringbook__intro">
         <h1>A free coloring book app</h1>
-        <p>Pick a picture and make it yours.</p>
         <p>
           Color with a tap, paint with a brush, or add a few stamps. No ads or
           signup required.
