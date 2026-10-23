@@ -121,6 +121,7 @@ export async function checkColoringbook(
         .locator(".coloringbook__random")
         .screenshot({ path: `/tmp/coloringbook-random-${name}-${width}.png` });
       await page
+        .locator(".coloringbook__subjects")
         .getByRole("link", { name: "Public Domain Review", exact: true })
         .click();
       await expect
