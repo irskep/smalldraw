@@ -4,19 +4,19 @@ Updated 2026-10-23. This work was performed in `/Users/steve/dev/apps/smalldraw`
 
 ## Current state
 
-The download queue is complete: all 69 sources are cached and checksum-verified.
-The follow-up review selected 64 sheets and omitted five covers/redundant versions.
-The gallery now has **952 drawings**: 838 imported PDF/standalone-sheet drawings,
-74 Pavel Kukov SVGs, and 40 Public Domain Review drawings. This includes the
-previously imported 50 NPS illustrations.
+The download queue is complete and reviewed. Subsequent user curation removed
+incomplete illustrated alphabets and the Valentine collection. The gallery has
+**898 drawings**: 790 imported PDF/standalone drawings, 68 Pavel Kukov drawings,
+and 40 Public Domain Review drawings.
 
-The verified old source cache has been merged into `~/.cache/smalldraw/coloring`.
-Use that cache for subsequent imports; there is no need to fetch the old books.
-`COMMONS_REVIEW.md` records all five omissions and the heart L's per-file
-PD-ineligible status. No sources in this surveyed queue remain awaiting review.
+Keep the complete skateboard and patterned alphabets only. Skateboard ordering
+is A–Z, then 0–10, then charts; patterned A–Z follows. Other subjects progress
+from simpler to denser artwork using generated preview complexity scores.
+`COMMONS_REVIEW.md` records the exclusions. Originals remain cached, but should
+not be reimported merely because they were downloaded.
 
-The download and review instructions below describe the workflow for future
-additions; the initial-run counts and cached number-1 example are historical.
+The verified originals are merged in `~/.cache/smalldraw/coloring`; no new
+requests are needed. The older counts below describe historical import batches.
 
 ## User decisions to preserve
 

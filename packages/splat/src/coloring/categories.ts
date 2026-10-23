@@ -54,6 +54,28 @@ function subjectFor(page: ColoringPageSpec): string {
   return "nature";
 }
 
+const naturalOrder = new Intl.Collator("en", { numeric: true });
+
+function alphabetOrder(page: ColoringPageSpec): number {
+  const letter = /^Skateboard ([A-Z])$/.exec(page.label);
+  if (letter) return letter[1].charCodeAt(0) - 65;
+  const number = /^Skateboard (\d+)$/.exec(page.label);
+  if (number) return 26 + Number(number[1]);
+  if (page.volumeId.startsWith("commons-skate-")) return 100;
+  // Keep the complete, more intricate patterned alphabet together at the end.
+  return 200;
+}
+
+function comparePages(a: ColoringPageSpec, b: ColoringPageSpec): number {
+  if (a.tags.includes("letters") && b.tags.includes("letters")) {
+    return (
+      alphabetOrder(a) - alphabetOrder(b) ||
+      naturalOrder.compare(a.label, b.label)
+    );
+  }
+  return a.complexity - b.complexity || naturalOrder.compare(a.label, b.label);
+}
+
 export function getColoringCategories(): readonly ColoringCategory[] {
   const pages = getColoringPages();
   const subjectPages = pages.filter(
@@ -61,15 +83,19 @@ export function getColoringCategories(): readonly ColoringCategory[] {
   );
   const categories: ColoringCategory[] = SUBJECTS.map((subject) => ({
     ...subject,
-    pages: subjectPages.filter((page) => subjectFor(page) === subject.id),
+    pages: subjectPages
+      .filter((page) => subjectFor(page) === subject.id)
+      .sort(comparePages),
     creditsSrc: "coloring/credits/credits.txt",
   })).filter((category) => category.pages.length > 0);
   categories.push({
     id: "public-domain-review",
     title: "Public Domain Review",
-    pages: pages.filter(
-      (page) => page.volumeId === "pdr-v1" || page.volumeId === "pdr-v2",
-    ),
+    pages: pages
+      .filter(
+        (page) => page.volumeId === "pdr-v1" || page.volumeId === "pdr-v2",
+      )
+      .sort(comparePages),
   });
   return categories;
 }

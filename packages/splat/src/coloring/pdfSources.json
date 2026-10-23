@@ -152,22 +152,6 @@
     }
   },
   {
-    "id": "commons-alphabet-ballerina",
-    "label": "B is for ballerina",
-    "author": "Image User:Peaksel",
-    "license": "CC-BY-SA-4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:B_is_for_ballerina_coloring_page.pdf",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ae/B_is_for_ballerina_coloring_page.pdf",
-    "sha256": "001b80479ce2e500b962c008d90ebd537026b2d56448597f642c8bf27976ccb9",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-22",
-      "evidence": "https://commons.wikimedia.org/wiki/File:B_is_for_ballerina_coloring_page.pdf"
-    }
-  },
-  {
     "id": "peaksel-cats",
     "label": "Cat",
     "author": "Peaksel",
@@ -665,22 +649,6 @@
     }
   },
   {
-    "id": "commons-alphabet-dragon",
-    "label": "D is for dragon",
-    "author": "Image User:Peaksel",
-    "license": "CC-BY-SA-4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:D_is_for_Dragon.pdf",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/be/D_is_for_Dragon.pdf",
-    "sha256": "291f9967d9f4b13945679e6c814714b171a0608a5baf817d65054bf257db8371",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-22",
-      "evidence": "https://commons.wikimedia.org/wiki/File:D_is_for_Dragon.pdf"
-    }
-  },
-  {
     "id": "peaksel-dragons",
     "label": "Dragon",
     "author": "Peaksel",
@@ -716,22 +684,6 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Easter_Coloring_Pages_PDF.pdf",
       "permissionTicket": "2016051310011997"
-    }
-  },
-  {
-    "id": "commons-alphabet-fairy",
-    "label": "F is for fairy",
-    "author": "Image User:Peaksel",
-    "license": "CC-BY-SA-4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:F_is_for_Fairy_coloring_page.pdf",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f1/F_is_for_Fairy_coloring_page.pdf",
-    "sha256": "c5ca001500ce73c44996b6bf5e3d7532793b4d03cc54f3afd32586e7a021132b",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-22",
-      "evidence": "https://commons.wikimedia.org/wiki/File:F_is_for_Fairy_coloring_page.pdf"
     }
   },
   {
@@ -793,22 +745,6 @@
     }
   },
   {
-    "id": "commons-alphabet-girl",
-    "label": "G is for girl",
-    "author": "Image User:Peaksel",
-    "license": "CC-BY-SA-4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:G_is_for_Girl_coloring_page.pdf",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/be/G_is_for_Girl_coloring_page.pdf",
-    "sha256": "fd3f03b7939ea392b9a8be12ed3fccd4a084a60f022ab1deecb77b5f305b2b76",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-22",
-      "evidence": "https://commons.wikimedia.org/wiki/File:G_is_for_Girl_coloring_page.pdf"
-    }
-  },
-  {
     "id": "commons-dog-breeds",
     "label": "Dog breeds",
     "author": "Di (they-them)",
@@ -844,22 +780,6 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Halloween_Coloring_Pages_PDF.pdf",
       "permissionTicket": "2016051310011997"
-    }
-  },
-  {
-    "id": "commons-alphabet-horse",
-    "label": "H is for horse",
-    "author": "Image User:Peaksel",
-    "license": "CC-BY-SA-4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:HisforHorse.pdf",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/3/36/HisforHorse.pdf",
-    "sha256": "17d42f9f20a0eaa3870a8569a740c4d32d8c892e6f30ea465a1259d842da6832",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-22",
-      "evidence": "https://commons.wikimedia.org/wiki/File:HisforHorse.pdf"
     }
   },
   {
@@ -927,22 +847,6 @@
       "19": {
         "tags": ["unicorn"]
       }
-    }
-  },
-  {
-    "id": "commons-alphabet-mermaid",
-    "label": "M is for mermaid",
-    "author": "Image User:Peaksel",
-    "license": "CC-BY-SA-4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:M_is_for_Mermaid_coloring_page.pdf",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ac/M_is_for_Mermaid_coloring_page.pdf",
-    "sha256": "81536c2907977cbfa9fea4d2cb2f917a0ae2e3e59196cce59d26be314a88fa6f",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-22",
-      "evidence": "https://commons.wikimedia.org/wiki/File:M_is_for_Mermaid_coloring_page.pdf"
     }
   },
   {
@@ -1182,22 +1086,6 @@
       }
     },
     "crop": [0.06, 0.15, 0.93, 0.91]
-  },
-  {
-    "id": "commons-alphabet-princess",
-    "label": "P is for princess",
-    "author": "Image User:Peaksel",
-    "license": "CC-BY-SA-4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:P_Is_For_Princess_coloring_page.pdf",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/5/57/P_Is_For_Princess_coloring_page.pdf",
-    "sha256": "ae4eb08fbbd37f19ee1435e076dd2a6483127b988a98fe46442f341e73f9a28c",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-22",
-      "evidence": "https://commons.wikimedia.org/wiki/File:P_Is_For_Princess_coloring_page.pdf"
-    }
   },
   {
     "id": "peaksel-princesses",
@@ -1950,22 +1838,6 @@
     }
   },
   {
-    "id": "commons-alphabet-queen",
-    "label": "Q is for queen",
-    "author": "Image User:Peaksel",
-    "license": "CC-BY-SA-4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Q_is_for_Queen.pdf",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Q_is_for_Queen.pdf",
-    "sha256": "f826e0779b2d4e27503d5df07dfc48a34072b768293f1c886b120580d408c694",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Q_is_for_Queen.pdf"
-    }
-  },
-  {
     "id": "selinux-pets",
     "label": "Pets",
     "author": "Author: Dan Walsh dwalsh@redhat.com\n\nIllustrator: M\u00e1ir\u00edn Duffy duffy@redhat.com",
@@ -2043,22 +1915,6 @@
     }
   },
   {
-    "id": "commons-alphabet-unicorn",
-    "label": "U is for unicorn",
-    "author": "Image User:Peaksel",
-    "license": "CC-BY-SA-4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:U_is_for_Unicorn.pdf",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e5/U_is_for_Unicorn.pdf",
-    "sha256": "1796f0abb0054b21da599cea9a55583fd769754f9c0fd3cfaa40681464780d63",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:U_is_for_Unicorn.pdf"
-    }
-  },
-  {
     "id": "vegepedia",
     "label": "Abstract drawing",
     "author": "Nick Dolan",
@@ -2093,7 +1949,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-a-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard A"
+      }
+    }
   },
   {
     "id": "commons-skate-b",
@@ -2110,7 +1971,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-b-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard B"
+      }
+    }
   },
   {
     "id": "commons-skate-c",
@@ -2127,7 +1993,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-c-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard C"
+      }
+    }
   },
   {
     "id": "commons-skate-d",
@@ -2144,7 +2015,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-d-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard D"
+      }
+    }
   },
   {
     "id": "commons-skate-e",
@@ -2161,7 +2037,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-e-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard E"
+      }
+    }
   },
   {
     "id": "commons-skate-f",
@@ -2178,7 +2059,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-f-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard F"
+      }
+    }
   },
   {
     "id": "commons-skate-g",
@@ -2195,7 +2081,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-g-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard G"
+      }
+    }
   },
   {
     "id": "commons-skate-h",
@@ -2212,7 +2103,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-h-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard H"
+      }
+    }
   },
   {
     "id": "commons-skate-i",
@@ -2229,7 +2125,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-i-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard I"
+      }
+    }
   },
   {
     "id": "commons-skate-j",
@@ -2246,7 +2147,12 @@
       "date": "2026-10-22",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-j-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard J"
+      }
+    }
   },
   {
     "id": "commons-skate-k",
@@ -2263,7 +2169,12 @@
       "date": "2026-10-23",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-k-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard K"
+      }
+    }
   },
   {
     "id": "commons-skate-l",
@@ -2280,7 +2191,12 @@
       "date": "2026-10-23",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-l-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard L"
+      }
+    }
   },
   {
     "id": "commons-skate-m",
@@ -2297,7 +2213,12 @@
       "date": "2026-10-23",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-m-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard M"
+      }
+    }
   },
   {
     "id": "commons-skate-n",
@@ -2314,7 +2235,12 @@
       "date": "2026-10-23",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-n-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard N"
+      }
+    }
   },
   {
     "id": "commons-skate-number-0",
@@ -2331,7 +2257,12 @@
       "date": "2026-10-23",
       "evidence": "https://commons.wikimedia.org/wiki/File:Alphabet-number-0-at-coloringpagesforkidsboys-dotcom.svg"
     },
-    "format": "svg"
+    "format": "svg",
+    "pageSettings": {
+      "1": {
+        "label": "Skateboard 0"
+      }
+    }
   },
   {
     "id": "nps-chalicothere",
@@ -3154,864 +3085,6 @@
     "pageSettings": {
       "1": {
         "label": "Skateboard numbers 0\u20139"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-a",
-    "label": "Heart A",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-a-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Valentines-day-hearts-a-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "4ab70eef3b8051b83e64bc6f2f4484423ec05543bda8c02243a841a7130d844e",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-a-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart A"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-alphabet-blank2",
-    "label": "Heart",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-alphabet-blank2-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/Valentines-day-hearts-alphabet-blank2-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "71fb7d71351cb98419c38e8105c50df0ef79d58a19b8cf7e4728019c994aa39d",
-    "pages": [1],
-    "tags": ["valentine"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-alphabet-blank2-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-alphabet-blank3",
-    "label": "Nine hearts",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-alphabet-blank3-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Valentines-day-hearts-alphabet-blank3-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "bee5656dad2bf9b1e6c6362a63c0f682fd262b041aa32994fad27f9d21cff29f",
-    "pages": [1],
-    "tags": ["valentine"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-alphabet-blank3-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Nine hearts"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-b",
-    "label": "Heart B",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-b-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Valentines-day-hearts-b-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "93b74c8a25bc605537f23981f497f23bc3c5f763795f11c614d00870e0189e90",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-b-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart B"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-c",
-    "label": "Heart C",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-c-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Valentines-day-hearts-c-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "4b3afba5d0b4d86641525405b713e5031921e16b046e5f62ec47fe19d63a9cf6",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-c-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart C"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-d",
-    "label": "Heart D",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-d-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/0/06/Valentines-day-hearts-d-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "d875292f7fa06d38b5046f90779492e265bdb5e9487c0e84f11404a8368b16d6",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-d-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart D"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-e",
-    "label": "Heart E",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-e-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b8/Valentines-day-hearts-e-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "bc5baa00b933fb73b1a0ddf9aa228d79556f1c6323410bc5a859e3dcbfc9c668",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-e-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart E"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-f",
-    "label": "Heart F",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-f-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d6/Valentines-day-hearts-f-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "4ffced7791727d2c8e674cc80c004453b3a33915a4868b114ebf45153e886300",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-f-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart F"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-g",
-    "label": "Heart G",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-g-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Valentines-day-hearts-g-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "9fc14f1108f1a3d5de1c8dd9b9d64f7ac9c6a4d9a45016795069d1ddd9afcaf1",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-g-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart G"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-h",
-    "label": "Heart H",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-h-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Valentines-day-hearts-h-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "9fe0c0482dc8b3a3540c8bfd75431971b3c28458adb8d04d5bb8a79affc90142",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-h-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart H"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-i",
-    "label": "Heart I",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-i-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Valentines-day-hearts-i-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "880f26f36cc66329804577cca09ccde4896a7ba2e59b4f0b6256f83c0429662c",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-i-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart I"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-j",
-    "label": "Heart J",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-j-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Valentines-day-hearts-j-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "eb43589902839f44e92703aa57647c666f2113eecb703ad14a0c31f2e9e040ac",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-j-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart J"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-k",
-    "label": "Heart K",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-k-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/9/99/Valentines-day-hearts-k-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "f274cfeebcf0824c761ce8477f289cd3119afd32f435707b462ce0d8f5c4ffaf",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-k-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart K"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-l",
-    "label": "Heart L",
-    "author": "Coloringbuddymike",
-    "license": "LicenseRef-PD-ineligible",
-    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-l-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg#Licensing",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-l-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/9/91/Valentines-day-hearts-l-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "07d4fdbcde0ee706ea48d880dc6842898f7c7412d49a3f31062f17d5be1969b6",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-l-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart L"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-m",
-    "label": "Heart M",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-m-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Valentines-day-hearts-m-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "f6fa85a22d21223e8ff790011bea43c47862e3a70c1f22b453b707d8719468e3",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-m-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart M"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-n",
-    "label": "Heart N",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-n-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/9/91/Valentines-day-hearts-n-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "e4506d06a28913d4e51c7776823f549ef16758eaa5565eb27f5be99ac7943d26",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-n-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart N"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-0",
-    "label": "Heart 0",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-0-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/bb/Valentines-day-hearts-number-0-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "dfc356c2e9c1829ef3f7f8ca2fd0067de3e27bbfbbf60fd9233f5fb478a55516",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-0-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 0"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-1",
-    "label": "Heart 1",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-1-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6d/Valentines-day-hearts-number-1-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "ba58c841b3d0907d1c19589b02c3abe45828d41fcf9ebf3cbe350bfce4e49c3a",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-1-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 1"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-10",
-    "label": "Heart 10",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-10-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Valentines-day-hearts-number-10-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "17d99f8c07afc29e8f20c5c1e688d9950dc573cdcb2dde36dc03fa8c5ab57656",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-10-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 10"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-2",
-    "label": "Heart 2",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-2-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/9/92/Valentines-day-hearts-number-2-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "57c5f08c411ab6a29a16bde4741c55bf95de481bb38b6cb73babea65d8eee71e",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-2-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 2"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-3",
-    "label": "Heart 3",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-3-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Valentines-day-hearts-number-3-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "6a5c77521a27717a3aec240a3d7b058263f2d194460ae1ac510f85fa6514a6ca",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-3-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 3"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-4",
-    "label": "Heart 4",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-4-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Valentines-day-hearts-number-4-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "e44a6653dfffe92efd8c385de6037d1012b972620e2ecdfc53972db02212493b",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-4-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 4"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-5",
-    "label": "Heart 5",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-5-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Valentines-day-hearts-number-5-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "c0d1eaf01921858761321c123628ff7da7c9b7eebbb8c084beaf09c07386ac9b",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-5-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 5"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-6",
-    "label": "Heart 6",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-6-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/6/62/Valentines-day-hearts-number-6-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "c6db693b083388e0f7c5e4c627ebfb9f21d8478c088e10c6878f153cfb432d22",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-6-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 6"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-7",
-    "label": "Heart 7",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-7-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/5/59/Valentines-day-hearts-number-7-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "8a0d0ff2ebbfb8fce9b977b5c317be846d5b1abba1280a95a4991350591980de",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-7-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 7"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-8",
-    "label": "Heart 8",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-8-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/8/85/Valentines-day-hearts-number-8-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "fe70793223811d45fff4a08ebfc6eba8f9e5b684be73eecca7ead00213d80749",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-8-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 8"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-number-9",
-    "label": "Heart 9",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-9-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Valentines-day-hearts-number-9-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "808ce1eb3c957c69933ae62a849f025239712403b223b737afcadd49811deec1",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-9-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart 9"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-o",
-    "label": "Heart O",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-o-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Valentines-day-hearts-o-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "471897370bc219dc30c927445c83c2935a25d144cfefb07ad8a05a4c8204b2ff",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-o-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart O"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-p",
-    "label": "Heart P",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-p-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Valentines-day-hearts-p-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "8018c4eb66f033e41520cec0f376ed23bb61027f7f38b65cbbe36b40c6797fd8",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-p-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart P"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-q",
-    "label": "Heart Q",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-q-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/5/53/Valentines-day-hearts-q-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "bc90e4507398ffbcbe2b15f65b2f4aba9a5e4cfd8c3cfe964d8a5c9a9476c44e",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-q-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart Q"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-r",
-    "label": "Heart R",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-r-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Valentines-day-hearts-r-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "cc9ca0b61d12b5ba87a60905be8815e7d572682af1295190070d521c8c9a3155",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-r-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart R"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-s",
-    "label": "Heart S",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-s-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9d/Valentines-day-hearts-s-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "f22a9f3f3873e86453f9cc2406789f68679655fc9fb24a52d9940de28151cd33",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-s-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart S"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-t",
-    "label": "Heart T",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-t-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/9/98/Valentines-day-hearts-t-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "b60ba6078065199f30fd0fe76d97acf348ae45b8608e993e70d014493203482e",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-t-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart T"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-u",
-    "label": "Heart U",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-u-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Valentines-day-hearts-u-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "35432dba4661d272c859c898bd45db069718c8d2b6603ca45d7a3c9df42734e4",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-u-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart U"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-v",
-    "label": "Heart V",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-v-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Valentines-day-hearts-v-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "227fa387f9c52d6bfc380e06ab312c363ae8f21e5a294354241f36ccfaf0706a",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-v-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart V"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-w",
-    "label": "Heart W",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-w-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/3/35/Valentines-day-hearts-w-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "9040d50e319467f38cc4ce0b3e15a7270d8fbf9a6d7dbeb71d516b961583cf44",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-w-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart W"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-x",
-    "label": "Heart X",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-x-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Valentines-day-hearts-x-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "d4fe00e79f615d94a1db425c5fd85a6674add858d1752cd1944e37052df653e7",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-x-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart X"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-y",
-    "label": "Heart Y",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-y-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/2/26/Valentines-day-hearts-y-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "fe15a27690dbeab9de424c40a768ae9be0e1592e17741628a77580e9c66125f9",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-y-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart Y"
-      }
-    }
-  },
-  {
-    "id": "commons-heart-z",
-    "label": "Heart Z",
-    "author": "Coloringbuddymike",
-    "license": "CC-BY-SA-3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-z-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/9/93/Valentines-day-hearts-z-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg",
-    "sha256": "fa0f757e993934eb0236ba1bf01c058dfc2d9d83d25e62286bd528d4338456b2",
-    "pages": [1],
-    "tags": ["letters"],
-    "licenseReview": {
-      "date": "2026-10-23",
-      "evidence": "https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-z-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg"
-    },
-    "format": "svg",
-    "pageSettings": {
-      "1": {
-        "label": "Heart Z"
       }
     }
   }

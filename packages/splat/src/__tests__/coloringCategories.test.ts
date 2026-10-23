@@ -4,6 +4,43 @@ import { getColoringPages } from "../coloring/catalog";
 import { getColoringCategories } from "../coloring/categories";
 
 describe("coloring categories", () => {
+  test("only complete alphabets remain, with letters before numbers and charts", () => {
+    const letters = getColoringCategories().find(
+      (category) => category.id === "letters",
+    )!.pages;
+    const alphabet = Array.from({ length: 26 }, (_, i) =>
+      String.fromCharCode(65 + i),
+    );
+    expect(letters.slice(0, 26).map((page) => page.label)).toEqual(
+      alphabet.map((letter) => `Skateboard ${letter}`),
+    );
+    expect(letters.slice(26, 37).map((page) => page.label)).toEqual(
+      Array.from({ length: 11 }, (_, i) => `Skateboard ${i}`),
+    );
+    expect(
+      letters.slice(37, 40).every((page) => page.volumeId.includes("chart")),
+    ).toBe(true);
+    expect(letters.slice(40).map((page) => page.label)).toEqual(
+      alphabet.map((letter) => `Patterned ${letter}`),
+    );
+    expect(
+      getColoringPages().some(
+        (page) =>
+          page.volumeId.startsWith("commons-heart-") ||
+          /is for/i.test(page.label),
+      ),
+    ).toBe(false);
+  });
+  test("other subjects progress from simpler to denser artwork", () => {
+    for (const category of getColoringCategories()) {
+      if (category.id === "letters") continue;
+      const scores = category.pages.map((page) => page.complexity);
+      expect(scores.every((score) => Number.isFinite(score) && score > 0)).toBe(
+        true,
+      );
+      expect(scores).toEqual([...scores].sort((a, b) => a - b));
+    }
+  });
   test("every imported drawing appears in exactly one nonempty subject category", () => {
     const categories = getColoringCategories();
     const shown = categories

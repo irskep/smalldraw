@@ -24,9 +24,35 @@ export async function checkColoringbook(
         )
         .toBe(2200);
       await page.evaluate(() => document.fonts.ready);
+      // Do not fetch the entire alphabet/PDR collection on initial entry.
+      const distant = page.locator("#public-domain-review img").first();
+      expect(await distant.getAttribute("src")).toBeNull();
+      expect(
+        await page.locator(".coloringbook__pages img[src]").count(),
+      ).toBeLessThan(48);
       await page.screenshot({
         path: `/tmp/coloringbook-header-${name}-${width}.png`,
       });
+      await page
+        .getByRole("link", { name: "Public Domain Review", exact: true })
+        .click();
+      await expect
+        .poll(() =>
+          distant.evaluate((image: HTMLImageElement) => image.naturalWidth),
+        )
+        .toBeGreaterThan(0);
+      await page.waitForFunction(() =>
+        [
+          ...document.querySelectorAll<HTMLImageElement>(
+            ".coloringbook__pages img",
+          ),
+        ]
+          .filter((image) => {
+            const rect = image.getBoundingClientRect();
+            return rect.bottom > 0 && rect.top < innerHeight && rect.width > 0;
+          })
+          .every((image) => image.complete && image.naturalWidth > 0),
+      );
       const dove = page.locator(
         '[data-coloring-page="coloring/pavelkukov/dove.svg"]',
       );

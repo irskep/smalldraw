@@ -2,6 +2,7 @@ import type { DrawingDocumentSize } from "@smalldraw/core";
 
 import { GENERATED_COLORING_ASSETS } from "./generatedColoringPageAssets";
 import pdfPages from "./pdfPages.json";
+import rasterComplexity from "./rasterComplexity.json";
 import svgCollection from "./svgPages.json";
 
 export interface ColoringPageSpec {
@@ -15,6 +16,7 @@ export interface ColoringPageSpec {
   previewSrc: string;
   size: DrawingDocumentSize;
   tags: readonly string[];
+  complexity: number;
 }
 
 const COLORING_PAGES: readonly ColoringPageSpec[] = [
@@ -28,6 +30,7 @@ const COLORING_PAGES: readonly ColoringPageSpec[] = [
     pageNumber: index + 1,
     label: page.label,
     tags: page.tags,
+    complexity: page.complexity,
     size: { width: page.width, height: page.height },
   })),
   ...pdfPages.map((page): ColoringPageSpec => ({
@@ -36,6 +39,7 @@ const COLORING_PAGES: readonly ColoringPageSpec[] = [
     previewSrc: page.preview,
     label: page.label,
     tags: page.tags,
+    complexity: page.complexity,
     volumeId: page.sourceId,
     volumeLabel: "Coloring pages",
     sourceUrl: page.sourceUrl,
@@ -60,6 +64,7 @@ const COLORING_PAGES: readonly ColoringPageSpec[] = [
       previewSrc: id,
       size,
       tags: [],
+      complexity: (rasterComplexity as Record<string, number>)[id] ?? 0,
     } satisfies ColoringPageSpec;
   }),
 ];

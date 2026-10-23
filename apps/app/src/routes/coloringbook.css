@@ -68,6 +68,11 @@
   border-color: var(--ds-accent-border);
 }
 
+/* The square media box reserves its size even while its contents are skipped. */
+.coloringbook .ds-poster-card__media {
+  content-visibility: auto;
+}
+
 @media (max-width: 480px) {
   .coloringbook {
     padding: var(--size-2);

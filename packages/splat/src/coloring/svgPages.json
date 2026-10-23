@@ -2,16 +2,6 @@
   "revision": "c5f2dcae9a583dcd841122a1d32bc7b40f5746c0",
   "pages": [
     {
-      "filename": "a_is_for_airplane.svg",
-      "preview": "a_is_for_airplane-preview.png",
-      "label": "A is for airplane",
-      "tags": ["csk", "sizing-cover", "letters", "a"],
-      "author": "Lena London",
-      "sourceUrl": "http://www.supercoloring.com/coloring-pages/cartoon-airplane",
-      "width": 1131,
-      "height": 1600
-    },
-    {
       "filename": "abstract_mandala.svg",
       "preview": "abstract_mandala-preview.png",
       "label": "Abstract mandala",
@@ -19,7 +9,8 @@
       "author": "Dora Alis",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/simple-abstract-mandala-1",
       "width": 1514,
-      "height": 1600
+      "height": 1600,
+      "complexity": 169
     },
     {
       "filename": "abstract_mandala_1.svg",
@@ -29,7 +20,8 @@
       "author": "Dora Alis",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/abstract-mandala-4",
       "width": 1521,
-      "height": 1600
+      "height": 1600,
+      "complexity": 331
     },
     {
       "filename": "alpaca.svg",
@@ -39,17 +31,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cartoon-alpaca-0",
       "width": 1134,
-      "height": 1600
-    },
-    {
-      "filename": "b_is_for_bird.svg",
-      "preview": "b_is_for_bird-preview.png",
-      "label": "B is for bird",
-      "tags": ["csk", "sizing-cover", "letters", "b"],
-      "author": "Lena London",
-      "sourceUrl": "http://www.supercoloring.com/coloring-pages/bird-perching-on-a-tree-branch",
-      "width": 1131,
-      "height": 1600
+      "height": 1600,
+      "complexity": 78
     },
     {
       "filename": "bear_with_flower.svg",
@@ -59,7 +42,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cute-cartoon-bear",
       "width": 1525,
-      "height": 1600
+      "height": 1600,
+      "complexity": 94
     },
     {
       "filename": "bitten_apple.svg",
@@ -69,7 +53,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cartoon-bitten-apple",
       "width": 1477,
-      "height": 1600
+      "height": 1600,
+      "complexity": 50
     },
     {
       "filename": "boy_surfer.svg",
@@ -79,7 +64,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/boy-surfer-0",
       "width": 1437,
-      "height": 1600
+      "height": 1600,
+      "complexity": 86
     },
     {
       "filename": "bunny_and_eggs.svg",
@@ -89,7 +75,8 @@
       "author": "Cute Easter",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cute-easter-chick-bunny-and-eggs?tag=59110",
       "width": 1600,
-      "height": 1389
+      "height": 1389,
+      "complexity": 125
     },
     {
       "filename": "butterfly_tattoo.svg",
@@ -99,17 +86,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/butterfly-tattoo?tag=58516",
       "width": 1562,
-      "height": 1600
-    },
-    {
-      "filename": "c_is_for_cake.svg",
-      "preview": "c_is_for_cake-preview.png",
-      "label": "C is for cake",
-      "tags": ["csk", "acb", "sizing-cover", "letters", "c"],
-      "author": "Lena London",
-      "sourceUrl": "http://www.supercoloring.com/coloring-pages/piece-of-cake",
-      "width": 1152,
-      "height": 1600
+      "height": 1600,
+      "complexity": 82
     },
     {
       "filename": "camel.svg",
@@ -119,7 +97,8 @@
       "author": "Olga Gaidoush",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/camel-0",
       "width": 1600,
-      "height": 1131
+      "height": 1131,
+      "complexity": 160
     },
     {
       "filename": "cartoon_frog.svg",
@@ -129,7 +108,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cartoon-frog-3",
       "width": 1527,
-      "height": 1600
+      "height": 1600,
+      "complexity": 68
     },
     {
       "filename": "celtic_mandala.svg",
@@ -139,7 +119,8 @@
       "author": "Dora Alis",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/celtic-mandala-0",
       "width": 1521,
-      "height": 1600
+      "height": 1600,
+      "complexity": 255
     },
     {
       "filename": "celtic_ornament_book_of_kells.svg",
@@ -149,7 +130,8 @@
       "author": "Artsashina",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/celtic-ornament-design-from-book-of-kells?tag=58516",
       "width": 1514,
-      "height": 1600
+      "height": 1600,
+      "complexity": 283
     },
     {
       "filename": "chibi_princess.svg",
@@ -159,7 +141,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cute-chibi-princess",
       "width": 1190,
-      "height": 1600
+      "height": 1600,
+      "complexity": 133
     },
     {
       "filename": "creazilla_dragon.svg",
@@ -169,7 +152,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/creazilla-dragon",
       "width": 1164,
-      "height": 1600
+      "height": 1600,
+      "complexity": 111
     },
     {
       "filename": "cute_butterfly.svg",
@@ -179,7 +163,8 @@
       "author": "Coloring books: Cute Butterflies",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cute-butterfly-with-happy-smile",
       "width": 1131,
-      "height": 1600
+      "height": 1600,
+      "complexity": 126
     },
     {
       "filename": "cute_butterfly_flies_over_pumpkin.svg",
@@ -189,7 +174,8 @@
       "author": "Coloring books: Cute Butterflies",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cute-butterfly-boy-flies-over-pumpkin",
       "width": 1374,
-      "height": 1600
+      "height": 1600,
+      "complexity": 132
     },
     {
       "filename": "cute_cow.svg",
@@ -199,7 +185,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cute-cartoon-cow",
       "width": 1163,
-      "height": 1600
+      "height": 1600,
+      "complexity": 121
     },
     {
       "filename": "cute_horse.svg",
@@ -209,17 +196,8 @@
       "author": "Cute Horses",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cute-horse-and-butterfly",
       "width": 1131,
-      "height": 1600
-    },
-    {
-      "filename": "d_is_for_donut.svg",
-      "preview": "d_is_for_donut-preview.png",
-      "label": "D is for donut",
-      "tags": ["csk", "acb", "letters", "d"],
-      "author": "Lena London",
-      "sourceUrl": "http://www.supercoloring.com/coloring-pages/doughnut",
-      "width": 1215,
-      "height": 1600
+      "height": 1600,
+      "complexity": 116
     },
     {
       "filename": "donkey.svg",
@@ -229,7 +207,8 @@
       "author": "Public domain",
       "sourceUrl": "https://publicdomainvectors.org/en/free-clipart/Donkey-vector-drawing/82214.html",
       "width": 1412,
-      "height": 1600
+      "height": 1600,
+      "complexity": 100
     },
     {
       "filename": "dove.svg",
@@ -239,7 +218,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/dove-0",
       "width": 1600,
-      "height": 1131
+      "height": 1131,
+      "complexity": 230
     },
     {
       "filename": "dragon.svg",
@@ -249,17 +229,8 @@
       "author": "Public domain",
       "sourceUrl": "https://publicdomainvectors.org/en/free-clipart/Dragon-ready-to-fly-in-black-and-white/81797.html",
       "width": 1600,
-      "height": 1264
-    },
-    {
-      "filename": "e_is_for_egg.svg",
-      "preview": "e_is_for_egg-preview.png",
-      "label": "E is for egg",
-      "tags": ["csk", "easter", "egg", "letters"],
-      "author": "Lena London",
-      "sourceUrl": "http://www.supercoloring.com/coloring-pages/cartoon-egg-character",
-      "width": 1137,
-      "height": 1600
+      "height": 1264,
+      "complexity": 198
     },
     {
       "filename": "easter_basket.svg",
@@ -269,7 +240,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/easter-basket-with-eggs",
       "width": 1456,
-      "height": 1600
+      "height": 1600,
+      "complexity": 69
     },
     {
       "filename": "easter_egg.svg",
@@ -279,7 +251,8 @@
       "author": "Painter",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/easter-egg-with-simple-flower-pattern",
       "width": 1226,
-      "height": 1600
+      "height": 1600,
+      "complexity": 103
     },
     {
       "filename": "easter_egg_with_stars.svg",
@@ -289,7 +262,8 @@
       "author": "Painter",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/easter-egg-with-stars",
       "width": 1224,
-      "height": 1600
+      "height": 1600,
+      "complexity": 114
     },
     {
       "filename": "elephant_mandala.svg",
@@ -299,7 +273,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/elephant-mandala-0",
       "width": 1600,
-      "height": 1532
+      "height": 1532,
+      "complexity": 234
     },
     {
       "filename": "fairy_tattoo.svg",
@@ -309,7 +284,8 @@
       "author": "Bianca Vola",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/fairy-tattoo?tag=58516",
       "width": 1271,
-      "height": 1600
+      "height": 1600,
+      "complexity": 150
     },
     {
       "filename": "fishing_fish.svg",
@@ -319,7 +295,8 @@
       "author": "Public domain",
       "sourceUrl": "https://publicdomainvectors.org/en/free-clipart/Fishing-fish/82488.html",
       "width": 1600,
-      "height": 1339
+      "height": 1339,
+      "complexity": 156
     },
     {
       "filename": "five_pointed_star.svg",
@@ -329,7 +306,8 @@
       "author": "Public domain",
       "sourceUrl": "",
       "width": 1595,
-      "height": 1600
+      "height": 1600,
+      "complexity": 34
     },
     {
       "filename": "flowers_with_paisley_patterns.svg",
@@ -339,7 +317,8 @@
       "author": "Lesya Adamchuk",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/flowers-with-paisley-patterns",
       "width": 1266,
-      "height": 1600
+      "height": 1600,
+      "complexity": 360
     },
     {
       "filename": "gingerbread_man.svg",
@@ -349,7 +328,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/simple-gingerbread-man",
       "width": 1260,
-      "height": 1600
+      "height": 1600,
+      "complexity": 73
     },
     {
       "filename": "girl_with_a_pearl_earring.svg",
@@ -359,7 +339,8 @@
       "author": "Johannes Vermeer",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/girl-with-pearl-earring",
       "width": 1131,
-      "height": 1600
+      "height": 1600,
+      "complexity": 235
     },
     {
       "filename": "grape.svg",
@@ -369,7 +350,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/grape-4",
       "width": 1600,
-      "height": 1588
+      "height": 1588,
+      "complexity": 109
     },
     {
       "filename": "hasma.svg",
@@ -379,7 +361,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/hamsa",
       "width": 1186,
-      "height": 1600
+      "height": 1600,
+      "complexity": 291
     },
     {
       "filename": "heart.svg",
@@ -389,7 +372,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/simple-heart-1",
       "width": 1596,
-      "height": 1600
+      "height": 1600,
+      "complexity": 30
     },
     {
       "filename": "horse_caricature.svg",
@@ -399,7 +383,8 @@
       "author": "Public domain",
       "sourceUrl": "https://publicdomainvectors.org/en/free-clipart/Horse-caricature/82390.html",
       "width": 1078,
-      "height": 1600
+      "height": 1600,
+      "complexity": 134
     },
     {
       "filename": "hummingbird.svg",
@@ -409,7 +394,8 @@
       "author": "SuperColoring",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/hummingbird-6",
       "width": 1439,
-      "height": 1600
+      "height": 1600,
+      "complexity": 59
     },
     {
       "filename": "jellyfish.svg",
@@ -419,7 +405,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cartoon-jellyfish-0",
       "width": 1131,
-      "height": 1600
+      "height": 1600,
+      "complexity": 135
     },
     {
       "filename": "juice_and_cake.svg",
@@ -429,7 +416,8 @@
       "author": "SuperColoring",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cocktail-and-cake",
       "width": 1120,
-      "height": 1600
+      "height": 1600,
+      "complexity": 110
     },
     {
       "filename": "kawaii_unicorn_cloud.svg",
@@ -439,7 +427,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/kawaii-unicorn-cloud",
       "width": 1329,
-      "height": 1600
+      "height": 1600,
+      "complexity": 64
     },
     {
       "filename": "knight_on_horse.svg",
@@ -449,7 +438,8 @@
       "author": "Nata Silina",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cartoon-knight-on-horse",
       "width": 1250,
-      "height": 1600
+      "height": 1600,
+      "complexity": 118
     },
     {
       "filename": "ladybug_on_leaf.svg",
@@ -459,7 +449,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/ladybird-on-a-leaf",
       "width": 1072,
-      "height": 1600
+      "height": 1600,
+      "complexity": 95
     },
     {
       "filename": "little_pony.svg",
@@ -469,7 +460,8 @@
       "author": "Public domain",
       "sourceUrl": "https://www.flickr.com/photos/76801207@N04/7043305357",
       "width": 1177,
-      "height": 1600
+      "height": 1600,
+      "complexity": 206
     },
     {
       "filename": "locked_heart.svg",
@@ -479,7 +471,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/locked-heart",
       "width": 1553,
-      "height": 1600
+      "height": 1600,
+      "complexity": 141
     },
     {
       "filename": "mandala_pattern_1.svg",
@@ -489,7 +482,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/mandala-with-abstract-pattern",
       "width": 1525,
-      "height": 1600
+      "height": 1600,
+      "complexity": 201
     },
     {
       "filename": "mandala_pattern_2.svg",
@@ -499,7 +493,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/mandala-with-abstract-pattern-0",
       "width": 1521,
-      "height": 1600
+      "height": 1600,
+      "complexity": 173
     },
     {
       "filename": "mosaic_heart.svg",
@@ -509,7 +504,8 @@
       "author": "Artsashina",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/mosaic-heart",
       "width": 1539,
-      "height": 1600
+      "height": 1600,
+      "complexity": 369
     },
     {
       "filename": "octo.svg",
@@ -519,7 +515,8 @@
       "author": "Public domain",
       "sourceUrl": "https://www.momjunction.com/print-coloring-image/93028/print/2014/09/The-underwater-birthday-card/",
       "width": 1383,
-      "height": 1600
+      "height": 1600,
+      "complexity": 275
     },
     {
       "filename": "octopus.svg",
@@ -529,7 +526,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/cute-cartoon-octopus",
       "width": 1143,
-      "height": 1600
+      "height": 1600,
+      "complexity": 148
     },
     {
       "filename": "owl.svg",
@@ -539,17 +537,8 @@
       "author": "Public domain",
       "sourceUrl": "https://www.publicdomainpictures.net/en/view-image.php?image=58836&picture=owl-coloring-page-clipart",
       "width": 1600,
-      "height": 1503
-    },
-    {
-      "filename": "p_is_for_princess.svg",
-      "preview": "p_is_for_princess-preview.png",
-      "label": "P is for princess",
-      "tags": ["csk", "letters", "p", "princess"],
-      "author": "Lena London",
-      "sourceUrl": "http://www.supercoloring.com/coloring-pages/gorgeous-princess-0",
-      "width": 1152,
-      "height": 1600
+      "height": 1503,
+      "complexity": 162
     },
     {
       "filename": "peace_dove_by_picasso.svg",
@@ -559,7 +548,8 @@
       "author": "Pablo Picasso",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/peace-dove-by-picasso",
       "width": 1600,
-      "height": 1369
+      "height": 1369,
+      "complexity": 56
     },
     {
       "filename": "poppies_coloring_page.svg",
@@ -569,7 +559,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/flowers-1",
       "width": 973,
-      "height": 1600
+      "height": 1600,
+      "complexity": 274
     },
     {
       "filename": "pumpkin.svg",
@@ -579,7 +570,8 @@
       "author": "Artsashina",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/pumpkin-with-leaves",
       "width": 1600,
-      "height": 1204
+      "height": 1204,
+      "complexity": 117
     },
     {
       "filename": "s_s_edmund_fitzgerald.svg",
@@ -589,7 +581,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/ss-edmund-fitzgerald",
       "width": 1600,
-      "height": 1131
+      "height": 1131,
+      "complexity": 114
     },
     {
       "filename": "santa_and_rudolf.svg",
@@ -599,7 +592,8 @@
       "author": "Public domain",
       "sourceUrl": "https://publicdomainvectors.org/en/free-clipart/Santa-and-raindeer-coloring-book-vector-illustration/18574.html",
       "width": 1578,
-      "height": 1600
+      "height": 1600,
+      "complexity": 117
     },
     {
       "filename": "shark_jaws.svg",
@@ -609,7 +603,8 @@
       "author": "Public domain",
       "sourceUrl": "https://publicdomainvectors.org/en/free-clipart/Shark-jaws/85060.html",
       "width": 1600,
-      "height": 1370
+      "height": 1370,
+      "complexity": 62
     },
     {
       "filename": "sleeping_cat.svg",
@@ -619,7 +614,8 @@
       "author": "Just a little doodle of a sleeping cat by Chelsea Dover",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/sleeping-cat",
       "width": 1600,
-      "height": 1152
+      "height": 1152,
+      "complexity": 68
     },
     {
       "filename": "snowman.svg",
@@ -629,7 +625,8 @@
       "author": "SuperColoring",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/snowman",
       "width": 1189,
-      "height": 1600
+      "height": 1600,
+      "complexity": 62
     },
     {
       "filename": "spring_bird.svg",
@@ -639,7 +636,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/spring-bird",
       "width": 1131,
-      "height": 1600
+      "height": 1600,
+      "complexity": 152
     },
     {
       "filename": "spring_flowers.svg",
@@ -649,7 +647,8 @@
       "author": "Flower Coloring Pages by Peaksel",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/spring-flowers-0",
       "width": 1442,
-      "height": 1600
+      "height": 1600,
+      "complexity": 158
     },
     {
       "filename": "spring_rain.svg",
@@ -659,7 +658,8 @@
       "author": "Lena London",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/spring-rain",
       "width": 1131,
-      "height": 1600
+      "height": 1600,
+      "complexity": 177
     },
     {
       "filename": "square.svg",
@@ -669,7 +669,8 @@
       "author": "Public domain",
       "sourceUrl": "",
       "width": 1600,
-      "height": 1600
+      "height": 1600,
+      "complexity": 29
     },
     {
       "filename": "summer_beach.svg",
@@ -679,7 +680,8 @@
       "author": "Public domain",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/summer-beach-scene",
       "width": 1131,
-      "height": 1600
+      "height": 1600,
+      "complexity": 138
     },
     {
       "filename": "sun_mandala.svg",
@@ -689,7 +691,8 @@
       "author": "Dora Alis",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/mandala-with-sun",
       "width": 1522,
-      "height": 1600
+      "height": 1600,
+      "complexity": 222
     },
     {
       "filename": "sun_mandala_2.svg",
@@ -699,7 +702,8 @@
       "author": "Nevit",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/sun-mandala-0",
       "width": 1536,
-      "height": 1600
+      "height": 1600,
+      "complexity": 225
     },
     {
       "filename": "tessellation_with_triangle_and_square.svg",
@@ -709,7 +713,8 @@
       "author": "Nonenmac",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/tessellation-with-triangle-and-square",
       "width": 1131,
-      "height": 1600
+      "height": 1600,
+      "complexity": 207
     },
     {
       "filename": "trees.svg",
@@ -719,7 +724,8 @@
       "author": "SuperColoring",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/trees",
       "width": 1131,
-      "height": 1600
+      "height": 1600,
+      "complexity": 120
     },
     {
       "filename": "two_easter_bunnies.svg",
@@ -729,7 +735,8 @@
       "author": "Cute Easter",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/two-easter-bunnies-with-egg",
       "width": 1600,
-      "height": 1235
+      "height": 1235,
+      "complexity": 135
     },
     {
       "filename": "zentangle_fruits_and_chalice.svg",
@@ -739,7 +746,8 @@
       "author": "Zentangle Food",
       "sourceUrl": "http://www.supercoloring.com/coloring-pages/zentangle-fruits-and-chalice",
       "width": 1172,
-      "height": 1600
+      "height": 1600,
+      "complexity": 171
     }
   ]
 }

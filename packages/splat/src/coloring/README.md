@@ -156,3 +156,32 @@ Run downloader tests with `mise run //packages/splat:coloring:test-download`.
 The alphabet queue was fully reviewed on 2026-10-23. It added 64 sheets; five
 cover/redundant sources were omitted. The heart L retains its specific Commons
 PD-ineligible designation. See the review notes and per-source manifest for evidence.
+
+## Gallery loading and ordering
+
+The public gallery loads thumbnails through one IntersectionObserver with a
+240px preload margin. Native image lazy loading alone fetched several screens
+of this dense grid. Fixed square card media reserve layout space and use
+`content-visibility: auto` for offscreen contents. All links stay in the document,
+so subject anchors and keyboard navigation continue to work. The header uses a
+lossless WebP; its PNG remains available for social previews. The capture task
+requires `cwebp` and regenerates both formats.
+
+`mise run //packages/splat:coloring:rank` refreshes complexity scores from existing
+previews without reimporting sources. Importers calculate the same score for new
+PDF/SVG artwork. It counts ink boundaries at a normalized size, rather than
+mistaking thick black lines or large files for intricate artwork. Other subjects
+sort by this score; complete alphabet sets retain letter/numeric order.
+Incomplete illustrated alphabets and the Valentine set are excluded by curation.
+
+Production-build measurements on localhost with a cold browser cache, 4× CPU
+throttling, and an 850px viewport height (not an internet-speed benchmark):
+
+| Viewport | Initial loaded images, before → after | Initial bytes, before → after |
+| --- | --- | --- |
+| 390px | 35 → 7 | 3.72 MB → 1.21 MB |
+| 1280px | 103 → 19 | 11.26 MB → 2.05 MB |
+
+Measurements include the curation/sorting changes and all resources completed
+three seconds after the gallery becomes visible. Original drawing assets and
+thumbnail resolution are unchanged.

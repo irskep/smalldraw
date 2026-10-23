@@ -4,6 +4,27 @@ Inventory: the [Printable coloring books category](https://commons.wikimedia.org
 
 Imported sources, licenses, checksums, selected pages, and framing settings are recorded in `pdfSources.json`. NPS bonus pages were obtained from the linked NPS rights records.
 
+## Current curation — 2026-10-23
+
+After visual review in the gallery, the user requested removing incomplete
+alphabet subsets and the entire Valentine alphabet collection. Removed all nine
+Commons illustrated-letter sheets, all six illustrated letters from the Pavel
+Kukov collection, and all 39 imported Valentine sheets (letters, numbers, and
+heart-only variants). Originals remain in the verified cache, but their generated
+assets and manifest entries are removed. Do not reimport these exclusions.
+
+The retained alphabets are complete A–Z sets: skateboard figures and patterned
+letters (adult collection pages 72–97). Skateboard letters come first, followed
+by numbers 0–10 and charts; the more intricate patterned alphabet follows.
+The gallery now contains **898 drawings**: 790 PDF/standalone imports, 68 Pavel
+Kukov drawings, and 40 Public Domain Review pages.
+
+Other subjects are sorted by measured preview line density, from simpler to
+more detailed. This is a browsing heuristic, not an age or difficulty rating.
+
+The following import/review record is historical; these curation decisions
+supersede its retained-sheet counts.
+
 ## Completed alphabet-sheet review — 2026-10-23
 
 All 69 queued sources have been downloaded and checksum-verified. Their per-file

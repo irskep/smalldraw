@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import time
 import pymupdf
-from coloring_formats import artwork_bounds, prepare_page, render_page, render_png
+from coloring_formats import complexity_score, artwork_bounds, prepare_page, render_page, render_png
 
 splat = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
@@ -18,7 +18,7 @@ sources = json.loads((splat / "src/coloring/pdfSources.json").read_text())
 pages = []
 credits = []
 for source in sources:
-    if source["license"] not in {"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-SA-3.0", "PD-US-Gov-NPS", "LicenseRef-PD-ineligible"}:
+    if source["license"] not in {"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-SA-3.0", "PD-US-Gov-NPS"}:
         raise ValueError(f"Review the license before importing {source['id']}")
     output = splat / "src/coloring/assets" / source["id"]
     output.mkdir(parents=True, exist_ok=True)
@@ -67,7 +67,7 @@ for source in sources:
                     "preview": f"coloring/{source['id']}/{preview_filename}",
                     "label": review.get("label", f"{source['label']} {asset_number}"), "sourceId": source["id"],
                     "sourceUrl": source["sourceUrl"], "tags": review.get("tags", source["tags"]),
-                    "pageNumber": pdf_page, "width": width, "height": height})
+                    "pageNumber": pdf_page, "width": width, "height": height, "complexity": complexity_score(preview)})
     for stale in output.glob("page-*"):
         if stale.name not in written:
             stale.unlink()

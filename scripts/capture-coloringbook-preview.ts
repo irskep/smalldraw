@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 
 import { chromium, expect } from "@playwright/test";
+import { $ } from "bun";
 
 import type { KidsDrawApp } from "../packages/splat/src/createKidsDrawApp";
 
@@ -53,12 +54,17 @@ try {
   await page.waitForTimeout(250);
   await page.evaluate(() => document.fonts.ready);
   await page.mouse.move(1090, 750);
-  await page.screenshot({
-    path: resolve(
-      import.meta.dir,
-      "../apps/app/public/coloringbook-preview.png",
-    ),
-  });
+  const png = await page.screenshot();
+  // Keep PNG for social previews; serve lossless WebP on the gallery itself.
+  await Bun.write(
+    resolve(import.meta.dir, "../apps/app/public/coloringbook-preview.png"),
+    png,
+  );
+  const output = resolve(
+    import.meta.dir,
+    "../apps/app/public/coloringbook-preview.webp",
+  );
+  await $`cwebp -quiet -lossless - -o ${output}`.stdin(png);
 } finally {
   await browser.close();
 }

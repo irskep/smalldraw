@@ -1,7 +1,7 @@
 """Import a checked-out pavelkukov/coloring-pages collection, retaining vector artwork.
 Usage: mise run //packages/splat:coloring:import-svg -- /path/to/coloring-pages
 """
-from coloring_formats import frame_svg
+from coloring_formats import complexity_score, frame_svg
 import json
 from pathlib import Path
 import shutil
@@ -17,7 +17,8 @@ revision = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD
 collection = json.loads((source / "collection.json").read_text())
 pages = []
 for filename, metadata in sorted(collection.items()):
-    if filename == "blank.svg":
+    if filename == "blank.svg" or "letters" in metadata["categories"]:
+        # This source has only six illustrated letters, not a complete alphabet.
         continue
     if Path(filename).name != filename or not filename.endswith(".svg"):
         raise ValueError(f"Unexpected SVG filename: {filename}")
@@ -44,6 +45,7 @@ for filename, metadata in sorted(collection.items()):
         "sourceUrl": metadata.get("source", ""),
         "width": width,
         "height": height,
+        "complexity": complexity_score(preview),
     })
 shutil.copyfile(source / "LICENSE", destination / "LICENSE")
 acknowledgments = "\n".join(line.rstrip() for line in (source / "Acknowledgments.md").read_text().splitlines()) + "\n"
@@ -58,7 +60,8 @@ Margins are trimmed. The dove, camel, and SS Edmund Fitzgerald are rotated
 90 degrees counterclockwise. PNG previews are rendered with transparent backgrounds.
 Labels and browsing categories
 are supplied by this app. Original artist and source information is retained in
-each SVG and in Acknowledgments.md alongside these files. The blank sheet is omitted.
+each SVG and in Acknowledgments.md alongside these files. The blank sheet and
+incomplete illustrated alphabet subset are omitted.
 
 """ + acknowledgments
 (destination / "credits.txt").write_text(credits)

@@ -1,9 +1,25 @@
 import json
 import unittest
 import pymupdf
-from coloring_formats import artwork_bounds, frame_svg, prepare_page, render_page
+from coloring_formats import artwork_bounds, complexity_score, frame_svg, prepare_page, render_page
 
 class ColoringFormatsTest(unittest.TestCase):
+    def test_complexity_counts_detail_not_solid_ink(self):
+        scores = []
+        for dense in (False, True):
+            document = pymupdf.open()
+            page = document.new_page(width=256, height=256)
+            page.draw_rect(pymupdf.Rect(10, 10, 246, 246), color=(0, 0, 0), width=8)
+            if dense:
+                for x in range(20, 240, 8):
+                    page.draw_line((x, 20), (x, 236), color=(0, 0, 0))
+            png = page.get_pixmap().tobytes("png")
+            scores.append(complexity_score(png))
+            transparent = page.get_pixmap(alpha=True).tobytes("png")
+            self.assertEqual(complexity_score(transparent), scores[-1])
+            document.close()
+        self.assertGreater(scores[1], scores[0] * 3)
+
     def test_vector_stays_svg_with_transparent_white(self):
         document = pymupdf.open()
         page = document.new_page(width=100, height=100)

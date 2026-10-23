@@ -10,6 +10,22 @@ ET.register_namespace("", SVG)
 ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
 
 
+def complexity_score(image):
+    """Estimate detail from ink boundaries at a fixed size, not file size/format.
+
+    Thick simple outlines have few boundaries; dense engravings have many.
+    Composite on white first so transparent and opaque previews compare equally.
+    """
+    with pymupdf.open(stream=image, filetype="png") as document:
+        page = document[0]
+        scale = 256 / max(page.rect.width, page.rect.height)
+        pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), colorspace=pymupdf.csGRAY, alpha=False)
+        ink = [value < 180 for value in pix.samples]
+        edges = sum(ink[i] != ink[i - 1] for i in range(len(ink)) if i % pix.width)
+        edges += sum(ink[i] != ink[i - pix.width] for i in range(pix.width, len(ink)))
+        return round(1000 * edges / len(ink))
+
+
 def png_chunk(kind, data):
     return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
 

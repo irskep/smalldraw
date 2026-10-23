@@ -8,7 +8,8 @@ Margins are trimmed. The dove, camel, and SS Edmund Fitzgerald are rotated
 90 degrees counterclockwise. PNG previews are rendered with transparent backgrounds.
 Labels and browsing categories
 are supplied by this app. Original artist and source information is retained in
-each SVG and in Acknowledgments.md alongside these files. The blank sheet is omitted.
+each SVG and in Acknowledgments.md alongside these files. The blank sheet and
+incomplete illustrated alphabet subset are omitted.
 
 ## Acknowledgments
 
