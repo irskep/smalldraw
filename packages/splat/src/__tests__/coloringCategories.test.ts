@@ -1,9 +1,25 @@
 import { describe, expect, test } from "bun:test";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
 import { getColoringPages } from "../coloring/catalog";
 import { getColoringCategories } from "../coloring/categories";
 
 describe("coloring categories", () => {
+  test("every gallery page ships both compact thumbnail sizes", () => {
+    for (const page of getColoringCategories().flatMap(
+      (category) => category.pages,
+    )) {
+      for (const size of [256, 512]) {
+        const path = page.previewSrc
+          .replace(/^coloring\//, "")
+          .replace(/\.png$/, `-thumb-${size}.webp`);
+        expect(
+          existsSync(resolve(import.meta.dir, "../coloring/assets", path)),
+        ).toBe(true);
+      }
+    }
+  });
   test("only complete alphabets remain, with letters before numbers and charts", () => {
     const letters = getColoringCategories().find(
       (category) => category.id === "letters",

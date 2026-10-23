@@ -159,29 +159,44 @@ PD-ineligible designation. See the review notes and per-source manifest for evid
 
 ## Gallery loading and ordering
 
-The public gallery loads thumbnails through one IntersectionObserver with a
-240px preload margin. Native image lazy loading alone fetched several screens
-of this dense grid. Fixed square card media reserve layout space and use
-`content-visibility: auto` for offscreen contents. All links stay in the document,
-so subject anchors and keyboard navigation continue to work. The header uses a
-lossless WebP; its PNG remains available for social previews. The capture task
-requires `cwebp` and regenerates both formats.
+The public gallery uses native `loading="lazy"` and density-aware `srcset`:
+256px lossless WebP at 1×, 512px at 2×, and the original preview at 3×. There are
+no JavaScript scroll listeners or IntersectionObservers. Set `loading` before
+`src`/`srcset` in the JSX: WebKit starts requests eagerly if the source is assigned
+first while creating the image. Fixed square card media reserve layout space.
+The header uses lossless WebP; its PNG remains available for social previews.
+The capture task requires `cwebp` and regenerates both formats.
 
-`mise run //packages/splat:coloring:rank` refreshes complexity scores from existing
-previews without reimporting sources. Importers calculate the same score for new
-PDF/SVG artwork. It counts ink boundaries at a normalized size, rather than
-mistaking thick black lines or large files for intricate artwork. Other subjects
-sort by this score; complete alphabet sets retain letter/numeric order.
-Incomplete illustrated alphabets and the Valentine set are excluded by curation.
+After importing or curating artwork, run:
+
+```sh
+mise run //packages/splat:coloring:rank
+mise run //packages/splat:coloring:thumbnails
+mise run format:fix
+```
+
+Commit the generated thumbnails with the catalog. Tests require both compact
+sizes for every visible page, and the production build copies WebP alongside
+PNG/SVG assets. Full drawing assets and full-size previews stay unchanged.
+
+The rank task refreshes complexity scores without reimporting sources. Importers
+calculate the same score for new PDF/SVG artwork. It counts ink boundaries at a
+normalized size, rather than mistaking thick black lines or large files for
+intricate artwork. Other subjects sort by this score; complete alphabet sets
+retain letter/numeric order. Incomplete illustrated alphabets and the Valentine
+set are excluded by curation.
 
 Production-build measurements on localhost with a cold browser cache, 4× CPU
-throttling, and an 850px viewport height (not an internet-speed benchmark):
+throttling, 1× pixel density, and an 850px viewport height (not an internet-speed
+benchmark):
 
-| Viewport | Initial loaded images, before → after | Initial bytes, before → after |
+| Viewport | Initial loaded images | Initial bytes, before → after |
 | --- | --- | --- |
-| 390px | 35 → 7 | 3.72 MB → 1.21 MB |
-| 1280px | 103 → 19 | 11.26 MB → 2.05 MB |
+| 390px | 35 | 3.72 MB → 1.25 MB |
+| 1280px | 103 | 11.26 MB → 2.34 MB |
 
-Measurements include the curation/sorting changes and all resources completed
-three seconds after the gallery becomes visible. Original drawing assets and
-thumbnail resolution are unchanged.
+Measurements include curation/sorting and all resources completed three seconds
+after the gallery becomes visible. At desktop width, WebKit initially requested
+all 899 images before the attribute-order correction and only 37 afterward.
+Browser-selected preload distances vary; we leave those decisions to the browser.
+The initial observer experiment was removed in favor of this simpler approach.

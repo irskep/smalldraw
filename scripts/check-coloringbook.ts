@@ -24,12 +24,12 @@ export async function checkColoringbook(
         )
         .toBe(2200);
       await page.evaluate(() => document.fonts.ready);
-      // Do not fetch the entire alphabet/PDR collection on initial entry.
+      // Native lazy loading keeps distant subjects from loading on initial entry.
       const distant = page.locator("#public-domain-review img").first();
-      expect(await distant.getAttribute("src")).toBeNull();
       expect(
-        await page.locator(".coloringbook__pages img[src]").count(),
-      ).toBeLessThan(48);
+        await distant.evaluate((image: HTMLImageElement) => image.naturalWidth),
+      ).toBe(0);
+
       await page.screenshot({
         path: `/tmp/coloringbook-header-${name}-${width}.png`,
       });

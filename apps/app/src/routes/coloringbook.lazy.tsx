@@ -1,5 +1,4 @@
 import { getColoringCategories } from "@smalldraw/splat/coloring";
-import { useEffect, useRef } from "preact/hooks";
 
 import { appPath } from "../config";
 import { buildNewDrawingUrl } from "../utils/drawingAppLinks";
@@ -11,29 +10,8 @@ const assetUrl = (src: string) =>
   new URL(`/${src}`, import.meta.env.VITE_API_URL).href;
 
 export default function ColoringBook() {
-  const gallery = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    // Native lazy loading fetches several screens of this dense gallery at once.
-    // One observer keeps those requests close to the viewport, including jumps
-    // to subject anchors, without mounting/unmounting cards as people browse.
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const image = entry.target as HTMLImageElement;
-          image.src = image.dataset.src!;
-          observer.unobserve(image);
-        }
-      },
-      { rootMargin: "240px 0px" },
-    );
-    for (const image of gallery.current!.querySelectorAll("img[data-src]")) {
-      observer.observe(image);
-    }
-    return () => observer.disconnect();
-  }, []);
   return (
-    <div className="coloringbook" ref={gallery}>
+    <div className="coloringbook">
       <header className="coloringbook__intro">
         <h1>Free coloring book</h1>
         <img
@@ -76,11 +54,15 @@ export default function ColoringBook() {
                   data-coloring-page={page.id}
                 >
                   <span className="ds-poster-card__media">
+                    {/* WebKit must receive loading="lazy" before either source. */}
                     <img
-                      data-src={assetUrl(page.previewSrc)}
-                      alt=""
                       loading="lazy"
                       decoding="async"
+                      src={assetUrl(
+                        page.previewSrc.replace(/\.png$/, "-thumb-256.webp"),
+                      )}
+                      srcSet={`${assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-256.webp"))} 1x, ${assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-512.webp"))} 2x, ${assetUrl(page.previewSrc)} 3x`}
+                      alt=""
                       width={page.size.width}
                       height={page.size.height}
                     />

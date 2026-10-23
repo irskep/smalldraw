@@ -34,6 +34,9 @@ run = "uv run --with pymupdf==1.26.7 python scripts/test_coloring_formats.py"
 [tasks."coloring:rank"]
 run = "uv run --with pymupdf==1.26.7 python scripts/rank-coloring-pages.py"
 
+[tasks."coloring:thumbnails"]
+run = "uv run --with pillow==12.0.0 python scripts/build-coloring-thumbnails.py"
+
 [tasks."coloring:download"]
 run = "python3 ./scripts/download_coloring_sources.py"
 

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { getColoringCategories } from "../coloring/categories";
 import type { KidsDocumentSummary } from "../documents";
 import { createDocumentBrowserDialogView } from "../view/DocumentBrowserDialogView";
 import { createNewDocumentDialogView } from "../view/NewDocumentDialogView";
@@ -113,6 +114,9 @@ describe("NewDocumentDialogView", () => {
   });
 
   test("coloring previews use resolved asset URLs while page ids stay canonical", () => {
+    const firstPage = getColoringCategories().find(
+      (category) => category.id === "public-domain-review",
+    )!.pages[0];
     const dialog = createNewDocumentDialogView({
       resolveAssetUrl: (src) => `https://assets.example.test/${src}`,
       onClose: () => {},
@@ -127,21 +131,21 @@ describe("NewDocumentDialogView", () => {
     ) as HTMLButtonElement | null;
     const volumeImage = volumeButton?.querySelector("img") ?? null;
     expect(volumeImage?.src).toBe(
-      "https://assets.example.test/coloring/pdr-v1/page-001.png",
+      `https://assets.example.test/${firstPage.previewSrc}`,
     );
 
     volumeButton!.click();
 
     const pageButton = dialog.el.querySelector(
-      '[data-new-document-page="coloring/pdr-v1/page-001.png"]',
+      `[data-new-document-page="${firstPage.id}"]`,
     ) as HTMLButtonElement | null;
     const pageImage = pageButton?.querySelector("img") ?? null;
 
     expect(pageImage?.src).toBe(
-      "https://assets.example.test/coloring/pdr-v1/page-001.png",
+      `https://assets.example.test/${firstPage.previewSrc}`,
     );
     expect(pageButton?.getAttribute("data-new-document-page")).toBe(
-      "coloring/pdr-v1/page-001.png",
+      firstPage.id,
     );
   });
 });
