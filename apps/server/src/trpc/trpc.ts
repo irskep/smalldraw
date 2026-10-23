@@ -66,8 +66,19 @@ export function appTrpcError(
 }
 
 export const router = t.router;
-export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure.use(
+// Storage/access guards are transport-independent; expose expected takedowns as
+// a terminal 404 rather than an internal server failure on both HTTP transports.
+const procedure = t.procedure.use(async ({ next }) => {
+  const result = await next();
+  if (!result.ok) {
+    const error = getAppError(result.error.cause);
+    if (error?.code === "DOCUMENT_NOT_FOUND")
+      throw appTrpcError(error, "NOT_FOUND");
+  }
+  return result;
+});
+export const publicProcedure = procedure;
+export const protectedProcedure = procedure.use(
   async function isAuthenticated(opts) {
     const { ctx } = opts;
     if (!ctx.session) {
@@ -90,7 +101,7 @@ export const protectedProcedure = t.procedure.use(
     });
   },
 );
-export const serverAdminProcedure = t.procedure.use(
+export const serverAdminProcedure = procedure.use(
   async function isServerAdmin(opts) {
     const { ctx } = opts;
     if (ctx.serverAdmin) {

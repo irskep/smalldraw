@@ -16,7 +16,10 @@ import {
 import type { DrawingCheckpoint } from "@smalldraw/shared";
 import { IDBKeyRange, indexedDB } from "fake-indexeddb";
 
-import type { MultiplayerApiClient } from "../app/createMultiplayerApiClient";
+import {
+  MultiplayerApiError,
+  type MultiplayerApiClient,
+} from "../app/createMultiplayerApiClient";
 import {
   prepareAccountWorkspace,
   signOutAccountWorkspace,
@@ -25,6 +28,7 @@ import {
 } from "../documents/accountWorkspace";
 import { createLocalSmalldrawRepo } from "../documents/createLocalSmalldrawRepo";
 import { createLocalDocumentBackend } from "../documents/localDocumentBackend";
+import { $unavailableDrawings } from "../documents/unavailableDrawings";
 import {
   getDrawingWorkspace,
   setDrawingWorkspace,
@@ -72,6 +76,7 @@ const repos: Repo[] = [];
 afterEach(async () => {
   for (const repo of repos.splice(0)) await repo.shutdown();
   setDrawingWorkspace(null);
+  $unavailableDrawings.set(new Set());
   Object.assign(globalThis, { indexedDB: previousIndexedDB });
 });
 function fakeApi(id = crypto.randomUUID()) {
@@ -860,4 +865,35 @@ test("opening a known guest drawing does not wait for an account request", async
     lookup.mockRestore();
     await backend.deleteDocument(`automerge:${id}`);
   }
+});
+
+test("a removed account drawing stops retrying without blocking other drawings or deleting local copies", async () => {
+  const { api, id, checked } = fakeApi();
+  const { repo, backend } = workspace(id);
+  const removed = repo.create({ marks: ["removed"] });
+  const live = repo.create({ marks: ["live"] });
+  for (const handle of [removed, live])
+    await backend.createDocument({ docUrl: handle.url, accountAttached: true });
+  const checkpoint = api.checkpointAccountDrawing;
+  let removedAttempts = 0;
+  api.checkpointAccountDrawing = async (...args) => {
+    if (args[0] === removed.url) {
+      removedAttempts++;
+      throw new MultiplayerApiError({
+        code: "DOCUMENT_NOT_FOUND",
+        title: "Drawing unavailable",
+        message: "This drawing is unavailable.",
+        severity: "recoverable",
+        retryable: false,
+      });
+    }
+    return checkpoint(...args);
+  };
+  await syncAccountWorkspace(api, repo, backend, id);
+  await syncAccountWorkspace(api, repo, backend, id);
+  expect(removedAttempts).toBe(1);
+  expect(checked).toEqual([live.url]);
+  expect($unavailableDrawings.get().has(removed.documentId)).toBe(true);
+  expect(await backend.getDocument(removed.url)).not.toBeNull();
+  expect((await repo.find(removed.url)).doc()).toEqual({ marks: ["removed"] });
 });

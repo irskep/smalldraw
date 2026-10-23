@@ -1,6 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client.js";
+import { isDocumentBlocked } from "./documentModeration.js";
 import { documents, documentThumbnails, usersOnDocuments } from "./schema.js";
 
 type Params = {
@@ -9,6 +10,7 @@ type Params = {
 };
 
 export const getDocument = async ({ documentId, userId }: Params) => {
+  if (isDocumentBlocked(documentId)) return null;
   const rows = await db
     .select({
       id: documents.id,

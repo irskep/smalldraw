@@ -12,6 +12,7 @@ import type {
   NewDocumentRequest,
   StartupNewDocument,
 } from "../documents/newDocumentRequest";
+import { $unavailableDrawings } from "../documents/unavailableDrawings";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import {
   getLoadedRasterImage,
@@ -404,10 +405,37 @@ export function createDocumentRuntimeController(options: {
     return { expected: sources.length, failed };
   };
 
+  const rejectUnavailableDocument = (): boolean => {
+    const id = options.core
+      .getCurrentDocUrl()
+      ?.replace(/^(?:automerge:|catalog-collab:)/, "");
+    if (!id || !$unavailableDrawings.get().has(id)) return false;
+    startupCycleId += 1; // Invalidate any pending image loading/baking completion.
+    options.startupReadinessStore.markFailed("document_unavailable");
+    options.runtimeStore.setDocumentError({
+      requestedDocUrl: documentSessionController.getCurrentCatalogDocUrl(),
+      reason: "document_unavailable",
+      display: {
+        title: "Drawing unavailable",
+        description: "This drawing is unavailable.",
+      },
+    });
+    clearRenderedDocumentSurface();
+    return true;
+  };
+  const unbindUnavailable = $unavailableDrawings.subscribe(() => {
+    rejectUnavailableDocument();
+  });
+
   const applyDocumentPresentation = (
     presentation: DocumentSessionPresentation,
   ): void => {
-    if (disposed || options.runtimeStore.isDestroyed()) return;
+    if (
+      disposed ||
+      options.runtimeStore.isDestroyed() ||
+      rejectUnavailableDocument()
+    )
+      return;
     const cycleId = beginStartupCycle("apply_presentation");
     options.runtimeStore.setDocumentLoaded({
       docUrl: documentSessionController.getCurrentCatalogDocUrl(),
@@ -687,6 +715,7 @@ export function createDocumentRuntimeController(options: {
     },
     dispose(): void {
       disposed = true;
+      unbindUnavailable();
       unbindDocumentSessionIntents();
       documentSessionController.dispose();
     },

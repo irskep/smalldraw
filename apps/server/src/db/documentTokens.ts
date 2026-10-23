@@ -3,6 +3,10 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 import { generateId } from "../utils/generateId.js";
 import { db } from "./client.js";
 import {
+  assertDocumentAvailable,
+  isDocumentBlocked,
+} from "./documentModeration.js";
+import {
   type DocumentInvitation,
   type DocumentTokenScope,
   documentInvitations,
@@ -31,8 +35,9 @@ export const createDocumentToken = async ({
   scope,
   tag,
 }: CreateDocumentTokenParams): Promise<DocumentInvitation> => {
+  assertDocumentAvailable(documentId);
   const now = new Date();
-  const [token] = await db
+  const token = db
     .insert(documentInvitations)
     .values({
       documentId,
@@ -42,7 +47,8 @@ export const createDocumentToken = async ({
       createdAt: now,
       lastUsedAt: now,
     })
-    .returning();
+    .returning()
+    .get();
   return token;
 };
 
@@ -51,6 +57,7 @@ export const findActiveDocumentToken = async ({
   scope,
   tag,
 }: FindActiveDocumentTokenParams): Promise<DocumentInvitation | null> => {
+  if (isDocumentBlocked(documentId)) return null;
   const where = and(
     eq(documentInvitations.documentId, documentId),
     eq(documentInvitations.scope, scope),
@@ -100,7 +107,8 @@ export const getActiveDocumentTokenByToken = async ({
     .innerJoin(documents, eq(documents.id, documentInvitations.documentId))
     .where(where)
     .limit(1);
-  return documentToken?.document_invitations ?? null;
+  const result = documentToken?.document_invitations;
+  return result && !isDocumentBlocked(result.documentId) ? result : null;
 };
 
 export const revokeDocumentToken = async ({

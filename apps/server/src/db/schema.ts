@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 import {
   index,
   integer,
@@ -74,13 +74,59 @@ export const accountSettings = sqliteTable("account_settings", {
   updatedAt: timestamp("updated_at"),
 });
 
-export const documents = sqliteTable("documents", {
-  id: text("id").primaryKey().notNull(),
-  name: text("name").notNull().default("Untitled"),
-  createdAt: timestamp("created_at"),
-  updatedAt: timestamp("updated_at"),
-  deletedAt: integer("deleted_at", { mode: "timestamp" }),
-});
+export const documents = sqliteTable(
+  "documents",
+  {
+    id: text("id").primaryKey().notNull(),
+    name: text("name").notNull().default("Untitled"),
+    createdAt: timestamp("created_at"),
+    updatedAt: timestamp("updated_at"),
+    // A constant SQL default permits an additive SQLite migration. Existing rows
+    // are backfilled from updated_at; creation paths supply the current time.
+    contentUpdatedAt: integer("content_updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`0`),
+    deletedAt: integer("deleted_at", { mode: "timestamp" }),
+  },
+  (table) => ({
+    contentUpdatedIndex: index("documents_content_updated_idx").on(
+      desc(table.contentUpdatedAt),
+      desc(table.id),
+    ),
+  }),
+);
+
+// Deliberately independent of documents/users: removing either must never erase
+// the block or its audit record and allow an offline client to recreate content.
+export const documentModeration = sqliteTable(
+  "document_moderation",
+  {
+    documentId: text("document_id").primaryKey().notNull(),
+    takenDownAt: timestamp("taken_down_at"),
+    administratorId: text("administrator_id").notNull(),
+    reason: text("reason").notNull(),
+    cleanupState: text("cleanup_state", { enum: ["pending", "complete"] })
+      .notNull()
+      .default("pending"),
+    cleanupAttempts: integer("cleanup_attempts").notNull().default(0),
+    lastAttemptAt: integer("last_attempt_at", { mode: "timestamp" }),
+    lastError: text("last_error"),
+    nextRetryAt: timestamp("next_retry_at"),
+    completedAt: integer("completed_at", { mode: "timestamp" }),
+    thumbnailStorageKey: text("thumbnail_storage_key"),
+    legacyThumbnailStorageKey: text("legacy_thumbnail_storage_key"),
+  },
+  (table) => ({
+    takenDownIndex: index("document_moderation_taken_down_idx").on(
+      desc(table.takenDownAt),
+      desc(table.documentId),
+    ),
+    cleanupIndex: index("document_moderation_cleanup_idx").on(
+      table.cleanupState,
+      table.nextRetryAt,
+    ),
+  }),
+);
 
 export const documentThumbnails = sqliteTable("document_thumbnails", {
   documentId: text("document_id")
@@ -88,6 +134,7 @@ export const documentThumbnails = sqliteTable("document_thumbnails", {
     .notNull()
     .references(() => documents.id, { onDelete: "cascade" }),
   storageKey: text("storage_key").notNull().unique(),
+  legacyStorageKey: text("legacy_storage_key"),
   contentType: text("content_type").notNull(),
   updatedAt: timestamp("updated_at"),
 });
@@ -142,6 +189,7 @@ export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type AccountSettingsRecord = typeof accountSettings.$inferSelect;
 export type Document = typeof documents.$inferSelect;
+export type DocumentModeration = typeof documentModeration.$inferSelect;
 export type DocumentThumbnail = typeof documentThumbnails.$inferSelect;
 export type DocumentInvitation = typeof documentInvitations.$inferSelect;
 export type LoginAttempt = typeof loginAttempts.$inferSelect;

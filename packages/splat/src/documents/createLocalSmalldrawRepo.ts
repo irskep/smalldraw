@@ -4,7 +4,9 @@ import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-index
 import type { NetworkAdapterInterface } from "@automerge/automerge-repo/slim";
 import { Repo } from "@automerge/automerge-repo/slim";
 
+import { ModerationWebSocketAdapter } from "./ModerationWebSocketAdapter";
 import { createServerAnnouncePolicy } from "./repoSharePolicy";
+import { markDrawingUnavailable } from "./unavailableDrawings";
 import { type DrawingWorkspace, workspaceNames } from "./workspace";
 
 export interface CreateLocalSmalldrawRepoOptions {
@@ -106,7 +108,7 @@ export function createLocalSmalldrawRepo(
     console.info("[kids-draw:multiplayer] websocket adapter created", {
       url,
     });
-    return new BrowserWebSocketClientAdapter(url);
+    return new ModerationWebSocketAdapter(url, markDrawingUnavailable);
   };
 
   const repo = new Repo({

@@ -10,6 +10,9 @@ import { documentThumbnails, usersOnDocuments } from "../db/schema.js";
 import { setDocumentThumbnailStoreForTests } from "../storage/documentThumbnailStore.js";
 import { appRouter } from "./appRouter.js";
 
+const png =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aM4sAAAAASUVORK5CYII=";
+
 describe("document thumbnail routes", () => {
   afterEach(() => {
     setDocumentThumbnailStoreForTests(null);
@@ -51,17 +54,19 @@ describe("document thumbnail routes", () => {
       caller.uploadDocumentThumbnail({
         documentId: "thumbnail-doc-1",
         contentType: "image/png",
+        content: png,
       }),
     ).rejects.toBeInstanceOf(TRPCError);
   });
 
-  it("returns presigned upload URL and persists thumbnail metadata", async () => {
+  it("uploads through the server and persists thumbnail metadata", async () => {
     process.env.R2_PUBLIC_BASE_URL = "https://cdn.example.com";
     setDocumentThumbnailStoreForTests({
-      async putObject() {},
-      presignPutUrl(input) {
-        return `https://presigned.example.com/${input.key}?type=${input.contentType}`;
+      async getObject() {
+        return new Uint8Array();
       },
+      async deleteObject() {},
+      async putObject() {},
     });
 
     const owner = await createUser({
@@ -88,19 +93,17 @@ describe("document thumbnail routes", () => {
     const result = await caller.uploadDocumentThumbnail({
       documentId: "thumbnail-doc-2",
       contentType: "image/png",
+      content: png,
     });
 
-    expect(result).toEqual({
-      uploadUrl:
-        "https://presigned.example.com/documents/thumbnail-doc-2/thumbnail.png?type=image/png",
-    });
+    expect(result).toBeUndefined();
 
     const [thumbnail] = await db
       .select()
       .from(documentThumbnails)
       .where(eq(documentThumbnails.documentId, "thumbnail-doc-2"));
     expect(thumbnail?.storageKey).toBe(
-      "documents/thumbnail-doc-2/thumbnail.png",
+      "documents/thumbnail-doc-2/thumbnail-v2.png",
     );
 
     const documents = await caller.documents();
@@ -110,7 +113,7 @@ describe("document thumbnail routes", () => {
         name: "Thumbnail Doc 2",
         isAdmin: true,
         thumbnailUrl:
-          "https://cdn.example.com/documents/thumbnail-doc-2/thumbnail.png",
+          "https://cdn.example.com/documents/thumbnail-doc-2/thumbnail-v2.png",
       },
     ]);
 
@@ -120,7 +123,7 @@ describe("document thumbnail routes", () => {
       name: "Thumbnail Doc 2",
       isAdmin: true,
       thumbnailUrl:
-        "https://cdn.example.com/documents/thumbnail-doc-2/thumbnail.png",
+        "https://cdn.example.com/documents/thumbnail-doc-2/thumbnail-v2.png",
     });
   });
 });

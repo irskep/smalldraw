@@ -9,7 +9,10 @@ export class SqliteStorageAdapter implements StorageAdapter {
 
   constructor(
     dbPath: string,
-    options: { journalMode?: "WAL" | "DELETE" } = {},
+    private options: {
+      journalMode?: "WAL" | "DELETE";
+      isBlocked?: (id: string) => boolean;
+    } = {},
   ) {
     mkdirSync(dirname(dbPath), { recursive: true });
     this.db = new Database(dbPath);
@@ -26,6 +29,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
   }
 
   async load(key: StorageKey): Promise<Uint8Array | undefined> {
+    if (this.options.isBlocked?.(key[0])) return undefined;
     const result = this.db
       .query("SELECT value FROM automerge_data WHERE key = ?")
       .get(this.serializeKey(key)) as { value: Uint8Array } | undefined;
@@ -39,6 +43,9 @@ export class SqliteStorageAdapter implements StorageAdapter {
   }
 
   async save(key: StorageKey, data: Uint8Array): Promise<void> {
+    // A blocked handle may still have a scheduled flush. Discard it rather than
+    // rejecting an internal background promise or resurrecting deleted bytes.
+    if (this.options.isBlocked?.(key[0])) return;
     this.db
       .query("INSERT OR REPLACE INTO automerge_data (key, value) VALUES (?, ?)")
       .run(this.serializeKey(key), data);
@@ -53,6 +60,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
   async loadRange(
     keyPrefix: StorageKey,
   ): Promise<{ key: StorageKey; data: Uint8Array }[]> {
+    if (this.options.isBlocked?.(keyPrefix[0])) return [];
     const prefix = this.serializeKey(keyPrefix);
     const rows = this.db
       .query("SELECT key, value FROM automerge_data WHERE key >= ? AND key < ?")
@@ -73,6 +81,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
   }
 
   hasDocumentContent(documentId: string): boolean {
+    if (this.options.isBlocked?.(documentId)) return false;
     const snapshotPrefix = `${documentId}/snapshot/`;
     const incrementalPrefix = `${documentId}/incremental/`;
     const row = this.db

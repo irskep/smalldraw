@@ -3,6 +3,11 @@ import os from "node:os";
 import { Repo, type RepoConfig } from "@automerge/automerge-repo";
 import { WebSocketServer } from "isomorphic-ws";
 
+import {
+  assertDocumentAvailable,
+  isDocumentBlocked,
+  recordDocumentContentChange,
+} from "../db/documentModeration.js";
 import { AuthAdapter } from "./authAdapter.js";
 import { DocumentLifetime } from "./documentLifetime.js";
 import { SqliteStorageAdapter } from "./sqliteStorageAdapter.js";
@@ -17,12 +22,14 @@ export async function serverSharePolicy(
   _peerId: string,
   documentId?: string,
 ): Promise<boolean> {
-  return Boolean(documentId);
+  return Boolean(documentId) && !isDocumentBlocked(documentId!);
 }
 
-export const repoStorage = new SqliteStorageAdapter(automergeDbPath);
+export const repoStorage = new SqliteStorageAdapter(automergeDbPath, {
+  isBlocked: isDocumentBlocked,
+});
 
-const adapter = new AuthAdapter(webSocketServer);
+export const adapter = new AuthAdapter(webSocketServer);
 const config: RepoConfig = {
   network: [adapter],
   storage: repoStorage,
@@ -33,8 +40,19 @@ const config: RepoConfig = {
 
 export const repo = new Repo(config);
 
-export const documentLifetime = new DocumentLifetime(repo);
+export const documentLifetime = new DocumentLifetime(
+  repo,
+  undefined,
+  undefined,
+  assertDocumentAvailable,
+);
 adapter.documentLifetime = documentLifetime;
+// Repo's storage subsystem skips unchanged heads before emitting these metrics.
+// Its advertised `document` event is not emitted by the installed implementation.
+repo.on("doc-metrics", (event) => {
+  if (event.type === "doc-saved" || event.type === "doc-compacted")
+    recordDocumentContentChange(event.documentId);
+});
 const idleSweep = setInterval(() => {
   void documentLifetime.sweep();
 }, 15_000);

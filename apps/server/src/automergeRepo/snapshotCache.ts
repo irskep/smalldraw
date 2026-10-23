@@ -35,7 +35,7 @@ export class SnapshotCache {
     return bytes;
   }
 
-  private remove(id: string) {
+  remove(id: string) {
     const entry = this.entries.get(id);
     if (entry) this.bytes -= entry.bytes.byteLength;
     this.entries.delete(id);

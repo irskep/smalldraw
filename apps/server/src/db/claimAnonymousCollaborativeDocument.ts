@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import { db } from "./client.js";
+import { assertDocumentAvailable } from "./documentModeration.js";
 import { getActiveDocumentTokenByToken } from "./documentTokens.js";
 import { usersOnDocuments } from "./schema.js";
 
@@ -33,12 +34,15 @@ export const claimAnonymousCollaborativeDocument = async ({
     )
     .limit(1);
 
+  assertDocumentAvailable(ownerToken.documentId);
   if (!existingMembership) {
-    await db.insert(usersOnDocuments).values({
-      userId,
-      documentId: ownerToken.documentId,
-      isAdmin: true,
-    });
+    db.insert(usersOnDocuments)
+      .values({
+        userId,
+        documentId: ownerToken.documentId,
+        isAdmin: true,
+      })
+      .run();
     return {
       documentId: ownerToken.documentId,
       attached: true,
@@ -47,15 +51,15 @@ export const claimAnonymousCollaborativeDocument = async ({
   }
 
   if (!existingMembership.isAdmin) {
-    await db
-      .update(usersOnDocuments)
+    db.update(usersOnDocuments)
       .set({ isAdmin: true })
       .where(
         and(
           eq(usersOnDocuments.userId, userId),
           eq(usersOnDocuments.documentId, ownerToken.documentId),
         ),
-      );
+      )
+      .run();
   }
 
   return {

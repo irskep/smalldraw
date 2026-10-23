@@ -155,25 +155,13 @@ export function createMultiplayerApiClient(options: {
 
   const uploadDocumentThumbnail = createThumbnailUploadQueue(
     async (documentId, thumbnail) => {
-      const contentType = thumbnail.type || "application/octet-stream";
-      const result = await client.mutation("uploadDocumentThumbnail", {
+      await client.mutation("uploadDocumentThumbnail", {
         documentId,
-        contentType,
+        contentType: thumbnail.type,
+        content: uint8ArrayToBase64(
+          new Uint8Array(await thumbnail.arrayBuffer()),
+        ),
       });
-      const parsed = parseUploadThumbnailResult(result);
-      if (!parsed) {
-        throw new Error("Invalid response from uploadDocumentThumbnail");
-      }
-      const response = await fetch(parsed.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": contentType },
-        body: thumbnail,
-      });
-      if (!response.ok) {
-        throw new Error(
-          `Thumbnail upload to storage failed: ${response.status}`,
-        );
-      }
     },
   );
   const publishShareThumbnail = createThumbnailUploadQueue(
@@ -210,14 +198,25 @@ export function createMultiplayerApiClient(options: {
       return result as { id: string; username: string };
     },
     async checkpointAccountDrawing(documentId, checkpoint, accountId) {
-      return (await transfer("checkpointAccountDrawing", {
-        accountId,
-        documentId,
-        ...checkpoint,
-      })) as DrawingCheckpointResult;
+      try {
+        return (await transfer("checkpointAccountDrawing", {
+          accountId,
+          documentId,
+          ...checkpoint,
+        })) as DrawingCheckpointResult;
+      } catch (error) {
+        throw normalizeMultiplayerApiError(error, "Failed to save drawing.");
+      }
     },
     async acceptDocumentInvitation(token) {
-      await client.mutation("acceptDocumentInvitation", { token });
+      try {
+        await client.mutation("acceptDocumentInvitation", { token });
+      } catch (error) {
+        throw normalizeMultiplayerApiError(
+          error,
+          "This drawing is unavailable.",
+        );
+      }
     },
     async signOut() {
       try {
@@ -744,21 +743,6 @@ function parseRemoveResult(input: unknown): RemovedAccountDocument | null {
   }
   return {
     id: (input as { id: string }).id,
-  };
-}
-
-function parseUploadThumbnailResult(
-  input: unknown,
-): { uploadUrl: string } | null {
-  if (
-    !input ||
-    typeof input !== "object" ||
-    typeof (input as { uploadUrl?: unknown }).uploadUrl !== "string"
-  ) {
-    return null;
-  }
-  return {
-    uploadUrl: (input as { uploadUrl: string }).uploadUrl,
   };
 }
 

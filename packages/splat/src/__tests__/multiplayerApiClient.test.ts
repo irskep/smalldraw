@@ -61,6 +61,40 @@ function installFetchMock(
 }
 
 describe("createMultiplayerApiClient", () => {
+  test("checkpoint transfer preserves terminal removed-document errors", async () => {
+    const appError = createAppError({
+      code: "DOCUMENT_NOT_FOUND",
+      title: "Drawing unavailable",
+      message: "This drawing is unavailable.",
+      severity: "recoverable",
+      retryable: false,
+    });
+    installFetchMock(async () =>
+      mockBinaryErrorResponse({
+        message: appError.message,
+        trpcCode: "NOT_FOUND",
+        httpStatus: 404,
+        appError,
+      }),
+    );
+    const client = createMultiplayerApiClient({
+      apiUrl: "http://localhost/api",
+    });
+    const error = await client
+      .checkpointAccountDrawing(
+        "removed-doc",
+        {
+          baseHeads: null,
+          heads: ["a".repeat(64)],
+          content: new Uint8Array([1]),
+        },
+        "account",
+      )
+      .catch((error) => error);
+    expect(error).toBeInstanceOf(MultiplayerApiError);
+    expect(error.appError).toEqual(appError);
+  });
+
   test("listAccountCollaborativeDocuments includes browser credentials and parses metadata", async () => {
     const requests: Array<{
       url: string;
@@ -346,7 +380,7 @@ describe("createMultiplayerApiClient", () => {
     expect(requests[0]?.credentials).toBe("include");
   });
 
-  test("uploadDocumentThumbnail gets presigned URL and uploads directly", async () => {
+  test("uploadDocumentThumbnail sends bytes through the authorized server", async () => {
     const requests: Array<{
       url: string;
       method: string | undefined;
@@ -365,13 +399,7 @@ describe("createMultiplayerApiClient", () => {
         body: typeof init?.body === "string" ? init.body : null,
         contentType: headers.get("Content-Type"),
       });
-      if (url.includes("presigned.example.com")) {
-        return new Response(null, { status: 200 });
-      }
-      return mockJsonResponse({
-        uploadUrl:
-          "https://presigned.example.com/documents/doc-thumb-1/thumbnail.png",
-      });
+      return mockJsonResponse(null);
     });
 
     const client = createMultiplayerApiClient({
@@ -385,20 +413,15 @@ describe("createMultiplayerApiClient", () => {
         ),
       ),
     );
-    expect(requests).toHaveLength(2);
-
+    expect(requests).toHaveLength(1);
     expect(requests[0]?.url).toContain("uploadDocumentThumbnail");
     expect(requests[0]?.credentials).toBe("include");
-    expect(requests[1]?.url).toBe(
-      "https://presigned.example.com/documents/doc-thumb-1/thumbnail.png",
-    );
-    expect(requests[1]?.method).toBe("PUT");
-    expect(requests[1]?.contentType).toBe("image/png");
+    expect(requests[0]?.body).toContain(btoa("thumbnail-bytes"));
     await client.uploadDocumentThumbnail(
       "doc-thumb-1",
       new Blob(["changed-thumbnail"], { type: "image/png" }),
     );
-    expect(requests).toHaveLength(4);
+    expect(requests).toHaveLength(2);
   });
 });
 

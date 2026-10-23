@@ -1,4 +1,5 @@
 import { db } from "./client.js";
+import { assertDocumentAvailable } from "./documentModeration.js";
 import { getActiveDocumentTokenByToken } from "./documentTokens.js";
 import { getUserHasAccessToDocument } from "./getUserHasAccessToDocument.js";
 import { usersOnDocuments } from "./schema.js";
@@ -30,11 +31,14 @@ export const addUserToDocument = async ({
     return { documentId: documentInvitation.documentId };
   }
 
-  await db.insert(usersOnDocuments).values({
-    userId,
-    documentId: documentInvitation.documentId,
-    isAdmin: false,
-  });
+  assertDocumentAvailable(documentInvitation.documentId);
+  db.insert(usersOnDocuments)
+    .values({
+      userId,
+      documentId: documentInvitation.documentId,
+      isAdmin: false,
+    })
+    .run();
 
   return { documentId: documentInvitation.documentId };
 };

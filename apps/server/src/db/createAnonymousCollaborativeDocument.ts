@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 
 import { generateId } from "../utils/generateId.js";
 import { db } from "./client.js";
+import { assertDocumentAvailable } from "./documentModeration.js";
 import { documentInvitations, documents } from "./schema.js";
 
 export class DocumentRegistrationConflictError extends Error {}
@@ -17,6 +18,7 @@ export const createAnonymousCollaborativeDocument = async ({
   name,
   ownerTag,
 }: Params) => {
+  assertDocumentAvailable(documentId);
   return db.transaction((tx) => {
     const existing = tx
       .select()
@@ -63,6 +65,7 @@ export const createAnonymousCollaborativeDocument = async ({
         name: name ?? "Untitled",
         createdAt: now,
         updatedAt: now,
+        contentUpdatedAt: now,
       })
       .returning()
       .get();

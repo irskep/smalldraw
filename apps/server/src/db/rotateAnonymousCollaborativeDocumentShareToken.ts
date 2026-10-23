@@ -2,14 +2,15 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { generateId } from "../utils/generateId.js";
 import { db } from "./client.js";
+import { assertDocumentAvailable } from "./documentModeration.js";
 import { documentInvitations } from "./schema.js";
 
 export const rotateAnonymousCollaborativeDocumentShareToken = async (
   documentId: string,
 ) => {
-  return db.transaction(async (tx) => {
-    await tx
-      .update(documentInvitations)
+  assertDocumentAvailable(documentId);
+  return db.transaction((tx) => {
+    tx.update(documentInvitations)
       .set({ revokedAt: new Date() })
       .where(
         and(
@@ -17,10 +18,11 @@ export const rotateAnonymousCollaborativeDocumentShareToken = async (
           eq(documentInvitations.scope, "share"),
           isNull(documentInvitations.revokedAt),
         ),
-      );
+      )
+      .run();
 
     const now = new Date();
-    const [shareToken] = await tx
+    const shareToken = tx
       .insert(documentInvitations)
       .values({
         documentId,
@@ -29,7 +31,8 @@ export const rotateAnonymousCollaborativeDocumentShareToken = async (
         createdAt: now,
         lastUsedAt: now,
       })
-      .returning();
+      .returning()
+      .get();
 
     return shareToken;
   });

@@ -22,7 +22,6 @@ import type {
   DocumentAccessToken,
   DocumentInvitationToken,
   DocumentMember,
-  DocumentThumbnailUploadTarget,
   RegisteredCollaborativeDocument,
   RemovedAccountDocument,
   RestoredAccountDocument,
@@ -69,6 +68,7 @@ import { deleteOtherSessionsForUser } from "../db/deleteOtherSessionsForUser.js"
 import { deleteSession } from "../db/deleteSession.js";
 import { deleteSessionForUser } from "../db/deleteSessionForUser.js";
 import { deleteSessionsForUser } from "../db/deleteSessionsForUser.js";
+import { assertDocumentAvailable } from "../db/documentModeration.js";
 import { findOrCreateDocumentToken } from "../db/documentTokens.js";
 import { getDeletedDocumentsByUserId } from "../db/getDeletedDocumentsByUserId.js";
 import { getDocument } from "../db/getDocument.js";
@@ -93,13 +93,9 @@ import {
   getOrCreateAccountDocumentOwnerToken,
   syncAccountDocument,
 } from "../db/syncAccountDocument.js";
-import {
-  buildDocumentThumbnailStorageKey,
-  buildDocumentThumbnailUrl,
-} from "../db/thumbnailStorage.js";
+import { buildDocumentThumbnailUrl } from "../db/thumbnailStorage.js";
 import { updateDocument } from "../db/updateDocument.js";
 import { updateUserRegistrationRecord } from "../db/updateUserRegistrationRecord.js";
-import { upsertDocumentThumbnail } from "../db/upsertDocumentThumbnail.js";
 import {
   AccountSettingsParams,
   ChangePasswordFinishParams,
@@ -109,10 +105,11 @@ import {
   RegisterFinishParams,
   RegisterStartParams,
 } from "../schema.js";
-import { getDocumentThumbnailStore } from "../storage/documentThumbnailStore.js";
+import { publishDocumentThumbnail } from "../storage/publishDocumentThumbnail.js";
 import { createOpaqueRegistrationRecord } from "../utils/createOpaqueRegistrationRecord.js";
 import { getOpaqueServerSetup } from "../utils/getOpaqueServerSetup.js";
 import { serverTrace } from "../utils/serverTrace.js";
+import { moderationProcedures } from "./moderationRouter.js";
 import {
   appTrpcError,
   protectedProcedure,
@@ -306,6 +303,7 @@ const serializeRepoDocument = async (documentId: string): Promise<Uint8Array> =>
   });
 
 const procedures = {
+  ...moderationProcedures,
   adminMe: serverAdminProcedure.query(async (opts) => {
     return {
       id: opts.ctx.serverAdmin.id,
@@ -793,84 +791,38 @@ const procedures = {
           code: "FORBIDDEN",
           message: "Drawing access is required to publish its preview",
         });
-      const binary = Buffer.from(input.content, "base64");
-      const png =
-        binary.length >= 24 &&
-        binary
-          .subarray(0, 8)
-          .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) &&
-        binary.toString("ascii", 12, 16) === "IHDR";
-      const webp =
-        binary.length >= 20 &&
-        binary.toString("ascii", 0, 4) === "RIFF" &&
-        binary.toString("ascii", 8, 12) === "WEBP";
-      if (!(input.contentType === "image/png" ? png : webp)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Preview must be a PNG or WebP thumbnail",
-        });
-      }
-      const storageKey = buildDocumentThumbnailStorageKey(editor.documentId);
-      await getDocumentThumbnailStore().putObject({
-        key: storageKey,
-        body: binary,
-        contentType: input.contentType,
-      });
-      // Publish metadata only after storage has accepted the image.
-      await upsertDocumentThumbnail({
-        documentId: editor.documentId,
-        storageKey,
-        contentType: input.contentType,
-      });
+      await publishDocumentThumbnail(
+        editor.documentId,
+        input.contentType,
+        input.content,
+      );
     }),
   uploadDocumentThumbnail: protectedProcedure
     .input(
       z.object({
         documentId: z.string().min(1),
-        contentType: z.string().min(1),
+        contentType: z.enum(["image/png", "image/webp"]),
+        content: z
+          .string()
+          .min(1)
+          .max(2 * 1024 * 1024),
       }),
     )
-    .mutation(async (opts) => {
+    .mutation(async ({ input, ctx }) => {
       const document = await getDocument({
-        documentId: opts.input.documentId,
-        userId: opts.ctx.session.userId,
+        documentId: input.documentId,
+        userId: ctx.session.userId,
       });
-      if (!document) {
-        throw appTrpcError(
-          {
-            code: "DOCUMENT_NOT_FOUND",
-            title: "Could not open drawing",
-            message: "This drawing is no longer available.",
-            severity: "recoverable",
-            retryable: false,
-            details: { documentId: opts.input.documentId },
-          },
-          "NOT_FOUND",
-        );
-      }
-      if (!document.isAdmin) {
+      if (!document?.isAdmin)
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Only document admins can upload thumbnails",
+          message: "Drawing access is required to publish its preview",
         });
-      }
-
-      const storageKey = buildDocumentThumbnailStorageKey(
-        opts.input.documentId,
+      await publishDocumentThumbnail(
+        input.documentId,
+        input.contentType,
+        input.content,
       );
-      const uploadUrl = getDocumentThumbnailStore().presignPutUrl({
-        key: storageKey,
-        contentType: opts.input.contentType,
-      });
-      await upsertDocumentThumbnail({
-        documentId: opts.input.documentId,
-        storageKey,
-        contentType: opts.input.contentType,
-      });
-
-      return {
-        uploadUrl,
-      } satisfies DocumentThumbnailUploadTarget;
     }),
   updateDocument: protectedProcedure
     .input(
@@ -1222,6 +1174,7 @@ const procedures = {
         /^automerge:/,
         "",
       ) as DocumentId;
+      assertDocumentAvailable(documentId);
       if (
         !(await getUserHasAccessToDocument({
           documentId,

@@ -1,5 +1,5 @@
 export function buildDocumentThumbnailStorageKey(documentId: string): string {
-  return `documents/${documentId}/thumbnail.png`;
+  return `documents/${documentId}/thumbnail-v2.png`;
 }
 
 export function buildDocumentThumbnailUrl(

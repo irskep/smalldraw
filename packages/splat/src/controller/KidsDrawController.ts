@@ -752,7 +752,10 @@ function resolveDocumentSlot(
     title: activeDocument.display.title,
     description: activeDocument.display.description,
     message: activeDocument.display.message,
-    recoveryActions: "retry-and-reset",
+    recoveryActions:
+      activeDocument.reason === "document_unavailable"
+        ? "none"
+        : "retry-and-reset",
   };
 }
 

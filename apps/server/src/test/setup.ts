@@ -7,6 +7,7 @@ import { db } from "../db/client.js";
 import {
   accountSettings,
   documentInvitations,
+  documentModeration,
   documents,
   documentThumbnails,
   loginAttempts,
@@ -23,6 +24,7 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
+  await db.delete(documentModeration);
   await db.delete(documentInvitations);
   await db.delete(documentThumbnails);
   await db.delete(serverAdminCredentials);

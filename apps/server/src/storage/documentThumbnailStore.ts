@@ -1,16 +1,13 @@
 import { S3Client } from "bun";
 
 export interface DocumentThumbnailStore {
+  getObject(key: string): Promise<Uint8Array>;
+  deleteObject(key: string): Promise<void>;
   putObject(input: {
     key: string;
     body: Blob | Uint8Array | ArrayBuffer | string;
     contentType: string;
   }): Promise<void>;
-  presignPutUrl(input: {
-    key: string;
-    contentType: string;
-    expiresIn?: number;
-  }): string;
 }
 
 class R2DocumentThumbnailStore implements DocumentThumbnailStore {
@@ -33,6 +30,35 @@ class R2DocumentThumbnailStore implements DocumentThumbnailStore {
     });
   }
 
+  async getObject(key: string): Promise<Uint8Array> {
+    const reader = this.client.file(key).stream().getReader();
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    try {
+      while (true) {
+        const next = await reader.read();
+        if (next.done) break;
+        size += next.value.byteLength;
+        if (size > 2 * 1024 * 1024)
+          throw new Error("Thumbnail exceeds size limit");
+        chunks.push(next.value);
+      }
+    } finally {
+      await reader.cancel().catch(() => {});
+    }
+    const result = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) {
+      result.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return result;
+  }
+
+  async deleteObject(key: string): Promise<void> {
+    await this.client.delete(key);
+  }
+
   async putObject(input: {
     key: string;
     body: Blob | Uint8Array | ArrayBuffer | string;
@@ -40,17 +66,6 @@ class R2DocumentThumbnailStore implements DocumentThumbnailStore {
   }): Promise<void> {
     await this.client.write(input.key, input.body, {
       type: input.contentType,
-    });
-  }
-
-  presignPutUrl(input: {
-    key: string;
-    contentType: string;
-    expiresIn?: number;
-  }): string {
-    return this.client.presign(input.key, {
-      method: "PUT",
-      expiresIn: input.expiresIn ?? 300,
     });
   }
 }
@@ -91,4 +106,8 @@ export function setDocumentThumbnailStoreForTests(
   store: DocumentThumbnailStore | null,
 ): void {
   documentThumbnailStore = store;
+}
+
+export function isDocumentThumbnailStorageConfigured(): boolean {
+  return documentThumbnailStore !== null || getR2ThumbnailConfig().ready;
 }

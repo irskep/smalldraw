@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { drizzle } from "drizzle-orm/bun-sqlite";
 
+import { backfillContentUpdatedAt } from "./backfillContentUpdatedAt.js";
 import * as schema from "./schema.js";
 
 const serverRoot = path.resolve(process.cwd());
@@ -28,6 +29,7 @@ const sqlite = new Database(databasePath, { create: true });
 sqlite.run("PRAGMA journal_mode=WAL");
 sqlite.run("PRAGMA synchronous=FULL");
 sqlite.run("PRAGMA busy_timeout=5000");
+backfillContentUpdatedAt(sqlite);
 
 export const db = drizzle(sqlite, { schema });
 export type DbClient = typeof db;

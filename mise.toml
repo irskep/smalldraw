@@ -226,6 +226,11 @@ run = ["mise run prod:build", "mise run server:deploy"]
 description = "Build both production frontends and test binary WASM, persistence, and account recovery in Chromium against a temporary database."
 run = "bun run scripts/test-browser-wasm.ts"
 
+[tasks."test:browser:moderation"]
+description = "Test real guest sharing, admin inspection, and takedown in Chromium and WebKit against a temporary database."
+env = { BROWSER_SUITE = "moderation" }
+run = "bun run scripts/test-browser-wasm.ts"
+
 [tasks."test:browser:coloring"]
 description = "Check coloring entry, saved drawings, and mobile layout at the supplied origin in Chromium and WebKit."
 run = "bun scripts/check-coloring-entry.ts"

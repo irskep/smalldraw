@@ -1,6 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client.js";
+import { assertDocumentAvailable } from "./documentModeration.js";
 import { documents, usersOnDocuments } from "./schema.js";
 
 type Params = {
@@ -10,6 +11,7 @@ type Params = {
 };
 
 export const updateDocument = async ({ documentId, userId, name }: Params) => {
+  assertDocumentAvailable(documentId);
   const admin = await db
     .select({ userId: usersOnDocuments.userId })
     .from(usersOnDocuments)
@@ -28,11 +30,13 @@ export const updateDocument = async ({ documentId, userId, name }: Params) => {
     throw new Error("Document not found or user lacks permission");
   }
 
-  const [document] = await db
+  assertDocumentAvailable(documentId);
+  const document = db
     .update(documents)
     .set({ name, updatedAt: new Date() })
     .where(and(eq(documents.id, documentId), isNull(documents.deletedAt)))
-    .returning();
+    .returning()
+    .get();
 
   return document;
 };

@@ -12,6 +12,10 @@ import {
 } from "../controller/createDocumentRuntimeController";
 import { CanvasHostNotMeasurableError } from "../controller/createLayoutController";
 import { createStartupReadinessStore } from "../controller/stores/createStartupReadinessStore";
+import {
+  $unavailableDrawings,
+  markDrawingUnavailable,
+} from "../documents/unavailableDrawings";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 
 async function waitForTurn(): Promise<void> {
@@ -105,92 +109,104 @@ function createTestCore(store: DrawingStore): SmalldrawCore {
 }
 
 describe("createDocumentRuntimeController startup readiness", () => {
-  test("keeps interaction disabled until first bake flush resolves", async () => {
-    const store = createTestStore();
-    const startupReadinessStore = createStartupReadinessStore();
-    let resolveFlush!: () => void;
-    const flushPromise = new Promise<void>((resolve) => {
-      resolveFlush = resolve;
-    });
+  test.each([false, true])(
+    "keeps interaction disabled until first bake resolves; takedown=%s",
+    async (takenDown) => {
+      const store = createTestStore();
+      const startupReadinessStore = createStartupReadinessStore();
+      let resolveFlush!: () => void;
+      const flushPromise = new Promise<void>((resolve) => {
+        resolveFlush = resolve;
+      });
 
-    const controller = createDocumentRuntimeController({
-      store,
-      core: createTestCore(store),
-      documentBackend: {
-        mode: "local",
-        saveAccountCheckpoint: async () => {},
-        listDocuments: async () => [],
-        getDocument: async () => null,
-        createDocument: async () => ({
-          docUrl: "automerge:test-1",
-          mode: "normal",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          lastOpenedAt: new Date().toISOString(),
-        }),
-        touchDocument: async () => ({
-          docUrl: "automerge:test-1",
-          mode: "normal",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          lastOpenedAt: new Date().toISOString(),
-        }),
-        deleteDocument: async () => {},
-        saveThumbnail: async () => {},
-        getThumbnail: async () => null,
-        setCurrentDocument: async () => {},
-        getCurrentDocument: async () => null,
-      },
-      snapshotService: {
-        createThumbnailBlob: async () => null,
-      },
-      runtimeStore: {
-        setDocumentLoading: () => {},
-        setDocumentLoaded: () => {},
-        setDocumentError: () => {},
-        setNoDocument: () => {},
-        getActiveDocumentDocUrl: () => null,
-        isDestroyed: () => false,
-      },
-      startupReadinessStore,
-      toolbarStateController: {
-        applyToolbarStateForCurrentDocument: () => {},
-        getCurrentToolbarSignature: () => "sig",
-      },
-      renderLoopController: {
-        updateRenderIdentity: () => {},
-        requestRenderFromModel: () => {},
-      },
-      pipeline: {
-        setLayers: () => {},
-        scheduleBakeForClear: () => {},
-        bakePendingTiles: () => {},
-        flushBakes: () => flushPromise,
-      },
-      syncToolbarUi: () => {},
-      applyCanvasSize: () => {},
-      getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
-      fallbackDocumentSizeForCreate: { width: 640, height: 480 },
-      hasExplicitSize: false,
-      getExplicitSize: () => ({ width: 640, height: 480 }),
-      thumbnailSaveDebounceMs: DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS,
-    });
+      const controller = createDocumentRuntimeController({
+        store,
+        core: createTestCore(store),
+        documentBackend: {
+          mode: "local",
+          saveAccountCheckpoint: async () => {},
+          listDocuments: async () => [],
+          getDocument: async () => null,
+          createDocument: async () => ({
+            docUrl: "automerge:test-1",
+            mode: "normal",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            lastOpenedAt: new Date().toISOString(),
+          }),
+          touchDocument: async () => ({
+            docUrl: "automerge:test-1",
+            mode: "normal",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            lastOpenedAt: new Date().toISOString(),
+          }),
+          deleteDocument: async () => {},
+          saveThumbnail: async () => {},
+          getThumbnail: async () => null,
+          setCurrentDocument: async () => {},
+          getCurrentDocument: async () => null,
+        },
+        snapshotService: {
+          createThumbnailBlob: async () => null,
+        },
+        runtimeStore: {
+          setDocumentLoading: () => {},
+          setDocumentLoaded: () => {},
+          setDocumentError: () => {},
+          setNoDocument: () => {},
+          getActiveDocumentDocUrl: () => null,
+          isDestroyed: () => false,
+        },
+        startupReadinessStore,
+        toolbarStateController: {
+          applyToolbarStateForCurrentDocument: () => {},
+          getCurrentToolbarSignature: () => "sig",
+        },
+        renderLoopController: {
+          updateRenderIdentity: () => {},
+          requestRenderFromModel: () => {},
+        },
+        pipeline: {
+          setLayers: () => {},
+          scheduleBakeForClear: () => {},
+          bakePendingTiles: () => {},
+          flushBakes: () => flushPromise,
+        },
+        syncToolbarUi: () => {},
+        applyCanvasSize: () => {},
+        getDocumentSizeFromViewport: () => ({ width: 640, height: 480 }),
+        fallbackDocumentSizeForCreate: { width: 640, height: 480 },
+        hasExplicitSize: false,
+        getExplicitSize: () => ({ width: 640, height: 480 }),
+        thumbnailSaveDebounceMs: DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS,
+      });
 
-    controller.start();
-    await waitForTurn();
+      controller.start();
+      await waitForTurn();
 
-    expect(startupReadinessStore.getState().interactionEnabled).toBeFalse();
-    expect(startupReadinessStore.getState().phase).toBe("first_bake");
+      expect(startupReadinessStore.getState().interactionEnabled).toBeFalse();
+      expect(startupReadinessStore.getState().phase).toBe("first_bake");
 
-    resolveFlush();
-    const becameReady = await waitUntil(
-      () => startupReadinessStore.getState().phase === "ready",
-    );
-    expect(becameReady).toBeTrue();
-    expect(startupReadinessStore.getState().interactionEnabled).toBeTrue();
-
-    controller.dispose();
-  });
+      if (takenDown) markDrawingUnavailable("test-1");
+      resolveFlush();
+      const becameReady = await waitUntil(
+        () => startupReadinessStore.getState().phase === "ready",
+      );
+      expect(becameReady).toBe(!takenDown);
+      expect(startupReadinessStore.getState().interactionEnabled).toBe(
+        !takenDown,
+      );
+      if (takenDown) {
+        controller.start();
+        await waitForTurn();
+        expect(startupReadinessStore.getState().phase).toBe("failed");
+        expect(startupReadinessStore.getState().interactionEnabled).toBeFalse();
+      }
+      controller.dispose();
+      $unavailableDrawings.set(new Set());
+    },
+  );
 
   test.each([
     ["loading", "resolve"],

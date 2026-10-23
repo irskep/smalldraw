@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { sql, and, desc, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client.js";
 import { documents, documentThumbnails, usersOnDocuments } from "./schema.js";
@@ -19,7 +19,11 @@ export const getDocumentsByUserId = async (userId: string) => {
       eq(documentThumbnails.documentId, documents.id),
     )
     .where(
-      and(eq(usersOnDocuments.userId, userId), isNull(documents.deletedAt)),
+      and(
+        eq(usersOnDocuments.userId, userId),
+        isNull(documents.deletedAt),
+        sql`NOT EXISTS (SELECT 1 FROM document_moderation WHERE document_id = ${documents.id})`,
+      ),
     )
     .orderBy(desc(documents.createdAt));
 };

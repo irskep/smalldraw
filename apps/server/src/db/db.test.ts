@@ -799,7 +799,7 @@ describe("Document operations", () => {
       contentType: "image/png",
     });
     expect(first?.documentId).toBe("thumb-doc-1");
-    expect(first?.storageKey).toBe("documents/thumb-doc-1/thumbnail.png");
+    expect(first?.storageKey).toBe("documents/thumb-doc-1/thumbnail-v2.png");
     expect(first?.contentType).toBe("image/png");
 
     const second = await upsertDocumentThumbnail({
@@ -836,7 +836,7 @@ describe("Document operations", () => {
         id: "thumb-doc-2",
         name: "Thumb List Doc",
         isAdmin: true,
-        thumbnailStorageKey: "documents/thumb-doc-2/thumbnail.png",
+        thumbnailStorageKey: "documents/thumb-doc-2/thumbnail-v2.png",
         thumbnailContentType: "image/png",
       },
     ]);

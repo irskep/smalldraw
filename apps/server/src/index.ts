@@ -17,10 +17,15 @@ import {
 } from "./automergeRepo/automergeRepo.js";
 import type { AuthenticatedSocket } from "./automergeRepo/socketAuthContext.js";
 import { checkAccountStorage } from "./db/client.js";
+import {
+  blockedDocumentForToken,
+  isDocumentBlocked,
+} from "./db/documentModeration.js";
 import { touchDocumentToken } from "./db/documentTokens.js";
 import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getSession } from "./db/getSession.js";
 import { startMetrics } from "./metrics.js";
+import { startDocumentCleanup } from "./moderation/documentModeration.js";
 import { renderPortalMetadata } from "./portalMetadata.js";
 import { ServerLifecycle } from "./runtime.js";
 import { getSharePreview, renderSharePreview } from "./sharePreview.js";
@@ -196,6 +201,7 @@ app.get("*", (req, res, next) => {
   res.type("html").send(renderPortalMetadata(template, req.path));
 });
 
+const stopDocumentCleanup = startDocumentCleanup();
 const server = app.listen(PORT, () => {
   lifecycle.ready = true;
   console.log(`Listening on port ${PORT}`);
@@ -236,7 +242,22 @@ server.on("upgrade", async (request, socket, head) => {
     socket.destroy();
     return;
   }
-  if (!authContext) {
+  const blockedId = new URL(
+    request.url ?? "/",
+    "http://localhost",
+  ).searchParams.get("token");
+  const blockedDocument = blockedId ? blockedDocumentForToken(blockedId) : null;
+  if (blockedDocument) {
+    webSocketServer.handleUpgrade(request, socket, head, (currentSocket) => {
+      // Do not register this socket with the repository or attach any authority.
+      currentSocket.close(4004, `Drawing unavailable:${blockedDocument}`);
+    });
+    return;
+  }
+  if (
+    !authContext ||
+    (authContext.kind === "token" && isDocumentBlocked(authContext.documentId))
+  ) {
     console.warn("[server:ws-upgrade] unauthorized upgrade rejected", {
       url: request.url,
       origin,
@@ -271,7 +292,10 @@ function shutdown(signal: string) {
     process.exit(1);
   }, 18_000);
   void lifecycle
-    .drain(server, stopRepositoryNetwork, shutdownRepository)
+    .drain(server, stopRepositoryNetwork, async () => {
+      await stopDocumentCleanup();
+      await shutdownRepository();
+    })
     .then(() => {
       metricsServer?.close();
       clearTimeout(deadline);

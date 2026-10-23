@@ -1,6 +1,7 @@
 import { and, eq, isNotNull } from "drizzle-orm";
 
 import { db } from "./client.js";
+import { assertDocumentAvailable } from "./documentModeration.js";
 import { documents, usersOnDocuments } from "./schema.js";
 
 type Params = {
@@ -9,18 +10,20 @@ type Params = {
 };
 
 export const restoreDocument = async ({ documentId, userId }: Params) => {
-  return db.transaction(async (tx) => {
-    const [documentRow] = await tx
+  assertDocumentAvailable(documentId);
+  return db.transaction((tx) => {
+    const documentRow = tx
       .select({ id: documents.id })
       .from(documents)
       .where(and(eq(documents.id, documentId), isNotNull(documents.deletedAt)))
-      .limit(1);
+      .limit(1)
+      .get();
 
     if (!documentRow) {
       throw new Error("Document not found");
     }
 
-    const [membership] = await tx
+    const membership = tx
       .select({ userId: usersOnDocuments.userId })
       .from(usersOnDocuments)
       .where(
@@ -30,14 +33,16 @@ export const restoreDocument = async ({ documentId, userId }: Params) => {
           eq(usersOnDocuments.isAdmin, true),
         ),
       )
-      .limit(1);
+      .limit(1)
+      .get();
 
     if (!membership) {
       throw new Error("User lacks restore permission");
     }
 
+    assertDocumentAvailable(documentId);
     const now = new Date();
-    const [document] = await tx
+    const document = tx
       .update(documents)
       .set({
         deletedAt: null,
@@ -46,7 +51,8 @@ export const restoreDocument = async ({ documentId, userId }: Params) => {
       .where(and(eq(documents.id, documentId), isNotNull(documents.deletedAt)))
       .returning({
         id: documents.id,
-      });
+      })
+      .get();
 
     if (!document) {
       throw new Error("Document not found");

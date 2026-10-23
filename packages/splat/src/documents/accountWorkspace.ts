@@ -6,11 +6,16 @@ import type {
 import { drawingDocumentId } from "@smalldraw/shared";
 import { atom } from "nanostores";
 
+import { MultiplayerApiError } from "../app/createMultiplayerApiClient";
 import type { MultiplayerApiClient } from "../app/createMultiplayerApiClient";
 import { createAccountSyncQueue } from "./accountSyncQueue";
 import { findDocumentById } from "./findDocumentById";
 import { createLocalDocumentBackend } from "./localDocumentBackend";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "./types";
+import {
+  $unavailableDrawings,
+  markDrawingUnavailable,
+} from "./unavailableDrawings";
 import {
   getDrawingWorkspace,
   getLastDrawingWorkspace,
@@ -229,116 +234,130 @@ export async function syncAccountWorkspace(
     const document = await backend.getDocument(candidate.docUrl);
     if (!document) continue;
     const id = binaryId(document);
-    if (
-      document.accountAttached &&
-      !repo.handles[id.replace(/^automerge:/, "") as DocumentId] &&
-      repo.storageSubsystem &&
-      !(await repo.storageSubsystem.loadDocData(
-        id.replace(/^automerge:/, "") as never,
-      ))
-    )
-      continue;
-    const localHandle = await repo.find(id);
-    const last =
-      document.accountCheckpoint?.documentUrl === id
-        ? document.accountCheckpoint
-        : undefined;
-    if (
-      document.accountAttached &&
-      last &&
-      JSON.stringify(last.heads) ===
-        JSON.stringify(getHeads(localHandle.doc()).sort())
-    )
-      continue;
-    // Unchanged drawings need neither a storage flush nor a network request.
-    await repo.flush([localHandle.documentId]);
-    if (!document.accountAttached) {
-      if (document.collaborative) {
-        if (document.accessTokenScope === "owner" && document.accessToken) {
-          await api.claimCollaborativeDocument(document.accessToken);
-        } else if (document.joinSecret) {
-          await api.acceptDocumentInvitation(document.joinSecret);
+    const bareId = drawingDocumentId(id);
+    if ($unavailableDrawings.get().has(bareId)) continue;
+    try {
+      if (
+        document.accountAttached &&
+        !repo.handles[id.replace(/^automerge:/, "") as DocumentId] &&
+        repo.storageSubsystem &&
+        !(await repo.storageSubsystem.loadDocData(
+          id.replace(/^automerge:/, "") as never,
+        ))
+      )
+        continue;
+      const localHandle = await repo.find(id);
+      const last =
+        document.accountCheckpoint?.documentUrl === id
+          ? document.accountCheckpoint
+          : undefined;
+      if (
+        document.accountAttached &&
+        last &&
+        JSON.stringify(last.heads) ===
+          JSON.stringify(getHeads(localHandle.doc()).sort())
+      )
+        continue;
+      // Unchanged drawings need neither a storage flush nor a network request.
+      await repo.flush([localHandle.documentId]);
+      if (!document.accountAttached) {
+        if (document.collaborative) {
+          if (document.accessTokenScope === "owner" && document.accessToken) {
+            await api.claimCollaborativeDocument(document.accessToken);
+          } else if (document.joinSecret) {
+            await api.acceptDocumentInvitation(document.joinSecret);
+          } else {
+            throw new Error(
+              "Open the sharing link again to sync this shared drawing.",
+            );
+          }
+          await backend.createDocument({
+            docUrl: document.docUrl,
+            accountAttached: true,
+            canDeleteFromServer: document.accessTokenScope === "owner",
+          });
         } else {
-          throw new Error(
-            "Open the sharing link again to sync this shared drawing.",
+          const registered = await api.registerAccountSyncedDocument(
+            id,
+            save(localHandle.doc()),
+            userId,
           );
+          await backend.createDocument({
+            docUrl: document.docUrl,
+            collaborative: true,
+            accountAttached: true,
+            collabDocUrl: registered.collabDocUrl,
+            accessToken: registered.accessToken,
+            accessTokenScope: "owner",
+            canDeleteFromServer: true,
+          });
         }
-        await backend.createDocument({
-          docUrl: document.docUrl,
-          accountAttached: true,
-          canDeleteFromServer: document.accessTokenScope === "owner",
-        });
-      } else {
-        const registered = await api.registerAccountSyncedDocument(
-          id,
-          save(localHandle.doc()),
-          userId,
-        );
-        await backend.createDocument({
-          docUrl: document.docUrl,
-          collaborative: true,
-          accountAttached: true,
-          collabDocUrl: registered.collabDocUrl,
-          accessToken: registered.accessToken,
-          accessTokenScope: "owner",
-          canDeleteFromServer: true,
-        });
       }
-    }
-    if (!document.accountAttached) {
-      window.dispatchEvent(new window.Event("drawing-catalog-change"));
-      const updates = channel();
-      updates.postMessage({ type: "catalog", workspace: userId });
-      updates.close();
-    }
-    // Capture after registration: edits made while it was in flight must also be saved.
-    const snapshot = localHandle.doc();
-    const heads = getHeads(snapshot);
-    const baseHeads = last?.heads ?? null;
-    const canSendChanges = baseHeads !== null && hasHeads(snapshot, baseHeads);
-    let result = await api.checkpointAccountDrawing(
-      id,
-      {
-        heads,
-        baseHeads: canSendChanges ? baseHeads : null,
-        content: canSendChanges
-          ? saveSince(snapshot, baseHeads)
-          : save(snapshot),
-      },
-      userId,
-    );
-    if (result.status === "resync") {
-      result = await api.checkpointAccountDrawing(
+      if (!document.accountAttached) {
+        window.dispatchEvent(new window.Event("drawing-catalog-change"));
+        const updates = channel();
+        updates.postMessage({ type: "catalog", workspace: userId });
+        updates.close();
+      }
+      // Capture after registration: edits made while it was in flight must also be saved.
+      const snapshot = localHandle.doc();
+      const heads = getHeads(snapshot);
+      const baseHeads = last?.heads ?? null;
+      const canSendChanges =
+        baseHeads !== null && hasHeads(snapshot, baseHeads);
+      let result = await api.checkpointAccountDrawing(
         id,
-        { heads, baseHeads: null, content: save(snapshot) },
+        {
+          heads,
+          baseHeads: canSendChanges ? baseHeads : null,
+          content: canSendChanges
+            ? saveSince(snapshot, baseHeads)
+            : save(snapshot),
+        },
         userId,
       );
-    }
-    if (result.status !== "saved")
-      throw new Error("The server has not saved every change yet.");
-    let confirmed = clone(snapshot);
-    try {
-      confirmed = loadIncremental(confirmed, result.content);
-      // Validate against the captured upload, not edits made while it was in flight.
-      if (
-        JSON.stringify(getHeads(confirmed).sort()) !==
-        JSON.stringify([...result.heads].sort())
-      )
+      if (result.status === "resync") {
+        result = await api.checkpointAccountDrawing(
+          id,
+          { heads, baseHeads: null, content: save(snapshot) },
+          userId,
+        );
+      }
+      if (result.status !== "saved")
         throw new Error("The server has not saved every change yet.");
-      localHandle.update((current) => merge(current, confirmed));
-    } finally {
-      free(confirmed);
+      let confirmed = clone(snapshot);
+      try {
+        confirmed = loadIncremental(confirmed, result.content);
+        // Validate against the captured upload, not edits made while it was in flight.
+        if (
+          JSON.stringify(getHeads(confirmed).sort()) !==
+          JSON.stringify([...result.heads].sort())
+        )
+          throw new Error("The server has not saved every change yet.");
+        localHandle.update((current) => merge(current, confirmed));
+      } finally {
+        free(confirmed);
+      }
+      await repo.flush([localHandle.documentId]);
+      await backend.saveAccountCheckpoint(document.docUrl, {
+        documentUrl: id,
+        heads: [...result.heads].sort(),
+      });
+      const thumbnail = await backend.getThumbnail(document.docUrl);
+      if (thumbnail)
+        await api
+          .uploadDocumentThumbnail(id.replace(/^automerge:/, ""), thumbnail)
+          .catch(() => {});
+    } catch (error) {
+      if (
+        error instanceof MultiplayerApiError &&
+        error.appError.code === "DOCUMENT_NOT_FOUND"
+      ) {
+        markDrawingUnavailable(bareId);
+        continue;
+      }
+      throw error;
     }
-    await repo.flush([localHandle.documentId]);
-    await backend.saveAccountCheckpoint(document.docUrl, {
-      documentUrl: id,
-      heads: [...result.heads].sort(),
-    });
-    const thumbnail = await backend.getThumbnail(document.docUrl);
-    if (thumbnail)
-      await api
-        .uploadDocumentThumbnail(id.replace(/^automerge:/, ""), thumbnail)
-        .catch(() => {});
   }
 }
 

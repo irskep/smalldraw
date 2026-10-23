@@ -6,6 +6,7 @@ import {
 } from "@automerge/automerge-repo-network-websocket";
 import type WebSocket from "isomorphic-ws";
 
+import { isDocumentBlocked } from "../db/documentModeration.js";
 import { getUserHasAccessToDocument } from "../db/getUserHasAccessToDocument.js";
 import { serverTrace } from "../utils/serverTrace.js";
 import { isValidAwarenessPayloadForAuth } from "./awarenessValidation.js";
@@ -16,12 +17,21 @@ const { decode } = cborHelpers;
 
 export class AuthAdapter extends NodeWSServerAdapter {
   documentLifetime?: DocumentLifetime;
-  private socketPins = new WeakMap<
-    WebSocket,
-    Map<string, Promise<() => void>>
-  >();
+  private socketPins = new Map<WebSocket, Map<string, Promise<() => void>>>();
   private draining = false;
   private pending = new Set<Promise<void>>();
+
+  disconnectDocument(documentId: string): void {
+    for (const [socket, pins] of this.socketPins) {
+      const auth = getSocketAuthContext(socket);
+      if (
+        pins.has(documentId) ||
+        (auth?.kind === "token" && auth.documentId === documentId)
+      ) {
+        socket.close(4004, `Drawing unavailable:${documentId}`);
+      }
+    }
+  }
 
   async drain(): Promise<void> {
     this.draining = true;
@@ -53,6 +63,10 @@ export class AuthAdapter extends NodeWSServerAdapter {
 
     if ("documentId" in message) {
       const messageDocumentId = message.documentId as string;
+      if (isDocumentBlocked(messageDocumentId)) {
+        socket.close(4004, `Drawing unavailable:${messageDocumentId}`);
+        return;
+      }
       if (authContext.kind === "session") {
         const hasAccess = await getUserHasAccessToDocument({
           userId: authContext.userId,
@@ -108,6 +122,7 @@ export class AuthAdapter extends NodeWSServerAdapter {
           for (const pin of socketPins.values())
             void pin.then((release) => release());
           socketPins.clear();
+          this.socketPins.delete(socket);
         });
       }
       const id = message.documentId as DocumentId;
@@ -122,6 +137,14 @@ export class AuthAdapter extends NodeWSServerAdapter {
         pins.delete(id);
         return;
       }
+    }
+    // Authorization/lifetime acquisition yield; recheck at the synchronous handoff.
+    if (
+      "documentId" in message &&
+      isDocumentBlocked(message.documentId as string)
+    ) {
+      socket.close(4004, `Drawing unavailable:${message.documentId}`);
+      return;
     }
     super.receiveMessage(messageBytes, socket);
   }

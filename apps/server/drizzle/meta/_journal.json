@@ -57,6 +57,20 @@
       "when": 1792469873245,
       "tag": "0007_document_lookup_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792798439985,
+      "tag": "0008_document_moderation",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1792799002545,
+      "tag": "0009_legacy_thumbnail_cleanup",
+      "breakpoints": true
     }
   ]
 }

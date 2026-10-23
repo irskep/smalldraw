@@ -1,6 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client.js";
+import { isDocumentBlocked } from "./documentModeration.js";
 import { documents, usersOnDocuments } from "./schema.js";
 
 type Params = {
@@ -12,7 +13,7 @@ export const getUserHasAccessToDocument = async ({
   documentId,
   userId,
 }: Params) => {
-  if (!userId || !documentId) return false;
+  if (!userId || !documentId || isDocumentBlocked(documentId)) return false;
 
   const rows = await db
     .select({ userId: usersOnDocuments.userId })

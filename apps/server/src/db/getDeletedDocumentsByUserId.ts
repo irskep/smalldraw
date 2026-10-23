@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { sql, and, desc, eq, isNotNull } from "drizzle-orm";
 
 import { db } from "./client.js";
 import { documents, documentThumbnails, usersOnDocuments } from "./schema.js";
@@ -24,6 +24,7 @@ export const getDeletedDocumentsByUserId = async (userId: string) => {
         eq(usersOnDocuments.userId, userId),
         eq(usersOnDocuments.isAdmin, true),
         isNotNull(documents.deletedAt),
+        sql`NOT EXISTS (SELECT 1 FROM document_moderation WHERE document_id = ${documents.id})`,
       ),
     )
     .orderBy(desc(documents.deletedAt));

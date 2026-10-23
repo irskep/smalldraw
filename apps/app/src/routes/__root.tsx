@@ -69,11 +69,11 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   useEffect(() => {
-    if (isInformationalRoute) return;
+    if (isInformationalRoute || isAdminRoute) return;
     void initializeAccountWorkspace()
       .then(() => setWorkspaceReady(true))
       .catch((error) => setWorkspaceError(String(error)));
-  }, [isInformationalRoute]);
+  }, [isInformationalRoute, isAdminRoute]);
 
   const isNotAuthorized = isUnauthorized(meQuery.error);
   const accountMenuEntries = useMemo<DropdownMenuEntry[]>(() => {
@@ -215,7 +215,11 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
       navigation={
         <>
           {meQuery.data && !isNotAuthorized ? (
-            <div className="portal-nav__identity" aria-live="polite">
+            <div
+              className="portal-nav__identity"
+              aria-live="polite"
+              title={meQuery.data.username}
+            >
               {meQuery.data.username}
               {meQuery.data.isServerAdmin ? " (admin)" : ""}
             </div>
@@ -250,7 +254,7 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
         </>
       }
     >
-      {isInformationalRoute || workspaceReady ? (
+      {isInformationalRoute || isAdminRoute || workspaceReady ? (
         children
       ) : (
         <p role="status">

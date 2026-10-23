@@ -5,14 +5,17 @@ type Entry = { pins: number; touched: number; eviction?: Promise<void> };
 /** Pins protect live sync sessions and HTTP operations; only idle decoded copies are evicted. */
 export class DocumentLifetime {
   private sweeping?: Promise<void>;
+  private operations = new Map<DocumentId, Set<Promise<unknown>>>();
   private entries = new Map<DocumentId, Entry>();
   constructor(
     private repo: Repo,
     private options = { maxIdle: 16, idleMs: 60_000 },
     private now = () => Date.now(),
+    private assertAvailable: (id: string) => void = () => {},
   ) {}
 
   async acquire(id: DocumentId): Promise<() => void> {
+    this.assertAvailable(id);
     const entry = this.entry(id);
     entry.pins++;
     // An eviction already in progress finishes before this caller uses the repository.
@@ -29,12 +32,35 @@ export class DocumentLifetime {
   }
 
   async use<T>(id: DocumentId, work: () => Promise<T>): Promise<T> {
-    const release = await this.acquire(id);
-    try {
-      return await work();
-    } finally {
-      release();
+    this.assertAvailable(id);
+    const operation = (async () => {
+      const release = await this.acquire(id);
+      try {
+        this.assertAvailable(id);
+        const result = await work();
+        this.assertAvailable(id);
+        return result;
+      } finally {
+        release();
+      }
+    })();
+    let pending = this.operations.get(id);
+    if (!pending) {
+      pending = new Set();
+      this.operations.set(id, pending);
     }
+    pending.add(operation);
+    try {
+      return await operation;
+    } finally {
+      pending.delete(operation);
+      if (!pending.size) this.operations.delete(id);
+    }
+  }
+
+  async waitForOperations(id: DocumentId): Promise<void> {
+    await Promise.allSettled(this.operations.get(id) ?? []);
+    await this.entries.get(id)?.eviction?.catch(() => {});
   }
 
   private entry(id: DocumentId): Entry {

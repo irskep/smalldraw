@@ -43,6 +43,9 @@ const Account = page(() => import("../routes/account.lazy"));
 const Deleted = page(() => import("../routes/drawings/deleted.lazy"));
 const Invitation = page(() => import("../routes/invitation/$token.lazy"));
 const Admin = page(() => import("../routes/admin.lazy"));
+const AdminDrawing = page(
+  () => import("../routes/admin/drawings/$documentId.lazy"),
+);
 const AdminUser = page(() => import("../routes/admin/users/$username.lazy"));
 const AdminDocument = page(
   () => import("../routes/admin/users/$username/documents/$documentId.lazy"),
@@ -96,6 +99,10 @@ function Pages({ onPageChange }: { onPageChange?: () => void }) {
         <Route path={appPath("drawings/deleted")} component={Deleted} />
         <Route path={appPath("invitation/:token")} component={Invitation} />
         <Route path={appPath("admin")} component={Admin} />
+        <Route
+          path={appPath("admin/drawings/:documentId")}
+          component={AdminDrawing}
+        />
         <Route path={appPath("admin/users/:username")} component={AdminUser} />
         <Route
           path={appPath("admin/users/:username/documents/:documentId")}

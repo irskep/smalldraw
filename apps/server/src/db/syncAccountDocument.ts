@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import { db } from "./client.js";
+import { assertDocumentAvailable } from "./documentModeration.js";
 import { findOrCreateDocumentToken } from "./documentTokens.js";
 import { documents, usersOnDocuments } from "./schema.js";
 
@@ -10,6 +11,7 @@ type Params = {
 };
 
 export async function syncAccountDocument({ documentId, userId }: Params) {
+  assertDocumentAvailable(documentId);
   return db.transaction((tx) => {
     const existing = tx
       .select()
@@ -36,6 +38,7 @@ export async function syncAccountDocument({ documentId, userId }: Params) {
         name: "Untitled",
         createdAt: now,
         updatedAt: now,
+        contentUpdatedAt: now,
       })
       .run();
     tx.insert(usersOnDocuments)

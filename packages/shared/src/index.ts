@@ -61,6 +61,7 @@ export const PORTAL_ROUTE_PATTERNS = [
   "/terms",
   "/drawings/deleted",
   "/invitation/:token",
+  "/admin/drawings/:documentId",
   "/admin/users/:username",
   "/admin/users/:username/documents/:documentId",
 ] as const;
@@ -280,10 +281,6 @@ export type ClaimCollaborativeDocumentResult = {
   documentId: string;
   attached: boolean;
   isAdmin: boolean;
-};
-
-export type DocumentThumbnailUploadTarget = {
-  uploadUrl: string;
 };
 
 export * from "./parentalControls";

@@ -33,12 +33,13 @@ test("guest owner publishes a crawler-readable preview; share credentials cannot
   process.env.R2_PUBLIC_BASE_URL = "https://images.example.com";
   const writes: string[] = [];
   setDocumentThumbnailStoreForTests({
+    async getObject() {
+      return new Uint8Array();
+    },
+    async deleteObject() {},
     async putObject(input) {
       writes.push(input.key);
       expect(input.contentType).toBe("image/png");
-    },
-    presignPutUrl() {
-      throw new Error("unused");
     },
   });
   await expect(
@@ -71,7 +72,7 @@ test("guest owner publishes a crawler-readable preview; share credentials cannot
   expect(preview).toEqual({
     url: `https://splatterboard.app/draw/shared/${drawing.joinSecret}`,
     image: expect.stringMatching(
-      /^https:\/\/images\.example\.com\/documents\/preview-drawing\/thumbnail\.png\?v=\d+$/,
+      /^https:\/\/images\.example\.com\/documents\/preview-drawing\/thumbnail-v2\.png\?v=\d+$/,
     ),
     imageType: "image/png",
   });
@@ -102,11 +103,12 @@ test("failed storage upload does not advertise a missing image", async () => {
     ownerTag: "preview-owner",
   });
   setDocumentThumbnailStoreForTests({
+    async getObject() {
+      return new Uint8Array();
+    },
+    async deleteObject() {},
     async putObject() {
       throw new Error("storage unavailable");
-    },
-    presignPutUrl() {
-      return "";
     },
   });
   await expect(
