@@ -72,7 +72,7 @@ function RandomPage({
       <PageCard {...choice} runtimeConfig={runtimeConfig} eager />
       <button
         type="button"
-        className="ds-button coloringbook__dice"
+        className="ds-icon-button coloringbook__dice"
         aria-label="Pick a random coloring page"
         title="Pick a random coloring page"
         onClick={() =>
@@ -86,11 +86,13 @@ function RandomPage({
           }))
         }
       >
-        <span
-          key={selection.roll}
-          className={selection.roll ? "is-rolling" : undefined}
-        >
-          <Icon icon={Dice5} />
+        <span className="ds-icon-button__content">
+          <span
+            key={selection.roll}
+            className={`ds-icon-button__icon${selection.roll ? " is-rolling" : ""}`}
+          >
+            <Icon icon={Dice5} />
+          </span>
         </span>
       </button>
     </div>

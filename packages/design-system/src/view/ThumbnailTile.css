@@ -4,6 +4,7 @@
 }
 
 .ds-thumbnail-tile__open {
+  position: relative;
   width: 100%;
   height: 100%;
   border: var(--border-size-1) solid var(--ds-border);
@@ -36,24 +37,20 @@
 }
 
 .ds-thumbnail-tile__media {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
-  background: linear-gradient(
-    45deg,
-    color-mix(in oklch, var(--ds-surface-pressed) 70%, white) 0 25%,
-    color-mix(in oklch, var(--ds-surface-hover) 65%, white) 25% 50%,
-    color-mix(in oklch, var(--ds-surface-pressed) 70%, white) 50% 75%,
-    color-mix(in oklch, var(--ds-surface-hover) 65%, white) 75% 100%
-  );
-  background-size: 24px 24px;
+  background: white;
 }
 
 .ds-thumbnail-tile__media > img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 

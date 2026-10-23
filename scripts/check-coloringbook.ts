@@ -37,6 +37,11 @@ export async function checkColoringbook(
             () => document.documentElement.scrollWidth <= innerWidth,
           ),
         ).toBe(true);
+        // Tiny Lucide pip paths are invisible with SVG's default butt linecaps.
+        // Verify the server-rendered icon before hydration can repair attributes.
+        const dice = page.locator(".coloringbook__dice svg");
+        await expect(dice).toHaveCSS("stroke-linecap", "round");
+        await expect(dice.locator("path")).toHaveCount(5);
         const firstImage = page.locator(".coloringbook__pages img").first();
         const firstCard = page.locator("[data-coloring-page]").first();
         const imageBox = await firstImage.boundingBox();
@@ -198,6 +203,26 @@ export async function checkColoringbook(
         count: 0,
         tool: "fill.basic",
       });
+      await page.getByRole("button", { name: "Menu", exact: true }).click();
+      await page
+        .getByRole("menuitem", { name: "Your drawings", exact: true })
+        .click();
+      const drawingPreview = page
+        .locator(".kids-draw-document-browser-dialog__thumbnail-media img")
+        .first();
+      await expect(drawingPreview).toBeVisible();
+      await expect(drawingPreview).toHaveCSS("object-fit", "contain");
+      await expect
+        .poll(() =>
+          drawingPreview.evaluate((image) => {
+            const imageBox = image.getBoundingClientRect();
+            const frame = image.closest("button")!.getBoundingClientRect();
+            return (
+              imageBox.width <= frame.width && imageBox.height <= frame.height
+            );
+          }),
+        )
+        .toBe(true);
       console.log(
         `PASS coloringbook ${name} ${width}: selected page, fill, reload, fresh copy`,
       );

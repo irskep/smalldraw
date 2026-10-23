@@ -9,7 +9,8 @@
     ".": "./src/index.ts",
     "./dropdown-menu": "./src/view/DropdownMenu.ts",
     "./styles.css": "./src/styles.css",
-    "./poster-card.css": "./src/view/PosterCard.css"
+    "./poster-card.css": "./src/view/PosterCard.css",
+    "./icon-button.css": "./src/view/IconButton.css"
   },
   "scripts": {
     "dev": "bun ./harness/index.html --watch --host=0.0.0.0:3002",
