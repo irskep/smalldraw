@@ -21,7 +21,7 @@ mise run //packages/splat:coloring:import-pdf
 ```
 
 The SVG import records the source commit in `svgPages.json`, retains the original
-files and attribution, and excludes the blank sheet. Subject grouping lives in
+artwork and attribution, corrects the dove’s orientation, and excludes the blank sheet. Subject grouping lives in
 `categories.ts`; technical tags, ages, and gender labels are not shown as categories.
 
 ## Import PDF artwork
@@ -42,7 +42,7 @@ The older PNG pipeline remains for the existing Public Domain Review assets.
 
 - [Pavel Kukov SVG collection](https://github.com/pavelkukov/coloring-pages):
   collection licensed CC BY-SA 4.0. Preserve its LICENSE, acknowledgments, and
-  per-file metadata. Imported SVGs are unchanged; browsing labels are ours.
+  per-file metadata. The dove is rotated 90° counterclockwise; other SVGs are unchanged. Browsing labels are ours.
 - [Peaksel dinosaur PDF](https://commons.wikimedia.org/wiki/File:Dinosaur_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf)
   and [butterfly PDF](https://commons.wikimedia.org/wiki/File:Butterfly_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf):
   the Commons description pages specify CC BY-SA 4.0 and confirmed permission
