@@ -4,79 +4,53 @@ Inventory: the [Printable coloring books category](https://commons.wikimedia.org
 
 Imported sources, licenses, checksums, selected pages, and framing settings are recorded in `pdfSources.json`. NPS bonus pages were obtained from the linked NPS rights records.
 
-## Remaining sources
+## Completed alphabet-sheet review — 2026-10-23
 
-Commons repeatedly returned HTTP 429, including after its ten-minute cooldown. These sources still await import and visual review; their presence here is not clearance to publish them. `commonsDownloads.json` is the download queue. The resumable downloader tracks cached originals separately; use `mise run //packages/splat:coloring:download -- --status` for current download progress.
+All 69 queued sources have been downloaded and checksum-verified. Their per-file
+Commons license and author records were checked against the preserved inventory.
+64 sheets were imported: 22 skateboard letters/numbers, three SVG skateboard
+charts, 37 heart letters/numbers, a plain heart, and a nine-heart sheet. Together
+with the existing collection, the gallery now has 952 drawings (838 from this
+import pipeline, 74 Pavel Kukov SVGs, and 40 Public Domain Review pages).
 
-- [Alphabet-number-1-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-1-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-10-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-10-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-2-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-2-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-3-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-3-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-4-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-4-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-5-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-5-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-6-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-6-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-7-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-7-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-8-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-8-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-number-9-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-number-9-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-o-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-o-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-p-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-p-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-q-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-q-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-r-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-r-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-s-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-s-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-t-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-t-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-u-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-u-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-v-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-v-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-w-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-w-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-x-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-x-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-y-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-y-at-coloringpagesforkidsboys-dotcom.svg)
-- [Alphabet-z-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Alphabet-z-at-coloringpagesforkidsboys-dotcom.svg)
-- [Skateboard Alphabet Chart.gif](https://commons.wikimedia.org/wiki/File:Skateboard_Alphabet_Chart.gif)
-- [Skateboard Numbers Chart.gif](https://commons.wikimedia.org/wiki/File:Skateboard_Numbers_Chart.gif)
-- [Skateboard-alphabet-chart-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Skateboard-alphabet-chart-at-coloringpagesforkidsboys-dotcom.svg)
-- [Skateboard-alphabet-cover-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Skateboard-alphabet-cover-at-coloringpagesforkidsboys-dotcom.svg)
-- [Skateboard-numbers-chart-2-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Skateboard-numbers-chart-2-at-coloringpagesforkidsboys-dotcom.svg)
-- [Skateboard-numbers-chart-at-coloringpagesforkidsboys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Skateboard-numbers-chart-at-coloringpagesforkidsboys-dotcom.svg)
-- [Valentines-day-hearts-a-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-a-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-alphabet-blank1-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-alphabet-blank1-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-alphabet-blank2-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-alphabet-blank2-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-alphabet-blank3-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-alphabet-blank3-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-alphabet-cover-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-alphabet-cover-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-b-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-b-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-c-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-c-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-d-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-d-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-e-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-e-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-f-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-f-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-g-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-g-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-h-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-h-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-i-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-i-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-j-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-j-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-k-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-k-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-l-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-l-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-m-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-m-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-n-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-n-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-0-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-0-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-1-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-1-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-10-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-10-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-2-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-2-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-3-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-3-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-4-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-4-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-5-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-5-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-6-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-6-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-7-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-7-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-8-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-8-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-number-9-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-number-9-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-o-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-o-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-p-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-p-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-q-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-q-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-r-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-r-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-s-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-s-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-t-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-t-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-u-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-u-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-v-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-v-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-w-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-w-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-x-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-x-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-y-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-y-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
-- [Valentines-day-hearts-z-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg](https://commons.wikimedia.org/wiki/File:Valentines-day-hearts-z-alphabet-at-coloring-pages-for-kids-boys-dotcom.svg)
+Each original was visually reviewed. Skateboard figures retain the orientations
+that form the characters. Heart letters retain their intentional tilt. Blank
+margins are trimmed by the importer; no artwork crops or rotations were needed.
+The standalone sheet labels are explicit, without an appended page number.
+
+Omitted downloaded sources:
+
+- `Skateboard Alphabet Chart.gif`: raster duplicate of the SVG alphabet chart,
+  with an added promotional mark. Retained `Skateboard-alphabet-chart-at-coloringpagesforkidsboys-dotcom.svg`.
+- `Skateboard Numbers Chart.gif`: repeats the individual number figures and
+  includes a promotional mark. Retained the two SVG number charts instead.
+- `Skateboard-alphabet-cover-at-coloringpagesforkidsboys-dotcom.svg`: cover,
+  repeating the included sheets.
+- `Valentines-day-hearts-alphabet-cover-at-coloring-pages-for-kids-boys-dotcom.svg`:
+  cover, repeating the included sheets.
+- `Valentines-day-hearts-alphabet-blank1-at-coloring-pages-for-kids-boys-dotcom.svg`:
+  tilted version of the plain heart. Retained the upright `blank2` and distinct
+  nine-heart `blank3` arrangement. These are usable outlined hearts, not empty pages.
+
+The heart L has a specific **PD-ineligible** designation on its Commons file
+page, rather than CC BY-SA. Its manifest records `LicenseRef-PD-ineligible` and
+links to that evidence; it is not mislabeled CC0. All other new sheets retain
+CC BY-SA 3.0 and attribution to Coloringbuddymike.
+
+`commonsDownloads.json` remains the complete download inventory, including
+reviewed omissions. `pdfSources.json` is the authoritative import selection.
+There are no remaining sources awaiting review in this queue.
+
+Validation: all 64 final assets and previews decode and agree in Chromium and
+WebKit, with transparent paper and black ink. All previews retain a longest
+edge of at least 768 pixels. Previously imported artwork is byte-for-byte
+unchanged. The source renderer repeats an existing SELinux XObject warning,
+but its output is unchanged. The new assets and previews total about 2.9 MB.
+Desktop (1280px) and mobile (390px) gallery checks passed in both browsers,
+including fresh-copy creation and fill selected on entry. Filled skateboard
+shirt and heart regions were visually checked; fills persisted after reload.
+The rendering/downloader tests and all 378 splat package tests passed.
+
 
 ## Duplicate drawings omitted
 

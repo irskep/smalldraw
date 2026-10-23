@@ -18,7 +18,7 @@ sources = json.loads((splat / "src/coloring/pdfSources.json").read_text())
 pages = []
 credits = []
 for source in sources:
-    if source["license"] not in {"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-SA-3.0", "PD-US-Gov-NPS"}:
+    if source["license"] not in {"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-SA-3.0", "PD-US-Gov-NPS", "LicenseRef-PD-ineligible"}:
         raise ValueError(f"Review the license before importing {source['id']}")
     output = splat / "src/coloring/assets" / source["id"]
     output.mkdir(parents=True, exist_ok=True)

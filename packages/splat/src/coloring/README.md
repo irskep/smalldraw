@@ -110,8 +110,7 @@ Keep one copy of each illustration, preferring the subject-specific source.
 Lettered alphabet sheets remain separate because the letters are part of the
 activity. Review both the source page and its final preview when cropping.
 
-[Commons review notes](./COMMONS_REVIEW.md) list the sources still awaiting
-download and review, along with the retained copies of duplicate drawings.
+[Commons review notes](./COMMONS_REVIEW.md) record the completed source review and the retained copies of duplicate drawings.
 The Great Coloring Book of Dogs is CC0; its source record also identifies the
 public-domain illustrations used in the compilation.
 
@@ -124,7 +123,7 @@ permission beyond the uploader's license.
 
 ## Resume Commons downloads
 
-The remaining source queue is saved in `commonsDownloads.json`, including the
+The surveyed source queue is saved in `commonsDownloads.json`, including the
 original Commons checksums and attribution. Download a batch with:
 
 ```sh
@@ -153,3 +152,7 @@ mise run //packages/splat:coloring:import-pdf -- --cache-dir ~/.cache/smalldraw/
 ```
 
 Run downloader tests with `mise run //packages/splat:coloring:test-download`.
+
+The alphabet queue was fully reviewed on 2026-10-23. It added 64 sheets; five
+cover/redundant sources were omitted. The heart L retains its specific Commons
+PD-ineligible designation. See the review notes and per-source manifest for evidence.

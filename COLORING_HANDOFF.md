@@ -4,11 +4,19 @@ Updated 2026-10-23. This work was performed in `/Users/steve/dev/apps/smalldraw`
 
 ## Current state
 
-The gallery has **888 drawings**: 774 imported PDF/standalone-sheet drawings, 74 Pavel Kukov SVGs, and 40 Public Domain Review drawings. This includes **50 NPS illustrations**: 40 selected pages from the prehistoric coloring book and its ten bonus drawings.
+The download queue is complete: all 69 sources are cached and checksum-verified.
+The follow-up review selected 64 sheets and omitted five covers/redundant versions.
+The gallery now has **952 drawings**: 838 imported PDF/standalone-sheet drawings,
+74 Pavel Kukov SVGs, and 40 Public Domain Review drawings. This includes the
+previously imported 50 NPS illustrations.
 
-All available PDFs from the surveyed Commons category have been downloaded and reviewed. Covers, advertising, blank pages, and duplicate illustrations were omitted. Remaining work is the standalone alphabet sheets: the queue contains 69 sources awaiting review/import, of which **one has been downloaded and 68 still need downloading** at handoff time. Use the status command for current numbers.
+The verified old source cache has been merged into `~/.cache/smalldraw/coloring`.
+Use that cache for subsequent imports; there is no need to fetch the old books.
+`COMMONS_REVIEW.md` records all five omissions and the heart L's per-file
+PD-ineligible status. No sources in this surveyed queue remain awaiting review.
 
-The user explicitly wants a broad collection and will winnow it down. Continue importing usable, licensed artwork rather than asking them to curate every addition.
+The download and review instructions below describe the workflow for future
+additions; the initial-run counts and cached number-1 example are historical.
 
 ## User decisions to preserve
 
@@ -81,11 +89,14 @@ For a newly downloaded source:
 4. Run the importer, inspect the output/preview, check fill behavior where relevant, and remove confirmed duplicates.
 5. Update the review notes, format generated JSON, and commit. Do not remove a queue entry merely because its bytes downloaded; download and review/import are different states.
 
-### Important cache detail
+### Cache status
 
-The importer processes **all** manifest sources. The new persistent cache initially contains only the newly downloaded number sheet. The verified cache for the already imported books is still in `/tmp/smalldraw-coloring-sources`.
-
-Before importing against the persistent cache, copy the existing verified SHA-256 entries from that old cache into it. Otherwise the importer will try to download all the old books again and encounter throttling. A safe migration is to iterate the current `pdfSources.json`, verify each old cache file against its declared SHA-256, and copy missing entries into the persistent cache. Do not overwrite a conflicting file without checking it. If the temporary cache is gone, obtain the missing originals deliberately rather than assuming the persistent cache is complete.
+The existing sources were checksum-verified and copied from
+`/tmp/smalldraw-coloring-sources` into `~/.cache/smalldraw/coloring` during the
+completed alphabet import. The persistent cache now contains all current
+manifest originals. Keep using it so the importer does not fetch old books.
+Before a future import, verify that every declared SHA-256 entry exists; if any
+are missing, restore them deliberately rather than triggering bulk downloads.
 
 Then:
 
@@ -150,4 +161,4 @@ Useful temporary material remains in `/tmp/commons-coloring-review`:
 
 **Do not blindly rerun the temporary `build-manifest.py`, `save-review.py`, or old `resume.py`.** They were orchestration scripts for prior batches and can overwrite newer committed decisions or bypass the persistent downloader's saved timing. Continue from the committed manifests and the new downloader. Temporary files are useful evidence but are not the durable source of truth.
 
-No automatic publishing, deployment, push, or export-attribution changes are required for the next batch. The next concrete step is to review the cached skateboard “1,” then continue small download/review/import batches as Commons permits.
+No automatic publishing, deployment, push, or export-attribution changes are required for the next batch. The surveyed queue is complete. Future additions should follow the same source, rights, visual, and browser review process.
