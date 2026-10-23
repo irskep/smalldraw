@@ -56,15 +56,16 @@ try {
   await page.mouse.move(1090, 750);
   const png = await page.screenshot();
   // Keep PNG for social previews; serve lossless WebP on the gallery itself.
-  await Bun.write(
-    resolve(import.meta.dir, "../apps/app/public/coloringbook-preview.png"),
-    png,
+  const pngPath = resolve(
+    import.meta.dir,
+    "../apps/app/public/coloringbook-preview.png",
   );
+  await Bun.write(pngPath, png);
   const output = resolve(
     import.meta.dir,
     "../apps/app/public/coloringbook-preview.webp",
   );
-  await $`cwebp -quiet -lossless - -o ${output}`.stdin(png);
+  await $`cwebp -quiet -lossless ${pngPath} -o ${output}`;
 } finally {
   await browser.close();
 }
