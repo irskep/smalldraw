@@ -26,9 +26,10 @@ export function isPublicUnauthenticatedRoute(pathname: string): boolean {
 
 const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-// These paths belong to the editor or server, and must leave the portal.
+// Let the browser load prerendered galleries as HTML rather than waiting for
+// a lazy client route. Editor and server paths also bypass client navigation.
 export function portalScope(origin: string, base = basePath) {
   return new RegExp(
-    `^(?:${escapeRegExp(origin)})?${escapeRegExp(base)}(?!(?:draw|api|d|s)(?:[/#?]|$))`,
+    `^(?:${escapeRegExp(origin)})?${escapeRegExp(base)}(?!(?:coloringbook|draw|api|d|s)(?:[/#?]|$))`,
   );
 }

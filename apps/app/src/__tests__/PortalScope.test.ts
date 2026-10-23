@@ -15,6 +15,10 @@ test.each([
   expect(portalScope(origin).test(origin + path)).toBe(true);
 });
 test.each([
+  "/coloringbook",
+  "/coloringbook/",
+  "/coloringbook?category=animals",
+  "/coloringbook/dinosaurs",
   "/draw/",
   "/draw?new=1",
   "/api/v1/me",
@@ -24,6 +28,9 @@ test.each([
   "https://example.com/data",
 ])("leaves %s to the browser", (path) => {
   expect(portalScope(origin).test(path)).toBe(false);
+  if (path.startsWith("/")) {
+    expect(portalScope(origin).test(origin + path)).toBe(false);
+  }
 });
 test("scopes a portal mounted below the origin root", () => {
   const scope = portalScope(origin, "/portal/");
@@ -31,4 +38,6 @@ test("scopes a portal mounted below the origin root", () => {
   expect(scope.test(origin + "/portal/admin")).toBe(true);
   expect(scope.test("/data")).toBe(false);
   expect(scope.test("/portal/draw/?new=1")).toBe(false);
+  expect(scope.test("/portal/coloringbook")).toBe(false);
+  expect(scope.test(origin + "/portal/coloringbook/animals")).toBe(false);
 });

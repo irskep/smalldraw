@@ -1,10 +1,50 @@
 import { expect, type Browser } from "@playwright/test";
 
+export async function checkColoringbookNavigation(
+  browser: Browser,
+  origin: string,
+) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  let releaseScripts!: () => void;
+  const scriptsReady = new Promise<void>((resolve) => {
+    releaseScripts = resolve;
+  });
+  try {
+    await page.goto(origin);
+    const link = page.getByRole("link", {
+      name: "Pick a coloring page",
+      exact: true,
+    });
+    await expect(link).toBeVisible();
+    await page.route("**/*", async (route) => {
+      if (route.request().resourceType() === "script") await scriptsReady;
+      await route.continue();
+    });
+    const documentResponse = page.waitForResponse(
+      (response) =>
+        response.request().resourceType() === "document" &&
+        new URL(response.url()).pathname === "/coloringbook",
+    );
+    await link.click({ noWaitAfter: true });
+    expect((await documentResponse).status()).toBe(200);
+    await expect(
+      page.getByRole("heading", { name: "Free coloring book" }),
+    ).toBeVisible();
+    await expect(page.locator(".coloringbook__pages").first()).toBeVisible();
+    await expect(page.getByText("Loading…", { exact: true })).toHaveCount(0);
+  } finally {
+    releaseScripts();
+    await context.close();
+  }
+}
+
 export async function checkColoringbook(
   browser: Browser,
   origin: string,
   name: string,
 ) {
+  await checkColoringbookNavigation(browser, origin);
   for (const width of [1280, 390]) {
     const context = await browser.newContext({
       viewport: { width, height: 850 },
