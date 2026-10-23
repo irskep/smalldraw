@@ -26,20 +26,20 @@ type MockColoringBook = {
 const MOCK_COLORING_BOOKS: readonly MockColoringBook[] = [
   {
     id: "pdr-v1",
-    title: "Public Domain Review Coloring Book — Volume 1",
+    title: "Animals",
     sourceLabel: "Built in",
     pages: ["001", "002", "003", "004", "005", "006"],
   },
   {
     id: "pdr-v2",
-    title: "Public Domain Review Coloring Book — Volume 2",
+    title: "Dinosaurs",
     sourceLabel: "Built in",
     pages: ["001", "002", "003", "004"],
   },
   {
     id: "nyam-lib-2024-v2",
-    title: "Living Well in the 19th and 20th Century",
-    sourceLabel: "NYAM ColorOurCollections",
+    title: "Public Domain Review",
+    sourceLabel: "Public Domain Review",
     pages: ["002", "003", "004", "005"],
   },
 ];
@@ -350,12 +350,12 @@ export const dialogStories: HarnessStory[] = [
       blankCard.setMedia(el("div", "Blank"));
       const booksHeading = createText({
         tag: "h3",
-        text: "Coloring Books",
+        text: "Coloring pages",
         kind: "title",
       });
       const booksCopy = createText({
         tag: "p",
-        text: "Choose a book, then pick a page to color.",
+        text: "Choose a category, then pick a page to color.",
         kind: "body",
         tone: "secondary",
       });
@@ -363,7 +363,7 @@ export const dialogStories: HarnessStory[] = [
       booksCopy.el.classList.add("ds-dialog-story__copy");
       const bookGrid = createCardGrid({
         itemMinWidth: "14rem",
-        ariaLabel: "Coloring books",
+        ariaLabel: "Coloring pages",
       });
       const bookCards = MOCK_COLORING_BOOKS.map((book) => {
         const card = createChoiceCard({

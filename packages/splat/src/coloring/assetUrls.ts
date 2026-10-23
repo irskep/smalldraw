@@ -9,7 +9,8 @@ export function createColoringAssetUrlResolver(
       : undefined;
   const baseUrl = assetBaseUrl ?? windowOrigin;
   return (src) => {
-    const coloringPageId = extractColoringPageId(src);
+    const coloringPageId =
+      src === "coloring/credits/credits.txt" ? src : extractColoringPageId(src);
     if (!coloringPageId) {
       return src;
     }

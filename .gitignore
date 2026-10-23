@@ -49,3 +49,6 @@ playwright-report/
 # Downloaded coloring sources and generated processing intermediates
 /packages/splat/src/coloring/intake/
 /packages/splat/src/coloring/assets/*-input/
+
+# Python coloring import tools
+__pycache__/

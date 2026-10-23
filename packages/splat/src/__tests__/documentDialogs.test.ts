@@ -19,7 +19,36 @@ function waitMs(ms: number): Promise<void> {
 }
 
 describe("NewDocumentDialogView", () => {
-  test("back returns from volume page picker to root choices", () => {
+  test("SVG categories create a coloring document and expose artwork credits", () => {
+    const created: unknown[] = [];
+    const dialog = createNewDocumentDialogView({
+      onClose() {},
+      onCreate(request) {
+        created.push(request);
+      },
+    });
+    document.body.appendChild(dialog.el);
+    dialog.setOpen(true, "coloring");
+    expect(dialog.el.textContent).toContain("Pick something to color");
+    const category = dialog.el.querySelector(
+      '[data-new-document-category="dinosaurs"]',
+    ) as HTMLButtonElement;
+    category.click();
+    expect(dialog.el.querySelector("a")?.textContent).toBe("Artwork credits");
+    const page = dialog.el.querySelector(
+      '[data-new-document-page="coloring/peaksel-dinosaurs/page-001.svg"]',
+    ) as HTMLButtonElement;
+    expect(page).not.toBeNull();
+    page.click();
+    expect(created).toEqual([
+      {
+        mode: "coloring",
+        coloringPageId: "coloring/peaksel-dinosaurs/page-001.svg",
+      },
+    ]);
+  });
+
+  test("back returns from category page picker to root choices", () => {
     const created: Array<unknown> = [];
     const dialog = createNewDocumentDialogView({
       onClose: () => {},
@@ -32,7 +61,7 @@ describe("NewDocumentDialogView", () => {
     dialog.setOpen(true);
 
     const volumeButton = dialog.el.querySelector(
-      '[data-new-document-volume="pdr-v1"]',
+      '[data-new-document-category="public-domain-review"]',
     ) as HTMLButtonElement | null;
     expect(volumeButton).not.toBeNull();
     volumeButton!.click();
@@ -56,7 +85,7 @@ describe("NewDocumentDialogView", () => {
     expect(created).toEqual([]);
   });
 
-  test("selecting a book shows its name and page choices", () => {
+  test("selecting a category shows its name and page choices", () => {
     const dialog = createNewDocumentDialogView({
       onClose: () => {},
       onCreate: () => {},
@@ -66,7 +95,7 @@ describe("NewDocumentDialogView", () => {
     dialog.setOpen(true);
 
     const volumeButton = dialog.el.querySelector(
-      '[data-new-document-volume="pdr-v1"]',
+      '[data-new-document-category="public-domain-review"]',
     ) as HTMLButtonElement | null;
     expect(volumeButton).not.toBeNull();
     volumeButton!.click();
@@ -78,9 +107,7 @@ describe("NewDocumentDialogView", () => {
       '[data-new-document-page="coloring/pdr-v1/page-001.png"]',
     ) as HTMLButtonElement | null;
 
-    expect(summaryTitle?.textContent).toBe(
-      "Public Domain Review Coloring Book — Volume 1",
-    );
+    expect(summaryTitle?.textContent).toBe("Public Domain Review");
     expect(dialog.el.textContent).not.toContain("Built in");
     expect(pageButton).not.toBeNull();
   });
@@ -96,7 +123,7 @@ describe("NewDocumentDialogView", () => {
     dialog.setOpen(true);
 
     const volumeButton = dialog.el.querySelector(
-      '[data-new-document-volume="pdr-v1"]',
+      '[data-new-document-category="public-domain-review"]',
     ) as HTMLButtonElement | null;
     const volumeImage = volumeButton?.querySelector("img") ?? null;
     expect(volumeImage?.src).toBe(
@@ -438,14 +465,14 @@ test("coloring entry hides the blank choice and creates only after choosing a pa
   });
   document.body.append(view.el);
   view.setOpen(true, "coloring");
-  expect(view.el.textContent).toContain("Pick a coloring book");
+  expect(view.el.textContent).toContain("Pick something to color");
   expect(
     view.el.querySelector<HTMLElement>(
       ".kids-draw-new-document-dialog__blank-choice",
     )?.hidden,
   ).toBe(true);
   view.el
-    .querySelector<HTMLButtonElement>("[data-new-document-volume]")!
+    .querySelector<HTMLButtonElement>("[data-new-document-category]")!
     .click();
   expect(created).toEqual([]);
   view.el.querySelector<HTMLButtonElement>("[data-new-document-page]")!.click();

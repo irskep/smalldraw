@@ -38,7 +38,9 @@ if (existsSync("public")) {
 // Copy coloring page assets with stable paths (not content-hashed)
 await $`rm -rf dist/coloring`;
 await $`mkdir -p dist/coloring`;
-for await (const entry of new Bun.Glob("*/page-*.png").scan({
+for await (const entry of new Bun.Glob(
+  "*/{page-*.png,*.svg,credits.txt,LICENSE,Acknowledgments.md}",
+).scan({
   cwd: coloringAssetsDir,
   onlyFiles: true,
 })) {

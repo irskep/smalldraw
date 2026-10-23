@@ -2761,7 +2761,7 @@ describe("splatterboard shell", () => {
 
       newDrawingButton!.click();
       const volumeButton = container.querySelector(
-        '[data-new-document-volume="pdr-v1"]',
+        '[data-new-document-category="public-domain-review"]',
       ) as HTMLButtonElement | null;
       expect(volumeButton).not.toBeNull();
       volumeButton!.click();
@@ -2805,7 +2805,7 @@ describe("splatterboard shell", () => {
       expect(newDrawingButton).not.toBeNull();
       newDrawingButton!.click();
       const volumeButton = container.querySelector(
-        '[data-new-document-volume="pdr-v1"]',
+        '[data-new-document-category="public-domain-review"]',
       ) as HTMLButtonElement | null;
       expect(volumeButton).not.toBeNull();
       volumeButton!.click();

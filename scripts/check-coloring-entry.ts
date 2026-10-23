@@ -55,7 +55,7 @@ export async function checkColoringEntry(
       await expect(dialog).toBeVisible();
       await page.waitForFunction(() => Boolean((window as any).kidsDrawApp));
       await expect(
-        dialog.getByText("Pick a coloring book", { exact: true }),
+        dialog.getByText("Pick something to color", { exact: true }),
       ).toBeVisible();
       await expect(
         dialog.locator('[data-new-document-mode="normal"]'),
@@ -72,10 +72,31 @@ export async function checkColoringEntry(
       await catalogCheck.goto(origin);
       await expect(catalogCheck.locator(".art-table")).toBeVisible();
       await catalogCheck.close();
+      const previewsFit = await dialog
+        .locator(".ds-choice-card__media > img")
+        .evaluateAll((images) =>
+          images.every((image) => {
+            const media = image.parentElement!.getBoundingClientRect();
+            const bounds = image.getBoundingClientRect();
+            return (
+              bounds.width <= media.width + 1 &&
+              bounds.height <= media.height + 1
+            );
+          }),
+        );
+      expect(previewsFit).toBe(true);
       await page.screenshot({
         path: `/tmp/coloring-books-${name}-${width}.png`,
       });
-      await dialog.locator("[data-new-document-volume]").first().click();
+      const categoryId =
+        width === 1280
+          ? "dinosaurs"
+          : width === 320
+            ? "public-domain-review"
+            : "animals";
+      await dialog
+        .locator(`[data-new-document-category="${categoryId}"]`)
+        .click();
       await expect(
         dialog.getByText("Pick a page", { exact: true }),
       ).toBeVisible();
@@ -154,7 +175,7 @@ export async function checkColoringEntry(
         .getByRole("button", { name: "New drawing", exact: true })
         .click();
       await expect(
-        dialog.locator("[data-new-document-volume]").first(),
+        dialog.locator("[data-new-document-category]").first(),
       ).toBeVisible();
       await page.goto(origin);
       await expect(
@@ -171,13 +192,13 @@ export async function checkColoringEntry(
       });
       await entry.click();
       await expect(
-        dialog.getByText("Pick a coloring book", { exact: true }),
+        dialog.getByText("Pick something to color", { exact: true }),
       ).toBeVisible();
       await expect(
         dialog.locator('[data-new-document-mode="normal"]'),
       ).toBeHidden();
       console.log(
-        `PASS ${name} ${width}: landing → books → page → fill → reload → saved drawing`,
+        `PASS ${name} ${width}: landing → categories → page → fill → reload → saved drawing`,
       );
     } catch (error) {
       console.error(error);

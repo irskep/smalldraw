@@ -88,7 +88,9 @@ export async function checkAnalytics(
     expect(eventCount("tool-used/brush.marker")).toBe(1);
     await page.goto("https://splatterboard.app/draw/?new=coloring");
     const dialog = page.locator(".kids-draw-new-document-dialog");
-    await dialog.locator("[data-new-document-volume]").first().click();
+    await dialog
+      .locator('[data-new-document-category="public-domain-review"]')
+      .click();
     await dialog.locator("[data-new-document-page]").first().click();
     await expect(dialog).toBeHidden();
     await expect(paper).toBeVisible();

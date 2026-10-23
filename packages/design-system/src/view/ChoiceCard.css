@@ -23,6 +23,7 @@
 }
 
 .ds-choice-card__media {
+  position: relative;
   width: var(--ds-choice-card-media-size, 5.75rem);
   height: var(--ds-choice-card-media-size, 5.75rem);
   border-radius: var(--radius-2);
@@ -34,6 +35,8 @@
 }
 
 .ds-choice-card__media > img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;

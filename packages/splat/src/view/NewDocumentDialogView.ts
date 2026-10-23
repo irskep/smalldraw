@@ -11,7 +11,7 @@ import { ArrowLeft, X } from "lucide";
 import { atom } from "nanostores";
 import { el, mount, setChildren } from "redom";
 
-import { getColoringBooks } from "../coloring/books";
+import { getColoringCategories } from "../coloring/categories";
 import type { NewDocumentRequest } from "../documents/newDocumentRequest";
 import { bindAtom } from "./atomBindings";
 import type { ReDomLike } from "./ReDomLike";
@@ -19,7 +19,7 @@ import type { ReDomLike } from "./ReDomLike";
 type NewDocumentDialogState = {
   open: boolean;
   busy: boolean;
-  selectedVolumeId: string | null;
+  selectedCategoryId: string | null;
   coloringOnly: boolean;
 };
 
@@ -34,8 +34,10 @@ export function createNewDocumentDialogView(options: {
   onCreate: (request: NewDocumentRequest) => void;
   resolveAssetUrl?: (src: string) => string;
 }): NewDocumentDialogView {
-  const books = getColoringBooks();
-  const bookById = new Map(books.map((book) => [book.id, book] as const));
+  const categories = getColoringCategories();
+  const categoryById = new Map(
+    categories.map((category) => [category.id, category] as const),
+  );
   const resolveAssetUrl = options.resolveAssetUrl ?? ((src: string) => src);
 
   const scaffold = createDialogScaffold();
@@ -52,7 +54,7 @@ export function createNewDocumentDialogView(options: {
     icon: ArrowLeft,
   });
   backButton.setOnPress(() => {
-    updateState((state) => ({ ...state, selectedVolumeId: null }));
+    updateState((state) => ({ ...state, selectedCategoryId: null }));
   });
 
   const closeButton = new Button({
@@ -65,34 +67,40 @@ export function createNewDocumentDialogView(options: {
   });
   scaffold.setTrailing(closeButton);
 
-  const body = document.createElement("div");
+  const body = el("div");
   body.className = "kids-draw-new-document-dialog__body";
-  const rootChoices = document.createElement("section");
+  const rootChoices = el("section");
   rootChoices.className = "kids-draw-new-document-dialog__choices";
-  const blankChoiceSlot = document.createElement("div");
+  const blankChoiceSlot = el("div");
   blankChoiceSlot.className = "kids-draw-new-document-dialog__blank-choice";
-  const booksHeading = createText({
+  const categoriesHeading = createText({
     tag: "h3",
-    text: "Coloring books",
+    text: "Coloring pages",
     kind: "title",
     className: "kids-draw-new-document-dialog__section-title",
   });
-  const volumeGrid = createCardGrid({
+  const categoryGrid = createCardGrid({
     className: "kids-draw-new-document-dialog__volume-grid",
     itemMinWidth: "14.375rem",
-    ariaLabel: "Coloring books",
+    ariaLabel: "Coloring pages",
   });
   const pageGrid = createCardGrid({
     className: "kids-draw-new-document-dialog__pages",
     itemMinWidth: "8.5rem",
     ariaLabel: "Coloring pages",
   });
-  const pageSection = document.createElement("section");
+  const pageSection = el("section");
   pageSection.className = "kids-draw-new-document-dialog__page-section";
   mount(pageSection, pageGrid);
+  const credits = el(
+    "a",
+    { target: "_blank", rel: "noopener noreferrer" },
+    "Artwork credits",
+  );
+  mount(pageSection, credits);
   mount(rootChoices, blankChoiceSlot);
-  mount(rootChoices, booksHeading);
-  mount(rootChoices, volumeGrid);
+  mount(rootChoices, categoriesHeading);
+  mount(rootChoices, categoryGrid);
   mount(body, rootChoices);
   mount(body, pageSection);
   scaffold.setBody(body);
@@ -100,7 +108,7 @@ export function createNewDocumentDialogView(options: {
   const $state = atom<NewDocumentDialogState>({
     open: false,
     busy: false,
-    selectedVolumeId: null,
+    selectedCategoryId: null,
     coloringOnly: false,
   });
 
@@ -131,53 +139,60 @@ export function createNewDocumentDialogView(options: {
       options.onCreate({ mode: "normal" });
     });
 
-    const volumeCards = books.map((book) => {
+    const categoryCards = categories.map((category) => {
       const card = createChoiceCard({
-        title: book.title,
+        title: category.title,
         className: "kids-draw-new-document-dialog__choice",
       });
-      if (book.coverPageSrc) {
+      const preview = category.pages[0];
+      if (preview) {
         const image = document.createElement("img");
-        image.src = resolveAssetUrl(book.coverPageSrc);
-        image.alt = `${book.title} cover preview`;
-        image.loading = "eager";
+        image.src = resolveAssetUrl(preview.src);
+        image.alt = category.title;
+        image.loading = "lazy";
         image.decoding = "async";
         image.draggable = false;
         card.setMedia(image);
       }
       card.setAttributes({
-        "data-new-document-volume": book.id,
+        "data-new-document-category": category.id,
       });
       card.setDisabled(state.busy);
       card.setOnPress(() => {
-        updateState((current) => ({ ...current, selectedVolumeId: book.id }));
+        updateState((current) => ({
+          ...current,
+          selectedCategoryId: category.id,
+        }));
       });
       return card;
     });
 
     setChildren(blankChoiceSlot, [blankChoice]);
-    volumeGrid.setItems(volumeCards);
+    categoryGrid.setItems(categoryCards);
   };
 
   const renderPageGrid = (state: NewDocumentDialogState): void => {
-    if (!state.selectedVolumeId) {
+    if (!state.selectedCategoryId) {
       pageGrid.setItems([]);
       return;
     }
-    const book = bookById.get(state.selectedVolumeId) ?? null;
-    if (!book) {
+    const category = categoryById.get(state.selectedCategoryId) ?? null;
+    if (!category) {
       pageGrid.setItems([]);
       return;
     }
-    const cards = book.pages.map((page) => {
-      const pageNum = String(page.pageNumber);
+    const cards = category.pages.map((page, index) => {
+      const label =
+        page.volumeId !== "pdr-v1" && page.volumeId !== "pdr-v2"
+          ? page.label
+          : `Drawing ${index + 1}`;
       const card = createPosterCard({
-        label: `Page ${pageNum}`,
+        label,
       });
       const image = document.createElement("img");
       image.src = resolveAssetUrl(page.src);
-      image.alt = `${page.volumeLabel} Page ${pageNum}`;
-      image.loading = "eager";
+      image.alt = label;
+      image.loading = "lazy";
       image.decoding = "async";
       image.draggable = false;
       card.setMedia(image);
@@ -197,27 +212,30 @@ export function createNewDocumentDialogView(options: {
   };
 
   bindAtom($state, (state) => {
-    const selectedBook =
-      state.selectedVolumeId === null
+    const selectedCategory =
+      state.selectedCategoryId === null
         ? null
-        : (bookById.get(state.selectedVolumeId) ?? null);
-    scaffold.setLeading(selectedBook === null ? null : backButton);
+        : (categoryById.get(state.selectedCategoryId) ?? null);
+    scaffold.setLeading(selectedCategory === null ? null : backButton);
     scaffold.setTitle(
-      selectedBook === null
+      selectedCategory === null
         ? state.coloringOnly
-          ? "Pick a coloring book"
+          ? "Pick something to color"
           : "New drawing"
         : "Pick a page",
     );
     blankChoiceSlot.hidden = state.coloringOnly;
-    booksHeading.el.hidden = state.coloringOnly;
-    scaffold.setSubtitle(selectedBook?.title ?? null);
+    categoriesHeading.el.hidden = state.coloringOnly;
+    scaffold.setSubtitle(selectedCategory?.title ?? null);
+    credits.hidden = !selectedCategory?.creditsSrc;
+    if (selectedCategory?.creditsSrc)
+      credits.href = resolveAssetUrl(selectedCategory.creditsSrc);
     closeButton.setDisabled(state.busy);
     backButton.setDisabled(state.busy);
     renderRootChoices(state);
     renderPageGrid(state);
-    rootChoices.hidden = selectedBook !== null;
-    pageSection.hidden = selectedBook === null;
+    rootChoices.hidden = selectedCategory !== null;
+    pageSection.hidden = selectedCategory === null;
   });
 
   return {
@@ -227,7 +245,7 @@ export function createNewDocumentDialogView(options: {
         ...state,
         open,
         coloringOnly: mode === "coloring",
-        selectedVolumeId: open ? state.selectedVolumeId : null,
+        selectedCategoryId: open ? state.selectedCategoryId : null,
       }));
       if (open) {
         scaffold.show();

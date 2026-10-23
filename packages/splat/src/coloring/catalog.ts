@@ -1,6 +1,8 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
 
 import { GENERATED_COLORING_ASSETS } from "./generatedColoringPageAssets";
+import pdfPages from "./pdfPages.json";
+import svgCollection from "./svgPages.json";
 
 export interface ColoringPageSpec {
   id: string;
@@ -11,10 +13,33 @@ export interface ColoringPageSpec {
   label: string;
   src: string;
   size: DrawingDocumentSize;
+  tags: readonly string[];
 }
 
-const COLORING_PAGES: readonly ColoringPageSpec[] =
-  GENERATED_COLORING_ASSETS.map((asset) => {
+const COLORING_PAGES: readonly ColoringPageSpec[] = [
+  ...svgCollection.pages.map((page, index): ColoringPageSpec => ({
+    id: `coloring/pavelkukov/${page.filename}`,
+    src: `coloring/pavelkukov/${page.filename}`,
+    volumeId: "pavelkukov",
+    volumeLabel: "Coloring pages",
+    sourceUrl: page.sourceUrl || "https://github.com/pavelkukov/coloring-pages",
+    pageNumber: index + 1,
+    label: page.label,
+    tags: page.tags,
+    size: { width: page.width, height: page.height },
+  })),
+  ...pdfPages.map((page): ColoringPageSpec => ({
+    id: page.id,
+    src: page.id,
+    label: page.label,
+    tags: page.tags,
+    volumeId: page.sourceId,
+    volumeLabel: "Coloring pages",
+    sourceUrl: page.sourceUrl,
+    pageNumber: page.pageNumber,
+    size: { width: page.width, height: page.height },
+  })),
+  ...GENERATED_COLORING_ASSETS.map((asset) => {
     const page = `${asset.pageNumber}`.padStart(3, "0");
     const id = asset.src.replace(/^\/+/, "");
     const size: DrawingDocumentSize = {
@@ -30,8 +55,10 @@ const COLORING_PAGES: readonly ColoringPageSpec[] =
       label: `${asset.volumeLabel} Page ${page}`,
       src: id,
       size,
+      tags: [],
     } satisfies ColoringPageSpec;
-  });
+  }),
+];
 
 const COLORING_PAGE_BY_ID = new Map(
   COLORING_PAGES.map((page) => [page.id, page] as const),
@@ -73,6 +100,8 @@ function normalizeColoringPageId(value: string): string | null {
   } catch {
     // Not an absolute URL; treat it as a path-like catalog id.
   }
+  const canonical = pathname.replace(/^\/+/, "");
+  if (COLORING_PAGE_BY_ID.has(canonical)) return canonical;
   const legacyIdMatch = /^([^/]+)-(\d{3})$/.exec(pathname);
   if (legacyIdMatch) {
     return `coloring/${legacyIdMatch[1]}/page-${legacyIdMatch[2]}.png`;

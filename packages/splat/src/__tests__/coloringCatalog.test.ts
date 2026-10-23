@@ -39,3 +39,15 @@ describe("coloring catalog", () => {
     );
   });
 });
+
+describe("SVG coloring pages", () => {
+  test("resolves SVG IDs and asset URLs", () => {
+    const id = "coloring/pavelkukov/five_pointed_star.svg";
+    const page = getColoringPageById(id);
+    expect(page?.src).toBe(id);
+    expect(page?.size.width).toBeGreaterThan(0);
+    expect(page?.size.height).toBeLessThanOrEqual(1600);
+    expect(extractColoringPageId(`https://assets.example.test/${id}`)).toBe(id);
+    expect(extractColoringPageId("coloring/pavelkukov/missing.svg")).toBeNull();
+  });
+});

@@ -13,6 +13,7 @@ run = "bun run test"
 [tasks.build]
 run = "bun run build"
 sources = [
+  "../../packages/splat/src/coloring/**/*",
   "src/**/*.ts",
   "src/**/*.css",
   "src/**/*.html",
