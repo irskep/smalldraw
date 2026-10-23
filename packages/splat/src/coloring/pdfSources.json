@@ -215,10 +215,7 @@
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Boys_%E2%80%93_Printable_Coloring_Book_for_Little_Men.pdf",
     "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Coloring_Pages_for_Boys_%E2%80%93_Printable_Coloring_Book_for_Little_Men.pdf",
     "sha256": "a772d28f44310cfa6e96e7df44b284435e2726cd8471d0796af235d54198db12",
-    "pages": [
-      4, 5, 7, 8, 9, 10, 12, 14, 15, 16, 17, 19, 20, 21, 22, 23, 24, 26, 27, 28,
-      30, 31, 32, 34, 35, 37
-    ],
+    "pages": [5, 9, 10, 15, 16, 19, 22, 23, 26, 30, 31, 37],
     "tags": ["artwork"],
     "licenseReview": {
       "date": "2026-10-22",
@@ -339,10 +336,7 @@
     "sourceUrl": "https://commons.wikimedia.org/wiki/File:Coloring_Pages_for_Girls_-_Printable_Coloring_Book_for_Kids.pdf",
     "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d1/Coloring_Pages_for_Girls_-_Printable_Coloring_Book_for_Kids.pdf",
     "sha256": "484887e81482841d5bd54af90333d6b0fb43872c722c74c62319ae74f1e7f1ae",
-    "pages": [
-      4, 5, 6, 7, 9, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27,
-      28, 29, 31, 33, 35
-    ],
+    "pages": [6, 12, 14, 19, 22, 26, 29],
     "tags": ["artwork"],
     "licenseReview": {
       "date": "2026-10-22",
@@ -632,6 +626,365 @@
     }
   },
   {
+    "id": "trento-2017",
+    "label": "Historical illustration",
+    "author": "Municipal Library of Trento",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:ColoringBookTrentoPublicLibrary2017.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/3/35/ColoringBookTrentoPublicLibrary2017.pdf",
+    "sha256": "0ccf4af4745b385420d08a2fd882ff1f329aabb8c766c7891d84f074a898f998",
+    "pages": [3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23],
+    "tags": ["artwork"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:ColoringBookTrentoPublicLibrary2017.pdf"
+    },
+    "pageSettings": {
+      "3": {
+        "rotation": 270
+      },
+      "5": {
+        "rotation": 270
+      },
+      "11": {
+        "rotation": 270
+      },
+      "13": {
+        "rotation": 270
+      },
+      "17": {
+        "rotation": 270
+      },
+      "21": {
+        "rotation": 270
+      },
+      "7": {
+        "rotation": 90
+      }
+    }
+  },
+  {
+    "id": "commons-alphabet-dragon",
+    "label": "D is for dragon",
+    "author": "Image User:Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:D_is_for_Dragon.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/be/D_is_for_Dragon.pdf",
+    "sha256": "291f9967d9f4b13945679e6c814714b171a0608a5baf817d65054bf257db8371",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:D_is_for_Dragon.pdf"
+    }
+  },
+  {
+    "id": "peaksel-dragons",
+    "label": "Dragon",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dragon_Coloring_Pages_-_Printable_Coloring_Book_for_Kids.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Dragon_Coloring_Pages_-_Printable_Coloring_Book_for_Kids.pdf",
+    "sha256": "9905d82b60e60191e0ec2f5e424c3ae3d376aa67f443d6e0522f8c525a45cbec",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+    ],
+    "tags": ["dragon"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Dragon_Coloring_Pages_-_Printable_Coloring_Book_for_Kids.pdf",
+      "permissionTicket": "2016051310011997"
+    }
+  },
+  {
+    "id": "peaksel-easter",
+    "label": "Easter",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Easter_Coloring_Pages_PDF.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c4/Easter_Coloring_Pages_PDF.pdf",
+    "sha256": "9cdad4d9118fa1c3915a668ea3f9e2931034ff8650554aafbbdc86adc3240aaf",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+    ],
+    "tags": ["easter"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Easter_Coloring_Pages_PDF.pdf",
+      "permissionTicket": "2016051310011997"
+    }
+  },
+  {
+    "id": "commons-alphabet-fairy",
+    "label": "F is for fairy",
+    "author": "Image User:Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:F_is_for_Fairy_coloring_page.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f1/F_is_for_Fairy_coloring_page.pdf",
+    "sha256": "c5ca001500ce73c44996b6bf5e3d7532793b4d03cc54f3afd32586e7a021132b",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:F_is_for_Fairy_coloring_page.pdf"
+    }
+  },
+  {
+    "id": "peaksel-fairies",
+    "label": "Fairy",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fairy_Coloring_Pages_%E2%80%93_Printable_Coloring_Book_For_Kids.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/3/32/Fairy_Coloring_Pages_%E2%80%93_Printable_Coloring_Book_For_Kids.pdf",
+    "sha256": "4c1a7461960e1919bea4bbcdcd5822a9738405c6e8596206f6c6e8bb4ebb3271",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+      24, 25, 26, 27, 28, 29
+    ],
+    "tags": ["fairy"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Fairy_Coloring_Pages_%E2%80%93_Printable_Coloring_Book_For_Kids.pdf",
+      "permissionTicket": "2016051310011997"
+    }
+  },
+  {
+    "id": "peaksel-fish",
+    "label": "Underwater",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fish_Coloring_Pages_PDF.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/6/68/Fish_Coloring_Pages_PDF.pdf",
+    "sha256": "403549873d0b5478d1742386e9e130f6b59fdc362dabc6e3645879f24597a173",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+    ],
+    "tags": ["underwater"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Fish_Coloring_Pages_PDF.pdf",
+      "permissionTicket": "2016051310011997"
+    }
+  },
+  {
+    "id": "peaksel-flowers",
+    "label": "Flowers",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Flower_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/5/59/Flower_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
+    "sha256": "7698775810863b67788962143313b669031ff1a43257c89f99bd4f917e47b64a",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+    ],
+    "tags": ["flowers"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Flower_Coloring_Pages_-_Printable_Coloring_Book_For_Kids.pdf",
+      "permissionTicket": "2016051310011997"
+    }
+  },
+  {
+    "id": "commons-alphabet-girl",
+    "label": "G is for girl",
+    "author": "Image User:Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:G_is_for_Girl_coloring_page.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/be/G_is_for_Girl_coloring_page.pdf",
+    "sha256": "fd3f03b7939ea392b9a8be12ed3fccd4a084a60f022ab1deecb77b5f305b2b76",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:G_is_for_Girl_coloring_page.pdf"
+    }
+  },
+  {
+    "id": "commons-dog-breeds",
+    "label": "Dog breeds",
+    "author": "Di (they-them)",
+    "license": "CC0-1.0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Great_Coloring_Book_of_Dogs.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Great_Coloring_Book_of_Dogs.pdf",
+    "sha256": "981fbd08383f35e3ee59ce7f81559032702c76367ab5d7ffc3221b72199d8d44",
+    "pages": [
+      2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+      22, 23, 24, 25
+    ],
+    "tags": ["animals"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Great_Coloring_Book_of_Dogs.pdf"
+    }
+  },
+  {
+    "id": "peaksel-halloween",
+    "label": "Halloween",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Halloween_Coloring_Pages_PDF.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/6/63/Halloween_Coloring_Pages_PDF.pdf",
+    "sha256": "24f1f3695705a04b2cf103f1933508aacde6c35c3f6b1f9a14dd7375780d11b5",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+    ],
+    "tags": ["halloween"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Halloween_Coloring_Pages_PDF.pdf",
+      "permissionTicket": "2016051310011997"
+    }
+  },
+  {
+    "id": "commons-alphabet-horse",
+    "label": "H is for horse",
+    "author": "Image User:Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:HisforHorse.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/3/36/HisforHorse.pdf",
+    "sha256": "17d42f9f20a0eaa3870a8569a740c4d32d8c892e6f30ea465a1259d842da6832",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:HisforHorse.pdf"
+    }
+  },
+  {
+    "id": "peaksel-patterned-horses",
+    "label": "Patterned horse",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Horse_Coloring_Pages_-_Printable_Coloring_Book_for_Adults.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/2/20/Horse_Coloring_Pages_-_Printable_Coloring_Book_for_Adults.pdf",
+    "sha256": "c8c428b7fcc1f5d4088c39d7e0e192f15c381730c4d9d4b6c50c3cfdf21215d5",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+      24, 25, 26, 27, 28, 29, 30, 31, 32, 33
+    ],
+    "tags": ["animals"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Horse_Coloring_Pages_-_Printable_Coloring_Book_for_Adults.pdf",
+      "permissionTicket": "2016051310012174"
+    },
+    "pageSettings": {
+      "22": {
+        "tags": ["magic-animals"]
+      },
+      "24": {
+        "tags": ["unicorn"]
+      },
+      "27": {
+        "tags": ["unicorn"]
+      }
+    }
+  },
+  {
+    "id": "peaksel-horses",
+    "label": "Horse",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Horse_Coloring_Pages_%E2%80%93_Printable_Coloring_Book_For_Kids.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/45/Horse_Coloring_Pages_%E2%80%93_Printable_Coloring_Book_For_Kids.pdf",
+    "sha256": "93ca1dcb97d20bf670e0d9debbf45e365aa5a7c253b24de185f122ecaf146b94",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+    ],
+    "tags": ["animals"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Horse_Coloring_Pages_%E2%80%93_Printable_Coloring_Book_For_Kids.pdf",
+      "permissionTicket": "2016051310011997"
+    },
+    "pageSettings": {
+      "6": {
+        "tags": ["unicorn"]
+      },
+      "10": {
+        "tags": ["unicorn"]
+      },
+      "15": {
+        "tags": ["unicorn"]
+      },
+      "16": {
+        "tags": ["unicorn"]
+      },
+      "19": {
+        "tags": ["unicorn"]
+      }
+    }
+  },
+  {
+    "id": "commons-alphabet-mermaid",
+    "label": "M is for mermaid",
+    "author": "Image User:Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:M_is_for_Mermaid_coloring_page.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ac/M_is_for_Mermaid_coloring_page.pdf",
+    "sha256": "81536c2907977cbfa9fea4d2cb2f917a0ae2e3e59196cce59d26be314a88fa6f",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:M_is_for_Mermaid_coloring_page.pdf"
+    }
+  },
+  {
+    "id": "peaksel-magic-mandalas",
+    "label": "Mandala",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Magic_Mandala_Coloring_Pages_-_Printable_Coloring_Book_For_Adults.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Magic_Mandala_Coloring_Pages_-_Printable_Coloring_Book_For_Adults.pdf",
+    "sha256": "b98853c73d914cca59fd0a221d2ac52c9941be1c2ebc09473957c9a2a83e9fd0",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+    ],
+    "tags": ["mandala"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Magic_Mandala_Coloring_Pages_-_Printable_Coloring_Book_For_Adults.pdf",
+      "permissionTicket": "2016051310012174"
+    }
+  },
+  {
+    "id": "peaksel-mandalas",
+    "label": "Mandala",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mandala_Coloring_Pages_for_Adults_-_Printable_Coloring_Book.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Mandala_Coloring_Pages_for_Adults_-_Printable_Coloring_Book.pdf",
+    "sha256": "579d7838c2c973aff5c8b64c4488a9bfaa4c502ded7d547c9537639436710aef",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+      24, 25, 26, 27, 28, 29, 30, 31, 32, 33
+    ],
+    "tags": ["mandala"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Mandala_Coloring_Pages_for_Adults_-_Printable_Coloring_Book.pdf",
+      "permissionTicket": "2016051310012174"
+    }
+  },
+  {
     "id": "nps-prehistoric",
     "label": "Prehistoric life",
     "author": "National Park Service; artwork by Studio 105 and Benji Paysnoe",
@@ -829,6 +1182,82 @@
       }
     },
     "crop": [0.06, 0.15, 0.93, 0.91]
+  },
+  {
+    "id": "commons-alphabet-princess",
+    "label": "P is for princess",
+    "author": "Image User:Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:P_Is_For_Princess_coloring_page.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/5/57/P_Is_For_Princess_coloring_page.pdf",
+    "sha256": "ae4eb08fbbd37f19ee1435e076dd2a6483127b988a98fe46442f341e73f9a28c",
+    "pages": [1],
+    "tags": ["letters"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:P_Is_For_Princess_coloring_page.pdf"
+    }
+  },
+  {
+    "id": "peaksel-princesses",
+    "label": "Princess",
+    "author": "Peaksel",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Princess_Coloring_Pages_-_Coloring_Book_For_Kids.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/2/21/Princess_Coloring_Pages_-_Coloring_Book_For_Kids.pdf",
+    "sha256": "206588484db2f92a14bae1581c3eb44f2d26b662c4b64fafe2db688aba3bec46",
+    "pages": [
+      4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+      24, 25, 26, 27, 28, 29
+    ],
+    "tags": ["princess"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:Princess_Coloring_Pages_-_Coloring_Book_For_Kids.pdf",
+      "permissionTicket": "2016051310011997"
+    }
+  },
+  {
+    "id": "selinux-pets",
+    "label": "Pets",
+    "author": "Author: Dan Walsh dwalsh@redhat.com\n\nIllustrator: M\u00e1ir\u00edn Duffy duffy@redhat.com",
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:SELINUX_Coloring_Book.pdf",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/4/41/SELINUX_Coloring_Book.pdf",
+    "sha256": "a69a662a3f7e4fe935526a2d1bf39e9697e05974dd180d3f0a2171070fa5e859",
+    "pages": [3, 6, 8, 9, 12],
+    "tags": ["animals"],
+    "licenseReview": {
+      "date": "2026-10-22",
+      "evidence": "https://commons.wikimedia.org/wiki/File:SELINUX_Coloring_Book.pdf"
+    },
+    "pageSettings": {
+      "3": {
+        "crop": [0.1, 0.42, 0.9, 0.89],
+        "label": "Cat and dog"
+      },
+      "6": {
+        "crop": [0.16, 0.13, 0.78, 0.9],
+        "erase": [[0.34, 0.47, 0.65, 0.51]],
+        "label": "Dinner time"
+      },
+      "8": {
+        "crop": [0.04, 0.245, 0.96, 0.65],
+        "label": "Dogs sharing dinner"
+      },
+      "9": {
+        "crop": [0.13, 0.14, 0.92, 0.6],
+        "label": "Two dogs"
+      },
+      "12": {
+        "crop": [0.13, 0.365, 0.87, 0.86],
+        "label": "Greyhound and Chihuahua",
+        "erase": [[0.13, 0.811, 0.87, 0.86]]
+      }
+    }
   },
   {
     "id": "commons-skate-a",

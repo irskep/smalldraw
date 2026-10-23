@@ -95,7 +95,22 @@ CC0. CC0, CC BY, and CC BY-SA sources can be imported with their specific terms
 recorded. Do not assume every Creative Commons license permits the same uses.
 
 The additional Commons sheets retain their individual licenses: Peaksel and
-Trento library PDFs use CC BY-SA 4.0; the skateboard and heart alphabets use
+Trento library PDFs use CC BY-SA 4.0; the skateboard alphabet uses
 CC BY-SA 3.0. License evidence and available Wikimedia permission ticket numbers
 are recorded per source. Source book titles are kept in provenance; gallery
 categories describe the drawings.
+
+The cat and dog illustrations from the [SELinux coloring book](https://github.com/mairin/selinux-coloring-book)
+are credited to Máirín Duffy and Dan Walsh under CC BY-SA 4.0. Selected pages
+are cropped to the illustrations; technical explanations, covers, and repeated
+policy diagrams are omitted.
+
+Mixed Peaksel collections repeat drawings from the subject-specific books.
+Keep one copy of each illustration, preferring the subject-specific source.
+Lettered alphabet sheets remain separate because the letters are part of the
+activity. Review both the source page and its final preview when cropping.
+
+[Commons review notes](./COMMONS_REVIEW.md) list the sources still awaiting
+download and review, along with the retained copies of duplicate drawings.
+The Great Coloring Book of Dogs is CC0; its source record also identifies the
+public-domain illustrations used in the compilation.
