@@ -13,7 +13,7 @@ export function prerenderColoringBook(build: boolean): Plugin {
       await server.ssrLoadModule("/src/prerender.tsx");
     return html.replace(
       '<div id="root"></div>',
-      `<div id="root">${renderColoringBook(origin, `${base}coloringbook`)}</div>`,
+      `<div id="root">${renderColoringBook(origin)}</div>`,
     );
   }
   return {

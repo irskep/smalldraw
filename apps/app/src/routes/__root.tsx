@@ -31,6 +31,7 @@ import {
   DsConfirmDialog,
   type DsConfirmDialogHandle,
 } from "../components/DsConfirmDialog/DsConfirmDialog";
+import { PortalFrame } from "../components/PortalFrame";
 import { appPath, isPublicUnauthenticatedRoute } from "../config";
 import {
   initializeAccountWorkspace,
@@ -210,15 +211,10 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
   );
 
   return (
-    <div
-      className="portal-shell"
-      data-layout={isAdminRoute ? "admin" : location.path === "/" ? "home" : ""}
-    >
-      <header className="portal-header">
-        <a href={appPath("")} className="portal-brand">
-          Splatterboard
-        </a>
-        <nav className="portal-nav" aria-label="Account">
+    <PortalFrame
+      layout={isAdminRoute ? "admin" : location.path === "/" ? "home" : ""}
+      navigation={
+        <>
           {meQuery.data && !isNotAuthorized ? (
             <div className="portal-nav__identity" aria-live="polite">
               {meQuery.data.username}
@@ -231,38 +227,45 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
             entries={accountMenuEntries}
             onSelect={handleMenuSelect}
           />
-        </nav>
-      </header>
-      {syncStatus.error ? (
-        <div role="status">
-          {syncStatus.error}{" "}
-          <button className="ds-button" onClick={retryAccountSync}>
-            Try again
-          </button>
-        </div>
-      ) : null}
-      <main className="portal-main">
-        {isInformationalRoute || workspaceReady ? (
-          children
-        ) : (
-          <p role="status">
-            {workspaceError ?? "Opening your drawings…"}{" "}
-            {workspaceError ? (
-              <button
-                className="ds-button"
-                onClick={() => window.location.reload()}
-              >
+        </>
+      }
+      notice={
+        <>
+          {syncStatus.error ? (
+            <div role="status">
+              {syncStatus.error}{" "}
+              <button className="ds-button" onClick={retryAccountSync}>
                 Try again
               </button>
-            ) : null}
-          </p>
-        )}
-      </main>
-      <DsConfirmDialog ref={accountDialogRef} />
-      <ParentalControlsDialog
-        ref={parentalControlsDialogRef}
-        accountSessionExpected={Boolean(meQuery.data) && !isNotAuthorized}
-      />
-    </div>
+            </div>
+          ) : null}
+        </>
+      }
+      dialogs={
+        <>
+          <DsConfirmDialog ref={accountDialogRef} />
+          <ParentalControlsDialog
+            ref={parentalControlsDialogRef}
+            accountSessionExpected={Boolean(meQuery.data) && !isNotAuthorized}
+          />
+        </>
+      }
+    >
+      {isInformationalRoute || workspaceReady ? (
+        children
+      ) : (
+        <p role="status">
+          {workspaceError ?? "Opening your drawings…"}{" "}
+          {workspaceError ? (
+            <button
+              className="ds-button"
+              onClick={() => window.location.reload()}
+            >
+              Try again
+            </button>
+          ) : null}
+        </p>
+      )}
+    </PortalFrame>
   );
 };
