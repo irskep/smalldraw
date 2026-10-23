@@ -50,6 +50,7 @@ export function isAppError(input: unknown): input is AppError {
 export const DRAW_APP_PATH = "/draw/";
 export const PORTAL_ROUTE_PATTERNS = [
   "/",
+  "/coloringbook",
   "/account",
   "/admin",
   "/login",
@@ -64,7 +65,12 @@ export const PORTAL_ROUTE_PATTERNS = [
 ] as const;
 
 export type DrawingAppDocumentUrlParams =
-  | { type: "new"; account?: boolean; coloring?: boolean }
+  | {
+      type: "new";
+      account?: boolean;
+      coloring?: boolean;
+      coloringPageId?: string;
+    }
   | { type: "account"; documentId: string }
   | { type: "local"; docUrl: string }
   | { type: "join"; joinSecret: string };
@@ -80,7 +86,12 @@ export function buildDrawingAppUrl(
   }
   switch (params.type) {
     case "new":
-      url.searchParams.set("new", params.coloring ? "coloring" : "1");
+      url.searchParams.set(
+        "new",
+        params.coloring || params.coloringPageId ? "coloring" : "1",
+      );
+      if (params.coloringPageId)
+        url.searchParams.set("page", params.coloringPageId);
       if (params.account) {
         url.searchParams.set("account", "1");
       }
@@ -282,7 +293,11 @@ export type RevokeDocumentAccessTokenResult = {
 
 export type SplatDocumentOpenIntent =
   | { kind: "open-last-local" }
-  | { kind: "create-new-document"; picker?: "coloring" }
+  | {
+      kind: "create-new-document";
+      picker?: "coloring";
+      coloringPageId?: string;
+    }
   | { kind: "open-local-document"; docUrl: string }
   | { kind: "open-share-link"; joinSecret: string }
   | { kind: "open-account-document"; documentId: string };

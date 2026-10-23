@@ -53,9 +53,12 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
   const location = useLocation();
   const navigate = location.route;
   useEffect(() => updatePortalMetadata(location.path), [location.path]);
-  const isInformationalRoute = ["/data", "/privacy", "/terms"].includes(
-    location.path.replace(/\/+$/, ""),
-  );
+  const isInformationalRoute = [
+    "/coloringbook",
+    "/data",
+    "/privacy",
+    "/terms",
+  ].includes(location.path.replace(/\/+$/, ""));
   const isAdminRoute =
     location.path === "/admin" || location.path.startsWith("/admin/");
 

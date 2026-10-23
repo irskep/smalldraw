@@ -18,6 +18,7 @@ export function ArtTable({
           Pick a coloring page
         </a>
       </div>
+      <a href={appPath("coloringbook")}>Browse the coloring book</a>
       <figure className="art-table__example">
         <img
           className="art-table__preview"

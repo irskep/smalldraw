@@ -1,0 +1,71 @@
+.coloringbook {
+  display: grid;
+  gap: var(--size-7);
+  padding: var(--size-4);
+  min-width: 0;
+}
+
+.coloringbook__intro {
+  max-width: var(--size-content-3);
+}
+
+.coloringbook h1,
+.coloringbook h2 {
+  font-family: "Shantell Sans Variable", var(--ds-font-sans);
+  margin-block: 0 var(--size-3);
+}
+
+.coloringbook h1 {
+  font-size: var(--font-size-fluid-3);
+}
+
+.coloringbook__intro p {
+  margin-block: var(--size-2);
+  font-size: var(--font-size-2);
+}
+
+.coloringbook__subjects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-2);
+}
+
+.coloringbook section {
+  scroll-margin-block-start: var(--size-4);
+}
+
+.coloringbook__pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
+  gap: var(--size-3);
+}
+
+.coloringbook .ds-poster-card {
+  text-decoration: none;
+  padding: var(--size-2);
+  transition: border-color 120ms ease;
+}
+
+.coloringbook .ds-poster-card:hover {
+  border-color: var(--ds-accent-border);
+}
+
+.coloringbook .ds-poster-card__label {
+  padding: var(--size-2);
+  font-size: var(--font-size-1);
+}
+
+@media (max-width: 480px) {
+  .coloringbook {
+    padding: var(--size-2);
+  }
+  .coloringbook__pages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coloringbook .ds-poster-card {
+    transition: none;
+  }
+}

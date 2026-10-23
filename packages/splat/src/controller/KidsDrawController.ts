@@ -17,6 +17,7 @@ import {
   automergeUrlToDocumentId,
   resolveDocumentClaimState,
 } from "../documents";
+import type { StartupNewDocument } from "../documents/newDocumentRequest";
 import { createKidsDrawPerfSession } from "../perf/kidsDrawPerf";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import type {
@@ -189,7 +190,7 @@ export function createKidsDrawController(options: {
         reason: string;
         display: DocumentAccessDisplay;
       };
-  startupNewDocument?: "blank" | "coloring-picker";
+  startupNewDocument?: StartupNewDocument;
   beforeOpenDocument?: (
     summary: KidsDocumentSummary | null,
   ) => Promise<void> | void;

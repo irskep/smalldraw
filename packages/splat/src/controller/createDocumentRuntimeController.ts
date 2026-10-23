@@ -8,7 +8,10 @@ import { getOrderedLayers as getOrderedLayersFromDoc } from "@smalldraw/core";
 
 import { getColoringPageById } from "../coloring/catalog";
 import type { KidsDocumentBackend, KidsDocumentSummary } from "../documents";
-import type { NewDocumentRequest } from "../documents/newDocumentRequest";
+import type {
+  NewDocumentRequest,
+  StartupNewDocument,
+} from "../documents/newDocumentRequest";
 import type { RasterPipeline } from "../render/createRasterPipeline";
 import {
   getLoadedRasterImage,
@@ -134,7 +137,7 @@ export function createDocumentRuntimeController(options: {
         reason: string;
         display: DocumentAccessDisplay;
       };
-  startupNewDocument?: "blank" | "coloring-picker";
+  startupNewDocument?: StartupNewDocument;
   beforeOpenDocument?: (
     summary: KidsDocumentSummary | null,
   ) => Promise<void> | void;
@@ -643,8 +646,18 @@ export function createDocumentRuntimeController(options: {
         });
         return;
       }
-      if (options.startupNewDocument === "blank") {
-        void this.createNewDocument({ mode: "normal" }).catch((error) => {
+      if (
+        options.startupNewDocument === "blank" ||
+        typeof options.startupNewDocument === "object"
+      ) {
+        const request: NewDocumentRequest =
+          typeof options.startupNewDocument === "object"
+            ? {
+                mode: "coloring",
+                coloringPageId: options.startupNewDocument.coloringPageId,
+              }
+            : { mode: "normal" };
+        void this.createNewDocument(request).catch((error) => {
           console.error("[kids-draw:documents] startup create failed", {
             error,
           });

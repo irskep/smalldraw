@@ -7,6 +7,11 @@ const PUBLIC_PAGES: Record<string, { title: string; description: string }> = {
     title: "Splatterboard — A free drawing app for kids",
     description: DESCRIPTION,
   },
+  "/coloringbook": {
+    title: "Splatterboard — A free coloring book app",
+    description:
+      "Pick a picture and start coloring. Explore animals, dinosaurs, butterflies, and more in Splatterboard’s free coloring book app. No ads or signup required.",
+  },
   "/data": {
     title: "How your drawings are stored — Splatterboard",
     description:

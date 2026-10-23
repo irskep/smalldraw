@@ -32,6 +32,7 @@ function page(load: () => Promise<{ default: React.ComponentType }>) {
   return lazy(() => load().catch(() => ({ default: PageLoadError })));
 }
 
+const ColoringBook = page(() => import("../routes/coloringbook.lazy"));
 const Login = page(() => import("../routes/login"));
 const Register = page(() => import("../routes/register"));
 const Data = page(() => import("../routes/data.lazy"));
@@ -83,6 +84,7 @@ function Pages({ onPageChange }: { onPageChange?: () => void }) {
         onRouteChange={settled}
       >
         <Route path={appPath("")} component={Home} />
+        <Route path={appPath("coloringbook")} component={ColoringBook} />
         <Route path={appPath("login")} component={Login} />
         <Route path={appPath("register")} component={Register} />
         <Route path={appPath("data")} component={Data} />

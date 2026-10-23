@@ -2,6 +2,7 @@ import {
   resolveDrawingAppBaseUrl,
   type SplatDocumentOpenIntent,
 } from "@smalldraw/shared";
+import { getColoringPageById } from "@smalldraw/splat/coloring";
 
 export interface SplatWebRuntimeEnvLike {
   SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL: string;
@@ -101,6 +102,16 @@ export function resolveSplatStartupIntent(search: string): SplatStartupIntent {
     return { kind: "open-share-link", joinSecret };
   }
   if (createNew) {
+    const pageId = params.get("page");
+    if (pageId !== null) {
+      if (params.get("new") !== "coloring" || !getColoringPageById(pageId)) {
+        return {
+          kind: "startup-error",
+          message: "This coloring page could not be found.",
+        };
+      }
+      return { kind: "create-new-document", coloringPageId: pageId };
+    }
     return params.get("new") === "coloring"
       ? { kind: "create-new-document", picker: "coloring" }
       : { kind: "create-new-document" };

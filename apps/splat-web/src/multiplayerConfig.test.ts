@@ -170,3 +170,23 @@ test("coloring entry opens the picker and cannot be combined with another docume
     resolveSplatStartupIntent("?new=coloring&local=automerge:test").kind,
   ).toBe("startup-error");
 });
+
+test("a coloring-page URL creates the selected page and rejects unknown pages", () => {
+  const pageId = "coloring/pavelkukov/dove.svg";
+  expect(
+    resolveSplatStartupIntent(
+      `?new=coloring&page=${encodeURIComponent(pageId)}`,
+    ),
+  ).toEqual({
+    kind: "create-new-document",
+    coloringPageId: pageId,
+  });
+  expect(resolveSplatStartupIntent("?new=coloring&page=missing").kind).toBe(
+    "startup-error",
+  );
+  expect(
+    resolveSplatStartupIntent(
+      `?new=coloring&page=${encodeURIComponent(pageId)}&local=automerge:test`,
+    ).kind,
+  ).toBe("startup-error");
+});

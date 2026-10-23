@@ -9,6 +9,7 @@ import {
   type KidsDocumentBackend,
 } from "../documents";
 import { prepareAccountWorkspace } from "../documents/accountWorkspace";
+import type { StartupNewDocument } from "../documents/newDocumentRequest";
 import { resolveLayoutMode } from "../layout/responsiveLayout";
 import { createKidsShapeRendererRegistry } from "../render/kidsShapeRendererRegistry";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
@@ -53,7 +54,7 @@ export type AppRuntimeAssembly = {
     reason: string;
     display: DocumentAccessDisplay;
   } | null;
-  startupNewDocument: "blank" | "coloring-picker" | undefined;
+  startupNewDocument: StartupNewDocument | undefined;
   sizingPolicy: {
     hasExplicitSize: boolean;
     getExplicitSize: () => DrawingDocumentSize;
@@ -233,9 +234,11 @@ export async function assembleAppRuntime(
     initialDocumentAccessState,
     startupNewDocument:
       startupIntent.kind === "create-new-document"
-        ? startupIntent.picker === "coloring"
-          ? "coloring-picker"
-          : "blank"
+        ? startupIntent.coloringPageId
+          ? { coloringPageId: startupIntent.coloringPageId }
+          : startupIntent.picker === "coloring"
+            ? "coloring-picker"
+            : "blank"
         : undefined,
     sizingPolicy: {
       hasExplicitSize,

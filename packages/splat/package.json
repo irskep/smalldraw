@@ -11,7 +11,8 @@
     "./catalog": "./src/documents/localDocumentBackend.ts",
     "./repo": "./src/documents/createLocalSmalldrawRepo.ts",
     "./documents": "./src/documents/index.ts",
-    "./styles.css": "./src/main.css"
+    "./styles.css": "./src/main.css",
+    "./coloring": "./src/coloring/index.ts"
   },
   "scripts": {
     "generate:coloring-assets": "bun run ./scripts/generate-coloring-assets.ts",

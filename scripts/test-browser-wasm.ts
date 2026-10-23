@@ -10,6 +10,7 @@ import * as opaque from "@serenity-kit/opaque";
 import { automergeAsset } from "./automerge-asset.mjs";
 import { checkAnalytics } from "./check-analytics";
 import { checkColoringEntry } from "./check-coloring-entry";
+import { checkColoringbook } from "./check-coloringbook";
 import { checkGuestSharing } from "./check-guest-sharing";
 import { checkPortalRouting } from "./check-portal-routing";
 import { checkStampInteraction } from "./check-stamp-interaction";
@@ -350,7 +351,10 @@ try {
     port,
     async fetch(request) {
       const url = new URL(request.url);
-      if (url.pathname.startsWith("/api/")) {
+      if (
+        url.pathname.startsWith("/api/") ||
+        url.pathname.startsWith("/coloring/")
+      ) {
         url.port = String(apiPort);
         return fetch(new Request(url, request));
       }
@@ -629,6 +633,7 @@ try {
   const safari = await webkit.launch();
   try {
     await checkPortalRouting(safari, origin);
+    await checkColoringbook(safari, origin, "webkit");
     await checkColoringEntry(safari, origin, "webkit");
     await checkGuestSharing(safari, origin);
     const privatePage = await safari.newPage({
@@ -746,6 +751,7 @@ try {
   await checkPreviewDoesNotMoveCanvas(page, "chromium");
   await checkOtherToolPreviews(page, "chromium");
   await checkRandomize(page, "chromium");
+  await checkColoringbook(browser, origin, "chromium");
   await checkColoringEntry(browser, origin, "chromium");
   await checkStampInteraction(page, "chromium");
   await checkCaptureLoss(page, "chromium");

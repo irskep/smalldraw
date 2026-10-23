@@ -94,3 +94,16 @@ test("coloring entry retains account intent", () => {
   expect(url.searchParams.get("new")).toBe("coloring");
   expect(url.searchParams.get("account")).toBe("1");
 });
+
+test("coloring gallery is public and links to a fresh selected drawing", () => {
+  expect(isPortalRoutePath("/coloringbook/")).toBe(true);
+  const url = new URL(
+    buildDrawingAppUrl("https://splatterboard.app", {
+      type: "new",
+      coloringPageId: "coloring/pavelkukov/dove.svg",
+    }),
+  );
+  expect(url.pathname).toBe("/draw/");
+  expect(url.searchParams.get("new")).toBe("coloring");
+  expect(url.searchParams.get("page")).toBe("coloring/pavelkukov/dove.svg");
+});

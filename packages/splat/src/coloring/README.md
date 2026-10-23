@@ -12,6 +12,13 @@ SVGs retain white occlusion shapes and apply a white-to-alpha filter to the
 composited artwork; removing those shapes would expose hidden strokes.
 New imported documents have a maximum dimension of 1600 pixels to bound fill work.
 
+## Public gallery
+
+`/coloringbook` displays the same subject categories as the editor picker. Page
+links use `/draw/?new=coloring&page=<catalog-id>` to create a fresh drawing.
+Opening the link again creates another copy; reloading the resulting `?local=`
+URL reopens that drawing. Unknown page IDs show a startup error.
+
 ## Import SVG artwork
 
 ```sh
