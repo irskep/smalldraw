@@ -1,4 +1,4 @@
-import { desc, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
   index,
   integer,
@@ -83,15 +83,16 @@ export const documents = sqliteTable(
     updatedAt: timestamp("updated_at"),
     // A constant SQL default permits an additive SQLite migration. Existing rows
     // are backfilled from updated_at; creation paths supply the current time.
+    // Quoting zero preserves INTEGER affinity and round-trips through Drizzle Kit.
     contentUpdatedAt: integer("content_updated_at", { mode: "timestamp" })
       .notNull()
-      .default(sql`0`),
+      .default(sql`'0'`),
     deletedAt: integer("deleted_at", { mode: "timestamp" }),
   },
   (table) => ({
     contentUpdatedIndex: index("documents_content_updated_idx").on(
-      desc(table.contentUpdatedAt),
-      desc(table.id),
+      table.contentUpdatedAt,
+      table.id,
     ),
   }),
 );
@@ -118,8 +119,8 @@ export const documentModeration = sqliteTable(
   },
   (table) => ({
     takenDownIndex: index("document_moderation_taken_down_idx").on(
-      desc(table.takenDownAt),
-      desc(table.documentId),
+      table.takenDownAt,
+      table.documentId,
     ),
     cleanupIndex: index("document_moderation_cleanup_idx").on(
       table.cleanupState,

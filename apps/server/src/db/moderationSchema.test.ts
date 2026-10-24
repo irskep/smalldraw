@@ -1,11 +1,13 @@
 import { Database } from "bun:sqlite";
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { drizzle } from "drizzle-orm/bun-sqlite";
 
 import journal from "../../drizzle/meta/_journal.json";
+import { normalizeModerationSchema } from "../../scripts/normalize-moderation-schema.js";
 import { backfillContentUpdatedAt } from "./backfillContentUpdatedAt.js";
 import { documents } from "./schema.js";
 
@@ -24,6 +26,106 @@ function createOldDatabase() {
 }
 
 describe("moderation schema migration", () => {
+  it("does nothing before tables exist and refuses to discard unexpected schema", () => {
+    const empty = new Database(":memory:");
+    normalizeModerationSchema(empty);
+    expect(empty.query("SELECT name FROM sqlite_master").all()).toEqual([]);
+    empty.close();
+    const sqlite = createOldDatabase();
+    try {
+      sqlite.exec(migration("0008_document_moderation"));
+      sqlite.exec(
+        "PRAGMA foreign_keys=ON; CREATE INDEX additional_document_index ON documents(name)",
+      );
+      expect(() => normalizeModerationSchema(sqlite)).toThrow(
+        "Unexpected documents indexes/triggers",
+      );
+      expect(sqlite.query("PRAGMA foreign_keys").get()).toEqual({
+        foreign_keys: 1,
+      });
+      expect(
+        sqlite
+          .query(
+            "SELECT name FROM sqlite_master WHERE name='additional_document_index'",
+          )
+          .get(),
+      ).not.toBeNull();
+    } finally {
+      sqlite.close();
+    }
+  });
+
+  it("normalizes a populated deployed database before repeated schema push without losing references", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "moderation-push-"));
+    const file = path.join(dir, "app.db");
+    const sqlite = new Database(file);
+    const tables = [
+      "documents",
+      "users_on_documents",
+      "document_invitations",
+      "document_thumbnails",
+      "document_moderation",
+    ];
+    try {
+      for (const entry of journal.entries.filter((entry) => entry.idx < 10))
+        sqlite.exec(migration(entry.tag));
+      sqlite.exec(`PRAGMA foreign_keys=ON;
+        INSERT INTO users(id,username,registration_record) VALUES('owner','owner','record');
+        INSERT INTO documents(id,name,created_at,updated_at,content_updated_at,deleted_at) VALUES('kept','Keep this',11,22,33,44);
+        INSERT INTO users_on_documents(user_id,document_id,is_admin) VALUES('owner','kept',1);
+        INSERT INTO document_invitations(id,document_id,token,scope) VALUES('invite','kept','secret-token','share');
+        INSERT INTO document_thumbnails(document_id,storage_key,content_type) VALUES('kept','key','image/png');
+        INSERT INTO document_moderation(document_id,administrator_id,reason) VALUES('removed','owner','test');`);
+      const before = tables.map((table) =>
+        sqlite.prepare(`SELECT * FROM ${table}`).all(),
+      );
+      normalizeModerationSchema(sqlite);
+      normalizeModerationSchema(sqlite);
+      expect(sqlite.query("PRAGMA foreign_keys").get()).toEqual({
+        foreign_keys: 1,
+      });
+      const root = path.resolve(import.meta.dir, "../../../..");
+      for (let i = 0; i < 2; i++) {
+        const process = Bun.spawn(
+          [
+            Bun.which("bun")!,
+            "node_modules/drizzle-kit/bin.cjs",
+            "push",
+            "--force",
+          ],
+          {
+            cwd: root,
+            env: { ...Bun.env, DATABASE_URL: file },
+            stdout: "pipe",
+            stderr: "pipe",
+          },
+        );
+        const [stdout, stderr, code] = await Promise.all([
+          new Response(process.stdout).text(),
+          new Response(process.stderr).text(),
+          process.exited,
+        ]);
+        expect({ code, errors: stderr }).toEqual({ code: 0, errors: "" });
+        expect(stdout).toContain("No changes detected");
+      }
+      expect(
+        tables.map((table) => sqlite.prepare(`SELECT * FROM ${table}`).all()),
+      ).toEqual(before);
+      expect(sqlite.query("PRAGMA foreign_key_check").all()).toEqual([]);
+      sqlite.exec("INSERT INTO documents(id) VALUES('new')");
+      expect(
+        sqlite
+          .query(
+            "SELECT content_updated_at, typeof(content_updated_at) AS type FROM documents WHERE id='new'",
+          )
+          .get(),
+      ).toEqual({ content_updated_at: 0, type: "integer" });
+    } finally {
+      sqlite.close();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("retains legacy thumbnail cleanup targets through migration and schema-push backfill", () => {
     const sqlite = createOldDatabase();
     try {
@@ -175,6 +277,7 @@ describe("moderation schema migration", () => {
     const sqlite = createOldDatabase();
     try {
       sqlite.exec(migration("0008_document_moderation"));
+      normalizeModerationSchema(sqlite);
       sqlite.exec(`WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<10000)
         INSERT INTO documents (id, content_updated_at) SELECT printf('%06d', x), x / 2 FROM n;
         INSERT INTO document_invitations (id, document_id, token, scope)

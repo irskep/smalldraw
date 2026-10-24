@@ -37,10 +37,13 @@ COPY packages/shared/src packages/shared/src
 
 # Exercise database startup against a disposable database before publishing.
 # Invoke the installed executable directly: startup must never fetch packages.
-RUN DATABASE_URL=/tmp/startup-check.db bun node_modules/drizzle-kit/bin.cjs push && rm -f /tmp/startup-check.db*
+RUN DATABASE_URL=/tmp/startup-check.db bun node_modules/drizzle-kit/bin.cjs push && \
+    DATABASE_URL=/tmp/startup-check.db bun apps/server/scripts/normalize-moderation-schema.ts && \
+    DATABASE_URL=/tmp/startup-check.db bun node_modules/drizzle-kit/bin.cjs push && \
+    rm -f /tmp/startup-check.db*
 
 # Pre-built assets change most often, so keep them after dependency/startup checks.
 COPY apps/server/build apps/server/build
 
 EXPOSE 3000
-CMD ["sh", "-c", "bun node_modules/drizzle-kit/bin.cjs push && exec bun apps/server/src/index.ts"]
+CMD ["sh", "-c", "bun apps/server/scripts/normalize-moderation-schema.ts && bun node_modules/drizzle-kit/bin.cjs push && exec bun apps/server/src/index.ts"]
