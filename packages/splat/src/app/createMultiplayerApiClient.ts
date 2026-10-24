@@ -219,9 +219,14 @@ export function createMultiplayerApiClient(options: {
       }
     },
     async signOut() {
+      console.info("[splatterboard:logout] request_start");
       try {
         await client.mutation("logout");
+        console.info("[splatterboard:logout] request_succeeded");
       } catch (error) {
+        console.info(
+          `[splatterboard:logout] request_failed already_unauthorized=${isMultiplayerApiAuthError(error)}`,
+        );
         if (!isMultiplayerApiAuthError(error))
           throw normalizeMultiplayerApiError(
             error,

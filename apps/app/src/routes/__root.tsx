@@ -174,6 +174,7 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
         return;
       }
       if (itemId === "logout") {
+        console.info("[splatterboard:logout] trace-v1 menu_selected");
         void (async () => {
           const confirmed = await accountDialogRef.current?.confirm({
             title: "Sign out?",
@@ -182,14 +183,22 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
             confirmLabel: "Sign out",
             cancelLabel: "Cancel",
           });
+          console.info(
+            `[splatterboard:logout] confirmation_result=${String(confirmed)}`,
+          );
           if (!confirmed) return;
           setSigningOut(true);
           for (;;) {
             try {
+              console.info("[splatterboard:logout] workspace_logout_start");
               await signOutWorkspace();
+              console.info("[splatterboard:logout] complete_redirecting");
               window.location.href = appPath("");
               return;
-            } catch {
+            } catch (error) {
+              console.info(
+                `[splatterboard:logout] failed type=${error instanceof Error ? error.name : typeof error}`,
+              );
               const retry = await accountDialogRef.current?.confirm({
                 title: "Drawings haven’t finished syncing",
                 message:
@@ -197,6 +206,9 @@ export const PortalLayout = ({ children }: { children?: ReactNode }) => {
                 confirmLabel: "Try again",
                 cancelLabel: "Cancel",
               });
+              console.info(
+                `[splatterboard:logout] retry_result=${String(retry)}`,
+              );
               if (!retry) {
                 window.location.reload();
                 return;

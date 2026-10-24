@@ -37,6 +37,7 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
     this.#scaffold.setDialogClassName("ds-modal-dialog");
     this.#scaffold.setSurfaceClassName("ds-modal-dialog__shell");
     this.#scaffold.setOnDismiss(() => {
+      console.info("[splatterboard:confirm] dismiss_event");
       void this.#finish(false);
     });
 
@@ -72,6 +73,7 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
       void this.#finish(false);
     });
     this.#confirmButton.setOnPress(() => {
+      console.info("[splatterboard:confirm] confirm_pressed");
       void this.#finish(true);
     });
 
@@ -115,6 +117,9 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
   }
 
   onunmount(): void {
+    console.info(
+      `[splatterboard:confirm] unmount pending=${Boolean(this.#resolve)} choice=${String(this.#closingChoice)}`,
+    );
     this.#scaffold.onunmount?.();
     const resolve = this.#resolve;
     this.#resolve = null;
@@ -123,6 +128,9 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
   }
 
   async #finish(value: boolean): Promise<void> {
+    console.info(
+      `[splatterboard:confirm] finish choice=${value} pending=${Boolean(this.#resolve)} closing=${String(this.#closingChoice)}`,
+    );
     if (this.#resolve === null || this.#closingChoice !== null) {
       return;
     }
@@ -130,6 +138,7 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
     // the animation must not turn an accepted confirmation into cancellation.
     this.#closingChoice = value;
     await this.#scaffold.close({ animated: true });
+    console.info("[splatterboard:confirm] close_complete");
     const resolve = this.#resolve;
     this.#resolve = null;
     this.#closingChoice = null;

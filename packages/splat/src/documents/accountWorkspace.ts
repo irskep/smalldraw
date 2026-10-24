@@ -512,22 +512,30 @@ export async function signOutAccountWorkspace(
   api: MultiplayerApiClient,
   freeze: () => Promise<void>,
 ): Promise<void> {
+  console.info("[splatterboard:logout] transition_lock_wait");
   const bus = channel();
   try {
     await navigator.locks.request(TRANSITION, async () => {
+      console.info("[splatterboard:logout] transition_lock_acquired");
       // The session can change independently of this tab's drawing workspace.
       // A guest workspace is not evidence that the browser is signed out.
       const userId =
         getDrawingWorkspace() ??
         getLastDrawingWorkspace() ??
         (await api.getCurrentAccount())?.id;
+      console.info(
+        `[splatterboard:logout] identity_resolved account=${Boolean(userId)}`,
+      );
       if (!userId) {
         await api.signOut();
         return;
       }
       bus.postMessage({ type: "freeze", workspace: userId });
+      console.info("[splatterboard:logout] freeze_start");
       await freeze();
+      console.info("[splatterboard:logout] freeze_complete writers_lock_wait");
       await navigator.locks.request(workspaceNames(userId).lock, async () => {
+        console.info("[splatterboard:logout] writers_lock_acquired");
         const { initAutomerge } = await import("@smalldraw/core");
         await initAutomerge();
         const { createLocalSmalldrawRepo } =
@@ -537,9 +545,13 @@ export async function signOutAccountWorkspace(
           localOnly: true,
         });
         try {
+          console.info("[splatterboard:logout] sync_start");
           await syncAccountWorkspace(api, repo, backendFor(userId), userId);
+          console.info("[splatterboard:logout] sync_complete");
         } finally {
+          console.info("[splatterboard:logout] repo_shutdown_start");
           await repo.shutdown();
+          console.info("[splatterboard:logout] repo_shutdown_complete");
         }
         // Mark before the network request: recovery verifies the session before deciding whether to purge.
         localStorage.setItem(PURGE, userId);
@@ -549,7 +561,9 @@ export async function signOutAccountWorkspace(
           localStorage.removeItem(PURGE);
           throw error;
         }
+        console.info("[splatterboard:logout] purge_start");
         await finishPurge();
+        console.info("[splatterboard:logout] purge_complete");
       });
     });
     bus.postMessage("signed-out");
