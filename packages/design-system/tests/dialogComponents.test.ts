@@ -14,6 +14,36 @@ function waitMs(ms: number): Promise<void> {
 }
 
 describe("ModalDialogView", () => {
+  test("unmount during closing preserves an accepted choice", async () => {
+    const dialog = createModalDialogView();
+    document.body.appendChild(dialog.el);
+    const result = dialog.showConfirm({
+      title: "Sign out?",
+      message: "Confirm",
+      confirmLabel: "Sign out",
+    });
+    dialog.el
+      .querySelector<HTMLButtonElement>("button[data-tone='primary']")!
+      .click();
+    dialog.onunmount();
+    expect(await result).toBeTrue();
+    dialog.el.remove();
+  });
+  test("a dismiss during the close animation cannot override confirmation", async () => {
+    const dialog = createModalDialogView();
+    document.body.appendChild(dialog.el);
+    const result = dialog.showConfirm({
+      title: "Sign out?",
+      message: "Confirm",
+      confirmLabel: "Sign out",
+    });
+    dialog.el
+      .querySelector<HTMLButtonElement>("button[data-tone='primary']")!
+      .click();
+    dialog.el.querySelector("dialog")!.click();
+    expect(await result).toBeTrue();
+    dialog.el.remove();
+  });
   test("resolves confirm and cancel flows", async () => {
     const dialog = createModalDialogView();
     document.body.appendChild(dialog.el);

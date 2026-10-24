@@ -401,6 +401,18 @@ try {
       }
     })
     .toBe(200);
+  const thumbnailUrl = `http://localhost:${apiPort}/coloring/pavelkukov/hummingbird-preview-thumb-512.webp`;
+  const thumbnail = await fetch(thumbnailUrl);
+  expect(thumbnail.status).toBe(200);
+  expect(thumbnail.headers.get("content-type")).toContain("image/webp");
+  expect((await fetch(thumbnailUrl, { method: "HEAD" })).status).toBe(200);
+  expect(
+    (
+      await fetch(thumbnailUrl, {
+        headers: { "If-None-Match": thumbnail.headers.get("etag")! },
+      })
+    ).status,
+  ).toBe(304);
   browser = await chromium.launch();
   await checkAdminModeration(
     browser,

@@ -30,6 +30,7 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
   #confirmButton: Button;
   #actions: HTMLDivElement;
   #resolve: ((value: boolean) => void) | null = null;
+  #closingChoice: boolean | null = null;
 
   constructor() {
     this.#scaffold = new DialogScaffold();
@@ -117,16 +118,21 @@ export class ModalDialogView implements ReDomLike<HTMLDivElement> {
     this.#scaffold.onunmount?.();
     const resolve = this.#resolve;
     this.#resolve = null;
-    resolve?.(false);
+    resolve?.(this.#closingChoice ?? false);
+    this.#closingChoice = null;
   }
 
   async #finish(value: boolean): Promise<void> {
-    if (this.#resolve === null) {
+    if (this.#resolve === null || this.#closingChoice !== null) {
       return;
     }
+    // Commit the first choice before closing. A second dismiss event during
+    // the animation must not turn an accepted confirmation into cancellation.
+    this.#closingChoice = value;
     await this.#scaffold.close({ animated: true });
     const resolve = this.#resolve;
     this.#resolve = null;
+    this.#closingChoice = null;
     resolve?.(value);
   }
 }

@@ -125,9 +125,15 @@ app.use(
     },
   }),
 );
-if (fs.existsSync(sourceColoringDir)) {
-  app.use("/coloring", express.static(sourceColoringDir, { index: false }));
-}
+// Fly's static handler can fall through (including HEAD/conditional requests).
+// The server must resolve the same public URLs from the assembled build.
+const coloringDir = path.join(staticDir, "draw/coloring");
+app.use(
+  "/coloring",
+  express.static(fs.existsSync(coloringDir) ? coloringDir : sourceColoringDir, {
+    index: false,
+  }),
+);
 
 app.get("/healthz", (_req, res) => {
   res.send("ok");

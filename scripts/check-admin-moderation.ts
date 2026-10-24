@@ -269,6 +269,12 @@ export async function checkAdminModeration(
     await page.getByRole("button", { name: "Menu", exact: true }).click();
     await page.getByText("Log out", { exact: true }).click();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    // A late dismissal while animating out must not override the accepted choice.
+    await page.evaluate(() =>
+      document
+        .querySelector("dialog.is-closing")
+        ?.dispatchEvent(new Event("cancel", { cancelable: true })),
+    );
     await expect(
       page.getByRole("heading", { name: "A free drawing app for kids" }),
     ).toBeVisible();
