@@ -512,14 +512,24 @@ export async function signOutAccountWorkspace(
   api: MultiplayerApiClient,
   freeze: () => Promise<void>,
 ): Promise<void> {
-  const userId = getDrawingWorkspace();
-  if (!userId) return;
   const bus = channel();
   try {
     await navigator.locks.request(TRANSITION, async () => {
+      // The session can change independently of this tab's drawing workspace.
+      // A guest workspace is not evidence that the browser is signed out.
+      const userId =
+        getDrawingWorkspace() ??
+        getLastDrawingWorkspace() ??
+        (await api.getCurrentAccount())?.id;
+      if (!userId) {
+        await api.signOut();
+        return;
+      }
       bus.postMessage({ type: "freeze", workspace: userId });
       await freeze();
       await navigator.locks.request(workspaceNames(userId).lock, async () => {
+        const { initAutomerge } = await import("@smalldraw/core");
+        await initAutomerge();
         const { createLocalSmalldrawRepo } =
           await import("./createLocalSmalldrawRepo");
         const repo = createLocalSmalldrawRepo({

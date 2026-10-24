@@ -265,6 +265,23 @@ export async function checkAdminModeration(
     const countAfterBlock = checkpoints;
     await accountEditor.waitForTimeout(6500);
     expect(checkpoints).toBe(countAfterBlock);
+    await page.goto(`${origin}/`);
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    await page.getByText("Log out", { exact: true }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "A free drawing app for kids" }),
+    ).toBeVisible();
+    await expect
+      .poll(() =>
+        db
+          .query("SELECT session_key FROM sessions WHERE session_key=?")
+          .get(session),
+      )
+      .toBeNull();
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    await expect(page.getByText("Login", { exact: true })).toBeVisible();
+    await expect(page.getByText("Log out", { exact: true })).toHaveCount(0);
     console.log(
       `PASS ${browser.browserType().name()}: real guest share, read-only admin render, mobile takedown, active editor blocked, reload and anonymous denial`,
     );

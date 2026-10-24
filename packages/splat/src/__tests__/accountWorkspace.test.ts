@@ -186,6 +186,29 @@ test("sign-in durably moves guest drawings into the account workspace", async ()
   expect((await account.repo.find(drawing.url)).doc()).toEqual(drawing.doc());
 });
 
+test("logout revokes a signed-in session even when the tab still has a guest workspace", async () => {
+  const { api, id, checked } = fakeApi();
+  const account = workspace(id);
+  const saved = account.repo.create({ marks: ["account"] });
+  await account.backend.createDocument({ docUrl: saved.url });
+  await account.repo.flush();
+  const guest = workspace(null);
+  const local = guest.repo.create({ marks: ["guest"] });
+  await guest.backend.createDocument({ docUrl: local.url });
+  expect(getDrawingWorkspace()).toBeNull();
+
+  await signOutAccountWorkspace(api, async () => {
+    await guest.repo.flush();
+    await guest.repo.shutdown();
+    await account.repo.shutdown();
+  });
+
+  expect(await api.getCurrentAccount()).toBeNull();
+  expect(checked).toEqual([saved.url]);
+  expect(await account.backend.listDocuments()).toEqual([]);
+  expect(await guest.backend.getDocument(local.url)).not.toBeNull();
+});
+
 test("failed checkpoint blocks logout and preserves every local drawing", async () => {
   const { api, id } = fakeApi();
   const { repo, backend } = workspace(id);
@@ -207,6 +230,23 @@ test("failed checkpoint blocks logout and preserves every local drawing", async 
       drawing.documentId,
     ]),
   ).not.toHaveLength(0);
+});
+
+test("logout does not silently abandon a persisted account workspace after session expiry", async () => {
+  const { api, id } = fakeApi();
+  const account = workspace(id);
+  const drawing = account.repo.create({ marks: ["unsynced"] });
+  await account.backend.createDocument({ docUrl: drawing.url });
+  setDrawingWorkspace(null);
+  localStorage.setItem("drawing-workspace", JSON.stringify(id));
+  await api.signOut();
+  await expect(
+    signOutAccountWorkspace(api, async () => {
+      await account.repo.flush();
+      await account.repo.shutdown();
+    }),
+  ).rejects.toThrow("Sign back in");
+  expect(await account.backend.getDocument(drawing.url)).not.toBeNull();
 });
 
 test("successful logout purges account content and catalog but retains the server copy", async () => {
