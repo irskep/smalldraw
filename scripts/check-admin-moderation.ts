@@ -265,6 +265,21 @@ export async function checkAdminModeration(
     const countAfterBlock = checkpoints;
     await accountEditor.waitForTimeout(6500);
     expect(checkpoints).toBe(countAfterBlock);
+    const sleepingTab = await admin.newPage();
+    await sleepingTab.goto(`${origin}/privacy`);
+    await sleepingTab.evaluate(async () => {
+      const id = JSON.parse(localStorage.getItem("drawing-workspace")!);
+      await new Promise<void>((resolve) => {
+        void navigator.locks.request(
+          `drawing-writers:account:${encodeURIComponent(id)}`,
+          { mode: "shared" },
+          async () => {
+            resolve();
+            await new Promise(() => {});
+          },
+        );
+      });
+    });
     await page.goto(`${origin}/`);
     await page.getByRole("button", { name: "Menu", exact: true }).click();
     await page.getByText("Log out", { exact: true }).click();

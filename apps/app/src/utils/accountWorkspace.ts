@@ -29,14 +29,9 @@ export function initializeAccountWorkspace(): Promise<void> {
   })());
 }
 export async function signOutWorkspace() {
-  console.info(
-    `[splatterboard:logout] initialize_start pending=${Boolean(pending)} watcher=${Boolean(watcher)}`,
-  );
-  await initializeAccountWorkspace();
-  console.info(
-    `[splatterboard:logout] initialize_complete account_workspace=${Boolean(getDrawingWorkspace())}`,
-  );
-  await signOutAccountWorkspace(api, () => watcher!.freeze());
+  await signOutAccountWorkspace(api, async () => {
+    await watcher?.freeze();
+  });
 }
 
 async function createAccountRepo() {

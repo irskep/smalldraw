@@ -192,9 +192,8 @@ export async function createKidsDrawApp(
             } catch {
               options.container.inert = false;
               const retry = await presentation.modalDialog.showConfirm({
-                title: "Drawings haven’t finished syncing",
-                message:
-                  "Connect to the internet and try again. Your drawings are still on this device.",
+                title: "Couldn’t sign out",
+                message: "Check your internet connection and try again.",
                 confirmLabel: "Try again",
                 cancelLabel: "Cancel",
               });
@@ -211,8 +210,7 @@ export async function createKidsDrawApp(
       confirmSignOut: () =>
         presentation.modalDialog.showConfirm({
           title: "Sign out?",
-          message:
-            "Your drawings will stay in your account. They’ll be removed from this device.",
+          message: "Sign out of Splatterboard on this browser?",
           confirmLabel: "Sign out",
           cancelLabel: "Cancel",
         }),

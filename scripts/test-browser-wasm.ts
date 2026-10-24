@@ -950,7 +950,7 @@ try {
       page.getByRole("heading", { name: "A free drawing app for kids" }),
     ).toBeVisible();
     console.log(
-      "PASS: signup imports guest drawing; account checkpoints before sign-out",
+      "PASS: signup imports guest drawing; sign-out returns to the guest landing page",
     );
     await page.goto(`${origin}/login`);
     await page.getByPlaceholder("Username").fill("wasm-browser-test");

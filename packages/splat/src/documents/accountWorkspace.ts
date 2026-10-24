@@ -33,7 +33,7 @@ export function retryAccountSync() {
 class AccountIdentityChanged extends Error {}
 const TAB = crypto.randomUUID();
 const TRANSITION = "drawing-account-transition";
-const PURGE = "drawing-account-purge";
+const LOGOUT = "drawing-account-signed-out";
 const channel = () => new BroadcastChannel(TRANSITION);
 const binaryId = (document: KidsDocumentSummary) =>
   (document.collabDocUrl ?? document.docUrl) as AutomergeUrl;
@@ -45,48 +45,13 @@ const backendFor = (id: string | null) => {
   });
 };
 
-/** Safe to repeat after a crash, including when logout already cleared the cookie. */
-async function finishPurge(): Promise<void> {
-  const id = localStorage.getItem(PURGE);
-  if (!id) return;
-  const { IndexedDBStorageAdapter } =
-    await import("@automerge/automerge-repo-storage-indexeddb");
-  const backend = backendFor(id);
-  for (const document of await backend.listDocuments())
-    await backend.deleteDocument(document.docUrl);
-  await new IndexedDBStorageAdapter(workspaceNames(id).repo).removeRange([]);
-  localStorage.removeItem(workspaceNames(id).current);
-  localStorage.removeItem(PURGE);
-  setDrawingWorkspace(null);
-}
-
 /** Resolve identity before opening any catalog or Automerge cache. */
 export async function prepareAccountWorkspace(
   api: MultiplayerApiClient,
   localDocumentId?: string,
 ): Promise<void> {
+  const logoutGeneration = localStorage.getItem(LOGOUT);
   await navigator.locks.request(TRANSITION, async () => {
-    const pendingPurge = localStorage.getItem(PURGE);
-    if (pendingPurge) {
-      const bus = channel();
-      try {
-        bus.postMessage({ type: "freeze", workspace: pendingPurge });
-        await navigator.locks.request(
-          workspaceNames(pendingPurge).lock,
-          async () => {
-            const current = await api.getCurrentAccount();
-            if (current?.id === pendingPurge) await api.signOut();
-            await finishPurge();
-          },
-        );
-        bus.postMessage("reload");
-      } catch (error) {
-        bus.postMessage({ type: "resume", initiator: TAB });
-        throw error;
-      } finally {
-        bus.close();
-      }
-    }
     // A known guest drawing requires no account lookup to open. Account caches
     // still go through identity validation and the logout purge above.
     if (localDocumentId && getLastDrawingWorkspace() === null) {
@@ -107,15 +72,25 @@ export async function prepareAccountWorkspace(
       setDrawingWorkspace(getLastDrawingWorkspace());
       return;
     }
+    if (localStorage.getItem(LOGOUT) !== logoutGeneration) {
+      setDrawingWorkspace(null);
+      return;
+    }
     setDrawingWorkspace(user?.id ?? null);
     if (!user) return;
     const { initAutomerge } = await import("@smalldraw/core");
     await initAutomerge();
-    await importGuestDrawings(api, user.id);
+    if (localStorage.getItem(LOGOUT) !== logoutGeneration) return;
+    await importGuestDrawings(api, user.id, logoutGeneration);
   });
 }
 
-async function importGuestDrawings(api: MultiplayerApiClient, userId: string) {
+async function importGuestDrawings(
+  api: MultiplayerApiClient,
+  userId: string,
+  logoutGeneration: string | null,
+) {
+  const cancelled = () => localStorage.getItem(LOGOUT) !== logoutGeneration;
   const [{ createLocalSmalldrawRepo }, { IndexedDBStorageAdapter }] =
     await Promise.all([
       import("./createLocalSmalldrawRepo"),
@@ -142,11 +117,12 @@ async function importGuestDrawings(api: MultiplayerApiClient, userId: string) {
       (document) =>
         !document.accountAttached || allowed.has(document.collabDocUrl ?? ""),
     );
-    if (!candidates.length) return;
+    if (!candidates.length || cancelled()) return;
     frozeGuest = true;
     bus.postMessage({ type: "freeze", workspace: null });
     await navigator.locks.request(workspaceNames(null).lock, async () => {
       for (const document of await guest.listDocuments()) {
+        if (cancelled()) return;
         // Old account caches are not guest work and must never be claimed by another account.
         if (
           document.accountAttached &&
@@ -159,6 +135,7 @@ async function importGuestDrawings(api: MultiplayerApiClient, userId: string) {
         );
         if (!hasContent && document.accountAttached) {
           await target.createDocument(document);
+          if (cancelled()) return;
           await guest.deleteDocument(document.docUrl);
           continue;
         }
@@ -182,6 +159,7 @@ async function importGuestDrawings(api: MultiplayerApiClient, userId: string) {
         await target.createDocument(document);
         const thumbnail = await guest.getThumbnail(document.docUrl);
         if (thumbnail) await target.saveThumbnail(document.docUrl, thumbnail);
+        if (cancelled()) return;
         // The durable account workspace now owns this work, even if upload must wait.
         await guest.deleteDocument(document.docUrl);
         const guestStorage = new IndexedDBStorageAdapter(
@@ -370,6 +348,7 @@ export function watchAccountWorkspace(options: {
   onSignedOut?: () => void;
 }) {
   const workspace = getDrawingWorkspace();
+  const logoutGeneration = localStorage.getItem(LOGOUT);
   const bus = channel();
   const syncQueue =
     workspace && options.repo
@@ -481,13 +460,24 @@ export function watchAccountWorkspace(options: {
           if (document.visibilityState !== "hidden") void run();
         }, 5000);
   const refresh = () => {
+    if (workspace && localStorage.getItem(LOGOUT) !== logoutGeneration) {
+      void freeze().catch(() => {});
+      if (options.onSignedOut) options.onSignedOut();
+      else window.location.assign("/");
+      return;
+    }
     void run(true);
+  };
+  const storageChanged = (event: StorageEvent) => {
+    if (event.key === LOGOUT) refresh();
   };
   const visible = () => {
     if (document.visibilityState === "visible") refresh();
   };
   void run();
   window.addEventListener("online", refresh);
+  window.addEventListener("pageshow", refresh);
+  window.addEventListener("storage", storageChanged);
   window.addEventListener("focus", refresh);
   document.addEventListener("visibilitychange", visible);
   window.addEventListener("drawing-sync-retry", refresh);
@@ -499,6 +489,8 @@ export function watchAccountWorkspace(options: {
       clearInterval(timer);
       syncQueue?.dispose();
       window.removeEventListener("online", refresh);
+      window.removeEventListener("pageshow", refresh);
+      window.removeEventListener("storage", storageChanged);
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", visible);
       window.removeEventListener("drawing-sync-retry", refresh);
@@ -508,70 +500,24 @@ export function watchAccountWorkspace(options: {
   };
 }
 
+/** Session logout must not wait for other tabs, their locks, or background sync. */
 export async function signOutAccountWorkspace(
   api: MultiplayerApiClient,
   freeze: () => Promise<void>,
 ): Promise<void> {
-  console.info("[splatterboard:logout] transition_lock_wait");
+  await api.signOut();
+  localStorage.setItem(LOGOUT, crypto.randomUUID());
+  localStorage.removeItem("drawing-account-purge");
+  setDrawingWorkspace(null);
   const bus = channel();
-  try {
-    await navigator.locks.request(TRANSITION, async () => {
-      console.info("[splatterboard:logout] transition_lock_acquired");
-      // The session can change independently of this tab's drawing workspace.
-      // A guest workspace is not evidence that the browser is signed out.
-      const userId =
-        getDrawingWorkspace() ??
-        getLastDrawingWorkspace() ??
-        (await api.getCurrentAccount())?.id;
-      console.info(
-        `[splatterboard:logout] identity_resolved account=${Boolean(userId)}`,
-      );
-      if (!userId) {
-        await api.signOut();
-        return;
-      }
-      bus.postMessage({ type: "freeze", workspace: userId });
-      console.info("[splatterboard:logout] freeze_start");
-      await freeze();
-      console.info("[splatterboard:logout] freeze_complete writers_lock_wait");
-      await navigator.locks.request(workspaceNames(userId).lock, async () => {
-        console.info("[splatterboard:logout] writers_lock_acquired");
-        const { initAutomerge } = await import("@smalldraw/core");
-        await initAutomerge();
-        const { createLocalSmalldrawRepo } =
-          await import("./createLocalSmalldrawRepo");
-        const repo = createLocalSmalldrawRepo({
-          workspace: userId,
-          localOnly: true,
-        });
-        try {
-          console.info("[splatterboard:logout] sync_start");
-          await syncAccountWorkspace(api, repo, backendFor(userId), userId);
-          console.info("[splatterboard:logout] sync_complete");
-        } finally {
-          console.info("[splatterboard:logout] repo_shutdown_start");
-          await repo.shutdown();
-          console.info("[splatterboard:logout] repo_shutdown_complete");
-        }
-        // Mark before the network request: recovery verifies the session before deciding whether to purge.
-        localStorage.setItem(PURGE, userId);
-        try {
-          await api.signOut();
-        } catch (error) {
-          localStorage.removeItem(PURGE);
-          throw error;
-        }
-        console.info("[splatterboard:logout] purge_start");
-        await finishPurge();
-        console.info("[splatterboard:logout] purge_complete");
-      });
+  bus.postMessage("signed-out");
+  bus.close();
+  // Keep account-scoped caches (including unsynced work) until sign-in. Never
+  // delete another tab's data or wait for a suspended tab to release its lock.
+  void Promise.resolve()
+    .then(freeze)
+    .catch(() => {
+      console.info("[splatterboard:logout] background_freeze_failed");
     });
-    bus.postMessage("signed-out");
-  } catch (error) {
-    // Pages were frozen; reload restores editing from the intact account workspace.
-    bus.postMessage({ type: "resume", initiator: TAB });
-    throw error;
-  } finally {
-    bus.close();
-  }
+  console.info("[splatterboard:logout] session_revoked");
 }

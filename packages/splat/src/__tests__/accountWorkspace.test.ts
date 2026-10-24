@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
 
-import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import type { Repo } from "@automerge/automerge-repo/slim";
 import {
   free,
@@ -186,89 +185,91 @@ test("sign-in durably moves guest drawings into the account workspace", async ()
   expect((await account.repo.find(drawing.url)).doc()).toEqual(drawing.doc());
 });
 
-test("logout revokes a signed-in session even when the tab still has a guest workspace", async () => {
-  const { api, id, checked } = fakeApi();
-  const account = workspace(id);
-  const saved = account.repo.create({ marks: ["account"] });
-  await account.backend.createDocument({ docUrl: saved.url });
-  await account.repo.flush();
+test("logout cancels a guest import waiting for another tab without hiding guest drawings", async () => {
+  const { api } = fakeApi();
   const guest = workspace(null);
-  const local = guest.repo.create({ marks: ["guest"] });
-  await guest.backend.createDocument({ docUrl: local.url });
-  expect(getDrawingWorkspace()).toBeNull();
-
-  await signOutAccountWorkspace(api, async () => {
-    await guest.repo.flush();
-    await guest.repo.shutdown();
-    await account.repo.shutdown();
+  const drawing = guest.repo.create({ marks: ["guest"] });
+  await guest.backend.createDocument({ docUrl: drawing.url });
+  await guest.repo.flush();
+  let release!: () => void;
+  let acquired!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    acquired = resolve;
   });
-
-  expect(await api.getCurrentAccount()).toBeNull();
-  expect(checked).toEqual([saved.url]);
-  expect(await account.backend.listDocuments()).toEqual([]);
-  expect(await guest.backend.getDocument(local.url)).not.toBeNull();
-});
-
-test("failed checkpoint blocks logout and preserves every local drawing", async () => {
-  const { api, id } = fakeApi();
-  const { repo, backend } = workspace(id);
-  const drawing = repo.create({ marks: ["unsynced"] });
-  await backend.createDocument({ docUrl: drawing.url });
-  api.checkpointAccountDrawing = async () => {
-    throw new Error("offline");
+  const barrier = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const lock = navigator.locks.request(
+    workspaceNames(null).lock,
+    { mode: "shared" },
+    async () => {
+      acquired();
+      await barrier;
+    },
+  );
+  await ready;
+  const bus = new BroadcastChannel("drawing-account-transition");
+  let sawFreeze!: () => void;
+  const frozen = new Promise<void>((resolve) => {
+    sawFreeze = resolve;
+  });
+  bus.onmessage = (e) => {
+    if (e.data?.type === "freeze") sawFreeze();
   };
-  await expect(
-    signOutAccountWorkspace(api, async () => {
-      await repo.flush();
-      await repo.shutdown();
-    }),
-  ).rejects.toThrow("offline");
-  expect(await api.getCurrentAccount()).not.toBeNull();
-  expect(await backend.getDocument(drawing.url)).not.toBeNull();
-  expect(
-    await new IndexedDBStorageAdapter(workspaceNames(id).repo).loadRange([
-      drawing.documentId,
-    ]),
-  ).not.toHaveLength(0);
+  const preparing = prepareAccountWorkspace(api);
+  try {
+    await frozen;
+    await signOutAccountWorkspace(api, async () => {});
+    release();
+    await lock;
+    await preparing;
+    expect(await guest.backend.getDocument(drawing.url)).not.toBeNull();
+    expect(getDrawingWorkspace()).toBeNull();
+  } finally {
+    release();
+    bus.close();
+  }
 });
 
-test("logout does not silently abandon a persisted account workspace after session expiry", async () => {
+test("logout revokes the session without waiting for freezes or purging unsynced account work", async () => {
   const { api, id } = fakeApi();
   const account = workspace(id);
   const drawing = account.repo.create({ marks: ["unsynced"] });
   await account.backend.createDocument({ docUrl: drawing.url });
-  setDrawingWorkspace(null);
-  localStorage.setItem("drawing-workspace", JSON.stringify(id));
-  await api.signOut();
-  await expect(
-    signOutAccountWorkspace(api, async () => {
-      await account.repo.flush();
-      await account.repo.shutdown();
-    }),
-  ).rejects.toThrow("Sign back in");
-  expect(await account.backend.getDocument(drawing.url)).not.toBeNull();
+  let release!: () => void;
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  try {
+    await signOutAccountWorkspace(api, () => blocked);
+    expect(await api.getCurrentAccount()).toBeNull();
+    expect(getDrawingWorkspace()).toBeNull();
+    expect(await account.backend.getDocument(drawing.url)).not.toBeNull();
+  } finally {
+    release();
+  }
 });
 
-test("successful logout purges account content and catalog but retains the server copy", async () => {
-  const { api, id, checked } = fakeApi();
-  const { repo, backend } = workspace(id);
-  const drawing = repo.create({ marks: ["saved"] });
-  await backend.createDocument({ docUrl: drawing.url });
-  await backend.setCurrentDocument(drawing.url);
-  await signOutAccountWorkspace(api, async () => {
-    await repo.flush();
-    await repo.shutdown();
-  });
-  expect(checked).toEqual([drawing.url]);
+test("logout from a guest workspace still revokes the session and preserves guest drawings", async () => {
+  const { api } = fakeApi();
+  const guest = workspace(null);
+  const drawing = guest.repo.create({ marks: ["guest"] });
+  await guest.backend.createDocument({ docUrl: drawing.url });
+  await signOutAccountWorkspace(api, async () => {});
   expect(await api.getCurrentAccount()).toBeNull();
-  expect(await backend.listDocuments()).toEqual([]);
-  expect(await backend.getCurrentDocument()).toBeNull();
-  expect(
-    await new IndexedDBStorageAdapter(workspaceNames(id).repo).loadRange([
-      drawing.documentId,
-    ]),
-  ).toEqual([]);
-  expect(getDrawingWorkspace()).toBeNull();
+  expect(await guest.backend.getDocument(drawing.url)).not.toBeNull();
+});
+
+test("failed logout request leaves the account workspace and drawings intact", async () => {
+  const { api, id } = fakeApi();
+  workspace(id);
+  api.signOut = async () => {
+    throw new Error("offline");
+  };
+  await expect(signOutAccountWorkspace(api, async () => {})).rejects.toThrow(
+    "offline",
+  );
+  expect(getDrawingWorkspace()).toBe(id);
 });
 
 test("shared guest drawings retain membership without claiming ownership", async () => {
@@ -367,23 +368,14 @@ test("another account cannot sync or adopt an account's cached drawings", async 
   ).toBeNull();
 });
 
-test("interrupted logout resumes purging the old account before exposing a guest gallery", async () => {
+test("offline startup after explicit logout cannot reopen the account cache", async () => {
   const { api, id } = fakeApi();
-  const { repo, backend } = workspace(id);
-  const drawing = repo.create({ marks: ["already on server"] });
-  await backend.createDocument({ docUrl: drawing.url });
-  await syncAccountWorkspace(api, repo, backend, id);
-  await repo.shutdown();
-  localStorage.setItem("drawing-account-purge", id);
-  await api.signOut();
+  workspace(id);
+  await signOutAccountWorkspace(api, async () => {});
+  api.getCurrentAccount = async () => {
+    throw new Error("offline");
+  };
   await prepareAccountWorkspace(api);
-  expect(await backend.listDocuments()).toEqual([]);
-  expect(
-    await new IndexedDBStorageAdapter(workspaceNames(id).repo).loadRange([
-      drawing.documentId,
-    ]),
-  ).toEqual([]);
-  expect(localStorage.getItem("drawing-account-purge")).toBeNull();
   expect(getDrawingWorkspace()).toBeNull();
 });
 
@@ -414,107 +406,24 @@ test("concurrent freeze requests wait for the same completed local flush", async
   watcher.dispose();
 });
 
-test("logout recovery waits for another tab to flush and release its writer lease", async () => {
+test("a resumed account tab notices logout even when it missed the broadcast", async () => {
   const { api, id } = fakeApi();
-  const { repo, backend } = workspace(id);
-  const drawing = repo.create({ marks: ["saved"] });
-  await backend.createDocument({ docUrl: drawing.url });
-  await repo.flush();
-  localStorage.setItem("drawing-account-purge", id);
-  await api.signOut();
-  let release!: () => void;
-  let acquired!: () => void;
-  const ready = new Promise<void>((resolve) => {
-    acquired = resolve;
-  });
-  const barrier = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  const writer = navigator.locks.request(
-    workspaceNames(id).lock,
-    { mode: "shared" },
-    async () => {
-      acquired();
-      await barrier;
-      await repo.shutdown();
-    },
-  );
-  await ready;
-  let frozen!: () => void;
-  const freezeReceived = new Promise<void>((resolve) => {
-    frozen = resolve;
-  });
-  const bus = new BroadcastChannel("drawing-account-transition");
-  bus.onmessage = (event) => {
-    if (event.data?.type === "freeze" && event.data.workspace === id) frozen();
-  };
-  const recovery = prepareAccountWorkspace(api);
-  try {
-    await freezeReceived;
-    expect(await backend.getDocument(drawing.url)).not.toBeNull();
-    expect(localStorage.getItem("drawing-account-purge")).toBe(id);
-  } finally {
-    release();
-    await writer;
-    await recovery;
-    bus.close();
-  }
-  expect(await backend.listDocuments()).toEqual([]);
-  expect(
-    await new IndexedDBStorageAdapter(workspaceNames(id).repo).loadRange([]),
-  ).toEqual([]);
-});
-
-test("logout checkpoints the final edits from two open writers before purging", async () => {
-  const { api, id, server } = fakeApi();
-  const first = workspace(id);
-  const second = workspace(id);
-  const a = first.repo.create({ marks: ["a"] });
-  const b = second.repo.create({ marks: ["b"] });
-  await first.backend.createDocument({ docUrl: a.url });
-  await second.backend.createDocument({ docUrl: b.url });
-  await Promise.all([first.repo.flush(), second.repo.flush()]);
-  const saved: unknown[] = [];
-  const checkpoint = api.checkpointAccountDrawing;
-  api.checkpointAccountDrawing = async (...args) => {
-    const result = await checkpoint(...args);
-    saved.push(load(server.get(args[0])!));
-    return result;
-  };
-  let finishSecond!: () => void;
-  const barrier = new Promise<void>((resolve) => {
-    finishSecond = resolve;
-  });
-  let freezing!: () => void;
-  const started = new Promise<void>((resolve) => {
-    freezing = resolve;
-  });
-  const one = watchAccountWorkspace({ api, ...first });
-  const two = watchAccountWorkspace({
+  const account = workspace(id);
+  let redirected = false;
+  const watcher = watchAccountWorkspace({
     api,
-    ...second,
-    beforeFreeze: async () => {
-      freezing();
-      await barrier;
-      b.change((doc) => {
-        doc.marks.push("last edit");
-      });
+    ...account,
+    onSignedOut: () => {
+      redirected = true;
     },
   });
-  const logout = signOutAccountWorkspace(api, one.freeze);
   try {
-    await started;
-    expect(await api.getCurrentAccount()).not.toBeNull();
-    expect(await first.backend.listDocuments()).toHaveLength(2);
-    finishSecond();
-    await logout;
-    expect(saved).toContainEqual({ marks: ["b", "last edit"] });
-    expect(await first.backend.listDocuments()).toEqual([]);
+    localStorage.setItem("drawing-account-signed-out", crypto.randomUUID());
+    window.dispatchEvent(new window.Event("pageshow"));
+    expect(redirected).toBe(true);
+    await watcher.freeze();
   } finally {
-    finishSecond();
-    await Promise.all([one.freeze(), two.freeze()]);
-    one.dispose();
-    two.dispose();
+    watcher.dispose();
   }
 });
 
