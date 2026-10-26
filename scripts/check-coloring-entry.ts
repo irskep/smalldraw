@@ -29,6 +29,13 @@ export async function checkColoringEntry(
       });
     });
     const page = await context.newPage();
+    // A cold artwork request must not expire at the former 2.5-second deadline.
+    if (width === 1280) {
+      await page.route("**/coloring/**/*.svg", async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 3500));
+        await route.continue();
+      });
+    }
     const diagnostics: string[] = [];
     page.on("console", (message) => diagnostics.push(message.text()));
     page.on("pageerror", (error) => diagnostics.push(String(error)));
@@ -146,7 +153,9 @@ export async function checkColoringEntry(
               .documentType,
         ),
       ).toBe("coloring");
-      await page.waitForTimeout(500);
+      await expect(page.locator(".kids-draw-startup-overlay")).toBeHidden({
+        timeout: 20000,
+      });
       const count = () =>
         page.evaluate(
           () =>

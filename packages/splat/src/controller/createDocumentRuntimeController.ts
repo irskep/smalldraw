@@ -41,7 +41,8 @@ import type {
 import type { StartupReadinessStore } from "./stores/createStartupReadinessStore";
 
 export const DEFAULT_THUMBNAIL_SAVE_DEBOUNCE_MS = 1000;
-const STARTUP_ASSET_TIMEOUT_MS = 2500;
+// Artwork may need a cold CDN connection and decoding on a busy device.
+const STARTUP_ASSET_TIMEOUT_MS = 15000;
 
 export interface DocumentRuntimeController {
   getCurrentCatalogDocUrl(): string;
