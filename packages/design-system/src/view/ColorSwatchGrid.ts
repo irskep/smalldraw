@@ -67,6 +67,11 @@ export class ColorSwatchGrid implements ReDomLike<HTMLDivElement> {
     }
   }
 
+  setDisabled(disabled: boolean): void {
+    for (const button of this.el.querySelectorAll("button"))
+      button.disabled = disabled;
+  }
+
   setOnSelect(handler: ((color: string) => void) | null): void {
     this.selectHandler = handler;
   }

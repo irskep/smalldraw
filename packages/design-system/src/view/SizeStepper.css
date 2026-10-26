@@ -1,0 +1,17 @@
+.ds-size-stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--size-1);
+  flex-shrink: 0;
+}
+.ds-size-stepper__indicator {
+  width: 20px;
+  display: grid;
+  place-items: center;
+}
+.ds-size-stepper__indicator > span {
+  width: var(--size-preview);
+  height: var(--size-preview);
+  border-radius: 50%;
+  background: var(--ds-ink);
+}

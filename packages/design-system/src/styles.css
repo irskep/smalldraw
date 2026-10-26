@@ -1052,3 +1052,46 @@ body {
 .ds-splat-context__mobile-top-controls .ds-splat-context__active-tool-name {
   font-size: var(--font-size-0);
 }
+
+.ds-splat-context__scene--desktop.ds-splat-context__scene--settings-rail:not(
+    .ds-splat-context__scene--no-document
+  ) {
+  grid-template-areas: "top top top" "left canvas settings" "bottom-left bottom .";
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+.ds-splat-context__settings-rail {
+  grid-area: settings;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--size-4);
+  padding: var(--size-2);
+}
+.ds-splat-context__settings-rail[hidden],
+.ds-color-picker[hidden] {
+  display: none;
+}
+.ds-splat-context__settings-rail .ds-color-picker__grid {
+  grid-template-columns: repeat(2, 44px);
+  --ds-color-picker-swatch-size: 44px;
+}
+
+.ds-size-stepper[hidden] {
+  display: none;
+}
+.ds-splat-context__scene--mobile-responsive[data-mobile-layout="mobile-standard"]
+  .ds-splat-context__mobile-top-controls {
+  flex-wrap: wrap;
+}
+.ds-splat-context__scene--mobile-responsive[data-mobile-layout="mobile-standard"]
+  .ds-splat-context__mobile-top-controls
+  > .ds-splat-context__active-tool {
+  flex: 0 0 100%;
+  order: 1;
+}
+.ds-splat-context__active-tool-name.ds-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -12,6 +12,7 @@ export type SplatContextResponsiveEffect =
 export interface SplatContextResponsiveState {
   layout: SplatContextLayout;
   showMobileShare: boolean;
+  showSettingsRail: boolean;
 }
 
 export interface SplatContextResponsiveUpdate extends SplatContextResponsiveState {
@@ -25,6 +26,7 @@ export function resolveSplatContextResponsiveState(
   return {
     layout: resolveSplatContextLayout(width, height),
     showMobileShare: shouldShowMobileShare(width),
+    showSettingsRail: width >= 1024 && height >= 700,
   };
 }
 
@@ -35,6 +37,7 @@ export class SplatContextResponsiveController {
     initialState: SplatContextResponsiveState = {
       layout: "desktop",
       showMobileShare: false,
+      showSettingsRail: false,
     },
   ) {
     this.state = initialState;
@@ -49,7 +52,8 @@ export class SplatContextResponsiveController {
 
     if (
       nextState.layout === this.state.layout &&
-      nextState.showMobileShare === this.state.showMobileShare
+      nextState.showMobileShare === this.state.showMobileShare &&
+      nextState.showSettingsRail === this.state.showSettingsRail
     ) {
       return {
         effect: "sync-only",

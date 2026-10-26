@@ -7,6 +7,7 @@ export const TOOLBAR_COLOR_SWATCHES: readonly ToolbarColorSwatch[] = [
   { value: "#000000", label: "Black" },
   { value: "#ffffff", label: "White" },
   { value: "#8b5a2b", label: "Brown" },
+  { value: "#9ca3af", label: "Gray" },
   { value: "#ff4d6d", label: "Strawberry" },
   { value: "#ff8a00", label: "Orange Pop" },
   { value: "#ffdb4d", label: "Sunshine" },
@@ -15,7 +16,6 @@ export const TOOLBAR_COLOR_SWATCHES: readonly ToolbarColorSwatch[] = [
   { value: "#2e86ff", label: "Sky Blue" },
   { value: "#6c5ce7", label: "Blueberry" },
   { value: "#ff66c4", label: "Bubblegum" },
-  { value: "#9ca3af", label: "Gray" },
 ] as const;
 
 export { STROKE_WIDTH_OPTIONS as TOOLBAR_STROKE_WIDTH_OPTIONS } from "../tools/strokeWidthOptions";

@@ -9,6 +9,7 @@ import {
   type ColorPickerSwatch,
   createColorPicker,
 } from "./ColorPicker";
+import { ColorSwatchGrid } from "./ColorSwatchGrid";
 import { createDocumentAccessState } from "./DocumentAccessState";
 import {
   createDropdownMenu,
@@ -19,6 +20,7 @@ import type { PagedButtonGridLargeLayout } from "./PagedButtonGrid";
 import { type ButtonGridItemSpec, PagedButtonGrid } from "./PagedButtonGrid";
 import type { ReDomLike } from "./ReDomLike";
 import { renderIcon } from "./renderIcon";
+import { SizeStepper } from "./SizeStepper";
 import { SplatContextResponsiveController } from "./SplatContextResponsiveController";
 import {
   createIconButton,
@@ -26,7 +28,6 @@ import {
   type IconButtonLayout,
   type IconButtonSource,
 } from "./SquareIconButton";
-import { createStrokePicker, type StrokePicker } from "./StrokePicker";
 import {
   createSyncIndicator,
   type SyncIndicator,
@@ -134,7 +135,10 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.activeToolLabel,
   );
   private colorPicker!: ColorPicker;
-  private strokePicker!: StrokePicker;
+  private sizeStepper!: SizeStepper;
+  private inlineColors!: ColorSwatchGrid;
+  private settingsRail?: HTMLDivElement;
+  private compactSizeHost?: HTMLDivElement;
   private desktopMenu!: DropdownMenu;
   private mobileMenu!: DropdownMenu;
   private syncIndicator!: SyncIndicator;
@@ -203,26 +207,29 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   setColors(colors: readonly ColorPickerSwatch[]): void {
     this.colorPicker.setColors(colors);
+    this.inlineColors.setColors(colors);
   }
 
   setSelectedColor(color: string): void {
     this.colorPicker.setSelectedColor(color);
+    this.inlineColors.setSelectedColor(color);
   }
 
   setStrokeWidths(widths: readonly number[]): void {
-    this.strokePicker.setStrokeWidths(widths);
+    this.sizeStepper.setStrokeWidths(widths);
   }
 
   setSelectedStrokeWidth(width: number): void {
-    this.strokePicker.setSelectedStrokeWidth(width);
+    this.sizeStepper.setSelectedStrokeWidth(width);
   }
 
   setColorPickerDisabled(disabled: boolean): void {
     this.colorPicker.setDisabled(disabled);
+    this.inlineColors.setDisabled(disabled);
   }
 
   setStrokePickerDisabled(disabled: boolean): void {
-    this.strokePicker.setDisabled(disabled);
+    this.sizeStepper.setDisabled(disabled);
   }
 
   setSyncState(state: SyncIndicatorState, description?: string): void {
@@ -347,17 +354,25 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       triggerLabel: "Colors",
     });
     this.colorPicker.setOnSelect((color) => {
+      this.setSelectedColor(color);
       this.setStatus(`Color: ${color}`);
       this.opts.onSelectColor?.(color);
     });
 
-    this.strokePicker = createStrokePicker({
-      className: "ds-splat-context__top-picker",
+    this.inlineColors = new ColorSwatchGrid({
+      colors: this.opts.colors,
+      selectedColor: this.opts.selectedColor,
+    });
+    this.inlineColors.setOnSelect((color) => {
+      this.setSelectedColor(color);
+      this.setStatus(`Color: ${color}`);
+      this.opts.onSelectColor?.(color);
+    });
+    this.sizeStepper = new SizeStepper({
       strokeWidths: this.opts.strokeWidths,
       selectedStrokeWidth: this.opts.selectedStrokeWidth,
-      triggerLabel: "Strokes",
     });
-    this.strokePicker.setOnSelect((width) => {
+    this.sizeStepper.setOnSelect((width) => {
       this.setStatus(`Stroke width: ${width}px`);
       this.opts.onSelectStrokeWidth?.(width);
     });
@@ -502,6 +517,21 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       "ds-splat-context__scene--has-tool-preview",
       this.toolStatePreviewStore.get() !== null,
     );
+    const showRail = this.responsiveController.getState().showSettingsRail;
+    this.scene.classList.toggle(
+      "ds-splat-context__scene--settings-rail",
+      showRail,
+    );
+    this.colorPicker.el.hidden = showRail;
+    if (showRail) this.colorPicker.setOpen(false);
+    if (this.settingsRail) this.settingsRail.hidden = !showRail;
+    const sizeHost = showRail ? this.settingsRail : this.compactSizeHost;
+    if (sizeHost && this.sizeStepper.el.parentElement !== sizeHost)
+      mount(
+        sizeHost,
+        this.sizeStepper,
+        sizeHost.firstElementChild ?? undefined,
+      );
     const showHistory = this.showDesktopHistoryStore.get();
     if (this.desktopHistoryActions)
       this.desktopHistoryActions.hidden = !showHistory;
@@ -750,7 +780,9 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       this.createCanvasShell(documentSlot.content),
       this.createDesktopBottomLeftSlot(),
       this.createDesktopBottomSlot(),
+      this.createSettingsRail(),
     );
+    this.syncVisibleResponsiveState();
   }
 
   private buildMobile(): void {
@@ -781,6 +813,22 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.syncVisibleResponsiveState();
   }
 
+  private createCompactSizeHost(): HTMLDivElement {
+    this.compactSizeHost = el(
+      "div.ds-splat-context__size-host",
+    ) as HTMLDivElement;
+    mount(this.compactSizeHost, this.sizeStepper);
+    return this.compactSizeHost;
+  }
+
+  private createSettingsRail(): HTMLDivElement {
+    this.settingsRail = el("div.ds-splat-context__settings-rail", {
+      hidden: true,
+    }) as HTMLDivElement;
+    mount(this.settingsRail, this.inlineColors);
+    return this.settingsRail;
+  }
+
   private createDesktopTopSlot(): HTMLDivElement {
     const top = el(
       "div.ds-splat-context__slot ds-splat-context__slot--top",
@@ -804,7 +852,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const topBarStart = el(
       "div.ds-splat-context__top-actions-group ds-splat-context__top-actions-group--start",
       this.colorPicker.el,
-      this.strokePicker.el,
+      this.createCompactSizeHost(),
     ) as HTMLDivElement;
     mount(topBarStart, this.activeTool);
     const topBarHistory = this.createDesktopHistoryActions();
@@ -921,7 +969,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     const topControls = el(
       "div.ds-splat-context__mobile-top-controls",
       this.colorPicker.el,
-      this.strokePicker.el,
+      this.createCompactSizeHost(),
       requireView(this.mobileToolPicker, "mobileToolPicker").el,
     ) as HTMLDivElement;
     mount(topControls, this.activeTool);
@@ -1055,6 +1103,8 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.desktopRedoButton = undefined;
     this.desktopShareButton = undefined;
     this.mobileShareButton = undefined;
+    this.settingsRail = undefined;
+    this.compactSizeHost = undefined;
     this.canvasHost = undefined;
     this.documentStateHost = undefined;
   }

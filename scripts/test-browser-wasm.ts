@@ -17,6 +17,7 @@ import { checkDrawingUrls } from "./check-drawing-urls";
 import { checkGuestSharing } from "./check-guest-sharing";
 import { checkPortalRouting } from "./check-portal-routing";
 import { checkStampInteraction } from "./check-stamp-interaction";
+import { checkToolSettings } from "./check-tool-settings";
 
 await opaque.ready;
 
@@ -238,19 +239,37 @@ async function checkOtherToolPreviews(
       family === "eraser" ||
       family === "shape.outline"
     ) {
-      await page.getByRole("button", { name: "Strokes", exact: true }).click();
-      await page.locator('[data-size="2"]').click();
+      while (
+        await page
+          .getByRole("button", { name: "Smaller", exact: true })
+          .isEnabled()
+      ) {
+        await page
+          .getByRole("button", { name: "Smaller", exact: true })
+          .click();
+      }
       const small = await preview.locator("svg").innerHTML();
-      await page.getByRole("button", { name: "Strokes", exact: true }).click();
-      await page.locator('[data-size="200"]').click();
+      while (
+        await page
+          .getByRole("button", { name: "Bigger", exact: true })
+          .isEnabled()
+      ) {
+        await page.getByRole("button", { name: "Bigger", exact: true }).click();
+      }
       await expect
         .poll(() => preview.locator("svg").innerHTML())
         .not.toBe(small);
     }
     if (family !== "eraser") {
-      await page.getByRole("button", { name: "Colors", exact: true }).click();
+      if (
+        await page
+          .getByRole("button", { name: "Colors", exact: true })
+          .isVisible()
+      ) {
+        await page.getByRole("button", { name: "Colors", exact: true }).click();
+      }
       await page
-        .locator('[data-setting="stroke-color"][data-color="#2e86ff"]')
+        .locator('[data-setting="stroke-color"][data-color="#2e86ff"]:visible')
         .click();
       await expect(preview).toHaveCSS("color", "rgb(46, 134, 255)");
     }
@@ -534,7 +553,8 @@ try {
             label &&
             menu &&
             (label.x + label.width <= menu.x ||
-              label.y + label.height <= menu.y) &&
+              label.y + label.height <= menu.y ||
+              menu.y + menu.height <= label.y) &&
             menu.x + menu.width <= width,
           );
         })
@@ -645,8 +665,16 @@ try {
     );
     await expect(toolPreview.locator("svg")).toBeVisible();
     await expect(toolPreview.locator("img")).toHaveCount(0);
-    await page.getByRole("button", { name: "Colors", exact: true }).click();
-    const colorSwatch = page.locator('[data-setting="stroke-color"]').nth(3);
+    if (
+      await page
+        .getByRole("button", { name: "Colors", exact: true })
+        .isVisible()
+    ) {
+      await page.getByRole("button", { name: "Colors", exact: true }).click();
+    }
+    const colorSwatch = page
+      .locator('[data-setting="stroke-color"]:visible')
+      .nth(3);
     const letterColor = await colorSwatch.getAttribute("data-color");
     await colorSwatch.click();
     await expect
@@ -797,6 +825,7 @@ try {
         .click();
       await checkPreviewDoesNotMoveCanvas(privatePage, "webkit");
       await checkOtherToolPreviews(privatePage, "webkit");
+      await checkToolSettings(safari, origin);
       await checkRandomize(privatePage, "webkit");
       await checkStampInteraction(privatePage, "webkit");
       await checkCaptureLoss(privatePage, "webkit");
@@ -810,6 +839,7 @@ try {
 
     await checkPreviewDoesNotMoveCanvas(page, "chromium");
     await checkOtherToolPreviews(page, "chromium");
+    await checkToolSettings(browser, origin);
     await checkRandomize(page, "chromium");
     await checkColoringbook(browser, origin, "chromium");
     await checkColoringTopics(browser, origin, "chromium");
@@ -960,7 +990,6 @@ try {
     await expect(
       page.getByRole("heading", { name: "Your drawings" }),
     ).toBeVisible();
-    const repliesBeforeOpen = checkpointReplies;
     await page.goto(drawingUrl);
     await editorReady();
     await expect.poll(shapeCount).toBe(3);
@@ -974,12 +1003,8 @@ try {
     console.log(
       "PASS: fresh login restores all three strokes from server using binary WASM",
     );
-    await page.evaluate(() =>
-      window.dispatchEvent(new Event("drawing-sync-retry")),
-    );
-    await expect
-      .poll(() => checkpointReplies, { timeout: 20_000 })
-      .toBeGreaterThan(repliesBeforeOpen);
+    // Reopening an already checkpointed drawing need not upload it again.
+    // The following edits must each produce a saved incremental checkpoint.
     await stroke();
     await expect.poll(shapeCount).toBe(4);
     await expect

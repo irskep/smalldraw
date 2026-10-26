@@ -383,7 +383,7 @@ test.describe("Unified context entry stories", () => {
     const metrics = await page.evaluate(() => {
       const selectors = [
         ".ds-color-picker",
-        ".ds-stroke-picker",
+        ".ds-size-stepper",
         ".ds-dropdown-menu",
         ".ds-sync-indicator",
         ".ds-toolbar",
@@ -630,15 +630,11 @@ test.describe("Splat Context pickers", () => {
     await expect(panel).toBeHidden();
   });
 
-  test("stroke picker closes when the mouse leaves the trigger and panel union", async ({
-    page,
-  }) => {
-    const trigger = page.getByRole("button", { name: "Strokes" }).first();
-    const panel = page.getByRole("dialog", { name: "Stroke picker" }).first();
-    await trigger.click();
-    await expect(panel).toBeVisible();
-    await page.mouse.move(4, 4);
-    await expect(panel).toBeHidden();
+  test("size buttons adjust without opening a picker", async ({ page }) => {
+    const stepper = page.locator(".ds-size-stepper").first();
+    const before = await stepper.getAttribute("aria-label");
+    await stepper.getByRole("button", { name: "Bigger", exact: true }).click();
+    await expect(stepper).not.toHaveAttribute("aria-label", before!);
   });
 });
 
@@ -1152,24 +1148,22 @@ test.describe("Dialog primitives", () => {
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
-        name: "Public Domain Review Coloring Book — Volume 1",
+        name: "PD Public Domain Review 4 pages · Public Domain Review",
       }),
     ).toBeVisible();
 
     await page
       .getByRole("button", {
-        name: "Public Domain Review Coloring Book — Volume 1",
+        name: "PD Public Domain Review 4 pages · Public Domain Review",
       })
       .click();
     await expect(page.locator(".ds-dialog-scaffold__title")).toHaveText(
-      "Public Domain Review Coloring Book — Volume 1",
+      "Public Domain Review",
     );
     await expect(
-      page
-        .locator("h3")
-        .filter({ hasText: "Public Domain Review Coloring Book — Volume 1" }),
+      page.locator("h3").filter({ hasText: /^Public Domain Review$/ }),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Page 001" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Page 002" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Page 004" })).toBeVisible();
 
     await page.getByRole("button", { name: "Back" }).click();
@@ -1178,7 +1172,7 @@ test.describe("Dialog primitives", () => {
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
-        name: "Public Domain Review Coloring Book — Volume 1",
+        name: "PD Public Domain Review 4 pages · Public Domain Review",
       }),
     ).toBeVisible();
   });

@@ -420,7 +420,7 @@ describe("splatterboard shell", () => {
       "[data-tool-variant].is-selected",
     ) as HTMLButtonElement | null;
     const selectedStrokeWidth = container.querySelector(
-      'button[data-setting="stroke-width"][aria-checked="true"]',
+      ".ds-size-stepper",
     ) as HTMLButtonElement | null;
     expect(tileCanvas).not.toBeNull();
     expect(tileCanvas?.width).toBeGreaterThan(0);
@@ -432,7 +432,7 @@ describe("splatterboard shell", () => {
     expect(defaultColorSwatch?.getAttribute("role")).toBe("radio");
     expect(defaultColorSwatch?.getAttribute("aria-checked")).toBe("true");
     expect(activeToolVariant?.getAttribute("aria-pressed")).toBe("true");
-    expect(selectedStrokeWidth?.getAttribute("role")).toBe("radio");
+    expect(selectedStrokeWidth?.getAttribute("role")).toBe("group");
 
     app.destroy();
     expect(container.querySelector(".kids-draw-app")).toBeNull();
@@ -457,7 +457,7 @@ describe("splatterboard shell", () => {
     expect(root?.dataset.runtimeVariant).toBe("design-system");
     expect(container.querySelector(".ds-splat-context__scene")).not.toBeNull();
     expect(container.querySelector(".ds-color-picker")).not.toBeNull();
-    expect(container.querySelector(".ds-stroke-picker")).not.toBeNull();
+    expect(container.querySelector(".ds-size-stepper")).not.toBeNull();
     expect(container.querySelector(".ds-modal-dialog")).not.toBeNull();
     expect(container.querySelector(".ds-share-dialog")).not.toBeNull();
     expect(container.querySelector(".kids-draw-toolbar-view")).toBeNull();
@@ -501,7 +501,7 @@ describe("splatterboard shell", () => {
       'button[data-setting="stroke-color"][data-color="#ff4d6d"]',
     ) as HTMLButtonElement | null;
     const widthButton = container.querySelector(
-      'button[data-setting="stroke-width"][data-size="24"]',
+      'button[aria-label="Bigger"]',
     ) as HTMLButtonElement | null;
     const undoButton = container.querySelector(
       '[data-action="undo"]',
@@ -532,7 +532,7 @@ describe("splatterboard shell", () => {
     expect(undoButton!.disabled).toBeTrue();
 
     colorSwatch!.click();
-    widthButton!.click();
+    while (app.store.getSharedSettings().strokeWidth < 24) widthButton!.click();
 
     dispatchPointer(overlay, "pointerdown", 60, 60, 1);
     dispatchPointer(overlay, "pointermove", 180, 180, 1);
@@ -3178,15 +3178,16 @@ describe("splatterboard shell", () => {
     const blueColorButton = container.querySelector(
       '[data-setting="stroke-color"][data-color="#2e86ff"]',
     ) as HTMLButtonElement | null;
-    const widthButton24 = container.querySelector(
-      '[data-setting="stroke-width"][data-size="24"]',
+    const biggerButton = container.querySelector(
+      'button[aria-label="Bigger"]',
     ) as HTMLButtonElement | null;
     expect(penToolButton).not.toBeNull();
     expect(blueColorButton).not.toBeNull();
-    expect(widthButton24).not.toBeNull();
+    expect(biggerButton).not.toBeNull();
     penToolButton!.click();
     blueColorButton!.click();
-    widthButton24!.click();
+    while (app.store.getSharedSettings().strokeWidth < 24)
+      biggerButton!.click();
 
     await waitForToolbarUiPersistence();
 
@@ -3233,14 +3234,14 @@ describe("splatterboard shell", () => {
       const blueColorButton = container.querySelector(
         '[data-setting="stroke-color"][data-color="#2e86ff"]',
       ) as HTMLButtonElement | null;
-      const widthButton24 = container.querySelector(
-        '[data-setting="stroke-width"][data-size="24"]',
+      const biggerButton = container.querySelector(
+        'button[aria-label="Bigger"]',
       ) as HTMLButtonElement | null;
       const penToolButton = container.querySelector(
         '[data-tool-variant="brush.freehand"]',
       ) as HTMLButtonElement | null;
       expect(blueColorButton).not.toBeNull();
-      expect(widthButton24).not.toBeNull();
+      expect(biggerButton).not.toBeNull();
       expect(penToolButton).not.toBeNull();
 
       penToolButton!.click();
@@ -3253,11 +3254,11 @@ describe("splatterboard shell", () => {
       await waitForToolbarUiPersistence();
       const writesAfterDuplicateColorClicks = storageWriteCount;
 
-      widthButton24!.click();
+      while (!biggerButton!.disabled) biggerButton!.click();
       await waitForToolbarUiPersistence();
       const writesAfterWidthChange = storageWriteCount;
 
-      widthButton24!.click();
+      biggerButton!.click();
       await waitForToolbarUiPersistence();
 
       expect(storageWriteCount).toBeGreaterThanOrEqual(1);

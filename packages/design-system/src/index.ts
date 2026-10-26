@@ -139,3 +139,5 @@ export {
   type ToolbarOptions,
   type ToolbarOrientation,
 } from "./view/toolbar/Toolbar";
+
+export { SizeStepper } from "./view/SizeStepper";

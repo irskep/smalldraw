@@ -579,17 +579,17 @@ export function createDocumentRuntimeController(options: {
       }
     },
     async createNewDocument(request: NewDocumentRequest): Promise<void> {
+      // Measure before the loading state removes the document's canvas host.
+      const measuredDocumentSize =
+        !options.hasExplicitSize && request.mode === "normal"
+          ? resolveDocumentSizeForImplicitCreate({
+              getDocumentSizeFromViewport: options.getDocumentSizeFromViewport,
+              fallbackDocumentSize: options.fallbackDocumentSizeForCreate,
+            })
+          : undefined;
       const cycleId = beginStartupCycle("create_document");
       clearRenderedDocumentSurface();
       try {
-        const measuredDocumentSize =
-          !options.hasExplicitSize && request.mode === "normal"
-            ? resolveDocumentSizeForImplicitCreate({
-                getDocumentSizeFromViewport:
-                  options.getDocumentSizeFromViewport,
-                fallbackDocumentSize: options.fallbackDocumentSizeForCreate,
-              })
-            : undefined;
         await documentSessionController.createNewDocument(
           request,
           measuredDocumentSize,
