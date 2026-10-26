@@ -1095,3 +1095,15 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.ds-splat-context__settings-rail .ds-size-stepper {
+  flex-direction: column-reverse;
+}
+.ds-splat-context__settings-rail .ds-size-stepper__indicator {
+  height: 20px;
+}
+
+.ds-splat-context__settings-rail .ds-color-picker__grid {
+  padding-top: var(--size-5);
+  border-top: var(--border-size-1) solid var(--ds-border);
+}

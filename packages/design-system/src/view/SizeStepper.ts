@@ -74,6 +74,7 @@ export class SizeStepper {
     const { value, disabled, widths } = this.state.get();
     this.smaller.setDisabled(disabled || this.next(-1) === undefined);
     this.bigger.setDisabled(disabled || this.next(1) === undefined);
+    this.el.setAttribute("aria-disabled", String(disabled));
     const max = widths.at(-1) ?? 200;
     this.indicator.style.setProperty(
       "--size-preview",

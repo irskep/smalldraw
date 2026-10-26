@@ -15,3 +15,14 @@
   border-radius: 50%;
   background: var(--ds-ink);
 }
+
+.ds-size-stepper[aria-disabled="true"] {
+  opacity: 0.3;
+}
+.ds-size-stepper .ds-icon-button:disabled {
+  opacity: 0.3;
+  background: transparent;
+}
+.ds-size-stepper[aria-disabled="true"] .ds-icon-button:disabled {
+  opacity: 1;
+}

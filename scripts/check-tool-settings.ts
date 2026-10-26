@@ -26,6 +26,19 @@ export async function checkToolSettings(
         ).kidsDrawApp;
         return app.store.getDocument().size;
       });
+    const stepper = page.locator(".ds-size-stepper");
+    const bigger = page.getByRole("button", { name: "Bigger", exact: true });
+    const smaller = page.getByRole("button", { name: "Smaller", exact: true });
+    expect((await bigger.boundingBox())!.y).toBeLessThan(
+      (await smaller.boundingBox())!.y,
+    );
+    await page.locator('[data-tool-family="fill"]:visible').first().click();
+    await expect(stepper).toHaveAttribute("aria-disabled", "true");
+    await expect(stepper).toHaveCSS("opacity", "0.3");
+    await expect(bigger).toBeDisabled();
+    await expect(smaller).toBeDisabled();
+    await page.locator('[data-tool-family="brush"]:visible').first().click();
+    await expect(stepper).toHaveCSS("opacity", "1");
     const original = await size();
     const host = await page
       .locator(".kids-draw-viewport")
@@ -70,10 +83,8 @@ export async function checkToolSettings(
     ).toHaveAttribute("aria-checked", "true");
     await page.keyboard.press("Escape");
     await page.reload();
-    await expect(
-      page.getByRole("button", { name: "Bigger", exact: true }),
-    ).toBeEnabled();
-    expect(await size()).toEqual(original);
+    await expect(page.locator(".kids-draw-frame")).toBeVisible();
+    await expect.poll(size).toEqual(original);
     const resizedHost = await page
       .locator(".kids-draw-viewport")
       .evaluate((el) => ({ width: el.clientWidth, height: el.clientHeight }));

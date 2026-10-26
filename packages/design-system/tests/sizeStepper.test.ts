@@ -22,9 +22,11 @@ test("steps through sizes, handles intermediate values, and respects limits and 
   bigger!.click();
   expect(values.at(-1)).toBe(8);
   view.setDisabled(true);
+  expect(view.el.getAttribute("aria-disabled")).toBe("true");
   expect(smaller!.disabled).toBeTrue();
   expect(bigger!.disabled).toBeTrue();
   view.setDisabled(false);
+  expect(view.el.getAttribute("aria-disabled")).toBe("false");
   smaller!.click();
   expect(values.at(-1)).toBe(4);
 });
