@@ -15,6 +15,7 @@ export interface KidsDrawToolbar {
   readonly responsiveLayoutOwner: "toolbar";
   bindUiState(state: ReadableAtom<ToolbarUiState>): () => void;
   setCollaborationStatus(status: CollaborationStatus): void;
+  setDocumentSize(size: { width: number; height: number }): void;
   syncLayout(): void;
   setCanvasContent(content: HTMLElement): void;
   setDocumentSlot(slot: SplatContextDocumentSlot): void;

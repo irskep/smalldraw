@@ -19,14 +19,65 @@ export interface SplatContextResponsiveUpdate extends SplatContextResponsiveStat
   effect: SplatContextResponsiveEffect;
 }
 
+export interface SettingsRailFit {
+  documentWidth: number;
+  documentHeight: number;
+  availableWidth: number;
+  availableHeight: number;
+  railWidth: number;
+  railHeight: number;
+}
+
+export function settingsRailFitsWithoutShrinking(
+  fit: SettingsRailFit,
+): boolean {
+  const {
+    documentWidth,
+    documentHeight,
+    availableWidth,
+    availableHeight,
+    railWidth,
+    railHeight,
+  } = fit;
+  if (
+    ![
+      documentWidth,
+      documentHeight,
+      availableWidth,
+      availableHeight,
+      railWidth,
+      railHeight,
+    ].every((value) => Number.isFinite(value) && value > 0)
+  )
+    return false;
+  if (availableHeight < railHeight || availableWidth <= railWidth) return false;
+  const scale = Math.min(
+    1,
+    availableWidth / documentWidth,
+    availableHeight / documentHeight,
+  );
+  const scaleWithRail = Math.min(
+    1,
+    (availableWidth - railWidth) / documentWidth,
+    availableHeight / documentHeight,
+  );
+  return scaleWithRail >= scale;
+}
+
 export function resolveSplatContextResponsiveState(
   width: number,
   height: number,
+  fit?: SettingsRailFit,
 ): SplatContextResponsiveState {
   return {
     layout: resolveSplatContextLayout(width, height),
     showMobileShare: shouldShowMobileShare(width),
-    showSettingsRail: width >= 1024 && height >= 700,
+    showSettingsRail:
+      resolveSplatContextLayout(width, height) === "desktop" &&
+      ((width >= 1024 &&
+        height >= 700 &&
+        (!fit || fit.availableHeight >= fit.railHeight)) ||
+        (fit !== undefined && settingsRailFitsWithoutShrinking(fit))),
   };
 }
 
@@ -47,8 +98,12 @@ export class SplatContextResponsiveController {
     return this.state;
   }
 
-  update(width: number, height: number): SplatContextResponsiveUpdate {
-    const nextState = resolveSplatContextResponsiveState(width, height);
+  update(
+    width: number,
+    height: number,
+    fit?: SettingsRailFit,
+  ): SplatContextResponsiveUpdate {
+    const nextState = resolveSplatContextResponsiveState(width, height, fit);
 
     if (
       nextState.layout === this.state.layout &&

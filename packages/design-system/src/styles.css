@@ -1107,3 +1107,17 @@ body {
   padding-top: var(--size-5);
   border-top: var(--border-size-1) solid var(--ds-border);
 }
+
+/* Keep the comparison canvas height constant when settings leave the top bar. */
+.ds-splat-context__top-actions {
+  min-height: calc(var(--ds-splat-context-toolbar-cell-size) + var(--size-2));
+}
+/* Hidden rail remains measurable, but takes no space and has no interactions. */
+.ds-splat-context__settings-rail[hidden] {
+  display: flex;
+  position: absolute;
+  right: 0;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+}

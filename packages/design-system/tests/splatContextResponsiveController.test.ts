@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   resolveSplatContextResponsiveState,
   SplatContextResponsiveController,
+  settingsRailFitsWithoutShrinking,
 } from "../src/view/SplatContextResponsiveController";
 
 describe("SplatContextResponsiveController", () => {
@@ -123,4 +124,52 @@ test("settings rail requires both enough width and height", () => {
   const controller = new SplatContextResponsiveController();
   expect(controller.update(1280, 800).showSettingsRail).toBeTrue();
   expect(controller.update(1280, 699).showSettingsRail).toBeFalse();
+});
+
+const portraitFit = {
+  documentWidth: 600,
+  documentHeight: 900,
+  availableWidth: 780,
+  availableHeight: 540,
+  railWidth: 112,
+  railHeight: 470,
+};
+test("portrait pages expose spare horizontal space below the wide breakpoint", () => {
+  expect(settingsRailFitsWithoutShrinking(portraitFit)).toBeTrue();
+  expect(
+    resolveSplatContextResponsiveState(900, 700, portraitFit).showSettingsRail,
+  ).toBeTrue();
+  expect(
+    resolveSplatContextResponsiveState(900, 700, {
+      ...portraitFit,
+      documentWidth: 1200,
+      documentHeight: 600,
+    }).showSettingsRail,
+  ).toBeFalse();
+});
+test("rail requires height and never shrinks the fitted page", () => {
+  expect(
+    settingsRailFitsWithoutShrinking({ ...portraitFit, availableHeight: 460 }),
+  ).toBeFalse();
+  expect(
+    settingsRailFitsWithoutShrinking({ ...portraitFit, availableWidth: 472 }),
+  ).toBeTrue();
+  expect(
+    settingsRailFitsWithoutShrinking({ ...portraitFit, availableWidth: 471 }),
+  ).toBeFalse();
+  expect(
+    settingsRailFitsWithoutShrinking({ ...portraitFit, documentWidth: 0 }),
+  ).toBeFalse();
+});
+test("small native drawings can also use spare space without being enlarged", () => {
+  expect(
+    settingsRailFitsWithoutShrinking({
+      ...portraitFit,
+      documentWidth: 300,
+      documentHeight: 300,
+    }),
+  ).toBeTrue();
+  expect(
+    resolveSplatContextResponsiveState(390, 844, portraitFit).showSettingsRail,
+  ).toBeFalse();
 });

@@ -48,9 +48,11 @@ export class LayoutController {
   private displayHeight: number;
   private currentLayoutProfile: ResponsiveLayoutProfile;
   private layoutRafHandle: number | null = null;
+  private readonly viewportObserver: ResizeObserver;
 
   constructor(private readonly options: LayoutControllerDependencies) {
     const initialSize = options.getSize();
+    options.toolbar.setDocumentSize(initialSize);
     this.displayWidth = initialSize.width;
     this.displayHeight = initialSize.height;
     this.currentLayoutProfile = resolveLayoutProfile(
@@ -63,6 +65,10 @@ export class LayoutController {
     ) {
       this.options.runtimeStore.$layoutProfile.set(this.currentLayoutProfile);
     }
+    this.viewportObserver = new ResizeObserver(() =>
+      this.scheduleResponsiveLayout(),
+    );
+    this.viewportObserver.observe(options.stage.viewportHost);
     this.logLayoutTransition({
       reason: "init",
       previousProfile: null,
@@ -75,6 +81,7 @@ export class LayoutController {
   }
 
   applyToolbarLayoutProfile(_profile: ResponsiveLayoutProfile): void {
+    this.options.toolbar.setDocumentSize(this.options.getSize());
     this.options.toolbar.syncLayout();
   }
 
@@ -120,6 +127,10 @@ export class LayoutController {
       return;
     }
     this.options.setSize({ width: nextWidth, height: nextHeight });
+    this.options.toolbar.setDocumentSize({
+      width: nextWidth,
+      height: nextHeight,
+    });
     this.options.stage.setSceneDimensions(nextWidth, nextHeight);
     this.options.pipeline.updateViewport(nextWidth, nextHeight);
     this.options.renderLoopController.updateRenderIdentity();
@@ -156,6 +167,7 @@ export class LayoutController {
   }
 
   dispose(): void {
+    this.viewportObserver.disconnect();
     if (this.layoutRafHandle !== null) {
       this.cancelAnimationFrameHandle(this.layoutRafHandle);
       this.layoutRafHandle = null;
@@ -244,6 +256,7 @@ export class LayoutController {
     options: { refreshWithLatestSizeOnNextFrame: boolean },
   ): void {
     this.publishViewportMetrics(logicalWidth, logicalHeight);
+    this.options.toolbar.setDocumentSize(this.options.getSize());
     this.options.toolbar.syncLayout();
     if (!options.refreshWithLatestSizeOnNextFrame) {
       return;
@@ -254,6 +267,7 @@ export class LayoutController {
       }
       const latestSize = this.options.getSize();
       this.publishViewportMetrics(latestSize.width, latestSize.height);
+      this.options.toolbar.setDocumentSize(this.options.getSize());
       this.options.toolbar.syncLayout();
     });
   }

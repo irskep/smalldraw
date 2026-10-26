@@ -156,6 +156,10 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
     );
   }
 
+  setDocumentSize(size: { width: number; height: number }): void {
+    this.context.setDocumentSize(size);
+  }
+
   syncLayout(): void {
     this.context.syncLayout();
   }

@@ -17,7 +17,10 @@ import { checkDrawingUrls } from "./check-drawing-urls";
 import { checkGuestSharing } from "./check-guest-sharing";
 import { checkPortalRouting } from "./check-portal-routing";
 import { checkStampInteraction } from "./check-stamp-interaction";
-import { checkToolSettings } from "./check-tool-settings";
+import {
+  checkAspectRatioSettings,
+  checkToolSettings,
+} from "./check-tool-settings";
 
 await opaque.ready;
 
@@ -826,6 +829,7 @@ try {
       await checkPreviewDoesNotMoveCanvas(privatePage, "webkit");
       await checkOtherToolPreviews(privatePage, "webkit");
       await checkToolSettings(safari, origin);
+      await checkAspectRatioSettings(safari, origin);
       await checkRandomize(privatePage, "webkit");
       await checkStampInteraction(privatePage, "webkit");
       await checkCaptureLoss(privatePage, "webkit");
@@ -840,6 +844,7 @@ try {
     await checkPreviewDoesNotMoveCanvas(page, "chromium");
     await checkOtherToolPreviews(page, "chromium");
     await checkToolSettings(browser, origin);
+    await checkAspectRatioSettings(browser, origin);
     await checkRandomize(page, "chromium");
     await checkColoringbook(browser, origin, "chromium");
     await checkColoringTopics(browser, origin, "chromium");

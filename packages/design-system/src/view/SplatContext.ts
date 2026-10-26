@@ -136,6 +136,11 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   );
   private colorPicker!: ColorPicker;
   private sizeStepper!: SizeStepper;
+  private railSizeStepper!: SizeStepper;
+  private readonly documentSizeStore = atom<{
+    width: number;
+    height: number;
+  } | null>(null);
   private inlineColors!: ColorSwatchGrid;
   private settingsRail?: HTMLDivElement;
   private compactSizeHost?: HTMLDivElement;
@@ -217,10 +222,12 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   setStrokeWidths(widths: readonly number[]): void {
     this.sizeStepper.setStrokeWidths(widths);
+    this.railSizeStepper.setStrokeWidths(widths);
   }
 
   setSelectedStrokeWidth(width: number): void {
     this.sizeStepper.setSelectedStrokeWidth(width);
+    this.railSizeStepper.setSelectedStrokeWidth(width);
   }
 
   setColorPickerDisabled(disabled: boolean): void {
@@ -230,6 +237,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   setStrokePickerDisabled(disabled: boolean): void {
     this.sizeStepper.setDisabled(disabled);
+    this.railSizeStepper.setDisabled(disabled);
   }
 
   setSyncState(state: SyncIndicatorState, description?: string): void {
@@ -319,6 +327,14 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.toolStatePreviewStore.set(model);
   }
 
+  setDocumentSize(size: { width: number; height: number }): void {
+    const current = this.documentSizeStore.get();
+    if (current?.width === size.width && current?.height === size.height)
+      return;
+    this.documentSizeStore.set(size);
+    this.scheduleResizeSync();
+  }
+
   syncLayout(): void {
     this.scheduleResizeSync();
   }
@@ -372,10 +388,17 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       strokeWidths: this.opts.strokeWidths,
       selectedStrokeWidth: this.opts.selectedStrokeWidth,
     });
-    this.sizeStepper.setOnSelect((width) => {
+    this.railSizeStepper = new SizeStepper({
+      strokeWidths: this.opts.strokeWidths,
+      selectedStrokeWidth: this.opts.selectedStrokeWidth,
+    });
+    const selectWidth = (width: number) => {
+      this.setSelectedStrokeWidth(width);
       this.setStatus(`Stroke width: ${width}px`);
       this.opts.onSelectStrokeWidth?.(width);
-    });
+    };
+    this.sizeStepper.setOnSelect(selectWidth);
+    this.railSizeStepper.setOnSelect(selectWidth);
 
     this.desktopMenu = createDropdownMenu({
       triggerKind: "button",
@@ -492,7 +515,27 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private syncResponsiveLayout(): void {
     const rect = this.el.getBoundingClientRect();
     this.showDesktopHistoryStore.set(rect.width >= 900);
-    const update = this.responsiveController.update(rect.width, rect.height);
+    const documentSize = this.documentSizeStore.get();
+    const rail = this.settingsRail?.getBoundingClientRect();
+    const canvas = this.canvasHost?.getBoundingClientRect();
+    // Recover the same unreserved rectangle in both states: no feedback loop.
+    const railIsVisible = this.settingsRail && !this.settingsRail.hidden;
+    const fit =
+      documentSize && rail && canvas
+        ? {
+            documentWidth: documentSize.width,
+            documentHeight: documentSize.height,
+            availableWidth: canvas.width + (railIsVisible ? rail.width : 0),
+            availableHeight: canvas.height,
+            railWidth: rail.width,
+            railHeight: rail.height,
+          }
+        : undefined;
+    const update = this.responsiveController.update(
+      rect.width,
+      rect.height,
+      fit,
+    );
 
     if (update.effect === "sync-only") {
       this.syncVisibleResponsiveState();
@@ -502,6 +545,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
     if (update.effect === "rebuild") {
       this.rebuild();
+      this.scheduleResizeSync();
     } else {
       this.scene.dataset.mobileLayout = update.layout;
       this.syncVisibleResponsiveState();
@@ -525,13 +569,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.colorPicker.el.hidden = showRail;
     if (showRail) this.colorPicker.setOpen(false);
     if (this.settingsRail) this.settingsRail.hidden = !showRail;
-    const sizeHost = showRail ? this.settingsRail : this.compactSizeHost;
-    if (sizeHost && this.sizeStepper.el.parentElement !== sizeHost)
-      mount(
-        sizeHost,
-        this.sizeStepper,
-        sizeHost.firstElementChild ?? undefined,
-      );
+    if (this.compactSizeHost) this.compactSizeHost.hidden = showRail;
     const showHistory = this.showDesktopHistoryStore.get();
     if (this.desktopHistoryActions)
       this.desktopHistoryActions.hidden = !showHistory;
@@ -825,6 +863,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.settingsRail = el("div.ds-splat-context__settings-rail", {
       hidden: true,
     }) as HTMLDivElement;
+    mount(this.settingsRail, this.railSizeStepper);
     mount(this.settingsRail, this.inlineColors);
     return this.settingsRail;
   }
