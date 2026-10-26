@@ -8,9 +8,11 @@ assets = root / "assets"
 previews = {page["preview"].removeprefix("coloring/") for page in json.loads((root / "pdfPages.json").read_text())}
 previews.update("pavelkukov/" + page["preview"] for page in json.loads((root / "svgPages.json").read_text())["pages"])
 for book in ("pdr-v1", "pdr-v2"):
-    previews.update(str(path.relative_to(assets)) for path in (assets / book).glob("page-*.png"))
+    previews.update(str(path.relative_to(assets)) for path in (assets / book).glob("page-*.webp"))
 for preview in sorted(previews):
     path = assets / preview
+    if "-thumb-" in path.stem:
+        continue
     with Image.open(path) as original:
         for size in (256, 512):
             output = path.with_name(f"{path.stem}-thumb-{size}.webp")

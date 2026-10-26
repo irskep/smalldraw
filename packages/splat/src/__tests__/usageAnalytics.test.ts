@@ -17,7 +17,7 @@ function action(
     presentation: {
       documentType: "coloring",
       referenceImage: {
-        src: "coloring/pdr-v1/page-001.png",
+        src: "coloring/pdr-v1/page-001.webp",
         composite: "over-drawing",
       },
     },

@@ -2144,7 +2144,7 @@ describe("splatterboard shell", () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
 
-    const page = getColoringPageById("coloring/pdr-v1/page-001.png");
+    const page = getColoringPageById("coloring/pdr-v1/page-001.webp");
     expect(page).not.toBeNull();
 
     const core = createMockCore({ width: 640, height: 480 });
@@ -2727,7 +2727,7 @@ describe("splatterboard shell", () => {
   test("landscape coloring pages create landscape documents", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
-    const landscapePage = getColoringPageById("coloring/pdr-v1/page-009.png");
+    const landscapePage = getColoringPageById("coloring/pdr-v1/page-009.webp");
     expect(landscapePage).not.toBeNull();
 
     const app = await createKidsDrawApp({
@@ -2756,7 +2756,7 @@ describe("splatterboard shell", () => {
       volumeButton!.click();
 
       const pageButton = container.querySelector(
-        '[data-new-document-page="coloring/pdr-v1/page-009.png"]',
+        '[data-new-document-page="coloring/pdr-v1/page-009.webp"]',
       ) as HTMLButtonElement | null;
       expect(pageButton).not.toBeNull();
       pageButton!.click();
@@ -2799,7 +2799,7 @@ describe("splatterboard shell", () => {
       expect(volumeButton).not.toBeNull();
       volumeButton!.click();
       const pageButton = container.querySelector(
-        '[data-new-document-page="coloring/pdr-v1/page-009.png"]',
+        '[data-new-document-page="coloring/pdr-v1/page-009.webp"]',
       ) as HTMLButtonElement | null;
       expect(pageButton).not.toBeNull();
       pageButton!.click();

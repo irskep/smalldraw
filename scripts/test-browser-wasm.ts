@@ -436,13 +436,35 @@ try {
     ).status,
   ).toBe(304);
   browser = await chromium.launch();
-  await checkAdminModeration(
-    browser,
-    origin,
-    env.DATABASE_URL,
-    env.AUTOMERGE_DB_PATH,
-  );
-  if (process.env.BROWSER_SUITE === "moderation") {
+  if (process.env.BROWSER_SUITE !== "assets") {
+    await checkAdminModeration(
+      browser,
+      origin,
+      env.DATABASE_URL,
+      env.AUTOMERGE_DB_PATH,
+    );
+  }
+  if (process.env.BROWSER_SUITE === "assets") {
+    const safari = await webkit.launch();
+    try {
+      for (const [engine, name] of [
+        [browser, "chromium"],
+        [safari, "webkit"],
+      ] as const) {
+        await checkColoringbook(engine, origin, name);
+        await checkColoringEntry(engine, origin, name);
+        const tab = await engine.newPage();
+        try {
+          await tab.goto(origin);
+          await checkStampInteraction(tab, name);
+        } finally {
+          await tab.close();
+        }
+      }
+    } finally {
+      await safari.close();
+    }
+  } else if (process.env.BROWSER_SUITE === "moderation") {
     const safari = await webkit.launch();
     try {
       await checkAdminModeration(

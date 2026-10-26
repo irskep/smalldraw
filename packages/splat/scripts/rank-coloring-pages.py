@@ -17,7 +17,9 @@ for filename in ("pdfPages.json", "svgPages.json"):
 scores = {}
 for path in sorted((root / "books").glob("*.json")):
     source = json.loads(path.read_text())
-    for image in sorted((root / "assets" / source["slug"]).glob("page-*.png")):
+    for image in sorted((root / "assets" / source["slug"]).glob("page-*.webp")):
+        if "-thumb-" in image.stem:
+            continue
         scores[f"coloring/{source['slug']}/{image.name}"] = complexity_score(image.read_bytes())
 (root / "rasterComplexity.json").write_text(json.dumps(scores, indent=2) + "\n")
 print("Refreshed coloring-page complexity scores")

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+from lossless_webp import encode_webp
 import argparse
 import json
 import re
@@ -540,7 +541,7 @@ def render_command(args: argparse.Namespace) -> None:
 
     assets_dir = ASSETS_DIR / manifest["slug"]
     assets_dir.mkdir(parents=True, exist_ok=True)
-    for existing_png in assets_dir.glob("page-*.png"):
+    for existing_png in assets_dir.glob("page-*.webp"):
         existing_png.unlink()
 
     page_count = manifest["page_count"]
@@ -566,6 +567,9 @@ def render_command(args: argparse.Namespace) -> None:
             transparent_lines=bool(args.transparent_lines),
             normalize_black=bool(args.normalize_black),
         )
+
+        output_png.with_suffix(".webp").write_bytes(encode_webp(output_png.read_bytes()))
+        output_png.unlink()
 
     manifest["render_strategy"] = strategy
     write_json(manifest_path, manifest)

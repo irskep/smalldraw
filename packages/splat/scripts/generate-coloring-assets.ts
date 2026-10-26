@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,24 +33,24 @@ type GeneratedEntry = {
 };
 
 function getPageNumber(filename: string): number | null {
-  const match = /^page-(\d{3})\.png$/.exec(filename);
+  const match = /^page-(\d{3})\.webp$/.exec(filename);
   if (!match) {
     return null;
   }
   return Number.parseInt(match[1], 10);
 }
 
-function getPngSize(filePath: string): { width: number; height: number } {
-  const buffer = readFileSync(filePath);
-  const signature = "89504e470d0a1a0a";
-  if (
-    buffer.length < 24 ||
-    buffer.subarray(0, 8).toString("hex") !== signature
-  ) {
-    throw new Error(`Not a valid PNG file: ${filePath}`);
-  }
-  const width = buffer.readUInt32BE(16);
-  const height = buffer.readUInt32BE(20);
+function getImageSize(filePath: string): { width: number; height: number } {
+  const [width, height] = execFileSync(
+    "magick",
+    ["identify", "-format", "%w %h", filePath],
+    { encoding: "utf8" },
+  )
+    .trim()
+    .split(" ")
+    .map(Number);
+  if (!(width > 0 && height > 0))
+    throw new Error(`Invalid image dimensions: ${filePath}`);
   return { width, height };
 }
 
@@ -90,9 +91,9 @@ for (const manifestFile of manifestFiles) {
     }
     const page = String(pageNumber).padStart(3, "0");
     const importName = `${importPrefix}_page_${page}`;
-    const size = getPngSize(resolve(volumeDir, pageFile));
+    const size = getImageSize(resolve(volumeDir, pageFile));
     entries.push({
-      id: `coloring/${manifest.slug}/page-${page}.png`,
+      id: `coloring/${manifest.slug}/page-${page}.webp`,
       volumeId: manifest.slug,
       volumeLabel: manifest.title,
       sourceUrl: manifest.url,

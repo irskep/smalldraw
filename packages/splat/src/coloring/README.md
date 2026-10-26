@@ -13,8 +13,8 @@ composited artwork; removing those shapes would expose hidden strokes.
 New imported documents have a maximum dimension of 1600 pixels to bound fill work.
 Imports measure visible ink after compositing and trim blank margins, retaining
 a 3% margin where the source has room. The gallery and picker use separate
-768-pixel transparent PNG previews rendered from the originals; the editor uses
-the full SVG or PNG artwork.
+768-pixel transparent lossless WebP previews rendered from the originals; the editor uses
+the full SVG or WebP artwork.
 
 ## Public gallery
 
@@ -45,14 +45,14 @@ artwork and attribution, corrects the dove, camel, and SS Edmund Fitzgerald orie
 author credits, and reviewed page numbers (one-based). It also accepts individual
 SVG and raster sheets; `format` identifies those sources. The importer uses a pinned
 PyMuPDF environment through uv. It rejects changed downloads. Vector pages stay SVG unless a dense drawing is over 300 KB and a PNG is less
-than half its size. Pages containing bitmap images become compact grayscale+alpha PNGs, with white paper transparent and
+than half its size. Pages containing bitmap images become lossless WebP images, with white paper transparent and
 black line art. Both formats use the same catalog, picker, and fill path.
 
 `mise run //packages/splat:coloring:import-pdf` extracts the selected drawing pages,
 converts white fills to transparent, embeds source metadata, and writes
 `pdfPages.json`. It also assembles the downloadable artwork credits. Review
 rendered pages and test filling, saving, and reopening before adding a source.
-The older PNG pipeline remains for the existing Public Domain Review assets.
+The older raster pipeline remains for the existing Public Domain Review assets.
 
 To remove a drawing, remove its source page number from `pages` and rerun the
 import. Asset names use original page numbers so removing one does not renumber
@@ -177,7 +177,7 @@ mise run format:fix
 
 Commit the generated thumbnails with the catalog. Tests require both compact
 sizes for every visible page, and the production build copies WebP alongside
-PNG/SVG assets. Full drawing assets and full-size previews stay unchanged.
+SVG assets. Full raster artwork and previews also use lossless WebP. The import tasks require `cwebp` and preserve all alpha levels with `-lossless -exact`; no resolution is discarded. SVGs retain their vector artwork.
 
 The rank task refreshes complexity scores without reimporting sources. Importers
 calculate the same score for new PDF/SVG artwork. It counts ink boundaries at a

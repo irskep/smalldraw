@@ -51,8 +51,8 @@ function PageCard({
           key={page.id}
           loading={eager ? "eager" : "lazy"}
           decoding="async"
-          src={assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-256.webp"))}
-          srcSet={`${assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-256.webp"))} 1x, ${assetUrl(page.previewSrc.replace(/\.png$/, "-thumb-512.webp"))} 2x, ${assetUrl(page.previewSrc)} 3x`}
+          src={assetUrl(page.previewSrc.replace(/\.webp$/, "-thumb-256.webp"))}
+          srcSet={`${assetUrl(page.previewSrc.replace(/\.webp$/, "-thumb-256.webp"))} 1x, ${assetUrl(page.previewSrc.replace(/\.webp$/, "-thumb-512.webp"))} 2x, ${assetUrl(page.previewSrc)} 3x`}
           alt={label}
           width={page.size.width}
           height={page.size.height}

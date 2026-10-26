@@ -24,7 +24,7 @@ def process_image(input_path: Path, output_path: Path, passes: int) -> None:
     for _ in range(passes):
         cmd.extend(["(", "+clone", ")", "-compose", "Multiply", "-composite"])
 
-    cmd.append(str(output_path))
+    cmd.extend(["-define", "webp:lossless=true", "-define", "webp:exact=true", str(output_path)])
     run(cmd)
 
 
@@ -70,11 +70,11 @@ def main() -> None:
             "Useful as a postprocess after manual Retrobatch cleanup."
         )
     )
-    parser.add_argument("--input-dir", required=True, help="Folder containing input PNGs")
+    parser.add_argument("--input-dir", required=True, help="Folder containing input artwork")
     parser.add_argument(
         "--pattern",
-        default="page-*.png",
-        help="Glob pattern inside input dir (default: page-*.png)",
+        default="page-*.webp",
+        help="Glob pattern inside input dir (default: page-*.webp)",
     )
     parser.add_argument(
         "--passes",

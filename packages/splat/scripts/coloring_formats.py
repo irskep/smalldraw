@@ -1,4 +1,6 @@
 """Keep PDF vectors as SVG and raster pages as compact transparent PNGs."""
+import io
+from PIL import Image
 import re
 import struct
 import zlib
@@ -16,6 +18,12 @@ def complexity_score(image):
     Thick simple outlines have few boundaries; dense engravings have many.
     Composite on white first so transparent and opaque previews compare equally.
     """
+    # MuPDF does not decode WebP directly; preserve the same ranking renderer.
+    if image[:4] == b"RIFF":
+        with Image.open(io.BytesIO(image)) as raster:
+            buffer = io.BytesIO()
+            raster.save(buffer, format="PNG")
+            image = buffer.getvalue()
     with pymupdf.open(stream=image, filetype="png") as document:
         page = document[0]
         scale = 256 / max(page.rect.width, page.rect.height)

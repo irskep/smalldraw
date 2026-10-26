@@ -105,7 +105,7 @@ describe("NewDocumentDialogView", () => {
       ".ds-dialog-scaffold__subtitle",
     ) as HTMLElement | null;
     const pageButton = dialog.el.querySelector(
-      '[data-new-document-page="coloring/pdr-v1/page-001.png"]',
+      '[data-new-document-page="coloring/pdr-v1/page-001.webp"]',
     ) as HTMLButtonElement | null;
 
     expect(summaryTitle?.textContent).toBe("Public Domain Review");

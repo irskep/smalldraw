@@ -15,7 +15,7 @@ export function ArtTable({ href }: { href: string }) {
       <figure className="art-table__example">
         <img
           className="art-table__preview"
-          src={appPath("drawing-preview.png")}
+          src={appPath("drawing-preview.webp")}
           fetchPriority="high"
           width="1280"
           height="800"

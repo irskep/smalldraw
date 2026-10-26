@@ -1,9 +1,24 @@
+import io
+from PIL import Image
+from lossless_webp import encode_webp
 import json
 import unittest
 import pymupdf
 from coloring_formats import artwork_bounds, complexity_score, frame_svg, prepare_page, render_page
 
 class ColoringFormatsTest(unittest.TestCase):
+    def test_webp_preserves_all_alpha_levels_and_transparent_rgb(self):
+        original = Image.new("RGBA", (256, 2))
+        original.putdata([(0, 0, 0, alpha) for alpha in range(256)] +
+                         [(alpha, 255 - alpha, 47, alpha) for alpha in range(256)])
+        png = io.BytesIO()
+        original.save(png, format="PNG")
+        encoded = encode_webp(png.getvalue())
+        with Image.open(io.BytesIO(encoded)) as decoded:
+            self.assertEqual(decoded.size, original.size)
+            self.assertEqual(decoded.convert("RGBA").tobytes(), original.tobytes())
+        self.assertEqual(complexity_score(png.getvalue()), complexity_score(encoded))
+
     def test_complexity_counts_detail_not_solid_ink(self):
         scores = []
         for dense in (False, True):

@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import time
 import pymupdf
+from lossless_webp import encode_webp
 from coloring_formats import complexity_score, artwork_bounds, prepare_page, render_page, render_png
 
 splat = Path(__file__).resolve().parents[1]
@@ -56,12 +57,14 @@ for source in sources:
                     png, png_width, png_height = render_png(page, artwork_bounds(page), 1600, metadata)
                     if len(png) < len(data) / 2:
                         data, extension, width, height = png, "png", png_width, png_height
+                if extension == "png":
+                    data, extension = encode_webp(data), "webp"
                 asset_number = review.get("assetNumber", pdf_page)
                 filename = f"page-{asset_number:03d}.{extension}"
                 (output / filename).write_bytes(data)
-                preview_filename = f"page-{asset_number:03d}-preview.png"
+                preview_filename = f"page-{asset_number:03d}-preview.webp"
                 preview, _, _ = render_png(page, artwork_bounds(page), 768, metadata)
-                (output / preview_filename).write_bytes(preview)
+                (output / preview_filename).write_bytes(encode_webp(preview))
                 written.update((filename, preview_filename))
                 pages.append({"id": f"coloring/{source['id']}/{filename}",
                     "preview": f"coloring/{source['id']}/{preview_filename}",
@@ -74,7 +77,7 @@ for source in sources:
     credits.append(f"{source['label']} pages — {source['author']}\n"
                    f"Source: {source['sourceUrl']}\n"
                    f"License: {source['license']} — {source['licenseUrl']}\n"
-                   "Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; PNG previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.\n"
+                   "Changes: artwork extracted; reviewed crops and rotations applied; blank margins trimmed; Lossless WebP previews rendered; white paper made transparent; black line art. Dense vectors may be rasterized.\n"
                    "Adapted artwork retains the source license or public-domain status.\n")
     print(f"Imported {source['id']}: {len(source['pages'])} pages", flush=True)
 (splat / "src/coloring/pdfPages.json").write_text(json.dumps(pages, indent=2) + "\n")

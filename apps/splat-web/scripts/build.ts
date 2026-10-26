@@ -45,6 +45,8 @@ for await (const entry of new Bun.Glob(
   onlyFiles: true,
 })) {
   const volumeId = entry.split("/")[0];
+  // Raw ingestion inputs are not published artwork.
+  if (volumeId.endsWith("-in") || volumeId.endsWith("-input")) continue;
   await $`mkdir -p dist/coloring/${volumeId}`;
   await $`cp ${coloringAssetsDir}/${entry} dist/coloring/${entry}`;
 }

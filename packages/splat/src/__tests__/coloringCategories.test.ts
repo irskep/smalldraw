@@ -16,6 +16,21 @@ describe("coloring categories", () => {
     for (const category of categories)
       expect(category.pages.length).toBeGreaterThan(0);
   });
+  test("every catalog asset and preview exists", () => {
+    for (const page of getColoringPages()) {
+      for (const src of [page.src, page.previewSrc]) {
+        expect(
+          existsSync(
+            resolve(
+              import.meta.dir,
+              "../coloring/assets",
+              src.replace(/^coloring\//, ""),
+            ),
+          ),
+        ).toBe(true);
+      }
+    }
+  });
   test("every gallery page ships both compact thumbnail sizes", () => {
     for (const page of getColoringCategories().flatMap(
       (category) => category.pages,
@@ -23,7 +38,7 @@ describe("coloring categories", () => {
       for (const size of [256, 512]) {
         const path = page.previewSrc
           .replace(/^coloring\//, "")
-          .replace(/\.png$/, `-thumb-${size}.webp`);
+          .replace(/\.webp$/, `-thumb-${size}.webp`);
         expect(
           existsSync(resolve(import.meta.dir, "../coloring/assets", path)),
         ).toBe(true);

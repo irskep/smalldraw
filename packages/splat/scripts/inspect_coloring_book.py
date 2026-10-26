@@ -40,7 +40,7 @@ def main() -> None:
     for page in pages:
         index = int(page["index"])
         raw_path = raw_dir / f"page-{index:03d}.png"
-        rendered_path = rendered_dir / f"page-{index + 1:03d}.png"
+        rendered_path = rendered_dir / f"page-{index + 1:03d}.webp"
         if not raw_path.exists() or not rendered_path.exists():
             continue
 

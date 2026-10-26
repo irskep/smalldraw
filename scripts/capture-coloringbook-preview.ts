@@ -65,7 +65,7 @@ try {
     import.meta.dir,
     "../apps/app/public/coloringbook-preview.webp",
   );
-  await $`cwebp -quiet -lossless ${pngPath} -o ${output}`;
+  await $`cwebp -quiet -lossless -exact -m 6 ${pngPath} -o ${output}`;
 } finally {
   await browser.close();
 }

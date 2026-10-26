@@ -23,16 +23,16 @@ run = "python3 ./scripts/inspect_coloring_book.py"
 run = "python3 ./scripts/postprocess_black_levels.py"
 
 [tasks."coloring:import-svg"]
-run = "uv run --with pymupdf==1.26.7 python ./scripts/import-svg-coloring.py"
+run = "uv run --with pymupdf==1.26.7 --with pillow==12.0.0 python ./scripts/import-svg-coloring.py"
 
 [tasks."coloring:import-pdf"]
-run = "uv run --with pymupdf==1.26.7 python ./scripts/import-pdf-coloring.py"
+run = "uv run --with pymupdf==1.26.7 --with pillow==12.0.0 python ./scripts/import-pdf-coloring.py"
 
 [tasks."coloring:test-pipeline"]
-run = "uv run --with pymupdf==1.26.7 python scripts/test_coloring_formats.py"
+run = "uv run --with pymupdf==1.26.7 --with pillow==12.0.0 python scripts/test_coloring_formats.py"
 
 [tasks."coloring:rank"]
-run = "uv run --with pymupdf==1.26.7 python scripts/rank-coloring-pages.py"
+run = "uv run --with pymupdf==1.26.7 --with pillow==12.0.0 python scripts/rank-coloring-pages.py"
 
 [tasks."coloring:thumbnails"]
 run = "uv run --with pillow==12.0.0 python scripts/build-coloring-thumbnails.py"

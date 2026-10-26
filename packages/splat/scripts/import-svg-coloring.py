@@ -1,6 +1,7 @@
 """Import a checked-out pavelkukov/coloring-pages collection, retaining vector artwork.
 Usage: mise run //packages/splat:coloring:import-svg -- /path/to/coloring-pages
 """
+from lossless_webp import encode_webp
 from coloring_formats import complexity_score, frame_svg
 import json
 from pathlib import Path
@@ -34,8 +35,8 @@ for filename, metadata in sorted(collection.items()):
         text = text.replace('id="layer1"', 'id="layer1" transform="translate(0 210) rotate(-90)"')
     text, width, height, preview = frame_svg(text)
     (destination / filename).write_text(text)
-    preview_filename = Path(filename).stem + "-preview.png"
-    (destination / preview_filename).write_bytes(preview)
+    preview_filename = Path(filename).stem + "-preview.webp"
+    (destination / preview_filename).write_bytes(encode_webp(preview))
     pages.append({
         "filename": filename,
         "preview": preview_filename,
@@ -57,7 +58,7 @@ Source revision: {revision}
 Collection license: CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
 
 Margins are trimmed. The dove, camel, and SS Edmund Fitzgerald are rotated
-90 degrees counterclockwise. PNG previews are rendered with transparent backgrounds.
+90 degrees counterclockwise. Lossless WebP previews are rendered with transparent backgrounds.
 Labels and browsing categories
 are supplied by this app. Original artist and source information is retained in
 each SVG and in Acknowledgments.md alongside these files. The blank sheet and
