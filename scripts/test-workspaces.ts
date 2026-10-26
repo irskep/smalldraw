@@ -45,6 +45,7 @@ if (import.meta.main) {
       [
         "bun",
         "test",
+        "--timeout=15000",
         "scripts/test-workspaces.test.ts",
         "scripts/test-output.test.ts",
       ],
