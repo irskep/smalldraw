@@ -17,6 +17,7 @@ import { checkDrawingUrls } from "./check-drawing-urls";
 import { checkGuestSharing } from "./check-guest-sharing";
 import { checkPortalRouting } from "./check-portal-routing";
 import { checkStampInteraction } from "./check-stamp-interaction";
+import { checkTileSeams } from "./check-tile-seams";
 import {
   checkAspectRatioSettings,
   checkToolSettings,
@@ -480,6 +481,7 @@ try {
         [browser, "chromium"],
         [safari, "webkit"],
       ] as const) {
+        await checkTileSeams(engine, name);
         await checkColoringbook(engine, origin, name);
         await checkColoringEntry(engine, origin, name);
         const tab = await engine.newPage();
@@ -783,6 +785,7 @@ try {
       await checkPortalRouting(safari, origin);
       await checkColoringbook(safari, origin, "webkit");
       await checkColoringTopics(safari, origin, "webkit");
+      await checkTileSeams(safari, "webkit");
       await checkColoringEntry(safari, origin, "webkit");
       await checkDrawingUrls(safari, origin);
       await checkGuestSharing(safari, origin);
@@ -909,6 +912,7 @@ try {
     await checkColoringbook(browser, origin, "chromium");
     await checkColoringTopics(browser, origin, "chromium");
     await checkDrawingUrls(browser, origin);
+    await checkTileSeams(browser, "chromium");
     await checkColoringEntry(browser, origin, "chromium");
     await checkStampInteraction(page, "chromium");
     await checkCaptureLoss(page, "chromium");

@@ -28,8 +28,6 @@
   left: 0;
   top: 0;
   overflow: hidden;
-  transform: scale(1);
-  transform-origin: top left;
 }
 
 .kids-draw-layer {

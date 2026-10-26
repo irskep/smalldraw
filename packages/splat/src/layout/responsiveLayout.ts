@@ -184,7 +184,9 @@ export function applyResponsiveLayout(params: {
 
   if (nextScale !== displayScale) {
     nextDisplayScale = nextScale;
-    sceneRoot.style.transform = `scale(${nextDisplayScale})`;
+    // Layout scaling keeps neighboring canvas edges aligned in WebKit. A CSS
+    // transform antialiases each tile edge separately, leaving visible seams.
+    sceneRoot.style.zoom = String(nextDisplayScale);
   }
 
   const nextWidthPx = Math.max(1, Math.round(width * nextScale));
