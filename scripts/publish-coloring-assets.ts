@@ -5,7 +5,15 @@ import { S3Client } from "bun";
 import type { PublishedAsset } from "./prepare-coloring-assets";
 
 const bucket = "splatterboard-assets";
-const origin = "https://assets.splatterboard.app";
+import {
+  requestOrigin,
+  verificationPrefix,
+  planAssetVerification,
+  fetchPublicAsset,
+} from "./coloring-asset-verification";
+
+const audit = process.argv.includes("--audit");
+const started = performance.now();
 const required = [
   "R2_ACCOUNT_ID",
   "R2_ACCESS_KEY_ID",
@@ -37,12 +45,29 @@ do {
     });
   continuationToken = page.isTruncated ? page.nextContinuationToken : undefined;
 } while (continuationToken);
+const records = new Set<string>();
+if (!audit) {
+  do {
+    const page = await client.list({
+      prefix: verificationPrefix,
+      continuationToken,
+    });
+    for (const entry of page.contents ?? []) records.add(entry.key);
+    continuationToken = page.isTruncated
+      ? page.nextContinuationToken
+      : undefined;
+  } while (continuationToken);
+}
+const plan = planAssetVerification(entries, remote, records, audit);
+console.log(
+  `${audit ? "Auditing" : "Publishing"} ${entries.length} assets: ${plan.reusedCollections} verified collections reused, ${plan.verify.size} live URL checks.`,
+);
 let uploaded = 0,
   bytesUploaded = 0,
   checked = 0,
   cursor = 0;
 await Promise.all(
-  Array.from({ length: 16 }, async () => {
+  Array.from({ length: 8 }, async () => {
     while (cursor < entries.length) {
       const entry = entries[cursor++];
       const bytes = await Bun.file(entry.source).bytes();
@@ -86,19 +111,13 @@ await Promise.all(
         uploaded++;
         bytesUploaded += entry.size;
       }
-      // Confirm the exact public URL and CORS policy before deploying its consumers.
-      const published = await fetch(`${origin}/${entry.key}`, {
-        method: "HEAD",
-        headers: {
-          Origin: "https://splatterboard.app",
-          "Accept-Encoding": "gzip",
-        },
-        signal: AbortSignal.timeout(30000),
-      });
+      if (!plan.verify.has(entry.key)) continue;
+      // New/restored collections are checked fully; unchanged ones get live probes.
+      const published = await fetchPublicAsset(entry.key);
       if (
         !published.ok ||
         published.headers.get("access-control-allow-origin") !==
-          "https://splatterboard.app" ||
+          requestOrigin ||
         !published.headers
           .get("content-type")
           ?.startsWith(entry.contentType.split(";")[0]) ||
@@ -110,10 +129,20 @@ await Promise.all(
           `Public asset verification failed (${published.status}): ${entry.key}`,
         );
       if (++checked % 100 === 0)
-        console.log(`Verified ${checked}/${entries.length} assets`);
+        console.log(`Verified ${checked}/${plan.verify.size} public URLs`);
     }
   }),
 );
+// Write receipts only after every upload and public check has succeeded.
+await Promise.all(
+  plan.writeRecords.map((key) =>
+    client
+      .file(key)
+      .write(JSON.stringify({ verifiedAt: new Date().toISOString() }), {
+        type: "application/json",
+      }),
+  ),
+);
 console.log(
-  `Published and verified ${checked} assets; uploaded ${uploaded} objects (${(bytesUploaded / 1e6).toFixed(2)} MB). Existing versions retained.`,
+  `${audit ? "Audited" : "Published"} ${entries.length} assets; checked ${checked} public URLs; uploaded ${uploaded} objects (${(bytesUploaded / 1e6).toFixed(2)} MB). Existing versions retained. Completed in ${((performance.now() - started) / 1000).toFixed(1)}s.`,
 );

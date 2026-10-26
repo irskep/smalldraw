@@ -344,6 +344,11 @@ description = "Prepare immutable coloring collections and compressed SVG upload 
 run = "bun scripts/prepare-coloring-assets.ts"
 
 [tasks."assets:publish"]
-description = "Upload changed coloring collections to R2 and verify every public URL before deploying"
+description = "Publish R2 collections, reuse verified receipts, and probe live CDN headers"
 env = { _.file = ".env.prod" }
 run = "bun scripts/publish-coloring-assets.ts"
+
+[tasks."assets:audit"]
+description = "Read-only audit of every prepared coloring asset in R2 and on the public CDN"
+env = { _.file = ".env.prod" }
+run = "bun scripts/publish-coloring-assets.ts --audit"

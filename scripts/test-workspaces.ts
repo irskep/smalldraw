@@ -48,6 +48,7 @@ if (import.meta.main) {
         "--timeout=15000",
         "scripts/test-workspaces.test.ts",
         "scripts/test-output.test.ts",
+        "scripts/coloring-asset-verification.test.ts",
       ],
     ],
     ["workspaces", [...pacwich, "test", ...options]],
