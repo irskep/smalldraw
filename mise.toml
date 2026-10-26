@@ -219,7 +219,7 @@ run = [
 ]
 
 [tasks.deploy]
-description = "Build static assets, then deploy the server image. Database migration runs inside the server image at startup."
+description = "Build frontends, publish and verify R2 artwork, then deploy the server image. Database migration runs at startup."
 run = [
   "mise run prod:build",
   "mise run assets:publish",

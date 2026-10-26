@@ -102,7 +102,9 @@ await Promise.all(
         !published.headers
           .get("content-type")
           ?.startsWith(entry.contentType.split(";")[0]) ||
-        !published.headers.get("cache-control")?.includes("immutable")
+        !published.headers.get("cache-control")?.includes("immutable") ||
+        (published.headers.get("content-encoding") ?? undefined) !==
+          entry.contentEncoding
       )
         throw new Error(
           `Public asset verification failed (${published.status}): ${entry.key}`,
