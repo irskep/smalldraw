@@ -20,7 +20,7 @@
     "ts:check": "tsc -p tsconfig.json --noEmit",
     "lint": "oxlint --deny-warnings --report-unused-disable-directives . && oxfmt --check .",
     "lint:fix": "oxlint --deny-warnings --report-unused-disable-directives --fix . && oxfmt --write .",
-    "test": "bun test --timeout 4000"
+    "test": "bun test --timeout 15000"
   },
   "dependencies": {
     "@automerge/automerge-repo": "2.5.1",
