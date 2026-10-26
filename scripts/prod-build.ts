@@ -2,17 +2,21 @@ import "./check-bun-version";
 import { $ } from "bun";
 
 import { automergeAsset } from "./automerge-asset.mjs";
+import { prepareColoringAssets } from "./prepare-coloring-assets";
 
 const deployHost = process.env.DEPLOY_HOST;
 if (!deployHost) {
   throw new Error("DEPLOY_HOST is required (e.g. splatterboard.fly.dev)");
 }
 
+await prepareColoringAssets();
+const coloringOrigin = "https://assets.splatterboard.app";
+
 // Build splat-web (paint app) with prod env vars baked in
-await $`SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL=https://${deployHost}/api/v1 SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL=wss://${deployHost} SPLATTERBOARD_PUBLIC_JOIN_BASE_URL=https://${deployHost}/draw/ SPLATTERBOARD_PUBLIC_ASSET_BASE_URL=https://${deployHost}/draw bun run --cwd apps/splat-web build`;
+await $`SPLATTERBOARD_PUBLIC_COLORING_ASSET_BASE_URL=${coloringOrigin} SPLATTERBOARD_PUBLIC_SYNC_SERVER_HTTP_URL=https://${deployHost}/api/v1 SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL=wss://${deployHost} SPLATTERBOARD_PUBLIC_JOIN_BASE_URL=https://${deployHost}/draw/ SPLATTERBOARD_PUBLIC_ASSET_BASE_URL=https://${deployHost}/draw bun run --cwd apps/splat-web build`;
 
 // Build portal as the root document home
-await $`VITE_API_URL=https://${deployHost}/api/v1 VITE_BASE=/ bun run --cwd apps/app build`;
+await $`VITE_COLORING_ASSET_BASE_URL=${coloringOrigin} VITE_API_URL=https://${deployHost}/api/v1 VITE_BASE=/ bun run --cwd apps/app build`;
 
 // Assemble into server build directory
 await $`rm -rf apps/server/build`;

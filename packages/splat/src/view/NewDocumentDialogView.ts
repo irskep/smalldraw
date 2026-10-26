@@ -147,6 +147,7 @@ export function createNewDocumentDialogView(options: {
       const preview = category.pages[0];
       if (preview) {
         const image = document.createElement("img");
+        image.crossOrigin = "anonymous";
         image.src = resolveAssetUrl(preview.previewSrc);
         image.alt = category.title;
         image.loading = "lazy";
@@ -190,6 +191,7 @@ export function createNewDocumentDialogView(options: {
         label,
       });
       const image = document.createElement("img");
+      image.crossOrigin = "anonymous";
       image.src = resolveAssetUrl(page.previewSrc);
       image.alt = label;
       image.loading = "lazy";

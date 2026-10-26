@@ -26,3 +26,19 @@ test("resolves dedicated previews without turning them into full artwork URLs", 
     "https://example.com/draw/coloring/pavelkukov/camel-preview.webp",
   );
 });
+
+test("production assets use immutable collection paths while development stays local", () => {
+  const resolve = createColoringAssetUrlResolver(
+    undefined,
+    "https://assets.splatterboard.app",
+  );
+  expect(resolve("coloring/pdr-v1/page-005.webp")).toMatch(
+    /^https:\/\/assets\.splatterboard\.app\/coloring\/pdr-v1\/[a-f0-9]{20}\/page-005\.webp$/,
+  );
+  expect(resolve("coloring/credits/credits.txt")).toMatch(
+    /\/coloring\/credits\/[a-f0-9]{20}\/credits\.txt$/,
+  );
+  expect(resolve("data:image/png;base64,YQ==")).toBe(
+    "data:image/png;base64,YQ==",
+  );
+});

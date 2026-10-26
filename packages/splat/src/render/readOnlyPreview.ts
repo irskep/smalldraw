@@ -7,6 +7,8 @@ import {
 } from "@smalldraw/core";
 import { renderLayerStack } from "@smalldraw/renderer-canvas";
 
+import { getColoringPageBySrc } from "../coloring/catalog";
+import { publishedColoringAssetUrl } from "../coloring/publishedAssets";
 import { getDocumentImageSources } from "../shapes/getDocumentImageSources";
 import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import {
@@ -18,13 +20,27 @@ import {
 import { createKidsShapeRendererRegistry } from "./kidsShapeRendererRegistry";
 
 /** Admin previews must never fetch arbitrary URLs embedded in untrusted drawings. */
-export function resolvePreviewImageSource(src: string, origin: string): string {
+export function resolvePreviewImageSource(
+  src: string,
+  origin: string,
+  publishedAssetBaseUrl?: string,
+): string {
   if (/^data:image\/(png|webp|jpeg);base64,[a-z0-9+/=\s]+$/i.test(src))
     return src;
   const url = new URL(
     src.startsWith("coloring/") ? `/${src}` : src,
     `${origin}/draw/`,
   );
+  if (
+    url.origin === origin &&
+    !url.username &&
+    !url.password &&
+    getColoringPageBySrc(url.pathname.replace(/^\/+/, ""))
+  ) {
+    return publishedAssetBaseUrl
+      ? publishedColoringAssetUrl(url.pathname, publishedAssetBaseUrl)
+      : url.href;
+  }
   if (
     url.origin !== origin ||
     url.username ||
@@ -44,6 +60,7 @@ export function resolvePreviewImageSource(src: string, origin: string): string {
 export async function renderDrawingPreview(
   bytes: Uint8Array,
   signal?: AbortSignal,
+  publishedAssetBaseUrl?: string,
 ): Promise<string> {
   await initAutomerge();
   signal?.throwIfAborted();
@@ -61,9 +78,17 @@ export async function renderDrawingPreview(
     const sources = getDocumentImageSources(doc);
     // Validate before warming anything; retain no document data in the global resolver.
     for (const src of sources)
-      resolvePreviewImageSource(src, window.location.origin);
+      resolvePreviewImageSource(
+        src,
+        window.location.origin,
+        publishedAssetBaseUrl,
+      );
     configureRasterImageSourceResolver((src) =>
-      resolvePreviewImageSource(src, window.location.origin),
+      resolvePreviewImageSource(
+        src,
+        window.location.origin,
+        publishedAssetBaseUrl,
+      ),
     );
     images.update(sources);
     if (

@@ -220,7 +220,11 @@ run = [
 
 [tasks.deploy]
 description = "Build static assets, then deploy the server image. Database migration runs inside the server image at startup."
-run = ["mise run prod:build", "mise run server:deploy"]
+run = [
+  "mise run prod:build",
+  "mise run assets:publish",
+  "mise run server:deploy",
+]
 
 [tasks."test:browser:wasm"]
 description = "Build both production frontends and test binary WASM, persistence, and account recovery in Chromium against a temporary database."
@@ -334,3 +338,12 @@ run = "bun scripts/capture-coloringbook-preview.ts"
 description = "Build production frontends and verify galleries, coloring fills, persistence, and stamps in Chromium and WebKit."
 env = { BROWSER_SUITE = "assets" }
 run = "bun run scripts/test-browser-wasm.ts"
+
+[tasks."assets:prepare"]
+description = "Prepare immutable coloring collections and compressed SVG upload files"
+run = "bun scripts/prepare-coloring-assets.ts"
+
+[tasks."assets:publish"]
+description = "Upload changed coloring collections to R2 and verify every public URL before deploying"
+env = { _.file = ".env.prod" }
+run = "bun scripts/publish-coloring-assets.ts"

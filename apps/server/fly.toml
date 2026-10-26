@@ -54,11 +54,6 @@ url_prefix = '/assets'
 guest_path = '/app/apps/server/build/draw'
 url_prefix = '/draw'
 
-# The portal gallery uses the same coloring assets as the drawing app.
-[[statics]]
-guest_path = '/app/apps/server/build/draw/coloring'
-url_prefix = '/coloring'
-
 [[vm]]
 size = 'shared-cpu-1x'
 memory = '512mb'

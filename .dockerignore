@@ -41,3 +41,6 @@ scripts/**
 **/__tests__/
 **/test/
 **/tests/
+
+# Coloring artwork is published independently to R2, never shipped in Fly images.
+apps/server/build/draw/coloring/

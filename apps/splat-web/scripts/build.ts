@@ -35,7 +35,10 @@ if (existsSync("public")) {
   await $`cp -R public/. dist/`;
 }
 
-// Copy coloring page assets with stable paths (not content-hashed)
+// Local/offline builds include artwork; production publishes it independently.
+if (process.env.SPLATTERBOARD_PUBLIC_COLORING_ASSET_BASE_URL) process.exit(0);
+
+// Copy local coloring page assets
 await $`rm -rf dist/coloring`;
 await $`mkdir -p dist/coloring`;
 for await (const entry of new Bun.Glob(

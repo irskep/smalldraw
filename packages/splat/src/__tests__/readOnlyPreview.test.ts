@@ -28,3 +28,23 @@ describe("read-only preview image boundaries", () => {
       expect(() => resolvePreviewImageSource(src, origin)).toThrow();
   });
 });
+
+it("permits only catalog-approved artwork through the configured CDN", () => {
+  const base = "https://assets.splatterboard.app";
+  expect(
+    resolvePreviewImageSource(
+      "coloring/pavelkukov/five_pointed_star.svg",
+      "https://splatterboard.app",
+      base,
+    ),
+  ).toMatch(
+    /^https:\/\/assets\.splatterboard\.app\/coloring\/pavelkukov\/[a-f0-9]{20}\/five_pointed_star\.svg$/,
+  );
+  expect(() =>
+    resolvePreviewImageSource(
+      `${base}/attacker.svg`,
+      "https://splatterboard.app",
+      base,
+    ),
+  ).toThrow();
+});

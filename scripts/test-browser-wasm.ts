@@ -21,6 +21,7 @@ import {
   checkAspectRatioSettings,
   checkToolSettings,
 } from "./check-tool-settings";
+import { prepareColoringAssets } from "./prepare-coloring-assets";
 
 await opaque.ready;
 
@@ -53,6 +54,8 @@ async function run(command: string[], extraEnv = {}) {
   if ((await process.exited) !== 0)
     throw new Error(`Failed: ${command.join(" ")}`);
 }
+let assetServer: ReturnType<typeof Bun.serve> | undefined;
+let assetRequests = 0;
 let sharedWasmFetches = 0;
 let backend: ReturnType<typeof Bun.spawn> | undefined;
 let preview: ReturnType<typeof Bun.serve> | undefined;
@@ -353,10 +356,35 @@ async function checkPreviewDoesNotMoveCanvas(
 }
 
 try {
+  let publishedOrigin: string | undefined;
+  if (process.env.BROWSER_SUITE === "assets") {
+    const entries = await prepareColoringAssets();
+    const byKey = new Map(entries.map((entry) => [`/${entry.key}`, entry]));
+    assetServer = Bun.serve({
+      port: 43127,
+      fetch(request) {
+        const entry = byKey.get(new URL(request.url).pathname);
+        if (!entry) return new Response("Missing asset", { status: 404 });
+        assetRequests++;
+        return new Response(Bun.file(entry.source), {
+          headers: {
+            "Content-Type": entry.contentType,
+            ...(entry.contentEncoding
+              ? { "Content-Encoding": entry.contentEncoding }
+              : {}),
+            "Access-Control-Allow-Origin": origin,
+            "Cache-Control": "public, max-age=31536000, immutable",
+          },
+        });
+      },
+    });
+    publishedOrigin = "http://localhost:43127";
+  }
   await run(["mise", "run", "//apps/app:build"], {
     NODE_ENV: "production",
     VITE_API_URL: `${origin}/api/v1`,
     VITE_BASE: "/",
+    VITE_COLORING_ASSET_BASE_URL: publishedOrigin ?? "",
   });
   await run(["mise", "run", "--force", "//apps/splat-web:build"], {
     NODE_ENV: "production",
@@ -364,6 +392,7 @@ try {
     SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL: `ws://localhost:${apiPort}`,
     SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: `${origin}/draw/`,
     SPLATTERBOARD_PUBLIC_ASSET_BASE_URL: `${origin}/draw`,
+    SPLATTERBOARD_PUBLIC_COLORING_ASSET_BASE_URL: publishedOrigin ?? "",
   });
   await run(["bunx", "drizzle-kit", "push", "--force"]);
   backend = Bun.spawn(["bun", "apps/server/src/index.ts"], {
@@ -461,6 +490,15 @@ try {
           await tab.close();
         }
       }
+      expect(assetRequests).toBeGreaterThan(0);
+      expect(
+        await Bun.file(
+          "apps/splat-web/dist/coloring/pdr-v1/page-001.webp",
+        ).exists(),
+      ).toBe(false);
+      console.log(
+        `PASS: versioned cross-origin assets (${assetRequests} requests), with no artwork in the app build`,
+      );
     } finally {
       await safari.close();
     }
@@ -1252,6 +1290,7 @@ try {
 } finally {
   await browser?.close();
   preview?.stop(true);
+  assetServer?.stop(true);
   backend?.kill();
   if (backend) await backend.exited;
   await rm(temporary, { recursive: true, force: true });

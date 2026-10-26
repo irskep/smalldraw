@@ -34,6 +34,8 @@ try {
     container,
     analytics,
     assetBaseUrl: multiplayerConfig.assetBaseUrl,
+    publishedColoringAssetBaseUrl:
+      multiplayerConfig.publishedColoringAssetBaseUrl,
     multiplayer: {
       ...multiplayerConfig,
       startupIntent,

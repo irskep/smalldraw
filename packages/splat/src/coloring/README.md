@@ -176,8 +176,8 @@ mise run format:fix
 ```
 
 Commit the generated thumbnails with the catalog. Tests require both compact
-sizes for every visible page, and the production build copies WebP alongside
-SVG assets. Full raster artwork and previews also use lossless WebP. The import tasks require `cwebp` and preserve all alpha levels with `-lossless -exact`; no resolution is discarded. SVGs retain their vector artwork.
+sizes for every visible page, and local builds copy WebP alongside SVG assets. Production publishes artwork to
+R2; see [asset hosting](../../../../infra/README.md). Full raster artwork and previews also use lossless WebP. The import tasks require `cwebp` and preserve all alpha levels with `-lossless -exact`; no resolution is discarded. SVGs retain their vector artwork.
 
 The rank task refreshes complexity scores without reimporting sources. Importers
 calculate the same score for new PDF/SVG artwork. It counts ink boundaries at a

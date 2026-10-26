@@ -52,3 +52,6 @@ playwright-report/
 
 # Python coloring import tools
 __pycache__/
+
+# Prepared public asset upload manifest and compressed SVGs
+/.coloring-assets/

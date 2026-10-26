@@ -1,5 +1,8 @@
 import { getColoringTopic } from "@smalldraw/shared";
-import { getColoringCategories } from "@smalldraw/splat/coloring";
+import {
+  getColoringCategories,
+  publishedColoringAssetUrl,
+} from "@smalldraw/splat/coloring";
 import { Dice5 } from "lucide";
 import { useLocation } from "preact-iso";
 import { useState } from "preact/hooks";
@@ -13,7 +16,12 @@ import {
 
 const categories = getColoringCategories();
 const assetUrl = (src: string) =>
-  new URL(`/${src}`, import.meta.env.VITE_API_URL).href;
+  import.meta.env.VITE_COLORING_ASSET_BASE_URL
+    ? publishedColoringAssetUrl(
+        src,
+        import.meta.env.VITE_COLORING_ASSET_BASE_URL,
+      )
+    : new URL(`/${src}`, import.meta.env.VITE_API_URL).href;
 
 type Page = (typeof categories)[number]["pages"][number];
 const choices = categories.flatMap((category) =>
@@ -51,6 +59,7 @@ function PageCard({
           key={page.id}
           loading={eager ? "eager" : "lazy"}
           decoding="async"
+          crossOrigin="anonymous"
           src={assetUrl(page.previewSrc.replace(/\.webp$/, "-thumb-256.webp"))}
           srcSet={`${assetUrl(page.previewSrc.replace(/\.webp$/, "-thumb-256.webp"))} 1x, ${assetUrl(page.previewSrc.replace(/\.webp$/, "-thumb-512.webp"))} 2x, ${assetUrl(page.previewSrc)} 3x`}
           alt={label}

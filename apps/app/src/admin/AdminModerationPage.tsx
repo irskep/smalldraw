@@ -333,6 +333,7 @@ export function AdminDrawingInspection({ documentId }: { documentId: string }) {
       const image = await renderDrawingPreview(
         Uint8Array.from(atob(encoded), (char) => char.charCodeAt(0)),
         controller.signal,
+        import.meta.env.VITE_COLORING_ASSET_BASE_URL,
       );
       if (!controller.signal.aborted) setPreview(image);
     } catch (cause) {

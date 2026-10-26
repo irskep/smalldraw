@@ -1,0 +1,19 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://splatterboard.app",
+          "https://splatterboard.fly.dev",
+          "http://localhost:3000",
+          "http://localhost:3001",
+          "http://localhost:3030",
+          "http://localhost:43125"
+        ],
+        "methods": ["GET", "HEAD"]
+      },
+      "exposeHeaders": ["ETag", "Content-Encoding", "cf-cache-status"],
+      "maxAgeSeconds": 86400
+    }
+  ]
+}

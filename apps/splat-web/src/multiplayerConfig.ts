@@ -10,6 +10,7 @@ export interface SplatWebRuntimeEnvLike {
   SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL: string;
   SPLATTERBOARD_PUBLIC_JOIN_BASE_URL: string;
   SPLATTERBOARD_PUBLIC_ASSET_BASE_URL?: string;
+  SPLATTERBOARD_PUBLIC_COLORING_ASSET_BASE_URL?: string;
 }
 
 export interface StorageLike {
@@ -27,6 +28,7 @@ export interface BrowserMultiplayerConfig {
   syncServerWebSocketUrl: string;
   joinBaseUrl: string;
   assetBaseUrl?: string;
+  publishedColoringAssetBaseUrl?: string;
   deviceTag: string;
 }
 
@@ -59,6 +61,8 @@ export function createBrowserMultiplayerConfig(
     assetBaseUrl: env.SPLATTERBOARD_PUBLIC_ASSET_BASE_URL
       ? stripTrailingSlashes(env.SPLATTERBOARD_PUBLIC_ASSET_BASE_URL)
       : undefined,
+    publishedColoringAssetBaseUrl:
+      env.SPLATTERBOARD_PUBLIC_COLORING_ASSET_BASE_URL,
     deviceTag: getOrCreateDeviceTag(storage, cryptoImpl),
   };
 }
@@ -142,11 +146,16 @@ export function readSplatWebRuntimeEnv(): SplatWebRuntimeEnvLike {
       process.env.SPLATTERBOARD_PUBLIC_SYNC_SERVER_WEBSOCKET_URL,
     SPLATTERBOARD_PUBLIC_JOIN_BASE_URL:
       process.env.SPLATTERBOARD_PUBLIC_JOIN_BASE_URL,
+    SPLATTERBOARD_PUBLIC_COLORING_ASSET_BASE_URL:
+      process.env.SPLATTERBOARD_PUBLIC_COLORING_ASSET_BASE_URL,
     SPLATTERBOARD_PUBLIC_ASSET_BASE_URL:
       process.env.SPLATTERBOARD_PUBLIC_ASSET_BASE_URL,
   };
   for (const [key, value] of Object.entries(env)) {
-    if (key === "SPLATTERBOARD_PUBLIC_ASSET_BASE_URL") {
+    if (
+      key === "SPLATTERBOARD_PUBLIC_ASSET_BASE_URL" ||
+      key === "SPLATTERBOARD_PUBLIC_COLORING_ASSET_BASE_URL"
+    ) {
       continue;
     }
     if (!value) {

@@ -1,4 +1,5 @@
 import { extractColoringPageId, getColoringPages } from "./catalog";
+import { publishedColoringAssetUrl } from "./publishedAssets";
 
 const previewSources = new Set(
   getColoringPages().map((page) => page.previewSrc),
@@ -6,6 +7,7 @@ const previewSources = new Set(
 
 export function createColoringAssetUrlResolver(
   assetBaseUrl: string | undefined,
+  publishedBaseUrl?: string,
 ): (src: string) => string {
   const windowOrigin =
     typeof window !== "undefined" && window.location.origin !== "null"
@@ -20,6 +22,8 @@ export function createColoringAssetUrlResolver(
     if (!coloringPageId) {
       return src;
     }
+    if (publishedBaseUrl)
+      return publishedColoringAssetUrl(coloringPageId, publishedBaseUrl);
     if (!baseUrl) {
       return `/${coloringPageId}`;
     }
