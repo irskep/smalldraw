@@ -6,6 +6,7 @@ import {
   type SplatContextDocumentSlot,
 } from "@smalldraw/design-system";
 import {
+  Baby,
   Download,
   FolderOpen,
   Plus,
@@ -43,6 +44,7 @@ const DESKTOP_MENU_ENTRIES: readonly DropdownMenuEntry[] = [
   { id: "new-drawing", label: "New drawing", icon: Plus },
   { id: "browse", label: "Your drawings", icon: FolderOpen },
   { id: "export", label: "Export PNG", icon: Download },
+  { id: "toddler_mode", label: "Toddler mode", icon: Baby },
   { id: "parental-controls", label: "Parental controls", icon: ShieldCheck },
   { type: "separator" },
   { id: "clear", label: "Clear Canvas", icon: Trash2, danger: true },
@@ -61,6 +63,7 @@ const MOBILE_MENU_ENTRIES: readonly DropdownMenuEntry[] = [
   { id: "new-drawing", label: "New drawing", icon: Plus },
   { id: "browse", label: "Your drawings", icon: FolderOpen },
   { id: "export", label: "Export PNG", icon: Download },
+  { id: "toddler_mode", label: "Toddler mode", icon: Baby },
   { id: "parental-controls", label: "Parental controls", icon: ShieldCheck },
   { id: "share", label: "Share", icon: Share2 },
   { type: "separator" },
@@ -178,6 +181,8 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
   }
 
   private applyState(state: ToolbarUiState): void {
+    this.context.setFocusedMode(state.toddlerMode);
+    this.context.setActionDisabled("toddler_mode", !state.hasLoadedDocument);
     const presentation = resolveToolbarPresentationState({
       state,
       model: this.projectionModel,
@@ -272,6 +277,8 @@ function toUiActionIntent(actionId: string): Extract<
       | "new_drawing"
       | "browse"
       | "share"
+      | "toddler_mode"
+      | "exit_toddler_mode"
       | "parental_controls";
   }
 >["type"] {
@@ -292,6 +299,8 @@ function toUiActionIntent(actionId: string): Extract<
         | "export"
         | "browse"
         | "share"
+        | "toddler_mode"
+        | "exit_toddler_mode"
         | "parental_controls";
     }
   >["type"];

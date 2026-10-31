@@ -1,5 +1,5 @@
 import type { IconNode } from "lucide";
-import { Dice5, Redo2, Share2, Undo2 } from "lucide";
+import { LogOut, Dice5, Redo2, Share2, Undo2 } from "lucide";
 import { atom, computed, type WritableAtom } from "nanostores";
 import { el, mount, setChildren } from "redom";
 
@@ -107,6 +107,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   private readonly variantPresentationStore: WritableAtom<VariantGridPresentation>;
   private readonly documentSlotStore: WritableAtom<SplatContextDocumentSlot>;
 
+  private readonly focusedModeStore = atom(false);
   private readonly randomizeVisibleStore = atom(false);
   private readonly randomizeButton = createIconButton({
     label: "Randomize",
@@ -208,6 +209,16 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       dispose();
     }
     this.destroyOwnedViews();
+  }
+
+  setFocusedMode(enabled: boolean): void {
+    if (this.focusedModeStore.get() === enabled) return;
+    this.focusedModeStore.set(enabled);
+    this.desktopMenu.setOpen(false);
+    this.mobileMenu.setOpen(false);
+    this.colorPicker.setOpen(false);
+    this.rebuild();
+    this.scheduleResizeSync();
   }
 
   setColors(colors: readonly ColorPickerSwatch[]): void {
@@ -553,6 +564,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
   }
 
   private syncVisibleResponsiveState(): void {
+    if (this.focusedModeStore.get()) return;
     this.scene.classList.toggle(
       "ds-splat-context__scene--has-randomize",
       this.randomizeVisibleStore.get(),
@@ -787,13 +799,45 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
 
   private rebuild(): void {
     this.destroyOwnedViews();
-    this.scene.replaceChildren();
+    setChildren(this.scene, []);
+
+    if (
+      this.focusedModeStore.get() &&
+      this.documentSlotStore.get().type === "document"
+    ) {
+      this.buildFocused();
+      return;
+    }
 
     if (this.responsiveController.getState().layout === "desktop") {
       this.buildDesktop();
     } else {
       this.buildMobile();
     }
+  }
+
+  private buildFocused(): void {
+    const slot = this.documentSlotStore.get();
+    if (slot.type !== "document") return;
+    this.scene.className =
+      "ds-splat-context__scene ds-splat-context__scene--focused";
+    const top = el("div.ds-splat-context__focused-top");
+    mount(top, this.activeTool);
+    mount(
+      top,
+      this.createActionButton(
+        "Exit toddler mode",
+        LogOut,
+        "Action",
+        "exit_toddler_mode",
+      ),
+    );
+    const settings = el("div.ds-splat-context__focused-settings");
+    mount(settings, this.sizeStepper);
+    mount(settings, this.inlineColors);
+    mount(this.scene, top);
+    mount(this.scene, this.createCanvasShell(slot.content));
+    mount(this.scene, settings);
   }
 
   private buildDesktop(): void {

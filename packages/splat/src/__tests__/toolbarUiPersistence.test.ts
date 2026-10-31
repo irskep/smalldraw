@@ -98,6 +98,7 @@ describe("toolbarUiPersistence", () => {
   test("tracks dedupe signatures per document", async () => {
     let currentDocUrl = "automerge:doc-1";
     const initialState: ToolbarUiState = {
+      toddlerMode: true,
       activeToolId: "",
       hasLoadedDocument: true,
       documentHeight: 600,

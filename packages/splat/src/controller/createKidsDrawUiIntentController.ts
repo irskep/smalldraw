@@ -1,11 +1,28 @@
 import type { DrawingStore } from "@smalldraw/core";
 
+import type { ToolbarUiStore } from "../ui/stores/toolbarUiStore";
 import type { CursorOverlayController } from "./createCursorOverlayController";
 import type { InputSessionController } from "./createInputSessionController";
 import type { ToolbarStateController } from "./createToolbarStateController";
 import type { KidsDrawUiIntent } from "./KidsDrawUiIntent";
 
+const TODDLER_BLOCKED_INTENTS = new Set<KidsDrawUiIntent["type"]>([
+  "activate_family_tool",
+  "activate_tool_and_remember",
+  "randomize",
+  "undo",
+  "redo",
+  "clear",
+  "export",
+  "new_drawing",
+  "browse",
+  "share",
+  "parental_controls",
+  "toddler_mode",
+]);
+
 export function createKidsDrawUiIntentController(options: {
+  toolbarUiStore: Pick<ToolbarUiStore, "get">;
   runtime: {
     drawingStore: Pick<DrawingStore, "updateSharedSettings">;
     toolbarStateController: Pick<
@@ -14,6 +31,7 @@ export function createKidsDrawUiIntentController(options: {
     >;
     inputSessionController: Pick<
       InputSessionController,
+      | "handleWorkspacePointerDown"
       | "handlePointerDown"
       | "handlePointerMove"
       | "handlePointerRawUpdate"
@@ -28,6 +46,8 @@ export function createKidsDrawUiIntentController(options: {
     >;
   };
   commands: {
+    toddlerMode: () => void;
+    exitToddlerMode: () => void;
     scheduleResponsiveLayout: () => void;
     undo: () => void;
     redo: () => void;
@@ -41,7 +61,18 @@ export function createKidsDrawUiIntentController(options: {
   };
 }) {
   const handleUiIntent = (intent: KidsDrawUiIntent): void => {
+    if (
+      options.toolbarUiStore.get().toddlerMode &&
+      TODDLER_BLOCKED_INTENTS.has(intent.type)
+    )
+      return;
     switch (intent.type) {
+      case "toddler_mode":
+        options.commands.toddlerMode();
+        return;
+      case "exit_toddler_mode":
+        options.commands.exitToddlerMode();
+        return;
       case "window_resize":
         options.commands.scheduleResponsiveLayout();
         return;
@@ -91,6 +122,11 @@ export function createKidsDrawUiIntentController(options: {
         options.runtime.drawingStore.updateSharedSettings({
           strokeWidth: intent.strokeWidth,
         });
+        return;
+      case "pointer_workspace_down":
+        options.runtime.inputSessionController.handleWorkspacePointerDown(
+          intent.event,
+        );
         return;
       case "pointer_down":
         options.runtime.inputSessionController.handlePointerDown(intent.event);

@@ -193,3 +193,7 @@
   > :not(.kids-draw-startup-overlay) {
   visibility: hidden;
 }
+
+.kids-draw-viewport {
+  touch-action: none;
+}

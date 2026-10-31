@@ -18,6 +18,7 @@ type PointerSessionEndType = "pointerUp" | "pointerCancel";
 
 export class InputSessionController {
   private pointerIsDown = false;
+  private pendingPointerId: number | null = null;
   private drawingPerfFrameCount = 0;
   private activePointerId: number | null = null;
   private lastPointerPoint: Vec2;
@@ -54,8 +55,30 @@ export class InputSessionController {
     }
   }
 
+  private isInsidePaper(event: PointerEvent): boolean {
+    const rect = this.options.overlayElement.getBoundingClientRect();
+    return (
+      event.clientX >= rect.left &&
+      event.clientX < rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY < rect.bottom
+    );
+  }
+
+  handleWorkspacePointerDown(event: PointerEvent): void {
+    if (
+      this.pointerIsDown ||
+      this.pendingPointerId !== null ||
+      !(event.buttons & PRIMARY_BUTTON_MASK)
+    )
+      return;
+    event.preventDefault();
+    this.pendingPointerId = event.pointerId;
+    this.options.overlayElement.setPointerCapture?.(event.pointerId);
+  }
+
   handlePointerDown(event: PointerEvent): void {
-    if (this.pointerIsDown) {
+    if (this.pointerIsDown || this.pendingPointerId !== null) {
       event.preventDefault();
       return;
     }
@@ -106,6 +129,18 @@ export class InputSessionController {
   }
 
   handlePointerMove(event: PointerEventWithCoalesced): void {
+    if (this.pendingPointerId !== null) {
+      if (event.pointerId !== this.pendingPointerId) return;
+      if (!(event.buttons & PRIMARY_BUTTON_MASK)) {
+        this.pendingPointerId = null;
+        return;
+      }
+      if (!this.isInsidePaper(event)) return;
+      this.pendingPointerId = null;
+      // Begin at the first in-bounds sample, without connecting the outside path.
+      this.handlePointerDown(event);
+      return;
+    }
     if (this.shouldIgnoreNonActivePointer(event)) {
       return;
     }
@@ -176,6 +211,7 @@ export class InputSessionController {
   }
 
   handleLostPointerCapture(event: PointerEvent): void {
+    if (this.pendingPointerId === event.pointerId) this.pendingPointerId = null;
     if (!this.pointerIsDown || event.pointerId !== this.activePointerId) {
       return;
     }
@@ -192,6 +228,7 @@ export class InputSessionController {
   forceCancelPointerSession(
     endType: PointerSessionEndType = "pointerCancel",
   ): void {
+    this.pendingPointerId = null;
     if (!this.pointerIsDown) {
       return;
     }
@@ -240,6 +277,7 @@ export class InputSessionController {
     event: PointerEvent,
     type: PointerSessionEndType,
   ): void {
+    if (this.pendingPointerId === event.pointerId) this.pendingPointerId = null;
     if (!this.pointerIsDown) {
       return;
     }

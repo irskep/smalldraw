@@ -7,6 +7,7 @@ import { atom, type ReadableAtom } from "nanostores";
 
 export interface ToolbarUiState {
   activeToolId: string;
+  toddlerMode: boolean;
   hasLoadedDocument: boolean;
   documentHeight: number;
   canUndo: boolean;
@@ -30,6 +31,7 @@ export interface PersistedKidsUiStateV1 {
 
 const DEFAULT_STATE: ToolbarUiState = {
   activeToolId: "",
+  toddlerMode: false,
   hasLoadedDocument: false,
   documentHeight: DEFAULT_DOCUMENT_SIZE.height,
   canUndo: false,
@@ -52,6 +54,7 @@ export interface ToolbarUiStore {
       resolveToolStyleSupport?: (activeToolId: string) => ToolStyleSupport;
     },
   ): void;
+  setToddlerMode(enabled: boolean): void;
   setHasLoadedDocument(hasLoadedDocument: boolean): void;
   setStyleUi(strokeColor: string, strokeWidth: number): void;
   setNewDrawingPending(newDrawingPending: boolean): void;
@@ -95,6 +98,9 @@ export function createToolbarUiStore(): ToolbarUiStore {
         supportsStrokeWidth: styleSupport.strokeWidth ?? true,
       };
       setIfChanged(next);
+    },
+    setToddlerMode(toddlerMode): void {
+      setIfChanged({ ...state.get(), toddlerMode });
     },
     setHasLoadedDocument(hasLoadedDocument): void {
       const current = state.get();
@@ -180,6 +186,7 @@ function isPersistedKidsUiStateV1(
 
 function isEqual(a: ToolbarUiState, b: ToolbarUiState): boolean {
   return (
+    a.toddlerMode === b.toddlerMode &&
     a.activeToolId === b.activeToolId &&
     a.hasLoadedDocument === b.hasLoadedDocument &&
     a.canUndo === b.canUndo &&

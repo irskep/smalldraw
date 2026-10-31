@@ -1,5 +1,7 @@
 export type KidsDrawUiIntent =
   | { type: "window_resize" }
+  | { type: "toddler_mode" }
+  | { type: "exit_toddler_mode" }
   | { type: "activate_family_tool"; familyId: string }
   | { type: "activate_tool_and_remember"; toolId: string }
   | { type: "randomize" }
@@ -13,6 +15,7 @@ export type KidsDrawUiIntent =
   | { type: "parental_controls" }
   | { type: "set_stroke_color"; strokeColor: string }
   | { type: "set_stroke_width"; strokeWidth: number }
+  | { type: "pointer_workspace_down"; event: PointerEvent }
   | { type: "pointer_down"; event: PointerEvent }
   | { type: "pointer_move"; event: PointerEvent }
   | { type: "pointer_rawupdate"; event: PointerEvent }

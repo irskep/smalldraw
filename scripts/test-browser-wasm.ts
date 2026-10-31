@@ -18,6 +18,7 @@ import { checkGuestSharing } from "./check-guest-sharing";
 import { checkPortalRouting } from "./check-portal-routing";
 import { checkStampInteraction } from "./check-stamp-interaction";
 import { checkTileSeams } from "./check-tile-seams";
+import { checkToddlerMode } from "./check-toddler-mode";
 import {
   checkAspectRatioSettings,
   checkToolSettings,
@@ -481,6 +482,7 @@ try {
         [browser, "chromium"],
         [safari, "webkit"],
       ] as const) {
+        await checkToddlerMode(engine, origin, name);
         await checkTileSeams(engine, name);
         await checkColoringbook(engine, origin, name);
         await checkColoringEntry(engine, origin, name);
@@ -891,6 +893,7 @@ try {
         .click();
       await checkPreviewDoesNotMoveCanvas(privatePage, "webkit");
       await checkOtherToolPreviews(privatePage, "webkit");
+      await checkToddlerMode(safari, origin, "webkit");
       await checkToolSettings(safari, origin);
       await checkAspectRatioSettings(safari, origin);
       await checkRandomize(privatePage, "webkit");
@@ -906,6 +909,7 @@ try {
 
     await checkPreviewDoesNotMoveCanvas(page, "chromium");
     await checkOtherToolPreviews(page, "chromium");
+    await checkToddlerMode(browser, origin, "chromium");
     await checkToolSettings(browser, origin);
     await checkAspectRatioSettings(browser, origin);
     await checkRandomize(page, "chromium");

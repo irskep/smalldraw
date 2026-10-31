@@ -232,11 +232,27 @@ export class KidsDrawStageView implements KidsDrawStage {
   ): void {
     const listen = (type: string, handler: (event: Event) => void): void => {
       const listener: EventListener = (event) => handler(event);
-      this.overlay.addEventListener(type, listener);
+      const target = this.overlay;
+      target.addEventListener(type, listener);
       this.pointerDisposers.push(() =>
-        this.overlay.removeEventListener(type, listener),
+        target.removeEventListener(type, listener),
       );
     };
+
+    const startFromWorkspace = (event: PointerEvent): void => {
+      // The paper owns its own events. Only bare workspace can arm outside entry;
+      // loading UI and any controls must never become drawing gestures.
+      if (
+        event.target !== this.viewportHost ||
+        this.canvasFrame.dataset.loading === "true"
+      )
+        return;
+      uiIntentStore.publish({ type: "pointer_workspace_down", event });
+    };
+    this.viewportHost.addEventListener("pointerdown", startFromWorkspace);
+    this.pointerDisposers.push(() =>
+      this.viewportHost.removeEventListener("pointerdown", startFromWorkspace),
+    );
 
     listen("pointerdown", (event) => {
       uiIntentStore.publish({

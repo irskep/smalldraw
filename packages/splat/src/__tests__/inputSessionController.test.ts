@@ -183,3 +183,80 @@ describe("capture loss", () => {
     },
   );
 });
+
+describe("outside-start gestures", () => {
+  test.each(["mouse", "touch"])(
+    "waits for the paper, ignores other pointers, and saves the %s stroke",
+    (pointerType) => {
+      const store = new DrawingStore({
+        tools: [createPenTool()],
+        shapeHandlers: createKidsShapeHandlerRegistry(),
+      });
+      store.activateTool("brush.freehand");
+      const controller = new InputSessionController({
+        store,
+        cursorOverlay: {
+          handlePointerDown() {},
+          handlePointerMove() {},
+          setDrawingActive() {},
+        } as never,
+        overlayElement: {
+          getBoundingClientRect: () => ({
+            left: 0,
+            top: 0,
+            right: 100,
+            bottom: 100,
+          }),
+          setPointerCapture() {},
+          releasePointerCapture() {},
+        } as unknown as HTMLElement,
+        initialLastPointerPoint: point(0, 0),
+        toPoint: (e) => point(e.clientX, e.clientY),
+        onScheduleThumbnailSave() {},
+        perfSession: { begin() {}, end() {}, onPointerMoveSamples() {} },
+      });
+      const event = (x: number, pointerId = 1, buttons = 1) =>
+        ({
+          clientX: x,
+          clientY: 20,
+          pointerId,
+          pointerType,
+          buttons,
+          pressure: 0.5,
+          preventDefault() {},
+        }) as PointerEvent;
+      controller.handleWorkspacePointerDown(event(-20));
+      controller.handlePointerMove(event(20, 2));
+      controller.handlePointerUp(event(20, 2, 0));
+      expect(store.getActionSequence()).toBe(0);
+      controller.handlePointerMove(event(-5));
+      controller.handlePointerMove(event(10));
+      controller.handlePointerMove(event(30));
+      controller.handlePointerUp(event(40, 1, 0));
+      const shapes = Object.values(store.getDocument().shapes) as PenShape[];
+      expect(shapes).toHaveLength(1);
+      expect(shapes[0]!.geometry.pointCount).toBe(3);
+      expect(store.canUndo()).toBe(true);
+      store.undo();
+      expect(Object.keys(store.getDocument().shapes)).toHaveLength(0);
+
+      // No marks for gestures that never enter, cancellation, or capture loss.
+      for (const end of [
+        () => controller.handlePointerUp(event(-10, 1, 0)),
+        () => controller.handlePointerCancel(event(-10)),
+        () => controller.handleLostPointerCapture(event(-10)),
+        () => controller.forceCancelPointerSession(),
+      ]) {
+        controller.handleWorkspacePointerDown(event(-20));
+        end();
+        controller.handlePointerMove(event(10, 1, 0));
+        expect(Object.keys(store.getDocument().shapes)).toHaveLength(0);
+      }
+      // A fresh regular gesture still works.
+      controller.handlePointerDown(event(10));
+      controller.handlePointerMove(event(20));
+      controller.handlePointerUp(event(30, 1, 0));
+      expect(Object.keys(store.getDocument().shapes)).toHaveLength(1);
+    },
+  );
+});

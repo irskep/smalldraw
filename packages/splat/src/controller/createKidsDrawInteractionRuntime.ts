@@ -86,7 +86,9 @@ export function createKidsDrawInteractionRuntime(options: {
     onShareError: options.onShareError,
   });
 
+  let exitConfirmationPending = false;
   const uiIntentController = createKidsDrawUiIntentController({
+    toolbarUiStore: options.toolbarUiStore,
     runtime: {
       drawingStore: options.store,
       toolbarStateController: options.toolbarStateController,
@@ -94,6 +96,34 @@ export function createKidsDrawInteractionRuntime(options: {
       cursorOverlay: options.cursorOverlay,
     },
     commands: {
+      toddlerMode: () => {
+        if (!options.toolbarUiStore.get().hasLoadedDocument) return;
+        options.inputSessionController.forceCancelPointerSession();
+        options.toolbarUiStore.setToddlerMode(true);
+      },
+      exitToddlerMode: () => {
+        if (
+          !options.toolbarUiStore.get().toddlerMode ||
+          exitConfirmationPending
+        )
+          return;
+        exitConfirmationPending = true;
+        options.inputSessionController.forceCancelPointerSession();
+        void options
+          .confirmDestructiveAction({
+            title: "Exit toddler mode?",
+            message: "",
+            confirmLabel: "Exit toddler mode",
+            cancelLabel: "Keep drawing",
+          })
+          .then((confirmed) => {
+            if (confirmed && !options.runtimeStore.isDestroyed())
+              options.toolbarUiStore.setToddlerMode(false);
+          })
+          .finally(() => {
+            exitConfirmationPending = false;
+          });
+      },
       scheduleResponsiveLayout: options.scheduleResponsiveLayout,
       undo: commandController.undo,
       redo: commandController.redo,
