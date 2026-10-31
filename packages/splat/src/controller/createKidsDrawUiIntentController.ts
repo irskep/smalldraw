@@ -124,6 +124,7 @@ export function createKidsDrawUiIntentController(options: {
         });
         return;
       case "pointer_workspace_down":
+        if (!options.toolbarUiStore.get().hasLoadedDocument) return;
         options.runtime.inputSessionController.handleWorkspacePointerDown(
           intent.event,
         );

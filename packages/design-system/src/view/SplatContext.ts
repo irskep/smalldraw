@@ -69,6 +69,7 @@ export interface SplatContextOptions {
   onSelectColor?: (color: string) => void;
   onSelectStrokeWidth?: (strokeWidth: number) => void;
   onSelectAction?: (actionId: string) => void;
+  onWorkspacePointerDown?: (event: PointerEvent) => void;
 }
 
 type VariantGridPresentation = {
@@ -187,6 +188,7 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
     this.el.append(this.scene);
     this.responsiveController = new SplatContextResponsiveController();
 
+    this.bindWorkspaceInput();
     this.initSharedComponents();
     this.bindState();
 
@@ -209,6 +211,37 @@ export class SplatContext implements ReDomLike<HTMLDivElement> {
       dispose();
     }
     this.destroyOwnedViews();
+  }
+
+  private bindWorkspaceInput(): void {
+    const isEmptyWorkspace = (target: EventTarget | null): boolean => {
+      const slot = this.documentSlotStore.get();
+      if (
+        !this.opts.onWorkspacePointerDown ||
+        slot.type !== "document" ||
+        !(target instanceof Element) ||
+        slot.content.contains(target)
+      )
+        return false;
+      return !target.closest(
+        "button, a, input, select, textarea, label, [contenteditable], [role=button], [role=radio], [role=slider], [role=menu], [role=menuitem], [role=dialog], [popover]",
+      );
+    };
+    const pointerDown = (event: PointerEvent): void => {
+      if (isEmptyWorkspace(event.target))
+        this.opts.onWorkspacePointerDown?.(event);
+    };
+    const touchStart = (event: TouchEvent): void => {
+      // Suppress panning only for an empty-space start. Keeping touch-action on
+      // the whole scene would also disable scrolling inside menus and grids.
+      if (isEmptyWorkspace(event.target)) event.preventDefault();
+    };
+    this.scene.addEventListener("pointerdown", pointerDown);
+    this.scene.addEventListener("touchstart", touchStart, { passive: false });
+    this.disposers.push(() => {
+      this.scene.removeEventListener("pointerdown", pointerDown);
+      this.scene.removeEventListener("touchstart", touchStart);
+    });
   }
 
   setFocusedMode(enabled: boolean): void {

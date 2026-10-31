@@ -50,6 +50,7 @@ test("toddler mode gates tool and navigation commands but allows settings and in
       closeDocumentPicker: call("close"),
     },
   });
+  toolbarUiStore.setHasLoadedDocument(true);
   controller.handleUiIntent({ type: "toddler_mode" });
   const blocked: KidsDrawUiIntent[] = [
     { type: "activate_family_tool", familyId: "eraser" },

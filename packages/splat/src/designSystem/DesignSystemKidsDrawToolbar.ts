@@ -143,6 +143,12 @@ export class DesignSystemKidsDrawToolbarView implements KidsDrawToolbar {
         });
       },
       onSelectAction: publishActionIntent,
+      onWorkspacePointerDown: (event) => {
+        options.uiIntentStore.publish({
+          type: "pointer_workspace_down",
+          event,
+        });
+      },
     });
     this.el = this.context.el;
   }

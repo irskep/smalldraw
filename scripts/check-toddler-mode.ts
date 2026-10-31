@@ -47,6 +47,7 @@ export async function checkToddlerMode(
   origin: string,
   name: string,
 ) {
+  await checkToolbarDeadSpace(browser, origin, name);
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 },
     hasTouch: true,
@@ -243,6 +244,102 @@ export async function checkToddlerMode(
     await exit(page, true);
     console.log(
       `[${name}] toddler mode: palette, size, tool lock, exit, outside-start, controls, persistence`,
+    );
+  } finally {
+    await context.close();
+  }
+}
+
+async function checkToolbarDeadSpace(
+  browser: Browser,
+  origin: string,
+  name: string,
+) {
+  const context = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    hasTouch: true,
+  });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${origin}/draw/?new=blank`);
+    await expect(
+      page.getByRole("button", { name: "Bigger", exact: true }),
+    ).toBeEnabled();
+    let count = 0;
+    for (const focused of [false, true]) {
+      if (focused) await enter(page);
+      for (const width of focused ? [1280, 390, 667] : [1280]) {
+        await page.setViewportSize({
+          width,
+          height: width === 667 ? 320 : 844,
+        });
+        const grid = page.locator(".ds-color-picker__grid:visible");
+        await expect(grid).toBeVisible();
+        const first = (await grid.locator("button").nth(0).boundingBox())!;
+        const second = (await grid.locator("button").nth(1).boundingBox())!;
+        const size = (await page
+          .locator(".ds-size-stepper__indicator:visible")
+          .boundingBox())!;
+        const label = (await page
+          .locator(".ds-splat-context__active-tool:visible")
+          .boundingBox())!;
+        const starts = [
+          {
+            x: (first.x + first.width + second.x) / 2,
+            y: first.y + first.height / 2,
+          },
+          { x: size.x + size.width / 2, y: size.y + size.height / 2 },
+          { x: label.x + label.width / 2, y: label.y + label.height / 2 },
+        ];
+        for (const [startIndex, start] of starts.entries()) {
+          const paper = (await page
+            .locator(".kids-draw-overlay")
+            .boundingBox())!;
+          const inside = {
+            x: paper.x + paper.width / 2,
+            y: paper.y + paper.height / 2,
+          };
+          if (name === "chromium" && startIndex === 2) {
+            const input = await context.newCDPSession(page);
+            await input.send("Input.dispatchTouchEvent", {
+              type: "touchStart",
+              touchPoints: [start],
+            });
+            // Cross enough empty space to provoke browser panning if not suppressed.
+            await input.send("Input.dispatchTouchEvent", {
+              type: "touchMove",
+              touchPoints: [
+                { x: (start.x + inside.x) / 2, y: (start.y + inside.y) / 2 },
+              ],
+            });
+            await input.send("Input.dispatchTouchEvent", {
+              type: "touchMove",
+              touchPoints: [inside],
+            });
+            await input.send("Input.dispatchTouchEvent", {
+              type: "touchMove",
+              touchPoints: [{ x: inside.x + 30, y: inside.y + 20 }],
+            });
+            await input.send("Input.dispatchTouchEvent", {
+              type: "touchEnd",
+              touchPoints: [],
+            });
+            await input.detach();
+          } else {
+            await page.mouse.move(start.x, start.y);
+            await page.mouse.down();
+            await page.mouse.move(inside.x, inside.y, { steps: 12 });
+            await page.mouse.move(inside.x + 30, inside.y + 20, { steps: 4 });
+            await page.mouse.up();
+          }
+          await expect
+            .poll(async () => (await snapshot(page)).shapes)
+            .toBe(++count);
+        }
+      }
+    }
+    console.log(
+      `[${name}] toolbar dead space: palette gaps, size indicator, top label; normal and toddler layouts`,
     );
   } finally {
     await context.close();
