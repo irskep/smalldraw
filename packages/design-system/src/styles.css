@@ -1073,7 +1073,7 @@ body {
   display: none;
 }
 .ds-splat-context__settings-rail .ds-color-picker__grid {
-  grid-template-columns: repeat(2, 44px);
+  grid-template-columns: repeat(4, 44px);
   --ds-color-picker-swatch-size: 44px;
 }
 
@@ -1170,12 +1170,29 @@ body {
     align-self: center;
   }
   .ds-splat-context__focused-settings .ds-color-picker__grid {
-    grid-template-columns: repeat(3, 44px);
+    grid-template-columns: repeat(4, 44px);
   }
 }
 
 @media (max-width: 359px) {
   .ds-splat-context__focused-settings .ds-color-picker__grid {
     gap: var(--size-1);
+  }
+}
+
+/* Short landscape screens need fewer palette rows, not smaller touch targets. */
+@media (min-width: 560px) and (max-height: 500px) {
+  .ds-splat-context__focused-settings {
+    display: grid;
+    grid-template-columns: auto auto;
+  }
+  .ds-splat-context__focused-settings .ds-color-picker__grid {
+    grid-template-columns: repeat(6, 44px);
+  }
+  .ds-splat-context__focused-settings .ds-size-stepper {
+    flex-direction: column-reverse;
+  }
+  .ds-splat-context__focused-settings .ds-size-stepper__indicator {
+    height: 20px;
   }
 }

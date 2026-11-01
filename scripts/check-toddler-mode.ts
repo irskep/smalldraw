@@ -78,7 +78,7 @@ export async function checkToddlerMode(
     ]) {
       await page.setViewportSize({ width: width!, height: height! });
       const colors = page.locator(".ds-color-picker__swatch:visible");
-      await expect(colors).toHaveCount(12);
+      await expect(colors).toHaveCount(24);
       for (const color of await colors.all())
         await expect(color).toBeInViewport({ ratio: 1 });
       await expect(
@@ -209,7 +209,7 @@ export async function checkToddlerMode(
     await enter(page);
     expect((await snapshot(page)).tool).toBe(eraser);
     await expect(page.locator(".ds-color-picker__swatch:visible")).toHaveCount(
-      12,
+      24,
     );
     await exit(page, true);
     await page.reload();
@@ -236,7 +236,7 @@ export async function checkToddlerMode(
       page.getByRole("button", { name: "Bigger", exact: true }),
     ).toBeDisabled();
     await expect(page.locator(".ds-color-picker__swatch:visible")).toHaveCount(
-      12,
+      24,
     );
     expect((await snapshot(page)).size).toEqual(coloring.size);
     expect((await snapshot(page)).resolution).toEqual(coloring.resolution);

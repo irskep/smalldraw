@@ -19,7 +19,6 @@ import {
 import { el } from "redom";
 
 import {
-  type ColorPickerSwatch,
   createSplatContext,
   type DropdownMenuEntry,
   resolveSplatContextLayout,
@@ -27,6 +26,7 @@ import {
   type SplatToolItem,
   type SyncIndicatorState,
 } from "../../src";
+import { COLOR_SWATCHES } from "./colorFixtures";
 import { createResizeHandle } from "./ResizeHandle";
 import type { HarnessStory } from "./types";
 
@@ -62,21 +62,6 @@ const VARIANT_ITEMS: SplatToolItem[] = [
   { id: "spray-move", label: "Spray (Move)", icon: SprayCan },
   { id: "spray-hold", label: "Spray (Hold)", icon: SprayCan },
 ];
-
-const COLOR_SWATCHES: readonly ColorPickerSwatch[] = [
-  "#000000",
-  "#ffffff",
-  "#9c682f",
-  "#ff4a6a",
-  "#ff8f0f",
-  "#ffd95a",
-  "#63c430",
-  "#11b79b",
-  "#3483ea",
-  "#6755db",
-  "#ea58b7",
-  "#98a2b3",
-].map((color) => ({ color }));
 
 const STROKE_WIDTHS = [2, 4, 8, 16, 24, 48, 96, 200] as const;
 

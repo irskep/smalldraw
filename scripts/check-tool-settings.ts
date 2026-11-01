@@ -39,6 +39,10 @@ export async function checkToolSettings(
     await expect(smaller).toBeDisabled();
     await page.locator('[data-tool-family="brush"]:visible').first().click();
     await expect(stepper).toHaveCSS("opacity", "1");
+    const swatches = page.locator(".ds-color-picker__swatch:visible");
+    await expect(swatches).toHaveCount(24);
+    for (const swatch of await swatches.all())
+      await expect(swatch).toBeInViewport({ ratio: 1 });
     const original = await size();
     const host = await page
       .locator(".kids-draw-viewport")
@@ -81,6 +85,19 @@ export async function checkToolSettings(
     await expect(
       page.locator('.ds-color-picker [data-color="#2e86ff"]'),
     ).toHaveAttribute("aria-checked", "true");
+    await expect(page.locator(".ds-color-picker__swatch:visible")).toHaveCount(
+      24,
+    );
+    const terracotta = page.locator('.ds-color-picker [data-color="#c36a45"]');
+    await terracotta.click();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (window as any).kidsDrawApp.store.getSharedSettings().strokeColor,
+        ),
+      )
+      .toBe("#c36a45");
     await page.keyboard.press("Escape");
     await page.reload();
     await expect(page.locator(".kids-draw-frame")).toBeVisible();
