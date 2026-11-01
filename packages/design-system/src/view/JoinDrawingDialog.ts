@@ -18,19 +18,22 @@ export class JoinDrawingDialog {
     tone: "primary",
     autofocus: true,
   });
-  constructor() {
-    const cancel = new Button({ label: "Not now" });
+  constructor(homeUrl: string) {
+    const home = el(
+      "a.ds-button.ds-join-drawing__home",
+      { href: homeUrl },
+      "Go to home",
+    ) as HTMLAnchorElement;
     this.scaffold.setDialogClassName("ds-join-drawing");
     this.scaffold.setTitle("You're invited to draw");
     this.scaffold.setBody(
       el("div.ds-join-drawing__body", this.#image, this.#message),
     );
     this.scaffold.setFooter(
-      el("div.ds-join-drawing__actions", cancel, this.#join),
+      el("div.ds-join-drawing__actions", home, this.#join),
     );
-    cancel.setOnPress(() => this.#finish(false));
     this.#join.setOnPress(() => this.#finish(true));
-    this.scaffold.setOnDismiss(() => this.#finish(false));
+    this.scaffold.setOnDismiss(() => home.click());
   }
   show(input: {
     thumbnailUrl: string | null;

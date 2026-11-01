@@ -185,6 +185,14 @@ export async function checkGuestSharing(
       path: "/tmp/share-join-mobile.png",
       animations: "disabled",
     });
+    await receiver
+      .getByRole("link", { name: "Go to home", exact: true })
+      .click();
+    await expect(receiver).toHaveURL(`${origin}/`);
+    await receiver.goto(join);
+    await expect(
+      receiver.getByRole("button", { name: "Join drawing", exact: true }),
+    ).toBeVisible();
     await receiver.request.get(join);
     await receiver.request.head(join);
     await sender.evaluate(() => (window as any).kidsDrawApp.commands.share());
