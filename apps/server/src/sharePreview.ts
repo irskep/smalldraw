@@ -1,4 +1,4 @@
-import { buildDrawingAppUrl } from "@smalldraw/shared";
+import { SHARE_LINK_LIFETIME_MS, buildDrawingAppUrl } from "@smalldraw/shared";
 
 import { getDocumentInvitationByToken } from "./db/getDocumentInvitationByToken.js";
 import { getDocumentThumbnail } from "./db/getDocumentThumbnail.js";
@@ -18,7 +18,12 @@ export async function getSharePreview(
   const invitation = await getDocumentInvitationByToken(token, {
     scopes: ["share"],
   });
-  if (!invitation) return null;
+  if (
+    !invitation ||
+    (invitation.expiresAt?.getTime() ??
+      invitation.createdAt.getTime() + SHARE_LINK_LIFETIME_MS) <= Date.now()
+  )
+    return null;
   const thumbnail = await getDocumentThumbnail(invitation.documentId);
   if (!thumbnail) return null;
   const image = buildDocumentThumbnailUrl(

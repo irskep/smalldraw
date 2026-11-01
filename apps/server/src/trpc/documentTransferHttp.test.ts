@@ -66,6 +66,8 @@ test("binary HTTP guest and account transfers preserve bytes, authorization, ret
     const resolved = await request("resolveAnonymousCollaborativeDocument", {
       joinSecret: registered.result.joinSecret,
       deviceTag: "reader",
+      confirmed: true,
+      admissionKey: "a".repeat(64),
     });
     expect(resolved.result.content).toBeInstanceOf(Uint8Array);
     const remote = A.load<typeof local>(resolved.result.content);
@@ -76,9 +78,11 @@ test("binary HTTP guest and account transfers preserve bytes, authorization, ret
         await request("resolveAnonymousCollaborativeDocument", {
           joinSecret: "missing",
           deviceTag: "reader",
+          confirmed: true,
+          admissionKey: "a".repeat(64),
         })
-      ).result,
-    ).toBeNull();
+      ).status,
+    ).toBe(403);
     expect(
       (
         await request("registerAccountSyncedDocument", {
@@ -131,6 +135,8 @@ test("binary HTTP guest and account transfers preserve bytes, authorization, ret
         await request("resolveAccountCollaborativeDocument", {
           documentId: accountId,
           deviceTag: "reader",
+          confirmed: true,
+          admissionKey: "a".repeat(64),
         })
       ).status,
     ).toBe(401);

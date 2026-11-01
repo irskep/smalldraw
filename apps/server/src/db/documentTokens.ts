@@ -1,3 +1,4 @@
+import { SHARE_LINK_LIFETIME_MS } from "@smalldraw/shared";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { generateId } from "../utils/generateId.js";
@@ -17,6 +18,7 @@ type CreateDocumentTokenParams = {
   documentId: string;
   scope: DocumentTokenScope;
   tag?: string | null;
+  participantId?: string;
 };
 
 type FindActiveDocumentTokenParams = {
@@ -34,6 +36,7 @@ export const createDocumentToken = async ({
   documentId,
   scope,
   tag,
+  participantId,
 }: CreateDocumentTokenParams): Promise<DocumentInvitation> => {
   assertDocumentAvailable(documentId);
   const now = new Date();
@@ -43,6 +46,11 @@ export const createDocumentToken = async ({
       documentId,
       token: generateId(16),
       scope,
+      participantId,
+      expiresAt:
+        scope === "share"
+          ? new Date(now.getTime() + SHARE_LINK_LIFETIME_MS)
+          : null,
       tag: tag ?? null,
       createdAt: now,
       lastUsedAt: now,
@@ -80,12 +88,13 @@ export const findOrCreateDocumentToken = async ({
   documentId,
   scope,
   tag,
+  participantId,
 }: CreateDocumentTokenParams): Promise<DocumentInvitation> => {
   const existing = await findActiveDocumentToken({ documentId, scope, tag });
   if (existing) {
     return existing;
   }
-  return await createDocumentToken({ documentId, scope, tag });
+  return await createDocumentToken({ documentId, scope, tag, participantId });
 };
 
 export const getActiveDocumentTokenByToken = async ({

@@ -1,5 +1,10 @@
 import type { DocumentId } from "@automerge/automerge-repo";
 import type { DrawingDocumentSize } from "@smalldraw/core";
+import type { JoinDrawingDialog } from "@smalldraw/design-system";
+import {
+  shareAvailabilityMessage,
+  type ShareAdmissionProof,
+} from "@smalldraw/shared";
 import {
   type AppError,
   createAppError,
@@ -178,6 +183,7 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
   startupIntent: StartupIntent;
   deviceTag: string;
   syncedAccountDocument: KidsDocumentSummary | null;
+  joinDialog?: JoinDrawingDialog;
 }): Promise<Array<{ binary: Uint8Array; docId: string }>> {
   const startupPreImports: Array<{ binary: Uint8Array; docId: string }> = [];
 
@@ -252,11 +258,75 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
       if (!options.multiplayerApiClient) {
         throw new Error("Multiplayer API is not configured.");
       }
-      const resolved =
-        await options.multiplayerApiClient.resolveCollaborativeDocumentByJoinSecret(
-          options.startupIntent.joinSecret,
-          options.deviceTag,
-        );
+      const api = options.multiplayerApiClient;
+      const joinSecret = options.startupIntent.joinSecret;
+      const proof: ShareAdmissionProof = {
+        navigationReferrer:
+          typeof document === "undefined" ? undefined : document.referrer,
+      };
+      let receiptKey: string | undefined;
+      let inspection = await api.inspectShareInvitation(
+        joinSecret,
+        options.deviceTag,
+        proof,
+      );
+      if (inspection) {
+        const local = await findLocalCollaborativeSummaryByDocumentId({
+          documentBackend: options.documentBackend,
+          documentId: inspection.documentId,
+        });
+        proof.accessToken = local?.accessToken ?? undefined;
+        const keyName = `splatterboard:admission:${getDrawingWorkspace() ?? "guest"}:${inspection.documentId}`;
+        receiptKey = keyName;
+        try {
+          proof.admissionKey = localStorage.getItem(keyName) ?? undefined;
+        } catch {
+          /* Storage may be unavailable in private browsing. */
+        }
+        if (proof.accessToken || proof.admissionKey)
+          inspection = await api.inspectShareInvitation(
+            joinSecret,
+            options.deviceTag,
+            proof,
+          );
+        if (inspection && !inspection.existingParticipant) {
+          const confirmed = await options.joinDialog?.show({
+            thumbnailUrl: inspection.thumbnailUrl,
+            message:
+              inspection.availability === "open"
+                ? "Draw together in a small group."
+                : shareAvailabilityMessage(inspection.availability),
+            canJoin: inspection.availability === "open",
+          });
+          if (!confirmed || inspection.availability !== "open") {
+            throw new DocumentAccessError({
+              appError: createAppError({
+                code: "DOCUMENT_SHARE_LINK_INVALID",
+                title: "You haven't joined this drawing",
+                message: "You can return to this invitation when you're ready.",
+                severity: "recoverable",
+                retryable: false,
+              }),
+            });
+          }
+          proof.admissionKey ??= Array.from(
+            crypto.getRandomValues(new Uint8Array(32)),
+            (byte) => byte.toString(16).padStart(2, "0"),
+          ).join("");
+          try {
+            localStorage.setItem(keyName, proof.admissionKey);
+          } catch {
+            /* The returned device credential is also saved in the drawing catalog. */
+          }
+        }
+      }
+      const resolved = inspection
+        ? await api.resolveCollaborativeDocumentByJoinSecret(
+            joinSecret,
+            options.deviceTag,
+            { ...proof, confirmed: !inspection.existingParticipant },
+          )
+        : null;
       if (!resolved) {
         throw new DocumentAccessError({
           appError: createAppError({
@@ -283,6 +353,15 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
           accessTokenScope: resolved.accessTokenScope,
         },
       });
+      // The catalog now owns the credential. Retain a receipt only while a
+      // response may have been lost; do not leave account access outside its cache.
+      if (receiptKey) {
+        try {
+          localStorage.removeItem(receiptKey);
+        } catch {
+          /* Storage is optional. */
+        }
+      }
       return startupPreImports;
     }
     case "open-account-document": {

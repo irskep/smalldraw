@@ -72,7 +72,11 @@ export { createPreviewCard, PreviewCard } from "./view/PreviewCard";
 export { ProgressBar } from "./view/ProgressBar";
 export type { ReDomLike } from "./view/ReDomLike";
 export { renderIcon } from "./view/renderIcon";
-export { createShareQrDialog, type ShareQrDialog } from "./view/ShareQrDialog";
+export {
+  createShareQrDialog,
+  type SharingControls,
+  type ShareQrDialog,
+} from "./view/ShareQrDialog";
 export {
   createSplatContext,
   SplatContext,
@@ -141,3 +145,4 @@ export {
 } from "./view/toolbar/Toolbar";
 
 export { SizeStepper } from "./view/SizeStepper";
+export { JoinDrawingDialog } from "./view/JoinDrawingDialog";

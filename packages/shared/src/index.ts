@@ -266,7 +266,7 @@ export type AnonymousCollaborativeDocumentResolution = {
   collabDocUrl: string;
   joinSecret: string;
   accessToken: string;
-  accessTokenScope: "device";
+  accessTokenScope: "owner" | "device";
   content: Uint8Array;
 };
 
@@ -317,3 +317,5 @@ export interface UsageAnalytics {
 }
 
 export { COLORING_TOPICS, getColoringTopic } from "./coloringTopics";
+
+export * from "./sharing";

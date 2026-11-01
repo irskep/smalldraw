@@ -163,7 +163,45 @@ export async function checkGuestSharing(
     );
     await receiver.waitForTimeout(750);
     console.log("Guest upload bytes", uploadBytes);
+    let admissionResponseLost = false;
+    await receiver.route(
+      "**/documents/resolveAnonymousCollaborativeDocument",
+      async (route) => {
+        if (admissionResponseLost) {
+          await route.continue();
+          return;
+        }
+        admissionResponseLost = true;
+        const response = await route.fetch();
+        expect(response.ok()).toBe(true);
+        await route.abort("failed");
+      },
+    );
     await receiver.goto(join);
+    await expect(
+      receiver.getByRole("button", { name: "Join drawing", exact: true }),
+    ).toBeVisible();
+    await receiver.screenshot({
+      path: "/tmp/share-join-mobile.png",
+      animations: "disabled",
+    });
+    await receiver.request.get(join);
+    await receiver.request.head(join);
+    await sender.evaluate(() => (window as any).kidsDrawApp.commands.share());
+    await expect(
+      sender.getByText("0 of 10 people have joined", { exact: true }),
+    ).toBeVisible();
+    await sender.getByRole("button", { name: "Done", exact: true }).click();
+    await receiver
+      .getByRole("button", { name: "Join drawing", exact: true })
+      .click();
+    await expect(
+      receiver.getByRole("button", { name: "Retry", exact: true }),
+    ).toBeVisible();
+    await expect.poll(() => admissionResponseLost).toBe(true);
+    await expect(receiver.locator(".ds-join-drawing")).not.toBeVisible();
+    await expect(receiver.locator(".ds-document-access-state")).toBeVisible();
+    await receiver.reload();
     await ready(receiver);
     expect(await count(receiver)).toBe(9);
     await receiver.waitForURL(/\/draw\/[A-Za-z0-9_-]{20,}$/);
@@ -178,6 +216,9 @@ export async function checkGuestSharing(
       ).toBeVisible();
       await expect(oldReceiver.locator(".kids-draw-frame")).toBeHidden();
       await oldReceiver.goto(oldJoin);
+      await oldReceiver
+        .getByRole("button", { name: "Join drawing", exact: true })
+        .click();
       await ready(oldReceiver);
       await expect(oldReceiver).toHaveURL(cleanJoinedUrl);
       expect(await count(oldReceiver)).toBe(9);
@@ -217,6 +258,80 @@ export async function checkGuestSharing(
     await receiver.reload();
     await ready(receiver);
     expect(await count(receiver)).toBe(1);
+    await sender.evaluate(() => (window as any).kidsDrawApp.commands.share());
+    await expect(
+      sender.getByText("2 of 10 people have joined", { exact: true }),
+    ).toBeVisible();
+    await sender.screenshot({
+      path: "/tmp/share-controls-mobile.png",
+      animations: "disabled",
+    });
+    await sender.setViewportSize({ width: 1440, height: 900 });
+    await sender.screenshot({
+      path: "/tmp/share-controls-desktop.png",
+      animations: "disabled",
+    });
+    await sender.setViewportSize({ width: 320, height: 568 });
+    await expect(
+      sender.getByRole("button", { name: "Done", exact: true }),
+    ).toBeInViewport();
+    await sender.screenshot({
+      path: "/tmp/share-controls-small.png",
+      animations: "disabled",
+    });
+    await sender.setViewportSize({ width: 390, height: 844 });
+    const toggle = sender.getByRole("checkbox", {
+      name: "Allow new people to join",
+    });
+    await toggle.uncheck();
+    await expect(toggle).toBeEnabled();
+    const newcomer = await browser.newPage();
+    try {
+      await newcomer.goto(join);
+      await expect(
+        newcomer.getByText("The owner has stopped new people from joining."),
+      ).toBeVisible();
+      await expect(
+        newcomer.getByRole("button", { name: "Join drawing", exact: true }),
+      ).toBeDisabled();
+      // Returning recipients remain authorized even when the invitation is closed.
+      await receiver.goto(join);
+      await ready(receiver);
+      await sender
+        .getByRole("button", { name: "Create new link", exact: true })
+        .click();
+      await expect.poll(() => link.inputValue()).not.toBe(join);
+      await expect(toggle).not.toBeChecked();
+      const renewed = await link.inputValue();
+      await toggle.check();
+      await expect(toggle).toBeEnabled();
+      await newcomer.goto(join);
+      await expect(
+        newcomer.getByText("This invitation is no longer available.", {
+          exact: true,
+        }),
+      ).toBeVisible();
+      for (const referrer of [
+        "https://news.ycombinator.com/item?id=1",
+        "https://old.reddit.com/r/art",
+      ]) {
+        await newcomer.goto(renewed, { referer: referrer });
+        await expect(
+          newcomer.getByText(/Drawing invitations are for small groups/),
+        ).toBeVisible();
+        await expect(
+          newcomer.getByRole("button", { name: "Join drawing", exact: true }),
+        ).toBeDisabled();
+      }
+      await receiver.goto(join, { referer: "https://www.reddit.com/r/art" });
+      await ready(receiver);
+      await expect(
+        sender.getByText("2 of 10 people have joined", { exact: true }),
+      ).toBeVisible();
+    } finally {
+      await newcomer.close();
+    }
+    await sender.getByRole("button", { name: "Done", exact: true }).click();
     const previousPreview = previewImages.at(-1);
     const updatedPreviewResponse = sender.waitForResponse((response) =>
       response.url().includes("/publishShareThumbnail"),

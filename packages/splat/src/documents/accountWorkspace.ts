@@ -242,8 +242,8 @@ export async function syncAccountWorkspace(
         if (document.collaborative) {
           if (document.accessTokenScope === "owner" && document.accessToken) {
             await api.claimCollaborativeDocument(document.accessToken);
-          } else if (document.joinSecret) {
-            await api.acceptDocumentInvitation(document.joinSecret);
+          } else if (document.accessToken) {
+            await api.acceptDocumentInvitation(document.accessToken);
           } else {
             throw new Error(
               "Open the sharing link again to sync this shared drawing.",

@@ -1,8 +1,8 @@
 import { free, getHeads, load } from "@automerge/automerge";
 import type { DocumentId } from "@automerge/automerge-repo";
 import * as opaque from "@serenity-kit/opaque";
+import { shareAvailabilityMessage } from "@smalldraw/shared";
 import type {
-  AcceptedDocumentInvitation,
   AccountCollaborativeDocumentResolution,
   AccountCollaborativeDocumentSummary,
   AccountDocumentDetails,
@@ -30,6 +30,7 @@ import type {
 } from "@smalldraw/shared";
 import { isDocumentAccessTokenScope } from "@smalldraw/shared";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -51,15 +52,15 @@ import {
   saveAccountSettings,
   verifyAccountSettingsPin,
 } from "../db/accountSettings.js";
-import { addUserToDocument } from "../db/addUserToDocument.js";
 import { claimAnonymousCollaborativeDocument } from "../db/claimAnonymousCollaborativeDocument.js";
+import { db } from "../db/client.js";
 import {
   createAnonymousCollaborativeDocument,
   DocumentRegistrationConflictError,
 } from "../db/createAnonymousCollaborativeDocument.js";
 import { createDocument } from "../db/createDocument.js";
 import { createLoginAttempt } from "../db/createLoginAttempt.js";
-import { createOrRefreshDocumentInvitation } from "../db/createOrRefreshDocumentInvitation.js";
+import { createOrGetDocumentInvitation } from "../db/createOrGetDocumentInvitation.js";
 import { createSession } from "../db/createSession.js";
 import { createUser } from "../db/createUser.js";
 import { deleteDocument } from "../db/deleteDocument.js";
@@ -89,6 +90,16 @@ import { restoreDocument } from "../db/restoreDocument.js";
 import { revokeDocumentAccessTokenForAdmin } from "../db/revokeDocumentAccessTokenForAdmin.js";
 import { revokeDocumentAccessTokenForServerAdmin } from "../db/revokeDocumentAccessTokenForServerAdmin.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "../db/rotateAnonymousCollaborativeDocumentShareToken.js";
+import { documents } from "../db/schema.js";
+import {
+  AdmissionError,
+  admitShareParticipant,
+  inspectSharingAdmission,
+  assertSharingOwner,
+  getSharingSettings,
+  attachSharedParticipantToAccount,
+  ensureAccountParticipant,
+} from "../db/sharingAdmission.js";
 import {
   getOrCreateAccountDocumentOwnerToken,
   syncAccountDocument,
@@ -105,6 +116,7 @@ import {
   RegisterFinishParams,
   RegisterStartParams,
 } from "../schema.js";
+import { getSharePreview } from "../sharePreview.js";
 import { publishDocumentThumbnail } from "../storage/publishDocumentThumbnail.js";
 import { createOpaqueRegistrationRecord } from "../utils/createOpaqueRegistrationRecord.js";
 import { getOpaqueServerSetup } from "../utils/getOpaqueServerSetup.js";
@@ -1019,6 +1031,12 @@ const procedures = {
         const accessToken = await findOrCreateDocumentToken({
           documentId: opts.input.documentId,
           scope: accessTokenScope,
+          participantId: document.isAdmin
+            ? undefined
+            : ensureAccountParticipant(
+                opts.input.documentId,
+                opts.ctx.session.userId,
+              ),
           tag: `account:${opts.ctx.session.userId}:device:${opts.input.deviceTag}`,
         });
         return {
@@ -1189,46 +1207,129 @@ const procedures = {
       });
     }),
 
+  inspectShareInvitation: publicProcedure
+    .input(
+      z.object({
+        joinSecret: z.string().min(1),
+        deviceTag: z.string().min(1).max(128),
+        accessToken: z.string().optional(),
+        admissionKey: z
+          .string()
+          .regex(/^[a-f0-9]{64}$/)
+          .optional(),
+        navigationReferrer: z.string().max(4096).optional(),
+      }),
+    )
+    .mutation(async (opts) => {
+      try {
+        const inspection = inspectSharingAdmission({
+          ...opts.input,
+          userId: opts.ctx.session?.userId,
+          requestReferrer: opts.ctx.req.get?.("referer"),
+        });
+        const preview = await getSharePreview(
+          opts.input.joinSecret,
+          "https://splatterboard.app",
+        );
+        return { ...inspection, thumbnailUrl: preview?.image ?? null };
+      } catch (error) {
+        if (error instanceof AdmissionError) return null;
+        throw error;
+      }
+    }),
+
+  sharingSettings: publicProcedure
+    .input(
+      z.object({ documentId: z.string(), accessToken: z.string().optional() }),
+    )
+    .mutation(({ input, ctx }) => {
+      assertSharingOwner(
+        input.documentId,
+        ctx.session?.userId,
+        input.accessToken,
+      );
+      return getSharingSettings(input.documentId);
+    }),
+
+  setSharingAdmissions: publicProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        accessToken: z.string().optional(),
+        allowNewJoiners: z.boolean(),
+      }),
+    )
+    .mutation(({ input, ctx }) => {
+      assertSharingOwner(
+        input.documentId,
+        ctx.session?.userId,
+        input.accessToken,
+      );
+      db.update(documents)
+        .set({ allowNewJoiners: input.allowNewJoiners })
+        .where(eq(documents.id, input.documentId))
+        .run();
+      return getSharingSettings(input.documentId);
+    }),
+
+  renewShareInvitation: publicProcedure
+    .input(
+      z.object({ documentId: z.string(), accessToken: z.string().optional() }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      assertSharingOwner(
+        input.documentId,
+        ctx.session?.userId,
+        input.accessToken,
+      );
+      await rotateAnonymousCollaborativeDocumentShareToken(input.documentId);
+      return getSharingSettings(input.documentId);
+    }),
+
   resolveAnonymousCollaborativeDocument: publicProcedure
     .input(
       z.object({
         joinSecret: z.string().min(1),
         deviceTag: z.string().min(1).max(128),
+        accessToken: z.string().optional(),
+        admissionKey: z
+          .string()
+          .regex(/^[a-f0-9]{64}$/)
+          .optional(),
+        navigationReferrer: z.string().max(4096).optional(),
+        confirmed: z.boolean().default(false),
       }),
     )
-    .query(async (opts) => {
-      const invitation = await getDocumentInvitationByToken(
-        opts.input.joinSecret,
-        { scopes: ["share"] },
-      );
-      if (!invitation) {
-        return null;
-      }
+    .mutation(async (opts) => {
+      let admitted;
       try {
-        const content = await serializeRepoDocument(invitation.documentId);
-        return {
-          collabDocUrl: toAutomergeUrl(invitation.documentId),
-          joinSecret: invitation.token,
-          accessToken: (
-            await findOrCreateDocumentToken({
-              documentId: invitation.documentId,
-              scope: "device",
-              tag: opts.input.deviceTag,
-            })
-          ).token,
-          accessTokenScope: "device",
-          content,
-        } satisfies AnonymousCollaborativeDocumentResolution;
-      } catch (err) {
-        if (err instanceof TRPCError) {
-          throw err;
-        }
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to serialize document",
-          cause: err,
+        admitted = admitShareParticipant({
+          ...opts.input,
+          userId: opts.ctx.session?.userId,
+          requestReferrer: opts.ctx.req.get?.("referer"),
         });
+      } catch (error) {
+        if (!(error instanceof AdmissionError)) throw error;
+        throw appTrpcError(
+          {
+            code: "DOCUMENT_SHARE_LINK_INVALID",
+            title: "Can't join this drawing",
+            message: shareAvailabilityMessage(error.availability),
+            severity: "recoverable",
+            retryable: false,
+          },
+          "FORBIDDEN",
+        );
       }
+      // Admission is durable before loading bytes. Retries reuse its credential/receipt.
+      const content = await serializeRepoDocument(admitted.documentId);
+      return {
+        collabDocUrl: toAutomergeUrl(admitted.documentId),
+        joinSecret: admitted.joinSecret,
+        accessToken: admitted.accessToken,
+        accessTokenScope: admitted.accessTokenScope,
+        content,
+      } satisfies AnonymousCollaborativeDocumentResolution;
     }),
   rotateAnonymousCollaborativeShareLink: publicProcedure
     .input(
@@ -1255,14 +1356,14 @@ const procedures = {
       return { joinSecret: shareToken.token };
     }),
 
-  createOrRefreshDocumentInvitation: protectedProcedure
+  createOrGetDocumentInvitation: protectedProcedure
     .input(
       z.object({
         documentId: z.string(),
       }),
     )
     .mutation(async (opts) => {
-      const documentInvitation = await createOrRefreshDocumentInvitation({
+      const documentInvitation = await createOrGetDocumentInvitation({
         userId: opts.ctx.session.userId,
         documentId: opts.input.documentId,
       });
@@ -1323,22 +1424,10 @@ const procedures = {
     }),
 
   acceptDocumentInvitation: protectedProcedure
-    .input(
-      z.object({
-        token: z.string(),
-      }),
-    )
-    .mutation(async (opts) => {
-      const result = await addUserToDocument({
-        userId: opts.ctx.session.userId,
-        documentInvitationToken: opts.input.token,
-      });
-      return result
-        ? ({
-            documentId: result.documentId,
-          } satisfies AcceptedDocumentInvitation)
-        : null;
-    }),
+    .input(z.object({ accessToken: z.string().min(1) }))
+    .mutation(({ input, ctx }) =>
+      attachSharedParticipantToAccount(ctx.session.userId, input.accessToken),
+    ),
   claimCollaborativeDocument: protectedProcedure
     .input(
       z.object({

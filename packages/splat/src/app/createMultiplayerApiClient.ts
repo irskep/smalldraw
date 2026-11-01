@@ -1,5 +1,8 @@
 import * as cbor from "@automerge/automerge-repo/helpers/cbor.js";
 import type {
+  ShareAdmissionProof,
+  ShareInspection,
+  ShareSettings,
   DrawingCheckpoint,
   DrawingCheckpointResult,
 } from "@smalldraw/shared";
@@ -52,7 +55,25 @@ export interface MultiplayerApiClient {
     checkpoint: DrawingCheckpoint,
     accountId: string,
   ): Promise<DrawingCheckpointResult>;
-  acceptDocumentInvitation(token: string): Promise<void>;
+  inspectShareInvitation(
+    joinSecret: string,
+    deviceTag: string,
+    proof: ShareAdmissionProof,
+  ): Promise<ShareInspection | null>;
+  sharingSettings(
+    documentId: string,
+    accessToken: string,
+  ): Promise<ShareSettings>;
+  setSharingAdmissions(
+    documentId: string,
+    accessToken: string,
+    allowNewJoiners: boolean,
+  ): Promise<ShareSettings>;
+  renewShareInvitation(
+    documentId: string,
+    accessToken: string,
+  ): Promise<ShareSettings>;
+  acceptDocumentInvitation(accessToken: string): Promise<void>;
   listAccountCollaborativeDocuments(): Promise<
     AccountCollaborativeDocumentSummary[]
   >;
@@ -73,6 +94,7 @@ export interface MultiplayerApiClient {
   resolveCollaborativeDocumentByJoinSecret(
     joinSecret: string,
     deviceTag: string,
+    admission: ShareAdmissionProof & { confirmed: boolean },
   ): Promise<AnonymousCollaborativeDocumentResolution | null>;
   resolveCollaborativeDocumentByAccountDocumentId(
     documentId: string,
@@ -208,9 +230,35 @@ export function createMultiplayerApiClient(options: {
         throw normalizeMultiplayerApiError(error, "Failed to save drawing.");
       }
     },
-    async acceptDocumentInvitation(token) {
+    async inspectShareInvitation(joinSecret, deviceTag, proof) {
+      return (await client.mutation("inspectShareInvitation", {
+        joinSecret,
+        deviceTag,
+        ...proof,
+      })) as ShareInspection | null;
+    },
+    async sharingSettings(documentId, accessToken) {
+      return (await client.mutation("sharingSettings", {
+        documentId,
+        accessToken,
+      })) as ShareSettings;
+    },
+    async setSharingAdmissions(documentId, accessToken, allowNewJoiners) {
+      return (await client.mutation("setSharingAdmissions", {
+        documentId,
+        accessToken,
+        allowNewJoiners,
+      })) as ShareSettings;
+    },
+    async renewShareInvitation(documentId, accessToken) {
+      return (await client.mutation("renewShareInvitation", {
+        documentId,
+        accessToken,
+      })) as ShareSettings;
+    },
+    async acceptDocumentInvitation(accessToken) {
       try {
-        await client.mutation("acceptDocumentInvitation", { token });
+        await client.mutation("acceptDocumentInvitation", { accessToken });
       } catch (error) {
         throw normalizeMultiplayerApiError(
           error,
@@ -295,7 +343,7 @@ export function createMultiplayerApiClient(options: {
     async createShareInvitation(documentId) {
       let result: unknown;
       try {
-        result = await client.mutation("createOrRefreshDocumentInvitation", {
+        result = await client.mutation("createOrGetDocumentInvitation", {
           documentId,
         });
       } catch (error) {
@@ -309,9 +357,7 @@ export function createMultiplayerApiClient(options: {
         typeof result !== "object" ||
         typeof (result as { token?: unknown }).token !== "string"
       ) {
-        throw new Error(
-          "Invalid response from createOrRefreshDocumentInvitation",
-        );
+        throw new Error("Invalid response from createOrGetDocumentInvitation");
       }
       return { token: (result as { token: string }).token };
     },
@@ -366,32 +412,24 @@ export function createMultiplayerApiClient(options: {
       }
       return (result as { valid: boolean }).valid;
     },
-    async resolveCollaborativeDocumentByJoinSecret(joinSecret, deviceTag) {
+    async resolveCollaborativeDocumentByJoinSecret(
+      joinSecret,
+      deviceTag,
+      admission,
+    ) {
       let result: unknown;
-      console.info("[kids-draw:documents] anonymous resolve start", {
-        joinSecret,
-        deviceTag,
-      });
       try {
         result = await transfer("resolveAnonymousCollaborativeDocument", {
           joinSecret,
           deviceTag,
+          ...admission,
         });
       } catch (error) {
-        console.warn("[kids-draw:documents] anonymous resolve failed", {
-          joinSecret,
-          deviceTag,
-          error,
-        });
         throw normalizeMultiplayerApiError(
           error,
           "Failed to resolve shared drawing.",
         );
       }
-      console.info("[kids-draw:documents] anonymous resolve complete", {
-        joinSecret,
-        deviceTag,
-      });
       if (result == null) {
         return null;
       }
@@ -659,7 +697,9 @@ function parseResolveResult(
     typeof (input as { collabDocUrl?: unknown }).collabDocUrl !== "string" ||
     typeof (input as { joinSecret?: unknown }).joinSecret !== "string" ||
     typeof (input as { accessToken?: unknown }).accessToken !== "string" ||
-    (input as { accessTokenScope?: unknown }).accessTokenScope !== "device" ||
+    !["device", "owner"].includes(
+      String((input as { accessTokenScope?: unknown }).accessTokenScope),
+    ) ||
     !((input as { content?: unknown }).content instanceof Uint8Array)
   ) {
     return null;
@@ -668,7 +708,7 @@ function parseResolveResult(
     collabDocUrl: (input as { collabDocUrl: string }).collabDocUrl,
     joinSecret: (input as { joinSecret: string }).joinSecret,
     accessToken: (input as { accessToken: string }).accessToken,
-    accessTokenScope: (input as { accessTokenScope: "device" })
+    accessTokenScope: (input as { accessTokenScope: "device" | "owner" })
       .accessTokenScope,
     content: (input as { content: Uint8Array }).content,
   };

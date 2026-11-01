@@ -798,6 +798,23 @@ describe("splatterboard shell", () => {
           headers: { "content-type": "application/json" },
         });
       }
+      if (url.includes("/inspectShareInvitation")) {
+        return new Response(
+          JSON.stringify([
+            {
+              result: {
+                data: {
+                  documentId: "joined-doc",
+                  availability: "open",
+                  existingParticipant: true,
+                  thumbnailUrl: null,
+                },
+              },
+            },
+          ]),
+          { headers: { "content-type": "application/json" } },
+        );
+      }
       if (url.includes("/resolveAnonymousCollaborativeDocument")) {
         return binaryDrawingResponse({
           collabDocUrl: "automerge:joined-doc",

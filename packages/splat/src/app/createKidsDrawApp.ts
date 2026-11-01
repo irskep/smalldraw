@@ -1,10 +1,10 @@
 import { DrawingStore } from "@smalldraw/core";
+import type { SharingControls } from "@smalldraw/design-system";
 import type {
   ParentalControlsDialog,
   SplatContextDocumentSlot,
 } from "@smalldraw/design-system";
-
-import "@smalldraw/design-system/styles.css";
+import type { ShareSettings } from "@smalldraw/shared";
 import {
   type AccountSettings,
   type AccountShareMode,
@@ -17,12 +17,14 @@ import {
   verifyParentalControlsPin,
 } from "@smalldraw/shared";
 
+import "@smalldraw/design-system/styles.css";
 import { createColoringAssetUrlResolver } from "../coloring/assetUrls";
 import { createQrCodeDataUrl } from "../controller/createQrCodeDataUrl";
 import { createKidsDrawController } from "../controller/KidsDrawController";
 import type { KidsDrawUiIntent } from "../controller/KidsDrawUiIntent";
 import type { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
 import type { UiIntentStore } from "../controller/stores/createUiIntentStore";
+import { buildJoinUrl, automergeUrlToDocumentId } from "../documents";
 import type { KidsDocumentSummary } from "../documents";
 import {
   type createCollaborativeDocumentIndex,
@@ -785,11 +787,48 @@ function createControllerMultiplayerAdapters(options: {
       await options.uploadThumbnail(summary, thumbnail);
     },
     showShareDialog: async (payload) => {
-      const qrDataUrl = await createQrCodeDataUrl(payload.joinUrl);
-      await options.presentation.shareQrDialog.show({
-        joinUrl: payload.joinUrl,
-        qrDataUrl,
-      });
+      if (!multiplayerApiClient) throw new Error("Sharing is unavailable.");
+      const api = multiplayerApiClient;
+      const documentId = automergeUrlToDocumentId(payload.collabDocUrl);
+      if (!documentId) throw new Error("Invalid drawing ID.");
+      const describe = async (
+        settings: ShareSettings,
+      ): Promise<{
+        joinUrl: string;
+        qrDataUrl: string;
+        controls: SharingControls;
+      }> => {
+        const joinUrl = buildJoinUrl(settings.token, payload.joinUrl);
+        await options.documentBackend.createDocument({
+          docUrl: payload.catalogDocUrl,
+          joinSecret: settings.token,
+        });
+        return {
+          joinUrl,
+          qrDataUrl: await createQrCodeDataUrl(joinUrl),
+          controls: {
+            ...settings,
+            onChange: async (action) =>
+              describe(
+                "renew" in action
+                  ? await api.renewShareInvitation(
+                      documentId,
+                      payload.accessToken,
+                    )
+                  : await api.setSharingAdmissions(
+                      documentId,
+                      payload.accessToken,
+                      action.allowNewJoiners,
+                    ),
+              ),
+          },
+        };
+      };
+      await options.presentation.shareQrDialog.show(
+        await describe(
+          await api.sharingSettings(documentId, payload.accessToken),
+        ),
+      );
     },
     onShareError: (message) => {
       if (isSyncIssueShareMessage(message)) {

@@ -1,3 +1,4 @@
+import { SHARE_LINK_LIFETIME_MS } from "@smalldraw/shared";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { generateId } from "../utils/generateId.js";
@@ -28,6 +29,7 @@ export const rotateAnonymousCollaborativeDocumentShareToken = async (
         documentId,
         token: generateId(),
         scope: "share",
+        expiresAt: new Date(now.getTime() + SHARE_LINK_LIFETIME_MS),
         createdAt: now,
         lastUsedAt: now,
       })

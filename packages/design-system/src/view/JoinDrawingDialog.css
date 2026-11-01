@@ -1,0 +1,20 @@
+.ds-join-drawing {
+  width: min(92vw, 30rem);
+}
+.ds-join-drawing__body {
+  display: grid;
+  gap: var(--size-3);
+}
+.ds-join-drawing__preview {
+  width: 100%;
+  height: min(40vh, 20rem);
+  object-fit: contain;
+  background: white;
+  border-radius: var(--radius-2);
+}
+.ds-join-drawing__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-3);
+  justify-content: flex-end;
+}

@@ -79,6 +79,9 @@ export const documents = sqliteTable(
   {
     id: text("id").primaryKey().notNull(),
     name: text("name").notNull().default("Untitled"),
+    allowNewJoiners: integer("allow_new_joiners", { mode: "boolean" })
+      .notNull()
+      .default(true),
     createdAt: timestamp("created_at"),
     updatedAt: timestamp("updated_at"),
     // A constant SQL default permits an additive SQLite migration. Existing rows
@@ -159,6 +162,32 @@ export const usersOnDocuments = sqliteTable(
   }),
 );
 
+export const sharingParticipants = sqliteTable(
+  "sharing_participants",
+  {
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documents.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at"),
+  },
+  (table) => ({
+    documentIndex: index("sharing_participants_document_idx").on(
+      table.documentId,
+    ),
+    accountUnique: uniqueIndex("sharing_participants_account_unique").on(
+      table.documentId,
+      table.userId,
+    ),
+  }),
+);
+
 export const documentInvitations = sqliteTable(
   "document_invitations",
   {
@@ -172,6 +201,10 @@ export const documentInvitations = sqliteTable(
     token: text("token").notNull().unique(),
     scope: text("scope").notNull().default("share"),
     tag: text("tag"),
+    expiresAt: integer("expires_at", { mode: "timestamp" }),
+    participantId: text("participant_id").references(
+      () => sharingParticipants.id,
+    ),
     revokedAt: integer("revoked_at", { mode: "timestamp" }),
     lastUsedAt: integer("last_used_at", { mode: "timestamp" }),
     createdAt: timestamp("created_at"),
@@ -182,6 +215,19 @@ export const documentInvitations = sqliteTable(
       table.scope,
     ),
   }),
+);
+
+export const sharingAdmissionReceipts = sqliteTable(
+  "sharing_admission_receipts",
+  {
+    keyHash: text("key_hash").primaryKey().notNull(),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documents.id, { onDelete: "cascade" }),
+    tokenId: text("token_id")
+      .notNull()
+      .references(() => documentInvitations.id, { onDelete: "cascade" }),
+  },
 );
 
 export const documentTokenScopes = ["share", "owner", "device"] as const;

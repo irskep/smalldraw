@@ -76,10 +76,12 @@ describe("moderation schema migration", () => {
         INSERT INTO document_invitations(id,document_id,token,scope) VALUES('invite','kept','secret-token','share');
         INSERT INTO document_thumbnails(document_id,storage_key,content_type) VALUES('kept','key','image/png');
         INSERT INTO document_moderation(document_id,administrator_id,reason) VALUES('removed','owner','test');`);
+      normalizeModerationSchema(sqlite);
+      for (const entry of journal.entries.filter((entry) => entry.idx > 10))
+        sqlite.exec(migration(entry.tag));
       const before = tables.map((table) =>
         sqlite.prepare(`SELECT * FROM ${table}`).all(),
       );
-      normalizeModerationSchema(sqlite);
       normalizeModerationSchema(sqlite);
       expect(sqlite.query("PRAGMA foreign_keys").get()).toEqual({
         foreign_keys: 1,
@@ -217,6 +219,8 @@ describe("moderation schema migration", () => {
           .query("SELECT content_updated_at FROM documents WHERE id = 'old'")
           .get(),
       ).toEqual({ content_updated_at: 123 });
+      for (const entry of journal.entries.filter((entry) => entry.idx > 10))
+        sqlite.exec(migration(entry.tag));
       const now = Math.floor(Date.now() / 1000);
       drizzle(sqlite)
         .insert(documents)

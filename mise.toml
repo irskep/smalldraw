@@ -352,3 +352,8 @@ run = "bun scripts/publish-coloring-assets.ts"
 description = "Read-only audit of every prepared coloring asset in R2 and on the public CDN"
 env = { _.file = ".env.prod" }
 run = "bun scripts/publish-coloring-assets.ts --audit"
+
+[tasks."test:browser:sharing"]
+description = "Verify invitation admission and owner controls in Chromium and WebKit against production builds"
+env = { BROWSER_SUITE = "sharing" }
+run = "bun run scripts/test-browser-wasm.ts"

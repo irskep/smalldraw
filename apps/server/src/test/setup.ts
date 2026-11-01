@@ -5,6 +5,8 @@ import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 
 import { db } from "../db/client.js";
 import {
+  sharingParticipants,
+  sharingAdmissionReceipts,
   accountSettings,
   documentInvitations,
   documentModeration,
@@ -25,7 +27,9 @@ beforeAll(() => {
 
 beforeEach(async () => {
   await db.delete(documentModeration);
+  await db.delete(sharingAdmissionReceipts);
   await db.delete(documentInvitations);
+  await db.delete(sharingParticipants);
   await db.delete(documentThumbnails);
   await db.delete(serverAdminCredentials);
   await db.delete(usersOnDocuments);

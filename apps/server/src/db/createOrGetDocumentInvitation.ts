@@ -2,14 +2,14 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client.js";
 import { rotateAnonymousCollaborativeDocumentShareToken } from "./rotateAnonymousCollaborativeDocumentShareToken.js";
-import { documents, usersOnDocuments } from "./schema.js";
+import { documentInvitations, documents, usersOnDocuments } from "./schema.js";
 
 type Params = {
   userId: string;
   documentId: string;
 };
 
-export const createOrRefreshDocumentInvitation = async ({
+export const createOrGetDocumentInvitation = async ({
   userId,
   documentId,
 }: Params) => {
@@ -31,5 +31,20 @@ export const createOrRefreshDocumentInvitation = async ({
     throw new Error("Document not found or user is not an admin");
   }
 
-  return await rotateAnonymousCollaborativeDocumentShareToken(documentId);
+  const existing = db
+    .select()
+    .from(documentInvitations)
+    .where(
+      and(
+        eq(documentInvitations.documentId, documentId),
+        eq(documentInvitations.scope, "share"),
+        isNull(documentInvitations.revokedAt),
+      ),
+    )
+    .get();
+  // Merely opening sharing must never renew or replace an invitation.
+  return (
+    existing ??
+    (await rotateAnonymousCollaborativeDocumentShareToken(documentId))
+  );
 };

@@ -15,7 +15,7 @@ import { db } from "./client.js";
 import { createAnonymousCollaborativeDocument } from "./createAnonymousCollaborativeDocument.js";
 import { createDocument } from "./createDocument.js";
 import { createLoginAttempt } from "./createLoginAttempt.js";
-import { createOrRefreshDocumentInvitation } from "./createOrRefreshDocumentInvitation.js";
+import { createOrGetDocumentInvitation } from "./createOrGetDocumentInvitation.js";
 import { createSession } from "./createSession.js";
 import { createUser } from "./createUser.js";
 import { deleteDocument } from "./deleteDocument.js";
@@ -523,7 +523,7 @@ describe("Document operations", () => {
       name: "Invitation Doc",
     });
 
-    const invitation = await createOrRefreshDocumentInvitation({
+    const invitation = await createOrGetDocumentInvitation({
       userId: user.id,
       documentId: doc.id,
     });

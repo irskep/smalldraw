@@ -1,4 +1,6 @@
 import type { DrawingDocumentSize } from "@smalldraw/core";
+import { JoinDrawingDialog } from "@smalldraw/design-system";
+import { mount, unmount } from "redom";
 
 import { createCollaborationStatusStore } from "../controller/stores/createCollaborationStatusStore";
 import type { DocumentAccessDisplay } from "../controller/stores/createKidsDrawRuntimeStore";
@@ -16,6 +18,7 @@ import { createKidsShapeHandlerRegistry } from "../shapes/kidsShapeHandlers";
 import {
   createMultiplayerApiClient,
   type MultiplayerApiClient,
+  MultiplayerApiError,
 } from "./createMultiplayerApiClient";
 import {
   DocumentAccessError,
@@ -147,6 +150,11 @@ export async function assembleAppRuntime(
   let initialCatalogDocUrlOverride: string | null | undefined;
   let initialDocumentAccessState: AppRuntimeAssembly["initialDocumentAccessState"] =
     null;
+  const joinDialog =
+    startupIntent.kind === "open-share-link"
+      ? new JoinDrawingDialog()
+      : undefined;
+  if (joinDialog) mount(options.container, joinDialog);
   try {
     startupPreImports = await resolveStartupPreImportsAndCurrentDocument({
       documentBackend,
@@ -154,8 +162,13 @@ export async function assembleAppRuntime(
       startupIntent,
       deviceTag,
       syncedAccountDocument,
+      joinDialog,
     });
-  } catch (error) {
+  } catch (caught) {
+    const error =
+      caught instanceof MultiplayerApiError
+        ? new DocumentAccessError({ appError: caught.appError })
+        : caught;
     if (!(error instanceof DocumentAccessError)) {
       throw error;
     }
@@ -165,6 +178,8 @@ export async function assembleAppRuntime(
       reason: error.reason,
       display: toStartupDocumentAccessDisplay(error),
     };
+  } finally {
+    if (joinDialog) unmount(options.container, joinDialog);
   }
   if (startupIntent.kind === "create-new-document") {
     initialCatalogDocUrlOverride = null;

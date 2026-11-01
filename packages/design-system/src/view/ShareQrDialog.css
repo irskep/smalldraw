@@ -1,5 +1,8 @@
 .ds-share-dialog {
   width: min(92vw, 42rem);
+  max-height: calc(100dvh - var(--size-4));
+  overflow: auto;
+  border-radius: var(--radius-3);
 }
 
 .ds-share-dialog__card {
@@ -76,10 +79,29 @@
 
   .ds-share-dialog__media {
     justify-self: center;
-    width: min(100%, 14rem);
+    width: min(100%, 14rem, 30dvh);
   }
 
   .ds-share-dialog__actions {
     justify-content: stretch;
   }
+}
+
+.ds-share-dialog__settings {
+  display: grid;
+  gap: var(--size-3);
+}
+.ds-share-dialog__settings p {
+  margin: 0;
+}
+.ds-share-dialog__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2);
+  cursor: pointer;
+}
+.ds-share-dialog__toggle input {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
 }

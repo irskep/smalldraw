@@ -467,7 +467,7 @@ try {
     ).status,
   ).toBe(304);
   browser = await chromium.launch();
-  if (process.env.BROWSER_SUITE !== "assets") {
+  if (!["assets", "sharing"].includes(process.env.BROWSER_SUITE ?? "")) {
     await checkAdminModeration(
       browser,
       origin,
@@ -503,6 +503,14 @@ try {
       console.log(
         `PASS: versioned cross-origin assets (${assetRequests} requests), with no artwork in the app build`,
       );
+    } finally {
+      await safari.close();
+    }
+  } else if (process.env.BROWSER_SUITE === "sharing") {
+    await checkGuestSharing(browser, origin);
+    const safari = await webkit.launch();
+    try {
+      await checkGuestSharing(safari, origin);
     } finally {
       await safari.close();
     }

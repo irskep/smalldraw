@@ -1,11 +1,30 @@
 import "./ShareQrDialog.css";
+import { el } from "redom";
+
 import { Button } from "./Button";
 import { DialogScaffold } from "./DialogScaffold";
 import type { ReDomLike } from "./ReDomLike";
 import { Text } from "./Text";
 
+export interface SharingControls {
+  participantCount: number;
+  participantLimit: number;
+  expiresAt: string;
+  allowNewJoiners: boolean;
+  onChange: (
+    action: { allowNewJoiners: boolean } | { renew: true },
+  ) => Promise<{
+    joinUrl: string;
+    qrDataUrl: string;
+    controls: SharingControls;
+  }>;
+}
 export interface ShareQrDialog extends ReDomLike<HTMLDivElement> {
-  show(input: { joinUrl: string; qrDataUrl: string }): Promise<void>;
+  show(input: {
+    joinUrl: string;
+    qrDataUrl: string;
+    controls?: SharingControls;
+  }): Promise<void>;
   onunmount(): void;
 }
 
@@ -47,7 +66,67 @@ export function createShareQrDialog(): ShareQrDialog {
   actions.append(doneButton.el);
   const body = document.createElement("div");
   body.className = "ds-share-dialog__body";
-  body.append(title.el, urlRow, actions);
+  const count = el("p");
+  const expiry = el("p");
+  const allow = el("input", { type: "checkbox" }) as HTMLInputElement;
+  const toggle = el(
+    "label.ds-share-dialog__toggle",
+    allow,
+    "Allow new people to join",
+  );
+  const renew = new Button({ label: "Create new link", tone: "neutral" });
+  const error = el("p", { role: "alert" });
+  const controls = el(
+    "div.ds-share-dialog__settings",
+    count,
+    expiry,
+    toggle,
+    renew,
+    error,
+  );
+  let currentControls: SharingControls | undefined;
+  const update = (input: {
+    joinUrl: string;
+    qrDataUrl: string;
+    controls?: SharingControls;
+  }) => {
+    image.src = input.qrDataUrl;
+    currentJoinUrl = input.joinUrl;
+    urlInput.value = input.joinUrl;
+    currentControls = input.controls;
+    controls.hidden = !currentControls;
+    if (currentControls) {
+      count.textContent = `${currentControls.participantCount} of ${currentControls.participantLimit} people have joined`;
+      const expired = Date.parse(currentControls.expiresAt) <= Date.now();
+      expiry.textContent = `${expired ? "Link expired" : "Link expires"} ${new Date(currentControls.expiresAt).toLocaleDateString()}`;
+      allow.checked = currentControls.allowNewJoiners;
+    }
+    error.textContent = "";
+    setCopyLabel("Copy");
+  };
+  const change = async (
+    action: { allowNewJoiners: boolean } | { renew: true },
+  ) => {
+    if (!currentControls) return;
+    allow.disabled = true;
+    renew.setDisabled(true);
+    try {
+      update(await currentControls.onChange(action));
+    } catch {
+      error.textContent = "Couldn't update sharing. Please try again.";
+      allow.checked = currentControls.allowNewJoiners;
+    } finally {
+      allow.disabled = false;
+      renew.setDisabled(false);
+    }
+  };
+  allow.addEventListener("change", () => {
+    void change({ allowNewJoiners: allow.checked });
+  });
+  renew.setOnPress(() => {
+    void change({ renew: true });
+  });
+  body.append(title.el, urlRow, controls, actions);
   const content = document.createElement("div");
   content.className = "ds-share-dialog__content";
   content.append(imageSlot, body);
@@ -122,10 +201,7 @@ export function createShareQrDialog(): ShareQrDialog {
       const previousResolve = resolve;
       resolve = null;
       previousResolve?.();
-      image.src = input.qrDataUrl;
-      currentJoinUrl = input.joinUrl;
-      urlInput.value = input.joinUrl;
-      setCopyLabel("Copy");
+      update(input);
       scaffold.show();
       await new Promise<void>((nextResolve) => {
         resolve = nextResolve;

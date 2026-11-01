@@ -214,10 +214,12 @@ describe("createMultiplayerApiClient", () => {
     const resolved = await client.resolveCollaborativeDocumentByJoinSecret(
       "join-abc",
       "device-1",
+      { confirmed: true },
     );
     const missing = await client.resolveCollaborativeDocumentByJoinSecret(
       "join-missing",
       "device-1",
+      { confirmed: true },
     );
 
     expect(resolved).toEqual({
@@ -234,6 +236,7 @@ describe("createMultiplayerApiClient", () => {
     expect(inputs[0]).toEqual({
       joinSecret: "join-abc",
       deviceTag: "device-1",
+      confirmed: true,
     });
   });
 
@@ -253,6 +256,7 @@ describe("createMultiplayerApiClient", () => {
       client.resolveCollaborativeDocumentByJoinSecret(
         "join-no-content",
         "device-1",
+        { confirmed: true },
       ),
     ).rejects.toThrow(
       "Invalid response from resolveAnonymousCollaborativeDocument",

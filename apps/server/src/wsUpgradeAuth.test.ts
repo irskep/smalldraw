@@ -34,6 +34,8 @@ describe("resolveWebSocketUpgradeAuth", () => {
               revokedAt: null,
               lastUsedAt: new Date(),
               createdAt: new Date(),
+              expiresAt: null,
+              participantId: null,
             }
           : null,
     });

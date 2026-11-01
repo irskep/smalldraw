@@ -285,10 +285,11 @@ test("shared guest drawings retain membership without claiming ownership", async
     collabDocUrl: drawing.url,
     collaborative: true,
     joinSecret: "invitation",
+    accessToken: "admitted-device",
     accessTokenScope: "device",
   });
   await syncAccountWorkspace(api, repo, backend, id);
-  expect(accepted).toBe("invitation");
+  expect(accepted).toBe("admitted-device");
   expect(
     (await backend.getDocument(drawing.url))?.canDeleteFromServer,
   ).not.toBe(true);
