@@ -153,8 +153,9 @@ export async function assembleAppRuntime(
   const joinDialog =
     startupIntent.kind === "open-share-link"
       ? new JoinDrawingDialog(
-          new URL("/", options.multiplayer?.joinBaseUrl ?? window.location.href)
-            .href,
+          options.multiplayer?.joinBaseUrl
+            ? new URL("/", options.multiplayer.joinBaseUrl).href
+            : "/",
         )
       : undefined;
   if (joinDialog) mount(options.container, joinDialog);
