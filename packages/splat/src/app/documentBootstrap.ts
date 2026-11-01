@@ -294,7 +294,7 @@ export async function resolveStartupPreImportsAndCurrentDocument(options: {
             thumbnailUrl: inspection.thumbnailUrl,
             message:
               inspection.availability === "open"
-                ? "Draw together in a small group."
+                ? ""
                 : shareAvailabilityMessage(inspection.availability),
             canJoin: inspection.availability === "open",
           });

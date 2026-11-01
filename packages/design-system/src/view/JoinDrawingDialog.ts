@@ -41,6 +41,7 @@ export class JoinDrawingDialog {
     if (input.thumbnailUrl) this.#image.src = input.thumbnailUrl;
     else this.#image.removeAttribute("src");
     this.#message.textContent = input.message;
+    this.#message.hidden = !input.message;
     this.#join.setDisabled(!input.canJoin);
     this.scaffold.show();
     return new Promise((resolve) => {
