@@ -88,8 +88,8 @@ export async function checkToolSettings(
     await expect(page.locator(".ds-color-picker__swatch:visible")).toHaveCount(
       24,
     );
-    const terracotta = page.locator('.ds-color-picker [data-color="#c36a45"]');
-    await terracotta.click();
+    const lightGreen = page.locator('.ds-color-picker [data-color="#b8e986"]');
+    await lightGreen.click();
     await expect
       .poll(() =>
         page.evaluate(
@@ -97,7 +97,7 @@ export async function checkToolSettings(
             (window as any).kidsDrawApp.store.getSharedSettings().strokeColor,
         ),
       )
-      .toBe("#c36a45");
+      .toBe("#b8e986");
     await page.keyboard.press("Escape");
     await page.reload();
     await expect(page.locator(".kids-draw-frame")).toBeVisible();
