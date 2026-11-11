@@ -24,6 +24,19 @@ export function renderMarkerPath(
   if (!points.length) {
     return;
   }
+  const origin = points[0];
+  // Smoothing expands a tap into coincident curve points. Browsers do not
+  // reliably paint those zero-length curves, even with round line caps.
+  if (
+    points.every((point) => point[0] === origin[0] && point[1] === origin[1])
+  ) {
+    previewPaths.delete(ctx);
+    ctx.beginPath();
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.arc(origin[0], origin[1], Math.max(1, strokeSize / 2), 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.lineWidth = strokeSize;
@@ -86,12 +99,6 @@ export function renderMarkerPath(
     return;
   }
   ctx.beginPath();
-  if (drawPoints.length === 1) {
-    ctx.fillStyle = ctx.strokeStyle;
-    ctx.arc(first[0], first[1], Math.max(1, strokeSize / 2), 0, Math.PI * 2);
-    ctx.fill();
-    return;
-  }
   ctx.moveTo(first[0], first[1]);
   if (drawPoints.length === 2) {
     const second = drawPoints[1];

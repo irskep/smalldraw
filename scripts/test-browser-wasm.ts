@@ -10,6 +10,7 @@ import * as opaque from "@serenity-kit/opaque";
 import { automergeAsset } from "./automerge-asset.mjs";
 import { checkAdminModeration } from "./check-admin-moderation";
 import { checkAnalytics } from "./check-analytics";
+import { checkBrushTaps } from "./check-brush-taps";
 import { checkColoringEntry } from "./check-coloring-entry";
 import { checkColoringTopics } from "./check-coloring-topics";
 import { checkColoringbook } from "./check-coloringbook";
@@ -902,6 +903,7 @@ try {
       await checkPreviewDoesNotMoveCanvas(privatePage, "webkit");
       await checkOtherToolPreviews(privatePage, "webkit");
       await checkToddlerMode(safari, origin, "webkit");
+      await checkBrushTaps(safari, origin);
       await checkToolSettings(safari, origin);
       await checkAspectRatioSettings(safari, origin);
       await checkRandomize(privatePage, "webkit");
@@ -918,6 +920,7 @@ try {
     await checkPreviewDoesNotMoveCanvas(page, "chromium");
     await checkOtherToolPreviews(page, "chromium");
     await checkToddlerMode(browser, origin, "chromium");
+    await checkBrushTaps(browser, origin);
     await checkToolSettings(browser, origin);
     await checkAspectRatioSettings(browser, origin);
     await checkRandomize(page, "chromium");

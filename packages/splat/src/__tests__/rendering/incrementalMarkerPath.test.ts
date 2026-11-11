@@ -32,6 +32,12 @@ test("incremental native path retains exactly the full path commands and updates
       bezierCurveTo(...args: number[]) {
         current.bezierCurveTo(...args);
       },
+      arc(...args: number[]) {
+        current.commands.push(args);
+      },
+      fill() {
+        painted = current.commands;
+      },
       stroke(path?: RecordingPath) {
         painted = (path ?? current).commands;
       },
